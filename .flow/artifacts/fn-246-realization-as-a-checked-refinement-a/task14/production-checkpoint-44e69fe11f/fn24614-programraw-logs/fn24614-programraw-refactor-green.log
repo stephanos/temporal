@@ -1,0 +1,5 @@
+# umpire.local/temporal/reference/worker [umpire.local/temporal/reference/worker.test]
+reference/worker/program_transport_test.go:8:2: "go.temporal.io/api/common/v1" imported as commonpb and not used
+FAIL	umpire.local/temporal/reference/worker [build failed]
+ok  	umpire.local/temporal/reference/worker/raw	0.280s
+FAIL

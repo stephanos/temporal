@@ -1,0 +1,183 @@
+{
+  "task_id": "fn-246-realization-as-a-checked-refinement-a.14",
+  "subtask": "production_schema_rust",
+  "status": "implemented for parent join; full task remains in_progress",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+  "base_commit": "93a9d06479fe706b41fe77c7004cfedd7cf2ed5e",
+  "commits": [],
+  "owned_paths": [
+    "model/Cargo.lock",
+    "model/temporal/api/system.rs",
+    "model/temporal/feature/activity/api.rs",
+    "model/temporal/feature/activity/claims.rs",
+    "model/temporal/feature/activity/temporal.rs",
+    "model/temporal/feature/activity/expected/realization.txt.snap",
+    "model/temporal/realization/Cargo.toml",
+    "model/temporal/realization/tests/program.rs",
+    "model/temporal/realization/tests/program_history.rs",
+    "model/temporal/realization/tests/catalog.rs",
+    "model/temporal/proto/umpire/temporal/v1/activity.proto",
+    "model/temporal/proto/umpire/temporal/v1/temporal.proto",
+    "model/temporal/hosts/go/umpire/temporal/v1/activity.pb.go",
+    "model/temporal/hosts/go/umpire/temporal/v1/temporal.pb.go",
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm"
+  ],
+  "source_hashes": {
+    "model/Cargo.lock": "a3d3d77d73634ca494a9ce4182d31bc3d88dc92ae6ce2f6a88398634377ada18",
+    "model/temporal/api/system.rs": "cba06f68d1d8dbeb0afb2d3226639116c541bdb904c9fa893853b7543d322055",
+    "model/temporal/feature/activity/api.rs": "69244ec64da68895f072ccb624c7811d65f85499a0d052876c2230f955071ac9",
+    "model/temporal/feature/activity/claims.rs": "a6655c55680bc81385d4479557ec4bcff5024e64523c7f5adea7e561f2752155",
+    "model/temporal/feature/activity/temporal.rs": "bb3c7b404ea950b0ca1424803ef068ed2be01bc7ac57d1f260af138320a049bc",
+    "model/temporal/feature/activity/expected/realization.txt.snap": "0da6db0eb7ee111248187b864ac78e88999e349cd20bf3952800f129e5c1f0e6",
+    "model/temporal/realization/Cargo.toml": "fcd46654b259e11b2f932a97c32cb5a3597c482b44e4013551f4a6ceb667797e",
+    "model/temporal/realization/tests/program.rs": "97f618060a67cd5f4feaf60519cd7e92fd3765db1e61c5487978684cba559e59",
+    "model/temporal/realization/tests/program_history.rs": "f31dd2b38a65108fd54793e62254026347cfe913330d45f616f648f2d587d5e2",
+    "model/temporal/realization/tests/catalog.rs": "9a8e4e9f9d863eb52d4057deac2733a3e7779893d51c53f7b49e194371dc7e3d",
+    "model/temporal/proto/umpire/temporal/v1/activity.proto": "957bbbf25036d02885d1c3727176d1c46fa81d2a81a6e60306ee0d8d2bf4ec2c",
+    "model/temporal/proto/umpire/temporal/v1/temporal.proto": "4a68267023bb52c4d8dfff6fdca6cde9c6f8b85170df65ee31881428f8b330fb",
+    "model/temporal/hosts/go/umpire/temporal/v1/activity.pb.go": "081aa6932c1c3a340306784aeb10c178a1acb5e6db5b759dd2df3f03b5c656cd",
+    "model/temporal/hosts/go/umpire/temporal/v1/temporal.pb.go": "fcc799ed406b242aa7a69484bfd6b1f2f8cee1c602e8f80f51ebb8eac4eb7764",
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm": "45de7934e04ba65b6818dec730fe48746660d3b475364ea523222247ee4c3cee"
+  },
+  "log_hashes": {
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-domain-red.log": "8013408b7af898fa96d0503dbec8c3913582272557760f4c45ccf8e670fc8596",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-baseline.log": "ff52c313098843eb304707bf899d8fe344db9f41057f2ac76d62db4a9ae03cd3",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-clippy.log": "7cee5844af7188b2055652fd90c39ea89c128c56159550582194aa222673a997",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-generic-clippy-final.log": "753c6bd788d61b3e34778b9b6efc1e8db01cfdded3665816c2c413a34aec81fb",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-generic-coverage-final.log": "867e9570bfd8cf0b048fe9d86fd5cd291156dc8ff522b9ded91ea7ee44ae27ff",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-coverage-green.log": "4be546551340e652bab4ba9e086af183c71964def9e9fc4de9de3f5d2a4a74e0",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-domain-green.log": "a661cbaec0197954624da78bf9a4ac2ca9a01f1d1af1fbaae3eb5461f258ad15",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-descriptor-final.log": "ca02564c7963036b34114b44765fe84e856f2418b96faeb72a4fb36d58faaf22",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-guest-final.log": "c3c2496a4a35a5982c1c3314734c08c165d0a7c4b71016ec781c3f26400d5a1f",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-format-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-guest.log": "8d19e8c869150d24c84c126351bb7aa18cf7717be2564bbf72f50f3850bb7372",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-usage.log": "97347de36740191519433e960fa74a6d9a104152b439c1f4b96d161433937986",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-guest-check-final.log": "44bdb5e8478ab10e42412052833d5cb1216db35fcf7b6d9a47a75901c23dd8a6",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-proto-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-focused.log": "42d5c87685262533724fae15b07e54efe5692be4cb040721c9d0e705eb88f8bc",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-focused-final.log": "6b04e711953584eb97c74512acce855eb2fa516f913e5e62d3f14a963bca0dd5",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-coverage-red.log": "309ebd8263eec2fd85cacab08f4d1b307cb4f0de55d979b0d964df24fab53023",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-generic-final.log": "c7b4e16c2694220e24c8e10a377c7f8bc54079fbaab50bd2f3c3b2a3839fd18a",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-generate.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-generate-call-error.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-clippy-final.log": "ef642a0a3b1550b57882c0a79c9c7ec9af612e9897203ce4766c38da49be400d",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-generic-domains.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-schema-proto-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-realization-before.snap": "565e148ee8bdbf1f768c42e5a87aa33cedae5b4d338aade284fbf7e7f1f1452d",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-realization-candidate.snap": "3a7d5d3d808f4726afd5f020cb7f54c1d2863f054985a6303b1025dd09718cbb",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-schema/logs/fn24614-realization-delta.patch": "0d0267507677fa0dd7b46915a5cf3ec2638123f3a3d12ee41a86fd260c710448"
+  },
+  "commands": [
+    {
+      "cwd": "model",
+      "command": "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal --test program --test catalog",
+      "exit_code": 0,
+      "log": "fn24614-schema-baseline.log",
+      "phase": "baseline"
+    },
+    {
+      "cwd": "model",
+      "command": "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal --test program_history heartbeat_domains_follow_checked_model_histories",
+      "exit_code": 101,
+      "log": "fn24614-schema-domain-red.log",
+      "phase": "red reproduction",
+      "note": "Intended failure because independent derivation had not been implemented."
+    },
+    {
+      "cwd": "model",
+      "command": "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal --test program --test program_history --test catalog",
+      "exit_code": 0,
+      "log": "fn24614-schema-generic-final.log",
+      "phase": "verify",
+      "counts": {
+        "catalog": 16,
+        "program": 5,
+        "program_history": 14
+      }
+    },
+    {
+      "cwd": "model",
+      "command": "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo clippy -p umpire-temporal --test program --test program_history --test catalog -- -D warnings",
+      "exit_code": 0,
+      "log": "fn24614-schema-generic-clippy-final.log",
+      "phase": "verify"
+    },
+    {
+      "cwd": "model",
+      "command": "mise exec -- rustfmt --check --edition 2024 --config skip_children=true temporal/api/system.rs temporal/feature/activity/api.rs temporal/feature/activity/claims.rs temporal/feature/activity/temporal.rs temporal/realization/tests/program.rs temporal/realization/tests/program_history.rs temporal/realization/tests/catalog.rs",
+      "exit_code": 0,
+      "log": "fn24614-schema-format-final.log",
+      "phase": "verify"
+    },
+    {
+      "cwd": "model",
+      "command": "timeout 600 env -u UMPIRE_BACKENDS -u UMPIRE_APALACHE CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal-tests --test fixtures -- --exact fixtures --nocapture",
+      "exit_code": 0,
+      "log": "fn24614-schema-generic-coverage-final.log",
+      "phase": "verify",
+      "note": "Exact coverage fixture. TLC explicitly skipped; external live gaps neither executed nor compared."
+    },
+    {
+      "cwd": "model",
+      "command": "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal-api --test descriptor",
+      "exit_code": 0,
+      "log": "fn24614-schema-descriptor-final.log",
+      "phase": "verify",
+      "count": 5
+    },
+    {
+      "cwd": ".",
+      "command": "bash model/scripts/proto-go.sh temporal --check",
+      "exit_code": 0,
+      "log": "fn24614-schema-proto-final.log",
+      "phase": "verify"
+    },
+    {
+      "cwd": ".",
+      "command": "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 bash model/scripts/guest.sh umpire-temporal-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/umpire_temporal_guest.wasm",
+      "exit_code": 0,
+      "log": "fn24614-schema-guest-final.log",
+      "phase": "generate",
+      "guest_profile_seconds": 37.87
+    },
+    {
+      "cwd": ".",
+      "command": "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 bash model/scripts/guest.sh umpire-temporal-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/umpire_temporal_guest.wasm --check",
+      "exit_code": 0,
+      "log": "fn24614-schema-guest-check-final.log",
+      "phase": "verify",
+      "guest_profile_seconds": 37.83
+    }
+  ],
+  "tests": [
+    "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal --test program --test catalog",
+    "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal --test program --test program_history --test catalog",
+    "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo clippy -p umpire-temporal --test program --test program_history --test catalog -- -D warnings",
+    "mise exec -- rustfmt --check --edition 2024 --config skip_children=true temporal/api/system.rs temporal/feature/activity/api.rs temporal/feature/activity/claims.rs temporal/feature/activity/temporal.rs temporal/realization/tests/program.rs temporal/realization/tests/program_history.rs temporal/realization/tests/catalog.rs",
+    "timeout 600 env -u UMPIRE_BACKENDS -u UMPIRE_APALACHE CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal-tests --test fixtures -- --exact fixtures --nocapture",
+    "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal-api --test descriptor",
+    "bash model/scripts/proto-go.sh temporal --check",
+    "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 bash model/scripts/guest.sh umpire-temporal-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/umpire_temporal_guest.wasm --check"
+  ],
+  "prs": [],
+  "scope_approvals": [
+    "feature/activity/api.rs heartbeat classify/factory registrations",
+    "realization/Cargo.toml direct existing umpire-checker edge and same package edge in Cargo.lock only",
+    "feature/activity/expected/realization.txt.snap exact rendered heartbeat additions"
+  ],
+  "fixture_delta": "Exactly three semantic report lines add the newly registered heartbeat to the existing unhandled-context inventory. Renderer and all Model expectations unchanged.",
+  "abi_notes": [
+    "WorkerProgram.continuation_domains is repeated Any; typed ActivityTaskSuccessors stays in activity.proto.",
+    "WorkerRPCTrace.call_error=12 packs exact diagnostic google.rpc.Status through Any without schema import.",
+    "Current Reset terminal-only programs retain empty observable histories and empty continuation declarations.",
+    "Public Realization::heartbeat_successors and validate_heartbeat_successors derive/check domains from checked full Model histories using existing Traversal; no Model policy or hidden-state inference in Go."
+  ],
+  "tooling_notes": [
+    "Guest builds emit existing unstable exception-handling target-feature warnings; generation/freshness exits are zero.",
+    "Pinned root protoc-gen-go-v1.36.6 is referenced through ignored worktree .bin symlink.",
+    "No whole-model backend or live-service proof is claimed.",
+    "No commits, lifecycle changes or review verdict were issued.",
+    "No Model source edits.",
+    "All owned commands terminated; sole continuation Rust target lease released."
+  ]
+}

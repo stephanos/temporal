@@ -1,0 +1,4 @@
+=== RUN   TestProductionSDKWrongActualTerminalMethodFaults
+--- PASS: TestProductionSDKWrongActualTerminalMethodFaults (0.04s)
+PASS
+ok  	umpire.local/temporal/reference/worker/sdk	0.043s

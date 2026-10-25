@@ -1,0 +1,6 @@
+# umpire.local/temporal/reference/worker/raw [umpire.local/temporal/reference/worker/raw.test]
+reference/worker/raw/raw_test.go:151:2: observeErr redeclared
+	reference/worker/raw/raw_test.go:150:2: other declaration of observeErr
+ok  	umpire.local/temporal/reference/worker	0.005s
+FAIL	umpire.local/temporal/reference/worker/raw [build failed]
+FAIL

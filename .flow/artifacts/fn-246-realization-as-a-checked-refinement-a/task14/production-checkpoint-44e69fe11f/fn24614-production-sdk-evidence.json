@@ -1,0 +1,129 @@
+{
+  "task_id": "fn-246-realization-as-a-checked-refinement-a.14",
+  "status": "in_progress",
+  "slice": "production native SDK follower and actual transport controls",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+  "base_commit": "93a9d06479fe706b41fe77c7004cfedd7cf2ed5e",
+  "commits": [],
+  "tests": [
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker/sdk -run '^TestProductionSDKJoinsNotificationAndNativeCancellationInEitherOrder/publication$' -count=100",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/sdk -run '^TestTerminalEnqueueBackpressureJoinsWithoutPublishing$' -count=1 -v",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker/sdk -count=10",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m ./reference/worker/sdk",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml reference/worker/sdk/sdk.go reference/worker/sdk/sdk_test.go reference/worker/sdk/namespace_test.go reference/worker/sdk/continuation_test.go",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./reference/worker/sdk"
+  ],
+  "commands": [
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/sdk",
+      "exit_code": 0,
+      "phase": "baseline",
+      "log": "fn24614-sdk-production-baseline.log",
+      "note": "Cached unchanged SDK package before edits."
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/sdk -run '^TestCanceledConversionPreservesPayload$' -count=1",
+      "exit_code": 1,
+      "phase": "red",
+      "log": "fn24614-sdk-production-convert-red.log",
+      "note": "Expected pre-implementation unsupported Canceled request conversion."
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker/sdk -run '^TestProductionSDKJoinsNotificationAndNativeCancellationInEitherOrder/publication$' -count=100",
+      "exit_code": 1,
+      "phase": "diagnostic",
+      "log": "fn24614-sdk-production-publication-race-diagnostic.log",
+      "note": "Five causal failures. Bridge rejected delayed heartbeat publication after independent poll sequence; parent fixed exact correlation bug."
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker/sdk -run '^TestProductionSDKJoinsNotificationAndNativeCancellationInEitherOrder/publication$' -count=100",
+      "exit_code": 0,
+      "phase": "verify",
+      "log": "fn24614-sdk-production-publication-race-final.log",
+      "note": "100 actual native SDK delayed-publication runs after parent bridge fix, 1.888 seconds."
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/sdk -run '^TestTerminalEnqueueBackpressureJoinsWithoutPublishing$' -count=1 -v",
+      "exit_code": 0,
+      "phase": "verify",
+      "log": "fn24614-sdk-production-enqueue-final.log",
+      "note": "Focused helper unit; synthetic poll registration only, no actual SDK/native/live claim."
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker/sdk -count=10",
+      "exit_code": 0,
+      "phase": "verify",
+      "log": "fn24614-sdk-production-race-final.log",
+      "note": "Full SDK package including preserved proof tests and production controls, 106.287 seconds."
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m ./reference/worker/sdk",
+      "exit_code": 0,
+      "phase": "verify",
+      "log": "fn24614-sdk-production-unfiltered-lint-final.log",
+      "note": "Unfiltered full SDK package, zero issues; no lint suppression/threshold changes."
+    },
+    {
+      "command": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml reference/worker/sdk/sdk.go reference/worker/sdk/sdk_test.go reference/worker/sdk/namespace_test.go reference/worker/sdk/continuation_test.go",
+      "exit_code": 0,
+      "phase": "verify",
+      "log": "fn24614-sdk-production-fmt-final.log",
+      "note": "Empty formatter diff."
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./reference/worker/sdk",
+      "exit_code": 0,
+      "phase": "verify",
+      "log": "fn24614-sdk-production-vet-final.log"
+    }
+  ],
+  "source_hashes": {
+    "model/temporal/hosts/go/reference/worker/sdk/sdk.go": "1e5af4e0db31bf4152c15c4836fef560f6b6d8b5afe63657761d717bb8958680",
+    "model/temporal/hosts/go/reference/worker/sdk/sdk_test.go": "c85885520696907fc79a1ef053c45369895fcc9593eb52fc233c2370d23f71d0",
+    "model/temporal/hosts/go/reference/worker/sdk/namespace_test.go": "e9b23376a923e92694fc257a1d086cd28f00e722668f9bfbeb1504b38d0cf7cc",
+    "model/temporal/hosts/go/reference/worker/sdk/continuation_test.go": "f30c366893bacaa534e1a3d1472f4ba6184ab3fe431dead631cbe36a3df756d0"
+  },
+  "log_hashes": {
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-unfiltered-lint-third.log": "66b3ee3bba09d18bbdf737438de63e3abfc6c12f6e890b7a484bce46c3bd98a0",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-vet.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-enqueue-final.log": "fba5a9c3517a5fd780bf8dda6ddc3dca18019d5b826c10b382800408a82e5780",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-publication-race-diagnostic.log": "15a229e58f632fa174213aff5dae93676e1a4a1cff8aae7ebccbdcf8b0f17eb7",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-fmt-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-vet-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-unfiltered-lint-second.log": "572b7e88d37b5e2dbbd5cc81e0272a94544ed228f7be0926368d2dbaa11cb357",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-ninth.log": "e3085470b590ba8ee909989853c74fd13227c414e52fe4302a9397bae049400d",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-convert-red.log": "5037c28b4998f26dfc15deec1ac307828bfb7f083a20ddb3a023bc0cf21e04fb",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-publication-race-final.log": "105ad1abb413ce061cf88ef545a9635aabe289301e6ab3fd047e52edf85bd580",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-unfiltered-lint-fourth.log": "167b1ae31ee12b7616f96b4718db64c9e52a1a83004b44f68819b707157605ed",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-lint.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-race-final.log": "a6ac80a47b0048bd6ccc95119d5c411d3aec0cb75b68c41da819e45094965c26",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-race.log": "384c126e94fe51d9e55d4d33726a83403d811e118e59fea642a2ae0f2e680b6d",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-third.log": "187c4a834db969ec793931fa4ae65146f2ecd0de9a750100e92d78341bf7712f",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-sixth.log": "937ced4e0d8b53540c76b0c00483ed57fb5ea217191f1da245833a6294e4c2c7",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-fifth.log": "acec4eef673393a4c0949e6d2769125eee8e0932297136006338df2d8eaafaac",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-fourth.log": "1fad9f87bde4ac8d9cf62b2dc0c9a5d8146cea9210802f8a307f107fd72e0c23",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-eighth.log": "b50bb36cb8d2fac49791ffac037dd237d9b69ea22b9281e58fed0a4d92a71dd9",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-tenth.log": "4855ccdd803ca29220877a46873f4366f1d103a431d6712c2bea29de1c1d1193",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-enqueue.log": "08189ade8e392e1c2f43771ece2acf813b34d1c743da6c78444a039c9b80d44d",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-unfiltered-lint-final.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-second.log": "a874baea52be6a1a03cb08dd9a47d822cdc8987f766e473f22274b44d58f4fd2",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-registration.log": "6b8b2ddf0905be60d2021f8716e4741933d14ceda100483bae5781fd5315def9",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-first.log": "998fe0897e08693dfe4800bd6c7c3793fcdc5dc130a96a70dffb69256f1e60bd",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-usage.log": "97347de36740191519433e960fa74a6d9a104152b439c1f4b96d161433937986",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-seventh.log": "a020e500c5840863c4700f7064e10ef0e52f441be86113eadc716deab0d96215",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-unfiltered-lint.log": "8ff1fb707b27ed0de017d73d8ee0b785f58e301c849e251738ea551886d4a66b",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-baseline.log": "2d149ea10712852eee68586c82f99eee809cc8020b68c1d08b11fb4b8565726e",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-sdk-logs/fn24614-sdk-production-wrong-method.log": "f83e194e804844aa3dabd148d868597eb3f493d2ef7feef8a14b868873b438aa"
+  },
+  "prs": [],
+  "review": "none dispatched or claimed; parent owns review",
+  "owned_commands": "All launched commands terminal, including final race host59738 and lint/fmt/vet host90687.",
+  "limitations": [
+    "No live Temporal service witness; original fn237.4 admission/journal/wrapper/cuts/gates/live obligations remain unchanged.",
+    "Namespace-bound client creation preserves the inherited connection/transport; pinned NewClientFromExisting does not copy outer client converter/interceptor options. The context adaptation preserves the bound activity SDK values. Causal test worker interceptors use an approved unexported followWithOptions helper with public worker.Options; positive default-path tests call Follow directly.",
+    "SDK startup refuses Canceled leaves with no prior true, Failed requests whose FailureToError conversion becomes CanceledError, Completed responses with other than one payload, unsupported response fields, and present-empty heartbeat Details that native no-argument RecordHeartbeat cannot preserve. These are explicit representability errors, not R6 coverage credit.",
+    "Terminal enqueue backpressure is separately checked by a helper unit with a bounded full queue and context-registration barrier; actual terminal RPC hold tests are labeled coordinator/post-return transport waits rather than enqueue proof.",
+    "Outer parent owns full module/root Go, Rust/protobuf/guest freshness, integrated source gates and task lifecycle."
+  ]
+}

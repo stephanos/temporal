@@ -1,0 +1,21 @@
+=== RUN   TestFactoryComposesActualHeartbeatContinuationAndFaultCapture
+=== RUN   TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/sdk/actual-true
+    continuation_test.go:165: heartbeat wait: context deadline exceeded; assigned=true; close=handler does not match one unclaimed actual poll assignment
+        handler does not match one unclaimed actual poll assignment
+        handler does not match one unclaimed actual poll assignment
+        handler does not match one unclaimed actual poll assignment
+        handler does not match one unclaimed actual poll assignment
+        handler does not match one unclaimed actual poll assignment
+        handler does not match one unclaimed actual poll assignment
+        handler does not match one unclaimed actual poll assignment
+        handler does not match one unclaimed actual poll assignment
+        handler does not match one unclaimed actual poll assignment
+        handler does not match one unclaimed actual poll assignment
+=== RUN   TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/sdk/mutated-heartbeat
+    continuation_test.go:159: composed executor fault before heartbeat: worker executor: handler does not match one unclaimed actual poll assignment; assigned=true
+--- FAIL: TestFactoryComposesActualHeartbeatContinuationAndFaultCapture (11.01s)
+    --- FAIL: TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/sdk/actual-true (10.00s)
+    --- FAIL: TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/sdk/mutated-heartbeat (1.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/umpire/temporaldriver	11.012s
+FAIL

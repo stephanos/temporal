@@ -1,0 +1,64 @@
+=== RUN   TestProductionSDKFollowsActualHeartbeatHistory
+=== RUN   TestProductionSDKFollowsActualHeartbeatHistory/completed
+=== RUN   TestProductionSDKFollowsActualHeartbeatHistory/failed
+=== RUN   TestProductionSDKFollowsActualHeartbeatHistory/canceled
+--- PASS: TestProductionSDKFollowsActualHeartbeatHistory (0.24s)
+    --- PASS: TestProductionSDKFollowsActualHeartbeatHistory/completed (0.10s)
+    --- PASS: TestProductionSDKFollowsActualHeartbeatHistory/failed (0.07s)
+    --- PASS: TestProductionSDKFollowsActualHeartbeatHistory/canceled (0.07s)
+=== RUN   TestProductionSDKRefusesUnnotifiedCanceledLeaf
+--- PASS: TestProductionSDKRefusesUnnotifiedCanceledLeaf (0.00s)
+=== RUN   TestProductionSDKTerminalCoordinatorRejectsActualMismatch
+=== RUN   TestProductionSDKTerminalCoordinatorRejectsActualMismatch/mutated-completion
+=== RUN   TestProductionSDKTerminalCoordinatorRejectsActualMismatch/failed-validation
+--- PASS: TestProductionSDKTerminalCoordinatorRejectsActualMismatch (0.00s)
+    --- PASS: TestProductionSDKTerminalCoordinatorRejectsActualMismatch/mutated-completion (0.00s)
+    --- PASS: TestProductionSDKTerminalCoordinatorRejectsActualMismatch/failed-validation (0.00s)
+=== RUN   TestProductionSDKRetryWaitsForActualSuccess
+--- PASS: TestProductionSDKRetryWaitsForActualSuccess (0.17s)
+=== RUN   TestProductionSDKCancelOutstandingHeartbeatJoins
+--- PASS: TestProductionSDKCancelOutstandingHeartbeatJoins (0.00s)
+=== RUN   TestProductionSDKJoinsNotificationAndNativeCancellationInEitherOrder
+=== RUN   TestProductionSDKJoinsNotificationAndNativeCancellationInEitherOrder/delivery
+=== RUN   TestProductionSDKJoinsNotificationAndNativeCancellationInEitherOrder/publication
+--- PASS: TestProductionSDKJoinsNotificationAndNativeCancellationInEitherOrder (0.00s)
+    --- PASS: TestProductionSDKJoinsNotificationAndNativeCancellationInEitherOrder/delivery (0.00s)
+    --- PASS: TestProductionSDKJoinsNotificationAndNativeCancellationInEitherOrder/publication (0.00s)
+=== RUN   TestProductionSDKRunCancellationJoinsBlockedStages
+=== RUN   TestProductionSDKRunCancellationJoinsBlockedStages/registration
+=== RUN   TestProductionSDKRunCancellationJoinsBlockedStages/native-rpc
+=== RUN   TestProductionSDKRunCancellationJoinsBlockedStages/batch
+=== RUN   TestProductionSDKRunCancellationJoinsBlockedStages/true-join
+=== RUN   TestProductionSDKRunCancellationJoinsBlockedStages/publication
+=== RUN   TestProductionSDKRunCancellationJoinsBlockedStages/terminal
+--- PASS: TestProductionSDKRunCancellationJoinsBlockedStages (1.01s)
+    --- PASS: TestProductionSDKRunCancellationJoinsBlockedStages/registration (0.00s)
+    --- PASS: TestProductionSDKRunCancellationJoinsBlockedStages/native-rpc (0.00s)
+    --- PASS: TestProductionSDKRunCancellationJoinsBlockedStages/batch (0.00s)
+    --- PASS: TestProductionSDKRunCancellationJoinsBlockedStages/true-join (0.00s)
+    --- PASS: TestProductionSDKRunCancellationJoinsBlockedStages/publication (0.00s)
+    --- PASS: TestProductionSDKRunCancellationJoinsBlockedStages/terminal (1.00s)
+=== RUN   TestProductionSDKInitialUnprogrammedFailureRemainsTerminal
+--- PASS: TestProductionSDKInitialUnprogrammedFailureRemainsTerminal (0.00s)
+=== RUN   TestProductionSDKActivityDeadlineJoinsBlockedStages
+=== RUN   TestProductionSDKActivityDeadlineJoinsBlockedStages/native-rpc
+=== RUN   TestProductionSDKActivityDeadlineJoinsBlockedStages/batch
+=== RUN   TestProductionSDKActivityDeadlineJoinsBlockedStages/true-join
+=== RUN   TestProductionSDKActivityDeadlineJoinsBlockedStages/publication
+=== RUN   TestProductionSDKActivityDeadlineJoinsBlockedStages/terminal
+--- PASS: TestProductionSDKActivityDeadlineJoinsBlockedStages (1.77s)
+    --- PASS: TestProductionSDKActivityDeadlineJoinsBlockedStages/native-rpc (0.15s)
+    --- PASS: TestProductionSDKActivityDeadlineJoinsBlockedStages/batch (0.15s)
+    --- PASS: TestProductionSDKActivityDeadlineJoinsBlockedStages/true-join (0.15s)
+    --- PASS: TestProductionSDKActivityDeadlineJoinsBlockedStages/publication (0.15s)
+    --- PASS: TestProductionSDKActivityDeadlineJoinsBlockedStages/terminal (1.15s)
+=== RUN   TestProductionSDKMalformedHeartbeatCannotSelectFalse
+--- PASS: TestProductionSDKMalformedHeartbeatCannotSelectFalse (0.00s)
+=== RUN   TestProductionSDKCrossedHeartbeatRequestFaults
+--- PASS: TestProductionSDKCrossedHeartbeatRequestFaults (0.00s)
+=== RUN   TestProductionSDKConcurrentAssignmentsKeepAttemptAndRun
+--- PASS: TestProductionSDKConcurrentAssignmentsKeepAttemptAndRun (0.02s)
+=== RUN   TestProductionSDKCollidingTokenAssignmentsRefuse
+--- PASS: TestProductionSDKCollidingTokenAssignmentsRefuse (0.00s)
+PASS
+ok  	umpire.local/temporal/reference/worker/sdk	3.225s

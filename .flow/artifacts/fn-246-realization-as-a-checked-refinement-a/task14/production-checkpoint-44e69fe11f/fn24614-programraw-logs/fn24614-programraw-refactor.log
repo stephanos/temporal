@@ -1,0 +1,5 @@
+# umpire.local/temporal/reference/worker
+reference/worker/program.go:176:4: syntax error: unexpected keyword return at end of statement
+FAIL	umpire.local/temporal/reference/worker [build failed]
+FAIL	umpire.local/temporal/reference/worker/raw [build failed]
+FAIL

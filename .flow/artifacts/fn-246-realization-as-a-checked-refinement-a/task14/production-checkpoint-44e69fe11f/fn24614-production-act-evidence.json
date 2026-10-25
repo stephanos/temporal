@@ -1,0 +1,171 @@
+{
+  "task_id": "fn-246.14",
+  "slice": "act capture, temporaldriver adapter/composition, generic Runner Driver.Close evidence",
+  "status": "in_progress; slice ready, source uncommitted for parent sole commit ownership",
+  "base_commit": "93a9d06479fe706b41fe77c7004cfedd7cf2ed5e",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+  "commits": [],
+  "tests": [
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver -run '^Test(Worker|FactoryComposes)' -count=10",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./common/testing/testpilot/temporal/act -count=10",
+    "timeout 600 env UMPIRE_STATEFUL_WASM=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/wasm32-wasip1/guest/stateful_control.wasm UMPIRE_KETTLE_WASM=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/wasm32-wasip1/guest/umpire_kettle_guest.wasm GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./runner",
+    "timeout 600 env UMPIRE_STATEFUL_WASM=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/wasm32-wasip1/guest/stateful_control.wasm GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./runner -run '^TestDriver(ClosePreservesEvidenceCapturedAfterExchangeClose|FaultEvidence)' -count=1",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=.github/.golangci.yml --build-tags=test_dep --timeout=10m ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m ./runner",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m --new-from-patch=/tmp/fn24614-act-runner-lint.patch ./runner",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./runner",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=.github/.golangci.yml common/testing/testpilot/temporal/act/worker.go common/testing/testpilot/temporal/act/worker_test.go common/testing/testpilot/temporal/act/act.go common/testing/testpilot/temporal/act/act_test.go common/testing/testpilot/temporal/act/exchange.go tools/umpire/temporaldriver/driver.go tools/umpire/temporaldriver/guards_test.go tools/umpire/temporaldriver/continuation_test.go model/umpire/hosts/go/runner/session.go model/umpire/hosts/go/runner/fault_evidence_test.go"
+  ],
+  "commands": [
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "exit_code": 0,
+      "log": "fn24614-act-baseline.log",
+      "phase": "baseline"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "exit_code": 0,
+      "log": "fn24614-act-final.log",
+      "phase": "verify"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver -run '^Test(Worker|FactoryComposes)' -count=10",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "exit_code": 0,
+      "log": "fn24614-act-final-race.log",
+      "phase": "verify"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./common/testing/testpilot/temporal/act -count=10",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "exit_code": 0,
+      "log": "fn24614-act-race.log",
+      "phase": "verify before final integration refinements"
+    },
+    {
+      "command": "timeout 600 env UMPIRE_STATEFUL_WASM=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/wasm32-wasip1/guest/stateful_control.wasm UMPIRE_KETTLE_WASM=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/wasm32-wasip1/guest/umpire_kettle_guest.wasm GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./runner",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/hosts/go",
+      "exit_code": 0,
+      "log": "fn24614-act-runner-all.log",
+      "phase": "verify"
+    },
+    {
+      "command": "timeout 600 env UMPIRE_STATEFUL_WASM=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/wasm32-wasip1/guest/stateful_control.wasm GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./runner -run '^TestDriver(ClosePreservesEvidenceCapturedAfterExchangeClose|FaultEvidence)' -count=1",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/hosts/go",
+      "exit_code": 0,
+      "log": "fn24614-act-runner-current.log",
+      "phase": "verify"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=.github/.golangci.yml --build-tags=test_dep --timeout=10m ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "exit_code": 0,
+      "log": "fn24614-act-final-unfiltered-lint.log",
+      "phase": "verify"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m ./runner",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/hosts/go",
+      "exit_code": 1,
+      "log": "fn24614-act-runner-final-unfiltered-lint.log",
+      "phase": "verify",
+      "attribution": "Two inherited unchanged source findings at base 93a9d06479fe706b41fe77c7004cfedd7cf2ed5e; program.go:48 ST1005 and replay.go:50 max-control-nesting. Neither file is changed by this slice."
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m --new-from-patch=/tmp/fn24614-act-runner-lint.patch ./runner",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/hosts/go",
+      "exit_code": 0,
+      "log": "fn24614-act-runner-final-changed-lint.log",
+      "phase": "verify"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "exit_code": 0,
+      "log": "fn24614-act-final-vet.log",
+      "phase": "verify"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./runner",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/hosts/go",
+      "exit_code": 0,
+      "log": "fn24614-act-runner-final-vet.log",
+      "phase": "verify"
+    },
+    {
+      "command": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=.github/.golangci.yml common/testing/testpilot/temporal/act/worker.go common/testing/testpilot/temporal/act/worker_test.go common/testing/testpilot/temporal/act/act.go common/testing/testpilot/temporal/act/act_test.go common/testing/testpilot/temporal/act/exchange.go tools/umpire/temporaldriver/driver.go tools/umpire/temporaldriver/guards_test.go tools/umpire/temporaldriver/continuation_test.go model/umpire/hosts/go/runner/session.go model/umpire/hosts/go/runner/fault_evidence_test.go",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "exit_code": 0,
+      "log": "fn24614-act-current-fmt.log",
+      "phase": "verify"
+    }
+  ],
+  "source_sha256": {
+    "common/testing/testpilot/temporal/act/act.go": "15100e3a60119aae3f6c204e76af139eb948f439a35d7b63d531c5b5c9c2e7e0",
+    "common/testing/testpilot/temporal/act/act_test.go": "95078b0eafe1b25a82e13dfad8d049df2c55c3d509bb493851c7b504bd0d44cf",
+    "common/testing/testpilot/temporal/act/exchange.go": "665ebba0cf45c0a05a2eedb11296e1dc23bf89ff26be791f8a8ae2b1f4012bae",
+    "common/testing/testpilot/temporal/act/worker.go": "cb17712b3c4a7acfac02b21daa1a5227d9de1573b23e95c895f8a25207dbc139",
+    "common/testing/testpilot/temporal/act/worker_test.go": "441647734cb75f37db161284e4f1edc6a3cf0af36a75bc1ef0f33b3e3ecfb1cc",
+    "tools/umpire/temporaldriver/driver.go": "6696da5e7a31cda346bf4a950c81d2d47bde6571fefa52c9925d3cf669fce5a2",
+    "tools/umpire/temporaldriver/guards_test.go": "78fbad9519771cca40f43276f5e8998ddba73fb422cc10c77da542097a95c09e",
+    "tools/umpire/temporaldriver/continuation_test.go": "c21ee684938631a07144b5a1ce4513669d44d140f7aa3f8d32c93e1e92bccaf7",
+    "model/umpire/hosts/go/runner/session.go": "fe36a2c79240ae9efad7f53acf773f2a7d2062292f5c4bfc36b514fb074e3bbb",
+    "model/umpire/hosts/go/runner/fault_evidence_test.go": "deacd5cb51198e7e359c449dddd39c186bb38d2ee60dbadb67b1cf338f750a3f"
+  },
+  "logs_sha256": {
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-baseline.log": "2a4efa9851abfc88cbd7892d0d4d64684d697c99a8191c2e48f0ed0a55526852",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-capture-first.log": "6b1e80650f68cb6e4244f0bf7e820cdd42e06f68de5d5e314f902e71ca382733",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-capture-lifetime.log": "533f9c410a0801de6df943bd22bcd258dfd8d21557f5d54e685380dcaa900f26",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-capture-second.log": "e84112b3dd0ff3c6d666a580dc32ac7637f79bea649615cba08ff6a61d1493e8",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-capture-third.log": "e4097005b8f0cf989e1f88d23d5ef2f7952ac08a412f35139d2f5f7f13a0626d",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-composed-diagnostic.log": "76584053382a325fde3c31c35c3db1805a260cecfe4a3f4e9951df6bc6d329d4",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-composed-first.log": "06fc85bf15319be1803a18948585a3f1d40b535d596a01845675cdcecef5b1f0",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-composed-second.log": "e4a8ca26c560387aacf393086c598e82526131d4851095cafe75cb91a8ca3c92",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-composed-third.log": "0e39fb8ba6e4b63fff54ec1ac421c25a5c9f86b3fcc88a95b5dcee787e20bbb8",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-current-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-final-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-final-lint.log": "95369838d87f5af4fc76ed9bc71046d27f8bbfcee8a6a292e8ed95f831f29afc",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-final-race.log": "6b85955f82a5e27e2498d705a1d44ba5e8d4bc7220c967c728fd90d7bb80e303",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-final-unfiltered-lint.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-final-vet.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-final.log": "97ad97da8f1b0c4c453e16fd3735aca01b9c7747bf4cf877303c889066611851",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-joined-first.log": "7db34f19554be4f35fe18ec92544124e193c0cd3a8f82c5107f20e2dbdfedb33",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-lint.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-race.log": "d5c4251fef2230328ba9aa843408581579e5945fabde3264c9d53824df54d161",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-runner-all.log": "d3217219ba07cbbcd9e354a17bdc186ac022773a7401893c3bdf6bba3e958cfe",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-runner-current.log": "5e4b8cf67cd352c1f3fe7c94e8558287390678e27c5f734b774aea3697e876ce",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-runner-final-changed-lint.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-runner-final-unfiltered-lint.log": "5fb524745b1c31b38b9d67ff1e300418f9acf7acce86011cbf591b515c39e574",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-runner-final-vet.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-runner-green.log": "faaebc4792a685dc135fbd22f44fb6fa0b7e4da8fe820c3deabb6b737d884dd6",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-runner-red.log": "74476ecb03ae94597a190e597115da9dd6972be0a2613ee94261033ce30182a6",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-runner-unfiltered-lint.log": "c7339223e2a67ddf7fbfc851df66389b2a12739ec0b3f4c50a7f28cdac670cd8",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-unfiltered-lint.log": "95369838d87f5af4fc76ed9bc71046d27f8bbfcee8a6a292e8ed95f831f29afc",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-logs/fn24614-act-usage.log": "97347de36740191519433e960fa74a6d9a104152b439c1f4b96d161433937986"
+  },
+  "inherited_lint": {
+    "base": "93a9d06479fe706b41fe77c7004cfedd7cf2ed5e",
+    "findings": [
+      "model/umpire/hosts/go/runner/program.go:48 ST1005 capitalized error string",
+      "model/umpire/hosts/go/runner/replay.go:50 max-control-nesting >5"
+    ],
+    "verification": "git diff HEAD for both paths is empty; git show HEAD retains exact offending source"
+  },
+  "red_regression": {
+    "log": "fn24614-act-runner-red.log",
+    "result": "exit1 specifically reports late Driver.Close evidence lost: nil; final green control preserves exact bytes and source-mutation isolation while retaining first quiescent verdict"
+  },
+  "integration_controls": {
+    "positive": "Actual temporaldriver.NewFactory with raw and native SDK, one actual heartbeat true and actual Canceled RPC, clean Close. Uses public transport/poll containment/Bridge and real loopback WorkflowService.",
+    "negative": "Supplied request-mutating interceptor changes heartbeat details. Both followers fail, fault evidence retains actual mutated request and acknowledgment, and no terminal success reaches server. SDK actual public Info namespace requires server WorkflowNamespace; invalid missing namespace fixture corrected without a Bridge fallback."
+  },
+  "owned_commands": "All command sessions exited; no workers/processes left by this slice. All test-owned background terminal calls, AfterFunc callbacks and loopback Serve owners joined.",
+  "review": "Not dispatched; no verdict claimed; parent owns final review/lifecycle."
+}

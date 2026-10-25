@@ -1,0 +1,232 @@
+../model/temporal/hosts/go/reference/worker/bridge.go:38:15: unchecked-type-assertion: type cast result is unchecked in proto.Clone(r.Request).(*anypb.Any) - type assertion will panic if not matched (revive)
+		r.Request = proto.Clone(r.Request).(*anypb.Any)
+		            ^
+../model/temporal/hosts/go/reference/worker/bridge.go:41:16: unchecked-type-assertion: type cast result is unchecked in proto.Clone(r.Response).(*anypb.Any) - type assertion will panic if not matched (revive)
+		r.Response = proto.Clone(r.Response).(*anypb.Any)
+		             ^
+../model/temporal/hosts/go/reference/worker/bridge.go:44:17: unchecked-type-assertion: type cast result is unchecked in proto.Clone(r.CallError).(*anypb.Any) - type assertion will panic if not matched (revive)
+		r.CallError = proto.Clone(r.CallError).(*anypb.Any)
+		              ^
+../model/temporal/hosts/go/reference/worker/bridge.go:47:19: unchecked-type-assertion: type cast result is unchecked in proto.Clone(r.ServerError).(*realizationv1.Error) - type assertion will panic if not matched (revive)
+		r.ServerError = proto.Clone(r.ServerError).(*realizationv1.Error)
+		                ^
+../model/temporal/hosts/go/reference/worker/bridge.go:151:1: cyclomatic: function (*Bridge).Observe has cyclomatic complexity 45 (> max enabled 25) (revive)
+func (b *Bridge) Observe(ctx context.Context, rpc RPC) error {
+	rpc = rpc.clone()
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if b.err != nil {
+		return b.err
+	}
+	if b.isClosed {
+		return errors.New("worker bridge is closed")
+	}
+	if rpc.Invocation == 0 || rpc.Sequence == 0 || rpc.Request == nil {
+		return b.fail(errors.New("worker RPC has missing or reordered invocation identity"))
+	}
+	if _, exists := b.seenSequences[rpc.Sequence]; exists {
+		return b.fail(errors.New("duplicate worker RPC sequence identity"))
+	}
+	b.seenSequences[rpc.Sequence] = struct{}{}
+	switch rpc.Stage {
+	case RPCStarted:
+		if _, exists := b.invocations[rpc.Invocation]; exists {
+			return b.fail(errors.New("duplicate worker RPC invocation"))
+		}
+		call := &invocation{start: rpc}
+		b.invocations[rpc.Invocation] = call
+		if rpc.Method == workflowservice.WorkflowService_PollActivityTaskQueue_FullMethodName {
+			return nil
+		}
+		namespace, token, err := rpcAssignment(rpc)
+		if err != nil {
+			return b.fail(err)
+		}
+		a := b.assignments[assignmentKey{namespace, string(token)}]
+		if b.ctx.Err() != nil {
+			return nil
+		}
+		if a == nil || !a.claimed || a.retired {
+			return b.fail(errors.New("worker RPC has no live claimed poll assignment"))
+		}
+		if rpc.Method == workflowservice.WorkflowService_RecordActivityTaskHeartbeat_FullMethodName {
+			if marker, ok := ctx.Value(assignmentMarker{}).(*Assignment); !ok || marker != a || marker.bridge != b {
+				return b.fail(errors.New("heartbeat context does not identify its actual poll assignment"))
+			}
+		} else if marker, ok := ctx.Value(assignmentMarker{}).(*Assignment); ok && marker != a {
+			return b.fail(errors.New("terminal context crosses its actual poll assignment"))
+		}
+		if rpc.Sequence <= a.lastInvocationSequence {
+			return b.fail(errors.New("worker RPC start reordered within assignment"))
+		}
+		op := a.current
+		if op == nil || op.method != rpc.Method || op.result != nil || op.inFlight != 0 {
+			return b.fail(errors.New("worker RPC has no unique matching outstanding operation"))
+		}
+		op.inFlight = rpc.Invocation
+		call.assignment, call.operation = a, op
+		return nil
+	case RPCCompleted:
+		call := b.invocations[rpc.Invocation]
+		if call == nil || call.completed || call.start.Method != rpc.Method || !proto.Equal(call.start.Request, rpc.Request) {
+			return b.fail(errors.New("worker RPC completion is missing, duplicate or crossed"))
+		}
+		if rpc.Sequence <= call.start.Sequence {
+			return b.fail(errors.New("worker RPC completion precedes its invocation start"))
+		}
+		call.completed = true
+		if rpc.Method == workflowservice.WorkflowService_PollActivityTaskQueue_FullMethodName {
+			return b.poll(rpc)
+		}
+		if call.operation == nil {
+			return nil
+		}
+		op := call.operation
+		if op.inFlight != rpc.Invocation {
+			return b.fail(errors.New("worker RPC completion reordered within operation"))
+		}
+		if rpc.Sequence <= call.assignment.lastInvocationSequence {
+			return b.fail(errors.New("worker RPC completion reordered within assignment"))
+		}
+		call.assignment.lastInvocationSequence = rpc.Sequence
+		op.inFlight = 0
+		if rpc.TransportError != "" || rpc.ServerError != nil || rpc.CallError != nil {
+			return nil
+		}
+		if rpc.Response == nil || !rpc.Sent || !rpc.Answered {
+			return b.fail(errors.New("worker RPC has no acknowledged response"))
+		}
+		if op.result != nil {
+			return b.fail(errors.New("duplicate successful worker RPC completion"))
+		}
+		op.result = &rpc
+		if rpc.Method != workflowservice.WorkflowService_RecordActivityTaskHeartbeat_FullMethodName {
+			call.assignment.retired = true
+		}
+		close(op.done)
+		return nil
+	default:
+		return b.fail(errors.New("unknown worker RPC stage"))
+	}
+}
+../model/temporal/hosts/go/reference/worker/program.go:57:1: cyclomatic: function Decode has cyclomatic complexity 34 (> max enabled 25) (revive)
+func Decode(data []byte) (*Program, error) {
+	envelope := new(anypb.Any)
+	if err := proto.Unmarshal(data, envelope); err != nil {
+		return nil, fmt.Errorf("decode program envelope: %w", err)
+	}
+	if err := noUnknownFields(envelope); err != nil {
+		return nil, err
+	}
+	p := new(temporalv1.WorkerProgram)
+	if err := envelope.UnmarshalTo(p); err != nil {
+		return nil, fmt.Errorf("decode worker program: %w", err)
+	}
+	if err := noUnknownFields(p); err != nil {
+		return nil, err
+	}
+	if p.GetNamespace() == "" || p.GetTaskQueue() == "" {
+		return nil, errors.New("worker program requires namespace and task queue")
+	}
+	table := &Program{Namespace: p.GetNamespace(), TaskQueue: p.GetTaskQueue(), index: make(map[taskKey]*anypb.Any, len(p.GetRules()))}
+	for i, r := range p.GetRules() {
+		key := new(temporalv1.ActivityTaskKey)
+		if err := r.GetKey().UnmarshalTo(key); err != nil {
+			return nil, fmt.Errorf("rule %d key: %w", i, err)
+		}
+		if err := validKey(key); err != nil {
+			return nil, fmt.Errorf("rule %d key: %w", i, err)
+		}
+		k := exactKey(key)
+		if _, exists := table.index[k]; exists {
+			return nil, fmt.Errorf("rule %d: duplicate exact activity key", i)
+		}
+		if len(r.GetRespond()) != 1 {
+			return nil, fmt.Errorf("rule %d: activity requires one response", i)
+		}
+		response := r.GetRespond()[0]
+		if _, err := ResponseMessage(response); err != nil {
+			return nil, fmt.Errorf("rule %d response: %w", i, err)
+		}
+		response = proto.Clone(response).(*anypb.Any)
+		table.rows = append(table.rows, Row{Key: key, Response: response})
+		table.index[k] = response
+		table.maxHeartbeats = max(table.maxHeartbeats, len(key.GetHeartbeatHistory()))
+	}
+	domains := make(map[taskKey][]bool, len(p.GetContinuationDomains()))
+	for i, packed := range p.GetContinuationDomains() {
+		domain := new(temporalv1.ActivityTaskSuccessors)
+		if err := noUnknownFields(packed); err != nil {
+			return nil, fmt.Errorf("successor %d envelope: %w", i, err)
+		}
+		if err := packed.UnmarshalTo(domain); err != nil {
+			return nil, fmt.Errorf("successor %d domain: %w", i, err)
+		}
+		if err := noUnknownFields(domain); err != nil {
+			return nil, fmt.Errorf("successor %d domain: %w", i, err)
+		}
+		if err := validKey(domain.GetKey()); err != nil {
+			return nil, fmt.Errorf("successor %d key: %w", i, err)
+		}
+		k := exactKey(domain.GetKey())
+		if _, exists := domains[k]; exists {
+			return nil, fmt.Errorf("successor %d: duplicate declared domain", i)
+		}
+		if len(domain.GetCancelRequested()) == 0 || len(domain.GetCancelRequested()) > 2 {
+			return nil, fmt.Errorf("successor %d: nonempty unique bool domain required", i)
+		}
+		if len(domain.GetCancelRequested()) == 2 && domain.GetCancelRequested()[0] == domain.GetCancelRequested()[1] {
+			return nil, fmt.Errorf("successor %d: duplicate declared bit", i)
+		}
+		response := table.index[k]
+		if response == nil || !response.MessageIs(&workflowservice.RecordActivityTaskHeartbeatRequest{}) {
+			return nil, fmt.Errorf("successor %d: domain requires an exact heartbeat row", i)
+		}
+		domains[k] = slices.Clone(domain.GetCancelRequested())
+	}
+	for _, row := range table.rows {
+		k := exactKey(row.Key)
+		if row.Response.MessageIs(&workflowservice.RecordActivityTaskHeartbeatRequest{}) {
+			domain, exists := domains[k]
+			if !exists {
+				return nil, errors.New("heartbeat row has no declared successor domain")
+			}
+			for _, bit := range domain {
+				child := k
+				child.history += historyKey([]bool{bit})
+				if table.index[child] == nil {
+					return nil, errors.New("declared heartbeat successor has no response row")
+				}
+			}
+		}
+		history := row.Key.GetHeartbeatHistory()
+		if len(history) == 0 {
+			continue
+		}
+		parent := k
+		parent.history = parent.history[:len(parent.history)-1]
+		response := table.index[parent]
+		if response == nil || !response.MessageIs(&workflowservice.RecordActivityTaskHeartbeatRequest{}) {
+			return nil, errors.New("activity history has no heartbeat parent")
+		}
+		if !slices.Contains(domains[parent], history[len(history)-1]) {
+			return nil, errors.New("activity history is outside its declared successor domain")
+		}
+	}
+	return table, nil
+}
+../model/temporal/hosts/go/reference/worker/program.go:95:14: unchecked-type-assertion: type cast result is unchecked in proto.Clone(response).(*anypb.Any) - type assertion will panic if not matched (revive)
+		response = proto.Clone(response).(*anypb.Any)
+		           ^
+../model/temporal/hosts/go/reference/worker/program.go:176:9: unchecked-type-assertion: type cast result is unchecked in proto.Clone(response).(*anypb.Any) - type assertion will panic if not matched (revive)
+	return proto.Clone(response).(*anypb.Any)
+	       ^
+../model/temporal/hosts/go/reference/worker/program_history_test.go:122:105: SA1019: (go.temporal.io/api/workflowservice/v1.RespondActivityTaskCompletedRequest).WorkerVersion is deprecated: Marked as deprecated in temporal/api/workflowservice/v1/request_response.proto. (staticcheck)
+			p.Rules[2].Respond = []*anypb.Any{historyAny(t, &workflowservice.RespondActivityTaskCompletedRequest{WorkerVersion: &commonpb.WorkerVersionStamp{BuildId: "forbidden"}})}
+			                                                                                                     ^
+../model/temporal/hosts/go/reference/worker/program_transport_test.go:64:2: SA1019: (go.temporal.io/api/workflowservice/v1.RespondActivityTaskFailedRequest).WorkerVersion is deprecated: Marked as deprecated in temporal/api/workflowservice/v1/request_response.proto. (staticcheck)
+	actual.WorkerVersion = &commonpb.WorkerVersionStamp{BuildId: "SDK-build"}
+	^
+10 issues:
+* revive: 8
+* staticcheck: 2

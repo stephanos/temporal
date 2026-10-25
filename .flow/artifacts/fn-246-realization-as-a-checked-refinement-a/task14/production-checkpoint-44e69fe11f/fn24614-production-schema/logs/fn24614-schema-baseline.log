@@ -1,0 +1,124 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling equivalent v1.0.3
+   Compiling hashbrown v0.17.1
+   Compiling syn v3.0.9
+   Compiling indexmap v2.14.2
+   Compiling foldhash v0.1.5
+   Compiling anyhow v1.0.104
+   Compiling rustix v1.1.5
+   Compiling heck v0.5.0
+   Compiling hashbrown v0.15.5
+   Compiling syn v2.0.119
+   Compiling either v1.19.0
+   Compiling fixedbitset v0.5.7
+   Compiling bitflags v2.13.2
+   Compiling linux-raw-sys v0.12.1
+   Compiling itertools v0.14.0
+   Compiling fastrand v2.5.0
+   Compiling regex-syntax v0.8.11
+   Compiling prost-derive v0.14.4
+   Compiling winnow v1.0.4
+   Compiling prettyplease v0.2.37
+   Compiling prettyplease v0.3.0
+   Compiling bytes v1.12.1
+   Compiling smallvec v1.16.3
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling proc-macro-utils v0.10.0
+   Compiling prost v0.14.4
+   Compiling regex-automata v0.4.18
+   Compiling petgraph v0.8.3
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/ir/derive)
+   Compiling once_cell v1.21.4
+   Compiling bytemuck v1.25.2
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/ir)
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling safe_arch v0.7.4
+   Compiling tempfile v3.27.0
+   Compiling regex v1.13.1
+   Compiling prost-types v0.14.4
+   Compiling manyhow-macros v0.14.1
+   Compiling multimap v0.10.1
+   Compiling rand_core v0.9.5
+   Compiling log v0.4.34
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/author/dsl/macros)
+   Compiling thiserror v2.0.21
+   Compiling prost-build v0.14.4
+   Compiling rand_xoshiro v0.7.0
+   Compiling manyhow v0.14.1
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/front)
+   Compiling proc-macro-crate v3.5.0
+   Compiling wide v0.7.33
+   Compiling thiserror-impl v2.0.21
+   Compiling archery v1.2.3
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/author/dsl)
+   Compiling imbl v7.0.2
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/backends/native)
+   Compiling rustc-hash v2.1.3
+   Compiling ident_case v1.0.1
+   Compiling darling_core v0.24.1
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/protocol/runtime)
+   Compiling darling_macro v0.24.1
+   Compiling darling v0.24.1
+   Compiling serde_core v1.0.229
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/catalog/syntax)
+   Compiling libc v0.2.191
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/annotate/syntax)
+   Compiling zmij v1.0.23
+   Compiling getrandom v0.4.3
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/realization/macros)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/api)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/catalog/macros)
+   Compiling cfg-if v1.0.5
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.154
+   Compiling target-tuple v1.0.2
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/catalog)
+   Compiling serde_spanned v1.1.2
+   Compiling itoa v1.0.18
+   Compiling toml_writer v1.1.3+spec-1.1.0
+   Compiling memchr v2.8.3
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling console v0.16.6
+   Compiling serde_derive v1.0.229
+   Compiling termcolor v1.4.1
+   Compiling similar v2.7.0
+   Compiling glob v0.3.4
+   Compiling trybuild v1.0.122
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/realization)
+   Compiling insta v1.49.0
+    Finished `test` profile [unoptimized] target(s) in 22.28s
+     Running tests/catalog.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation/debug/deps/catalog-a89719fc4deed17e)
+
+running 15 tests
+test explicitly_consumed_transport_fields_are_claimed ... ok
+test diagnostics_exclude_tokens_and_payloads_and_unknown_traffic_refuses ... ok
+test secret_fields_redact_report_copies_without_changing_transport ... ok
+test optional_run_ids_follow_server_uuid_forms_and_long_poll_dependency ... ok
+test normal_name_is_conditional_on_actual_queue_kind ... ok
+test request_duration_validation_mirrors_server_normalization_without_repair ... ok
+test retry_inversion_witness_uses_the_shared_projection_and_refuses_the_cap ... ok
+test fills_only_absent_request_ids_and_keeps_retry_bytes_stable ... ok
+test start_header_claim_preserves_actual_correlation_payload ... ok
+test enforces_start_shape_and_server_timeout_retry_normalization ... ok
+test response_findings_never_repair_bytes_and_empty_worker_polls_are_valid ... ok
+test worker_failure_requires_application_info_only_when_failure_is_supplied ... ok
+test nested_failure_discriminants_are_validated_without_response_repair ... ok
+test failure_activity_type_does_not_inherit_start_request_constraints ... ok
+test explicit_retry_order_uses_actual_enabled_policy_and_nanosecond_boundaries ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/program.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation/debug/deps/program-2485b3ecdd26f8bb)
+
+running 3 tests
+test configured_reset_issues_a_deterministic_program_and_unconfigured_reset_does_not ... ok
+test program_covers_every_scenario_and_admitted_attempt_with_the_reply_policy ... ok
+test bootstrap_scenario_is_in_header_and_reads_and_seeded_cancel_hold_are_action_distinct ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,0 +1,249 @@
+../model/temporal/hosts/go/reference/worker/sdk/sdk.go:96:1: cyclomatic: function followWithOptions has cyclomatic complexity 26 (> max enabled 25) (revive)
+func followWithOptions(ctx context.Context, conn client.Client, program []byte, bridge *worker.Bridge, options sdkworker.Options) error {
+	table, err := worker.Decode(program)
+	if err != nil {
+		return err
+	}
+	if err := validateTable(table); err != nil {
+		return err
+	}
+	if conn == nil || bridge == nil {
+		return errors.New("SDK executor requires a connection and transport bridge")
+	}
+	run, cancel := context.WithCancel(ctx)
+	defer cancel()
+	bound, err := client.NewClientFromExistingWithContext(run, conn, client.Options{
+		Namespace: table.Namespace, ContextPropagators: []workflow.ContextPropagator{ScenarioPropagator()},
+		Logger: sdklog.NewStructuredLogger(slog.New(slog.DiscardHandler)),
+	})
+	if err != nil {
+		return err
+	}
+	defer bound.Close()
+	var stateMu sync.Mutex
+	var failure error
+	accepting := true
+	var handlers sync.WaitGroup
+	fail := func(err error) {
+		if err == nil {
+			return
+		}
+		stateMu.Lock()
+		if failure == nil {
+			failure = err
+		}
+		stateMu.Unlock()
+		cancel()
+	}
+	capacity := len(table.Rows())
+	if capacity == 0 {
+		capacity = 1
+	}
+	terminals := make(chan terminalExpectation, capacity)
+	coordinatorDone := make(chan struct{})
+	go func() {
+		defer close(coordinatorDone)
+		for {
+			select {
+			case terminal := <-terminals:
+				terminalCtx, terminalCancel := context.WithDeadline(run, terminal.deadline)
+				completion, err := terminal.wait.Wait(terminalCtx)
+				terminalCancel()
+				if err == nil {
+					err = worker.TerminalResult(terminal.expected, completion.RPC())
+				}
+				if err != nil {
+					if run.Err() == nil {
+						fail(fmt.Errorf("SDK terminal completion: %w", err))
+					}
+					return
+				}
+			case <-run.Done():
+				return
+			case <-bridge.Failed():
+				fail(bridge.Err())
+				return
+			case <-bridge.Done():
+				if run.Err() == nil {
+					fail(errors.New("SDK transport bridge closed"))
+				}
+				return
+			}
+		}
+	}()
+	options.DisableWorkflowWorker = true
+	options.WorkerStopTimeout = time.Second
+	options.BackgroundActivityContext = run
+	w := sdkworker.New(bound, table.TaskQueue, options)
+	w.RegisterDynamicActivity(func(activityCtx context.Context, _ converter.EncodedValues) (converter.RawValue, error) {
+		stateMu.Lock()
+		if !accepting {
+			stateMu.Unlock()
+			return converter.RawValue{}, run.Err()
+		}
+		handlers.Add(1)
+		stateMu.Unlock()
+		defer handlers.Done()
+		result, err := followTask(run, activityCtx, table, bridge, terminals, fail)
+		if err != nil {
+			if run.Err() == nil {
+				fail(err)
+			}
+			return converter.RawValue{}, err
+		}
+		return result.value, result.err
+	}, activity.DynamicRegisterOptions{})
+	if err := w.Start(); err != nil {
+		cancel()
+		<-coordinatorDone
+		return err
+	}
+	select {
+	case <-run.Done():
+	case <-bridge.Failed():
+		fail(bridge.Err())
+	case <-bridge.Done():
+		if run.Err() == nil {
+			fail(errors.New("SDK transport bridge closed"))
+		}
+	}
+	stateMu.Lock()
+	accepting = false
+	stateMu.Unlock()
+	cancel()
+	w.Stop()
+	handlers.Wait()
+	<-coordinatorDone
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	return failure
+}
+../model/temporal/hosts/go/reference/worker/sdk/sdk.go:216:1: cyclomatic: function followTask has cyclomatic complexity 33 (> max enabled 25) (revive)
+func followTask(run, activityCtx context.Context, table *worker.Program, bridge *worker.Bridge, terminals chan<- terminalExpectation, fail func(error)) (delivery, error) {
+	info := activity.GetInfo(activityCtx)
+	scenario, ok := activityCtx.Value(scenarioKey{}).(string)
+	if !ok {
+		return delivery{}, errors.New("SDK task scenario context is missing")
+	}
+	assignment, err := bridge.Bind(worker.TaskIdentity{
+		Namespace: info.Namespace, TaskQueue: info.TaskQueue, ActivityID: info.ActivityID, ActivityRunID: info.ActivityRunID,
+		WorkflowID: info.WorkflowExecution.ID, WorkflowRunID: info.WorkflowExecution.RunID,
+		ActivityType: info.ActivityType.Name, Scenario: scenario, Attempt: info.Attempt, Token: info.TaskToken,
+	})
+	if err != nil {
+		return delivery{}, err
+	}
+	deadline, ok := activityCtx.Deadline()
+	if !ok {
+		return delivery{}, errors.New("SDK activity deadline is missing")
+	}
+	heartbeatCtx, heartbeatCancel := context.WithDeadline(context.WithoutCancel(activityCtx), deadline)
+	joined := make(chan struct{})
+	stopRun := context.AfterFunc(run, func() { heartbeatCancel(); close(joined) })
+	defer func() {
+		heartbeatCancel()
+		if !stopRun() {
+			<-joined
+		}
+	}()
+	heartbeatCtx = assignment.HeartbeatContext(heartbeatCtx)
+	originalCanceled := make(chan struct{})
+	var cancellationCause error
+	stopOriginal := context.AfterFunc(activityCtx, func() {
+		defer close(originalCanceled)
+		cancellationCause = context.Cause(activityCtx)
+		if !temporal.IsCanceledError(cancellationCause) && run.Err() == nil {
+			fail(fmt.Errorf("SDK activity cancellation without server heartbeat: %w", cancellationCause))
+		}
+	})
+	defer func() {
+		if !stopOriginal() {
+			<-originalCanceled
+		}
+	}()
+	history := make([]bool, 0, table.MaxHeartbeats())
+	for decisions := 0; decisions <= table.MaxHeartbeats(); decisions++ {
+		if err := heartbeatCtx.Err(); err != nil {
+			return delivery{}, err
+		}
+		response := table.Match(scenario, info.Attempt, info.ActivityType.Name, history...)
+		if response == nil {
+			if len(history) != 0 {
+				return delivery{}, errors.New("SDK task has no exact observable-history row")
+			}
+			response, err = anypb.New(&workflowservice.RespondActivityTaskFailedRequest{Failure: worker.UnprogrammedFailure()})
+			if err != nil {
+				return delivery{}, err
+			}
+		}
+		if response.MessageIs(&workflowservice.RecordActivityTaskHeartbeatRequest{}) {
+			heartbeat := new(workflowservice.RecordActivityTaskHeartbeatRequest)
+			if err := response.UnmarshalTo(heartbeat); err != nil {
+				return delivery{}, err
+			}
+			heartbeat.Namespace, heartbeat.TaskToken = info.Namespace, append([]byte(nil), info.TaskToken...)
+			expected, err := anypb.New(heartbeat)
+			if err != nil {
+				return delivery{}, err
+			}
+			wait, err := assignment.BeginHeartbeat()
+			if err != nil {
+				return delivery{}, err
+			}
+			details := make([]any, 0, len(heartbeat.GetDetails().GetPayloads()))
+			for _, payload := range heartbeat.GetDetails().GetPayloads() {
+				details = append(details, converter.NewRawValue(payload))
+			}
+			activity.RecordHeartbeat(heartbeatCtx, details...)
+			completion, err := wait.Wait(heartbeatCtx)
+			if err != nil {
+				return delivery{}, err
+			}
+			bit, err := worker.HeartbeatResult(expected, completion.RPC())
+			if err != nil {
+				return delivery{}, err
+			}
+			if bit {
+				select {
+				case <-originalCanceled:
+					if !temporal.IsCanceledError(cancellationCause) {
+						return delivery{}, errors.New("SDK true heartbeat lacks server cancellation cause")
+					}
+				case <-heartbeatCtx.Done():
+					return delivery{}, heartbeatCtx.Err()
+				case <-bridge.Failed():
+					return delivery{}, bridge.Err()
+				case <-bridge.Done():
+					return delivery{}, errors.New("SDK transport bridge closed")
+				}
+			}
+			history = append(history, bit)
+			continue
+		}
+		result, err := convert(response)
+		if err != nil {
+			return delivery{}, err
+		}
+		expected, method, err := terminalRequest(response, info.Namespace, info.TaskToken)
+		if err != nil {
+			return delivery{}, err
+		}
+		wait, err := assignment.BeginTerminal(method)
+		if err != nil {
+			return delivery{}, err
+		}
+		select {
+		case terminals <- terminalExpectation{wait: wait, expected: expected, deadline: deadline}:
+			return result, nil
+		case <-heartbeatCtx.Done():
+			return delivery{}, heartbeatCtx.Err()
+		case <-bridge.Failed():
+			return delivery{}, bridge.Err()
+		case <-bridge.Done():
+			return delivery{}, errors.New("SDK transport bridge closed")
+		}
+	}
+	return delivery{}, errors.New("SDK task exhausted its admitted heartbeat depth")
+}
+2 issues:
+* revive: 2

@@ -1,0 +1,30 @@
+=== RUN   TestWorkerCaptureReservationsAndBounds
+=== RUN   TestWorkerCaptureReservationsAndBounds/count
+=== RUN   TestWorkerCaptureReservationsAndBounds/bytes
+--- PASS: TestWorkerCaptureReservationsAndBounds (0.00s)
+    --- PASS: TestWorkerCaptureReservationsAndBounds/count (0.00s)
+    --- PASS: TestWorkerCaptureReservationsAndBounds/bytes (0.00s)
+=== RUN   TestWorkerCaptureLimitsRefuseBeforeBinding
+=== RUN   TestWorkerCaptureLimitsRefuseBeforeBinding/capture_cannot_reserve_SDK_response
+=== RUN   TestWorkerCaptureLimitsRefuseBeforeBinding/sequence_arithmetic
+--- PASS: TestWorkerCaptureLimitsRefuseBeforeBinding (0.00s)
+    --- PASS: TestWorkerCaptureLimitsRefuseBeforeBinding/capture_cannot_reserve_SDK_response (0.00s)
+    --- PASS: TestWorkerCaptureLimitsRefuseBeforeBinding/sequence_arithmetic (0.00s)
+=== RUN   TestWorkerCaptureIsInsideMutatorsAndDoesNotFaultSuccessfulWork
+--- PASS: TestWorkerCaptureIsInsideMutatorsAndDoesNotFaultSuccessfulWork (0.00s)
+=== RUN   TestWorkerCaptureObserverFaultPreservesActualSuccess
+--- PASS: TestWorkerCaptureObserverFaultPreservesActualSuccess (0.00s)
+=== RUN   TestWorkerCaptureAmbiguousInternalErrorsKeepNeutralStatus
+=== RUN   TestWorkerCaptureAmbiguousInternalErrorsKeepNeutralStatus/server-internal
+=== RUN   TestWorkerCaptureAmbiguousInternalErrorsKeepNeutralStatus/malformed-protobuf
+--- PASS: TestWorkerCaptureAmbiguousInternalErrorsKeepNeutralStatus (0.00s)
+    --- PASS: TestWorkerCaptureAmbiguousInternalErrorsKeepNeutralStatus/server-internal (0.00s)
+    --- PASS: TestWorkerCaptureAmbiguousInternalErrorsKeepNeutralStatus/malformed-protobuf (0.00s)
+=== RUN   TestWorkerBindingStateIsPerDriverAndIdleShutdownIsClean
+--- PASS: TestWorkerBindingStateIsPerDriverAndIdleShutdownIsClean (0.00s)
+=== RUN   TestWorkerCaptureCanceledEmptyPollShutdownIsClean
+--- PASS: TestWorkerCaptureCanceledEmptyPollShutdownIsClean (0.00s)
+=== RUN   TestWorkerCaptureBoundRetainsActualPartialFaultEvidence
+--- PASS: TestWorkerCaptureBoundRetainsActualPartialFaultEvidence (0.00s)
+PASS
+ok  	go.temporal.io/server/common/testing/testpilot/temporal/act	0.009s

@@ -1,0 +1,38 @@
+--- FAIL: TestProductionSDKJoinsNotificationAndNativeCancellationInEitherOrder (0.01s)
+    --- FAIL: TestProductionSDKJoinsNotificationAndNativeCancellationInEitherOrder/publication (0.01s)
+        continuation_test.go:534: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/heartbeat_test.go:355
+            	            				/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:534
+            	Error:      	Not equal: 
+            	            	expected: "failed"
+            	            	actual  : "canceled"
+            	            	
+            	            	Diff:
+            	            	--- Expected
+            	            	+++ Actual
+            	            	@@ -1 +1 @@
+            	            	-failed
+            	            	+canceled
+            	Test:       	TestProductionSDKJoinsNotificationAndNativeCancellationInEitherOrder/publication
+--- FAIL: TestProductionSDKActivityDeadlineJoinsBlockedStages (10.68s)
+    --- FAIL: TestProductionSDKActivityDeadlineJoinsBlockedStages/terminal (10.00s)
+        continuation_test.go:649: heartbeat proof wait:  context deadline exceeded
+--- FAIL: TestProductionSDKJoinsNotificationAndNativeCancellationInEitherOrder (0.02s)
+    --- FAIL: TestProductionSDKJoinsNotificationAndNativeCancellationInEitherOrder/publication (0.01s)
+        continuation_test.go:534: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/heartbeat_test.go:355
+            	            				/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:534
+            	Error:      	Not equal: 
+            	            	expected: "failed"
+            	            	actual  : "canceled"
+            	            	
+            	            	Diff:
+            	            	--- Expected
+            	            	+++ Actual
+            	            	@@ -1 +1 @@
+            	            	-failed
+            	            	+canceled
+            	Test:       	TestProductionSDKJoinsNotificationAndNativeCancellationInEitherOrder/publication
+FAIL
+FAIL	umpire.local/temporal/reference/worker/sdk	72.718s
+FAIL

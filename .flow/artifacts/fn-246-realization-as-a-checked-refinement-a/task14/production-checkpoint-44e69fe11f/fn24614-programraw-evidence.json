@@ -1,0 +1,143 @@
+{
+  "task_id": "fn-246-realization-as-a-checked-refinement-a.14",
+  "slice": "Go exact program admission and raw executor continuation",
+  "task_status": "in_progress",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+  "base_commit": "93a9d06479fe706b41fe77c7004cfedd7cf2ed5e",
+  "commits": [],
+  "commit_owner": "parent /root/fn24614_sdk_proof; child made no commits",
+  "commands": [
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker ./reference/worker/raw",
+      "exit_code": 0,
+      "log": "fn24614-programraw-baseline.log",
+      "phase": "baseline (cached unchanged packages)"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker -run '^TestProgramRejectsDuplicateExactKey$' -count=1",
+      "exit_code": 1,
+      "log": "fn24614-programraw-red.log",
+      "phase": "red (duplicate exact key admitted)"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/raw -run '^TestFollowTransportMutationCannotRewriteChosenTerminal$' -count=1",
+      "exit_code": 1,
+      "log": "fn24614-programraw-mutation-red-valid.log",
+      "phase": "red (post-invoke chosen terminal expectation was mutable)"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/raw -run '^TestFollowTransportMutationCannotRewriteChosenHeartbeat$' -count=1",
+      "exit_code": 1,
+      "log": "fn24614-programraw-heartbeat-mutation-red.log",
+      "phase": "red (chosen heartbeat Details were not compared)"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker ./reference/worker/raw -count=10",
+      "exit_code": 0,
+      "log": "fn24614-programraw-authoritative.log",
+      "phase": "final (all package tests including parent bridge)"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m ./reference/worker ./reference/worker/raw",
+      "exit_code": 0,
+      "log": "fn24614-programraw-unfiltered-final.log",
+      "phase": "final unfiltered lint"
+    },
+    {
+      "command": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml reference/worker/program.go reference/worker/program_test.go reference/worker/program_history_test.go reference/worker/program_transport_test.go reference/worker/raw/raw.go reference/worker/raw/raw_test.go",
+      "exit_code": 0,
+      "log": "fn24614-programraw-fmt-authoritative.log",
+      "phase": "final fmt"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./reference/worker ./reference/worker/raw",
+      "exit_code": 0,
+      "log": "fn24614-programraw-vet-authoritative.log",
+      "phase": "final vet"
+    }
+  ],
+  "tests": [
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker ./reference/worker/raw",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker -run '^TestProgramRejectsDuplicateExactKey$' -count=1",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/raw -run '^TestFollowTransportMutationCannotRewriteChosenTerminal$' -count=1",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/raw -run '^TestFollowTransportMutationCannotRewriteChosenHeartbeat$' -count=1",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker ./reference/worker/raw -count=10",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m ./reference/worker ./reference/worker/raw",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml reference/worker/program.go reference/worker/program_test.go reference/worker/program_history_test.go reference/worker/program_transport_test.go reference/worker/raw/raw.go reference/worker/raw/raw_test.go",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./reference/worker ./reference/worker/raw"
+  ],
+  "prs": [],
+  "source_hashes": {
+    "model/temporal/hosts/go/reference/worker/program.go": "a27c29a787895a0c7b230aac6932976c8b352be2cbf420ba340fc650e5e0328e",
+    "model/temporal/hosts/go/reference/worker/program_test.go": "1d3f32ccad2288109f18cb5047707bc5d4587146fb62b0e6554a6f69b6f4216f",
+    "model/temporal/hosts/go/reference/worker/program_history_test.go": "05634ac42d4a5a12ed29e13ec3532ff6a24a3b60194f02ac7a0f5dc96466f7cb",
+    "model/temporal/hosts/go/reference/worker/program_transport_test.go": "7eb56d47675cb4656d149bee7111e80f6d7db46e7e9f0aa2d40b15546ab08393",
+    "model/temporal/hosts/go/reference/worker/raw/raw.go": "eaab1e9e8ff33c5815199dd6e13e6b608518bca6002bafe6d79b9cb7c156a929",
+    "model/temporal/hosts/go/reference/worker/raw/raw_test.go": "0c29c8347d6c5950b3a2e15733a8ad1b78e8c9bdbe2f15b7e73be2cf8bc74f92"
+  },
+  "logs": {
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-second.log": "9bed387fd636d6480a3e82b2bbf90c9581e980296677bcb14180f6c583112409",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-mutation-red-valid.log": "9cb2292321b7d2e6a7787175b28c5a8c36fe262a240397e0ab6178e045954d3c",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-race-final-proof.log": "1872f34dc5b418420ea2e25973f0301bd74abc857fcd61c38a7025917b924bd0",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-heartbeat-mutation-red.log": "a87258ee13ca063d58b65546e241dee1f33d4ff4f257de0d615c3b8dbbb81e7a",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-baseline.log": "01ea46ec4f64bd3d57039372e66df01294f93f3b4e32806364bd56a44313a508",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-vet-proof-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-red.log": "da993abba13c629608367f29c33981acdbda8a4ff013f0aa7fbff7229094fc3e",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-final-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-lint-proof-final.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-final-lint.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-first.log": "afe4f3af7e3e9fa5aed9d1a600f5e9d10bf58a05158d7666f55629c2647e9fab",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-fmt-complete.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-refactor-final-test.log": "b977ffc521735b4c5f3db1e88ec0174a864d9d795eb8892829f1db6a98657871",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/owned.patch": "2369fabe9d4d0b159f3bdc7500bacf6f7be50a61c9dd0f944abcbf1ce868af70",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-vet-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-lint-final.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-fifth.log": "6359f521e6a0f303ce8bd3a7ea2117dc5049b65d0ef69b4c7b9b83b77ca9c13a",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-fourth.log": "6359f521e6a0f303ce8bd3a7ea2117dc5049b65d0ef69b4c7b9b83b77ca9c13a",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-third.log": "26b64525e32b2c400a2d1fb7b9b796a633dd9b5fdfcc704008760cb2c9db9588",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-seventh.log": "c754b5ec4324baf1447a06f59c0dcc2a17110541a3f1c93219a8a7048c0de3f8",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-program.log": "a423891c7186f114882450b28db4fb61e80db3b80693d572aa3c99a78be0f4b1",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-race-terminal-subset.log": "1ec2dd7c11caa1c3964edf7be699877913ae60bd1eb4d82da26ab1fcb9746034",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-unfiltered-lint-final.log": "9ce2c0d67d012a32a66c954f707353c007dec162c05cf85f2ea2d47fce50df99",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-fmt-current.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-unfiltered-final.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-fmt-proof-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-refactor-fmt-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-race-final.log": "8c2975020928420aaf4e515f16b079054140f7fc995f3646dde66344b98c49fe",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-unfiltered-complete.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-usage.log": "97347de36740191519433e960fa74a6d9a104152b439c1f4b96d161433937986",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-refactor-fmt.log": "e5adf9b9d6e7f38a63108e59f8f2fa132f4d4d324ca7650d77302158f9af065c",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-fmt-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-lint-current.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-unfiltered-lint.log": "b4b558a35683fede67f3410a308671d5793bc8c05b77ec7aabc1c87595c8cddc",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-authoritative.log": "7dae627730b77e2f7c1a4ee84e9cdc301b6e5a6e6440449d969b107a46f08609",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-race.log": "a0def58992830903062cbe7dfd1b2fa419fc51510abeeeb8527a37e0b37a822c",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-final.log": "3e69bc26f5c697207346cd7e56e65a5de7ea339fb860cb09f01dccd7e0ed3ca5",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-vet-authoritative.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-lint.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-refactor.log": "3cd06994dab1e2b5181dc416000ae1423241205ec56fa11c053f682f3cf01239",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-vet-complete.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-vet-current.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-final-vet.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-eighth.log": "9d28cf3cf16af7accb44f8dfae0cabba17fb3db4e7c6ab3ec11e15bfd36b139f",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-sixth.log": "594f63c231276af27bfef2cc236b61592d03e8d78e4d9f0ff119d1170264b666",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-race-complete.log": "2778575fb905bdde0f2ec421063b484429783abc1a4045a07913cc2111df5273",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-refactor-green.log": "d9505f5597245b10ee3dfa3e09fe24d3710c4e7ed069bc892a59661c4b26d659",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-fmt-authoritative.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-mutation-red.log": "10116aafcf7682a4968697a5ff12bc735cf5bcbcc3cd376a18073b6e5b98c263",
+    ".flow/tmp/milestones-resume-20261024/fn24614-programraw-logs/fn24614-programraw-race-current.log": "a2d2cb348fed808d5a367d5302dd7816793600790e88c076289a12965565e41a"
+  },
+  "notes": [
+    "Final race receipt reports worker1.187s/raw4.270s. All launched processes are terminal.",
+    "Baseline was green. Duplicate-key admission and both chosen-request mutation bugs have intended red-to-green controls.",
+    "Initial patch-filtered lint missed complexity checks; authoritative final lint runs entire worker and raw packages with no patch filter and reports zeroissues.",
+    "An earlier race run exposed unsynchronized test fixture state reads after deadline cancellation; test reads now lock the service state and wait for actual server entry.",
+    "An intermediate whole-package race run caught the parent bridge delayed-publication sequence regression. Parent fixed bridge ordering; final whole-package receipt includes that test and passes.",
+    "The experimental third Close test output lacked a surfaced command exit receipt due tool wrapper output selection. Its log is preserved but not used as gate evidence. The final Close controls have observed green exit receipts.",
+    "Empty programs retain the initial UnprogrammedFailure control and earn no strategy/completeness credit.",
+    "Go checks exact totality against explicit packed successor declarations only. Independent Rust Model-domain completeness remains sibling/parentowned.",
+    "Capability-only declared binary/true-to-false transport controls preserve actual bits without claiming the monotone feature Model admits those histories.",
+    "No live Temporal service, Model changes, journal/ActivityEvidence wrapper/gates, Flow lifecycle, remote operations or review verdict."
+  ]
+}

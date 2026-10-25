@@ -1,0 +1,20 @@
+diff --git a/model/temporal/feature/activity/expected/realization.txt.snap b/model/temporal/feature/activity/expected/realization.txt.snap
+index 6759547b92..4e3a041e75 100644
+--- a/model/temporal/feature/activity/expected/realization.txt.snap
++++ b/model/temporal/feature/activity/expected/realization.txt.snap
+@@ -60,6 +60,8 @@ message: temporal.api.workflowservice.v1.DescribeActivityExecutionResponse
+ Model-action RPCs without an observation handler:
+   /temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue -> Worker::Poll
+     no realization context
++  /temporal.api.workflowservice.v1.WorkflowService/RecordActivityTaskHeartbeat -> Worker::Heartbeat
++    no realization context
+   /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCompleted -> Worker::RespondCompleted
+     no realization context
+   /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskFailed -> Worker::RespondFailed
+@@ -67,5 +69,6 @@ Model-action RPCs without an observation handler:
+ 
+ Model-action RPCs without any realization context:
+   /temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue -> Worker::Poll
++  /temporal.api.workflowservice.v1.WorkflowService/RecordActivityTaskHeartbeat -> Worker::Heartbeat
+   /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCompleted -> Worker::RespondCompleted
+   /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskFailed -> Worker::RespondFailed

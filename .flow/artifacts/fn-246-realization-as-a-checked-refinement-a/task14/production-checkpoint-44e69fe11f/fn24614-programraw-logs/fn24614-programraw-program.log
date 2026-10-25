@@ -1,0 +1,4 @@
+# umpire.local/temporal/reference/worker [umpire.local/temporal/reference/worker.test]
+reference/worker/program.go:284:9: rpc.CallError undefined (type RPC has no field or method CallError)
+FAIL	umpire.local/temporal/reference/worker [build failed]
+FAIL

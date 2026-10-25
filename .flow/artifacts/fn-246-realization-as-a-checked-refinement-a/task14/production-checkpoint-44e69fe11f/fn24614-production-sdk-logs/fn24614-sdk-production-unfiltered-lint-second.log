@@ -1,0 +1,19 @@
+../model/temporal/hosts/go/reference/worker/sdk/sdk.go:1: : # umpire.local/temporal/reference/worker/sdk [umpire.local/temporal/reference/worker/sdk.test]
+reference/worker/sdk/sdk.go:57:32: undefined: heartbeatCtx
+reference/worker/sdk/sdk.go:57:46: undefined: assignment
+reference/worker/sdk/sdk.go:57:58: undefined: response
+reference/worker/sdk/sdk.go:57:68: undefined: info
+reference/worker/sdk/sdk.go:59:24: too many return values
+	have (delivery, error)
+	want (error)
+reference/worker/sdk/sdk.go:63:12: undefined: originalCanceled
+reference/worker/sdk/sdk.go:64:35: undefined: cancellationCause
+reference/worker/sdk/sdk.go:65:26: too many return values
+	have (delivery, error)
+	want (error)
+reference/worker/sdk/sdk.go:67:12: undefined: heartbeatCtx
+reference/worker/sdk/sdk.go:68:25: undefined: heartbeatCtx
+reference/worker/sdk/sdk.go:68:25: too many errors (typecheck)
+// Package sdk follows activity programs using one dynamic Go SDK activity handler.
+1 issues:
+* typecheck: 1

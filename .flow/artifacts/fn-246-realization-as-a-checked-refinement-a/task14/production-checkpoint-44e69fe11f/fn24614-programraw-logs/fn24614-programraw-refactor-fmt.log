@@ -1,0 +1,11 @@
+diff reference/worker/program_transport_test.go.orig reference/worker/program_transport_test.go
+--- reference/worker/program_transport_test.go.orig
++++ reference/worker/program_transport_test.go
+@@ -5,7 +5,6 @@
+ 	"testing"
+ 
+ 	"github.com/stretchr/testify/require"
+-	commonpb "go.temporal.io/api/common/v1"
+ 	deploymentpb "go.temporal.io/api/deployment/v1"
+ 	failurepb "go.temporal.io/api/failure/v1"
+ 	"go.temporal.io/api/workflowservice/v1"

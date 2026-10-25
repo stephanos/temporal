@@ -1,0 +1,16 @@
+=== RUN   TestProductionSDKRunCancellationJoinsBlockedStages
+=== RUN   TestProductionSDKRunCancellationJoinsBlockedStages/registration
+=== RUN   TestProductionSDKRunCancellationJoinsBlockedStages/native-rpc
+=== RUN   TestProductionSDKRunCancellationJoinsBlockedStages/batch
+=== RUN   TestProductionSDKRunCancellationJoinsBlockedStages/true-join
+=== RUN   TestProductionSDKRunCancellationJoinsBlockedStages/publication
+=== RUN   TestProductionSDKRunCancellationJoinsBlockedStages/terminal
+--- PASS: TestProductionSDKRunCancellationJoinsBlockedStages (1.05s)
+    --- PASS: TestProductionSDKRunCancellationJoinsBlockedStages/registration (0.04s)
+    --- PASS: TestProductionSDKRunCancellationJoinsBlockedStages/native-rpc (0.00s)
+    --- PASS: TestProductionSDKRunCancellationJoinsBlockedStages/batch (0.00s)
+    --- PASS: TestProductionSDKRunCancellationJoinsBlockedStages/true-join (0.00s)
+    --- PASS: TestProductionSDKRunCancellationJoinsBlockedStages/publication (0.00s)
+    --- PASS: TestProductionSDKRunCancellationJoinsBlockedStages/terminal (1.00s)
+PASS
+ok  	umpire.local/temporal/reference/worker/sdk	1.051s

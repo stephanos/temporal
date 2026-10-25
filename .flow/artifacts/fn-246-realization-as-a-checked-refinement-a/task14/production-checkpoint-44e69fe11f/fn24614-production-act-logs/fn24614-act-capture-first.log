@@ -1,0 +1,4 @@
+# go.temporal.io/server/common/testing/testpilot/temporal/act [go.temporal.io/server/common/testing/testpilot/temporal/act.test]
+common/testing/testpilot/temporal/act/worker_test.go:11:2: "go.temporal.io/api/common/v1" imported as commonpb and not used
+FAIL	go.temporal.io/server/common/testing/testpilot/temporal/act [build failed]
+FAIL

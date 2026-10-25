@@ -1,0 +1,17 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/realization/macros)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/realization)
+error[E0507]: cannot move out of `*action` which is behind a shared reference
+   --> temporal/realization/src/../../feature/activity/temporal.rs:787:58
+    |
+787 |                 let choices = world.checked_step(&state, *action)
+    |                                                          ^^^^^^^ move occurs because `*action` has type `included::activity::Action`, which does not implement the `Copy` trait
+    |
+help: consider cloning the value if the performance cost is acceptable
+    |
+787 -                 let choices = world.checked_step(&state, *action)
+787 +                 let choices = world.checked_step(&state, action.clone())
+    |
+
+For more information about this error, try `rustc --explain E0507`.
+error: could not compile `umpire-temporal` (lib) due to 1 previous error

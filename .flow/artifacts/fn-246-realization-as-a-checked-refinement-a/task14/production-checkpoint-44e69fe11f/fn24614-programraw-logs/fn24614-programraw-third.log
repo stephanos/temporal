@@ -1,0 +1,10 @@
+ok  	umpire.local/temporal/reference/worker	0.005s
+--- FAIL: TestFollowCancellationAtActualHeartbeatDoesNotAdvance (5.01s)
+    --- FAIL: TestFollowCancellationAtActualHeartbeatDoesNotAdvance/bridge-close (5.00s)
+        raw_test.go:302: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/raw/raw_test.go:302
+            	Error:      	An error is expected but got nil.
+            	Test:       	TestFollowCancellationAtActualHeartbeatDoesNotAdvance/bridge-close
+FAIL
+FAIL	umpire.local/temporal/reference/worker/raw	5.025s
+FAIL

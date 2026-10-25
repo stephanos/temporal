@@ -1,0 +1,8 @@
+--- FAIL: TestFollowTransportMutationCannotRewriteChosenHeartbeat (0.00s)
+    raw_test.go:367: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/raw/raw_test.go:367
+        	Error:      	An error is expected but got nil.
+        	Test:       	TestFollowTransportMutationCannotRewriteChosenHeartbeat
+FAIL
+FAIL	umpire.local/temporal/reference/worker/raw	0.006s
+FAIL

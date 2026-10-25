@@ -1,0 +1,5 @@
+../model/temporal/hosts/go/reference/worker/bridge.go:1: : # umpire.local/temporal/reference/worker [umpire.local/temporal/reference/worker.test]
+reference/worker/program_transport_test.go:8:2: "go.temporal.io/api/common/v1" imported as commonpb and not used (typecheck)
+package worker
+1 issues:
+* typecheck: 1

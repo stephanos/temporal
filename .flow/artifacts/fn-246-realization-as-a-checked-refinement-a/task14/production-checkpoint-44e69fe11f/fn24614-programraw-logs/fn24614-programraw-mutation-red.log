@@ -1,0 +1,5 @@
+# umpire.local/temporal/reference/worker
+reference/worker/program.go:100:44: p.GetContinuationDomains undefined (type *"umpire.local/temporal/umpire/temporal/v1".WorkerProgram has no field or method GetContinuationDomains)
+reference/worker/program.go:101:27: p.GetContinuationDomains undefined (type *"umpire.local/temporal/umpire/temporal/v1".WorkerProgram has no field or method GetContinuationDomains)
+FAIL	umpire.local/temporal/reference/worker/raw [build failed]
+FAIL

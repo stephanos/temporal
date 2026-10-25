@@ -1,0 +1,9 @@
+--- FAIL: TestBridgeDelayedCompletionPublicationCanFollowIndependentPoll (0.00s)
+    bridge_test.go:284: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/bridge_test.go:284
+        	Error:      	Received unexpected error:
+        	            	worker RPC has missing or reordered invocation identity
+        	Test:       	TestBridgeDelayedCompletionPublicationCanFollowIndependentPoll
+FAIL
+FAIL	umpire.local/temporal/reference/worker	0.008s
+FAIL

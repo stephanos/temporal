@@ -1,0 +1,5 @@
+../tools/umpire/temporaldriver/continuation_test.go:172:6: contains: use require.Contains (testifylint)
+					require.True(t, strings.Contains(fault.Fault, "worker executor"), "fault=%s", fault.Fault)
+					^
+1 issues:
+* testifylint: 1

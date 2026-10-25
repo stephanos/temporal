@@ -1,0 +1,8 @@
+=== RUN   TestTerminalEnqueueBackpressureJoinsWithoutPublishing
+=== RUN   TestTerminalEnqueueBackpressureJoinsWithoutPublishing/run-cancel
+=== RUN   TestTerminalEnqueueBackpressureJoinsWithoutPublishing/bridge-close
+--- PASS: TestTerminalEnqueueBackpressureJoinsWithoutPublishing (0.00s)
+    --- PASS: TestTerminalEnqueueBackpressureJoinsWithoutPublishing/run-cancel (0.00s)
+    --- PASS: TestTerminalEnqueueBackpressureJoinsWithoutPublishing/bridge-close (0.00s)
+PASS
+ok  	umpire.local/temporal/reference/worker/sdk	0.005s

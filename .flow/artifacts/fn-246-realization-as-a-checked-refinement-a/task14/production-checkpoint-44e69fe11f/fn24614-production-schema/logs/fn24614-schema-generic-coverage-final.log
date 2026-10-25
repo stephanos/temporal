@@ -1,0 +1,13 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/api)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/testing)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/realization)
+    Finished `test` profile [unoptimized] target(s) in 10.90s
+     Running fixtures.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation/debug/deps/fixtures-68fb8825aec47f53)
+
+running 1 test
+backend tlc: skipped; no execution or agreement evidence (UMPIRE_BACKENDS=require runs it)
+external artifact /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/testing/../feature/activity/expected/gaps.txt.snap: requires make umpire-check-model-gaps (TestTestpilotModelGaps); no execution or comparison evidence from native runner
+test fixtures ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.10s
+

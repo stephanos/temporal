@@ -1,0 +1,14 @@
+=== RUN   TestTerminalEnqueueBackpressureJoinsWithoutPublishing
+=== RUN   TestTerminalEnqueueBackpressureJoinsWithoutPublishing/run-cancel
+=== RUN   TestTerminalEnqueueBackpressureJoinsWithoutPublishing/bridge-close
+    continuation_test.go:958: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:958
+        	Error:      	Received unexpected error:
+        	            	worker bridge closed with an outstanding assignment operation
+        	Test:       	TestTerminalEnqueueBackpressureJoinsWithoutPublishing/bridge-close
+--- FAIL: TestTerminalEnqueueBackpressureJoinsWithoutPublishing (0.00s)
+    --- PASS: TestTerminalEnqueueBackpressureJoinsWithoutPublishing/run-cancel (0.00s)
+    --- FAIL: TestTerminalEnqueueBackpressureJoinsWithoutPublishing/bridge-close (0.00s)
+FAIL
+FAIL	umpire.local/temporal/reference/worker/sdk	0.006s
+FAIL

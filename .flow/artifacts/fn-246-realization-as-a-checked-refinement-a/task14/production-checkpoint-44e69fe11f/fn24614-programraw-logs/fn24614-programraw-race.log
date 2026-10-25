@@ -1,0 +1,322 @@
+ok  	umpire.local/temporal/reference/worker	1.138s
+==================
+WARNING: DATA RACE
+Read at 0x00c0002fa130 by goroutine 303:
+  umpire.local/temporal/reference/worker/raw.TestFollowActivityDeadlineAbortsActualHeartbeat()
+      /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/raw/raw_test.go:320 +0x108
+  umpire.local/temporal/reference/worker/raw.TestFollowActivityDeadlineAbortsActualHeartbeat()
+      /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/raw/raw_test.go:314 +0x70
+  testing.tRunner()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2193 +0x164
+  testing.(*T).Run.gowrap1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2258 +0x34
+
+Previous write at 0x00c0002fa130 by goroutine 319:
+  umpire.local/temporal/reference/worker/raw.(*rawService).RecordActivityTaskHeartbeat()
+      /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/raw/raw_test.go:57 +0x114
+  go.temporal.io/api/workflowservice/v1._WorkflowService_RecordActivityTaskHeartbeat_Handler()
+      /home/agent/go/pkg/mod/go.temporal.io/api@v1.63.6-0.20260909222256-20151aa90480/workflowservice/v1/service_grpc.pb.go:3492 +0x240
+  google.golang.org/grpc.(*Server).processUnaryRPC()
+      /home/agent/go/pkg/mod/google.golang.org/grpc@v1.83.1/server.go:1443 +0x12b8
+  google.golang.org/grpc.(*Server).handleStream()
+      /home/agent/go/pkg/mod/google.golang.org/grpc@v1.83.1/server.go:1858 +0xc4c
+  google.golang.org/grpc.(*Server).serveStreams.func2.1()
+      /home/agent/go/pkg/mod/google.golang.org/grpc@v1.83.1/server.go:1078 +0xd0
+
+Goroutine 303 (running) created at:
+  testing.(*T).Run()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2258 +0x7bc
+  testing.runTests.func1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2742 +0x74
+  testing.tRunner()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2193 +0x164
+  testing.runTests()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2740 +0x7a0
+  testing.(*M).Run()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2600 +0xb38
+  main.main()
+      _testmain.go:56 +0x100
+  runtime.main()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:302 +0x37c
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  go.temporal.io/api/compute/v1.file_temporal_api_compute_v1_config_proto_init()
+      /home/agent/go/pkg/mod/go.temporal.io/api@v1.63.6-0.20260909222256-20151aa90480/compute/v1/config.pb.go:381 +0x40
+  go.temporal.io/api/compute/v1.init.0()
+      /home/agent/go/pkg/mod/go.temporal.io/api@v1.63.6-0.20260909222256-20151aa90480/compute/v1/config.pb.go:376 +0x20
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  google.golang.org/protobuf/internal/filetype.Builder.Build()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/internal/filetype/build.go:138 +0x1ec
+  google.golang.org/genproto/googleapis/api/annotations.file_google_api_routing_proto_init()
+      /home/agent/go/pkg/mod/google.golang.org/genproto/googleapis/api@v0.0.0-20260526163538-3dc84a4a5aaa/annotations/routing.pb.go:692 +0x1cc
+  google.golang.org/genproto/googleapis/api/annotations.init.6()
+      /home/agent/go/pkg/mod/google.golang.org/genproto/googleapis/api@v0.0.0-20260526163538-3dc84a4a5aaa/annotations/routing.pb.go:647 +0x20
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  google.golang.org/protobuf/reflect/protoregistry.(*Types).RegisterExtension()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/reflect/protoregistry/registry.go:550 +0xd8
+  google.golang.org/protobuf/reflect/protoregistry.(*Types).RegisterExtension()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/reflect/protoregistry/registry.go:549 +0xc4
+  google.golang.org/protobuf/internal/filetype.Builder.Build()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/internal/filetype/build.go:236 +0x6d4
+  google.golang.org/protobuf/reflect/protoregistry.(*Types).RegisterExtension()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/reflect/protoregistry/registry.go:550 +0xd8
+  google.golang.org/protobuf/reflect/protoregistry.(*Types).RegisterExtension()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/reflect/protoregistry/registry.go:549 +0xc4
+  google.golang.org/protobuf/internal/filetype.Builder.Build()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/internal/filetype/build.go:236 +0x6d4
+  google.golang.org/protobuf/internal/filetype.Builder.Build()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/internal/filetype/build.go:138 +0x1ec
+  google.golang.org/genproto/googleapis/api/annotations.file_google_api_resource_proto_init()
+      /home/agent/go/pkg/mod/google.golang.org/genproto/googleapis/api@v0.0.0-20260526163538-3dc84a4a5aaa/annotations/resource.pb.go:654 +0x1f4
+  google.golang.org/genproto/googleapis/api/annotations.init.5()
+      /home/agent/go/pkg/mod/google.golang.org/genproto/googleapis/api@v0.0.0-20260526163538-3dc84a4a5aaa/annotations/resource.pb.go:608 +0x20
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  google.golang.org/protobuf/internal/filetype.Builder.Build()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/internal/filetype/build.go:138 +0x1ec
+  google.golang.org/genproto/googleapis/api/annotations.file_google_api_field_info_proto_init()
+      /home/agent/go/pkg/mod/google.golang.org/genproto/googleapis/api@v0.0.0-20260526163538-3dc84a4a5aaa/annotations/field_info.pb.go:387 +0x1f4
+  google.golang.org/genproto/googleapis/api/annotations.init.3()
+      /home/agent/go/pkg/mod/google.golang.org/genproto/googleapis/api@v0.0.0-20260526163538-3dc84a4a5aaa/annotations/field_info.pb.go:341 +0x20
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  google.golang.org/protobuf/internal/filetype.Builder.Build()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/internal/filetype/build.go:138 +0x1ec
+  google.golang.org/genproto/googleapis/api/annotations.file_google_api_field_behavior_proto_init()
+      /home/agent/go/pkg/mod/google.golang.org/genproto/googleapis/api@v0.0.0-20260526163538-3dc84a4a5aaa/annotations/field_behavior.pb.go:261 +0x1cc
+  google.golang.org/genproto/googleapis/api/annotations.init.2()
+      /home/agent/go/pkg/mod/google.golang.org/genproto/googleapis/api@v0.0.0-20260526163538-3dc84a4a5aaa/annotations/field_behavior.pb.go:242 +0x20
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  google.golang.org/protobuf/reflect/protoregistry.(*Types).RegisterExtension()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/reflect/protoregistry/registry.go:550 +0xd8
+  google.golang.org/protobuf/reflect/protoregistry.(*Types).RegisterExtension()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/reflect/protoregistry/registry.go:549 +0xc4
+  google.golang.org/protobuf/internal/filetype.Builder.Build()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/internal/filetype/build.go:236 +0x6d4
+  google.golang.org/protobuf/reflect/protoregistry.(*Types).RegisterExtension()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/reflect/protoregistry/registry.go:550 +0xd8
+  google.golang.org/protobuf/reflect/protoregistry.(*Types).RegisterExtension()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/reflect/protoregistry/registry.go:549 +0xc4
+  google.golang.org/protobuf/internal/filetype.Builder.Build()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/internal/filetype/build.go:236 +0x6d4
+  google.golang.org/protobuf/reflect/protoregistry.(*Types).RegisterExtension()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/reflect/protoregistry/registry.go:550 +0xd8
+  google.golang.org/protobuf/reflect/protoregistry.(*Types).RegisterExtension()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/reflect/protoregistry/registry.go:549 +0xc4
+  google.golang.org/protobuf/internal/filetype.Builder.Build()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/internal/filetype/build.go:236 +0x6d4
+  google.golang.org/protobuf/internal/filetype.Builder.Build()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/internal/filetype/build.go:138 +0x1ec
+  google.golang.org/genproto/googleapis/api/annotations.file_google_api_client_proto_init()
+      /home/agent/go/pkg/mod/google.golang.org/genproto/googleapis/api@v0.0.0-20260526163538-3dc84a4a5aaa/annotations/client.pb.go:2065 +0x1f8
+  google.golang.org/genproto/googleapis/api/annotations.init.1()
+      /home/agent/go/pkg/mod/google.golang.org/genproto/googleapis/api@v0.0.0-20260526163538-3dc84a4a5aaa/annotations/client.pb.go:2045 +0x20
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  google.golang.org/protobuf/internal/filetype.Builder.Build()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/internal/filetype/build.go:138 +0x1ec
+  google.golang.org/genproto/googleapis/api/annotations.file_google_api_annotations_proto_init()
+      /home/agent/go/pkg/mod/google.golang.org/genproto/googleapis/api@v0.0.0-20260526163538-3dc84a4a5aaa/annotations/annotations.pb.go:114 +0x1a8
+  google.golang.org/genproto/googleapis/api/annotations.file_google_api_annotations_proto_init()
+      /home/agent/go/pkg/mod/google.golang.org/genproto/googleapis/api@v0.0.0-20260526163538-3dc84a4a5aaa/annotations/annotations.pb.go:100 +0x40
+  google.golang.org/genproto/googleapis/api/annotations.init.0()
+      /home/agent/go/pkg/mod/google.golang.org/genproto/googleapis/api@v0.0.0-20260526163538-3dc84a4a5aaa/annotations/annotations.pb.go:95 +0x20
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  google.golang.org/protobuf/internal/filetype.Builder.Build()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/internal/filetype/build.go:138 +0x1ec
+  go.temporal.io/api/protometa/v1.file_temporal_api_protometa_v1_annotations_proto_init()
+      /home/agent/go/pkg/mod/go.temporal.io/api@v1.63.6-0.20260909222256-20151aa90480/protometa/v1/annotations.pb.go:166 +0x1d0
+  go.temporal.io/api/protometa/v1.init.0()
+      /home/agent/go/pkg/mod/go.temporal.io/api@v1.63.6-0.20260909222256-20151aa90480/protometa/v1/annotations.pb.go:147 +0x20
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  google.golang.org/protobuf/reflect/protoregistry.(*Types).RegisterExtension()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/reflect/protoregistry/registry.go:550 +0xd8
+  google.golang.org/protobuf/reflect/protoregistry.(*Types).RegisterExtension()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/reflect/protoregistry/registry.go:549 +0xc4
+  google.golang.org/protobuf/internal/filetype.Builder.Build()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/internal/filetype/build.go:236 +0x6d4
+  google.golang.org/protobuf/internal/filetype.Builder.Build()
+      /home/agent/go/pkg/mod/google.golang.org/protobuf@v1.36.11/internal/filetype/build.go:138 +0x1ec
+  github.com/nexus-rpc/nexus-proto-annotations/go/nexusannotations/v1.file_nexusannotations_v1_options_proto_init()
+      /home/agent/go/pkg/mod/github.com/nexus-rpc/nexus-proto-annotations@v0.1.0/go/nexusannotations/v1/options.pb.go:229 +0x1d0
+  github.com/nexus-rpc/nexus-proto-annotations/go/nexusannotations/v1.init.0()
+      /home/agent/go/pkg/mod/github.com/nexus-rpc/nexus-proto-annotations@v0.1.0/go/nexusannotations/v1/options.pb.go:210 +0x20
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+  runtime.doInit1()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:8154 +0xc0
+
+Goroutine 319 (finished) created at:
+  google.golang.org/grpc.(*Server).serveStreams.func2()
+      /home/agent/go/pkg/mod/google.golang.org/grpc@v1.83.1/server.go:1089 +0x1cc
+  google.golang.org/grpc/internal/transport.(*http2Server).operateHeaders()
+      /home/agent/go/pkg/mod/google.golang.org/grpc@v1.83.1/internal/transport/http2_server.go:632 +0x2400
+  google.golang.org/grpc/internal/transport.(*http2Server).operateHeaders()
+      /home/agent/go/pkg/mod/google.golang.org/grpc@v1.83.1/internal/transport/http2_server.go:617 +0x20d8
+  google.golang.org/grpc/internal/transport.(*http2Server).operateHeaders()
+      /home/agent/go/pkg/mod/google.golang.org/grpc@v1.83.1/internal/transport/http2_server.go:582 +0x1b38
+  context.WithDeadlineCause()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/context/context.go:637 +0x60
+  context.WithDeadlineCause()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/context/context.go:637 +0x60
+  context.WithDeadline()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/context/context.go:627 +0x54
+  context.WithTimeout()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/context/context.go:705 +0x18
+  google.golang.org/grpc/internal/transport.(*http2Server).operateHeaders()
+      /home/agent/go/pkg/mod/google.golang.org/grpc@v1.83.1/internal/transport/http2_server.go:530 +0x150c
+  google.golang.org/grpc/internal/transport.(*http2Server).HandleStreams()
+      /home/agent/go/pkg/mod/google.golang.org/grpc@v1.83.1/internal/transport/http2_server.go:673 +0x290
+  google.golang.org/grpc/internal/transport.(*http2Server).operateHeaders()
+      /home/agent/go/pkg/mod/google.golang.org/grpc@v1.83.1/internal/transport/http2_server.go:582 +0x1b38
+  context.WithDeadlineCause()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/context/context.go:637 +0x60
+  context.WithDeadlineCause()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/context/context.go:637 +0x60
+  context.WithDeadline()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/context/context.go:627 +0x54
+  context.WithTimeout()
+      /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/context/context.go:705 +0x18
+  google.golang.org/grpc/internal/transport.(*http2Server).operateHeaders()
+      /home/agent/go/pkg/mod/google.golang.org/grpc@v1.83.1/internal/transport/http2_server.go:530 +0x150c
+  google.golang.org/grpc/internal/transport.(*http2Server).HandleStreams()
+      /home/agent/go/pkg/mod/google.golang.org/grpc@v1.83.1/internal/transport/http2_server.go:673 +0x290
+  google.golang.org/grpc.(*Server).serveStreams()
+      /home/agent/go/pkg/mod/google.golang.org/grpc@v1.83.1/server.go:1072 +0x46c
+  google.golang.org/grpc.(*Server).handleRawConn.func1()
+      /home/agent/go/pkg/mod/google.golang.org/grpc@v1.83.1/server.go:1006 +0x70
+==================
+--- FAIL: TestFollowActivityDeadlineAbortsActualHeartbeat (0.06s)
+    testing.go:1865: race detected during execution of test
+FAIL
+FAIL	umpire.local/temporal/reference/worker/raw	0.948s
+FAIL

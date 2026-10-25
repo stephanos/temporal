@@ -1,0 +1,5 @@
+--- FAIL: TestProgramRejectsDuplicateExactKey (0.00s)
+    program_test.go:57: duplicate exact key accepted
+FAIL
+FAIL	umpire.local/temporal/reference/worker	0.003s
+FAIL

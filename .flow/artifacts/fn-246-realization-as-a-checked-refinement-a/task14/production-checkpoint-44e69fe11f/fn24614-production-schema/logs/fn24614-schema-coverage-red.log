@@ -1,0 +1,73 @@
+   Compiling typenum v1.20.1
+   Compiling rustix v1.1.5
+   Compiling linux-raw-sys v0.12.1
+   Compiling hybrid-array v0.4.15
+   Compiling block-buffer v0.12.1
+   Compiling crypto-common v0.2.2
+   Compiling const-oid v0.10.2
+   Compiling digest v0.11.3
+   Compiling cpufeatures v0.3.1
+   Compiling syn v3.0.9
+   Compiling tempfile v3.27.0
+   Compiling sha2 v0.11.1
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/backends/process)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/protocol/runtime)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/catalog)
+   Compiling prettyplease v0.3.0
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/api)
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/front)
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/backends/tla)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/author/suite)
+   Compiling insta v1.49.0
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/backends/tlc)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/testing)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/dev/testing)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/realization)
+    Finished `test` profile [unoptimized] target(s) in 13.59s
+     Running fixtures.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation/debug/deps/fixtures-68fb8825aec47f53)
+
+running 1 test
+backend tlc: skipped; no execution or agreement evidence (UMPIRE_BACKENDS=require runs it)
+external artifact /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/testing/../feature/activity/expected/gaps.txt.snap: requires make umpire-check-model-gaps (TestTestpilotModelGaps); no execution or comparison evidence from native runner
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ Snapshot Summary ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Snapshot file: temporal/testing/../feature/activity/expected/realization.txt.snap
+Snapshot: realization.txt
+Source: umpire/dev/testing/src/runner.rs:330
+────────────────────────────────────────────────────────────────────────────────
+-old snapshot
++new results
+────────────┬───────────────────────────────────────────────────────────────────
+   56    56 │ 
+   57    57 │ Model-action RPCs without an observation handler:
+   58    58 │   /temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue -> Worker::Poll
+   59    59 │     no realization context
+         60 │+  /temporal.api.workflowservice.v1.WorkflowService/RecordActivityTaskHeartbeat -> Worker::Heartbeat
+         61 │+    no realization context
+   60    62 │   /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCompleted -> Worker::RespondCompleted
+   61    63 │     no realization context
+   62    64 │   /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskFailed -> Worker::RespondFailed
+   63    65 │     no realization context
+   64    66 │ 
+   65    67 │ Model-action RPCs without any realization context:
+   66    68 │   /temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue -> Worker::Poll
+         69 │+  /temporal.api.workflowservice.v1.WorkflowService/RecordActivityTaskHeartbeat -> Worker::Heartbeat
+   67    70 │   /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCompleted -> Worker::RespondCompleted
+   68    71 │   /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskFailed -> Worker::RespondFailed
+────────────┴───────────────────────────────────────────────────────────────────
+stored new snapshot /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/testing/../feature/activity/expected/realization.txt.snap.new
+To update snapshots run `cargo insta review` or set `INSTA_UPDATE=always`
+Stopped on the first failure. Run `cargo insta test` to run all snapshots.
+
+thread 'fixtures' (3300582) panicked at /home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/insta-1.49.0/src/runtime.rs:734:13:
+snapshot assertion for 'realization.txt' failed in line 330
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test fixtures ... FAILED
+
+failures:
+
+failures:
+    fixtures
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.10s
+
+error: test failed, to rerun pass `-p umpire-temporal-tests --test fixtures`

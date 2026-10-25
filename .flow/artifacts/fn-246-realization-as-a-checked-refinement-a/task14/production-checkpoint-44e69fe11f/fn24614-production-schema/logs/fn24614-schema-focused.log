@@ -1,0 +1,57 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/realization/macros)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/realization)
+    Finished `test` profile [unoptimized] target(s) in 8.46s
+     Running tests/catalog.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation/debug/deps/catalog-beb0b69bb2a43bac)
+
+running 16 tests
+test explicitly_consumed_transport_fields_are_claimed ... ok
+test diagnostics_exclude_tokens_and_payloads_and_unknown_traffic_refuses ... ok
+test heartbeat_claims_keep_progress_and_response_flags_without_added_constraints ... ok
+test optional_run_ids_follow_server_uuid_forms_and_long_poll_dependency ... ok
+test normal_name_is_conditional_on_actual_queue_kind ... ok
+test fills_only_absent_request_ids_and_keeps_retry_bytes_stable ... ok
+test start_header_claim_preserves_actual_correlation_payload ... ok
+test secret_fields_redact_report_copies_without_changing_transport ... ok
+test enforces_start_shape_and_server_timeout_retry_normalization ... ok
+test response_findings_never_repair_bytes_and_empty_worker_polls_are_valid ... ok
+test retry_inversion_witness_uses_the_shared_projection_and_refuses_the_cap ... ok
+test request_duration_validation_mirrors_server_normalization_without_repair ... ok
+test worker_failure_requires_application_info_only_when_failure_is_supplied ... ok
+test failure_activity_type_does_not_inherit_start_request_constraints ... ok
+test nested_failure_discriminants_are_validated_without_response_repair ... ok
+test explicit_retry_order_uses_actual_enabled_policy_and_nanosecond_boundaries ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/program.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation/debug/deps/program-632281a897e2ea5e)
+
+running 5 tests
+test typed_worker_filler_packs_heartbeat_and_canceled_for_the_selected_attempt ... ok
+test finite_history_codec_keeps_unknown_false_true_and_order ... ok
+test configured_reset_issues_a_deterministic_program_and_unconfigured_reset_does_not ... ok
+test program_covers_every_scenario_and_admitted_attempt_with_the_reply_policy ... ok
+test bootstrap_scenario_is_in_header_and_reads_and_seeded_cancel_hold_are_action_distinct ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/program_history.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation/debug/deps/program_history-cc4ae719b92ec4ba)
+
+running 14 tests
+test heartbeat_domains_follow_checked_model_histories ... ok
+test successor_manifest_is_checked_independently_of_policy_rows ... ok
+test retry_history_requires_the_programmed_failure_and_unprogrammed_is_refused ... ok
+test describe_requests_result_and_last_failure ... ok
+test cancel_reconciliation_requires_the_actual_not_found_acknowledgment ... ok
+test reconciliation_context_changes_only_after_publication_and_clears_on_final_ack ... ok
+test failure_contents_are_checked_while_sdk_diagnostics_are_not_program_fields ... ok
+test program_content_gates_fast_terminal_paths_and_both_wrong_completion_controls ... ok
+test unheld_open_cancellation_is_refused_before_a_proposal_becomes_pending ... ok
+test terminal_failure_validates_current_last_failure_against_the_program ... ok
+test cancel_reconciliation_describe_must_match_the_exact_instruction_request ... ok
+test cancel_not_found_reconciles_only_programmed_terminal_server_evidence ... ok
+test describe_rejects_failure_history_and_outcomes_that_contradict_the_observed_phase ... ok
+test compound_reconciliation_rejects_wrong_acknowledgments_and_non_cancel_contexts ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

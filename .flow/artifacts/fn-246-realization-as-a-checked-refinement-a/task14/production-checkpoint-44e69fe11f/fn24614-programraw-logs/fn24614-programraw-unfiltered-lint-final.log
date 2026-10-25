@@ -1,0 +1,145 @@
+../model/temporal/hosts/go/reference/worker/program.go:194:1: receiver-naming: receiver name p should be consistent with previous receiver name table for Program (revive)
+func (p *Program) Match(scenario string, attempt int32, activityType string, history ...bool) *anypb.Any {
+	response := p.index[taskKey{scenario: scenario, attempt: attempt, activityType: activityType, history: historyKey(history)}]
+	if response == nil {
+		return nil
+	}
+	return proto.CloneOf(response)
+}
+../model/temporal/hosts/go/reference/worker/program.go:203:1: receiver-naming: receiver name p should be consistent with previous receiver name table for Program (revive)
+func (p *Program) MaxHeartbeats() int { return p.maxHeartbeats }
+^
+../model/temporal/hosts/go/reference/worker/program.go:206:1: receiver-naming: receiver name p should be consistent with previous receiver name table for Program (revive)
+func (p *Program) Rows() []Row {
+	rows := make([]Row, len(p.rows))
+	for i, row := range p.rows {
+		rows[i] = Row{Key: proto.CloneOf(row.Key), Response: proto.CloneOf(row.Response)}
+	}
+	return rows
+}
+../model/temporal/hosts/go/reference/worker/program.go:215:1: receiver-naming: receiver name p should be consistent with previous receiver name table for Program (revive)
+func (p *Program) Responses() []*anypb.Any {
+	responses := make([]*anypb.Any, 0, len(p.rows))
+	for _, row := range p.rows {
+		responses = append(responses, proto.CloneOf(row.Response))
+	}
+	return responses
+}
+../model/temporal/hosts/go/reference/worker/raw/raw.go:29:1: cognitive-complexity: function Follow has cognitive complexity 28 (> max enabled 25) (revive)
+func Follow(ctx context.Context, conn workflowservice.WorkflowServiceClient, program []byte, bridge *worker.Bridge) error {
+	table, err := worker.Decode(program)
+	if err != nil {
+		return err
+	}
+	if conn == nil || bridge == nil {
+		return errors.New("raw executor requires a connection and worker bridge")
+	}
+	run, cancel := context.WithCancel(ctx)
+	joined := make(chan struct{})
+	go func() {
+		defer close(joined)
+		select {
+		case <-bridge.Failed():
+			cancel()
+		case <-bridge.Done():
+			cancel()
+		case <-run.Done():
+		}
+	}()
+	defer func() { cancel(); <-joined }()
+	for {
+		task, err := conn.PollActivityTaskQueue(run, &workflowservice.PollActivityTaskQueueRequest{Namespace: table.Namespace, TaskQueue: &taskqueuepb.TaskQueue{Name: table.TaskQueue}, Identity: "umpire-raw"})
+		if err != nil {
+			if ctx.Err() != nil {
+				return nil
+			}
+			if fault := bridge.Err(); fault != nil {
+				return fault
+			}
+			if status.Code(err) == codes.DeadlineExceeded {
+				continue
+			}
+			return err
+		}
+		if len(task.GetTaskToken()) == 0 {
+			continue
+		}
+		identity := worker.IdentityFromPoll(table.Namespace, table.TaskQueue, task)
+		assignment, err := bridge.Bind(identity)
+		if err != nil {
+			return err
+		}
+		taskCtx, taskCancel, err := assignmentContext(run, task)
+		if err != nil {
+			return err
+		}
+		err = followAssignment(assignment.HeartbeatContext(taskCtx), conn, table, assignment, identity)
+		taskCancel()
+		if err != nil {
+			if ctx.Err() != nil {
+				return nil
+			}
+			return err
+		}
+	}
+}
+../model/temporal/hosts/go/reference/worker/raw/raw.go:125:1: cognitive-complexity: function followAssignment has cognitive complexity 36 (> max enabled 25) (revive)
+func followAssignment(ctx context.Context, conn workflowservice.WorkflowServiceClient, table *worker.Program, assignment *worker.Assignment, identity worker.TaskIdentity) error {
+	history := make([]bool, 0, table.MaxHeartbeats())
+	for step := 0; step <= table.MaxHeartbeats(); step++ {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		response := table.Match(identity.Scenario, identity.Attempt, identity.ActivityType, history...)
+		if response == nil {
+			if len(history) != 0 {
+				return errors.New("actual heartbeat history is outside the declared program domain")
+			}
+			var err error
+			response, err = anypb.New(&workflowservice.RespondActivityTaskFailedRequest{Failure: worker.UnprogrammedFailure()})
+			if err != nil {
+				return err
+			}
+		}
+		message, err := worker.ResponseMessage(response)
+		if err != nil {
+			return err
+		}
+		switch request := message.(type) {
+		case *workflowservice.RecordActivityTaskHeartbeatRequest:
+			if len(history) >= table.MaxHeartbeats() {
+				return errors.New("worker heartbeat depth exhausted")
+			}
+			request.Namespace, request.TaskToken, request.Identity = identity.Namespace, identity.Token, "umpire-raw"
+			expected, err := anypb.New(request)
+			if err != nil {
+				return err
+			}
+			wait, err := assignment.BeginHeartbeat()
+			if err != nil {
+				return err
+			}
+			actual, err := conn.RecordActivityTaskHeartbeat(ctx, request)
+			if err != nil {
+				return err
+			}
+			if actual == nil {
+				return errors.New("missing heartbeat acknowledgment")
+			}
+			completed, err := wait.Wait(ctx)
+			if err != nil {
+				return err
+			}
+			bit, err := worker.HeartbeatResult(expected, completed.RPC())
+			if err != nil {
+				return err
+			}
+			history = append(history, bit)
+		default:
+			return respond(ctx, conn, assignment, identity, message)
+		}
+	}
+	return errors.New("worker decision work exhausted")
+}
+6 issues:
+* revive: 6

@@ -1,0 +1,28 @@
+{
+  "source_commit": "cb760f1c002924b71bf1efea21ea2893de46d186",
+  "model_tree": "812d4e7bb528506c264eacc25387c6b0b086193e",
+  "status": "terminal-failed",
+  "results": [
+    {
+      "name": "rust",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--manifest-path",
+        "model/Cargo.toml",
+        "-p",
+        "umpire-temporal",
+        "-p",
+        "umpire-temporal-api",
+        "--locked"
+      ],
+      "exit_code": 101,
+      "seconds": 184.895,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24614-joined-rust.log",
+      "log_sha256": "0b5204ee238542a07171f0e7455013d18527a99193150eca1cb567910f1cd148"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+../model/umpire/hosts/go/runner/fault_evidence_test.go:119:10: unnecessary-format: unnecessary use of formatting function "fmt.Errorf", you can replace it with "errors.New" (revive)
+		return fmt.Errorf("driver closed before its exchanges joined")
+		       ^
+../model/umpire/hosts/go/runner/fault_evidence_test.go:122:10: unnecessary-format: unnecessary use of formatting function "fmt.Errorf", you can replace it with "errors.New" (revive)
+		return fmt.Errorf("late driver close")
+		       ^
+../model/umpire/hosts/go/runner/program.go:48:10: ST1005: error strings should not be capitalized (staticcheck)
+		return errors.New("Reset returned no program")
+		       ^
+../model/umpire/hosts/go/runner/replay.go:50:4: max-control-nesting: control flow nesting exceeds 5 (revive)
+			if derived.GetRefused() != nil {
+				reason += ": " + derived.GetRefused().GetReason()
+			}
+4 issues:
+* revive: 3
+* staticcheck: 1

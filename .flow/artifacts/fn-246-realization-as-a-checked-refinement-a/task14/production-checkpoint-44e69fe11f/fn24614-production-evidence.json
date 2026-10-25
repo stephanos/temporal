@@ -1,0 +1,94 @@
+{
+  "task_id": "fn-246-realization-as-a-checked-refinement-a.14",
+  "status": "in_progress",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+  "base_commit": "93a9d06479fe706b41fe77c7004cfedd7cf2ed5e",
+  "commits": [
+    "44e69fe11f0b81e08ce27a492f2ce89111525cd3"
+  ],
+  "tests": [
+    "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal --test program --test catalog",
+    "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal --test program --test program_history --test catalog",
+    "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo clippy -p umpire-temporal --test program --test program_history --test catalog -- -D warnings",
+    "mise exec -- rustfmt --check --edition 2024 --config skip_children=true temporal/api/system.rs temporal/feature/activity/api.rs temporal/feature/activity/claims.rs temporal/feature/activity/temporal.rs temporal/realization/tests/program.rs temporal/realization/tests/program_history.rs temporal/realization/tests/catalog.rs",
+    "timeout 600 env -u UMPIRE_BACKENDS -u UMPIRE_APALACHE CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal-tests --test fixtures -- --exact fixtures --nocapture",
+    "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal-api --test descriptor",
+    "bash model/scripts/proto-go.sh temporal --check",
+    "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 bash model/scripts/guest.sh umpire-temporal-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/umpire_temporal_guest.wasm --check",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker ./reference/worker/raw",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker -run '^TestProgramRejectsDuplicateExactKey$' -count=1",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/raw -run '^TestFollowTransportMutationCannotRewriteChosenTerminal$' -count=1",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/raw -run '^TestFollowTransportMutationCannotRewriteChosenHeartbeat$' -count=1",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker ./reference/worker/raw -count=10",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m ./reference/worker ./reference/worker/raw",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml reference/worker/program.go reference/worker/program_test.go reference/worker/program_history_test.go reference/worker/program_transport_test.go reference/worker/raw/raw.go reference/worker/raw/raw_test.go",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./reference/worker ./reference/worker/raw",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker/sdk -run '^TestProductionSDKJoinsNotificationAndNativeCancellationInEitherOrder/publication$' -count=100",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/sdk -run '^TestTerminalEnqueueBackpressureJoinsWithoutPublishing$' -count=1 -v",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker/sdk -count=10",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m ./reference/worker/sdk",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml reference/worker/sdk/sdk.go reference/worker/sdk/sdk_test.go reference/worker/sdk/namespace_test.go reference/worker/sdk/continuation_test.go",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./reference/worker/sdk",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver -run '^Test(Worker|FactoryComposes)' -count=10",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./common/testing/testpilot/temporal/act -count=10",
+    "timeout 600 env UMPIRE_STATEFUL_WASM=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/wasm32-wasip1/guest/stateful_control.wasm UMPIRE_KETTLE_WASM=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/wasm32-wasip1/guest/umpire_kettle_guest.wasm GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./runner",
+    "timeout 600 env UMPIRE_STATEFUL_WASM=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/wasm32-wasip1/guest/stateful_control.wasm GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./runner -run '^TestDriver(ClosePreservesEvidenceCapturedAfterExchangeClose|FaultEvidence)' -count=1",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=.github/.golangci.yml --build-tags=test_dep --timeout=10m ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m ./runner",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m --new-from-patch=/tmp/fn24614-act-runner-lint.patch ./runner",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./runner",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=.github/.golangci.yml common/testing/testpilot/temporal/act/worker.go common/testing/testpilot/temporal/act/worker_test.go common/testing/testpilot/temporal/act/act.go common/testing/testpilot/temporal/act/act_test.go common/testing/testpilot/temporal/act/exchange.go tools/umpire/temporaldriver/driver.go tools/umpire/temporaldriver/guards_test.go tools/umpire/temporaldriver/continuation_test.go model/umpire/hosts/go/runner/session.go model/umpire/hosts/go/runner/fault_evidence_test.go",
+    "timeout 600 env CGO_ENABLED=0 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./...",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 make lint-code-fast GOLANGCI_LINT_BASE_REV=93a9d06479fe706b41fe77c7004cfedd7cf2ed5e GOLANGCI_LINT=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 ERRORTYPE=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype GOLANGCI_LINT_FIX=false",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m ./reference/worker ./reference/worker/raw ./reference/worker/sdk",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml reference/worker/bridge.go reference/worker/bridge_test.go",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./reference/worker",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker -run '^TestBridge' -count=10"
+  ],
+  "prs": [],
+  "manifest": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-proof-manifest.json",
+  "manifest_sha256": "32989dfa2462bfb0df11fe415c20c74d7c803ad1b7e039209e3e7b155dc1f051",
+  "subartifacts": {
+    "schema": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-schema/evidence.json",
+      "sha256": "101bb228443fd580a81553ee69164c2eb7d2746e085233b7b9f89d8180c6c7f3"
+    },
+    "program_raw": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-programraw-evidence.json",
+      "sha256": "17c5d523ae6a9618cd5d22472fbe612dc445cd4e4a9f08d321a8c4e4f2bbbad7"
+    },
+    "sdk": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-sdk-evidence.json",
+      "sha256": "e7bd042dbd2a71f8c5d3918ea896fbf28cc04fc9de00388b12e9df8c1e940c9c"
+    },
+    "act": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-evidence.json",
+      "sha256": "9b5a7756de41ed8da39ca5d8b3203f65b42952e3ee5b191862a1f8d31e46e0bb"
+    }
+  },
+  "baseline": {
+    "conductor_handoff": "93a9d06479fe706b41fe77c7004cfedd7cf2ed5e explicitly reported green joined host gates before this task",
+    "focused_pre_edit": "Rust program/catalog, SDK package, worker/raw and act/temporaldriver baseline exits are recorded in the child receipts",
+    "extra_local_full_module_observation": "Passing package output exists in fn24614-production-baseline-go.log; parent tool call omitted its yielded session metadata, so the extra command exit is inconclusive and is not counted as a green receipt. The final joined module command has observed exit0."
+  },
+  "inherited_lint": [
+    "model/umpire/hosts/go/runner/program.go:48 ST1005 capitalized error string",
+    "model/umpire/hosts/go/runner/replay.go:50 max-control-nesting >5"
+  ],
+  "review": "skipped by policy; conductor owns host review and task closure",
+  "delegated_helpers": 4,
+  "owned_commands": "All parent and child command handles exited; all four helpers returned; fixture-owned contexts/callbacks/publishers/coordinators/Stop and capture calls join.",
+  "retained_caches": {
+    "rust": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation",
+    "go": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go"
+  },
+  "remaining_outside_task": [
+    "Task5 full Model policy enumeration and independent complete strategy coverage.",
+    "fn237.4 timeout/cooperative admission, ActivityEvidence wrapper/journal/cuts/barriers/gates/replay and every original raw/native-SDK actual live witness.",
+    "Conductor integrated review, task done/Flow closure, joined guest promotion and parent full fresh/live gates.",
+    "Conductor-planned task15 Model correction/proofs precede task13; no Model policy source was changed here."
+  ],
+  "cache_leases_released": true
+}

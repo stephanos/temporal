@@ -1,0 +1,16 @@
+=== RUN   TestCanceledConversionPreservesPayload
+--- PASS: TestCanceledConversionPreservesPayload (0.00s)
+=== RUN   TestProductionSDKFollowsActualHeartbeatHistory
+=== RUN   TestProductionSDKFollowsActualHeartbeatHistory/completed
+=== RUN   TestProductionSDKFollowsActualHeartbeatHistory/failed
+=== RUN   TestProductionSDKFollowsActualHeartbeatHistory/canceled
+--- PASS: TestProductionSDKFollowsActualHeartbeatHistory (0.24s)
+    --- PASS: TestProductionSDKFollowsActualHeartbeatHistory/completed (0.10s)
+    --- PASS: TestProductionSDKFollowsActualHeartbeatHistory/failed (0.07s)
+    --- PASS: TestProductionSDKFollowsActualHeartbeatHistory/canceled (0.07s)
+=== RUN   TestProductionSDKRefusesUnnotifiedCanceledLeaf
+--- PASS: TestProductionSDKRefusesUnnotifiedCanceledLeaf (0.00s)
+=== RUN   TestFollowBindsProgramNamespaceAndKeepsTransportHold
+--- PASS: TestFollowBindsProgramNamespaceAndKeepsTransportHold (0.00s)
+PASS
+ok  	umpire.local/temporal/reference/worker/sdk	0.246s

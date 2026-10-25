@@ -1,0 +1,14 @@
+=== RUN   TestFactoryComposesActualHeartbeatContinuationAndFaultCapture
+=== RUN   TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/raw/actual-true
+=== RUN   TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/raw/mutated-heartbeat
+=== RUN   TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/sdk/actual-true
+=== RUN   TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/sdk/mutated-heartbeat
+    continuation_test.go:159: composed executor fault before heartbeat: worker executor: worker RPC has no unique matching outstanding operation; assigned=true
+--- FAIL: TestFactoryComposesActualHeartbeatContinuationAndFaultCapture (1.06s)
+    --- PASS: TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/raw/actual-true (0.00s)
+    --- PASS: TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/raw/mutated-heartbeat (0.00s)
+    --- PASS: TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/sdk/actual-true (0.05s)
+    --- FAIL: TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/sdk/mutated-heartbeat (1.01s)
+FAIL
+FAIL	go.temporal.io/server/tools/umpire/temporaldriver	1.065s
+FAIL

@@ -1,0 +1,11 @@
+ok  	umpire.local/temporal/reference/worker	0.004s
+--- FAIL: TestFollowCancellationAtActualHeartbeatDoesNotAdvance (0.00s)
+    --- FAIL: TestFollowCancellationAtActualHeartbeatDoesNotAdvance/bridge-close (0.00s)
+        raw_test.go:300: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/raw/raw_test.go:300
+            	Error:      	Received unexpected error:
+            	            	worker bridge closed with an outstanding assignment operation
+            	Test:       	TestFollowCancellationAtActualHeartbeatDoesNotAdvance/bridge-close
+FAIL
+FAIL	umpire.local/temporal/reference/worker/raw	0.014s
+FAIL

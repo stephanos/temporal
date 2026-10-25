@@ -1,0 +1,12 @@
+=== RUN   TestFactoryComposesActualHeartbeatContinuationAndFaultCapture
+=== RUN   TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/raw/actual-true
+=== RUN   TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/raw/mutated-heartbeat
+=== RUN   TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/sdk/actual-true
+=== RUN   TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/sdk/mutated-heartbeat
+--- PASS: TestFactoryComposesActualHeartbeatContinuationAndFaultCapture (1.07s)
+    --- PASS: TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/raw/actual-true (0.01s)
+    --- PASS: TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/raw/mutated-heartbeat (0.00s)
+    --- PASS: TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/sdk/actual-true (0.05s)
+    --- PASS: TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/sdk/mutated-heartbeat (1.01s)
+PASS
+ok  	go.temporal.io/server/tools/umpire/temporaldriver	1.077s

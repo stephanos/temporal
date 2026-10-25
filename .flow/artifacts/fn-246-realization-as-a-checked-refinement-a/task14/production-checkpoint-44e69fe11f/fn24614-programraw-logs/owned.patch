@@ -1,0 +1,1518 @@
+diff --git a/model/temporal/hosts/go/reference/worker/program.go b/model/temporal/hosts/go/reference/worker/program.go
+index 3d9b39d546..be15f77989 100644
+--- a/model/temporal/hosts/go/reference/worker/program.go
++++ b/model/temporal/hosts/go/reference/worker/program.go
+@@ -4,11 +4,13 @@ package worker
+ import (
+ 	"errors"
+ 	"fmt"
++	"slices"
+ 
+ 	commonpb "go.temporal.io/api/common/v1"
+ 	failurepb "go.temporal.io/api/failure/v1"
+ 	"go.temporal.io/api/workflowservice/v1"
+ 	"google.golang.org/protobuf/proto"
++	"google.golang.org/protobuf/reflect/protoreflect"
+ 	"google.golang.org/protobuf/types/known/anypb"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+@@ -16,66 +18,259 @@ import (
+ const ScenarioHeader = "umpire-scenario"
+ const Unprogrammed = "umpire.unprogrammed"
+ 
+-type row struct {
+-	key      *temporalv1.ActivityTaskKey
+-	response *anypb.Any
++// Row is one exact observable key and its single response.
++type Row struct {
++	Key      *temporalv1.ActivityTaskKey
++	Response *anypb.Any
+ }
+ 
+-// Program is an immutable, validated activity table.
++type taskKey struct {
++	scenario     string
++	attempt      int32
++	activityType string
++	history      string
++}
++
++func exactKey(key *temporalv1.ActivityTaskKey) taskKey {
++	return taskKey{scenario: key.GetScenario(), attempt: key.GetAttempt(), activityType: key.GetActivityType(), history: historyKey(key.GetHeartbeatHistory())}
++}
++func historyKey(history []bool) string {
++	bits := make([]byte, len(history))
++	for i, bit := range history {
++		if bit {
++			bits[i] = 1
++		}
++	}
++	return string(bits)
++}
++
++// Program is an immutable, validated finite activity table.
+ type Program struct {
+-	Namespace string
+-	TaskQueue string
+-	rows      []row
++	Namespace     string
++	TaskQueue     string
++	rows          []Row
++	index         map[taskKey]*anypb.Any
++	maxHeartbeats int
+ }
+ 
+-// Decode refuses unknown keys and unsupported responses before any task is polled.
++// Decode refuses incomplete observable domains before any task is polled.
+ func Decode(data []byte) (*Program, error) {
+ 	envelope := new(anypb.Any)
+ 	if err := proto.Unmarshal(data, envelope); err != nil {
+ 		return nil, fmt.Errorf("decode program envelope: %w", err)
+ 	}
++	if err := noUnknownFields(envelope); err != nil {
++		return nil, err
++	}
+ 	p := new(temporalv1.WorkerProgram)
+ 	if err := envelope.UnmarshalTo(p); err != nil {
+ 		return nil, fmt.Errorf("decode worker program: %w", err)
+ 	}
++	if err := noUnknownFields(p); err != nil {
++		return nil, err
++	}
+ 	if p.GetNamespace() == "" || p.GetTaskQueue() == "" {
+ 		return nil, errors.New("worker program requires namespace and task queue")
+ 	}
+-	table := &Program{Namespace: p.GetNamespace(), TaskQueue: p.GetTaskQueue()}
++	table := &Program{Namespace: p.GetNamespace(), TaskQueue: p.GetTaskQueue(), index: make(map[taskKey]*anypb.Any, len(p.GetRules()))}
+ 	for i, r := range p.GetRules() {
+ 		key := new(temporalv1.ActivityTaskKey)
+ 		if err := r.GetKey().UnmarshalTo(key); err != nil {
+ 			return nil, fmt.Errorf("rule %d key: %w", i, err)
+ 		}
++		if err := validKey(key); err != nil {
++			return nil, fmt.Errorf("rule %d key: %w", i, err)
++		}
++		k := exactKey(key)
++		if _, exists := table.index[k]; exists {
++			return nil, fmt.Errorf("rule %d: duplicate exact activity key", i)
++		}
+ 		if len(r.GetRespond()) != 1 {
+ 			return nil, fmt.Errorf("rule %d: activity requires one response", i)
+ 		}
+ 		response := r.GetRespond()[0]
+-		var message proto.Message
+-		switch {
+-		case response.MessageIs(&workflowservice.RespondActivityTaskCompletedRequest{}):
+-			message = new(workflowservice.RespondActivityTaskCompletedRequest)
+-		case response.MessageIs(&workflowservice.RespondActivityTaskFailedRequest{}):
+-			message = new(workflowservice.RespondActivityTaskFailedRequest)
+-		default:
+-			return nil, fmt.Errorf("rule %d: unsupported activity response %q", i, response.GetTypeUrl())
+-		}
+-		if err := response.UnmarshalTo(message); err != nil {
++		if _, err := ResponseMessage(response); err != nil {
+ 			return nil, fmt.Errorf("rule %d response: %w", i, err)
+ 		}
+-		table.rows = append(table.rows, row{key: key, response: response})
++		response = proto.Clone(response).(*anypb.Any)
++		table.rows = append(table.rows, Row{Key: key, Response: response})
++		table.index[k] = response
++		table.maxHeartbeats = max(table.maxHeartbeats, len(key.GetHeartbeatHistory()))
++	}
++	domains := make(map[taskKey][]bool, len(p.GetContinuationDomains()))
++	for i, packed := range p.GetContinuationDomains() {
++		domain := new(temporalv1.ActivityTaskSuccessors)
++		if err := noUnknownFields(packed); err != nil {
++			return nil, fmt.Errorf("successor %d envelope: %w", i, err)
++		}
++		if err := packed.UnmarshalTo(domain); err != nil {
++			return nil, fmt.Errorf("successor %d domain: %w", i, err)
++		}
++		if err := noUnknownFields(domain); err != nil {
++			return nil, fmt.Errorf("successor %d domain: %w", i, err)
++		}
++		if err := validKey(domain.GetKey()); err != nil {
++			return nil, fmt.Errorf("successor %d key: %w", i, err)
++		}
++		k := exactKey(domain.GetKey())
++		if _, exists := domains[k]; exists {
++			return nil, fmt.Errorf("successor %d: duplicate declared domain", i)
++		}
++		if len(domain.GetCancelRequested()) == 0 || len(domain.GetCancelRequested()) > 2 {
++			return nil, fmt.Errorf("successor %d: nonempty unique bool domain required", i)
++		}
++		if len(domain.GetCancelRequested()) == 2 && domain.GetCancelRequested()[0] == domain.GetCancelRequested()[1] {
++			return nil, fmt.Errorf("successor %d: duplicate declared bit", i)
++		}
++		response := table.index[k]
++		if response == nil || !response.MessageIs(&workflowservice.RecordActivityTaskHeartbeatRequest{}) {
++			return nil, fmt.Errorf("successor %d: domain requires an exact heartbeat row", i)
++		}
++		domains[k] = slices.Clone(domain.GetCancelRequested())
++	}
++	for _, row := range table.rows {
++		k := exactKey(row.Key)
++		if row.Response.MessageIs(&workflowservice.RecordActivityTaskHeartbeatRequest{}) {
++			domain, exists := domains[k]
++			if !exists {
++				return nil, errors.New("heartbeat row has no declared successor domain")
++			}
++			for _, bit := range domain {
++				child := k
++				child.history += historyKey([]bool{bit})
++				if table.index[child] == nil {
++					return nil, errors.New("declared heartbeat successor has no response row")
++				}
++			}
++		}
++		history := row.Key.GetHeartbeatHistory()
++		if len(history) == 0 {
++			continue
++		}
++		parent := k
++		parent.history = parent.history[:len(parent.history)-1]
++		response := table.index[parent]
++		if response == nil || !response.MessageIs(&workflowservice.RecordActivityTaskHeartbeatRequest{}) {
++			return nil, errors.New("activity history has no heartbeat parent")
++		}
++		if !slices.Contains(domains[parent], history[len(history)-1]) {
++			return nil, errors.New("activity history is outside its declared successor domain")
++		}
+ 	}
+ 	return table, nil
+ }
+ 
+-// Match returns a fresh response for the first exact task key, or nil.
+-func (p *Program) Match(scenario string, attempt int32, activityType string) *anypb.Any {
+-	for _, r := range p.rows {
+-		if r.key.GetScenario() == scenario && r.key.GetAttempt() == attempt && r.key.GetActivityType() == activityType {
+-			return proto.Clone(r.response).(*anypb.Any)
++func validKey(key *temporalv1.ActivityTaskKey) error {
++	if key == nil || key.GetScenario() == "" || key.GetActivityType() == "" || key.GetAttempt() <= 0 {
++		return errors.New("activity key requires scenario, positive attempt and activity type")
++	}
++	return noUnknownFields(key)
++}
++
++// Match returns a fresh response for the exact observed heartbeat history.
++func (p *Program) Match(scenario string, attempt int32, activityType string, history ...bool) *anypb.Any {
++	response := p.index[taskKey{scenario: scenario, attempt: attempt, activityType: activityType, history: historyKey(history)}]
++	if response == nil {
++		return nil
++	}
++	return proto.Clone(response).(*anypb.Any)
++}
++
++// MaxHeartbeats is the finite depth proved by admission of all declared children.
++func (p *Program) MaxHeartbeats() int { return p.maxHeartbeats }
++
++// Rows returns independent copies of the admitted key/response pairs.
++func (p *Program) Rows() []Row {
++	rows := make([]Row, len(p.rows))
++	for i, row := range p.rows {
++		rows[i] = Row{Key: proto.Clone(row.Key).(*temporalv1.ActivityTaskKey), Response: proto.Clone(row.Response).(*anypb.Any)}
++	}
++	return rows
++}
++
++// Responses returns independent copies for an executor's startup capability check.
++func (p *Program) Responses() []*anypb.Any {
++	responses := make([]*anypb.Any, 0, len(p.rows))
++	for _, row := range p.rows {
++		responses = append(responses, proto.Clone(row.Response).(*anypb.Any))
++	}
++	return responses
++}
++
++// ResponseMessage decodes one admitted partial worker request.
++func ResponseMessage(response *anypb.Any) (proto.Message, error) {
++	if response == nil {
++		return nil, errors.New("missing activity response")
++	}
++	if err := noUnknownFields(response); err != nil {
++		return nil, err
++	}
++	var message proto.Message
++	var body protoreflect.Name
++	switch {
++	case response.MessageIs(&workflowservice.RecordActivityTaskHeartbeatRequest{}):
++		message = new(workflowservice.RecordActivityTaskHeartbeatRequest)
++		body = "details"
++	case response.MessageIs(&workflowservice.RespondActivityTaskCompletedRequest{}):
++		message = new(workflowservice.RespondActivityTaskCompletedRequest)
++		body = "result"
++	case response.MessageIs(&workflowservice.RespondActivityTaskFailedRequest{}):
++		message = new(workflowservice.RespondActivityTaskFailedRequest)
++		body = "failure"
++	case response.MessageIs(&workflowservice.RespondActivityTaskCanceledRequest{}):
++		message = new(workflowservice.RespondActivityTaskCanceledRequest)
++		body = "details"
++	default:
++		return nil, fmt.Errorf("unsupported activity response %q", response.GetTypeUrl())
++	}
++	if err := response.UnmarshalTo(message); err != nil {
++		return nil, err
++	}
++	if err := noUnknownFields(message); err != nil {
++		return nil, err
++	}
++	var unsupported error
++	message.ProtoReflect().Range(func(field protoreflect.FieldDescriptor, _ protoreflect.Value) bool {
++		switch field.Name() {
++		case body, "task_token", "namespace", "identity":
++		default:
++			unsupported = fmt.Errorf("unsupported activity response field %s", field.Name())
+ 		}
++		return unsupported == nil
++	})
++	return message, unsupported
++}
++
++func noUnknownFields(message proto.Message) error {
++	if message == nil || !message.ProtoReflect().IsValid() {
++		return errors.New("missing protobuf message")
+ 	}
+-	return nil
++	return unknownFields(message.ProtoReflect())
++}
++func unknownFields(message protoreflect.Message) error {
++	if len(message.GetUnknown()) != 0 {
++		return fmt.Errorf("unknown fields in %s", message.Descriptor().FullName())
++	}
++	var found error
++	message.Range(func(field protoreflect.FieldDescriptor, value protoreflect.Value) bool {
++		switch {
++		case field.IsMap() && field.MapValue().Message() != nil:
++			value.Map().Range(func(_ protoreflect.MapKey, item protoreflect.Value) bool {
++				found = unknownFields(item.Message())
++				return found == nil
++			})
++		case field.IsList() && field.Message() != nil:
++			list := value.List()
++			for i := 0; i < list.Len() && found == nil; i++ {
++				found = unknownFields(list.Get(i).Message())
++			}
++		case !field.IsMap() && !field.IsList() && field.Message() != nil:
++			found = unknownFields(value.Message())
++		default:
++		}
++		return found == nil
++	})
++	return found
+ }
+ 
+ // Scenario accepts the Realization's binary/plain header encoding.
+@@ -91,11 +286,131 @@ func UnprogrammedFailure() *failurepb.Failure {
+ 	return &failurepb.Failure{Message: "no worker program rule matches the task", FailureInfo: &failurepb.Failure_ApplicationFailureInfo{ApplicationFailureInfo: &failurepb.ApplicationFailureInfo{Type: Unprogrammed, NonRetryable: true}}}
+ }
+ 
+-// Responses returns independent copies for an executor's startup capability check.
+-func (p *Program) Responses() []*anypb.Any {
+-	responses := make([]*anypb.Any, 0, len(p.rows))
+-	for _, r := range p.rows {
+-		responses = append(responses, proto.Clone(r.response).(*anypb.Any))
++func successfulRPC(rpc RPC) error {
++	if rpc.Stage != RPCCompleted || !rpc.Sent || !rpc.Answered {
++		return errors.New("missing actual completed worker RPC")
+ 	}
+-	return responses
++	if rpc.CallError != nil {
++		return errors.New("worker RPC has an actual call error")
++	}
++	if rpc.TransportError != "" {
++		return fmt.Errorf("worker transport failed: %s", rpc.TransportError)
++	}
++	if rpc.ServerError != nil {
++		return fmt.Errorf("worker RPC failed with status %d", rpc.ServerError.GetCode())
++	}
++	if rpc.Request == nil || rpc.Response == nil {
++		return errors.New("worker RPC lacks request or response")
++	}
++	if err := noUnknownFields(rpc.Request); err != nil {
++		return err
++	}
++	return noUnknownFields(rpc.Response)
++}
++
++// HeartbeatResult reads a bit only from a successful actual heartbeat completion.
++func HeartbeatResult(expected *anypb.Any, rpc RPC) (bool, error) {
++	if err := successfulRPC(rpc); err != nil {
++		return false, err
++	}
++	if rpc.Method != workflowservice.WorkflowService_RecordActivityTaskHeartbeat_FullMethodName {
++		return false, errors.New("worker RPC is not a heartbeat completion")
++	}
++	request := new(workflowservice.RecordActivityTaskHeartbeatRequest)
++	if err := rpc.Request.UnmarshalTo(request); err != nil {
++		return false, err
++	}
++	if err := noUnknownFields(request); err != nil {
++		return false, err
++	}
++	selected, err := ResponseMessage(expected)
++	if err != nil {
++		return false, err
++	}
++	chosen, ok := selected.(*workflowservice.RecordActivityTaskHeartbeatRequest)
++	if !ok {
++		return false, errors.New("expected worker response is not a heartbeat")
++	}
++	chosen.Identity = ""
++	request.Identity = ""
++	if !proto.Equal(chosen, request) {
++		return false, errors.New("actual heartbeat request differs from chosen response")
++	}
++	response := new(workflowservice.RecordActivityTaskHeartbeatResponse)
++	if err := rpc.Response.UnmarshalTo(response); err != nil {
++		return false, err
++	}
++	if err := noUnknownFields(response); err != nil {
++		return false, err
++	}
++	if response.GetActivityPaused() || response.GetActivityReset() {
++		return false, errors.New("heartbeat response has unsupported pause or reset notification")
++	}
++	return response.GetCancelRequested(), nil
++}
++
++// TerminalResult validates the actual chosen terminal and its server acknowledgment.
++func TerminalResult(expected *anypb.Any, rpc RPC) error {
++	if err := successfulRPC(rpc); err != nil {
++		return err
++	}
++	message, err := ResponseMessage(expected)
++	if err != nil {
++		return err
++	}
++	var method string
++	var response proto.Message
++	switch message.(type) {
++	case *workflowservice.RespondActivityTaskCompletedRequest:
++		method = workflowservice.WorkflowService_RespondActivityTaskCompleted_FullMethodName
++		response = new(workflowservice.RespondActivityTaskCompletedResponse)
++	case *workflowservice.RespondActivityTaskFailedRequest:
++		method = workflowservice.WorkflowService_RespondActivityTaskFailed_FullMethodName
++		response = new(workflowservice.RespondActivityTaskFailedResponse)
++	case *workflowservice.RespondActivityTaskCanceledRequest:
++		method = workflowservice.WorkflowService_RespondActivityTaskCanceled_FullMethodName
++		response = new(workflowservice.RespondActivityTaskCanceledResponse)
++	default:
++		return errors.New("expected worker response is not terminal")
++	}
++	if rpc.Method != method || rpc.Request.GetTypeUrl() != expected.GetTypeUrl() {
++		return errors.New("actual terminal kind differs from chosen response")
++	}
++	actual := message.ProtoReflect().Type().New().Interface()
++	if err := rpc.Request.UnmarshalTo(actual); err != nil {
++		return err
++	}
++	if err := noUnknownFields(actual); err != nil {
++		return err
++	}
++	for _, request := range []proto.Message{message, actual} {
++		reflected := request.ProtoReflect()
++		var unsupported error
++		reflected.Range(func(field protoreflect.FieldDescriptor, _ protoreflect.Value) bool {
++			switch field.Name() {
++			case "namespace", "task_token", "result", "failure", "details":
++			case "identity", "worker_version", "deployment", "deployment_options":
++				reflected.Clear(field)
++			default:
++				unsupported = fmt.Errorf("unsupported actual terminal field %s", field.Name())
++			}
++			return unsupported == nil
++		})
++		if unsupported != nil {
++			return unsupported
++		}
++	}
++	if !proto.Equal(message, actual) {
++		return errors.New("actual terminal payload or assignment differs from chosen response")
++	}
++	if err := rpc.Response.UnmarshalTo(response); err != nil {
++		return err
++	}
++	if err := noUnknownFields(response); err != nil {
++		return err
++	}
++	if failed, ok := response.(*workflowservice.RespondActivityTaskFailedResponse); ok && len(failed.GetFailures()) != 0 {
++		return errors.New("failed terminal acknowledgment contains validation failures")
++	}
++	return nil
+ }
+diff --git a/model/temporal/hosts/go/reference/worker/program_test.go b/model/temporal/hosts/go/reference/worker/program_test.go
+index 47dbea134e..25d3feee86 100644
+--- a/model/temporal/hosts/go/reference/worker/program_test.go
++++ b/model/temporal/hosts/go/reference/worker/program_test.go
+@@ -22,11 +22,12 @@ func programBytes(t *testing.T, p *temporalv1.WorkerProgram) []byte {
+ 	}
+ 	return b
+ }
+-func TestProgramValidationAndOrderedMatch(t *testing.T) {
++func TestProgramValidationAndExactMatch(t *testing.T) {
+ 	key, _ := anypb.New(&temporalv1.ActivityTaskKey{Scenario: "Complete", Attempt: 1, ActivityType: "test"})
+ 	response, _ := anypb.New(&workflowservice.RespondActivityTaskCompletedRequest{Result: &commonpb.Payloads{Payloads: []*commonpb.Payload{{Data: []byte("first")}}}})
+ 	second, _ := anypb.New(&workflowservice.RespondActivityTaskFailedRequest{})
+-	p := &temporalv1.WorkerProgram{Namespace: "ns", TaskQueue: "q", Rules: []*temporalv1.Rule{{Key: key, Respond: []*anypb.Any{response}}, {Key: key, Respond: []*anypb.Any{second}}}}
++	secondKey, _ := anypb.New(&temporalv1.ActivityTaskKey{Scenario: "Fail", Attempt: 1, ActivityType: "test"})
++	p := &temporalv1.WorkerProgram{Namespace: "ns", TaskQueue: "q", Rules: []*temporalv1.Rule{{Key: key, Respond: []*anypb.Any{response}}, {Key: secondKey, Respond: []*anypb.Any{second}}}}
+ 	table, err := Decode(programBytes(t, p))
+ 	if err != nil {
+ 		t.Fatal(err)
+@@ -47,3 +48,18 @@ func TestProgramValidationAndOrderedMatch(t *testing.T) {
+ 		t.Fatalf("empty program: %v", err)
+ 	}
+ }
++
++func TestProgramRejectsDuplicateExactKey(t *testing.T) {
++	key, err := anypb.New(&temporalv1.ActivityTaskKey{Scenario: "Complete", Attempt: 1, ActivityType: "test"})
++	if err != nil {
++		t.Fatal(err)
++	}
++	response, err := anypb.New(&workflowservice.RespondActivityTaskCompletedRequest{})
++	if err != nil {
++		t.Fatal(err)
++	}
++	p := &temporalv1.WorkerProgram{Namespace: "ns", TaskQueue: "q", Rules: []*temporalv1.Rule{{Key: key, Respond: []*anypb.Any{response}}, {Key: key, Respond: []*anypb.Any{response}}}}
++	if _, err := Decode(programBytes(t, p)); err == nil {
++		t.Fatal("duplicate exact key accepted")
++	}
++}
+diff --git a/model/temporal/hosts/go/reference/worker/raw/raw.go b/model/temporal/hosts/go/reference/worker/raw/raw.go
+index 37798c33fa..18e5b5f3b3 100644
+--- a/model/temporal/hosts/go/reference/worker/raw/raw.go
++++ b/model/temporal/hosts/go/reference/worker/raw/raw.go
+@@ -4,12 +4,17 @@ package raw
+ import (
+ 	"context"
+ 	"errors"
++	"fmt"
++	"time"
+ 
+ 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
+ 	"go.temporal.io/api/workflowservice/v1"
+ 	"google.golang.org/grpc/codes"
+ 	"google.golang.org/grpc/status"
++	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
++	"google.golang.org/protobuf/types/known/durationpb"
++	"google.golang.org/protobuf/types/known/timestamppb"
+ 	"umpire.local/temporal/reference/worker"
+ )
+ 
+@@ -19,21 +24,38 @@ const Version = "1"
+ // Validate checks startup capabilities without polling.
+ func Validate(program []byte) error { _, err := worker.Decode(program); return err }
+ 
+-// Follow polls and responds until ctx ends. conn is owned and closed by the caller.
+-func Follow(ctx context.Context, conn workflowservice.WorkflowServiceClient, program []byte) error {
++// Follow keeps each assignment until its one terminal choice is acknowledged.
++// conn and bridge remain caller-owned.
++func Follow(ctx context.Context, conn workflowservice.WorkflowServiceClient, program []byte, bridge *worker.Bridge) error {
+ 	table, err := worker.Decode(program)
+ 	if err != nil {
+ 		return err
+ 	}
+-	if conn == nil {
+-		return errors.New("raw executor requires a connection")
++	if conn == nil || bridge == nil {
++		return errors.New("raw executor requires a connection and worker bridge")
+ 	}
++	run, cancel := context.WithCancel(ctx)
++	joined := make(chan struct{})
++	go func() {
++		defer close(joined)
++		select {
++		case <-bridge.Failed():
++			cancel()
++		case <-bridge.Done():
++			cancel()
++		case <-run.Done():
++		}
++	}()
++	defer func() { cancel(); <-joined }()
+ 	for {
+-		task, err := conn.PollActivityTaskQueue(ctx, &workflowservice.PollActivityTaskQueueRequest{Namespace: table.Namespace, TaskQueue: &taskqueuepb.TaskQueue{Name: table.TaskQueue}, Identity: "umpire-raw"})
++		task, err := conn.PollActivityTaskQueue(run, &workflowservice.PollActivityTaskQueueRequest{Namespace: table.Namespace, TaskQueue: &taskqueuepb.TaskQueue{Name: table.TaskQueue}, Identity: "umpire-raw"})
+ 		if err != nil {
+ 			if ctx.Err() != nil {
+ 				return nil
+ 			}
++			if fault := bridge.Err(); fault != nil {
++				return fault
++			}
+ 			if status.Code(err) == codes.DeadlineExceeded {
+ 				continue
+ 			}
+@@ -42,8 +64,18 @@ func Follow(ctx context.Context, conn workflowservice.WorkflowServiceClient, pro
+ 		if len(task.GetTaskToken()) == 0 {
+ 			continue
+ 		}
+-		response := table.Match(worker.Scenario(task.GetHeader().GetFields()[worker.ScenarioHeader]), task.GetAttempt(), task.GetActivityType().GetName())
+-		if err := respond(ctx, conn, table.Namespace, task.GetTaskToken(), response); err != nil {
++		identity := worker.IdentityFromPoll(table.Namespace, table.TaskQueue, task)
++		assignment, err := bridge.Bind(identity)
++		if err != nil {
++			return err
++		}
++		taskCtx, taskCancel, err := assignmentContext(run, task)
++		if err != nil {
++			return err
++		}
++		err = followAssignment(assignment.HeartbeatContext(taskCtx), conn, table, assignment, identity)
++		taskCancel()
++		if err != nil {
+ 			if ctx.Err() != nil {
+ 				return nil
+ 			}
+@@ -52,25 +84,156 @@ func Follow(ctx context.Context, conn workflowservice.WorkflowServiceClient, pro
+ 	}
+ }
+ 
+-func respond(ctx context.Context, conn workflowservice.WorkflowServiceClient, namespace string, token []byte, response *anypb.Any) error {
+-	if response == nil {
+-		_, err := conn.RespondActivityTaskFailed(ctx, &workflowservice.RespondActivityTaskFailedRequest{Namespace: namespace, TaskToken: token, Identity: "umpire-raw", Failure: worker.UnprogrammedFailure()})
+-		return err
++func assignmentContext(ctx context.Context, task *workflowservice.PollActivityTaskQueueResponse) (context.Context, context.CancelFunc, error) {
++	var deadline time.Time
++	for _, bound := range []struct {
++		start   *timestamppb.Timestamp
++		timeout *durationpb.Duration
++	}{
++		{start: task.GetStartedTime(), timeout: task.GetStartToCloseTimeout()},
++		{start: task.GetScheduledTime(), timeout: task.GetScheduleToCloseTimeout()},
++	} {
++		if bound.timeout == nil {
++			continue
++		}
++		if err := bound.timeout.CheckValid(); err != nil {
++			return nil, nil, fmt.Errorf("invalid actual task timeout: %w", err)
++		}
++		timeout := bound.timeout.AsDuration()
++		if timeout < 0 {
++			return nil, nil, errors.New("negative actual task timeout")
++		}
++		if timeout == 0 {
++			continue
++		}
++		if err := bound.start.CheckValid(); err != nil {
++			return nil, nil, fmt.Errorf("invalid actual task timestamp: %w", err)
++		}
++		candidate := bound.start.AsTime().Add(timeout)
++		if deadline.IsZero() || candidate.Before(deadline) {
++			deadline = candidate
++		}
++	}
++	if deadline.IsZero() {
++		child, cancel := context.WithCancel(ctx)
++		return child, cancel, nil
+ 	}
+-	if response.MessageIs(&workflowservice.RespondActivityTaskCompletedRequest{}) {
+-		request := new(workflowservice.RespondActivityTaskCompletedRequest)
+-		if err := response.UnmarshalTo(request); err != nil {
++	child, cancel := context.WithDeadline(ctx, deadline)
++	return child, cancel, nil
++}
++
++func followAssignment(ctx context.Context, conn workflowservice.WorkflowServiceClient, table *worker.Program, assignment *worker.Assignment, identity worker.TaskIdentity) error {
++	history := make([]bool, 0, table.MaxHeartbeats())
++	for step := 0; step <= table.MaxHeartbeats(); step++ {
++		if err := ctx.Err(); err != nil {
++			return err
++		}
++		response := table.Match(identity.Scenario, identity.Attempt, identity.ActivityType, history...)
++		if response == nil {
++			if len(history) != 0 {
++				return errors.New("actual heartbeat history is outside the declared program domain")
++			}
++			var err error
++			response, err = anypb.New(&workflowservice.RespondActivityTaskFailedRequest{Failure: worker.UnprogrammedFailure()})
++			if err != nil {
++				return err
++			}
++		}
++		message, err := worker.ResponseMessage(response)
++		if err != nil {
+ 			return err
+ 		}
+-		request.Namespace, request.TaskToken, request.Identity = namespace, token, "umpire-raw"
+-		_, err := conn.RespondActivityTaskCompleted(ctx, request)
++		switch request := message.(type) {
++		case *workflowservice.RecordActivityTaskHeartbeatRequest:
++			if len(history) >= table.MaxHeartbeats() {
++				return errors.New("worker heartbeat depth exhausted")
++			}
++			request.Namespace, request.TaskToken, request.Identity = identity.Namespace, identity.Token, "umpire-raw"
++			expected, err := anypb.New(request)
++			if err != nil {
++				return err
++			}
++			wait, err := assignment.BeginHeartbeat()
++			if err != nil {
++				return err
++			}
++			actual, err := conn.RecordActivityTaskHeartbeat(ctx, request)
++			if err != nil {
++				return err
++			}
++			if actual == nil {
++				return errors.New("missing heartbeat acknowledgment")
++			}
++			completed, err := wait.Wait(ctx)
++			if err != nil {
++				return err
++			}
++			bit, err := worker.HeartbeatResult(expected, completed.RPC())
++			if err != nil {
++				return err
++			}
++			history = append(history, bit)
++		default:
++			return respond(ctx, conn, assignment, identity, message)
++		}
++	}
++	return errors.New("worker decision work exhausted")
++}
++
++func respond(ctx context.Context, conn workflowservice.WorkflowServiceClient, assignment *worker.Assignment, identity worker.TaskIdentity, message proto.Message) error {
++	var method string
++	switch request := message.(type) {
++	case *workflowservice.RespondActivityTaskCompletedRequest:
++		request.Namespace, request.TaskToken, request.Identity = identity.Namespace, identity.Token, "umpire-raw"
++		method = workflowservice.WorkflowService_RespondActivityTaskCompleted_FullMethodName
++	case *workflowservice.RespondActivityTaskFailedRequest:
++		request.Namespace, request.TaskToken, request.Identity = identity.Namespace, identity.Token, "umpire-raw"
++		method = workflowservice.WorkflowService_RespondActivityTaskFailed_FullMethodName
++	case *workflowservice.RespondActivityTaskCanceledRequest:
++		request.Namespace, request.TaskToken, request.Identity = identity.Namespace, identity.Token, "umpire-raw"
++		method = workflowservice.WorkflowService_RespondActivityTaskCanceled_FullMethodName
++	default:
++		return fmt.Errorf("unsupported terminal response %T", message)
++	}
++	expected, err := anypb.New(message)
++	if err != nil {
++		return err
++	}
++	wait, err := assignment.BeginTerminal(method)
++	if err != nil {
+ 		return err
+ 	}
+-	request := new(workflowservice.RespondActivityTaskFailedRequest)
+-	if err := response.UnmarshalTo(request); err != nil {
++	switch request := message.(type) {
++	case *workflowservice.RespondActivityTaskCompletedRequest:
++		response, err := conn.RespondActivityTaskCompleted(ctx, request)
++		if err != nil {
++			return err
++		}
++		if response == nil {
++			return errors.New("missing completed acknowledgment")
++		}
++	case *workflowservice.RespondActivityTaskFailedRequest:
++		response, err := conn.RespondActivityTaskFailed(ctx, request)
++		if err != nil {
++			return err
++		}
++		if response == nil {
++			return errors.New("missing failed acknowledgment")
++		}
++	case *workflowservice.RespondActivityTaskCanceledRequest:
++		response, err := conn.RespondActivityTaskCanceled(ctx, request)
++		if err != nil {
++			return err
++		}
++		if response == nil {
++			return errors.New("missing canceled acknowledgment")
++		}
++	default:
++		return errors.New("unsupported terminal response")
++	}
++	completed, err := wait.Wait(ctx)
++	if err != nil {
+ 		return err
+ 	}
+-	request.Namespace, request.TaskToken, request.Identity = namespace, token, "umpire-raw"
+-	_, err := conn.RespondActivityTaskFailed(ctx, request)
+-	return err
++	return worker.TerminalResult(expected, completed.RPC())
+ }
+diff --git a/model/temporal/hosts/go/reference/worker/raw/raw_test.go b/model/temporal/hosts/go/reference/worker/raw/raw_test.go
+index 5555a760f1..6b3d1ec2f1 100644
+--- a/model/temporal/hosts/go/reference/worker/raw/raw_test.go
++++ b/model/temporal/hosts/go/reference/worker/raw/raw_test.go
+@@ -2,70 +2,473 @@ package raw
+ 
+ import (
+ 	"context"
++	"net"
++	"sync"
++	"testing"
++	"time"
++
++	"github.com/stretchr/testify/require"
+ 	commonpb "go.temporal.io/api/common/v1"
++	failurepb "go.temporal.io/api/failure/v1"
+ 	"go.temporal.io/api/workflowservice/v1"
+ 	"google.golang.org/grpc"
++	"google.golang.org/grpc/codes"
++	"google.golang.org/grpc/credentials/insecure"
++	"google.golang.org/grpc/status"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	"testing"
++	"google.golang.org/protobuf/types/known/durationpb"
++	"google.golang.org/protobuf/types/known/timestamppb"
++	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
++	"umpire.local/temporal/reference/worker"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+ 
+-type service struct {
+-	workflowservice.WorkflowServiceClient
+-	cancel    context.CancelFunc
+-	task      *workflowservice.PollActivityTaskQueueResponse
+-	completed *workflowservice.RespondActivityTaskCompletedRequest
+-	failed    *workflowservice.RespondActivityTaskFailedRequest
++type rawService struct {
++	workflowservice.UnimplementedWorkflowServiceServer
++	mu               sync.Mutex
++	polls            int
++	heartbeats       []*workflowservice.RecordActivityTaskHeartbeatRequest
++	terminals        []proto.Message
++	bits             []bool
++	badHeartbeat     string
++	failedValidation bool
++	mutateTerminal   bool
++	mutateHeartbeat  bool
++	holdHeartbeat    bool
++	holdPublication  bool
++	entered          chan struct{}
++	cancel           context.CancelFunc
++	task             *workflowservice.PollActivityTaskQueueResponse
+ }
+ 
+-func (s *service) PollActivityTaskQueue(ctx context.Context, _ *workflowservice.PollActivityTaskQueueRequest, _ ...grpc.CallOption) (*workflowservice.PollActivityTaskQueueResponse, error) {
+-	if s.task != nil {
+-		task := s.task
+-		s.task = nil
+-		return task, nil
++func (s *rawService) PollActivityTaskQueue(ctx context.Context, _ *workflowservice.PollActivityTaskQueueRequest) (*workflowservice.PollActivityTaskQueueResponse, error) {
++	s.mu.Lock()
++	s.polls++
++	first := s.polls == 1
++	s.mu.Unlock()
++	if first {
++		return proto.Clone(s.task).(*workflowservice.PollActivityTaskQueueResponse), nil
+ 	}
++	s.cancel()
+ 	<-ctx.Done()
+ 	return nil, ctx.Err()
+ }
+-func (s *service) RespondActivityTaskCompleted(_ context.Context, r *workflowservice.RespondActivityTaskCompletedRequest, _ ...grpc.CallOption) (*workflowservice.RespondActivityTaskCompletedResponse, error) {
+-	s.completed = r
+-	s.cancel()
++func (s *rawService) RecordActivityTaskHeartbeat(ctx context.Context, request *workflowservice.RecordActivityTaskHeartbeatRequest) (*workflowservice.RecordActivityTaskHeartbeatResponse, error) {
++	s.mu.Lock()
++	index := len(s.heartbeats)
++	s.heartbeats = append(s.heartbeats, proto.Clone(request).(*workflowservice.RecordActivityTaskHeartbeatRequest))
++	s.mu.Unlock()
++	if s.holdHeartbeat {
++		s.entered <- struct{}{}
++		<-ctx.Done()
++		return nil, status.FromContextError(ctx.Err()).Err()
++	}
++	if s.badHeartbeat == "transport" {
++		return nil, status.Error(codes.PermissionDenied, "proof-denied")
++	}
++	response := &workflowservice.RecordActivityTaskHeartbeatResponse{}
++	if index < len(s.bits) {
++		response.CancelRequested = s.bits[index]
++	}
++	switch s.badHeartbeat {
++	case "paused":
++		response.ActivityPaused = true
++	case "reset":
++		response.ActivityReset = true
++	case "unknown":
++		response.ProtoReflect().SetUnknown([]byte{0x20, 1})
++	case "malformed":
++		response.ProtoReflect().SetUnknown([]byte{0xff})
++	default:
++	}
++	return response, nil
++}
++func (s *rawService) terminal(message proto.Message) {
++	s.mu.Lock()
++	defer s.mu.Unlock()
++	s.terminals = append(s.terminals, proto.Clone(message))
++}
++func (s *rawService) RespondActivityTaskCompleted(_ context.Context, request *workflowservice.RespondActivityTaskCompletedRequest) (*workflowservice.RespondActivityTaskCompletedResponse, error) {
++	s.terminal(request)
+ 	return &workflowservice.RespondActivityTaskCompletedResponse{}, nil
+ }
+-func (s *service) RespondActivityTaskFailed(_ context.Context, r *workflowservice.RespondActivityTaskFailedRequest, _ ...grpc.CallOption) (*workflowservice.RespondActivityTaskFailedResponse, error) {
+-	s.failed = r
+-	s.cancel()
+-	return &workflowservice.RespondActivityTaskFailedResponse{}, nil
+-}
+-func TestFollowExactResponseAndUnprogrammed(t *testing.T) {
+-	for _, matched := range []bool{true, false} {
+-		ctx, cancel := context.WithCancel(context.Background())
+-		task := &workflowservice.PollActivityTaskQueueResponse{TaskToken: []byte("token"), Attempt: 1, ActivityType: &commonpb.ActivityType{Name: "activity"}, Header: &commonpb.Header{Fields: map[string]*commonpb.Payload{"umpire-scenario": {Metadata: map[string][]byte{"encoding": []byte("binary/plain")}, Data: []byte("Complete")}}}}
+-		result := &commonpb.Payloads{Payloads: []*commonpb.Payload{{Data: []byte("exact")}}}
+-		key, _ := anypb.New(&temporalv1.ActivityTaskKey{Scenario: "Complete", Attempt: 1, ActivityType: "activity"})
+-		response, _ := anypb.New(&workflowservice.RespondActivityTaskCompletedRequest{Result: result})
+-		p := &temporalv1.WorkerProgram{Namespace: "ns", TaskQueue: "q"}
+-		if matched {
+-			p.Rules = []*temporalv1.Rule{{Key: key, Respond: []*anypb.Any{response}}}
++func (s *rawService) RespondActivityTaskFailed(_ context.Context, request *workflowservice.RespondActivityTaskFailedRequest) (*workflowservice.RespondActivityTaskFailedResponse, error) {
++	s.terminal(request)
++	response := &workflowservice.RespondActivityTaskFailedResponse{}
++	if s.failedValidation {
++		response.Failures = []*failurepb.Failure{{Message: "invalid terminal"}}
++	}
++	return response, nil
++}
++func (s *rawService) RespondActivityTaskCanceled(_ context.Context, request *workflowservice.RespondActivityTaskCanceledRequest) (*workflowservice.RespondActivityTaskCanceledResponse, error) {
++	s.terminal(request)
++	return &workflowservice.RespondActivityTaskCanceledResponse{}, nil
++}
++
++func rawPack(t *testing.T, message proto.Message) *anypb.Any {
++	t.Helper()
++	packed, err := anypb.New(message)
++	require.NoError(t, err)
++	return packed
++}
++func rawProgram(t *testing.T, bits []bool, terminal string, matched bool) []byte {
++	t.Helper()
++	p := &temporalv1.WorkerProgram{Namespace: "ns", TaskQueue: "q"}
++	if matched {
++		history := []bool{}
++		for i, bit := range bits {
++			key := &temporalv1.ActivityTaskKey{Scenario: "history", Attempt: 2, ActivityType: "activity", HeartbeatHistory: append([]bool(nil), history...)}
++			request := &workflowservice.RecordActivityTaskHeartbeatRequest{Details: &commonpb.Payloads{Payloads: []*commonpb.Payload{{Data: []byte{byte(i)}}}}}
++			p.Rules = append(p.Rules, &temporalv1.Rule{Key: rawPack(t, key), Respond: []*anypb.Any{rawPack(t, request)}})
++			p.ContinuationDomains = append(p.ContinuationDomains, rawPack(t, &temporalv1.ActivityTaskSuccessors{Key: key, CancelRequested: []bool{bit}}))
++			history = append(history, bit)
+ 		}
+-		envelope, _ := anypb.New(p)
+-		data, _ := proto.Marshal(envelope)
+-		svc := &service{cancel: cancel, task: task}
+-		err := Follow(ctx, svc, data)
+-		cancel()
+-		if err != nil {
+-			t.Fatal(err)
++		var request proto.Message
++		switch terminal {
++		case "completed":
++			request = &workflowservice.RespondActivityTaskCompletedRequest{Result: &commonpb.Payloads{Payloads: []*commonpb.Payload{{Data: []byte("exact")}}}}
++		case "failed":
++			request = &workflowservice.RespondActivityTaskFailedRequest{Failure: &failurepb.Failure{Message: "chosen", FailureInfo: &failurepb.Failure_ApplicationFailureInfo{ApplicationFailureInfo: &failurepb.ApplicationFailureInfo{Type: "proof", NonRetryable: true}}}}
++		case "canceled":
++			request = &workflowservice.RespondActivityTaskCanceledRequest{Details: &commonpb.Payloads{Payloads: []*commonpb.Payload{{Data: []byte("ack")}}}}
++		default:
++			t.Fatalf("unknown terminal %q", terminal)
++		}
++		key := &temporalv1.ActivityTaskKey{Scenario: "history", Attempt: 2, ActivityType: "activity", HeartbeatHistory: history}
++		p.Rules = append(p.Rules, &temporalv1.Rule{Key: rawPack(t, key), Respond: []*anypb.Any{rawPack(t, request)}})
++	}
++	data, err := proto.Marshal(rawPack(t, p))
++	require.NoError(t, err)
++	return data
++}
++
++type rawFixture struct {
++	ctx         context.Context
++	cancel      context.CancelFunc
++	bridge      *worker.Bridge
++	service     *rawService
++	done        chan struct{}
++	err         error
++	observeErr  error
++	publication chan worker.RPC
++	publishers  sync.WaitGroup
++}
++
++func newRawFixture(t *testing.T, program []byte, configure func(*rawService)) *rawFixture {
++	t.Helper()
++	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
++	f := &rawFixture{ctx: ctx, cancel: cancel, bridge: worker.NewBridge(ctx), done: make(chan struct{}), publication: make(chan worker.RPC, 1)}
++	f.service = &rawService{cancel: cancel, entered: make(chan struct{}, 1), task: &workflowservice.PollActivityTaskQueueResponse{TaskToken: []byte("opaque-token"), WorkflowNamespace: "ns", Attempt: 2, ActivityId: "activity-id", ActivityRunId: "activity-run", ActivityType: &commonpb.ActivityType{Name: "activity"}, StartedTime: timestamppb.Now(), ScheduledTime: timestamppb.Now(), StartToCloseTimeout: durationpb.New(time.Hour), ScheduleToCloseTimeout: durationpb.New(time.Hour), Header: &commonpb.Header{Fields: map[string]*commonpb.Payload{worker.ScenarioHeader: {Metadata: map[string][]byte{"encoding": []byte("binary/plain")}, Data: []byte("history")}}}}}
++	if configure != nil {
++		configure(f.service)
++	}
++	listener, err := net.Listen("tcp", "127.0.0.1:0")
++	require.NoError(t, err)
++	server := grpc.NewServer()
++	workflowservice.RegisterWorkflowServiceServer(server, f.service)
++	served := make(chan error, 1)
++	go func() { served <- server.Serve(listener) }()
++	var invocation, sequence uint64
++	conn, err := grpc.NewClient(listener.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithChainUnaryInterceptor(func(callCtx context.Context, method string, request, response any, cc *grpc.ClientConn, invoke grpc.UnaryInvoker, opts ...grpc.CallOption) error {
++		if f.service.mutateHeartbeat {
++			if heartbeat, ok := request.(*workflowservice.RecordActivityTaskHeartbeatRequest); ok {
++				heartbeat.Details.Payloads[0].Data = []byte("mutated")
++			}
+ 		}
+-		if matched {
+-			if !proto.Equal(svc.completed.GetResult(), result) || string(svc.completed.GetTaskToken()) != "token" {
+-				t.Fatalf("completion = %v", svc.completed)
++		if f.service.mutateTerminal {
++			if completed, ok := request.(*workflowservice.RespondActivityTaskCompletedRequest); ok {
++				completed.Result.Payloads[0].Data = []byte("mutated")
+ 			}
++		}
++		invocation++
++		id := invocation
++		sequence++
++		actualRequest := rawPack(t, proto.Clone(request.(proto.Message)))
++		observeErr := f.bridge.Observe(callCtx, worker.RPC{Invocation: id, Sequence: sequence, Stage: worker.RPCStarted, Method: method, Request: actualRequest})
++		if observeErr != nil {
++			f.observeErr = observeErr
++		}
++		callErr := invoke(callCtx, method, request, response, cc, opts...)
++		sequence++
++		rpc := worker.RPC{Invocation: id, Sequence: sequence, Stage: worker.RPCCompleted, Method: method, Request: actualRequest}
++		if callErr == nil {
++			rpc.Sent = true
++			rpc.Answered = true
++			rpc.Response = rawPack(t, proto.Clone(response.(proto.Message)))
+ 		} else {
+-			failure := svc.failed.GetFailure().GetApplicationFailureInfo()
+-			if failure.GetType() != "umpire.unprogrammed" || !failure.GetNonRetryable() {
+-				t.Fatalf("failure = %v", svc.failed)
++			rpc.CallError = rawPack(t, status.Convert(callErr).Proto())
++			if callCtx.Err() == nil && status.Code(callErr) != codes.Internal {
++				rpc.Sent = true
++				rpc.Answered = true
++				rpc.ServerError = &realizationv1.Error{Code: int32(status.Code(callErr)), Message: status.Convert(callErr).Message()}
++			} else if callCtx.Err() != nil {
++				rpc.TransportError = callErr.Error()
+ 			}
+ 		}
++		if f.service.holdPublication && method == workflowservice.WorkflowService_RecordActivityTaskHeartbeat_FullMethodName {
++			f.publishers.Add(1)
++			go func() { defer f.publishers.Done(); f.publication <- rpc; <-ctx.Done() }()
++		} else if observeErr := f.bridge.Observe(callCtx, rpc); observeErr != nil {
++			f.observeErr = observeErr
++		}
++		return callErr
++	}))
++	require.NoError(t, err)
++	go func() {
++		defer close(f.done)
++		f.err = Follow(ctx, workflowservice.NewWorkflowServiceClient(conn), program, f.bridge)
++	}()
++	t.Cleanup(func() {
++		cancel()
++		<-f.done
++		f.publishers.Wait()
++		closeErr := f.bridge.Close()
++		if closeErr != nil && f.err == nil {
++			t.Error(closeErr)
++		}
++		require.NoError(t, conn.Close())
++		server.Stop()
++		<-served
++	})
++	return f
++}
++func (f *rawFixture) wait(t *testing.T) error {
++	t.Helper()
++	select {
++	case <-f.done:
++		return f.err
++	case <-f.ctx.Done():
++		select {
++		case <-f.done:
++			return f.err
++		case <-time.After(time.Second):
++			t.Fatal("raw follower did not join")
++			return nil
++		}
++	}
++}
++
++func TestFollowRetainsAssignmentThroughActualHeartbeatHistory(t *testing.T) {
++	bits := []bool{false, false, true, true}
++	for _, terminal := range []string{"completed", "failed", "canceled"} {
++		t.Run(terminal, func(t *testing.T) {
++			f := newRawFixture(t, rawProgram(t, bits, terminal, true), func(service *rawService) { service.bits = bits })
++			require.NoError(t, f.wait(t))
++			f.service.mu.Lock()
++			defer f.service.mu.Unlock()
++			require.Len(t, f.service.heartbeats, len(bits))
++			require.Len(t, f.service.terminals, 1)
++			for i, request := range f.service.heartbeats {
++				require.Equal(t, "ns", request.GetNamespace())
++				require.Equal(t, []byte("opaque-token"), request.GetTaskToken())
++				require.Equal(t, []byte{byte(i)}, request.GetDetails().GetPayloads()[0].GetData())
++			}
++			require.Equal(t, 2, f.service.polls)
++			switch request := f.service.terminals[0].(type) {
++			case *workflowservice.RespondActivityTaskCompletedRequest:
++				require.Equal(t, "completed", terminal)
++				require.Equal(t, []byte("exact"), request.GetResult().GetPayloads()[0].GetData())
++			case *workflowservice.RespondActivityTaskFailedRequest:
++				require.Equal(t, "failed", terminal)
++				require.Equal(t, "chosen", request.GetFailure().GetMessage())
++			case *workflowservice.RespondActivityTaskCanceledRequest:
++				require.Equal(t, "canceled", terminal)
++				require.Equal(t, []byte("ack"), request.GetDetails().GetPayloads()[0].GetData())
++			default:
++				t.Fatalf("unexpected terminal %T", request)
++			}
++		})
++	}
++}
++func TestFollowInitialUnprogrammedRemainsFailure(t *testing.T) {
++	f := newRawFixture(t, rawProgram(t, nil, "completed", false), nil)
++	require.NoError(t, f.wait(t))
++	f.service.mu.Lock()
++	defer f.service.mu.Unlock()
++	require.Len(t, f.service.terminals, 1)
++	failed, ok := f.service.terminals[0].(*workflowservice.RespondActivityTaskFailedRequest)
++	require.True(t, ok)
++	require.Equal(t, worker.Unprogrammed, failed.GetFailure().GetApplicationFailureInfo().GetType())
++	require.True(t, failed.GetFailure().GetApplicationFailureInfo().GetNonRetryable())
++}
++func TestFollowBadHeartbeatNeverAdvancesOrSendsTerminal(t *testing.T) {
++	for _, bad := range []string{"transport", "paused", "reset", "unknown", "malformed", "off-domain"} {
++		t.Run(bad, func(t *testing.T) {
++			f := newRawFixture(t, rawProgram(t, []bool{false}, "completed", true), func(service *rawService) {
++				service.badHeartbeat = bad
++				if bad == "off-domain" {
++					service.bits = []bool{true}
++				}
++			})
++			require.Error(t, f.wait(t))
++			f.service.mu.Lock()
++			defer f.service.mu.Unlock()
++			require.Len(t, f.service.heartbeats, 1)
++			require.Empty(t, f.service.terminals)
++			require.Equal(t, 1, f.service.polls)
++		})
++	}
++}
++func TestFollowFailedAcknowledgmentValidationFailure(t *testing.T) {
++	f := newRawFixture(t, rawProgram(t, nil, "failed", true), func(service *rawService) { service.failedValidation = true })
++	require.ErrorContains(t, f.wait(t), "validation failures")
++	f.service.mu.Lock()
++	defer f.service.mu.Unlock()
++	require.Len(t, f.service.terminals, 1)
++	require.Equal(t, 1, f.service.polls)
++}
++func TestFollowCancellationAtActualHeartbeatDoesNotAdvance(t *testing.T) {
++	for _, closeBridge := range []bool{false, true} {
++		t.Run(map[bool]string{false: "run-cancel", true: "bridge-close"}[closeBridge], func(t *testing.T) {
++			f := newRawFixture(t, rawProgram(t, []bool{false}, "completed", true), func(service *rawService) { service.holdHeartbeat = true })
++			select {
++			case <-f.service.entered:
++			case <-f.ctx.Done():
++				t.Fatal(f.ctx.Err())
++			}
++			if closeBridge {
++				require.ErrorContains(t, f.bridge.Close(), "outstanding assignment")
++				require.Error(t, f.wait(t))
++			} else {
++				f.cancel()
++				require.NoError(t, f.wait(t))
++			}
++			f.service.mu.Lock()
++			defer f.service.mu.Unlock()
++			require.Len(t, f.service.heartbeats, 1)
++			require.Empty(t, f.service.terminals)
++		})
++	}
++}
++
++func TestFollowActivityDeadlineAbortsActualHeartbeat(t *testing.T) {
++	f := newRawFixture(t, rawProgram(t, []bool{false}, "completed", true), func(service *rawService) {
++		service.holdHeartbeat = true
++		service.task.StartToCloseTimeout = durationpb.New(250 * time.Millisecond)
++	})
++	select {
++	case <-f.service.entered:
++	case <-f.done:
++		t.Fatal("task deadline expired before the actual heartbeat reached the server")
++	case <-f.ctx.Done():
++		t.Fatal(f.ctx.Err())
++	}
++	require.Error(t, f.wait(t))
++	require.NoError(t, f.ctx.Err())
++	f.service.mu.Lock()
++	defer f.service.mu.Unlock()
++	require.Len(t, f.service.heartbeats, 1)
++	require.Empty(t, f.service.terminals)
++	require.Equal(t, 1, f.service.polls)
++}
++
++func TestFollowTransportMutationCannotRewriteChosenTerminal(t *testing.T) {
++	f := newRawFixture(t, rawProgram(t, nil, "completed", true), func(service *rawService) { service.mutateTerminal = true })
++	require.ErrorContains(t, f.wait(t), "payload or assignment")
++	f.service.mu.Lock()
++	defer f.service.mu.Unlock()
++	require.Len(t, f.service.terminals, 1)
++	require.Equal(t, 1, f.service.polls)
++}
++
++func TestFollowTransportMutationCannotRewriteChosenHeartbeat(t *testing.T) {
++	f := newRawFixture(t, rawProgram(t, []bool{false}, "completed", true), func(service *rawService) { service.mutateHeartbeat = true })
++	require.ErrorContains(t, f.wait(t), "heartbeat request differs")
++	f.service.mu.Lock()
++	defer f.service.mu.Unlock()
++	require.Len(t, f.service.heartbeats, 1)
++	require.Equal(t, []byte("mutated"), f.service.heartbeats[0].GetDetails().GetPayloads()[0].GetData())
++	require.Empty(t, f.service.terminals)
++	require.Equal(t, 1, f.service.polls)
++}
++
++func TestFollowCancellationWhileActualCompletionPublicationIsHeld(t *testing.T) {
++	f := newRawFixture(t, rawProgram(t, []bool{false}, "completed", true), func(service *rawService) { service.holdPublication = true })
++	var captured worker.RPC
++	select {
++	case captured = <-f.publication:
++	case <-f.ctx.Done():
++		t.Fatal(f.ctx.Err())
++	}
++	require.True(t, captured.Sent)
++	require.True(t, captured.Answered)
++	response := new(workflowservice.RecordActivityTaskHeartbeatResponse)
++	require.NoError(t, captured.Response.UnmarshalTo(response))
++	require.False(t, response.GetCancelRequested())
++	f.cancel()
++	require.NoError(t, f.wait(t))
++	f.publishers.Wait()
++	f.service.mu.Lock()
++	defer f.service.mu.Unlock()
++	require.Len(t, f.service.heartbeats, 1)
++	require.Empty(t, f.service.terminals)
++	require.Equal(t, 1, f.service.polls)
++}
++
++func TestFollowExplicitAfterTrueFalseTransportDomain(t *testing.T) {
++	bits := []bool{true, false}
++	f := newRawFixture(t, rawProgram(t, bits, "completed", true), func(service *rawService) { service.bits = bits })
++	require.NoError(t, f.wait(t))
++	f.service.mu.Lock()
++	defer f.service.mu.Unlock()
++	require.Len(t, f.service.heartbeats, 2)
++	require.Len(t, f.service.terminals, 1)
++	require.IsType(t, &workflowservice.RespondActivityTaskCompletedRequest{}, f.service.terminals[0])
++}
++
++func TestFollowTerminalOnlyResponseSemantics(t *testing.T) {
++	for _, terminal := range []string{"completed", "failed"} {
++		t.Run(terminal, func(t *testing.T) {
++			f := newRawFixture(t, rawProgram(t, nil, terminal, true), nil)
++			require.NoError(t, f.wait(t))
++			f.service.mu.Lock()
++			defer f.service.mu.Unlock()
++			require.Empty(t, f.service.heartbeats)
++			require.Len(t, f.service.terminals, 1)
++			require.Equal(t, 2, f.service.polls)
++		})
++	}
++}
++
++func TestFollowOriginalBinaryOneHeartbeatSubset(t *testing.T) {
++	for _, test := range []struct {
++		name     string
++		bit      bool
++		terminal string
++	}{
++		{name: "false-complete", terminal: "completed"},
++		{name: "false-fail", terminal: "failed"},
++		{name: "true-complete", bit: true, terminal: "completed"},
++		{name: "true-fail", bit: true, terminal: "failed"},
++		{name: "true-canceled", bit: true, terminal: "canceled"},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			program := new(temporalv1.WorkerProgram)
++			envelope := new(anypb.Any)
++			falseTerminal := test.terminal
++			if falseTerminal == "canceled" {
++				falseTerminal = "completed"
++			}
++			require.NoError(t, proto.Unmarshal(rawProgram(t, []bool{false}, falseTerminal, true), envelope))
++			require.NoError(t, envelope.UnmarshalTo(program))
++			alternate := new(temporalv1.WorkerProgram)
++			require.NoError(t, proto.Unmarshal(rawProgram(t, []bool{true}, test.terminal, true), envelope))
++			require.NoError(t, envelope.UnmarshalTo(alternate))
++			program.Rules = append(program.Rules, alternate.Rules[1])
++			domain := new(temporalv1.ActivityTaskSuccessors)
++			require.NoError(t, program.ContinuationDomains[0].UnmarshalTo(domain))
++			domain.CancelRequested = []bool{false, true}
++			program.ContinuationDomains[0] = rawPack(t, domain)
++			data, err := proto.Marshal(rawPack(t, program))
++			require.NoError(t, err)
++			f := newRawFixture(t, data, func(service *rawService) { service.bits = []bool{test.bit} })
++			require.NoError(t, f.wait(t))
++			f.service.mu.Lock()
++			defer f.service.mu.Unlock()
++			require.Len(t, f.service.heartbeats, 1)
++			require.Len(t, f.service.terminals, 1)
++			require.Equal(t, 2, f.service.polls)
++		})
+ 	}
+ }
+diff --git a/model/temporal/hosts/go/reference/worker/program_history_test.go b/model/temporal/hosts/go/reference/worker/program_history_test.go
+new file mode 100644
+index 0000000000..87093d09b1
+--- /dev/null
++++ b/model/temporal/hosts/go/reference/worker/program_history_test.go
+@@ -0,0 +1,151 @@
++package worker
++
++import (
++	"testing"
++
++	"github.com/stretchr/testify/require"
++	commonpb "go.temporal.io/api/common/v1"
++	"go.temporal.io/api/workflowservice/v1"
++	"google.golang.org/protobuf/proto"
++	"google.golang.org/protobuf/types/known/anypb"
++	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
++)
++
++func historyAny(t *testing.T, message proto.Message) *anypb.Any {
++	t.Helper()
++	packed, err := anypb.New(message)
++	require.NoError(t, err)
++	return packed
++}
++func historyKeyFor(bits ...bool) *temporalv1.ActivityTaskKey {
++	return &temporalv1.ActivityTaskKey{Scenario: "history", Attempt: 2, ActivityType: "activity", HeartbeatHistory: bits}
++}
++func historyProgram(t *testing.T) *temporalv1.WorkerProgram {
++	t.Helper()
++	heartbeat := historyAny(t, &workflowservice.RecordActivityTaskHeartbeatRequest{Details: &commonpb.Payloads{Payloads: []*commonpb.Payload{{Data: []byte("heartbeat")}}}})
++	complete := historyAny(t, &workflowservice.RespondActivityTaskCompletedRequest{Result: &commonpb.Payloads{Payloads: []*commonpb.Payload{{Data: []byte("complete")}}}})
++	canceled := historyAny(t, &workflowservice.RespondActivityTaskCanceledRequest{})
++	p := &temporalv1.WorkerProgram{Namespace: "ns", TaskQueue: "queue"}
++	for _, row := range []struct {
++		history  []bool
++		response *anypb.Any
++	}{
++		{response: heartbeat}, {history: []bool{false}, response: heartbeat}, {history: []bool{true}, response: complete},
++		{history: []bool{false, false}, response: complete}, {history: []bool{false, true}, response: heartbeat},
++		{history: []bool{false, true, true}, response: canceled},
++	} {
++		p.Rules = append(p.Rules, &temporalv1.Rule{Key: historyAny(t, historyKeyFor(row.history...)), Respond: []*anypb.Any{row.response}})
++	}
++	domains := []*temporalv1.ActivityTaskSuccessors{
++		{Key: historyKeyFor(), CancelRequested: []bool{false, true}},
++		{Key: historyKeyFor(false), CancelRequested: []bool{false, true}},
++		{Key: historyKeyFor(false, true), CancelRequested: []bool{true}},
++	}
++	for _, domain := range domains {
++		p.ContinuationDomains = append(p.ContinuationDomains, historyAny(t, domain))
++	}
++	return p
++}
++
++func changeDomain(t *testing.T, p *temporalv1.WorkerProgram, index int, edit func(*temporalv1.ActivityTaskSuccessors)) {
++	t.Helper()
++	domain := new(temporalv1.ActivityTaskSuccessors)
++	require.NoError(t, p.ContinuationDomains[index].UnmarshalTo(domain))
++	edit(domain)
++	p.ContinuationDomains[index] = historyAny(t, domain)
++}
++
++func TestProgramExactHistoryAndDeclaredSingletonDomain(t *testing.T) {
++	p := historyProgram(t)
++	table, err := Decode(programBytes(t, p))
++	require.NoError(t, err)
++	require.Equal(t, 3, table.MaxHeartbeats())
++	for _, row := range p.GetRules() {
++		key := new(temporalv1.ActivityTaskKey)
++		require.NoError(t, row.GetKey().UnmarshalTo(key))
++		got := table.Match(key.GetScenario(), key.GetAttempt(), key.GetActivityType(), key.GetHeartbeatHistory()...)
++		require.True(t, proto.Equal(row.GetRespond()[0], got))
++	}
++	require.Nil(t, table.Match("history", 2, "activity", false, true, false))
++	rows := table.Rows()
++	rows[0].Key.Scenario = "changed"
++	rows[0].Response.Value = nil
++	p.Rules[0].Respond[0].Value = nil
++	require.NotNil(t, table.Match("history", 2, "activity"))
++	require.NotEmpty(t, table.Match("history", 2, "activity").GetValue())
++}
++
++func TestProgramRejectsIncompleteOrAmbiguousHistory(t *testing.T) {
++	for _, test := range []struct {
++		name string
++		edit func(*temporalv1.WorkerProgram)
++		want string
++	}{
++		{name: "duplicate-key", edit: func(p *temporalv1.WorkerProgram) { p.Rules = append(p.Rules, p.Rules[0]) }, want: "duplicate exact"},
++		{name: "missing-domain", edit: func(p *temporalv1.WorkerProgram) { p.ContinuationDomains = p.ContinuationDomains[1:] }, want: "no declared"},
++		{name: "empty-domain", edit: func(p *temporalv1.WorkerProgram) {
++			changeDomain(t, p, 0, func(domain *temporalv1.ActivityTaskSuccessors) { domain.CancelRequested = nil })
++		}, want: "nonempty unique"},
++		{name: "duplicate-bit", edit: func(p *temporalv1.WorkerProgram) {
++			changeDomain(t, p, 0, func(domain *temporalv1.ActivityTaskSuccessors) { domain.CancelRequested = []bool{true, true} })
++		}, want: "duplicate declared bit"},
++		{name: "duplicate-domain", edit: func(p *temporalv1.WorkerProgram) {
++			p.ContinuationDomains = append(p.ContinuationDomains, p.ContinuationDomains[0])
++		}, want: "duplicate declared domain"},
++		{name: "missing-declared-row", edit: func(p *temporalv1.WorkerProgram) { p.Rules = p.Rules[:len(p.Rules)-1] }, want: "has no response row"},
++		{name: "orphan-parent", edit: func(p *temporalv1.WorkerProgram) {
++			p.Rules = p.Rules[1:]
++			p.ContinuationDomains = p.ContinuationDomains[1:]
++		}, want: "no heartbeat parent"},
++		{name: "terminal-domain", edit: func(p *temporalv1.WorkerProgram) { p.Rules[0].Respond = p.Rules[2].Respond }, want: "requires an exact heartbeat"},
++		{name: "undeclared-child", edit: func(p *temporalv1.WorkerProgram) {
++			changeDomain(t, p, 0, func(domain *temporalv1.ActivityTaskSuccessors) { domain.CancelRequested = []bool{true} })
++		}, want: "outside its declared"},
++		{name: "unknown-domain-type", edit: func(p *temporalv1.WorkerProgram) {
++			p.ContinuationDomains[0] = historyAny(t, &workflowservice.RespondActivityTaskCompletedRequest{})
++		}, want: "successor 0 domain"},
++		{name: "malformed-domain", edit: func(p *temporalv1.WorkerProgram) { p.ContinuationDomains[0].Value = []byte{0xff} }, want: "successor 0 domain"},
++		{name: "unknown-domain-field", edit: func(p *temporalv1.WorkerProgram) {
++			changeDomain(t, p, 0, func(domain *temporalv1.ActivityTaskSuccessors) { domain.ProtoReflect().SetUnknown([]byte{0x18, 1}) })
++		}, want: "unknown fields"},
++		{name: "unknown-key-field", edit: func(p *temporalv1.WorkerProgram) {
++			key := historyKeyFor()
++			key.ProtoReflect().SetUnknown([]byte{0x28, 1})
++			p.Rules[0].Key = historyAny(t, key)
++		}, want: "unknown fields"},
++		{name: "unknown-nested-response", edit: func(p *temporalv1.WorkerProgram) {
++			payload := &commonpb.Payload{Data: []byte("x")}
++			payload.ProtoReflect().SetUnknown([]byte{0xf8, 0x7, 1})
++			p.Rules[2].Respond = []*anypb.Any{historyAny(t, &workflowservice.RespondActivityTaskCompletedRequest{Result: &commonpb.Payloads{Payloads: []*commonpb.Payload{payload}}})}
++		}, want: "unknown fields"},
++		{name: "unsupported-request-field", edit: func(p *temporalv1.WorkerProgram) {
++			p.Rules[2].Respond = []*anypb.Any{historyAny(t, &workflowservice.RespondActivityTaskCompletedRequest{WorkerVersion: &commonpb.WorkerVersionStamp{BuildId: "forbidden"}})}
++		}, want: "unsupported activity response field"},
++		{name: "zero-attempt", edit: func(p *temporalv1.WorkerProgram) {
++			key := historyKeyFor()
++			key.Attempt = 0
++			p.Rules[0].Key = historyAny(t, key)
++		}, want: "positive attempt"},
++		{name: "missing-response", edit: func(p *temporalv1.WorkerProgram) { p.Rules[0].Respond = nil }, want: "one response"},
++		{name: "multiple-responses", edit: func(p *temporalv1.WorkerProgram) {
++			p.Rules[0].Respond = append(p.Rules[0].Respond, p.Rules[2].Respond[0])
++		}, want: "one response"},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			p := historyProgram(t)
++			test.edit(p)
++			_, err := Decode(programBytes(t, p))
++			require.ErrorContains(t, err, test.want)
++		})
++	}
++}
++
++func TestProgramFollowsExplicitBinaryDomainAfterTrueWithoutModelInference(t *testing.T) {
++	p := historyProgram(t)
++	changeDomain(t, p, 2, func(domain *temporalv1.ActivityTaskSuccessors) { domain.CancelRequested = []bool{false, true} })
++	response := historyAny(t, &workflowservice.RespondActivityTaskCompletedRequest{})
++	p.Rules = append(p.Rules, &temporalv1.Rule{Key: historyAny(t, historyKeyFor(false, true, false)), Respond: []*anypb.Any{response}})
++	table, err := Decode(programBytes(t, p))
++	require.NoError(t, err)
++	require.True(t, proto.Equal(response, table.Match("history", 2, "activity", false, true, false)))
++}
+diff --git a/model/temporal/hosts/go/reference/worker/program_transport_test.go b/model/temporal/hosts/go/reference/worker/program_transport_test.go
+new file mode 100644
+index 0000000000..79d689bc04
+--- /dev/null
++++ b/model/temporal/hosts/go/reference/worker/program_transport_test.go
+@@ -0,0 +1,96 @@
++package worker
++
++import (
++	"strings"
++	"testing"
++
++	"github.com/stretchr/testify/require"
++	commonpb "go.temporal.io/api/common/v1"
++	failurepb "go.temporal.io/api/failure/v1"
++	"go.temporal.io/api/workflowservice/v1"
++	statuspb "google.golang.org/genproto/googleapis/rpc/status"
++	"google.golang.org/protobuf/proto"
++	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
++)
++
++func completedRPC(t *testing.T, request, response proto.Message) RPC {
++	t.Helper()
++	name := string(request.ProtoReflect().Descriptor().Name())
++	return RPC{Invocation: 1, Sequence: 2, Stage: RPCCompleted, Method: "/temporal.api.workflowservice.v1.WorkflowService/" + strings.TrimSuffix(name, "Request"), Request: historyAny(t, request), Response: historyAny(t, response), Sent: true, Answered: true}
++}
++func TestHeartbeatResultRequiresSuccessfulActualResponse(t *testing.T) {
++	request := &workflowservice.RecordActivityTaskHeartbeatRequest{Namespace: "ns", TaskToken: []byte("token")}
++	for _, bit := range []bool{false, true} {
++		got, err := HeartbeatResult(historyAny(t, request), completedRPC(t, request, &workflowservice.RecordActivityTaskHeartbeatResponse{CancelRequested: bit}))
++		require.NoError(t, err)
++		require.Equal(t, bit, got)
++	}
++	for _, test := range []struct {
++		name string
++		edit func(*RPC)
++	}{
++		{name: "missing-completion", edit: func(rpc *RPC) { rpc.Stage = RPCStarted }},
++		{name: "missing-response", edit: func(rpc *RPC) { rpc.Response = nil }},
++		{name: "transport-error-zero-reply", edit: func(rpc *RPC) { rpc.TransportError = "local deadline" }},
++		{name: "server-error-zero-reply", edit: func(rpc *RPC) { rpc.ServerError = &realizationv1.Error{Code: 7} }},
++		{name: "ambiguous-call-error-zero-reply", edit: func(rpc *RPC) { rpc.CallError = historyAny(t, &statuspb.Status{Code: 13}) }},
++		{name: "unanswered", edit: func(rpc *RPC) { rpc.Answered = false }},
++		{name: "wrong-response-type", edit: func(rpc *RPC) { rpc.Response = historyAny(t, &workflowservice.RespondActivityTaskCompletedResponse{}) }},
++		{name: "paused", edit: func(rpc *RPC) {
++			rpc.Response = historyAny(t, &workflowservice.RecordActivityTaskHeartbeatResponse{ActivityPaused: true})
++		}},
++		{name: "reset", edit: func(rpc *RPC) {
++			rpc.Response = historyAny(t, &workflowservice.RecordActivityTaskHeartbeatResponse{ActivityReset: true})
++		}},
++		{name: "unknown-response-field", edit: func(rpc *RPC) {
++			response := &workflowservice.RecordActivityTaskHeartbeatResponse{}
++			response.ProtoReflect().SetUnknown([]byte{0x20, 1})
++			rpc.Response = historyAny(t, response)
++		}},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			rpc := completedRPC(t, request, &workflowservice.RecordActivityTaskHeartbeatResponse{})
++			test.edit(&rpc)
++			_, err := HeartbeatResult(historyAny(t, request), rpc)
++			require.Error(t, err)
++		})
++	}
++}
++func TestTerminalResultChecksChosenPayloadAndAcknowledgment(t *testing.T) {
++	request := &workflowservice.RespondActivityTaskFailedRequest{Namespace: "ns", TaskToken: []byte("token"), Failure: &failurepb.Failure{Message: "chosen", FailureInfo: &failurepb.Failure_ApplicationFailureInfo{ApplicationFailureInfo: &failurepb.ApplicationFailureInfo{Type: "proof", NonRetryable: true}}}}
++	expected := historyAny(t, request)
++	actual := proto.Clone(request).(*workflowservice.RespondActivityTaskFailedRequest)
++	actual.Identity = "SDK-worker"
++	actual.WorkerVersion = &commonpb.WorkerVersionStamp{BuildId: "SDK-build"}
++	require.NoError(t, TerminalResult(expected, completedRPC(t, actual, &workflowservice.RespondActivityTaskFailedResponse{})))
++	for _, test := range []struct {
++		name string
++		edit func(*RPC)
++		want string
++	}{
++		{name: "wrong-terminal-method", edit: func(rpc *RPC) {
++			rpc.Method = workflowservice.WorkflowService_RespondActivityTaskCompleted_FullMethodName
++		}, want: "terminal kind"},
++		{name: "crossed-token", edit: func(rpc *RPC) {
++			changed := proto.Clone(request).(*workflowservice.RespondActivityTaskFailedRequest)
++			changed.TaskToken = []byte("crossed")
++			rpc.Request = historyAny(t, changed)
++		}, want: "payload or assignment"},
++		{name: "wrong-payload", edit: func(rpc *RPC) {
++			changed := proto.Clone(request).(*workflowservice.RespondActivityTaskFailedRequest)
++			changed.Failure.Message = "wrong"
++			rpc.Request = historyAny(t, changed)
++		}, want: "payload or assignment"},
++		{name: "wrong-response-type", edit: func(rpc *RPC) { rpc.Response = historyAny(t, &workflowservice.RespondActivityTaskCanceledResponse{}) }, want: "mismatched message type"},
++		{name: "validation-failure", edit: func(rpc *RPC) {
++			rpc.Response = historyAny(t, &workflowservice.RespondActivityTaskFailedResponse{Failures: []*failurepb.Failure{{Message: "validation rejected"}}})
++		}, want: "validation failures"},
++		{name: "missing-acknowledgment", edit: func(rpc *RPC) { rpc.Response = nil }, want: "lacks request or response"},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			rpc := completedRPC(t, request, &workflowservice.RespondActivityTaskFailedResponse{})
++			test.edit(&rpc)
++			require.ErrorContains(t, TerminalResult(expected, rpc), test.want)
++		})
++	}
++}

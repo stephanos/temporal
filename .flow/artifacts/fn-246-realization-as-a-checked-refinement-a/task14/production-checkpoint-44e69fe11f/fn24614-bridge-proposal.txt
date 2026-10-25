@@ -1,0 +1,143 @@
+fn-246.14 exact mechanical bridge proposal
+
+This read-only proposal supplements production preparation SHA256 706f0d8358be7f2a5ecf0ddbb6e60056abd6b63e42170330c105a2865aa41bb7. It is a proposed shared surface for conductor reanchoring before production admission. Explicit thinking gpt-6.1-sol/high and no_key remain selected. No implementation, admission, source/Flow edits, builds, tests, probes or cache mutations occurred. The only write is this report. Task 7 closure and catalog continuation remain conductor-owned. The amended declared-successor-domain contract stands; this proposal introduces no universal binary closure.
+
+Smallest ownership split
+
+Keep actual invocation interception, capture, invocation numbering and fault retention in common/testing/testpilot/temporal/act. Keep exact assignment subscriptions and worker-specific expected-response matching in the existing nested host worker package, with the native terminal coordinator in sdk.Follow. tools/umpire/temporaldriver is the only composition adapter. act imports its existing generated schemas plus SDK/gRPC/protobuf, but does not import reference/worker. The nested host imports neither server act nor temporaldriver. No generic core runtime learns Temporal semantics.
+
+Replace Options.Follow with one per-Driver binding factory rather than retaining parallel injection paths. Existing callers/tests migrate coherently; old function layouts are not compatibility targets. The act-side proposed signatures are:
+
+  type WorkerRPCStage uint8
+  const (
+      WorkerRPCStarted WorkerRPCStage = iota + 1
+      WorkerRPCCompleted
+  )
+  type WorkerRPC struct {
+      Invocation uint64
+      Sequence uint64
+      Stage WorkerRPCStage
+      Method string
+      Request *anypb.Any
+      Response *anypb.Any
+      ServerError *realizationv1.Error
+      TransportError string
+      Sent bool
+      Answered bool
+  }
+  type WorkerBinding struct {
+      Follow func(context.Context, client.Client, []byte) error
+      Observe func(context.Context, WorkerRPC) error
+      Close func() error
+  }
+  // In Options, alongside existing ValidateProgram and worker identity fields.
+  BindWorker func(context.Context) (WorkerBinding, error)
+  WorkerRPCBudget uint64       // zero selects 4096 actual invocations
+  WorkerCaptureBytes uint64    // zero selects 64 * 1024 * 1024 encoded bytes
+
+WorkerRPCBudget and WorkerCaptureBytes are explicit act.Options infrastructure defaults with configuration overrides. Zero selects 4096 actual invocations and 64 MiB (67,108,864 bytes) of retained encoded snapshots respectively; validate positive effective values and checked size arithmetic. They are independent of Model depth/work, hidden timers, policy enumeration and SDK retry policy. Budget accounting includes starts, completions, request/response/status bytes and reserved completion metadata for all concurrent in-flight invocations. Reserve both a count slot and enough byte capacity before invoke. Named WorkerCaptureInvocationLimit and WorkerCaptureByteLimit exhaustion latch a Driver fault, cancel/wake executor waits, retain already captured partial evidence and reserved metadata, and earn no policy/live completeness credit. Never evict, truncate, synthesize a response or convert a missing completion to false. Empty SDK polls consume actual capture resources, but expected canceled empty-poll shutdown is not itself a failure.
+
+Adequacy check found a concrete configuration conflict with an unconditional full-capture guarantee. Pinned SDK v1.48.0 internal/grpc_dialer.go:57 sets defaultMaxPayloadSize to 128 * mb and :82-85 accepts MaxPayloadSize override; :106-107 sets both gRPC send and receive limits to that value. The current act worker client supplies no MaxPayloadSize override. Thus a single SDK-admitted 128 MiB decoded request or response can exceed the entire proposed 64 MiB retained-snapshot bound before metadata, while Poll replies can contain activity input. Reserving the existing worst-case completion cannot fit even one such invocation. The 4096/64 MiB defaults are reasonable finite infrastructure controls for small calls, but do not by themselves guarantee capture for the current SDK message domain.
+
+Before production dispatch, reanchor a compatible explicit worker message-limit override or a sufficiently larger capture-byte override with the conductor. The mechanical admission check must verify that one maximum request plus one maximum response plus encoded framing/status/metadata fits, and reserve completion capacity for each admitted concurrent call. It may reserve the actual encoded request size plus the admitted maximum response size rather than twice a pessimistic send maximum. Excess concurrent reservations fail by the named byte bound. Do not silently lower the SDK message limit or admit a configuration that cannot honor this reservation law. If 64 MiB remains the capture default, a separately explicit lower worker MaxPayloadSize is required for guaranteed full capture; this report chooses no additional message-limit value. A completed response whose size unexpectedly violates an admitted bound still returns the actual SDK invoke result unchanged, latches a byte-bound Driver fault and retains available prior evidence and reserved failure metadata; it never earns full-capture/completeness credit or a fabricated truncated protobuf. Such a mismatch is a control failure to fix, not a supported successful capture. No source/build probe was needed for this source-grounded conflict.
+
+Observe is a synchronous bounded state update that never waits for SDK cancellation, another RPC, a handler, publication or a channel consumer. It receives a fresh immutable-by-ownership snapshot; any retained protobuf copy belongs to the receiver and cannot mutate act's copy. Its error latches a binding/Driver fault and wakes/cancels the executor. It must not replace the actual invoke result returned to SDK, turn an actual success into a retry, or hide an actual error. Started and Completed carry the same invocation ID, distinct monotonic local sequence IDs and the same captured request. Sequence orders capture events, not server execution of overlapping RPCs. Request/response bodies are packed with existing deterministic Any packing after cloning the actual protobuf; no public event is an expected program response. ServerError is populated only for a server-answered non-OK call. Local error, deadline, malformed decode and local cancellation remain TransportError, with no successful response bit. Response fields observed on an errored reusable reply object are diagnostic only and cannot select history.
+
+Driver stores the WorkerBinding produced once in startWorker after creating its Run-owned worker context and before dialing/starting work. newDriver validates BindWorker/ValidateProgram before connection effects. Driver owns failure unwinding if binding creation, client creation or Follow startup fails. Follow receives the same context used to construct the binding. Factory options remain immutable; binding state is never shared between Drivers or Runs.
+
+Actual transport location
+
+Retain Driver.startWorker's one lazy SDK client, credentials/TLS and namespace rebinding. Append the mechanical capture interceptor after existing caller unary interceptors and after poll containment, closest to grpc invoke. Raw continues using this client's WorkflowService through temporaldriver; SDK continues NewClientFromExistingWithContext on it. Install grpc.WithStatsHandler(completion{}) on this worker connection, reusing act/rpc.go progressKey and completion.HandleRPC instead of assuming err==nil or context status proves server acknowledgment. Keep existing caller stats handlers working.
+
+For captured PollActivityTaskQueue, RecordActivityTaskHeartbeat and terminal response methods, capture actual request immediately before invoking the next innermost transport, reserve/increment IDs, attach fresh progress to that actual call context, and emit Started. Invoke once, clone reply/status immediately on return, emit Completed, then return the original transport error unchanged. The existing poll hold operates before Started, so waiting at a gate cannot masquerade as a sent call. SDK required retry interceptors precede user dial interceptors in pinned v1.48.0 internal/grpc_dialer.go:101-132,147-182. The added interceptor therefore sees each real retry invocation, not merely the aggregate SDK API call. Tests must verify interceptor order with supplied request-mutating transport options; unsupported arrangements that bypass capture fail configuration rather than create a second capture source.
+
+The transport observer may synchronously publish a captured completion before returning to SDK. Native cancellation occurs only after that return. A delayed observer-publication test can retain an already captured immutable completion and return to SDK first, with any publisher owned and joined by the binding. Neither production callback nor a test hold may wait inside interceptor return for SDK cancellation. Reuse the integrated actual-native SDK proof and deterministic Stop control.
+
+Nested host API and adaptation
+
+Add mechanical types/methods under model/temporal/hosts/go/reference/worker, beside Program. Use an equivalent worker.RPC struct for act.WorkerRPC without importing act; temporaldriver performs a field-for-field conversion of these two transport records. This duplicates a small Go boundary type, not capture or evidence interpretation. The proposed host signatures are:
+
+  type Bridge struct { /* private assignment and outstanding-call state */ }
+  type TaskIdentity struct {
+      Namespace, TaskQueue, ActivityID, ActivityRunID string
+      WorkflowID, WorkflowRunID, ActivityType, Scenario string
+      Attempt int32
+      Token []byte
+  }
+  type Assignment struct { /* private Driver generation and poll invocation */ }
+  type HeartbeatWait struct { /* private assignment/operation identity */ }
+  type TerminalWait struct { /* private assignment/operation identity */ }
+  type ActualCompletion struct { /* immutable worker.RPC access/copy */ }
+
+  func NewBridge(context.Context) *Bridge
+  func (*Bridge) Observe(context.Context, RPC) error
+  func (*Bridge) Bind(TaskIdentity) (*Assignment, error)
+  func (*Bridge) Err() error
+  func (*Bridge) Failed() <-chan struct{}
+  func (*Bridge) Close() error
+  func (*Assignment) HeartbeatContext(context.Context) context.Context
+  func (*Assignment) BeginHeartbeat() (*HeartbeatWait, error)
+  func (*HeartbeatWait) Wait(context.Context) (ActualCompletion, error)
+  func (*Assignment) BeginTerminal(method string) (*TerminalWait, error)
+  func (*TerminalWait) Wait(context.Context) (ActualCompletion, error)
+
+NewBridge holds only observable transport correlation, not policy rows or bool history. Observe is the matching callback above. BeginHeartbeat/BeginTerminal register before a sender can invoke, reject overlap/duplicate registrations, and issue monotonically unique operation identities. A retry creates another actual invocation for that same outstanding operation; an errored invocation never resolves it as a successful false. Wait returns the correlated actual completion for follower-owned validation; the bridge never chooses a response or interprets Model actions. Failed closes once on a correlation/resource/shutdown failure and Err returns the retained reason. Close aborts pending waits, retains completed immutable snapshots through the act owner and joins only bridge-owned work; it never calls SDK Stop or closes caller connections.
+
+In tools/umpire/temporaldriver.NewFactory, set BindWorker to a closure that creates worker.NewBridge(runCtx). Return act.WorkerBinding{Observe: adapter, Close: bridge.Close, Follow: closure calling the selected raw/sdk Follow with that bridge}. Native and raw Follow signatures become:
+
+  sdk.Follow(ctx context.Context, conn client.Client,
+      program []byte, bridge *worker.Bridge) error
+  raw.Follow(ctx context.Context, conn workflowservice.WorkflowServiceClient,
+      program []byte, bridge *worker.Bridge) error
+
+Existing startup Validate remains independently side-effect-free. Do not close the bridge on ordinary handler return; other assignments and the returning handler's terminal RPC still belong to it.
+
+Actual assignment registration and heartbeat correlation
+
+Observe records each successful nonempty poll reply before the poll interceptor returns. Namespace/task queue come from its actual request; token, attempt, type/header, activity ID/run ID and workflow identity come from the actual reply. Every assignment is scoped to this Bridge/Driver and exact poll invocation. Bind receives public activity.Info plus the existing scenario value for SDK, or the just-returned actual poll fields for raw. It requires one exact unclaimed poll assignment and copies the token. Duplicate/colliding live namespace+token mappings, crossed attempt/run/type/header and ambiguous reuse refuse. Retirement tombstones prevent delayed invocations being rebound to a later attempt; do not decode the token.
+
+HeartbeatContext attaches an opaque assignment-generation marker to the proved Run-bound, activity-value-preserving detached context before the first native heartbeat. The marker identifies the assignment for its full lifetime, not the current row: the SDK batching timer retains the opening context and would retain an obsolete per-row marker. BeginHeartbeat registers the current operation separately; exactly one logical heartbeat is outstanding per assignment. At actual invocation start, Observe matches the marker and actual namespace/token to that assignment and current operation, then retains the actual invocation-to-operation mapping through completion/retries. Missing/wrong marker or an independently injected same-token heartbeat is ambiguous and faults rather than consuming a row. Raw uses the same marker on its heartbeat call context. The supported SDK's propagation of this marker to the real inner interceptor requires a production test; if it fails, stop and report the correlation conflict rather than use a private SDK hook or token-only guess.
+
+SDK terminal calls are generated after handler return and need not preserve the detached heartbeat context marker. Correlate them with a unique pre-registered terminal expectation on the same actual poll assignment plus exact method/namespace/token. Keep connection ownership restricted to the selected follower; there is no safe inference from a token if independent same-token terminal writers are admitted. Detect colliding/reused assignments and multiple matching/duplicate terminal invocations. Retry invocations remain attached to the same one terminal choice. Neither public activity.Info nor the terminal wire request can identify which indistinguishable same-token external writer sent a forged request; that unsupported writer configuration must not be claimed as established isolation.
+
+Native cancellation and terminal coordinator
+
+The SDK handler owns its detached heartbeat context from the first window, restoring the original activity deadline and retaining SDK values. A Run-owned joined AfterFunc cancels it. A separate joined observer latches context.Cause(originalActivityCtx). Canceled leaf requires a successful matching true completion and temporal.IsCanceledError of that original cause for the same assignment, in either publication order. A local deadline/Run cancellation or other cause does not qualify. Later true heartbeats reuse the established assignment cancellation latch; they do not require nonexistent fresh cancellation edges. Exact declared-successor domains and follower history remain separate from this transport bridge.
+
+Before returning a terminal result, the handler registers BeginTerminal(expectedMethod), then enqueues a typed terminal expectation to a Run-owned coordinator in sdk.Follow. Use a bounded registration queue/state with cancellation-aware enqueue, not one unjoined goroutine per terminal. The coordinator retains expected leaf/request and TerminalWait; it waits with the Run context, not the already server-canceled original activity context. Only then may the handler return its converter value/error. Waiting for terminal inside the handler deadlocks because SDK sends it after return. The coordinator validates actual terminal method, exact assignment and chosen payload/failure/details, plus successful response and empty Failed validation failures. SDK conversion/sendability remains sdk.go owned; no Model callback enters the coordinator. It latches errors back to Follow and wakes the Driver error path. No terminal expectation is retired until success or an explicit fault retaining partial evidence. SDK retries are actual attempts of the one terminal choice, not extra rows.
+
+Fault handoff and additional owners
+
+act's bounded transport retention stores captured starts/completions for fault reporting only. It is not the later successful evidence journal: there is no ActivityEvidence wrapper, Judge input, publication cut, consumption cursor or transport gate here. It exposes one snapshot packer on Driver:
+
+  func (*Driver) workerFaultEvidence(controller *anypb.Any) (*anypb.Any, error)
+
+A single Any cannot losslessly carry controller evidence plus multiple actual worker invocations with sequence/progress metadata using current schemas. Use narrowly named mechanical fault-only messages WorkerTransportFault and WorkerRPCTrace in the existing system worker envelope model/temporal/proto/umpire/temporal/v1/temporal.proto. For example, WorkerTransportFault { Any controller; repeated WorkerRPCTrace calls; } carries the controller envelope and traces with only opaque method/request/response/status, invocation and sequence IDs, progress flags and transport-error text. No ActivityTaskKey, scenario policy or Model state enters these messages, act or generic Runner. This is opaque DriverFault evidence only; it is never accepted as ActivityEvidence or positive Model proof. Reuse these actual snapshots when fn-237.4 later implements its journal, rather than capturing again. No second recording service or replay interpreter is proposed.
+
+Capture presence alone never creates a DriverFault. Ordinary successful terminal completion and expected cancellation of empty background polls during owned shutdown retain their existing successful controls. Transport trace records may contain expected local poll-cancellation errors without setting executionError or causing Close to fail. Fault eligibility comes from an actual executor failure, named resource bound, correlation/validation error, or a relevant incomplete assignment with a required outstanding operation that ended outside its declared normal cancellation/shutdown contract. Expected local cancellation controls must not become failing controls merely because the transport recorded them.
+
+When a real fault already qualifies, exchange.fault combines x.buffered and a non-consuming worker snapshot through this packer. exchange.Close returns an Evidence()-carrying error for its existing unjudged controller acknowledgment or a qualifying worker fault/relevant incomplete assignment, rather than for any remaining capture. Driver.Close first joins capture-producing work, then attaches otherwise unreported partial actual captures only if its shutdown has a real qualifying failure or relevant incomplete assignment. A successful completed assignment has no remaining obligation just because its snapshots still occupy retention. Unstarted/empty polls canceled by normal Close create no assignment obligation. Preserve snapshot bytes for fault diagnostics without equating storage occupancy with failure.
+
+Snapshot/packing must not discard original controller evidence when worker data exists or clear capture state before successful emission; failed packing preserves the originals and reports a real failure. Until fn-237.4 installs publication ownership, repeated fault snapshots may include the same invocation IDs; they never earn positive coverage or imply journal consumption. Add controls proving Complete/Fail and permitted after-true terminal success still finish without DriverFault despite captured RPCs, and normal Close with canceled empty polls stays clean. Pair them with bound/crossed/incomplete-operation controls that retain exact partial bytes.
+
+The existing Runner already recognizes Evidence() on Exchange.Close. It currently drops it on Driver.Close at model/umpire/hosts/go/runner/session.go:325-328. The conductor explicitly agreed to this neutral correction for reanchoring:
+
+  if closeErr := closer.Close(); closeErr != nil && err == nil {
+      s.faultEvidence(0, "driver close: "+closeErr.Error(), errorEvidence(closeErr))
+  }
+
+This uses existing s.faultEvidence/errorEvidence and DriverFault.evidence. No ABI, protocol policy or new recording system changes. Add one meaningful runner control whose Driver.Close error carries distinct evidence captured after its exchange closes; assert final Run DriverFault retains exact bytes. Add a close error without Evidence control preserving existing behavior. Existing behavior when an earlier fatal Go error prevents returning a Run remains explicit; do not claim serialization where the Runner returns no Run.
+
+Shutdown order
+
+Driver.Close closes poll containment, cancels the Run, and wakes binding waits without destroying retained capture. SDK Follow stops new registrations, cancels all detached contexts, joins any started AfterFunc callbacks, and lets its coordinator collect terminal/error completions while public worker.Stop runs once through an owned waitable call. Join handlers, coordinator and any delayed publishers; public Stop/Close are the SDK ownership boundary, with no private-goroutine introspection. Close the namespace-bound SDK client only after its worker stops. Follow returns after its owned work joins. Driver waits workerDone, closes Bridge through binding.Close, then closes the original lazy SDK client. Only after capture-producing owned calls are joined does it seal the fault snapshot and close exchanges/resources as existing act.close requires. Follow startup failure follows the same once-owned unwinding. Every waiting path selects Run/deadline/bridge failure; original activity cancellation alone must not prematurely abort required after-true delivery.
+
+The coordinator must not be joined before public Stop if it awaits a Stop-triggered final RPC, and capture must remain alive through Stop. Conversely, Stop must never await a handler that is waiting for an unissued post-return terminal. Preserve actual activity-deadline-expiry tests and public Stop deterministic controls. An actual cancellation/error at any blocked stage never supplies a bool or successful terminal.
+
+Additional Touches for conductor reanchor
+
+common/testing/testpilot/temporal/act/{act,rpc,exchange}.go and focused tests, with poll interceptor ordering checked at polls.go; tools/umpire/temporaldriver/** for composition/fault controls; model/temporal/hosts/go/reference/worker/{program.go,raw/raw.go,sdk/sdk.go} plus its mechanical bridge file and actual native/mock controls; model/temporal/proto/umpire/temporal/v1/temporal.proto and generated bindings for mechanical fault-only transport bytes; model/umpire/hosts/go/runner/session.go and model/umpire/hosts/go/runner/*test.go for the Driver.Close evidence control. Existing task14 key/codec/typed Fill/program owners remain as in the amended preparation. No fn-237.4 ActivityEvidence wrapper, live journal/cut/gates, timeout admission or live-witness implementation is moved here.
+
+Root amendment boundary
+
+The conductor accepted the split and generic Runner fault handoff, and selected the default count/byte limits above. Source inspection exposes the SDK 128 MiB versus 64 MiB full-capture-reservation conflict for reanchoring before dispatch. Local current Temporal guest regeneration is permitted if the new key codec requires it for Go program controls; the root re-promotes and verifies joined bytes. This allowance does not claim regeneration occurred and changes no fn-237.4 live/journal/cut/gate ownership.

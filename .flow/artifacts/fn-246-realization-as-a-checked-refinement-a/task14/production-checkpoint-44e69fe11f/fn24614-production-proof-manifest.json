@@ -1,0 +1,517 @@
+{
+  "task_id": "fn-246-realization-as-a-checked-refinement-a.14",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+  "base_commit": "93a9d06479fe706b41fe77c7004cfedd7cf2ed5e",
+  "commit": "44e69fe11f0b81e08ce27a492f2ce89111525cd3",
+  "source_hashes": {
+    ".plans/UMPIRE_MODULES.md": "cbf4825ed7537731f3cf9dc96d1c3e2ec1680ff7d5b6d31f2ed8e058e78a3e26",
+    "common/testing/testpilot/temporal/act/act.go": "15100e3a60119aae3f6c204e76af139eb948f439a35d7b63d531c5b5c9c2e7e0",
+    "common/testing/testpilot/temporal/act/act_test.go": "95078b0eafe1b25a82e13dfad8d049df2c55c3d509bb493851c7b504bd0d44cf",
+    "common/testing/testpilot/temporal/act/exchange.go": "665ebba0cf45c0a05a2eedb11296e1dc23bf89ff26be791f8a8ae2b1f4012bae",
+    "common/testing/testpilot/temporal/act/worker.go": "cb17712b3c4a7acfac02b21daa1a5227d9de1573b23e95c895f8a25207dbc139",
+    "common/testing/testpilot/temporal/act/worker_test.go": "441647734cb75f37db161284e4f1edc6a3cf0af36a75bc1ef0f33b3e3ecfb1cc",
+    "model/Cargo.lock": "a3d3d77d73634ca494a9ce4182d31bc3d88dc92ae6ce2f6a88398634377ada18",
+    "model/temporal/api/system.rs": "cba06f68d1d8dbeb0afb2d3226639116c541bdb904c9fa893853b7543d322055",
+    "model/temporal/feature/activity/api.rs": "69244ec64da68895f072ccb624c7811d65f85499a0d052876c2230f955071ac9",
+    "model/temporal/feature/activity/claims.rs": "a6655c55680bc81385d4479557ec4bcff5024e64523c7f5adea7e561f2752155",
+    "model/temporal/feature/activity/expected/realization.txt.snap": "0da6db0eb7ee111248187b864ac78e88999e349cd20bf3952800f129e5c1f0e6",
+    "model/temporal/feature/activity/temporal.rs": "bb3c7b404ea950b0ca1424803ef068ed2be01bc7ac57d1f260af138320a049bc",
+    "model/temporal/hosts/go/reference/worker/bridge.go": "56bf4746a720e90c8fab2e10cb3e374d53c3c9431f3ba85a755250062c79587b",
+    "model/temporal/hosts/go/reference/worker/bridge_test.go": "216fbe45060b44448329492848df8697d972940acf188f32fe27ab8d31258529",
+    "model/temporal/hosts/go/reference/worker/program.go": "a27c29a787895a0c7b230aac6932976c8b352be2cbf420ba340fc650e5e0328e",
+    "model/temporal/hosts/go/reference/worker/program_history_test.go": "05634ac42d4a5a12ed29e13ec3532ff6a24a3b60194f02ac7a0f5dc96466f7cb",
+    "model/temporal/hosts/go/reference/worker/program_test.go": "1d3f32ccad2288109f18cb5047707bc5d4587146fb62b0e6554a6f69b6f4216f",
+    "model/temporal/hosts/go/reference/worker/program_transport_test.go": "7eb56d47675cb4656d149bee7111e80f6d7db46e7e9f0aa2d40b15546ab08393",
+    "model/temporal/hosts/go/reference/worker/raw/raw.go": "eaab1e9e8ff33c5815199dd6e13e6b608518bca6002bafe6d79b9cb7c156a929",
+    "model/temporal/hosts/go/reference/worker/raw/raw_test.go": "0c29c8347d6c5950b3a2e15733a8ad1b78e8c9bdbe2f15b7e73be2cf8bc74f92",
+    "model/temporal/hosts/go/reference/worker/sdk/continuation_test.go": "f30c366893bacaa534e1a3d1472f4ba6184ab3fe431dead631cbe36a3df756d0",
+    "model/temporal/hosts/go/reference/worker/sdk/namespace_test.go": "e9b23376a923e92694fc257a1d086cd28f00e722668f9bfbeb1504b38d0cf7cc",
+    "model/temporal/hosts/go/reference/worker/sdk/sdk.go": "1e5af4e0db31bf4152c15c4836fef560f6b6d8b5afe63657761d717bb8958680",
+    "model/temporal/hosts/go/reference/worker/sdk/sdk_test.go": "c85885520696907fc79a1ef053c45369895fcc9593eb52fc233c2370d23f71d0",
+    "model/temporal/hosts/go/umpire/temporal/v1/activity.pb.go": "081aa6932c1c3a340306784aeb10c178a1acb5e6db5b759dd2df3f03b5c656cd",
+    "model/temporal/hosts/go/umpire/temporal/v1/temporal.pb.go": "fcc799ed406b242aa7a69484bfd6b1f2f8cee1c602e8f80f51ebb8eac4eb7764",
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm": "45de7934e04ba65b6818dec730fe48746660d3b475364ea523222247ee4c3cee",
+    "model/temporal/proto/umpire/temporal/v1/activity.proto": "957bbbf25036d02885d1c3727176d1c46fa81d2a81a6e60306ee0d8d2bf4ec2c",
+    "model/temporal/proto/umpire/temporal/v1/temporal.proto": "4a68267023bb52c4d8dfff6fdca6cde9c6f8b85170df65ee31881428f8b330fb",
+    "model/temporal/realization/Cargo.toml": "fcd46654b259e11b2f932a97c32cb5a3597c482b44e4013551f4a6ceb667797e",
+    "model/temporal/realization/tests/catalog.rs": "9a8e4e9f9d863eb52d4057deac2733a3e7779893d51c53f7b49e194371dc7e3d",
+    "model/temporal/realization/tests/program.rs": "97f618060a67cd5f4feaf60519cd7e92fd3765db1e61c5487978684cba559e59",
+    "model/temporal/realization/tests/program_history.rs": "f31dd2b38a65108fd54793e62254026347cfe913330d45f616f648f2d587d5e2",
+    "model/umpire/hosts/go/runner/fault_evidence_test.go": "deacd5cb51198e7e359c449dddd39c186bb38d2ee60dbadb67b1cf338f750a3f",
+    "model/umpire/hosts/go/runner/session.go": "fe36a2c79240ae9efad7f53acf773f2a7d2062292f5c4bfc36b514fb074e3bbb",
+    "tools/umpire/temporaldriver/continuation_test.go": "c21ee684938631a07144b5a1ce4513669d44d140f7aa3f8d32c93e1e92bccaf7",
+    "tools/umpire/temporaldriver/driver.go": "6696da5e7a31cda346bf4a950c81d2d47bde6571fefa52c9925d3cf669fce5a2",
+    "tools/umpire/temporaldriver/guards_test.go": "78fbad9519771cca40f43276f5e8998ddba73fb422cc10c77da542097a95c09e"
+  },
+  "source_anchors": {
+    "model/temporal/hosts/go/reference/worker/program.go": {
+      "func Decode(": 57,
+      "func HeartbeatResult(": 335,
+      "func TerminalResult(": 376
+    },
+    "model/temporal/hosts/go/reference/worker/bridge.go": {
+      "func (b *Bridge) Observe(": 151,
+      "func (b *Bridge) Close(": 431,
+      "func (b *Bridge) Done(": 148
+    },
+    "model/temporal/hosts/go/reference/worker/raw/raw.go": {
+      "func Follow(": 29
+    },
+    "model/temporal/hosts/go/reference/worker/sdk/sdk.go": {
+      "func Follow(": 92,
+      "func nativeHeartbeat(": 353,
+      "func enqueueTerminal(": 324
+    },
+    "common/testing/testpilot/temporal/act/worker.go": {
+      "func minimumWorkerCaptureBytes(": 88,
+      "func (d *Driver) captureWorker(": 287,
+      "func (d *Driver) workerFaultEvidence(": 335
+    },
+    "model/temporal/feature/activity/temporal.rs": {
+      "pub fn heartbeat_successors(": 765,
+      "pub fn validate_heartbeat_successors(": 857
+    },
+    "model/umpire/hosts/go/runner/session.go": {
+      "s.faultEvidence(0, \"driver close:": 327
+    }
+  },
+  "subartifacts": {
+    "schema": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-schema/evidence.json",
+      "sha256": "101bb228443fd580a81553ee69164c2eb7d2746e085233b7b9f89d8180c6c7f3"
+    },
+    "program_raw": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-programraw-evidence.json",
+      "sha256": "17c5d523ae6a9618cd5d22472fbe612dc445cd4e4a9f08d321a8c4e4f2bbbad7"
+    },
+    "sdk": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-sdk-evidence.json",
+      "sha256": "e7bd042dbd2a71f8c5d3918ea896fbf28cc04fc9de00388b12e9df8c1e940c9c"
+    },
+    "act": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-production-act-evidence.json",
+      "sha256": "9b5a7756de41ed8da39ca5d8b3203f65b42952e3ee5b191862a1f8d31e46e0bb"
+    }
+  },
+  "parent_log_hashes": {
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-bridge-delayed-green.log": "4de4c35ac573ce5b58edbb2938a0fcbe3225454a0ed2f79d688e7522c1ecbce3",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-bridge-final.log": "00b81eb1283cc6cbb830c044f8d0eda7c86447355ac376a16044ce5c77512131",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-bridge-delayed-red.log": "d8fe363b509c25cbc0f7e14ffa48b61fdcf35d70630425ee5efaadc142056abe",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-bridge-fmt-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-baseline-go.log": "14a9349e8cfe46fffd0f2f8c5d8f686f5c5a99cd33d7a175269da9489a7fe2eb",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-root-lint.log": "ebbeada890ae18c4ad9b1158a2a5100bedecd02abf08ffc44de1cc8ced77ccdc",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-usage.log": "97347de36740191519433e960fa74a6d9a104152b439c1f4b96d161433937986",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-temporal-joined.log": "5c636ae92a5f84c443814f542c0d391bc55f90e739f65edf6e4c20368e62912d",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-bridge-race.log": "a4fab0196c3a745fd04b15b92c8bca79677c7e4ae031b5a78f8ead301f0be1c5",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-bridge-tests.log": "2fe7764fc07336b41711236863b5d921b553923f211d537c91d4dda5f86af8e0",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-nested-lint-final.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-bridge-build.log": "ca37b15f44a08fdcf6cef4b7468dec16dceb476a91d7220488bc7b52d9cf744e",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-bridge-vet-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-bridge-lint-unfiltered.log": "e36f40f724a3c777e0c226fc3700950e74d44bb71519e87a7d575f738bf99759",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-bridge-lint.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-bridge-lint-final.log": "b4b558a35683fede67f3410a308671d5793bc8c05b77ec7aabc1c87595c8cddc",
+    ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-bridge-refactor.log": "2fe7764fc07336b41711236863b5d921b553923f211d537c91d4dda5f86af8e0"
+  },
+  "preserved_sdk_proof_sha256": "77a494e981ab8f65a738049e8d1972e9c28a51f14ff072b042ce14ca9c88969d",
+  "guest_sha256": "45de7934e04ba65b6818dec730fe48746660d3b475364ea523222247ee4c3cee",
+  "commands": [
+    {
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model",
+      "command": "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal --test program --test catalog",
+      "exit_code": 0,
+      "log": "fn24614-schema-baseline.log",
+      "phase": "baseline",
+      "slice": "schema"
+    },
+    {
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model",
+      "command": "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal --test program_history heartbeat_domains_follow_checked_model_histories",
+      "exit_code": 101,
+      "log": "fn24614-schema-domain-red.log",
+      "phase": "red reproduction",
+      "note": "Intended failure because independent derivation had not been implemented.",
+      "slice": "schema"
+    },
+    {
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model",
+      "command": "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal --test program --test program_history --test catalog",
+      "exit_code": 0,
+      "log": "fn24614-schema-generic-final.log",
+      "phase": "verify",
+      "counts": {
+        "catalog": 16,
+        "program": 5,
+        "program_history": 14
+      },
+      "slice": "schema"
+    },
+    {
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model",
+      "command": "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo clippy -p umpire-temporal --test program --test program_history --test catalog -- -D warnings",
+      "exit_code": 0,
+      "log": "fn24614-schema-generic-clippy-final.log",
+      "phase": "verify",
+      "slice": "schema"
+    },
+    {
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model",
+      "command": "mise exec -- rustfmt --check --edition 2024 --config skip_children=true temporal/api/system.rs temporal/feature/activity/api.rs temporal/feature/activity/claims.rs temporal/feature/activity/temporal.rs temporal/realization/tests/program.rs temporal/realization/tests/program_history.rs temporal/realization/tests/catalog.rs",
+      "exit_code": 0,
+      "log": "fn24614-schema-format-final.log",
+      "phase": "verify",
+      "slice": "schema"
+    },
+    {
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model",
+      "command": "timeout 600 env -u UMPIRE_BACKENDS -u UMPIRE_APALACHE CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal-tests --test fixtures -- --exact fixtures --nocapture",
+      "exit_code": 0,
+      "log": "fn24614-schema-generic-coverage-final.log",
+      "phase": "verify",
+      "note": "Exact coverage fixture. TLC explicitly skipped; external live gaps neither executed nor compared.",
+      "slice": "schema"
+    },
+    {
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model",
+      "command": "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal-api --test descriptor",
+      "exit_code": 0,
+      "log": "fn24614-schema-descriptor-final.log",
+      "phase": "verify",
+      "count": 5,
+      "slice": "schema"
+    },
+    {
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "command": "bash model/scripts/proto-go.sh temporal --check",
+      "exit_code": 0,
+      "log": "fn24614-schema-proto-final.log",
+      "phase": "verify",
+      "slice": "schema"
+    },
+    {
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "command": "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 bash model/scripts/guest.sh umpire-temporal-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/umpire_temporal_guest.wasm",
+      "exit_code": 0,
+      "log": "fn24614-schema-guest-final.log",
+      "phase": "generate",
+      "guest_profile_seconds": 37.87,
+      "slice": "schema"
+    },
+    {
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "command": "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 bash model/scripts/guest.sh umpire-temporal-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/umpire_temporal_guest.wasm --check",
+      "exit_code": 0,
+      "log": "fn24614-schema-guest-check-final.log",
+      "phase": "verify",
+      "guest_profile_seconds": 37.83,
+      "slice": "schema"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker ./reference/worker/raw",
+      "exit_code": 0,
+      "log": "fn24614-programraw-baseline.log",
+      "phase": "baseline (cached unchanged packages)",
+      "slice": "program_raw",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker -run '^TestProgramRejectsDuplicateExactKey$' -count=1",
+      "exit_code": 1,
+      "log": "fn24614-programraw-red.log",
+      "phase": "red (duplicate exact key admitted)",
+      "slice": "program_raw",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/raw -run '^TestFollowTransportMutationCannotRewriteChosenTerminal$' -count=1",
+      "exit_code": 1,
+      "log": "fn24614-programraw-mutation-red-valid.log",
+      "phase": "red (post-invoke chosen terminal expectation was mutable)",
+      "slice": "program_raw",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/raw -run '^TestFollowTransportMutationCannotRewriteChosenHeartbeat$' -count=1",
+      "exit_code": 1,
+      "log": "fn24614-programraw-heartbeat-mutation-red.log",
+      "phase": "red (chosen heartbeat Details were not compared)",
+      "slice": "program_raw",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker ./reference/worker/raw -count=10",
+      "exit_code": 0,
+      "log": "fn24614-programraw-authoritative.log",
+      "phase": "final (all package tests including parent bridge)",
+      "slice": "program_raw",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m ./reference/worker ./reference/worker/raw",
+      "exit_code": 0,
+      "log": "fn24614-programraw-unfiltered-final.log",
+      "phase": "final unfiltered lint",
+      "slice": "program_raw",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml reference/worker/program.go reference/worker/program_test.go reference/worker/program_history_test.go reference/worker/program_transport_test.go reference/worker/raw/raw.go reference/worker/raw/raw_test.go",
+      "exit_code": 0,
+      "log": "fn24614-programraw-fmt-authoritative.log",
+      "phase": "final fmt",
+      "slice": "program_raw",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./reference/worker ./reference/worker/raw",
+      "exit_code": 0,
+      "log": "fn24614-programraw-vet-authoritative.log",
+      "phase": "final vet",
+      "slice": "program_raw",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/sdk",
+      "exit_code": 0,
+      "phase": "baseline",
+      "log": "fn24614-sdk-production-baseline.log",
+      "note": "Cached unchanged SDK package before edits.",
+      "slice": "sdk",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/sdk -run '^TestCanceledConversionPreservesPayload$' -count=1",
+      "exit_code": 1,
+      "phase": "red",
+      "log": "fn24614-sdk-production-convert-red.log",
+      "note": "Expected pre-implementation unsupported Canceled request conversion.",
+      "slice": "sdk",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker/sdk -run '^TestProductionSDKJoinsNotificationAndNativeCancellationInEitherOrder/publication$' -count=100",
+      "exit_code": 1,
+      "phase": "diagnostic",
+      "log": "fn24614-sdk-production-publication-race-diagnostic.log",
+      "note": "Five causal failures. Bridge rejected delayed heartbeat publication after independent poll sequence; parent fixed exact correlation bug.",
+      "slice": "sdk",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker/sdk -run '^TestProductionSDKJoinsNotificationAndNativeCancellationInEitherOrder/publication$' -count=100",
+      "exit_code": 0,
+      "phase": "verify",
+      "log": "fn24614-sdk-production-publication-race-final.log",
+      "note": "100 actual native SDK delayed-publication runs after parent bridge fix, 1.888 seconds.",
+      "slice": "sdk",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/sdk -run '^TestTerminalEnqueueBackpressureJoinsWithoutPublishing$' -count=1 -v",
+      "exit_code": 0,
+      "phase": "verify",
+      "log": "fn24614-sdk-production-enqueue-final.log",
+      "note": "Focused helper unit; synthetic poll registration only, no actual SDK/native/live claim.",
+      "slice": "sdk",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker/sdk -count=10",
+      "exit_code": 0,
+      "phase": "verify",
+      "log": "fn24614-sdk-production-race-final.log",
+      "note": "Full SDK package including preserved proof tests and production controls, 106.287 seconds.",
+      "slice": "sdk",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m ./reference/worker/sdk",
+      "exit_code": 0,
+      "phase": "verify",
+      "log": "fn24614-sdk-production-unfiltered-lint-final.log",
+      "note": "Unfiltered full SDK package, zero issues; no lint suppression/threshold changes.",
+      "slice": "sdk",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml reference/worker/sdk/sdk.go reference/worker/sdk/sdk_test.go reference/worker/sdk/namespace_test.go reference/worker/sdk/continuation_test.go",
+      "exit_code": 0,
+      "phase": "verify",
+      "log": "fn24614-sdk-production-fmt-final.log",
+      "note": "Empty formatter diff.",
+      "slice": "sdk",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./reference/worker/sdk",
+      "exit_code": 0,
+      "phase": "verify",
+      "log": "fn24614-sdk-production-vet-final.log",
+      "slice": "sdk",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "exit_code": 0,
+      "log": "fn24614-act-baseline.log",
+      "phase": "baseline",
+      "slice": "act"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "exit_code": 0,
+      "log": "fn24614-act-final.log",
+      "phase": "verify",
+      "slice": "act"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver -run '^Test(Worker|FactoryComposes)' -count=10",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "exit_code": 0,
+      "log": "fn24614-act-final-race.log",
+      "phase": "verify",
+      "slice": "act"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./common/testing/testpilot/temporal/act -count=10",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "exit_code": 0,
+      "log": "fn24614-act-race.log",
+      "phase": "verify before final integration refinements",
+      "slice": "act"
+    },
+    {
+      "command": "timeout 600 env UMPIRE_STATEFUL_WASM=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/wasm32-wasip1/guest/stateful_control.wasm UMPIRE_KETTLE_WASM=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/wasm32-wasip1/guest/umpire_kettle_guest.wasm GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./runner",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/hosts/go",
+      "exit_code": 0,
+      "log": "fn24614-act-runner-all.log",
+      "phase": "verify",
+      "slice": "act"
+    },
+    {
+      "command": "timeout 600 env UMPIRE_STATEFUL_WASM=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/wasm32-wasip1/guest/stateful_control.wasm GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./runner -run '^TestDriver(ClosePreservesEvidenceCapturedAfterExchangeClose|FaultEvidence)' -count=1",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/hosts/go",
+      "exit_code": 0,
+      "log": "fn24614-act-runner-current.log",
+      "phase": "verify",
+      "slice": "act"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=.github/.golangci.yml --build-tags=test_dep --timeout=10m ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "exit_code": 0,
+      "log": "fn24614-act-final-unfiltered-lint.log",
+      "phase": "verify",
+      "slice": "act"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m ./runner",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/hosts/go",
+      "exit_code": 1,
+      "log": "fn24614-act-runner-final-unfiltered-lint.log",
+      "phase": "verify",
+      "attribution": "Two inherited unchanged source findings at base 93a9d06479fe706b41fe77c7004cfedd7cf2ed5e; program.go:48 ST1005 and replay.go:50 max-control-nesting. Neither file is changed by this slice.",
+      "slice": "act"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m --new-from-patch=/tmp/fn24614-act-runner-lint.patch ./runner",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/hosts/go",
+      "exit_code": 0,
+      "log": "fn24614-act-runner-final-changed-lint.log",
+      "phase": "verify",
+      "slice": "act"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "exit_code": 0,
+      "log": "fn24614-act-final-vet.log",
+      "phase": "verify",
+      "slice": "act"
+    },
+    {
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./runner",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/hosts/go",
+      "exit_code": 0,
+      "log": "fn24614-act-runner-final-vet.log",
+      "phase": "verify",
+      "slice": "act"
+    },
+    {
+      "command": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=.github/.golangci.yml common/testing/testpilot/temporal/act/worker.go common/testing/testpilot/temporal/act/worker_test.go common/testing/testpilot/temporal/act/act.go common/testing/testpilot/temporal/act/act_test.go common/testing/testpilot/temporal/act/exchange.go tools/umpire/temporaldriver/driver.go tools/umpire/temporaldriver/guards_test.go tools/umpire/temporaldriver/continuation_test.go model/umpire/hosts/go/runner/session.go model/umpire/hosts/go/runner/fault_evidence_test.go",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "exit_code": 0,
+      "log": "fn24614-act-current-fmt.log",
+      "phase": "verify",
+      "slice": "act"
+    },
+    {
+      "slice": "parent_join",
+      "phase": "verify",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "timeout 600 env CGO_ENABLED=0 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./...",
+      "exit_code": 0,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-temporal-joined.log"
+    },
+    {
+      "slice": "parent_join",
+      "phase": "verify",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 make lint-code-fast GOLANGCI_LINT_BASE_REV=93a9d06479fe706b41fe77c7004cfedd7cf2ed5e GOLANGCI_LINT=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 ERRORTYPE=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype GOLANGCI_LINT_FIX=false",
+      "exit_code": 0,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-root-lint.log"
+    },
+    {
+      "slice": "parent_join",
+      "phase": "verify",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m ./reference/worker ./reference/worker/raw ./reference/worker/sdk",
+      "exit_code": 0,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-nested-lint-final.log"
+    },
+    {
+      "slice": "parent_join",
+      "phase": "verify",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml reference/worker/bridge.go reference/worker/bridge_test.go",
+      "exit_code": 0,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-bridge-fmt-final.log"
+    },
+    {
+      "slice": "parent_join",
+      "phase": "verify",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./reference/worker",
+      "exit_code": 0,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-bridge-vet-final.log"
+    },
+    {
+      "slice": "parent_join",
+      "phase": "red",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker -run '^TestBridgeDelayedCompletionPublicationCanFollowIndependentPoll$' -count=1",
+      "exit_code": 1,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-bridge-delayed-red.log"
+    },
+    {
+      "slice": "parent_join",
+      "phase": "verify",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker -run '^TestBridge' -count=10",
+      "exit_code": 0,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24614-production-logs/fn24614-production-bridge-delayed-green.log"
+    }
+  ],
+  "scope": "server-free actual raw/native SDK transport capability and production continuation; no live/cooperative or full strategy-enumeration credit",
+  "cache_leases": {
+    "rust": {
+      "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation",
+      "status": "released; retained artifacts, no active owned command"
+    },
+    "go": {
+      "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go",
+      "status": "released; retained artifacts, no active owned command"
+    }
+  }
+}

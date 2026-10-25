@@ -1,0 +1,71 @@
+=== RUN   TestCanceledConversionPreservesPayload
+--- PASS: TestCanceledConversionPreservesPayload (0.00s)
+=== RUN   TestProductionSDKFollowsActualHeartbeatHistory
+=== RUN   TestProductionSDKFollowsActualHeartbeatHistory/completed
+    continuation_test.go:248: heartbeat proof wait:  context deadline exceeded
+    continuation_test.go:188: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:188
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/sync/once.go:78
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/sync/once.go:69
+        	            				/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:184
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:1460
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:1820
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2187
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/panic.go:694
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:1106
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:1364
+        	            				/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/heartbeat_test.go:305
+        	            				/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:248
+        	Error:      	Received unexpected error:
+        	            	handler does not match one unclaimed actual poll assignment
+        	Test:       	TestProductionSDKFollowsActualHeartbeatHistory/completed
+=== RUN   TestProductionSDKFollowsActualHeartbeatHistory/failed
+    continuation_test.go:248: heartbeat proof wait:  context deadline exceeded
+    continuation_test.go:188: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:188
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/sync/once.go:78
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/sync/once.go:69
+        	            				/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:184
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:1460
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:1820
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2187
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/panic.go:694
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:1106
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:1364
+        	            				/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/heartbeat_test.go:305
+        	            				/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:248
+        	Error:      	Received unexpected error:
+        	            	handler does not match one unclaimed actual poll assignment
+        	Test:       	TestProductionSDKFollowsActualHeartbeatHistory/failed
+=== RUN   TestProductionSDKFollowsActualHeartbeatHistory/canceled
+    continuation_test.go:248: heartbeat proof wait:  context deadline exceeded
+    continuation_test.go:188: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:188
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/sync/once.go:78
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/sync/once.go:69
+        	            				/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:184
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:1460
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:1820
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2187
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/panic.go:694
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:1106
+        	            				/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:1364
+        	            				/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/heartbeat_test.go:305
+        	            				/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:248
+        	Error:      	Received unexpected error:
+        	            	handler does not match one unclaimed actual poll assignment
+        	Test:       	TestProductionSDKFollowsActualHeartbeatHistory/canceled
+--- FAIL: TestProductionSDKFollowsActualHeartbeatHistory (30.02s)
+    --- FAIL: TestProductionSDKFollowsActualHeartbeatHistory/completed (10.00s)
+    --- FAIL: TestProductionSDKFollowsActualHeartbeatHistory/failed (10.00s)
+    --- FAIL: TestProductionSDKFollowsActualHeartbeatHistory/canceled (10.01s)
+=== RUN   TestProductionSDKRefusesUnnotifiedCanceledLeaf
+--- PASS: TestProductionSDKRefusesUnnotifiedCanceledLeaf (0.00s)
+=== RUN   TestFollowBindsProgramNamespaceAndKeepsTransportHold
+    namespace_test.go:135: context deadline exceeded
+    namespace_test.go:111: handler does not match one unclaimed actual poll assignment
+    namespace_test.go:54: handler does not match one unclaimed actual poll assignment
+--- FAIL: TestFollowBindsProgramNamespaceAndKeepsTransportHold (10.00s)
+FAIL
+FAIL	umpire.local/temporal/reference/worker/sdk	40.024s
+FAIL

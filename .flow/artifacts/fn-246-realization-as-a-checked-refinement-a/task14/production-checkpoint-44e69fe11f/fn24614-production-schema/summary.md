@@ -1,0 +1,11 @@
+The feature codec now preserves exact ordered heartbeat histories and packs feature-owned successor declarations through the generic WorkerProgram Any envelope. Typed filler, independent Model-domain derivation and heartbeat field claims are implemented; this slice remains uncommitted for the parent’s single commit owner.
+
+The public Realization::heartbeat_successors and validate_heartbeat_successors helpers use the existing bounded Traversal, actual starts and checked_step. Search identity retains the complete Model state, heartbeat cursor and selected assignment. The helper unions client/environment branches, derives singleton true after observed true, distinguishes atomic false-only worlds, rejects incomplete search and independently detects omitted feasible declarations. Seedless hashing avoids introducing a future WASI randomness dependency. Typed Worker inputs now carry attempt/details and produce heartbeat/canceled requests through Fill; current terminal-only programs remain unchanged semantically.
+
+Heartbeat request/response fields use existing Secret, Message, Text and Flag kinds without new validation constraints. Poll workflow_execution is also claimed because the bridge newly consumes actual workflow identity. The current feature coverage report gains exactly three heartbeat registration lines. Renderer, Model policy, countdowns, retry rules and historical task12 artifacts are unchanged.
+
+Validation passed 35 focused codec/program/history/catalog tests, five API descriptor tests, strict scoped clippy, scoped Rustfmt, Temporal protobuf freshness, the exact coverage fixture, local guest generation and guest freshness. The exact fixture deliberately skips TLC and external live gaps, so it supplies neither backend agreement nor live-service evidence. Red regression evidence and before/candidate/final coverage deltas are retained under logs/.
+
+Current local guest SHA-256: 45de7934e04ba65b6818dec730fe48746660d3b475364ea523222247ee4c3cee
+
+The evidence JSON lists all 15 exact owned paths, approved extra ownership, full commands, exits, counts and content hashes. All commands terminated and the continuation Rust target lease is released. Parent owns joined Go checks, review, commits and task closure.

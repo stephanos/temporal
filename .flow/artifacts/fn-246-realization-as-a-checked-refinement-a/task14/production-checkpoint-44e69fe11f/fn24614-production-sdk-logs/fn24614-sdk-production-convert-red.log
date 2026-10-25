@@ -1,0 +1,9 @@
+--- FAIL: TestCanceledConversionPreservesPayload (0.00s)
+    continuation_test.go:20: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:20
+        	Error:      	Received unexpected error:
+        	            	SDK cannot send "type.googleapis.com/temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest"
+        	Test:       	TestCanceledConversionPreservesPayload
+FAIL
+FAIL	umpire.local/temporal/reference/worker/sdk	0.004s
+FAIL

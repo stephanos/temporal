@@ -1,0 +1,15 @@
+=== RUN   TestFactoryComposesActualHeartbeatContinuationAndFaultCapture
+=== RUN   TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/raw/actual-true
+=== RUN   TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/raw/mutated-heartbeat
+=== RUN   TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/sdk/actual-true
+    continuation_test.go:158: context deadline exceeded
+=== RUN   TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/sdk/mutated-heartbeat
+    continuation_test.go:158: context deadline exceeded
+--- FAIL: TestFactoryComposesActualHeartbeatContinuationAndFaultCapture (20.01s)
+    --- PASS: TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/raw/actual-true (0.00s)
+    --- PASS: TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/raw/mutated-heartbeat (0.00s)
+    --- FAIL: TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/sdk/actual-true (10.00s)
+    --- FAIL: TestFactoryComposesActualHeartbeatContinuationAndFaultCapture/sdk/mutated-heartbeat (10.01s)
+FAIL
+FAIL	go.temporal.io/server/tools/umpire/temporaldriver	20.018s
+FAIL

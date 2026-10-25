@@ -1,0 +1,75 @@
+---
+source: umpire/dev/testing/src/runner.rs
+assertion_line: 330
+---
+Activity realization coverage
+classifications: mapped | ignored (reason) | unsupported
+mapped means read for incoming contexts and produced for outgoing requests.
+A classified parent covers its subtree; opaque parents stop traversal.
+Unsupported decoded presence refuses; proto3 scalar defaults have no wire presence.
+
+observed response: /temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution
+message: temporal.api.workflowservice.v1.RequestCancelActivityExecutionResponse
+  (no fields)
+
+observed response: /temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution
+message: temporal.api.workflowservice.v1.DescribeActivityExecutionResponse
+  ignored run_id - Run identity is outside the lifecycle projection
+  ignored info.activity_id - Activity identity is bound by the owning run
+  ignored info.run_id - Run identity is outside the lifecycle projection
+  ignored info.activity_type - Activity type is outside the lifecycle projection
+  mapped info.status
+  mapped info.run_state
+  ignored info.task_queue - Queue routing is outside the lifecycle projection
+  ignored info.schedule_to_close_timeout - Timing policy is outside the lifecycle projection
+  ignored info.schedule_to_start_timeout - Timing policy is outside the lifecycle projection
+  ignored info.start_to_close_timeout - Timing policy is outside the lifecycle projection
+  ignored info.heartbeat_timeout - Heartbeat timing is outside the lifecycle projection
+  ignored info.retry_policy - Retry policy is outside the six-phase Model
+  ignored info.heartbeat_details - Heartbeat payloads are outside the lifecycle projection
+  ignored info.last_heartbeat_time - Observed timestamps are outside the lifecycle projection
+  ignored info.last_started_time - Observed timestamps are outside the lifecycle projection
+  mapped info.attempt
+  ignored info.execution_duration - Measured duration is outside the lifecycle projection
+  ignored info.schedule_time - Observed timestamps are outside the lifecycle projection
+  ignored info.expiration_time - Observed timestamps are outside the lifecycle projection
+  ignored info.close_time - Observed timestamps are outside the lifecycle projection
+  mapped info.last_failure
+  ignored info.last_worker_identity - Worker identity is outside the lifecycle projection
+  ignored info.current_retry_interval - Retry policy is outside the six-phase Model
+  ignored info.last_attempt_complete_time - Retry timing is outside the six-phase Model
+  ignored info.next_attempt_schedule_time - Retry timing is outside the six-phase Model
+  ignored info.last_deployment_version - Deployment routing is outside the Model
+  ignored info.priority - Scheduling priority is outside the Model
+  ignored info.state_transition_count - Server counters are outside the lifecycle projection
+  ignored info.state_size_bytes - Server storage size is outside the lifecycle projection
+  ignored info.search_attributes - Search indexing is outside the Model
+  ignored info.header - Application headers are outside the lifecycle projection
+  ignored info.user_metadata - Application metadata is outside the lifecycle projection
+  ignored info.canceled_reason - Cancellation reasons are outside the lifecycle projection
+  ignored info.links - Linked entities are outside the Model
+  ignored info.total_heartbeat_count - Heartbeat counters are outside the lifecycle projection
+  ignored info.sdk_name - SDK identity is outside the lifecycle projection
+  ignored info.sdk_version - SDK identity is outside the lifecycle projection
+  ignored info.start_delay - Timing policy is outside the lifecycle projection
+  ignored info.execution_time - Observed timestamps are outside the lifecycle projection
+  ignored input - Application input is independent of the worker scenario
+  mapped outcome
+  ignored long_poll_token - Transport polling state is outside the Model
+  ignored callbacks - Callback registration is outside the Model
+
+Model-action RPCs without an observation handler:
+  /temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue -> Worker::Poll
+    no realization context
+  /temporal.api.workflowservice.v1.WorkflowService/RecordActivityTaskHeartbeat -> Worker::Heartbeat
+    no realization context
+  /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCompleted -> Worker::RespondCompleted
+    no realization context
+  /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskFailed -> Worker::RespondFailed
+    no realization context
+
+Model-action RPCs without any realization context:
+  /temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue -> Worker::Poll
+  /temporal.api.workflowservice.v1.WorkflowService/RecordActivityTaskHeartbeat -> Worker::Heartbeat
+  /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCompleted -> Worker::RespondCompleted
+  /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskFailed -> Worker::RespondFailed
