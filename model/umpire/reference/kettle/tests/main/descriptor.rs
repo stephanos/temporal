@@ -3,13 +3,13 @@
 
 use umpire_catalog_syntax::{catalogs, descriptor::Coverage, services::classifications};
 
-#[path = "../../../catalog/syntax/tests/support/mod.rs"]
+#[path = "../../../../catalog/syntax/tests/support/mod.rs"]
 mod support;
 
 #[test]
 fn descriptor_additions_name_the_unreviewed_field_enum_and_method()
 -> Result<(), Box<dyn std::error::Error>> {
-    let source = include_str!("../api.rs");
+    let source = include_str!("../../api.rs");
     let mut coverage = Coverage::default();
     for catalog in catalogs(source)? {
         let c = catalog.coverage();

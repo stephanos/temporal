@@ -1,9 +1,10 @@
 //! Generic operation encoding and staged dispatch contract.
 
 #[allow(dead_code, reason = "wire vectors use only the shared hex decoder")]
+#[path = "../support/mod.rs"]
 mod support;
 
-#[path = "../guests/stock/src/model.rs"]
+#[path = "../../guests/stock/src/model.rs"]
 mod stock;
 
 use prost::Message;
@@ -27,7 +28,7 @@ fn explanation_outcomes_are_additive_at_tag_two() {
 #[test]
 fn new_core_messages_match_shared_literal_bytes() {
     let payload = Any { type_url: "x".into(), value: vec![1, 2] };
-    for line in include_str!("../../proto/tests/protocol-core-wire.txt").lines() {
+    for line in include_str!("../../../proto/tests/protocol-core-wire.txt").lines() {
         let (name, hex) = line.split_once(' ').unwrap_or_else(|| panic!("invalid vector"));
         let actual = match name {
             "judge_request" => {

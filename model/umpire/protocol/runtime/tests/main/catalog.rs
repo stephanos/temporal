@@ -1,6 +1,7 @@
 //! Catalog admission refusals reach every runtime consumer with existing protocol codes.
 use umpire_runtime::testing::ResponseExt;
 
+#[path = "../support/mod.rs"]
 mod support;
 
 use prost::Message;
@@ -13,7 +14,7 @@ use umpire_runtime::{
     protocol::{self, response::Outcome},
 };
 
-#[path = "../src/refusal.rs"]
+#[path = "../../src/refusal.rs"]
 mod refusal_mapping;
 
 /// The support world whose catalog admission refuses, as an over-limit declaration would.

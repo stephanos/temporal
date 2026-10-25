@@ -4,6 +4,7 @@ use umpire_runtime::{
     testing::{GuestExt, ResponseExt},
 };
 
+#[path = "../support/mod.rs"]
 mod support;
 
 use prost::Message;

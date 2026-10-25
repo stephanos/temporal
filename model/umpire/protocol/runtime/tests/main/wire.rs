@@ -1,6 +1,7 @@
 //! Literal pre-rename wire controls, independent of generated descriptors.
 
 #[allow(dead_code, reason = "wire vectors use only the shared hex decoder")]
+#[path = "../support/mod.rs"]
 mod support;
 
 use prost::Message;
@@ -23,7 +24,7 @@ fn original_wire_bytes_and_values_are_stable() {
     ] {
         assert_eq!(code as i32, number);
     }
-    for line in include_str!("../../proto/tests/protocol-wire.txt").lines() {
+    for line in include_str!("../../../proto/tests/protocol-wire.txt").lines() {
         let (name, hex) = line.split_once(' ').unwrap_or_else(|| panic!("invalid vector"));
         let bytes = support::decode_hex(hex);
         match name {

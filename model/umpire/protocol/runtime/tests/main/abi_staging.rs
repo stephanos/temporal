@@ -2,7 +2,7 @@
 
 use std::{cell::Cell, panic::AssertUnwindSafe, rc::Rc};
 
-#[path = "../guests/stock/src/model.rs"]
+#[path = "../../guests/stock/src/model.rs"]
 mod stock;
 
 use prost::Message;

@@ -1,5 +1,6 @@
 //! Current proposal and whole-prefix Reset wire contract.
 #[allow(dead_code, reason = "wire vectors use only the shared hex decoder")]
+#[path = "../support/mod.rs"]
 mod support;
 
 use prost::Message;
@@ -15,7 +16,7 @@ fn proposal_method_kind_and_poll_wire_contract() {
     assert_eq!(protocol::ProposalKind::Read as i32, 3);
     assert_eq!(protocol::RefusalCode::Quiescent as i32, 9);
     let opaque = Any { type_url: "x".into(), value: vec![1, 2] };
-    for line in include_str!("../../proto/tests/proposal-wire.txt").lines() {
+    for line in include_str!("../../../proto/tests/proposal-wire.txt").lines() {
         let (name, wire) = line.split_once(' ').unwrap_or_else(|| panic!("vector"));
         let value = match name {
             "propose_request" => protocol::ProposeRequest { seed: 150 }.encode_to_vec(),

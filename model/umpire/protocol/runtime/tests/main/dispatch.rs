@@ -1,16 +1,16 @@
 //! Native parity and refusal checks for generated dispatch.
 
-#[path = "../../../dev/testing/src/snapshot_payload.rs"]
+#[path = "../../../../dev/testing/src/snapshot_payload.rs"]
 #[allow(unreachable_pub, reason = "the shared reader is public when reexported by umpire-testing")]
 mod snapshot_payload;
 
-#[path = "../guests/stock/src/model.rs"]
+#[path = "../../guests/stock/src/model.rs"]
 mod stock;
 
 use prost::Message;
 use umpire_runtime::protocol::{self, response::Outcome};
 
-#[path = "../src/refusal.rs"]
+#[path = "../../src/refusal.rs"]
 mod refusal_mapping;
 
 #[test]
@@ -108,7 +108,7 @@ fn generated_dispatch_matches_trait_kettle_goldens() {
     assert_eq!(
         result.report,
         snapshot_payload::snapshot_payload(include_str!(
-            "../../../backends/native/tests/fixtures/sample_kettle_trait/expected/report.txt.snap"
+            "../../../../backends/native/tests/fixtures/sample_kettle_trait/expected/report.txt.snap"
         ))
         .unwrap_or_else(|error| panic!("{error}"))
     );
@@ -136,7 +136,7 @@ fn generated_dispatch_matches_trait_kettle_goldens() {
     assert_eq!(
         text,
         snapshot_payload::snapshot_payload(include_str!(
-            "../../../backends/native/tests/fixtures/sample_kettle_trait/expected/rows.txt.snap"
+            "../../../../backends/native/tests/fixtures/sample_kettle_trait/expected/rows.txt.snap"
         ))
         .unwrap_or_else(|error| panic!("{error}"))
     );

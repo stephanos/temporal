@@ -2,6 +2,7 @@
 #![forbid(unsafe_code)]
 
 #[allow(dead_code, reason = "shared controls include a default runtime unused by this binding")]
+#[path = "../support/mod.rs"]
 mod support;
 
 use prost::Message as _;

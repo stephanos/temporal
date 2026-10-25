@@ -6,8 +6,9 @@ use umpire_runtime::{
     Guest,
     protocol::{self, response::Outcome},
 };
-#[path = "support/control.rs"]
+#[path = "../support/control.rs"]
 mod control;
+#[path = "../support/mod.rs"]
 mod support;
 
 #[test]

@@ -140,7 +140,7 @@ fn explore_retains_canonical_report() {
     );
     let Some(Outcome::Explore(value)) = response.outcome else { panic!("not Explore") };
     let mut settings = insta::Settings::clone_current();
-    settings.set_snapshot_path("../expected");
+    settings.set_snapshot_path("../../expected");
     settings.set_prepend_module_to_snapshot(false);
     settings.set_omit_expression(true);
     settings.bind(|| insta::assert_snapshot!("report.txt", value.report));
