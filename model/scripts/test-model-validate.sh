@@ -5,11 +5,11 @@ cd "$(dirname "$0")/../.."
 # Controls use the shipping Make recipes and timer, with disposable child work only.
 control=$(mktemp -d)
 trap 'rm -rf "${control:?}"' EXIT
-mkdir -p "$control/model/scripts" "$control/bin" "$control/output"
+mkdir -p "$control/model/scripts" "$control/model/umpire" "$control/bin" "$control/output"
 cp model/scripts/time-gate.sh "$control/model/scripts/"
 printf 'control source\n' > "$control/model/inner.rs"
 export UMPIRE_INNER_SOURCE=inner.rs UMPIRE_INNER_CRATE=control-checker
-export CONTROL_LOG="$control/calls" CONTROL_MODEL="$control/model" TMPDIR="$control/output"
+export CONTROL_LOG="$control/calls" CONTROL_MODEL="$control/model/umpire" TMPDIR="$control/output"
 export UMPIRE_GATE_BUDGET=-1 UMPIRE_INNER_BUDGET=-1
 unset UMPIRE_BACKENDS UMPIRE_APALACHE MAKEFLAGS MFLAGS MAKEOVERRIDES
 printf 'COLOR = "%%s\\n"\n' > "$control/Makefile"

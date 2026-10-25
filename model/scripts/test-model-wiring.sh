@@ -1,83 +1,55 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/../.."
-
-# Execute shipping recipe boundaries without starting Rust or Go builds.
 control=$(mktemp -d)
 trap 'rm -rf "${control:?}"' EXIT
-mkdir -p "$control/model/scripts" "$control/model/umpire/scripts/tests" "$control/model/scripts/tests" "$control/bin"
-cp model/scripts/time-gate.sh "$control/model/scripts/"
-cp model/scripts/tests/build-guests.sh "$control/model/scripts/tests/"
-cat > "$control/model/umpire/scripts/tests/build-guests.sh" <<'CHILD'
+mkdir -p "$control/model/umpire/scripts" "$control/model/dev/xtask/src" "$control/bin"
+printf 'API_BINPB = control-api\n' > "$control/Makefile"
+awk '/^##### model: Umpire in Rust/ { copy=1 } copy { print }' Makefile >> "$control/Makefile"
+cat >> "$control/Makefile" <<'MAKE'
+.PHONY: control-api
+control-api:
+	@test "$$UMPIRE_QUICK_CACHE:$$UMPIRE_CACHE_DISABLE" = 0:1
+MAKE
+cat > "$control/model/umpire/scripts/xtask.sh" <<'CHILD'
+#!/usr/bin/env bash
+printf '%s\n' "$CONTROL_FRAMEWORK"
+CHILD
+cat > "$control/bin/framework" <<'CHILD'
 #!/usr/bin/env bash
 set -euo pipefail
-printf '%s\n' "$CARGO_TARGET_DIR" > "$CONTROL_BUILDER_TARGET"
+printf 'framework|%s|%s|%s|%s\n' "$PWD" "$*" "${UMPIRE_QUICK_CACHE-unset}" "${UMPIRE_CACHE_DISABLE-unset}" >> "$CONTROL_LOG"
+exit "${CONTROL_FRAMEWORK_STATUS:-0}"
 CHILD
-printf '#!/usr/bin/env bash\nset -euo pipefail\n' > "$control/model/scripts/guest.sh"
-awk '
-  /^RUST_MODEL_(STEP|WASM_ENV) =/ { print }
-  /call RUST_MODEL_STEP,((fmt|clippy|docs|tests)(-framework)?|wasm32-wasip1|core-wasm-clippy)\)/ {
-    stage=$0
-    sub(/^.*call RUST_MODEL_STEP,/, "", stage)
-    sub(/\).*$/, "", stage)
-    print "control-" stage ":"
-    print
-  }
-  /call RUST_MODEL_STEP,go-host\)/ { print "control-host:"; print }
-  /call RUST_MODEL_STEP,kettle-go-host\)/ { print "control-kettle:"; print }
-' Makefile > "$control/Makefile"
 cat > "$control/bin/mise" <<'CHILD'
 #!/usr/bin/env bash
 set -euo pipefail
-printf '%s|%s|%s\n' "$PWD" "$*" "${UMPIRE_CURRENT_CONTRACT_NATIVE-unset}" >> "$CONTROL_LOG"
+printf 'temporal|%s|%s|%s|%s\n' "$PWD" "$*" "${UMPIRE_QUICK_CACHE-unset}" "${UMPIRE_CACHE_DISABLE-unset}" >> "$CONTROL_LOG"
 CHILD
-chmod +x "$control/bin/mise"
-export PATH="$control/bin:$PATH" CONTROL_LOG="$control/calls" CONTROL_BUILDER_TARGET="$control/builder-target"
-unset MAKEFLAGS MFLAGS MAKEOVERRIDES CARGO_TARGET_DIR UMPIRE_CURRENT_CONTRACT_NATIVE
+chmod +x "$control/bin/mise" "$control/bin/framework"
+export PATH="$control/bin:$PATH" CONTROL_LOG="$control/calls" CONTROL_FRAMEWORK="$control/bin/framework"
+unset MAKEFLAGS MFLAGS MAKEOVERRIDES
 cd "$control"
 control=$(pwd -P)
-failures=0
-expect_call() {
-  local expected=$1; shift
-  local actual
+for timed in 0 1; do
   : > "$CONTROL_LOG"
-  "$@" > "$control/output" 2>&1
+  UMPIRE_QUICK_CACHE=1 UMPIRE_CACHE_DISABLE=0 make UMPIRE_TIME_STEPS="$timed" UMPIRE_QUICK_CACHE=1 UMPIRE_CACHE_DISABLE=0 model-check > "$control/output" 2>&1
+  expected=$(printf 'framework|%s/model/umpire|gate|0|1\ntemporal|%s/model|exec -- cargo xtask gate|0|1' "$control" "$control")
   actual=$(cat "$CONTROL_LOG")
   if [ "$actual" != "$expected" ]; then
-    printf 'recipe wiring (%s): expected <%s>, got <%s>\n' "$*" "$expected" "$actual" >&2
-    failures=$((failures + 1))
+    printf 'combined gate wiring expected <%s>, got <%s>\n' "$expected" "$actual" >&2
+    exit 1
   fi
-}
-
-for timed in 0 1; do
-  for stage in fmt clippy docs tests; do
-    case "$stage" in
-      fmt) command='exec -- cargo fmt --all --check' ;;
-      clippy) command='exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings' ;;
-      docs) command='exec -- cargo doc --workspace --no-deps --quiet' ;;
-      tests) command='exec -- cargo test --workspace --locked --quiet' ;;
-    esac
-    expect_call "$control/model|$command|unset" make UMPIRE_TIME_STEPS="$timed" "control-$stage"
-    expect_call "$control/model/umpire|$command|unset" make UMPIRE_TIME_STEPS="$timed" "control-$stage-framework"
-  done
-  expect_call "$control/model/umpire|exec -- cargo build --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --quiet|unset" make UMPIRE_TIME_STEPS="$timed" control-wasm32-wasip1
-  expect_call "$control/model/umpire|exec -- cargo clippy --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --lib --locked -- -D warnings|unset" make UMPIRE_TIME_STEPS="$timed" control-core-wasm-clippy
-  for target_mode in unset relative absolute; do
-    case "$target_mode" in
-      unset) unset CARGO_TARGET_DIR; native="$control/model/target/current-contract-native" ;;
-      relative) export CARGO_TARGET_DIR=relative-target; native="$control/relative-target/current-contract-native" ;;
-      absolute) export CARGO_TARGET_DIR="$control/absolute-target"; native="$control/absolute-target/current-contract-native" ;;
-    esac
-    bash model/scripts/tests/build-guests.sh
-    builder_target=$(cat "$CONTROL_BUILDER_TARGET")
-    if [ "$builder_target/current-contract-native" != "$native" ]; then
-      printf 'builder target (%s): expected <%s>, got <%s>\n' "$target_mode" "${native%/current-contract-native}" "$builder_target" >&2
-      exit 1
-    fi
-    expect_call "$control/model|exec -- go -C $control/model/umpire/hosts/go test -tags test_dep -count=1 ./...|$native" make UMPIRE_TIME_STEPS="$timed" control-host
-    expect_call "$control/model|exec -- go -C $control/model/umpire/reference/kettle test -tags test_dep -count=1 ./...|$native" make UMPIRE_TIME_STEPS="$timed" control-kettle
-  done
-  unset CARGO_TARGET_DIR
 done
-[ "$failures" -eq 0 ]
+: > "$CONTROL_LOG"
+status=0
+CONTROL_FRAMEWORK_STATUS=37 make model-check > "$control/output" 2>&1 || status=$?
+[ "$status" -eq 2 ]
+[ "$(wc -l < "$CONTROL_LOG" | tr -d ' ')" -eq 1 ]
+for action in fmt update; do
+  : > "$CONTROL_LOG"
+  make "model-$action" > "$control/output" 2>&1
+  [ "$(wc -l < "$CONTROL_LOG" | tr -d ' ')" -eq 2 ]
+  head -1 "$CONTROL_LOG" | rg -q "framework\|.*/model/umpire\|$action\|"
+done
 printf 'Model recipe wiring controls passed (fake children; no execution evidence).\n'
