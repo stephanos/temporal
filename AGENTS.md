@@ -130,7 +130,9 @@ Owner throughput amendment, 2026-10-24: fill idle lanes with dependent source wo
 The six source-writing lanes include nested implementation delegates. The conductor
 allocates those lanes across batches; a batch leader must reconcile all delegated work
 and remain its sole committer. Read-only support does not consume a writing lane.
-The two heavy build slots remain conductor-assigned, with one owner per target.
+The conductor assigns two normal heavy build slots and may admit one additional short diagnostic under the resource conditions in the execution manifest; each target has one owner.
+
+For batch verification, reuse meaningful existing Rust tests by guarantee and verify new delegation/wiring. Fixture-only edits rerun their owner case; unchanged reader/lint gates run once at final freeze. Same-worktree diagnostic leases permit focused compile-fix retries without repeated cleanup or approval. The execution manifest defines evidence reuse and remaining production-profile gates.
 
 Before fn-242 admission, implementation, review or resume, read the
 [execution batches](.flow/artifacts/fn242-execution-batches.md) and its machine-readable

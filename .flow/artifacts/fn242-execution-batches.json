@@ -11605,12 +11605,11 @@
     "risk_policy": "Larger coherent batches, provisional APIs, boundary integration fixes, shared fixture/build evidence, retire legacy-only work; preserve current behavior/custody/bounds/classification/replay.",
     "shared_files": "Conductor serializes Cargo and exclusive-owner fixture integration; provisional workers own only declared producer subtrees.",
     "current_allocation": {
-      "B03": 1,
       "B04": 1,
+      "B07": 1,
       "B08": 1,
       "B09": 1,
-      "B11": 1,
-      "B09/module-cache-helper": 1
+      "B12": 1
     },
     "risk_followthrough_2026_10_24": {
       "authority": "Owner repeated: can we take more risks, too?",
@@ -11624,12 +11623,37 @@
       "shared_scope_extensions": {
         "B03": "process/mod.rs readonly Runner::private_context accessor; preserve strict context guard.",
         "B05": "Visibility only replay/inspection.rs search_admission and wasmhost linked_inspection.rs validate; additive coordination with B06.",
-        "B08": "Single-parser build/mod.rs sealed read-only record reader; command/private_inputs.rs admission and exact command/mod.rs map/resolver hooks coordinated B04; preparation/inputs/inventory.rs single resolver translates admitted private roots while preserving raw keys and validating bytes/existence/listings/generated cache separately; replay.rs retain_observed current backend_publication and exact campaign/execution.rs caller plumbing. Exact readers/command/preparation.rs verifier callsite routes through single Inventory private resolver; wasmhost model/inspection.rs shared diagnostic96/terminal16 typed views factor existing Witness prefix without acceptance changes, exact model/imports.rs RuntimeFinish and campaign/execution.rs consumers. Derived postfreeze role authority design must retain one validator and authenticate generated outputs through actual canonical command; no caller hash augmentation.",
-        "B09": "Use existing tar/extract and measurement executable publication for authenticated private copies; shared B08 admission, no second tree copier or cache verifier. Exact preparation/inputs/module_cache.rs shared current ZIP/extracted cache and go.mod h1 verifier binds candidate frozen go.sum, inputs/mod.rs module/reexport only. One delegated writer lane, leader sole committer, dependency pin separately checked; no integrity waiver.",
-        "B10": "primary/preparation.rs session-preserving wrappers delegate one existing capture body. B11 released writer lane reassigned to B10."
+        "B08": "Single-parser build/mod.rs sealed read-only record reader; command/private_inputs.rs admission and exact command/mod.rs map/resolver hooks coordinated B04; preparation/inputs/inventory.rs single resolver translates admitted private roots while preserving raw keys and validating bytes/existence/listings/generated cache separately; replay.rs retain_observed current backend_publication and exact campaign/execution.rs caller plumbing. Exact readers/command/preparation.rs verifier callsite routes through single Inventory private resolver; wasmhost model/inspection.rs shared diagnostic96/terminal16 typed views factor existing Witness prefix without acceptance changes, exact model/imports.rs RuntimeFinish and campaign/execution.rs consumers. Derived postfreeze role authority design must retain one validator and authenticate generated outputs through actual canonical command; no caller hash augmentation. Exact custody/mod.rs Capture CommandRef and observe_command_with_capture retain same observed child/root/name/rawstreams; one finite derived-output seal helper and exact command/mod.rs dispatch (preparation-required rejects derived-only seals). Exact producers/build/mod.rs typed derived wrappers retain one transaction/parser, no candidate.files augmentation. Install/actionlint reuse same actual callback seal; independent finite consumer validates expected command/kind/path/source/bytes before authority.",
+        "B09": "Use existing tar/extract and measurement executable publication for authenticated private copies; shared B08 admission, no second tree copier or cache verifier. Exact preparation/inputs/module_cache.rs shared current ZIP/extracted cache and go.mod h1 verifier binds candidate frozen go.sum, inputs/mod.rs module/reexport only. One delegated writer lane, leader sole committer, dependency pin separately checked; no integrity waiver. Approved workspace zip=9.1.0 default-features=false features=[deflate-flate2-zlib-rs], gomad workspace import only; primary published Cargo.toml independently checked Rust1.88 and exact backend feature. Exact command/static_tool.rs +module declaration finite actionlint-build output admission binds expected command/env/GOBIN/fresh root/version/bytes/futureargv, reuses B08 observed output seal.",
+        "B10": "primary/preparation.rs session-preserving wrappers delegate one existing capture body. B11 released writer lane reassigned to B10.",
+        "B07": "Owned retained/workload/cells reader union plus exact qualify/workloads/mod.rs and retry.rs per-admitted-Opened callback factors; existing wrappers delegate one unchanged oracle/witness. Visibility-only qualify/cells.rs::explore_options. Related necessary pure visibility plumbing preauthorized, algorithm changes outside owned reader scopes require exact coordination."
       },
       "deferred_proof": "B13 must supply actual module-cache integrity authority; B09 source may depend on it provisionally, no integrity waiver.",
       "role_fixture": "B11 selected current roles use existing DryRun/build, compose, authenticate, freeze/open APIs; no second builder or stale donor sourcepins."
+    },
+    "shared_target_provenance": "Before crediting a cross-worktree target run, verify actual emitted executable, correct package/worktree manifest provenance and nonzero named test selection. Cargo relative dep paths/mtime reused B04 libtest in B06 and selected0: no proof. On foreign provenance, preserve copied evidence and rebuild only gomad/gomad-wasmhost packages under exclusive lease; no blanket cache wipe or live-command restart.",
+    "additional_short_diagnostic_slot": {
+      "maximum": 1,
+      "authority": "Repeated owner requests to accept more risk and parallelize; inspected host has12logicalCPUs, ~12GiB availableRAM,90GiBhost/39GiBoverlay free",
+      "scope": "Single-job opt-level0 host diagnostics and directly focused tests only; isolated target, no shared mutable artifacts",
+      "admission": "At dispatch require MemAvailable>=8GiB, hostfree>=60GiB, overlayfree>=22GiB and existing task-specific floors; no new dispatch when below. Preserve evidence/active targets. Copy/reflink only idle donor caches with distinct inodes; clean only local gomad/wasmhost packages when foreign provenance.",
+      "excluded": "Production timing, broad stress/soak, full qualification and acceptance-budget dispatch. Existing final qualification contracts remain unchanged.",
+      "lease": "Conductor assigns and returns diagnostic slot3; no worker self-admission.",
+      "overlay_reserve_rationale": "Observed same-worktree project outputs122.3MiB plus95MiB retained testbinary;2GiB reserve above unchanged20GiB normal overlayfloor suffices for one bounded diagnostic. Memory8GiB and host60GiB thresholds unchanged; actual taskfloors remain."
     }
+  },
+  "aggressive_verification_amendment": {
+    "authority": "Owner: can we speed up verification for each batch; aggressively speed things up, 2026-10-24",
+    "evidence": "B04 diagnostics16\u201318 changed only command/tests.rs but reran36passing reader cases and3passingClippy; recorded126.36seconds build/test time; external advisory /home/agent/wt/evidence/fn242-verification-throughput/b04-gate-cost.md",
+    "iteration_gate": {
+      "fixture_or_expected_refusal_only": "Run current-parser fixture preflight and actual affected owner case; retain unchanged reader/lint results. Surface inner stderr directly.",
+      "production_change": "Run directly affected tests; rerun other green gates only for relevant source/dependency changes or a concrete unresolved risk.",
+      "compile_failure": "Within conductor-granted15minute diagnostic lease, fix focused compiler errors and retry same-worktree target without packageclean or per-retry approval. Freeze source for each command and retain all exits; stop at deadline/return lease.",
+      "final_batch": "One affected whole-batch focused test run plus fmt and scoped Clippy at finalfreeze, reusing exact relevant-source/dependency evidence. One independent batch review; required fix loop remains."
+    },
+    "existing_owner_reuse": "Existing meaningful Rust tests may discharge multiple original check IDs for the same guarantee. Map exact executed evidence and dependencies. New thin wrappers test new behavior, parameter forwarding, absence of dropped inputs and actual delegation with normal/refusal controls; do not duplicate all upstream parser/corruption matrices or create a new test per original Python predicate. Test existence or ancestor-only refusal alone earns no proof.",
+    "optimization": "Opt-level0 release-profile correctness harnesses are sufficient final functional evidence if relevant cfg/features/source dependencies match. No additional optimized owner rebuild solely for optimization. Actual production role identities, native profiles, timing/resource budgets and final qualification retain genuine required profile/configuration and original gates.",
+    "cache": "Keep target owned by its worktree through a diagnostic fix loop. Narrowclean only on foreign provenance/stale embedded source or actual build need. Preserve every still-referenced generated binding/compiler input before cleanup; regenerate honestly if already removed, without rewriting old receipts.",
+    "raw_inventory": "Preserve all original IDs and explicit guarantee/retirement mappings; no fabricated PASS or blanket retirement. Final behavior/identity/custody/replay/resource requirements stay binding."
   }
 }
