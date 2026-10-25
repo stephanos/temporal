@@ -1,0 +1,51 @@
+{
+  "base": "95c90138253fd9e7f3d129536e3c56b183fa7a49",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17105-e105-7513-a51c-b4f715a903e1",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17105-e0b6-7c81-a3dd-5d7a149ff145",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17105-e0b3-7773-9040-bf9ab08efc3a",
+      "verdict": "SHIP"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "95c90138253fd9e7f3d129536e3c56b183fa7a49",
+    "headSha": "8fc503884f41a87601aebfadd96c59eb6fa74baf",
+    "items": [],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-4137f23f4ba7acc5a0de92aafe18d252fd450586af72a61b063b63830a194089"
+  },
+  "id": "fn-248-off-the-shelf-crates-and-consolidation.1",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "No findings.\n\n```json\n{\"classification_counts\": {\"introduced\": 0, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "9d1353e1c5d84184a08bed1f267852b0",
+  "rid": "9d1353e1c5d84184a08bed1f267852b0",
+  "session_id": "01a17105-e105-7513-a51c-b4f715a903e1",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-25T03:09:14.550693Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}

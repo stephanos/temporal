@@ -1,0 +1,24 @@
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/suite)
+    Checking ident_case v1.0.1
+    Checking umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tla)
+    Checking heck v0.5.0
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/testing)
+    Checking darling_core v0.24.1
+error[E0599]: no method named `children_mut` found for enum `umpire_front::expr::ExprKind` in the current scope
+   --> umpire/backends/tla/src/emit.rs:727:29
+    |
+727 |     for child in value.kind.children_mut() {
+    |                             ^^^^^^^^^^^^ method not found in `umpire_front::expr::ExprKind`
+
+error[E0599]: no method named `children_mut` found for enum `umpire_front::expr::ExprKind` in the current scope
+   --> umpire/backends/tla/src/names.rs:220:28
+    |
+220 |     for child in expr.kind.children_mut() {
+    |                            ^^^^^^^^^^^^ method not found in `umpire_front::expr::ExprKind`
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `umpire-tla` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...

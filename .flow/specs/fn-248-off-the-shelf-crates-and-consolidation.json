@@ -11,6 +11,7 @@
   ],
   "id": "fn-248-off-the-shelf-crates-and-consolidation",
   "impl_review_rounds": {
+    "fn-248-off-the-shelf-crates-and-consolidation.1": 0,
     "fn-248-off-the-shelf-crates-and-consolidation.2": 0,
     "fn-248-off-the-shelf-crates-and-consolidation.3": 0,
     "fn-248-off-the-shelf-crates-and-consolidation.4": 0,
@@ -386,9 +387,45 @@
       "task": "fn-248-off-the-shelf-crates-and-consolidation.2",
       "timestamp": "2026-10-25T03:05:36.466304Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "093e44243cad87441c335a8497c59ed03069088593c3af6b0833f3b2cdcb93d3",
+      "backend": "codex",
+      "base_sha": "95c90138253fd9e7f3d129536e3c56b183fa7a49",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8fc503884f41a87601aebfadd96c59eb6fa74baf",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "9d1353e1c5d84184a08bed1f267852b0",
+      "round_consumed": true,
+      "scope": "impl:fn-248-off-the-shelf-crates-and-consolidation.1",
+      "superseded_by": null,
+      "task": "fn-248-off-the-shelf-crates-and-consolidation.1",
+      "timestamp": "2026-10-25T03:09:14.551997Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-248-off-the-shelf-crates-and-consolidation.1": 1,
     "impl:fn-248-off-the-shelf-crates-and-consolidation.2": 1,
     "impl:fn-248-off-the-shelf-crates-and-consolidation.3": 1,
     "impl:fn-248-off-the-shelf-crates-and-consolidation.4": 1,
@@ -400,6 +437,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-248-off-the-shelf-crates-and-consolidation.1": 0,
     "impl:fn-248-off-the-shelf-crates-and-consolidation.2": 0,
     "impl:fn-248-off-the-shelf-crates-and-consolidation.3": 0,
     "impl:fn-248-off-the-shelf-crates-and-consolidation.4": 0,
@@ -421,5 +459,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T03:05:36.471734Z"
+  "updated_at": "2026-10-25T03:09:14.557837Z"
 }

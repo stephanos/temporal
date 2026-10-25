@@ -1,0 +1,35 @@
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl/macros)
+   Compiling prost-build v0.14.4
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/testing)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/suite)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/testing)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/annotate/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/macros)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/realization/macros)
+   Compiling umpire-temporal-annotate-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/annotate/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+   Compiling umpire-temporal-annotate v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/annotate)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/realization)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 19.49s
+     Running boundary.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/boundary-e2c7ae51ed6f46e0)
+
+running 2 tests
+test boundary_controls ... ok
+test generic_source_boundary ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running snapshot_ownership.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/snapshot_ownership-893d2da3433e6a4d)
+
+running 2 tests
+test nonfixture_orphan_pending_and_missing_reader_refuse ... ok
+test current_snapshots_have_explicit_owners ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+

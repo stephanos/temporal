@@ -1,0 +1,35 @@
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl/macros)
+   Compiling prost-build v0.14.4
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/suite)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/build)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/macros)
+   Compiling umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/reference/kettle)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/umpire)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 14.38s
+     Running tests/probes.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/probes-259aea22c598ced6)
+
+running 4 tests
+test observations_require_exact_inventory ... ok
+test classification_requires_live_evidence_and_correlated_predictions ... ok
+test coverage_matches_catalog_golden ... ok
+test inventory_and_preparation_are_deterministic ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+     Running tests/realization.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/realization-250fe690199f9ee8)
+
+running 6 tests
+test describe_never_infers_a_transition ... ok
+test callback_requires_exact_state_identity_and_enabled_action ... ok
+test exact_receipts_reject_wrong_state_or_action ... ok
+test malformed_evidence_refuses_without_advancing ... ok
+test healthy_trace_answer_does_not_commit_and_receipt_commits_once ... ok
+test explore_retains_canonical_report ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
