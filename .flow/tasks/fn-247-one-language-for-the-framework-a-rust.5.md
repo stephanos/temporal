@@ -8,7 +8,7 @@ Port guest freshness and embedded shell Python to xtask (R2, R3), consuming exis
 
 **Size:** M
 **Files:** `model/dev/xtask/{src/guest*,tests/guest*}`, `model/scripts/{guest.sh,guest-freshness.py,guest-lock.py,guest-rustc.py,tests/test_guest.py,tests/test_guest_freshness.py,tests/test_guest_lock.py,tests/test_guest_rustc.py}`, `model/scripts/guest-freshness.sh`, `Makefile`.
-**Touches:** [model/dev/xtask/**, model/scripts/guest.sh, model/scripts/guest-freshness.sh, model/scripts/guest-freshness.py, model/scripts/guest-lock.py, model/scripts/guest-rustc.py, model/scripts/tests/test_guest*.py, Makefile, model/temporal/hosts/go/umpire_temporal_guest.wasm]
+**Touches:** [model/dev/xtask/**, model/scripts/guest.sh, model/scripts/guest-freshness.sh, model/scripts/guest-freshness.py, model/scripts/guest-lock.py, model/scripts/guest-rustc.py, model/scripts/tests/test_guest*.py, Makefile, model/temporal/hosts/go/umpire_temporal_guest.wasm, model/scripts/xtask.sh]
 
 ### Approach
 
@@ -57,3 +57,6 @@ TBD
 - Tests:
 - PRs:
 
+
+
+Conductor scope clarification (2026-10-25): the minimal shared host bootstrap is reused by the other native helper callers; Rust retains semantic admission.

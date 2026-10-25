@@ -8,7 +8,7 @@ Port Apalache installation and its security/concurrency controls (R2, R3), after
 
 **Size:** M
 **Files:** `model/dev/xtask/{Cargo.toml,src/fetch_apalache*,tests/apalache*}`, `model/{Cargo.toml,Cargo.lock}`, `model/scripts/{fetch-apalache.py,tests/test_apalache.py}`, `model/umpire/backends/apalache/tests/controls.rs`, `Makefile`.
-**Touches:** [model/dev/xtask/**, model/Cargo.toml, model/Cargo.lock, model/scripts/fetch-apalache.py, model/scripts/tests/test_apalache.py, model/umpire/backends/apalache/tests/controls.rs, Makefile]
+**Touches:** [model/dev/xtask/**, model/Cargo.toml, model/Cargo.lock, model/scripts/fetch-apalache.py, model/scripts/tests/test_apalache.py, model/umpire/backends/apalache/tests/controls.rs, Makefile, model/umpire/backends/apalache/src/lib.rs]
 
 ### Approach
 
@@ -54,3 +54,6 @@ TBD
 - Tests:
 - PRs:
 
+
+
+Conductor scope clarification (2026-10-25): the backend consumes the one shared Rust pin authority; this mechanical caller migration avoids duplicate constants.

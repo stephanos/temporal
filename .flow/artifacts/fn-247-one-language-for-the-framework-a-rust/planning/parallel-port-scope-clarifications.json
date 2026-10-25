@@ -1,0 +1,19 @@
+{
+  "basis": "Owner explicitly authorizes aggressive parallelism, breaking changes and small inline fixes; conductor decisions recorded in collaboration messages",
+  "task6": [
+    "model/umpire/backends/apalache/src/lib.rs: consume one shared Rust pin authority, preserve current public callers"
+  ],
+  "task5": [
+    "model/scripts/xtask.sh: one minimal generic host bootstrap/path seam, no duplicated semantic validation"
+  ],
+  "task7": [
+    "model/scripts/xtask.sh consumer: resolve helper once before scanning; UMPIRE_XTASK absolute override; coordinated with5"
+  ],
+  "deferred_canonical_scope_update": "after task9 MAIN review/lifecycle ownership release",
+  "forbidden": [
+    "remote publishing",
+    "history rewriting",
+    "weakening safety/scientific oracle requirements"
+  ],
+  "canonical_scope_update": "Applied via flowctl task set-spec after task9 SHIP and closure; no requirement/dependency/lifecycle changes"
+}
