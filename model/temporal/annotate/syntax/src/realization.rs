@@ -1,11 +1,11 @@
 //! Descriptor-backed field admission shared by realization expansion and coverage.
 
-use heck::{ToSnakeCase, ToUpperCamelCase};
 use std::{
     collections::BTreeMap,
     fs,
     path::{Path, PathBuf},
 };
+use umpire_catalog_syntax::naming;
 
 use proc_macro2::TokenStream;
 use prost::Message as _;
@@ -168,7 +168,10 @@ impl Schema {
             let module = if package == "google.protobuf" {
                 "::umpire_runtime::prost_types".to_owned()
             } else {
-                format!("::umpire_temporal_api::{}", package.replace('.', "::"))
+                format!(
+                    "::umpire_temporal_api::{}",
+                    package.split('.').map(naming::snake).collect::<Vec<_>>().join("::")
+                )
             };
             collect(package, &module, &file.message_type, &mut all)?;
             for service in &file.service {
@@ -461,6 +464,11 @@ fn clean(name: &str) -> String {
     name.trim_start_matches('.').to_owned()
 }
 
+fn member_name(name: &str) -> String {
+    let name = naming::snake(name);
+    if name.starts_with("r#") { name } else { format!("r#{name}") }
+}
+
 fn qualified(parent: &str, name: &str) -> String {
     if parent.is_empty() { name.to_owned() } else { format!("{parent}.{name}") }
 }
@@ -481,7 +489,7 @@ fn collect(
         let name = descriptor.name.as_deref().ok_or("unnamed message")?;
         let proto = qualified(package, name);
         let rust = umpire_catalog_syntax::descriptor::well_known_primitive(&proto)
-            .map_or_else(|| format!("{module}::{}", name.to_upper_camel_case()), str::to_owned);
+            .map_or_else(|| format!("{module}::{}", naming::upper_camel(name)), str::to_owned);
         let map_entry =
             descriptor.options.as_ref().is_some_and(|options| options.map_entry == Some(true));
         let mut fields = Vec::new();
@@ -524,16 +532,12 @@ fn collect(
                             .and_then(|oneof| oneof.name.as_deref())
                             .ok_or("missing oneof declaration")?;
                         Ok::<_, String>(Oneof {
-                            member: format!("r#{}", oneof.to_snake_case()),
+                            member: member_name(oneof),
                             variant: format!(
                                 "{module}::{}::{}::{}",
-                                descriptor
-                                    .name
-                                    .as_deref()
-                                    .ok_or("unnamed message")?
-                                    .to_snake_case(),
-                                oneof.to_upper_camel_case(),
-                                name.to_upper_camel_case()
+                                naming::snake(descriptor.name.as_deref().ok_or("unnamed message")?),
+                                naming::upper_camel(oneof),
+                                naming::upper_camel(&name)
                             ),
                         })
                     })
@@ -544,7 +548,7 @@ fn collect(
                 member: if map_entry {
                     if field.number == Some(1) { "0" } else { "1" }.into()
                 } else {
-                    format!("r#{}", name.to_snake_case())
+                    member_name(&name)
                 },
                 name,
                 kind,
@@ -564,7 +568,7 @@ fn collect(
         );
         collect(
             &proto,
-            &format!("{module}::{}", name.to_snake_case()),
+            &format!("{module}::{}", naming::snake(name)),
             &descriptor.nested_type,
             result,
         )?;
@@ -580,6 +584,32 @@ mod tests {
         MethodDescriptorProto, ServiceDescriptorProto,
         field_descriptor_proto::{Label, Type},
     };
+
+    #[test]
+    fn prost_descriptor_names_escape_keywords_and_numeric_prefixes() -> Result<(), String> {
+        let mut messages = BTreeMap::new();
+        collect(
+            "self_",
+            "crate::self_",
+            &[
+                DescriptorProto {
+                    name: Some("Self_".into()),
+                    field: vec![FieldDescriptorProto {
+                        name: Some("self_".into()),
+                        r#type: Some(Type::String as i32),
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                },
+                DescriptorProto { name: Some("_42Foo".into()), ..Default::default() },
+            ],
+            &mut messages,
+        )?;
+        assert_eq!(messages["self_.Self_"].rust_type, "crate::self_::Self_");
+        assert_eq!(messages["self_._42Foo"].rust_type, "crate::self_::_42foo");
+        assert_eq!(messages["self_.Self_"].fields[0].member, "r#self_");
+        Ok(())
+    }
 
     fn fixture() -> Result<Schema, String> {
         let catalogs = crate::catalogs(

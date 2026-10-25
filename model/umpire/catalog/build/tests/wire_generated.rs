@@ -176,3 +176,52 @@ pub fn check() {
     assert!(!device_fields(DeviceMethod::Set).is_empty());
 }
 "#;
+
+#[test]
+fn shared_names_match_prost_identifier_sanitization() -> Result<(), Box<dyn std::error::Error>> {
+    use umpire_catalog_syntax::naming;
+    for name in [
+        "HTTPInput",
+        "foo__Bar",
+        "Self_",
+        "_42Foo",
+        "_42",
+        "self_",
+        "super",
+        "crate",
+        "extern",
+        "type",
+        "gen",
+    ] {
+        assert_eq!(
+            naming::snake(name),
+            prost_build::Module::from_protobuf_package_name(name).to_string(),
+            "{name}"
+        );
+    }
+    for (name, expected) in
+        [("Self_", "Self_"), ("_42Foo", "_42foo"), ("_42", "_42"), ("HTTPInput", "HttpInput")]
+    {
+        assert_eq!(naming::upper_camel(name), expected);
+    }
+    let directory =
+        std::env::temp_dir().join(format!("prost-name-controls-{}", std::process::id()));
+    std::fs::create_dir(&directory)?;
+    let input = directory.join("names.proto");
+    std::fs::write(
+        &input,
+        "syntax=\"proto3\"; package self_; message Self_ {} message _42Foo {} message _42 { string self_=1; }",
+    )?;
+    prost_build::Config::new().out_dir(&directory).compile_protos(&[input], &[&directory])?;
+    let generated = syn::parse_file(&std::fs::read_to_string(directory.join("self_.rs"))?)?;
+    let names: Vec<_> = generated
+        .items
+        .iter()
+        .filter_map(|item| {
+            if let syn::Item::Struct(item) = item { Some(item.ident.to_string()) } else { None }
+        })
+        .collect();
+    assert_eq!(names, ["Self_", "_42foo", "_42"]);
+    std::fs::remove_dir_all(directory)?;
+    Ok(())
+}

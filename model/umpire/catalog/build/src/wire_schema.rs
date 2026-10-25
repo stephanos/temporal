@@ -348,10 +348,9 @@ impl<'a> Schema<'a> {
             let index = usize::from(step.field.number != Some(1));
             return Ok(syn::Member::Unnamed(syn::Index::from(index)));
         }
-        let name = prost_build::Module::from_protobuf_package_name(
+        let name = umpire_catalog_syntax::naming::snake(
             step.field.name.as_deref().ok_or("unnamed field")?,
-        )
-        .to_string();
+        );
         syn::parse_str(&name).map(syn::Member::Named).map_err(|error| error.to_string())
     }
 

@@ -1,0 +1,8 @@
+{
+  "upstream_fix": "f40149592b293c958b1b636ff4089299a36a6314",
+  "carried": "source-only model/ diff; .flow review ledger excluded",
+  "conflicts": [
+    "model/temporal/annotate/syntax/src/realization.rs"
+  ],
+  "resolution": "Retain well_known_primitive first; fallback to the reviewed shared naming::upper_camel. Native prost_types paths, scalar presence and wrapper mutation remain."
+}

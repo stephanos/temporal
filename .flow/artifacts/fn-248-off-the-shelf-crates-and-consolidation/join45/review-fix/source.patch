@@ -1,0 +1,374 @@
+diff --git a/model/temporal/annotate/syntax/src/realization.rs b/model/temporal/annotate/syntax/src/realization.rs
+index f041587fab..c2b264ba14 100644
+--- a/model/temporal/annotate/syntax/src/realization.rs
++++ b/model/temporal/annotate/syntax/src/realization.rs
+@@ -1,11 +1,11 @@
+ //! Descriptor-backed field admission shared by realization expansion and coverage.
+ 
+-use heck::{ToSnakeCase, ToUpperCamelCase};
+ use std::{
+     collections::BTreeMap,
+     fs,
+     path::{Path, PathBuf},
+ };
++use umpire_catalog_syntax::naming;
+ 
+ use proc_macro2::TokenStream;
+ use prost::Message as _;
+@@ -168,7 +168,10 @@ impl Schema {
+             let module = if package == "google.protobuf" {
+                 "::umpire_runtime::google::protobuf".to_owned()
+             } else {
+-                format!("::umpire_temporal_api::{}", package.replace('.', "::"))
++                format!(
++                    "::umpire_temporal_api::{}",
++                    package.split('.').map(naming::snake).collect::<Vec<_>>().join("::")
++                )
+             };
+             collect(package, &module, &file.message_type, &mut all)?;
+             for service in &file.service {
+@@ -455,6 +458,11 @@ fn clean(name: &str) -> String {
+     name.trim_start_matches('.').to_owned()
+ }
+ 
++fn member_name(name: &str) -> String {
++    let name = naming::snake(name);
++    if name.starts_with("r#") { name } else { format!("r#{name}") }
++}
++
+ fn qualified(parent: &str, name: &str) -> String {
+     if parent.is_empty() { name.to_owned() } else { format!("{parent}.{name}") }
+ }
+@@ -474,7 +482,7 @@ fn collect(
+     for descriptor in descriptors {
+         let name = descriptor.name.as_deref().ok_or("unnamed message")?;
+         let proto = qualified(package, name);
+-        let rust = format!("{module}::{}", name.to_upper_camel_case());
++        let rust = format!("{module}::{}", naming::upper_camel(name));
+         let map_entry =
+             descriptor.options.as_ref().is_some_and(|options| options.map_entry == Some(true));
+         let mut fields = Vec::new();
+@@ -517,16 +525,12 @@ fn collect(
+                             .and_then(|oneof| oneof.name.as_deref())
+                             .ok_or("missing oneof declaration")?;
+                         Ok::<_, String>(Oneof {
+-                            member: format!("r#{}", oneof.to_snake_case()),
++                            member: member_name(oneof),
+                             variant: format!(
+                                 "{module}::{}::{}::{}",
+-                                descriptor
+-                                    .name
+-                                    .as_deref()
+-                                    .ok_or("unnamed message")?
+-                                    .to_snake_case(),
+-                                oneof.to_upper_camel_case(),
+-                                name.to_upper_camel_case()
++                                naming::snake(descriptor.name.as_deref().ok_or("unnamed message")?),
++                                naming::upper_camel(oneof),
++                                naming::upper_camel(&name)
+                             ),
+                         })
+                     })
+@@ -537,7 +541,7 @@ fn collect(
+                 member: if map_entry {
+                     if field.number == Some(1) { "0" } else { "1" }.into()
+                 } else {
+-                    format!("r#{}", name.to_snake_case())
++                    member_name(&name)
+                 },
+                 name,
+                 kind,
+@@ -557,7 +561,7 @@ fn collect(
+         );
+         collect(
+             &proto,
+-            &format!("{module}::{}", name.to_snake_case()),
++            &format!("{module}::{}", naming::snake(name)),
+             &descriptor.nested_type,
+             result,
+         )?;
+@@ -574,6 +578,32 @@ mod tests {
+         field_descriptor_proto::{Label, Type},
+     };
+ 
++    #[test]
++    fn prost_descriptor_names_escape_keywords_and_numeric_prefixes() -> Result<(), String> {
++        let mut messages = BTreeMap::new();
++        collect(
++            "self_",
++            "crate::self_",
++            &[
++                DescriptorProto {
++                    name: Some("Self_".into()),
++                    field: vec![FieldDescriptorProto {
++                        name: Some("self_".into()),
++                        r#type: Some(Type::String as i32),
++                        ..Default::default()
++                    }],
++                    ..Default::default()
++                },
++                DescriptorProto { name: Some("_42Foo".into()), ..Default::default() },
++            ],
++            &mut messages,
++        )?;
++        assert_eq!(messages["self_.Self_"].rust_type, "crate::self_::Self_");
++        assert_eq!(messages["self_._42Foo"].rust_type, "crate::self_::_42foo");
++        assert_eq!(messages["self_.Self_"].fields[0].member, "r#self_");
++        Ok(())
++    }
++
+     fn fixture() -> Result<Schema, String> {
+         let catalogs = crate::catalogs(
+             r#"
+diff --git a/model/umpire/catalog/build/src/services.rs b/model/umpire/catalog/build/src/services.rs
+index 908eb440c1..b78cd4bb36 100644
+--- a/model/umpire/catalog/build/src/services.rs
++++ b/model/umpire/catalog/build/src/services.rs
+@@ -2,7 +2,6 @@
+ 
+ use std::collections::BTreeSet;
+ 
+-use heck::ToUpperCamelCase;
+ use proc_macro2::TokenStream;
+ use prost::Message;
+ use quote::quote;
+@@ -165,14 +164,7 @@ fn public_type(proto: &str, root: &str) -> String {
+ }
+ 
+ pub(super) fn type_name(proto: &str) -> String {
+-    let name = proto.to_upper_camel_case();
+-    if name == "Self" {
+-        format!("{name}_")
+-    } else if name.starts_with(char::is_numeric) {
+-        format!("_{name}")
+-    } else {
+-        name
+-    }
++    umpire_catalog_syntax::naming::upper_camel(proto)
+ }
+ 
+ fn bindings(
+diff --git a/model/umpire/catalog/build/src/wire_schema.rs b/model/umpire/catalog/build/src/wire_schema.rs
+index 4b3ab2ec1b..83dd538c4a 100644
+--- a/model/umpire/catalog/build/src/wire_schema.rs
++++ b/model/umpire/catalog/build/src/wire_schema.rs
+@@ -341,10 +341,9 @@ impl<'a> Schema<'a> {
+             let index = usize::from(step.field.number != Some(1));
+             return Ok(syn::Member::Unnamed(syn::Index::from(index)));
+         }
+-        let name = prost_build::Module::from_protobuf_package_name(
++        let name = umpire_catalog_syntax::naming::snake(
+             step.field.name.as_deref().ok_or("unnamed field")?,
+-        )
+-        .to_string();
++        );
+         syn::parse_str(&name).map(syn::Member::Named).map_err(|error| error.to_string())
+     }
+ 
+diff --git a/model/umpire/catalog/build/tests/wire_generated.rs b/model/umpire/catalog/build/tests/wire_generated.rs
+index 4e38c79f9b..87a080e85c 100644
+--- a/model/umpire/catalog/build/tests/wire_generated.rs
++++ b/model/umpire/catalog/build/tests/wire_generated.rs
+@@ -176,3 +176,52 @@ pub fn check() {
+     assert!(!device_fields(DeviceMethod::Set).is_empty());
+ }
+ "#;
++
++#[test]
++fn shared_names_match_prost_identifier_sanitization() -> Result<(), Box<dyn std::error::Error>> {
++    use umpire_catalog_syntax::naming;
++    for name in [
++        "HTTPInput",
++        "foo__Bar",
++        "Self_",
++        "_42Foo",
++        "_42",
++        "self_",
++        "super",
++        "crate",
++        "extern",
++        "type",
++        "gen",
++    ] {
++        assert_eq!(
++            naming::snake(name),
++            prost_build::Module::from_protobuf_package_name(name).to_string(),
++            "{name}"
++        );
++    }
++    for (name, expected) in
++        [("Self_", "Self_"), ("_42Foo", "_42foo"), ("_42", "_42"), ("HTTPInput", "HttpInput")]
++    {
++        assert_eq!(naming::upper_camel(name), expected);
++    }
++    let directory =
++        std::env::temp_dir().join(format!("prost-name-controls-{}", std::process::id()));
++    std::fs::create_dir(&directory)?;
++    let input = directory.join("names.proto");
++    std::fs::write(
++        &input,
++        "syntax=\"proto3\"; package self_; message Self_ {} message _42Foo {} message _42 { string self_=1; }",
++    )?;
++    prost_build::Config::new().out_dir(&directory).compile_protos(&[input], &[&directory])?;
++    let generated = syn::parse_file(&std::fs::read_to_string(directory.join("self_.rs"))?)?;
++    let names: Vec<_> = generated
++        .items
++        .iter()
++        .filter_map(|item| {
++            if let syn::Item::Struct(item) = item { Some(item.ident.to_string()) } else { None }
++        })
++        .collect();
++    assert_eq!(names, ["Self_", "_42foo", "_42"]);
++    std::fs::remove_dir_all(directory)?;
++    Ok(())
++}
+diff --git a/model/umpire/catalog/syntax/src/derive.rs b/model/umpire/catalog/syntax/src/derive.rs
+index 3bf05a9a01..de81c98fc6 100644
+--- a/model/umpire/catalog/syntax/src/derive.rs
++++ b/model/umpire/catalog/syntax/src/derive.rs
+@@ -1,7 +1,7 @@
+ //! The shared attribute grammar for compiler expansion and descriptor admission.
+ 
+ use darling::{FromMeta, ast::NestedMeta, util::Flag};
+-use heck::{ToSnakeCase, ToUpperCamelCase};
++use heck::ToUpperCamelCase;
+ use proc_macro2::Span;
+ use quote::format_ident;
+ use syn::{
+@@ -190,7 +190,11 @@ impl syn::parse::Parse for ApiAttributes {
+                         syn::MetaNameValue {
+                             path: key.into(),
+                             eq_token,
+-                            value: syn::parse_quote!(#value),
++                            value: Expr::Path(syn::ExprPath {
++                                attrs: Vec::new(),
++                                qself: None,
++                                path: value,
++                            }),
+                         },
+                     )));
+                 }
+@@ -672,8 +676,9 @@ fn inferred_type(proto: &LitStr, api: &Path) -> syn::Result<Path> {
+     let message = parts
+         .pop()
+         .ok_or_else(|| syn::Error::new(proto.span(), "missing protobuf message name"))?;
+-    let message = message.to_upper_camel_case();
+-    let package = parts.iter().map(|part| part.to_snake_case()).collect::<Vec<_>>().join("::");
++    let message = crate::naming::upper_camel(message);
++    let package =
++        parts.iter().map(|part| crate::naming::snake(part)).collect::<Vec<_>>().join("::");
+     let path = if package == "google::protobuf" {
+         format!("::umpire_runtime::google::protobuf::{message}")
+     } else {
+@@ -687,7 +692,7 @@ fn inferred_type(proto: &LitStr, api: &Path) -> syn::Result<Path> {
+ 
+ /// Stable snake-case name used for catalog factories.
+ pub fn factory_name(name: &Ident) -> Ident {
+-    format_ident!("{}", name.unraw().to_string().to_snake_case())
++    format_ident!("{}", crate::naming::snake(&name.unraw().to_string()))
+ }
+ 
+ pub(crate) fn map_entry_proto(parent: &LitStr, field: &Ident) -> String {
+@@ -874,6 +879,26 @@ fn validate_kind(ty: &Type, kind: &str) -> syn::Result<()> {
+ mod attribute_controls {
+     use super::*;
+ 
++    #[test]
++    fn scalar_options_preserve_generic_type_paths() -> syn::Result<()> {
++        for key in ["context", "api", "type", "via", "response_checks"] {
++            let parsed: ApiAttributes = syn::parse_str(&format!("{key} = crate::Context<u32>"))?;
++            let path = match key {
++                "context" => parsed.context,
++                "api" => parsed.api,
++                "type" => parsed.proto_type,
++                "via" => parsed.via,
++                _ => parsed.response_checks,
++            }
++            .ok_or_else(|| syn::Error::new(Span::call_site(), "missing scalar path"))?;
++            assert_eq!(
++                quote::quote!(#path).to_string(),
++                quote::quote!(crate::Context<u32>).to_string()
++            );
++        }
++        Ok(())
++    }
++
+     #[test]
+     fn scalar_options_refuse_duplicates_at_the_second_occurrence()
+     -> Result<(), Box<dyn std::error::Error>> {
+diff --git a/model/umpire/catalog/syntax/src/lib.rs b/model/umpire/catalog/syntax/src/lib.rs
+index 6474b86263..ad747b15b8 100644
+--- a/model/umpire/catalog/syntax/src/lib.rs
++++ b/model/umpire/catalog/syntax/src/lib.rs
+@@ -4,6 +4,7 @@ mod derive;
+ mod derive_expand;
+ pub mod descriptor;
+ mod expand;
++pub mod naming;
+ mod parse;
+ pub mod services;
+ mod tree;
+diff --git a/model/umpire/catalog/syntax/src/naming.rs b/model/umpire/catalog/syntax/src/naming.rs
+new file mode 100644
+index 0000000000..a0be53fb2e
+--- /dev/null
++++ b/model/umpire/catalog/syntax/src/naming.rs
+@@ -0,0 +1,24 @@
++//! Rust identifiers for protobuf names, using prost's case and escaping rules.
++use heck::{ToSnakeCase, ToUpperCamelCase};
++
++fn sanitize(name: String) -> String {
++    if matches!(name.as_str(), "_" | "super" | "self" | "Self" | "extern" | "crate") {
++        format!("{name}_")
++    } else if name.starts_with(char::is_numeric) {
++        format!("_{name}")
++    } else if name == "gen" || (!name.is_empty() && syn::parse_str::<syn::Ident>(&name).is_err()) {
++        format!("r#{name}")
++    } else {
++        name
++    }
++}
++
++/// The Rust field or module identifier emitted for a protobuf name.
++pub fn snake(name: &str) -> String {
++    sanitize(name.to_snake_case())
++}
++
++/// The Rust type or variant identifier emitted for a protobuf name.
++pub fn upper_camel(name: &str) -> String {
++    sanitize(name.to_upper_camel_case())
++}
+diff --git a/model/umpire/catalog/tests/pass/prost_names.rs b/model/umpire/catalog/tests/pass/prost_names.rs
+new file mode 100644
+index 0000000000..f91f50db3e
+--- /dev/null
++++ b/model/umpire/catalog/tests/pass/prost_names.rs
+@@ -0,0 +1,18 @@
++#![allow(non_camel_case_types)]
++use umpire_catalog::Catalog;
++type CatalogContext = ();
++mod self_ {
++    #[derive(Clone, Default)] pub struct Self_ {}
++    #[derive(Clone, Default)] pub struct _42foo {}
++    #[derive(Clone, Default)] pub struct _42 {}
++}
++#[derive(Catalog)]
++#[mirror(response = "self_.Self_", api = crate)]
++struct KeywordMirror {}
++#[derive(Catalog)]
++#[mirror(response = "self_._42Foo", api = crate)]
++struct NumericMirror {}
++#[derive(Catalog)]
++#[mirror(response = "self_._42", api = crate)]
++struct DigitsMirror {}
++fn main() {}
+diff --git a/model/umpire/catalog/tests/ui.rs b/model/umpire/catalog/tests/ui.rs
+index e9432a4515..6aa9b595dc 100644
+--- a/model/umpire/catalog/tests/ui.rs
++++ b/model/umpire/catalog/tests/ui.rs
+@@ -4,4 +4,5 @@
+ fn catalog_requires_every_field_and_enum_variant() {
+     let tests = trybuild::TestCases::new();
+     tests.compile_fail("tests/ui/*.rs");
++    tests.pass("tests/pass/prost_names.rs");
+ }
