@@ -12,7 +12,9 @@
     "fn-252-quick-consolidation-wins-in-model-code"
   ],
   "id": "fn-246-realization-as-a-checked-refinement-a",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-246-realization-as-a-checked-refinement-a.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -139,6 +141,33 @@
       "task": null,
       "timestamp": "2026-10-25T05:59:29.344049Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "8f96ee2b7ae6b6b47c80940a616d1db0c0db8717e19f819fca8a9bada9f4cda3",
+      "backend": "codex",
+      "base_sha": "be94f9df748fb6b1371e4285bce6741170b9c48a",
+      "counter_kind": "impl",
+      "failure_class": "head_moved",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "028831ac2e9292bc25339335dce14d0f6a3a783f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 65,
+      "output_sha256": "f72a56d0df610eb46fbb6fd449f8bac358f70d3819ccd294e961032a2783fbbd",
+      "reservation_id": "92946d3ba8294cab936b088aec426f0a",
+      "round_consumed": false,
+      "scope": "impl:fn-246-realization-as-a-checked-refinement-a.1",
+      "superseded_by": null,
+      "task": "fn-246-realization-as-a-checked-refinement-a.1",
+      "timestamp": "2026-10-25T11:16:26.865810Z",
+      "verdict": null
     }
   ],
   "review_hash_epoch": {
@@ -148,6 +177,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-246-realization-as-a-checked-refinement-a.1": 1,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-246-realization-as-a-checked-refinement-a.md",
@@ -164,5 +194,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T05:59:29.350752Z"
+  "updated_at": "2026-10-25T11:16:26.866414Z"
 }
