@@ -227,10 +227,10 @@ mod capabilities {
                 Realize::answer(&binding, &world, &value, &0).err().map(|e| e.message),
                 Some("answer unsupported".into())
             );
-            assert!(matches!(
-                Realize::reach_evidence(&binding, &value, &[]),
-                author_kit::runtime::EvidenceMatch::Reject
-            ));
+            assert_eq!(
+                Realize::reach_evidence(&binding, &value, &[]).err(),
+                Some(Refusal::unsupported("evidence kind unsupported"))
+            );
             let mut runtime = Runtime::new(world, binding);
             let result = runtime.dispatch(protocol::Method::Propose as u32, &[]);
             let Some(protocol::response::Outcome::Refusal(refusal)) = result.outcome else {

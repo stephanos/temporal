@@ -289,7 +289,11 @@ impl umpire_runtime::capability::Snapshot<Graph> for NoPredicate {
 
 impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for NoPredicate {
     type World = Graph;
-    type View = umpire_runtime::capability::NoEvidence;
+    type View = Any;
+
+    fn admit_evidence(&self, value: &Any) -> Result<Self::View, protocol::Refusal> {
+        Ok(value.clone())
+    }
 }
 
 impl umpire_runtime::capability::ReplyPolicy<Graph> for NoPredicate {}

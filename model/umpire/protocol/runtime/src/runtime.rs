@@ -303,12 +303,14 @@ pub trait Realize<M: Machine>:
     ) -> Result<Projection<M::Action, M::Outcome, Self::Target>, protocol::Refusal> {
         crate::capability::Snapshot::project(self, world, observation, state)
     }
-    /// Admit actual evidence before feature matching.
-    fn reach_evidence(&self, observation: &Any, path: &[&Evidence<M>]) -> EvidenceMatch {
-        match crate::capability::Evidence::admit_evidence(self, observation) {
-            Ok(view) => crate::capability::Evidence::check_evidence(self, &view, path),
-            Err(_) => EvidenceMatch::Reject,
-        }
+    /// Admit actual evidence before feature matching, preserving admission refusals.
+    fn reach_evidence(
+        &self,
+        observation: &Any,
+        path: &[&Evidence<M>],
+    ) -> Result<EvidenceMatch, protocol::Refusal> {
+        let view = crate::capability::Evidence::admit_evidence(self, observation)?;
+        Ok(crate::capability::Evidence::check_evidence(self, &view, path))
     }
     /// Select a callback response using the declared World and shared filler.
     fn answer(
@@ -877,7 +879,7 @@ where
     ) -> Result<Option<Replay<M>>, protocol::Refusal> {
         let scope = Realize::scope(&self.realization);
         let mut traversal = Traversal::new(scope.depth, scope.work);
-        let admission = Realize::reach_evidence(&self.realization, observation, &[]);
+        let admission = Realize::reach_evidence(&self.realization, observation, &[])?;
         let Some(root_cursor) = admission.cursor() else {
             return Ok(None);
         };
@@ -933,7 +935,7 @@ where
                     let mut refs = Vec::new();
                     reserve(&mut refs, edges.len())?;
                     refs.extend(edges.iter().map(Rc::as_ref));
-                    let admission = Realize::reach_evidence(&self.realization, observation, &refs);
+                    let admission = Realize::reach_evidence(&self.realization, observation, &refs)?;
                     let cursor = match admission {
                         EvidenceMatch::Reject => continue,
                         EvidenceMatch::Stutter { .. } if edge.source != edge.target => continue,
@@ -1118,14 +1120,13 @@ where
                     })
             }),
             Projection::Reach(target) => {
+                let root = Realize::reach_evidence(&self.realization, actual, &[])?;
                 let mut valid = cursors.is_some_and(|cursors| {
-                    cursors.len() == refs.len() + 1
-                        && Realize::reach_evidence(&self.realization, actual, &[]).cursor()
-                            == cursors.first().copied()
+                    cursors.len() == refs.len() + 1 && root.cursor() == cursors.first().copied()
                 });
                 for position in 0..refs.len() {
                     let evidence =
-                        Realize::reach_evidence(&self.realization, actual, &refs[..=position]);
+                        Realize::reach_evidence(&self.realization, actual, &refs[..=position])?;
                     valid &= cursors.and_then(|cursors| cursors.get(position + 1)).copied()
                         == evidence.cursor()
                         && evidence != EvidenceMatch::Reject
@@ -1135,7 +1136,7 @@ where
                 valid
                     && target.matches(&event.after)
                     && matches!(
-                        Realize::reach_evidence(&self.realization, actual, &refs),
+                        Realize::reach_evidence(&self.realization, actual, &refs)?,
                         EvidenceMatch::Match { .. } | EvidenceMatch::Stutter { .. }
                     )
             }
