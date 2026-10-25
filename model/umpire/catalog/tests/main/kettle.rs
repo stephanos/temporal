@@ -26,7 +26,7 @@ mod api {
 }
 
 #[derive(Catalog)]
-#[mirror(request = "kettle.FillRequest", api = crate::api, context = Limits)]
+#[mirror(request = "kettle.FillRequest", api = crate::kettle::api, context = Limits)]
 struct Fill {
     #[rule(max_bytes = ID_LIMIT, rejects)]
     id: Text,

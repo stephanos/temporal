@@ -9,7 +9,7 @@ use umpire_runtime::prost_types::{
     ServiceDescriptorProto,
 };
 
-#[path = "../../syntax/tests/support/mod.rs"]
+#[path = "../../../syntax/tests/support/mod.rs"]
 mod support;
 
 #[test]

@@ -195,6 +195,8 @@ fn generated_catalogs_retain_executable_declaration_metadata()
     ] {
         writeln!(output, "binding: {:?}", controls::bind(&action))?;
     }
-    insta::assert_snapshot!("generated-catalog", output);
+    insta::with_settings!({snapshot_path => "../snapshots", prepend_module_to_snapshot => false}, {
+        insta::assert_snapshot!("controls__generated-catalog", output);
+    });
     Ok(())
 }

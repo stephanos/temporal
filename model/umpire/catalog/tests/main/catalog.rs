@@ -183,7 +183,9 @@ fn kind_constraints_have_positive_and_negative_controls() -> Result<(), Box<dyn 
         &["duration.valid"],
         &mut report,
     )?;
-    insta::assert_snapshot!("kind-violations", report);
+    insta::with_settings!({snapshot_path => "../snapshots", prepend_module_to_snapshot => false}, {
+        insta::assert_snapshot!("catalog__kind-violations", report);
+    });
     Ok(())
 }
 
@@ -225,7 +227,9 @@ fn presence_operators_validate_and_guide_fill() -> Result<(), Box<dyn std::error
         fill(&mut message, &catalog, &mut Rng::new(5))?;
         assert_eq!(validate(&message, &catalog), []);
     }
-    insta::assert_snapshot!("presence-violations", report);
+    insta::with_settings!({snapshot_path => "../snapshots", prepend_module_to_snapshot => false}, {
+        insta::assert_snapshot!("catalog__presence-violations", report);
+    });
     Ok(())
 }
 
@@ -381,7 +385,9 @@ fn request_admission_retains_typed_diagnostics() {
     assert!(
         matches!(no_expectation, Some(AdmissionErrors(errors)) if errors.iter().any(|e| matches!(e, AdmissionError::MissingExpectation { constraint, .. } if constraint == "string.uuid")))
     );
-    insta::assert_snapshot!("admission", errors.to_string());
+    insta::with_settings!({snapshot_path => "../snapshots", prepend_module_to_snapshot => false}, {
+        insta::assert_snapshot!("catalog__admission", errors.to_string());
+    });
 }
 
 #[test]
@@ -628,7 +634,9 @@ fn gap_goldens_are_derived_from_validation_and_redact_secret_values()
     }
     assert!(report.fails());
     assert!(!report.to_string().contains(&message.secret));
-    insta::assert_snapshot!("gaps", report.to_string());
+    insta::with_settings!({snapshot_path => "../snapshots", prepend_module_to_snapshot => false}, {
+        insta::assert_snapshot!("catalog__gaps", report.to_string());
+    });
     let forward = report.to_string();
     report.entries.reverse();
     assert_eq!(report.to_string(), forward);
