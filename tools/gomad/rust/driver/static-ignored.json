@@ -469,6 +469,54 @@
       "reason": "actual pinned Go compilation and live guests require the parent execution lease",
       "disposition": "supporting-only-nonqualification",
       "final_id": null
+    },
+    {
+      "crate": "gomad",
+      "name": "receive_genuine_boot_rows_and_targeted_mutations",
+      "source": "gomad/src/cycle/readers/core_world/tests.rs",
+      "reason": "requires independently captured genuine selected-network harness stdout",
+      "disposition": "supporting-only-nonqualification",
+      "final_id": null
+    },
+    {
+      "crate": "gomad",
+      "name": "receive_genuine_world_owner_and_targeted_workload_mutations",
+      "source": "gomad/src/cycle/readers/core_world/tests.rs",
+      "reason": "requires independently captured genuine World owner harness stdout",
+      "disposition": "supporting-only-nonqualification",
+      "final_id": null
+    },
+    {
+      "crate": "gomad",
+      "name": "receive_genuine_corpora",
+      "source": "gomad/src/cycle/readers/core_world/tests.rs",
+      "reason": "requires independently captured genuine World, clock, network and broker corpus logs",
+      "disposition": "supporting-only-nonqualification",
+      "final_id": null
+    },
+    {
+      "crate": "gomad",
+      "name": "receive_genuine_measured_world_bytes",
+      "source": "gomad/src/cycle/readers/core_world/tests.rs",
+      "reason": "requires raw bytes retained by the genuine bounded 20k/200k World probes",
+      "disposition": "supporting-only-nonqualification",
+      "final_id": null
+    },
+    {
+      "crate": "gomad",
+      "name": "receive_genuine_lifecycle_rows_and_targeted_mutations",
+      "source": "gomad/src/cycle/readers/core_lifecycle/tests.rs",
+      "reason": "requires independently captured genuine lifecycle harness stdout",
+      "disposition": "supporting-only-nonqualification",
+      "final_id": null
+    },
+    {
+      "crate": "gomad",
+      "name": "genuine_lifecycle_direct_predicate_mutations",
+      "source": "gomad/src/cycle/readers/core_lifecycle/tests.rs",
+      "reason": "requires independently captured genuine lifecycle harness stdout",
+      "disposition": "supporting-only-nonqualification",
+      "final_id": null
     }
   ]
 }

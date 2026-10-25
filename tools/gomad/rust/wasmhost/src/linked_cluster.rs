@@ -1684,6 +1684,33 @@ pub fn validate_network_evidence(
     shared: &NetworkModel,
     local: &NetworkModel,
 ) -> Result<(), String> {
+    admit_network_evidence(bytes, transcript_limit, shared, local).map(|_| ())
+}
+
+/// Admits the same network wire as replay and returns detached, read-only facts.
+///
+/// # Errors
+/// Rejects malformed wire, foreign profiles, owner identities and World state.
+pub fn observe_network_evidence(
+    bytes: &[u8],
+    transcript_limit: u64,
+    shared: &NetworkModel,
+    local: &NetworkModel,
+) -> Result<NetworkObservation, String> {
+    let decoded = admit_network_evidence(bytes, transcript_limit, shared, local)?;
+    Ok(NetworkObservation {
+        log: decoded.log,
+        record: serde_json::to_value(decoded.record).map_err(|e| e.to_string())?,
+        world: decoded.world,
+    })
+}
+
+fn admit_network_evidence(
+    bytes: &[u8],
+    transcript_limit: u64,
+    shared: &NetworkModel,
+    local: &NetworkModel,
+) -> Result<crate::cluster::network::evidence::decode::Decoded, String> {
     if shared.profile != crate::cluster::network::PROFILE
         || local.profile != crate::cluster::network::PROFILE
         || !shared.faults.is_empty()
@@ -1718,7 +1745,28 @@ pub fn validate_network_evidence(
         &crate::cluster::network::evidence::decode::owner_limits(&shared.limits),
         &config,
     )
-    .map(|_| ())
+}
+
+/// Immutable projection of admitted network evidence.
+pub struct NetworkObservation {
+    log: Vec<u8>,
+    record: serde_json::Value,
+    world: Vec<u8>,
+}
+
+impl NetworkObservation {
+    #[must_use]
+    pub fn log(&self) -> &[u8] {
+        &self.log
+    }
+    #[must_use]
+    pub fn record(&self) -> &serde_json::Value {
+        &self.record
+    }
+    #[must_use]
+    pub fn world(&self) -> &[u8] {
+        &self.world
+    }
 }
 
 /// Validates retained expanded World bytes against the exact broker configuration.
@@ -1726,8 +1774,29 @@ pub fn validate_network_evidence(
 /// # Errors
 /// Rejects malformed, noncanonical or foreign model state before guest admission.
 pub fn validate_world(bytes: &[u8], broker: &BrokerConfig) -> Result<(), String> {
-    crate::world::retained::validate_with_transition_limit(
-        bytes,
+    observe_world(bytes, "", broker).map(|_| ())
+}
+
+/// Authenticates an encoded snapshot and projects its replayed owner state.
+///
+/// # Errors
+/// Rejects unknown encodings, invalid envelopes and noncanonical or foreign state.
+pub fn observe_world(
+    bytes: &[u8],
+    encoding: &str,
+    broker: &BrokerConfig,
+) -> Result<WorldObservation, String> {
+    let expanded;
+    let raw = match encoding {
+        "" => bytes,
+        crate::world::retained::COMPRESSED => {
+            expanded = crate::world::retained::expand(bytes)?;
+            &expanded
+        }
+        _ => return Err("unknown retained World encoding".into()),
+    };
+    let model = crate::world::retained::admit(
+        raw,
         &crate::world::Config {
             seed: broker.seed,
             limits: crate::world::Limits {
@@ -1740,7 +1809,93 @@ pub fn validate_world(bytes: &[u8], broker: &BrokerConfig) -> Result<(), String>
             },
         },
         broker.transition_bytes,
-    )
+    )?;
+    Ok(WorldObservation { model })
+}
+
+/// Read-only state reconstructed by the authoritative World transition decoder.
+pub struct WorldObservation {
+    model: crate::world::Model,
+}
+
+impl WorldObservation {
+    pub fn summary(&self) -> serde_json::Value {
+        let c = self.model.cardinality();
+        let ids = self.model.next_ids();
+        serde_json::json!({
+            "now": c.now, "requests": c.requests, "events": c.events,
+            "queued_events": c.queued_events, "transitions": c.transitions,
+            "payload_bytes": c.payload_bytes, "next_ids": [ids.0, ids.1, ids.2],
+            "transcript_digest": hex_digest(&c.transcript_digest),
+            "state_digest": hex_digest(&self.model.state_digest()),
+        })
+    }
+
+    pub fn requests(&self) -> impl ExactSizeIterator<Item = serde_json::Value> + '_ {
+        self.model.requests().map(|(id, entry)| {
+            serde_json::json!({
+                "id": id, "request": world_request(&entry.request),
+                "state": entry.state.as_str(), "event_id": entry.event_id,
+            })
+        })
+    }
+
+    pub fn events(&self) -> impl ExactSizeIterator<Item = serde_json::Value> + '_ {
+        self.model.events().map(|(id, event)| serde_json::json!({
+            "id": id, "readiness": world_readiness(&event.readiness), "state": event.state.as_str(),
+        }))
+    }
+
+    pub fn transitions(&self) -> impl ExactSizeIterator<Item = serde_json::Value> + '_ {
+        self.model.transitions().iter().map(|t| {
+            use crate::world::TransitionBody;
+            let body = match &t.body {
+                TransitionBody::Register { request, request_id } => serde_json::json!({
+                    "kind":"register", "request":world_request(request), "request_id":request_id,
+                }),
+                TransitionBody::Ready { readiness, event_id } => serde_json::json!({
+                    "kind":"ready", "readiness":world_readiness(readiness), "event_id":event_id,
+                }),
+                TransitionBody::Cancel { request_id, cancellation } => serde_json::json!({
+                    "kind":"cancel", "request_id":request_id, "cancellation":{
+                        "request_id":cancellation.request_id, "event_id":cancellation.event_id,
+                        "status":cancellation.status.as_str(),
+                    },
+                }),
+                TransitionBody::Quiesce { result } => serde_json::json!({
+                    "kind":"quiesce", "quiescence":{
+                        "kind":result.kind.as_str(), "before":result.before, "after":result.after,
+                        "blocked":result.blocked, "deliveries":result.deliveries.iter().map(|d| serde_json::json!({
+                            "request_id":d.request_id, "event_id":d.event_id, "at":d.at,
+                            "kind":d.kind, "payload":d.payload,
+                        })).collect::<Vec<_>>(),
+                    },
+                }),
+            };
+            serde_json::json!({"sequence":t.sequence, "previous_digest":hex_digest(&t.previous_digest),
+                "digest":hex_digest(&t.digest), "body":body})
+        })
+    }
+}
+
+fn hex_digest(bytes: &[u8; 32]) -> String {
+    use std::fmt::Write as _;
+    bytes
+        .iter()
+        .fold(String::with_capacity(64), |mut text, byte| {
+            write!(text, "{byte:02x}").expect("string write");
+            text
+        })
+}
+
+fn world_request(r: &crate::world::Request) -> serde_json::Value {
+    serde_json::json!({"kind":r.kind, "adapter":r.resource.adapter, "resource_kind":r.resource.kind,
+        "key":r.resource.key, "priority":r.priority, "payload":r.payload})
+}
+
+fn world_readiness(r: &crate::world::Readiness) -> serde_json::Value {
+    serde_json::json!({"request_id":r.request_id, "at":r.at, "kind":r.kind,
+        "payload":r.payload, "equivalence_class":r.equivalence_class})
 }
 
 /// # Errors
