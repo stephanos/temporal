@@ -19,6 +19,8 @@ All source coordinates are provisional planning anchors. Reanchor final fn-237.3
 3. Preserve actual generated enum/result type proofs. Test omitted/added actions and claimed fields against independent descriptor/type inventories rather than the declaration being checked. Keep correlation/read configuration typed and reject conflicting/unknown/duplicate declarations with located diagnostics.
 4. Prove a generic non-Temporal Machine still expands and keeps the same checking results (goldens may be re-accepted after review). Use synthetic Temporal examples to compile client proposal, worker fill and probe-baseline access before the activity switches. Refinement syntax is owned by .4 after its typed consumer exists.
 
+**Dispatch exclusion:** Serialize with .12 on annotation syntax/tests; the parent overlap guard applies even when the task DAG otherwise permits parallel work. Preserve existing dependencies.
+
 ### Investigation targets
 
 **Required:**

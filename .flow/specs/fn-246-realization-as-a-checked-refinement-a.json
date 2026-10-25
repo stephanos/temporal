@@ -14,10 +14,79 @@
   "id": "fn-246-realization-as-a-checked-refinement-a",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": "2026-10-24T22:28:05.628951Z",
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-25T05:55:58.025904Z",
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "99216564ad57289496755f347716e9342ba2add15c9f966043d5b6f0e4c9aaf3",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-b3478c3040b454e4a531c38a89c1d831",
+            "classification": "introduced",
+            "findingId": "finding-b3478c3040b454e4a531c38a89c1d831",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-76c930a987c6d5103c92db1baf81edcd",
+            "classification": "introduced",
+            "findingId": "finding-76c930a987c6d5103c92db1baf81edcd",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c83e1879cddc5196abc31b797ecbd929",
+            "classification": "introduced",
+            "findingId": "finding-c83e1879cddc5196abc31b797ecbd929",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1c1e7fbf0767088a4c820adb64da75325af1f007",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 693983,
+      "output_sha256": "c8b7c1f380f03c3fb13e90ab8591bf97d4327309f3c59f4cf19c4ff39e150990",
+      "reservation_id": "b5c5c8ec0fbc48c69d5138beae561748",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-25T05:55:57.991568Z",
+      "tool_calls": 30,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-246-realization-as-a-checked-refinement-a.md",
   "status": "open",
   "title": "Realization as a checked refinement: a shared Temporal layer, the action registry, Reach, and strategies enumerated from the Model (model, temporal)",
@@ -32,5 +101,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T22:28:06.143545Z"
+  "updated_at": "2026-10-25T05:57:56.233572Z"
 }

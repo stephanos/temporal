@@ -20,6 +20,8 @@ All source coordinates are provisional planning anchors. Reanchor final fn-237.3
 4. Implement the conductor-approved R4 clarification. Conditional queue-name and retry-ordering cases remain present, with independently justified typed semantic rules and preserved paired controls. Validate actual API/World applicability before giving strict predictions; retain visible gaps and fail acceptance if the rule cannot be justified. Do not fit a rule to a live rejection.
 5. Produce an exact per-ID old/new inventory reconciliation. A retained case may gain a strict prediction; a removed case must cite its actual opaque/claim rule. Remove no claimed-field/enum/request-evidence/response-validation controls.
 
+**Dispatch exclusion:** Serialize with .11 on annotation syntax/tests; the parent overlap guard applies even when the task DAG otherwise permits parallel work. Preserve existing dependencies.
+
 ### Investigation targets
 
 **Required:**

@@ -21,6 +21,8 @@ All source coordinates are provisional planning anchors. Reanchor final fn-237.3
 4. Make baseline/catalog probes call registered fillers; consume catalog's exact inventory reconciliation rather than reproducing gap logic. Keep generic raw mutation generation and Kettle unchanged. Keep the journal/gates and cooperative actual-worker live evidence owned by future fn-237.4; the moved executor continuation capability has its own task.
 5. Rewire guest/test imports and workspace paths only as needed; add no Cargo dependency beyond those admitted under fn-210 R18. Record shared handwritten/generated ownership for later counts. Do not charge feature-semantic helpers as shared merely because they moved.
 
+**Dispatch exclusion:** Serialize with .13 on realization/src/lib.rs; also serialize .2/.14 on realization/tests/program.rs; the parent overlap guard applies even when the task DAG otherwise permits parallel work. Preserve existing dependencies.
+
 ## Investigation targets
 
 **Required:**
