@@ -4,5 +4,6 @@
   "repro_commit": "7911549dae0b6d3c8bdec0498ecf2fa7c57db52a",
   "worker_scoped_gates": "202passes, strictclippy/fmt, sixguests, freshKettleGo all exit0",
   "joined_controls": "Reach/prefix/proposal; all5macrotests; declarative/catalog/probe_accounting all exit0",
-  "review": "Primary re-review pending; no completion claim"
+  "review": "Primary re-review SHIP at2a0630292f; final integrated focused six-crate suite exit0 at2ded674203,143.340s, identical model tree.",
+  "parent_gate": "Required combined full gate failed after411.859s on Apalache subprocess safety/limit refusal. Focused reruns do not repair that gate; final parent gate remains mandatory."
 }

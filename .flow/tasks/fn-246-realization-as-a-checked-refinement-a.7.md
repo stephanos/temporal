@@ -42,9 +42,18 @@ From model/: `mise exec -- cargo test -p umpire-runtime -p umpire-reference-kett
 
 
 ## Done summary
-TBD
+Implemented R2 through Identity, Snapshot, Evidence<K>, Fill<A> and ReplyPolicy assembled at the existing Realize entry point. Stock, Kettle, generic/renamed controls and generated Temporal consumers share the typed filler signature. Rpc/Snapshot/Reconciled views preserve typed admission and same-invocation identity; History remains declared without a producer.
 
+Review found admission errors being converted into rejected Reach candidates. The committed red regression and fix propagate original refusals through new observations and retained-prefix validation, preserve pending/history/immutable reports, avoid freezing on refusal and allow successful retry. Missing capability, optional default, generic bounds, renamed dependency, empty enum, callback and publication controls remain covered.
+
+Actual primary re-review SHIP: session01a17312-8385-74d1-9b7b-a7c6e27eec56 at2a0630292f. Worker verification passed202 tests (one existing explicit live-import ignore), strict clippy/fmt, six guests/native panic and fresh Kettle Go checks. The final conductor six-crate integrated suite passed at2ded674203 (143.340s); source/model tree matched the reviewed2a0630292f. The first attempts exposed stale cross-worktree runtime/checker metadata; exact package cleans repaired the cache without source edits, and both failed attempts are retained. Embedded guest09efe079c5198322e39b04ebde3cb0d0376b973fff644b4cb6e93461ba303411 was promoted at2a0630292f.
+
+The parent full required gate remains outstanding: the current411.859s run failed an Apalache subprocess safety/limit refusal. Six focused reruns passed but do not repair that gate. Parent full validation, task8 protocol declaration, task9 recording, task10 compatible frontier, task14 production continuation and fn237.4 live wrapper proof remain with their declared owners. Per-task closure uses the rolling scheduler's focused verification; no parent gate receipt is claimed.
+
+Tier: explicit AGENTS implementer gpt-6.1-sol/medium, reviewer gpt-6.1-sol/high (same family); judge unavailable(no_key). Memory captured as bug/runtime-errors/evidence-admission-refusals-must-remain-2026-10-25. stage: plan-sync skipped(policy: rolling scheduler).
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 42e301bee485b60095395b9e4447c33fbd2caf72, 7911549dae0b6d3c8bdec0498ecf2fa7c57db52a, 79beb81e4c2cf9d15dd772fa549004d8057b0902, 3b4a00f52f04959ad051ad284dad39d2151345af, 073f628518f9a66811fe4fc4a5bd2dbefdcd5efa, 2a0630292f1d609c7382869172f608ea6adf55ac
+- Tests: mise exec -- cargo test -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer, mise exec -- cargo clippy -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal-annotate-syntax -p umpire-temporal-realization-macros -p umpire-temporal -p umpire-author-consumer --all-targets --all-features -- -D warnings, mise exec -- cargo fmt --all --check, bash model/scripts/tests/build-guests.sh, mise exec -- go test -p 2 -tags test_dep -count=1 ./...
 - PRs:

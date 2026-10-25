@@ -1,0 +1,11 @@
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling proc-macro-crate v3.5.0
+error[E0432]: unresolved import `umpire_checker::search`
+ --> umpire/protocol/runtime/src/runtime.rs:4:21
+  |
+4 | use umpire_checker::search::{SearchLimit, Traversal};
+  |                     ^^^^^^ could not find `search` in `umpire_checker`
+
+For more information about this error, try `rustc --explain E0432`.
+error: could not compile `umpire-runtime` (lib) due to 1 previous error

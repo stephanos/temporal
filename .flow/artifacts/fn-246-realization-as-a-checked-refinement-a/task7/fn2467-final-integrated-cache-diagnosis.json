@@ -1,0 +1,8 @@
+{
+  "failure": "Compiler consumed runtime metadata without Evidence/Exact/capability and with old two-parameter Projection, despite current checked-out runtime defining these APIs. Initial log did not compile umpire-runtime.",
+  "source_changed": false,
+  "remedy": "Exact cargo clean -p umpire-runtime in leased fn24612 cache, then same focused suite.",
+  "prior_receipt": "fn2467-final-integrated-cache-transition-failure.json",
+  "second_failure": "Rebuilt runtime then exposed old umpire-checker metadata without search export; checked-out checker contains the export. Same pre-task1 cache transition previously characterized.",
+  "second_remedy": "Exact cargo clean -p umpire-checker, then same suite; source unchanged."
+}

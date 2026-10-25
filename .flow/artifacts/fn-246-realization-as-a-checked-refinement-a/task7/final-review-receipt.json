@@ -1,0 +1,45 @@
+{
+  "base": "ac984f912f",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "ac984f912f7da7d0ded1c77a78029380aac95d34",
+    "headSha": "2a0630292f1d609c7382869172f608ea6adf55ac",
+    "items": [
+      {
+        "body": "`Err(_) => EvidenceMatch::Reject` discards evidence admission refusals. If snapshot projection returns Reach but typed evidence admission returns MalformedRequest or Unsupported, `reach()` returns `Ok(None)`. Judge then publishes Unexplained and commits a frozen run. Invalid evidence therefore becomes a model mismatch instead of a refusal, violating the task\u2019s evidence validation contract.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-6982cc562bc60d13a18d6fb10c3997d2dbfd63c450150c8fe10b82fcda5048d1",
+        "id": "finding-419d7c635e572d36f83c7f5769ba5053",
+        "lastSeenReceiptId": "review-7f2b71e47e04f31a1867fe156ddcca62ff85cb0adc8bf91dc09bb72734b412df",
+        "ordinal": 1,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Preserve admission errors through the runtime\u2019s Result path, keeping explicit predicate rejection separate. Add a control where projection succeeds and evidence admission fails; verify that Judge returns the original refusal without changing state, pending requests or retained history.",
+        "title": "`Err(_) => EvidenceMatch::Reject` discards evidence admission refusals"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-7f2b71e47e04f31a1867fe156ddcca62ff85cb0adc8bf91dc09bb72734b412df",
+    "supersedesReceiptId": "review-6982cc562bc60d13a18d6fb10c3997d2dbfd63c450150c8fe10b82fcda5048d1"
+  },
+  "id": "fn-246-realization-as-a-checked-refinement-a.7",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "Prior finding #1: fixed\n\nEvidence admission refusals now propagate through Reach search and retained-prefix validation. Preparation returns the original refusal without committing state or freezing the run.\n\nThe regression control covers malformed and unsupported evidence, pending-request preservation, immutable prior reports and successful retry. It passed using the existing compiled test binary. Fresh Cargo verification was blocked by the read-only filesystem.\n\nNo new blocking findings.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | deferred | Singleton preservation retained; remaining frontier and protocol work belongs to other tasks. |\n| R2 | met | Task .7 capability migration implemented; admission refusals now propagate with regression coverage. |\n| R3 | deferred | Shared-layer completion is separately owned. |\n| R4 | deferred | Binding replacement and live comparison remain separately owned. |\n| R5 | deferred | Protocol refinement is outside task .7. |\n| R6 | deferred | Executor capability and strategy enumeration are separately owned. |\n| R7 | deferred | Measurements and authoring documentation are separately owned. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict> - Prior finding fixed; no remaining blockers within task .7.\n",
+  "review_reservation_id": "75b6a24b72ac49d78590d1ad4fa5cf30",
+  "session_id": "01a17312-8385-74d1-9b7b-a7c6e27eec56",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-25T13:17:16.198088Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}

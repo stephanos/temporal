@@ -1,0 +1,103 @@
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/build)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/macros)
+   Compiling trybuild v1.0.122
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/annotate/syntax)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/realization/macros)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/umpire)
+   Compiling umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/reference/kettle)
+error[E0432]: unresolved imports `umpire_runtime::Evidence`, `umpire_runtime::EvidenceMatch`, `umpire_runtime::Exact`
+ --> umpire/reference/kettle/realization.rs:9:17
+  |
+9 |     AnswerPlan, Evidence, EvidenceMatch, Exact, Observed, Projection, Realize, callback,
+  |                 ^^^^^^^^  ^^^^^^^^^^^^^  ^^^^^ no `Exact` in the root
+  |                 |         |
+  |                 |         no `EvidenceMatch` in the root
+  |                 no `Evidence` in the root
+
+error[E0433]: cannot find `capability` in `umpire_runtime`
+  --> umpire/reference/kettle/realization.rs:48:22
+   |
+48 | impl umpire_runtime::capability::Identity for Realization {
+   |                      ^^^^^^^^^^ could not find `capability` in `umpire_runtime`
+
+error[E0433]: cannot find `capability` in `umpire_runtime`
+  --> umpire/reference/kettle/realization.rs:59:22
+   |
+59 | impl umpire_runtime::capability::Fill<Action> for Realization {
+   |                      ^^^^^^^^^^ could not find `capability` in `umpire_runtime`
+
+error[E0433]: cannot find `capability` in `umpire_runtime`
+  --> umpire/reference/kettle/realization.rs:84:22
+   |
+84 | impl umpire_runtime::capability::Snapshot<kettle::World> for Realization {
+   |                      ^^^^^^^^^^ could not find `capability` in `umpire_runtime`
+
+error[E0433]: cannot find `capability` in `umpire_runtime`
+   --> umpire/reference/kettle/realization.rs:134:22
+    |
+134 | impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for Realization {
+    |                      ^^^^^^^^^^ could not find `capability` in `umpire_runtime`
+
+error[E0433]: cannot find `evidence` in `umpire_runtime`
+   --> umpire/reference/kettle/realization.rs:134:59
+    |
+134 | impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for Realization {
+    |                                                           ^^^^^^^^ could not find `evidence` in `umpire_runtime`
+
+error[E0433]: cannot find `capability` in `umpire_runtime`
+   --> umpire/reference/kettle/realization.rs:173:22
+    |
+173 | impl umpire_runtime::capability::ReplyPolicy<kettle::World> for Realization {
+    |                      ^^^^^^^^^^ could not find `capability` in `umpire_runtime`
+
+error[E0433]: cannot find `capability` in `umpire_runtime`
+   --> umpire/reference/kettle/realization.rs:196:36
+    |
+196 |             reply(&umpire_runtime::capability::Fill::fill(
+    |                                    ^^^^^^^^^^ could not find `capability` in `umpire_runtime`
+    |
+help: there is an enum variant `crate::KettleServiceMethod::Fill`; try using the variant's enum
+    |
+196 -             reply(&umpire_runtime::capability::Fill::fill(
+196 +             reply(&crate::KettleServiceMethod::fill(
+    |
+
+error[E0433]: cannot find `capability` in `umpire_runtime`
+   --> umpire/reference/kettle/realization.rs:201:34
+    |
+201 |                 &umpire_runtime::capability::Identity::identify(self, value)?,
+    |                                  ^^^^^^^^^^ could not find `capability` in `umpire_runtime`
+
+error[E0107]: enum takes at most 2 generic arguments but 3 generic arguments were supplied
+  --> umpire/reference/kettle/realization.rs:28:47
+   |
+28 | fn current(observed: State, state: &Model) -> Projection<Action, (), Exact<Model>> {
+   |                                               ^^^^^^^^^^           -------------- help: remove the unnecessary generic argument
+   |                                               |
+   |                                               expected at most 2 generic arguments
+
+error[E0107]: enum takes at most 2 generic arguments but 3 generic arguments were supplied
+  --> umpire/reference/kettle/realization.rs:32:35
+   |
+32 | fn transition(observed: State) -> Projection<Action, (), Exact<Model>> {
+   |                                   ^^^^^^^^^^           -------------- help: remove the unnecessary generic argument
+   |                                   |
+   |                                   expected at most 2 generic arguments
+
+error[E0046]: not all trait items implemented, missing: `observe`
+   --> umpire/reference/kettle/realization.rs:207:1
+    |
+207 | impl Realize<kettle::World> for Realization {}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing `observe` in implementation
+    |
+    = help: implement the missing item: `fn observe(&self, _: &prost_types::Any, _: &<World as Machine>::State) -> std::result::Result<Projection<<World as Machine>::Action, <World as Machine>::Outcome>, umpire_runtime::protocol::Refusal> { todo!() }`
+
+Some errors have detailed explanations: E0046, E0107, E0432, E0433.
+For more information about an error, try `rustc --explain E0046`.
+error: could not compile `umpire-reference-kettle` (lib) due to 12 previous errors
+warning: build failed, waiting for other jobs to finish...

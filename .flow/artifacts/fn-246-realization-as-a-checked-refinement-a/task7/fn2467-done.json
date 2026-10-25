@@ -1,0 +1,71 @@
+{
+  "success": true,
+  "assignee": "stephanos@users.noreply.github.com",
+  "claim_note": "",
+  "claimed_at": "2026-10-25T11:25:38.873798Z",
+  "created_at": "2026-10-24T19:06:07.447245Z",
+  "depends_on": [
+    "fn-246-realization-as-a-checked-refinement-a.1"
+  ],
+  "id": "fn-246-realization-as-a-checked-refinement-a.7",
+  "priority": null,
+  "spec": "fn-246-realization-as-a-checked-refinement-a",
+  "spec_path": ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.7.md",
+  "status": "done",
+  "title": "Typed capabilities, fillers and internal evidence adapters",
+  "updated_at": "2026-10-25T14:08:32.393581Z",
+  "evidence": {
+    "base_commit": "046922c29e1355824cc989575dfe24b42e622bca",
+    "commits": [
+      "42e301bee485b60095395b9e4447c33fbd2caf72",
+      "7911549dae0b6d3c8bdec0498ecf2fa7c57db52a",
+      "79beb81e4c2cf9d15dd772fa549004d8057b0902",
+      "3b4a00f52f04959ad051ad284dad39d2151345af",
+      "073f628518f9a66811fe4fc4a5bd2dbefdcd5efa",
+      "2a0630292f1d609c7382869172f608ea6adf55ac"
+    ],
+    "integrated_verification": {
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--manifest-path",
+        "model/Cargo.toml",
+        "-p",
+        "umpire-runtime",
+        "-p",
+        "umpire-reference-kettle",
+        "-p",
+        "umpire-temporal-annotate-syntax",
+        "-p",
+        "umpire-temporal",
+        "-p",
+        "umpire-temporal-realization-macros",
+        "-p",
+        "umpire-author-consumer",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "log": ".flow/tmp/milestones-resume-20261024/fn2467-final-integrated-suite.log",
+      "log_sha256": "835c45a629cb83fa780257d55e72c212c16f0807380c888eaa5a369daf2885a9",
+      "model_tree": "fd5da182cb7181932a32896bca95c35b18c963f4",
+      "seconds": 143.34,
+      "source_commit": "2ded6742037c59cf5effd9b54811c0499f5d3fb3"
+    },
+    "prs": [],
+    "review_receipt": ".flow/artifacts/fn-246-realization-as-a-checked-refinement-a/task7/final-review-receipt.json",
+    "tests": [
+      "mise exec -- cargo test -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer",
+      "mise exec -- cargo clippy -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal-annotate-syntax -p umpire-temporal-realization-macros -p umpire-temporal -p umpire-author-consumer --all-targets --all-features -- -D warnings",
+      "mise exec -- cargo fmt --all --check",
+      "bash model/scripts/tests/build-guests.sh",
+      "mise exec -- go test -p 2 -tags test_dep -count=1 ./..."
+    ]
+  },
+  "impl": null,
+  "review": null,
+  "sync": null,
+  "status_source": "flow-state"
+}

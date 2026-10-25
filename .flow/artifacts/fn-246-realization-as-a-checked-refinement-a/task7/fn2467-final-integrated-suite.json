@@ -1,0 +1,30 @@
+{
+  "source_commit": "2ded6742037c59cf5effd9b54811c0499f5d3fb3",
+  "model_tree": "fd5da182cb7181932a32896bca95c35b18c963f4",
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "test",
+    "--manifest-path",
+    "model/Cargo.toml",
+    "-p",
+    "umpire-runtime",
+    "-p",
+    "umpire-reference-kettle",
+    "-p",
+    "umpire-temporal-annotate-syntax",
+    "-p",
+    "umpire-temporal",
+    "-p",
+    "umpire-temporal-realization-macros",
+    "-p",
+    "umpire-author-consumer",
+    "--locked"
+  ],
+  "exit_code": 0,
+  "seconds": 143.34,
+  "log": ".flow/tmp/milestones-resume-20261024/fn2467-final-integrated-suite.log",
+  "log_sha256": "835c45a629cb83fa780257d55e72c212c16f0807380c888eaa5a369daf2885a9"
+}
