@@ -78,3 +78,8 @@ Use one independent whole-batch review, with three axes at final cutover. Direct
 ## Owner crate amendment — 2026-10-24
 
 The Rust port uses off-the-shelf crates instead of re-implementing what the Python driver got from its standard library: `tar` for `tarfile` (original ringpop, reference profile, final profiles), `zip` for `zipfile` (installed cluster cache), `regex` for `re`, `tempfile` for scratch directories, and `clap` (derive) for the cycle verb's argv. The comment/string-blanking scanner in `static_stages.py:rust_code()` is ported as `proc-macro2` tokenization (or `ra_ap_rustc_lexer` if token positions must be kept), not as a regex lexer. Pin each with `=` in the workspace like existing dependencies. Behavioural contracts and catching proofs are unchanged.
+
+
+## Owner throughput amendment — 2026-10-24
+
+Avoid building what later specs delete or replace. fn-249.1's inventory, which may run during this spec, marks the cycle stages and leaf commands that exercise the test-only Go reference models, the `reference-helper`/`conformance` binaries or `helper_corpus`. Port those stages with their exact leaf argv and existing catching proofs only. Add no new shared reader, producer or abstraction for them, because fn-249 removes them after cutover through a recorded stage-plan delta. Readers of retained binary formats call the `wasmhost` decoders (tasks .21 and .27) instead of re-implementing parsing, so fn-247's protobuf move touches one decoder. Original acceptance, catching-proof obligations and the 96-stage cutover contract are unchanged.

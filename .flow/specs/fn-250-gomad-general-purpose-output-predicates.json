@@ -1,0 +1,27 @@
+{
+  "branch_name": "fn-250-gomad-general-purpose-output-predicates",
+  "created_at": "2026-10-25T02:44:55.838828Z",
+  "depends_on_epics": [
+    "fn-240-gomad-context-sized-rust-crates-with",
+    "fn-245-gomad-typed-boundaries-for-the-rust-host"
+  ],
+  "id": "fn-250-gomad-general-purpose-output-predicates",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-250-gomad-general-purpose-output-predicates.md",
+  "status": "open",
+  "title": "Gomad: general-purpose output predicates replace the hardwired softassert oracle",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-25T02:45:27.953557Z"
+}

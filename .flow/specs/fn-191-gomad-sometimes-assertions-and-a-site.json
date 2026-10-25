@@ -9,7 +9,8 @@
   "depends_on_epics": [
     "fn-240-gomad-context-sized-rust-crates-with",
     "fn-242-gomad-shrink-the-qualification",
-    "fn-245-gomad-typed-boundaries-for-the-rust-host"
+    "fn-245-gomad-typed-boundaries-for-the-rust-host",
+    "fn-250-gomad-general-purpose-output-predicates"
   ],
   "id": "fn-191-gomad-sometimes-assertions-and-a-site",
   "impl_review_rounds": {},
@@ -180,5 +181,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T22:09:56.159171Z"
+  "updated_at": "2026-10-25T02:45:28.243760Z"
 }

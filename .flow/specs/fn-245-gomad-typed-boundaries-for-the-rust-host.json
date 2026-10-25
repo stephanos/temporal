@@ -7,8 +7,9 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-240-gomad-context-sized-rust-crates-with",
-    "fn-242-gomad-shrink-the-qualification"
+    "fn-242-gomad-shrink-the-qualification",
+    "fn-249-gomad-retire-the-go-reference-models",
+    "fn-240-gomad-context-sized-rust-crates-with"
   ],
   "id": "fn-245-gomad-typed-boundaries-for-the-rust-host",
   "impl_review_rounds": {},
@@ -31,5 +32,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T22:09:57.395072Z"
+  "updated_at": "2026-10-24T22:19:46.058837Z"
 }

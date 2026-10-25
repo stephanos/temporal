@@ -2,7 +2,8 @@
   "branch_name": "fn-247-gomad-protobuf-host-side-evidence",
   "created_at": "2026-10-24T22:03:26.754070Z",
   "depends_on_epics": [
-    "fn-242-gomad-shrink-the-qualification"
+    "fn-242-gomad-shrink-the-qualification",
+    "fn-249-gomad-retire-the-go-reference-models"
   ],
   "id": "fn-247-gomad-protobuf-host-side-evidence",
   "next_task": 1,
@@ -22,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T22:17:16.903190Z"
+  "updated_at": "2026-10-24T22:19:46.632129Z"
 }

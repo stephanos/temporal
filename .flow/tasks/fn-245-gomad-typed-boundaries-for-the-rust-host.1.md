@@ -9,6 +9,8 @@ Add gomad_evidence::io with BoundedRead (bounded read from an already pinned han
 Crate amendment (owner, 2026-10-24): build `BoundedRead`/`Authenticated<T>` on `cap-std` `Dir` handles (pinned `=`), replacing the hand-rolled `openat`/`NOFOLLOW`/`statat` sequences (~184 sites in ~25 files at 2026-10-24). The five local `fn hex` copies fold into `Digest`.
 
 Complexity amendment (owner, 2026-10-24): `gomad_evidence::io` also owns durable publication (temp file, write, fsync, rename, fsync directory), on `cap-std` plus `tempfile`'s `persist`. It replaces the 17 local publish/atomic-write helpers and the hand-written write-fsync-rename sequences in about 10 production files (2026-10-24).
+
+Throughput amendment (owner, 2026-10-24): runs after fn-240 completes (spec dependency). flowctl cannot enforce the earlier "after fn-240.2, before fn-240.9" interleave across specs, and moving local helpers mechanically before replacing them costs little.
 ## Acceptance
 grep -rl 'Sha256::' over the host crates lists at most gomad-evidence::io plus the two engine identity sites; no fn read/digest/authenticate definition remains outside gomad-evidence::io; identity goldens, the fn-240 flip-byte test and cargo test --workspace unchanged and green; counts in .flow/artifacts/fn-245/counts.md.
 - Pinned-directory access goes through `cap-std`; no `rustix::fs::openat`/`OFlags::NOFOLLOW` call remains in the migrated callers; no local `fn hex` remains.

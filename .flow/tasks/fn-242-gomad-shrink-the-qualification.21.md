@@ -21,6 +21,7 @@ cargo +1.99.1 fmt --manifest-path tools/gomad/rust/Cargo.toml --all -- --check
 
 Run from this task worktree, with its assigned exclusive build target. Required genuine-fixture features may be added and recorded. A final test filter selecting zero tests proves nothing.
 
+Throughput amendment (owner, 2026-10-24): validate retained storage and engine codecs by calling the Rust decoders in `wasmhost`, with independent bound and identity checks around them. Don't re-implement format parsing, so fn-247's protobuf move changes one decoder, not two.
 ## Acceptance
 - [ ] Catch malformed/trailing/oversized data, changed storage effects, reordered observations, foreign selected baseline and wrong engine input. Export compact admitted observation/state types.
 - [ ] Resolve every assigned pending_regression using an actually executed normal-return valid control and targeted catching mutation against current Rust code. Port retained keep-row catchers. Record original IDs/source SHA256, current source binding, exact input hashes/bytes, commands, outputs, numeric exits and direct intended predicate attribution.
@@ -28,7 +29,7 @@ Run from this task worktree, with its assigned exclusive build target. Required 
 - [ ] Run genuine controlled Rust and approved Go guest/model/tool behavior. Preserve strict JSON/custody, documented current command semantics, all96 stages/145 semantic obligations and3600s stop_at_deadline=False timing-only policy. No Python bridge, placeholder pass, full qualification dispatch or spent attempt.
 - [ ] Provide documented current Rust callable interfaces and update actual route consumers together. Retain endpoint/function mappings and fail closed for missing/unmapped routes until implemented.
 - [ ] Quick filters select at least one actual test; retain nonzero selected count and numeric exits. Add existing feature flags required by the genuine family fixtures. If work exceeds one roughly100k-token iteration, create a further exact partition before dispatch and extend integration dependencies.
-
+- [ ] Format parsing reuses the `wasmhost` decoders; no second parser for a retained binary format.
 ## Done summary
 Implemented and independently reviewed whole B04 at `d2a0b9a85cc0b3f1ce137b68fad417f72ccb90ad` (worker source `587d126e6d7c3d9e031bdb36f9893270e1241b01`); all tracked Rust bytes equal the tested worker tree. One fresh gpt-6.1-sol HIGH correctness review returned SHIP with no findings, finalized rid c2cc32a517b94829b20f112e0e295d9c. Writer and reviewer use the same model family with separate fresh contexts. Retained commands, numeric exits, raw log hashes, source/dependency bindings and actual process cleanup were independently checked; fresh reviewer Cargo execution was blocked by its required read-only sandbox and no new test execution is claimed. Owner-authorized exact-source evidence reuse applies.
 

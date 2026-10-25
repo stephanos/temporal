@@ -79,6 +79,36 @@ fn-245 retains its separate recorded scope and ordering; this amendment adds no 
 prerequisite. Existing later stress, sweep, shim and quiet-host measurement obligations remain
 pending and retain their original acceptance.
 
+### Throughput order: delete before moving or typing (owner amendment, 2026-10-24)
+
+The 2026-10-24 crate and complexity reviews added three cleanup specs. They are ordered so no
+code is ported, moved or typed and then deleted or rewritten:
+
+1. **[fn-242](.flow/specs/fn-242-gomad-shrink-the-qualification.md)** finishes the driver
+   port and cutover. The completed analysis-only **fn-249.1** inventory identifies the stages
+   that exercise test-only Go models, the `reference-helper`/`conformance` binaries or
+   `helper_corpus`, and fn-242 ports those stages minimally. Readers of retained binary formats
+   call the `wasmhost` decoders (fn-242.21/.27) rather than re-implementing them.
+2. After fn-242.8, two lanes run in parallel:
+   - **[fn-249](.flow/specs/fn-249-gomad-retire-the-go-reference-models.md)** retires the
+     test-only Go reference models and the stdio helper protocol. fn-249.2 is blocked until
+     fn-242.8; the removed stages go to fn-246 as a recorded stage-plan delta.
+   - **[fn-248](.flow/specs/fn-248-gomad-linux-and-darwin-parity-for-the.md)** brings Linux and
+     Darwin to parity.
+3. **[fn-247](.flow/specs/fn-247-gomad-protobuf-host-side-evidence.md)** (after fn-249) moves
+   host-side evidence to protobuf and `flate2`, with no Go side to generate.
+4. **[fn-240](.flow/specs/fn-240-gomad-context-sized-rust-crates-with.md)** extracts crates
+   from the smaller, portable code. Each extraction converts message-prefix dispatch to the
+   fn-240.5 kind enum together with its R11 error enums, so fn-245.3 only sweeps leftovers.
+5. **[fn-245](.flow/specs/fn-245-gomad-typed-boundaries-for-the-rust-host.md)** types the final
+   layout. **[fn-246](.flow/specs/fn-246-gomad-final-qualification-after-driver.md)** qualifies
+   once, after fn-240, which now follows fn-247, fn-248 and fn-249. Identities changed by
+   fn-247, and CLI message text changed by fn-240's `clap`/`thiserror`, are regenerated once
+   before fn-246 binds its candidate.
+
+flowctl only supports task dependencies within a spec. Cross-spec order is therefore
+spec-level, plus the fn-249.2 block and the ordering notes in task descriptions.
+
 ### Current handover (2026-10-24)
 
 fn-232.13 remains open: the full 96-stage cycle has not passed. The current integration input is
@@ -502,7 +532,7 @@ CI, PR, or push authority.
 
 ## Open specs
 
-Listed by spec dependencies and the current delivery order (2026-10-24): fn-242 → fn-240 → fn-246 → fn-232 acceptance closeout. Deferred work follows the active ladder.
+Listed by spec dependencies and the current delivery order (2026-10-24): fn-242 → (fn-249 ∥ fn-248) → fn-247 → fn-240 → (fn-245 ∥ fn-246) → fn-232 acceptance closeout. Deferred work follows the active ladder.
 
 ### Qualification machinery cleanup — [fn-242](.flow/specs/fn-242-gomad-shrink-the-qualification.md)
 
@@ -553,9 +583,45 @@ Execute this spec through [16 owner-authorized batches](.flow/artifacts/fn242-ex
 | [fn-242.7](.flow/tasks/fn-242-gomad-shrink-the-qualification.7.md) | ⬜ Todo | Zero-gap proof audit and cutover: remove Python, repoint commands/inventory, record sizes |
 | [fn-242.8](.flow/tasks/fn-242-gomad-shrink-the-qualification.8.md) | ⬜ Todo | Focused implementation handoff; actual qualification transferred to fn-246 |
 
+### Retire Go reference models and the stdio helper protocol — [fn-249](.flow/specs/fn-249-gomad-retire-the-go-reference-models.md)
+
+Filed 2026-10-24 from the complexity review. Production runs the engine in-process through `linked`; the test-only Go models (~37k production + 28k test lines of Go) and the stdio frame path only serve conformance tests. Task .1 runs during fn-242; code tasks wait for fn-242.8.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-249.2](.flow/tasks/fn-249-gomad-retire-the-go-reference-models.2.md) | ⛔ Blocked | Capture Go oracle outputs as Rust corpus goldens (blocked until fn-242.8) |
+| [fn-249.3](.flow/tasks/fn-249-gomad-retire-the-go-reference-models.3.md) | ⬜ Todo | Delete the test-only Go reference models |
+| [fn-249.4](.flow/tasks/fn-249-gomad-retire-the-go-reference-models.4.md) | ⬜ Todo | Delete the stdio helper protocol path; in-process `linked` API only |
+| [fn-249.5](.flow/tasks/fn-249-gomad-retire-the-go-reference-models.5.md) | ⬜ Todo | Update stage plan, Make, docs and inventories; record the stage delta for fn-246 and sizes |
+
+### Linux and Darwin parity — [fn-248](.flow/specs/fn-248-gomad-linux-and-darwin-parity-for-the.md)
+
+Filed 2026-10-24. Near-identical code on both platforms: one `host` module for OS queries, `libc` for every C binding, `signal-hook`, and a portable supervisor. The owner accepted Darwin's weaker descendant custody (no subreaper) for development runs. Runs after fn-242, in parallel with fn-249.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-248.1](.flow/tasks/fn-248-gomad-linux-and-darwin-parity-for-the.1.md) | ⬜ Todo | Make `gomad` build and test on macOS |
+| [fn-248.2](.flow/tasks/fn-248-gomad-linux-and-darwin-parity-for-the.2.md) | ⬜ Todo | One host module for OS queries |
+| [fn-248.3](.flow/tasks/fn-248-gomad-linux-and-darwin-parity-for-the.3.md) | ⬜ Todo | Replace hand-written C bindings with `libc` and `signal-hook` |
+| [fn-248.4](.flow/tasks/fn-248-gomad-linux-and-darwin-parity-for-the.4.md) | ⬜ Todo | Portable cycle supervisor on `libc` with a per-OS custody backend |
+
+### Protobuf host-side evidence and flate2 — [fn-247](.flow/specs/fn-247-gomad-protobuf-host-side-evidence.md)
+
+Filed 2026-10-24. Host-only binary evidence (World snapshot, network evidence, volume image, storage evidence, heap profile) moves to `prost`; `flate2` replaces the Go deflate port. Guest-boundary wires stay custom. Runs after fn-249, so there is no Go side; changed identities are regenerated once before fn-246.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-247.1](.flow/tasks/fn-247-gomad-protobuf-host-side-evidence.1.md) | ⬜ Todo | Inventory custom binary formats; set up `prost`/`protox` generation |
+| [fn-247.2](.flow/tasks/fn-247-gomad-protobuf-host-side-evidence.2.md) | ⬜ Todo | Replace the Go deflate port and hand-written gzip with `flate2` |
+| [fn-247.3](.flow/tasks/fn-247-gomad-protobuf-host-side-evidence.3.md) | ⬜ Todo | Move World snapshot evidence to protobuf |
+| [fn-247.4](.flow/tasks/fn-247-gomad-protobuf-host-side-evidence.4.md) | ⬜ Todo | Move network evidence (GMNETEV1) to protobuf |
+| [fn-247.5](.flow/tasks/fn-247-gomad-protobuf-host-side-evidence.5.md) | ⬜ Todo | Move volume image and storage evidence to protobuf |
+| [fn-247.6](.flow/tasks/fn-247-gomad-protobuf-host-side-evidence.6.md) | ⬜ Todo | Build the heap profile from pprof protobuf messages |
+| [fn-247.7](.flow/tasks/fn-247-gomad-protobuf-host-side-evidence.7.md) | ⬜ Todo | Regenerate changed identities and goldens once |
+
 ### Context-sized Rust crates — [fn-240](.flow/specs/fn-240-gomad-context-sized-rust-crates-with.md)
 
-Target layout fixed by the owner on 2026-10-24 (spec Amendment 4); R11 typed error enums and R12 size lints ride on every extraction. Survey landed 2026-10-23 (`.flow/artifacts/fn240-crate-survey-2026-10-23.md`); extractions follow fn-242.
+Target layout fixed by the owner on 2026-10-24 (spec Amendment 4); R11 typed error enums and R12 size lints ride on every extraction. Survey landed 2026-10-23 (`.flow/artifacts/fn240-crate-survey-2026-10-23.md`); extractions follow fn-242, fn-249, fn-248 and fn-247. Each extraction also converts that crate's message-prefix dispatch to the fn-240.5 kind enum. `clap` (R9) and `thiserror` (R11) are adopted here.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
@@ -658,19 +724,32 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 
 ### Typed boundaries for the Rust host — [fn-245](.flow/specs/fn-245-gomad-typed-boundaries-for-the-rust-host.md)
 
-Filed 2026-10-24 from the complexity review; depends on fn-240 and fn-242. Typed errors and size lints are fn-240 R11/R12, not here.
+Filed 2026-10-24 from the complexity review; depends on fn-242, fn-249 and fn-240. Typed errors and size lints are fn-240 R11/R12, not here. fn-245.3 only sweeps prefix dispatch left after the fn-240 extractions.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-245.1](.flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.1.md) | ⬜ Todo | One authenticated-read abstraction (`gomad_evidence::io`) replaces per-module read/digest/authenticate copies; after fn-240.2, before fn-240.9 |
+| [fn-245.1](.flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.1.md) | ⬜ Todo | One authenticated-read abstraction (`gomad_evidence::io`) plus durable publication on `cap-std` replaces per-module read/digest/authenticate/publish copies; after fn-240 |
 | [fn-245.2](.flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.2.md) | ⬜ Todo | Typed receipts with `deny_unknown_fields` replace `serde_json::Value` outside the canonical encoder; after fn-242.7 |
 | [fn-245.3](.flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.3.md) | ⬜ Todo | Replace message-prefix dispatch (`runner_failure:`, `refused:`, `capacity:`) with typed outcome kinds |
 | [fn-245.4](.flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.4.md) | ⬜ Todo | Engine phase as a type: no Option-state unwraps in `wasm-engine` |
 | [fn-245.5](.flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.5.md) | ⬜ Todo | Guest path and limit constants defined once |
+| [fn-245.6](.flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.6.md) | ⬜ Todo | `crc32fast`, `base64` and `wat` replace small hand-written codecs and test wasm bytes |
+| [fn-245.7](.flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.7.md) | ⬜ Todo | One cluster-run entry point for the five scenario callers |
+| [fn-245.8](.flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.8.md) | ⬜ Todo | `insta` snapshots replace hand-rolled corpus regeneration |
+
+### General-purpose output predicates — [fn-250](.flow/specs/fn-250-gomad-general-purpose-output-predicates.md)
+
+Filed 2026-10-25 (owner: Gomad must not be tied to Temporal's `softassert` package). Replaces the hardwired `campaign/soft_assertions.rs` oracle with a declared list of output predicates (JSON-field or text-line match, explicit identity derivation, fail/report severity) bound into recipe and plan identity; Temporal's softassert rule becomes a launcher preset. Depends on fn-240 and fn-245; fn-191 depends on it. Deferred work.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-250.1](.flow/tasks/fn-250-gomad-general-purpose-output-predicates.1.md) | ⬜ Todo | Predicate schema, validation and evaluator replace `campaign/soft_assertions.rs` |
+| [fn-250.2](.flow/tasks/fn-250-gomad-general-purpose-output-predicates.2.md) | ⬜ Todo | Bind the predicate list into recipe/plan identity; thread the typed report through receipts, ledger and `inspect` |
+| [fn-250.3](.flow/tasks/fn-250-gomad-general-purpose-output-predicates.3.md) | ⬜ Todo | Temporal softassert preset on the launcher; `--output-predicates FILE`; non-Temporal golden fixture |
 
 ### Sometimes assertions and site catalog — [fn-191](.flow/specs/fn-191-gomad-sometimes-assertions-and-a-site.md)
 
-Rewritten onto the Rust host 2026-10-24; depends on fn-240, fn-242 and fn-245 (the `semantic` record section is typed). The Always oracle is `campaign/soft_assertions.rs`.
+Rewritten onto the Rust host 2026-10-24; depends on fn-240, fn-242 and fn-245 (the `semantic` record section is typed). The Always oracle is `campaign/soft_assertions.rs` until fn-250 replaces it with declared output predicates; fn-191 depends on fn-250 (added 2026-10-25).
 
 | Name / ID | Status | Description |
 | --- | --- | --- |

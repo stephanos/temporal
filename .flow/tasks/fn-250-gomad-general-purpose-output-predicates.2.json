@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-25T02:45:27.118264Z",
+  "depends_on": [
+    "fn-250-gomad-general-purpose-output-predicates.1"
+  ],
+  "id": "fn-250-gomad-general-purpose-output-predicates.2",
+  "priority": null,
+  "spec": "fn-250-gomad-general-purpose-output-predicates",
+  "spec_path": ".flow/tasks/fn-250-gomad-general-purpose-output-predicates.2.md",
+  "status": "todo",
+  "title": "Bind the predicate list into recipe and plan identity; thread the report through receipts, ledger and inspect",
+  "updated_at": "2026-10-25T02:45:27.118264Z"
+}
