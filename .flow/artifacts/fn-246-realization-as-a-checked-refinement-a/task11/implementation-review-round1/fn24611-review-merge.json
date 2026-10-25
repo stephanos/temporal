@@ -1,0 +1,7 @@
+{
+  "keep": [
+    "integration:1",
+    "integration:2"
+  ],
+  "collapse": {}
+}

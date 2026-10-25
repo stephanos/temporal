@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-246-realization-as-a-checked-refinement-a.11",
+  "verdict": "NEEDS_WORK",
+  "session_id": "01a173e8-01cb-73d2-a411-26134e411a9e",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "## Issue 1\n- **Severity**: P1\n- **Title**: `check_registered` always returns `Reject` for an empty path\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: `check_registered` always returns `Reject` for an empty path. The unchanged `Runtime::reach` first calls `reach_evidence(observation, &[])` and immediately abandons exploration when that returns `Reject`. Consequently, consumers delegating to this registry\u2014as the synthetic binding does\u2014cannot explain any `Projection::Reach` observation. The tests supply prebuilt nonempty paths and bypass this admission step.\n- **Suggestion**: Provide explicit root admission for supported evidence, returning an appropriate continuation cursor. Add a synthetic test exercising the registry through `Runtime` with `Projection::Reach`.\n- **File:Line**: model/temporal/annotate/syntax/src/registry.rs:429\n- **R-IDs**: R2, R3\n\n## Issue 2\n- **Severity**: P2\n- **Title**: Newly accepted opaque metadata still reaches the existing whole-module semantic scanner\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: Newly accepted opaque metadata still reaches the existing whole-module semantic scanner. For example, `#[metadata(example(reject!(NotFound)))]` sets `Machine.rejecting` because `declare::machine` recursively searches all tokens for `reject!`. This changes the generated outcome type from `()` to `umpire_dsl::Outcome`, its catalog, and transition expansion despite unchanged handlers. Metadata therefore affects Model semantics and can break callers requiring `Outcome = ()`.\n- **Suggestion**: Exclude metadata payloads from semantic macro detection, or inspect executable bodies. Add a regression proving opaque `reject!` and `stay!` tokens preserve native and lifted semantics.\n- **File:Line**: model/umpire/front/src/declare/action.rs:75\n- **R-IDs**: R2, R3\n\n```json\n{\"classification_counts\": {\"introduced\": 2, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a173e8-01cb-73d2-a411-26134e411a9e",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a173e8-01cb-7372-ba3c-98375a04ea97",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a173e8-01cb-7da0-b0d3-c755866fbc4a",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": 2,
+  "introduced_count": 2,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 1,
+  "review_rounds_cap": 8
+}

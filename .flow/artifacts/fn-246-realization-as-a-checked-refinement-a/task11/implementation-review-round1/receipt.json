@@ -1,0 +1,100 @@
+{
+  "base": "0a8aff4d0e",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a173e8-01cb-73d2-a411-26134e411a9e",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a173e8-01cb-7372-ba3c-98375a04ea97",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a173e8-01cb-7da0-b0d3-c755866fbc4a",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "0a8aff4d0e50287cd21e73ffe35beee3abbae264",
+    "headSha": "b251ac522bb7d7424836a190670017374efb6c5c",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "0a8aff4d0e50287cd21e73ffe35beee3abbae264",
+          "headSha": "b251ac522bb7d7424836a190670017374efb6c5c",
+          "path": "model/temporal/annotate/syntax/src/registry.rs",
+          "side": "head",
+          "startLine": 429
+        },
+        "body": "`check_registered` always returns `Reject` for an empty path. The unchanged `Runtime::reach` first calls `reach_evidence(observation, &[])` and immediately abandons exploration when that returns `Reject`. Consequently, consumers delegating to this registry\u2014as the synthetic binding does\u2014cannot explain any `Projection::Reach` observation. The tests supply prebuilt nonempty paths and bypass this admission step.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-09735b55afc5a19d35bcf30ab351876d03c43de9b7cb5f738bc9566f4d270aa9",
+        "id": "finding-f1dcb29e5da3360dac2e71b4ccd8d53b",
+        "lastSeenReceiptId": "review-09735b55afc5a19d35bcf30ab351876d03c43de9b7cb5f738bc9566f4d270aa9",
+        "ordinal": 1,
+        "rIds": [
+          "R2",
+          "R3"
+        ],
+        "severity": "P1",
+        "status": "open",
+        "suggestion": "Provide explicit root admission for supported evidence, returning an appropriate continuation cursor. Add a synthetic test exercising the registry through `Runtime` with `Projection::Reach`.",
+        "title": "`check_registered` always returns `Reject` for an empty path"
+      },
+      {
+        "anchor": {
+          "baseSha": "0a8aff4d0e50287cd21e73ffe35beee3abbae264",
+          "headSha": "b251ac522bb7d7424836a190670017374efb6c5c",
+          "path": "model/umpire/front/src/declare/action.rs",
+          "side": "head",
+          "startLine": 75
+        },
+        "body": "Newly accepted opaque metadata still reaches the existing whole-module semantic scanner. For example, `#[metadata(example(reject!(NotFound)))]` sets `Machine.rejecting` because `declare::machine` recursively searches all tokens for `reject!`. This changes the generated outcome type from `()` to `umpire_dsl::Outcome`, its catalog, and transition expansion despite unchanged handlers. Metadata therefore affects Model semantics and can break callers requiring `Outcome = ()`.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-09735b55afc5a19d35bcf30ab351876d03c43de9b7cb5f738bc9566f4d270aa9",
+        "id": "finding-3230f667764744b3f1368f0f04a383b8",
+        "lastSeenReceiptId": "review-09735b55afc5a19d35bcf30ab351876d03c43de9b7cb5f738bc9566f4d270aa9",
+        "ordinal": 2,
+        "rIds": [
+          "R2",
+          "R3"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Exclude metadata payloads from semantic macro detection, or inspect executable bodies. Add a regression proving opaque `reject!` and `stay!` tokens preserve native and lifted semantics.",
+        "title": "Newly accepted opaque metadata still reaches the existing whole-module semantic scanner"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-09735b55afc5a19d35bcf30ab351876d03c43de9b7cb5f738bc9566f4d270aa9"
+  },
+  "id": "fn-246-realization-as-a-checked-refinement-a.11",
+  "introduced_count": 2,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "## Issue 1\n- **Severity**: P1\n- **Title**: `check_registered` always returns `Reject` for an empty path\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: `check_registered` always returns `Reject` for an empty path. The unchanged `Runtime::reach` first calls `reach_evidence(observation, &[])` and immediately abandons exploration when that returns `Reject`. Consequently, consumers delegating to this registry\u2014as the synthetic binding does\u2014cannot explain any `Projection::Reach` observation. The tests supply prebuilt nonempty paths and bypass this admission step.\n- **Suggestion**: Provide explicit root admission for supported evidence, returning an appropriate continuation cursor. Add a synthetic test exercising the registry through `Runtime` with `Projection::Reach`.\n- **File:Line**: model/temporal/annotate/syntax/src/registry.rs:429\n- **R-IDs**: R2, R3\n\n## Issue 2\n- **Severity**: P2\n- **Title**: Newly accepted opaque metadata still reaches the existing whole-module semantic scanner\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: Newly accepted opaque metadata still reaches the existing whole-module semantic scanner. For example, `#[metadata(example(reject!(NotFound)))]` sets `Machine.rejecting` because `declare::machine` recursively searches all tokens for `reject!`. This changes the generated outcome type from `()` to `umpire_dsl::Outcome`, its catalog, and transition expansion despite unchanged handlers. Metadata therefore affects Model semantics and can break callers requiring `Outcome = ()`.\n- **Suggestion**: Exclude metadata payloads from semantic macro detection, or inspect executable bodies. Add a regression proving opaque `reject!` and `stay!` tokens preserve native and lifted semantics.\n- **File:Line**: model/umpire/front/src/declare/action.rs:75\n- **R-IDs**: R2, R3\n\n```json\n{\"classification_counts\": {\"introduced\": 2, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "review_reservation_id": "93ccd64967384e1cbc6e82fa970357e9",
+  "rid": "93ccd64967384e1cbc6e82fa970357e9",
+  "session_id": "01a173e8-01cb-73d2-a411-26134e411a9e",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-25T16:40:18.187180Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "NEEDS_WORK"
+}
