@@ -71,6 +71,8 @@ Validation gate speed takes priority over the remaining cleanup ladder below. Cy
 
 Workers pick fn-253 tasks ahead of any other ready task outside fn-242.
 
+Owner simplification amendment, 2026-10-25: fn-253.4 and .6 also remove the gomad Makefiles, subset runs in `premerge`, the always-true CI `changes` job, the per-mode `lint-rust-*` tasks (one `lint-rust` with `--plan`), passthrough gate-tool subcommands, tests that re-assert `mise.toml`, and repeated version pins. They add the missing slim-seam CI paths. Details are in the two task files.
+
 [fn-254](.flow/specs/fn-254-gomad-deeper-rust-host-testing-mutation.md) (deeper testing: cargo-mutants, decoder fuzzing, shuttle/loom, proptest, Miri, ThreadSanitizer; owner-approved 2026-10-25) follows fn-253 and runs alongside the cleanup ladder without blocking it. It adds only small proptest runs to the fast loop; everything else runs in the scheduled `mise run deep` tier.
 
 ### Size counting is informational (owner ruling, 2026-10-25)

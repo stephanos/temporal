@@ -27,9 +27,56 @@ Ordering:
 - fn-240.5, fn-240.13 and fn-253.1 name `make lint-rust` / `check-fast`; they use the new entrypoints once this lands.
 - Coordinate with open worktrees that edit either Makefile.
 
+### Owner simplification amendment, 2026-10-25
+
+The owner approved these simplifications from a review of the integrated fn-253 branch at `30e19a85be`. Line references are to that commit. Gates get faster, never weaker: drop a command only when another command in the same gate already covers it.
+
+1. **Makefiles.** Delete `tools/gomad/Makefile`, `tools/gomad/internal/backends/wasm/Makefile` and the root `lint-code-gomad-wasm` now. No code calls them: CI uses mise, and the cycle calls only root `lint-code-gomad`/`lint-code-fast` (`cycle/plan/leaf/static_commands.rs:337-339`, `static_stages.py:246`). Move `lint-code-gomad-wasm`'s users in `cmd/tools/lintcode/main_test.go` to `lint-code-gomad`. Root `lint-code-gomad` stays until the cycle argv is repointed. This task owns the removal, not fn-253.2; fix the "fn-253.2 removes the shims" text in `docs/GATES.md` and the Makefile headers.
+2. **Aggregates.** Remove from `premerge`/`test-wasm` `depends` any task that is a subset of another task in the same aggregate. The tasks stay runnable on their own:
+   - `check-rust` is a subset of `lint-rust`.
+   - archcheck runs three times (`test-architecture`, `test-reference-harness`, `test-reference`).
+   - `./internal/support/...` and `./internal/model/...` rerun inside `model-corpora`'s `-count=2`.
+
+   Trim `test-reference` to what `model-corpora` does not cover. Confirm once that feature unification does not change what the remaining run compiles. The Rust test subsets are in fn-253.6.
+3. **CI** (`.github/workflows/gomad.yml`):
+   - Add the slim-seam paths (`common/archiver/provider/provider_cloud*`, `temporal/membership*`, `tests/testcore/flag_sql*`) to both `on.paths` lists. Today changes there never trigger the workflow. This is a coverage fix.
+   - Delete the `changes` job (`:35-75`). Its `tools/gomad/*` case matches every triggering path, so `wasm` is always true.
+   - Delete `TestCIBackendGatesRoutePaths` (`internal/archcheck/integration_test.go:12+`) with it.
+   - Run `validate` in the `wasm-linux` job, so it does not rebuild model corpora and the helper on the uncached `reference-tools-linux` runner (`:154`).
+4. **One `lint-rust` task (owner decision).** The mode table in `rust/gate-tool/src/lib.rs:4-25` is the only list of Rust lint modes. `lint-rust` becomes one task, `gomad-gates -- lint-rust`, with a `--plan` printout like check-fast's. Delete:
+   - the 16 `lint-rust-*` mise tasks and their `depends` list
+   - `graph_tests.rs:61-117`
+
+   check-fast keeps reading the same table. This replaces the visibility clause's "real mise graph" for the lint modes; the `--plan` output is their tree.
+5. **gomad-gates subcommands.**
+   - Delete the unused `test-engine` and `lint-go`.
+   - Delete `oracle-plan` together with the tests that are its only callers (item 6).
+   - Replace the `nextest` and `go` argv passthroughs with direct `cargo nextest`/`go` calls in mise tasks.
+   - Keep env such as GOWORK, GOENV and GOTOOLCHAIN in `mise.toml` `[env]` only, not also in `main.rs:60-63`.
+   - Keep the subcommands that carry logic: `slim-refusals`, `replay-plan`, `model-corpora`, `build`/`helper` publish, `lint-mutants`, `lint-errors`, `lint-golangci` and `lint-rust`.
+6. **Tests of build config.** Delete:
+   - `TestMiseTasksMatchTheirOwnership` (`architecture_test.go:354-369`)
+   - `TestDefaultMiseTasksKeepSharedValidation` and its `mise --dry-run`/`cargo run` helpers (`defaultset_test.go:128-170`)
+   - `TestNativeWASMTaskRetainsStockGoOracleSelection` (`wasm_preservation_test.go:99-110`)
+   - the description/graph-membership test in `graph_tests.rs`
+
+   mise's own `tasks ls`/`tasks deps` gives that view.
+7. **Pin each version once.**
+   - Rust: `rust-toolchain.toml` is the single pin. Have mise read it, or keep `mise.toml` as the pin if mise 2026.10.11 cannot.
+   - Replace the parity workflow's `cargo +1.99.1` lines (`gomad-behavioral-parity.yml:53,55,67`) with mise tasks.
+   - Drop the literal `rust1.99.1-` from the cache keys (`gomad.yml:107,110`); the key already hashes the toolchain file.
+   - mise: one pin in `mise.toml`, read by CI.
+   - Remove copied tool versions from `docs/GATES.md:43,94-100` and `docs/README.md:23-24`. Link `mise.toml` instead.
+   - The README's no-mise fallback is already deleted on `gomad` (c1064a8cc8); keep it deleted when merging.
+8. **Cargo aliases.** Delete the `rust/.cargo/config.toml` aliases that repeat mise tasks, including the weaker `lint-all`. This overrides the Shape bullet above.
+9. **Root lintcode.** Remove the gomad module mode and archcheck-inventory reading from `cmd/tools/lintcode/main.go` (about `:22-320`). Remove the `make lint-code-gomad` use in `rename_policy_test.go:75` along with the root targets, once the cycle argv no longer needs them.
+
+Only the parked fn-242 driver uses the Python pin, `validate-driver`, `qualify`, `parity` and the parity workflow's Python steps. They leave with the fn-242 cutover, not here. Keep the 16 lint modes; none is provably covered by another, and cargo-hack would add combinations.
+
 ## Acceptance
 
 Owner visibility extension, 2026-10-25: the real mise dependency graph and task descriptions provide the simple gate tree. Aggregate groups use actual dependency edges, not a separate hand-maintained list. Nextest supplies Rust test inventory and live results; check-fast supplies its actual changed-package command plan. Each public gate is represented and runnable; ignored/unrun checks cannot appear as passed. Keep this within existing entrypoints, without adding another orchestration or receipt framework.
+- Simplification amendment items 1–9 are carried out. Each removed aggregate member has a named surviving command in the same gate that covers it, and the slim-seam paths trigger the workflow.
 - A clone with `temporal/Makefile`, `temporal/cmd/tools/lintcode` and `temporal/.github/.golangci.yml` removed, or with the `tools/gomad` subtree copied out alongside a target tree passed through `GOMAD_TARGET_REPO`, runs every gomad mise task green from `tools/gomad`.
 - `temporal/Makefile` has no target or variable that names gomad other than the prune paths. `tools/gomad/Makefile` and `tools/gomad/internal/backends/wasm/Makefile` are deleted, or reduced to a documented one-line shim per target if CI or the cycle still needs them during the transition, with a removal task named.
 - `.github/workflows/gomad.yml` invokes only `mise run …` (or cargo) inside `tools/gomad`.
