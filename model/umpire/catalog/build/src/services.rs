@@ -84,7 +84,7 @@ pub fn generate(
     for method in &service.method {
         let name = method.name.as_deref().ok_or("unnamed service method")?;
         let variant = identifier(name)?;
-        let doc = format!("`{service_name}.{name}`.");
+        let doc = format!(" `{service_name}.{name}`.");
         variants.push(quote! { #[doc = #doc] #variant });
         names.push((variant.clone(), name));
         let request = public_type(
