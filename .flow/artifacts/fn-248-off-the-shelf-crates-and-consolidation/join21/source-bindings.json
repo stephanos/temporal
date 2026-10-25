@@ -1,0 +1,48 @@
+{
+  "base": {
+    "commit": "4c4e99ca7e89d87f6c64e7b30cdbbb764294d758",
+    "git_tree": "d9735ad2c886e392329c5425c5b9f3236fea329b",
+    "active_model_blob_set_sha256": "d268ab8c9a6424f354aabddfca2d53ce8126a54dea7fa0a21745fd8aff2db758",
+    "active_model_blob_count": 1714,
+    "key_file_sha256": {
+      "model/umpire/dev/testing/src/lib.rs": "959f1ecd7bc2b2ea41c6d4efd283fd0b8bb6ec77a9710a23683b7386637423d5",
+      "model/umpire/dev/testing/src/interpreted.rs": "6f9e90ec2ca911be51ca97d8b7ed10a3eed56f5ac6a6c929c0371970aed520aa",
+      "model/umpire/ir/src/expr.rs": "bfc1b923ab4313c52cc0b0199292393163b3d666cb1520a32be80fd93b60026f",
+      "model/umpire/backends/native/src/interpret.rs": "f0ed4102901c9cea345ff973380754a143b5fab6089a7e16e86a1ac9ca896b44"
+    }
+  },
+  "A2": {
+    "commit": "f10ff7a4fa6304f802a33afe6976c56a964f563e",
+    "git_tree": "12229b9d5c0cb758723b2077997c4c34df3fb958",
+    "active_model_blob_set_sha256": "beb2f2d8f431ebb1003928c251949efe03d6503e4afb387ae7557c8b58725b57",
+    "active_model_blob_count": 1718,
+    "key_file_sha256": {
+      "model/umpire/dev/testing/src/lib.rs": "01830f958eb6f3eb4f140f00c53790d7f94f839d49c5936776053e0343b02cb4",
+      "model/umpire/dev/testing/src/interpreted.rs": "07c232496bd3ecc108490ddedc2987aeca6494a37fa84430e53a8e43f33fb112",
+      "model/umpire/ir/src/expr.rs": "bfc1b923ab4313c52cc0b0199292393163b3d666cb1520a32be80fd93b60026f",
+      "model/umpire/backends/native/src/interpret.rs": "f0ed4102901c9cea345ff973380754a143b5fab6089a7e16e86a1ac9ca896b44"
+    }
+  },
+  "B1": {
+    "commit": "f44fb2b6bdf4a2160f1f4f69b23396edca20d12d",
+    "git_tree": "3c557940fdaee059cf621971207ccda0940c38f2",
+    "active_model_blob_set_sha256": "a92cb4c1bcafb9d79fdb00e987d405018765dc7bb44891fc9c6ea8db46a6799b",
+    "active_model_blob_count": 1375,
+    "key_file_sha256": {
+      "model/umpire/dev/testing/src/lib.rs": "e1d5c5403c3d987b3eac0ad8d49c37f0adaa2e1d37cc23564d5f8fe371751cbc",
+      "model/umpire/dev/testing/src/interpreted.rs": "07c232496bd3ecc108490ddedc2987aeca6494a37fa84430e53a8e43f33fb112",
+      "model/umpire/ir/src/expr.rs": "bfc1b923ab4313c52cc0b0199292393163b3d666cb1520a32be80fd93b60026f",
+      "model/umpire/backends/native/src/interpret.rs": "f0ed4102901c9cea345ff973380754a143b5fab6089a7e16e86a1ac9ca896b44"
+    }
+  },
+  "conflicts": [
+    "model/umpire/dev/testing/src/lib.rs"
+  ],
+  "resolution": "Additive source_edit and snapshot_payload modules/reexports. interpreted.rs retains task2 panic_message call; no B1 interpreted delta.",
+  "preserved_paths": [
+    "model/umpire/ir/src",
+    "model/umpire/backends/native/src/interpret*",
+    "model/umpire/author/dsl/macros/src"
+  ],
+  "preserved_paths_diff_exit": 0
+}

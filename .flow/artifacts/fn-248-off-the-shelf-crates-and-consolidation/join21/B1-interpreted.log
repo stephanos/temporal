@@ -1,0 +1,9 @@
+   Compiling umpire-fixtures v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24821-join/model/umpire/dev/fixtures)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24821-join/model/umpire/author/umpire)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 18.89s
+     Running fixtures.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/fixtures-eaffa117f29a278f)
+
+running 1 test
+test interpreted_agrees_with_compiled ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 46 filtered out; finished in 0.07s
