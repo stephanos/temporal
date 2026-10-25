@@ -25,3 +25,19 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+### Focused verification — 2026-10-25
+
+Frozen integration candidate `aeb813d6ec9c0ebeca98e12e846a955658b5a09c`:
+
+- Default Cargo/Nextest census: 2,480 tests in 27 suites, 55 ignored; zero differences
+  in package/target/test identities, ignored flags and executable paths. The three
+  custom harnesses list 24 process cases, three journal cases and five custody cases.
+- Focused native execution: 28 passed, four explicitly ignored because they require
+  operator inputs. Saved JUnit contains 32 cases, four skipped and zero failures.
+- Raw Cargo output, direct binary listings, comparison and execution records:
+  `/home/agent/wt/evidence/fn253-nextest/verification-aeb813d6ec/default/`.
+
+The reference-helper census is still pending. Broad workspace test execution and
+doctests remain deferred to the integrated spec gate under the owner's validation
+cadence. These focused checks do not resume fn-242 or establish qualification.
