@@ -9,7 +9,7 @@ Split from fn-227.6 on 2026-10-21: fn-227.6 keeps the parameterized-worlds, inpu
 Record R5's delivered timeout and cancellation surface and measured evidence after fn-237.4 and its transitive support tasks, extending the "Parameterized worlds and inputs" section fn-227.6 writes. No new behavior. MILESTONES remains root-owned.
 
 **Size:** S. Extend existing DESIGN.md and README text to the completed facts, optional-value and timeout fixtures and the actual live cancellation proof, then run the existing final gates.
-**Dependencies:** Consume fn-237-activity-timeouts-heartbeat-and.4. Cross-spec prerequisite fn-227.6 (the parameterized-worlds section this task extends), satisfied through this spec's dependency on fn-227.
+**Dependencies:** Consume fn-237-activity-timeouts-heartbeat-and.4 and committed fn-243.5, retaining the existing block until its implementation and Flow closure are ancestors of umpire. Task .4 already consumes committed whole fn-246, including fn-246.14 and whole fn-247. Cross-spec prerequisite fn-227.6 (the parameterized-worlds section this task extends) is satisfied through this spec's dependency on fn-227. No new task/spec edge or ordering change is introduced.
 **Files:** `model/DESIGN.md`, `model/README.md`; task-owned Flow verification artifacts through the normal lifecycle.
 **Touches:** [model/DESIGN.md, model/README.md]
 
@@ -27,7 +27,7 @@ Required:
 - `model/DESIGN.md` "Parameterized worlds and inputs" section as left by fn-227.6.
 - `optional_facts` and `optional_ticks` fixtures and their completed task receipts for exact counts and public APIs.
 - `world_fairness` fixture and fn-237.6 receipt for the bounded World-only source form, selected exact fair lists and actual native/TLC controls.
-- `model/temporal/feature/activity/{model.rs,tests.rs,temporal.rs}` and the compatibility harness for the final state/action/fact projection and live binding.
+- Reanchor `model/temporal/feature/activity/{model.rs,tests.rs,realization.rs}`, fn-246's shared registry/lens/projection and fn-246.14's worker key/codec/raw-and-SDK owners after their committed closures; `temporal.rs` is an inherited pre-fn-246 anchor. Retain the compatibility harness for the final independent state/action/fact projection.
 - The fn-237.4 live slice/gap/privacy evidence and its exact embedded guest hash.
 
 ### Verification
@@ -38,7 +38,7 @@ Full from root: `make model-validate`. No global model-update or stale counts. P
 
 ### Addendum (2026-10-24)
 
-Also record the heartbeat and cancellation-acknowledgement program rows and the hold fault's role in the held attempt and schedule-to-start expiry, pointing at fn-243's DESIGN.md text rather than repeating it.
+Also record the heartbeat and cancellation-acknowledgement program rows, the original max-one-heartbeat unknown/false/true regression subset and its provenance within fn-246's broader finite-history capability. Distinguish the prepoll hold for schedule-to-start from the response gate for the held-started pending/ACK and completion/failure-race proofs, pointing at the delivered fn-243 DESIGN text and fn-237.4 retained evidence rather than repeating their mechanics. Document actual raw/native-SDK RPC journal evidence, cancellation delivery and server-free replay from retained Runs; mocks or raw surrogates never earn SDK/live credit. Describe fn-246's consumed current whole-prefix witness contract and immutable earlier reports without adding legacy delta or old-format readers.
 
 ### Boundary-policy documentation proposal for fresh review
 

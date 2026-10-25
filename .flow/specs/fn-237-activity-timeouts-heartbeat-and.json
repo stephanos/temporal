@@ -18,8 +18,8 @@
   },
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": "2026-10-24T22:28:03.006812Z",
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-25T06:40:51.160668Z",
   "ready": true,
   "review_attempts": [
     {
@@ -371,6 +371,77 @@
       "task": "fn-237-activity-timeouts-heartbeat-and.3",
       "timestamp": "2026-10-24T20:04:55.081821Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "07c2401a0b41b23abd50a3aace06f34e007c87dbaf2c108be3b054124a2a3442",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "90f5db5ec50ef416adae4086acec2c96b9c53115",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 605969,
+      "output_sha256": "e34057dcc626b3d1f2cb04c41630cc024adf994024aa80c0003355e3c01807f4",
+      "reservation_id": "87dc9be2c7b341dc8702b5d059e1a7c5",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-25T06:38:53.079257Z",
+      "tool_calls": 24,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "540d7ac6aba8d9bc7f701a0d272a22f4c8169f42231f12ad6c7ab04370f21404",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 3,
+      "head_sha": "90f5db5ec50ef416adae4086acec2c96b9c53115",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 668,
+      "output_sha256": "1e3bd63ac4db775f9028c6d5f7ff53b8983b0413ae68a3739e35b493ecb98db6",
+      "reservation_id": "953976ecd8c64ad58a5984cca4a0b29c",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-25T06:40:51.142486Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -378,7 +449,7 @@
     "impl:fn-237-activity-timeouts-heartbeat-and.2": 1,
     "impl:fn-237-activity-timeouts-heartbeat-and.3": 1,
     "impl:fn-237-activity-timeouts-heartbeat-and.6": 1,
-    "plan": 2,
+    "plan": 4,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
@@ -404,5 +475,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T22:28:03.548202Z"
+  "updated_at": "2026-10-25T06:40:51.163316Z"
 }
