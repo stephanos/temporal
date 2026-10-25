@@ -8,11 +8,12 @@ Delete the archived Scala Make targets. That is the `check-framework` wrapper (M
 
 **Size:** S
 **Files:** `Makefile`, `mise.toml`, `model/archived/README.md`, `AGENTS.md`, `model/README.md`
+**Touches:** [Makefile, mise.toml, model/archived/README.md, AGENTS.md, model/README.md]
 
 ## Acceptance
 - [ ] `rg -n 'scala-cli|MODEL_JAR|MODEL_ROOT|scalafix|scalapb|check-framework' Makefile mise.toml` is empty; `git diff --stat -- model/archived` shows only README.md.
 - [ ] `make -n model-check`, `make -n umpire-check-live-tests` and `make canary-build` work. Record parse time (`time make -n canary-build >/dev/null`) before and after.
-- [ ] fn-254's model section (from line 1270) is byte-identical.
+- [ ] fn-254's Rust model Make section, located by its stable marker rather than stale line numbers, is byte-identical against the admitted integrated baseline. R4 also needs an actual `make model-check` result or explicitly identified equivalent integrated fn-254 evidence on matching inputs. A dry run is not behavioral proof. Batch any still-required broad run with fn-254's final checkpoint; keep the obligation open until that evidence exists.
 
 
 ## Done summary

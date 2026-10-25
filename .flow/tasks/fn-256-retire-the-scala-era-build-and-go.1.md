@@ -8,6 +8,7 @@ Delete the Scala-era Go reader: `tools/umpire/{ir,interp,check,realization,expor
 
 **Size:** M (deletion plus retained-consumer verification)
 **Files:** `tools/umpire/**`, `Makefile` (backends targets, `.PHONY` line 440), `.github/workflows/umpire.yml`, `AGENTS.md`, `tools/umpire/README.md`, `.plans/UMPIRE_MODULES.md`, `model/README.md`
+**Touches:** [tools/umpire/**, Makefile, .github/workflows/umpire.yml, AGENTS.md, tools/umpire/README.md, .plans/UMPIRE_MODULES.md, model/README.md]
 
 ### Dependency-survey evidence
 

@@ -1,11 +1,82 @@
 {
   "branch_name": "fn-256-retire-the-scala-era-build-and-go",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-25T22:31:36.212364Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-256-retire-the-scala-era-build-and-go",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-25T22:45:49.318601Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "dad912e24b01384284de551a08ff49111b2b10fa69476e8b7eeda4fae89b6e9e",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-44d56fdcc78328a84b2ba745de58cf90",
+            "classification": "introduced",
+            "findingId": "finding-44d56fdcc78328a84b2ba745de58cf90",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ac25f6335203f6b4c7c00111371613e9",
+            "classification": "introduced",
+            "findingId": "finding-ac25f6335203f6b4c7c00111371613e9",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "71ff747ebb42638fdf932b47eb380094b84d25df",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 381772,
+      "output_sha256": "04ea5a792479d15328066e4286728ed1680f0c41df2f37eebb0fd65db9b1bc86",
+      "reservation_id": "bbb6332e175b485f98cb614106524053",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-25T22:45:49.308838Z",
+      "tool_calls": 15,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-256-retire-the-scala-era-build-and-go.md",
   "status": "open",
   "title": "Retire the Scala-era build and Go tooling; keep model/archived as reading material",
@@ -20,5 +91,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T22:42:22.511893Z"
+  "updated_at": "2026-10-25T22:45:49.321228Z"
 }

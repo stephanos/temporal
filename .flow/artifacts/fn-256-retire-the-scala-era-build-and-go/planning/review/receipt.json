@@ -1,0 +1,68 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+    "headSha": "71ff747ebb42638fdf932b47eb380094b84d25df",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+          "headSha": "71ff747ebb42638fdf932b47eb380094b84d25df",
+          "path": ".flow/tasks/fn-256-retire-the-scala-era-build-and-go.1.md",
+          "side": "head",
+          "startLine": 10
+        },
+        "body": "Task 1 has no dependencies but lacks the required `Touches:` declaration. Dispatch must infer its write scope conservatively.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-4f134c9673691692e35c53f58cf79210fa1a40f54a5f949fc8d5b0361509499d",
+        "id": "finding-44d56fdcc78328a84b2ba745de58cf90",
+        "lastSeenReceiptId": "review-4f134c9673691692e35c53f58cf79210fa1a40f54a5f949fc8d5b0361509499d",
+        "ordinal": 1,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Add an explicit Touches declaration matching the listed files; declare WIDER where uncertain.",
+        "title": "Task 1 has no dependencies but lacks the required `Touches:` declaration"
+      },
+      {
+        "anchor": {
+          "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+          "headSha": "71ff747ebb42638fdf932b47eb380094b84d25df",
+          "path": ".flow/tasks/fn-256-retire-the-scala-era-build-and-go.2.md",
+          "side": "head",
+          "startLine": 14
+        },
+        "body": "The acceptance checks only dry-run `model-check`. Preserving the Rust section byte-for-byte is useful structural evidence, but neither check establishes R4\u2019s promised execution behavior.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-4f134c9673691692e35c53f58cf79210fa1a40f54a5f949fc8d5b0361509499d",
+        "id": "finding-ac25f6335203f6b4c7c00111371613e9",
+        "lastSeenReceiptId": "review-4f134c9673691692e35c53f58cf79210fa1a40f54a5f949fc8d5b0361509499d",
+        "ordinal": 2,
+        "rIds": [
+          "R4"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Require an actual `make model-check` result, or explicitly identify equivalent integrated fn-254 evidence and its applicable baseline.",
+        "title": "The acceptance checks only dry-run `model-check`"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-4f134c9673691692e35c53f58cf79210fa1a40f54a5f949fc8d5b0361509499d"
+  },
+  "id": "fn-256-retire-the-scala-era-build-and-go",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "I\u2019ll read the epic and task specs, then trace the affected build and CI paths to check feasibility and consistency.\nThe retained Go callers use the command and Temporal driver, and task 2 depends on task 1, so their shared Makefile and documentation edits are ordered. I\u2019m checking whether the verification steps cover the promised `model-check` behavior and whether the task metadata satisfies the review contract.\nSeverity: P2\nConfidence: 100\nClassification: introduced\nFile:Line: .flow/tasks/fn-256-retire-the-scala-era-build-and-go.1.md:10\nR-IDs: []\nLocation: Task file declarations\nProblem: Task 1 has no dependencies but lacks the required `**Touches:**` declaration. Dispatch must infer its write scope conservatively.\nSuggestion: Add an explicit Touches declaration matching the listed files; declare WIDER where uncertain.\n\nSeverity: P2\nConfidence: 100\nClassification: introduced\nFile:Line: .flow/tasks/fn-256-retire-the-scala-era-build-and-go.2.md:14\nR-IDs: [R4]\nLocation: Model-check verification\nProblem: The acceptance checks only dry-run `model-check`. Preserving the Rust section byte-for-byte is useful structural evidence, but neither check establishes R4\u2019s promised execution behavior.\nSuggestion: Require an actual `make model-check` result, or explicitly identify equivalent integrated fn-254 evidence and its applicable baseline.\n\nReview checks: The retained imports support the deletion approach. Tasks are bounded and correctly ordered; their dependency serializes shared edits. The test strategy covers retained Go, live and canary behavior. Performance has a parse-time comparison; archive preservation is explicit. No new async work or security/privacy surface requires additional observability or controls.\n\nmaintainability:\n  duplication: none identified\n  structure: none identified\n\n```json\n{\"classification_counts\":{\"introduced\":2},\"unaddressed\":[\"R4\"]}\n```\n\n<verdict>SHIP</verdict>",
+  "review_reservation_id": "bbb6332e175b485f98cb614106524053",
+  "session_id": "01a1753c-8194-7a61-8062-18da6867c0d6",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-25T22:45:49.304513Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}
