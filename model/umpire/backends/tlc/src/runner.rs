@@ -204,17 +204,18 @@ impl Tlc {
                 Err(error) => return Err(error),
             }
         }
-        let checked = if batch && properties.len() > 1 {
-            self.recover_properties(name, tla, &base_cfg, &properties, schema)?
-        } else {
-            properties
-                .iter()
-                .map(|property| self.check_property(name, tla, &base_cfg, property, schema))
-                .collect::<Result<Vec<_>, _>>()?
-        };
-        for ((_, property), (answer, output)) in properties.into_iter().zip(checked) {
-            result.properties.insert(property, answer);
-            append_output(&mut result.output, &output, self.limits.output_bytes)?;
+        let workers = if batch { self.property_workers } else { 1 };
+        for wave in properties.chunks(workers) {
+            let checked = if wave.len() == 1 {
+                vec![self.check_property(name, tla, &base_cfg, &wave[0], schema)]
+            } else {
+                self.recover_properties(name, tla, &base_cfg, wave, schema)?
+            };
+            for ((_, property), checked) in wave.iter().zip(checked) {
+                let (answer, output) = checked?;
+                append_output(&mut result.output, &output, self.limits.output_bytes)?;
+                result.properties.insert(property.clone(), answer);
+            }
         }
         Ok(result)
     }
@@ -249,32 +250,22 @@ impl Tlc {
         base: &str,
         properties: &[(String, String)],
         schema: &Schema,
-    ) -> Result<Vec<(PropertyResult, String)>, Error> {
-        let workers = self.property_workers.min(properties.len());
-        let mut checked = std::thread::scope(|scope| {
+    ) -> Result<Vec<Result<(PropertyResult, String), Error>>, Error> {
+        assert!(properties.len() <= self.property_workers);
+        std::thread::scope(|scope| {
             let mut handles = Vec::new();
-            for worker in 0..workers {
+            for property in properties {
                 handles.push(std::thread::Builder::new().spawn_scoped(scope, move || {
-                    properties
-                        .iter()
-                        .enumerate()
-                        .skip(worker)
-                        .step_by(workers)
-                        .map(|(index, property)| {
-                            (index, self.check_property(name, tla, base, property, schema))
-                        })
-                        .collect::<Vec<_>>()
+                    self.check_property(name, tla, base, property, schema)
                 })?);
             }
-            let mut checked = Vec::new();
-            for handle in handles {
-                checked
-                    .extend(handle.join().map_err(|_| Refusal("property worker panicked".into()))?);
-            }
-            Ok::<_, Error>(checked)
-        })?;
-        checked.sort_by_key(|(index, _)| *index);
-        checked.into_iter().map(|(_, answer)| answer).collect()
+            handles
+                .into_iter()
+                .map(|handle| {
+                    handle.join().map_err(|_| Refusal("property worker panicked".into()).into())
+                })
+                .collect()
+        })
     }
 
     fn execution(

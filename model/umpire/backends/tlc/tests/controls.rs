@@ -344,30 +344,41 @@ fn real_tlc_failed_batches_preserve_independent_traces() -> Result<(), Error> {
             "invariants_at_different_depths",
             module(&[(0, 1, "A"), (1, 2, "A")], None, None, 0, 2, None)
                 .replace("====", "First == x # 1\nSecond == x # 2\n===="),
-            [("INVARIANT", "First", Verdict::Refuted), ("INVARIANT", "Second", Verdict::Refuted)],
+            vec![
+                ("INVARIANT", "First", Verdict::Refuted),
+                ("INVARIANT", "Second", Verdict::Refuted),
+            ],
         ),
         (
             "invariant_and_action",
             module(&[(0, 1, "A"), (1, 0, "A")], None, None, 0, 2, None)
                 .replace("====", "First == x # 1\n===="),
-            [("INVARIANT", "First", Verdict::Refuted), ("PROPERTY", "Post", Verdict::Refuted)],
+            vec![("INVARIANT", "First", Verdict::Refuted), ("PROPERTY", "Post", Verdict::Refuted)],
         ),
         (
             "passing_safety_and_failed_liveness",
             module(&[(0, 0, "Reject"), (0, 2, "B")], None, None, 0, 2, None)
                 .replace("====", "Safe == x <= 3\n===="),
-            [("INVARIANT", "Safe", Verdict::Verified), ("PROPERTY", "Progress", Verdict::Refuted)],
+            vec![
+                ("INVARIANT", "Safe", Verdict::Verified),
+                ("PROPERTY", "Progress", Verdict::Refuted),
+                ("INVARIANT", "InitialBad", Verdict::Refuted),
+                ("PROPERTY", "Naive", Verdict::Refuted),
+            ],
         ),
         (
             "two_failed_liveness_properties",
             module(&[(0, 0, "Reject"), (0, 2, "B")], None, None, 0, 2, None),
-            [("PROPERTY", "Progress", Verdict::Refuted), ("PROPERTY", "Naive", Verdict::Refuted)],
+            vec![
+                ("PROPERTY", "Progress", Verdict::Refuted),
+                ("PROPERTY", "Naive", Verdict::Refuted),
+            ],
         ),
         (
             "fairness_excludes_only_one_lasso",
             module(&[(0, 0, "A"), (0, 2, "B")], Some("B"), None, 0, 2, None)
                 .replace("====", "ReachOne == <>(x = 1)\n===="),
-            [
+            vec![
                 ("PROPERTY", "Progress", Verdict::Verified),
                 ("PROPERTY", "ReachOne", Verdict::Refuted),
             ],
@@ -375,7 +386,10 @@ fn real_tlc_failed_batches_preserve_independent_traces() -> Result<(), Error> {
         (
             "located_bounded_progress",
             module(&[(0, 1, "A"), (1, 2, "A")], None, Some(1), 0, 2, None),
-            [("PROPERTY", "Bound", Verdict::Refuted), ("PROPERTY", "Progress", Verdict::Verified)],
+            vec![
+                ("PROPERTY", "Bound", Verdict::Refuted),
+                ("PROPERTY", "Progress", Verdict::Verified),
+            ],
         ),
     ];
     for (name, source, claims) in cases {
@@ -388,7 +402,7 @@ fn real_tlc_failed_batches_preserve_independent_traces() -> Result<(), Error> {
         });
         let batch = tlc.check("Control", &source, &cfg, &schema())?;
         assert_eq!(batch.properties.len(), claims.len(), "{name}");
-        assert_eq!(batch.output.matches("TLC2 Version ").count(), 4, "{name}");
+        assert_eq!(batch.output.matches("TLC2 Version ").count(), claims.len() + 2, "{name}");
         for (kind, operator, verdict) in claims {
             let independent = tlc.check(
                 "Control",
