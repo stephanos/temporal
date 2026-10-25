@@ -23,8 +23,8 @@ ranks a fast feedback loop among the most important properties. fn-246's in-flig
 fn-254.13 is extracting the standalone framework workspace and simplifying its native tools. Deliver fn-254's independent framework/gate checkpoint,
 resume fn-246 to closure, then finish fn-254.7/.8.
 The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246, and fn-254.13's workspace move lands at an
-integration boundary. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; fn-253.1, .7, .9
-and .10 edit the activity Model and wait for committed fn-246.15.
+integration boundary. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; activity changes
+retain their listed dependencies and follow the current priority/source-ownership order.
 fn-255.1, .3 and .4 (generator spike, fuzz targets, cargo-mutants) touch no gate files and may run as lanes before fn-254 closes.
 Consolidation and build prerequisites for fn-246 are satisfied. Priority does not create dependencies;
 clear cross-spec blockers only after prerequisite closures are committed in `umpire`.
@@ -161,14 +161,14 @@ A generic countdown (`umpire_dsl::countdown`: pure arm/tick/expired functions an
 lowered from source like `closable`) plus Temporal deadline semantics in `model/temporal`, so the
 activity and later workflow, Nexus and timer Models stop hand-writing each countdown. A spike on the
 activity settles the surface and the lifter gaps first. The spike and `umpire-dsl` work (.2–.5) are
-independent of fn-246; the activity tasks (.1, .7, .9, .10) wait for committed fn-246.15.
+independent of fn-246. The activity clarity task is pending; later activity changes retain their listed dependencies.
 Whether fn-246.13's protocol Model may share the Temporal layer is an open owner question.
 
 [Spec](.flow/specs/fn-253-reusable-deadline-countdowns-for-models.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-253.1 | ⛔ blocked | After committed fn-246.15: Option equality in `deadline` and `tick_priority`, named expiry effects and progress helpers, deduplicated Tick postconditions, split `state_bounds` (R4) |
+| fn-253.1 | ⬜ todo | Option equality in `deadline` and `tick_priority`, named expiry effects and progress helpers, deduplicated Tick postconditions, split `state_bounds` (R4) |
 | fn-253.2 | ⬜ todo | Spike: activity against the proposed `countdown` surface; verdict in `model/design/deadline-countdowns.md` (R1) |
 | fn-253.3 | ⬜ todo | After .2: `umpire_dsl::countdown` functions and laws in plain Rust (R2) |
 | fn-253.4 | ⬜ todo | After .3: front end lowers countdown calls in handlers, effects and claims (R2) |
