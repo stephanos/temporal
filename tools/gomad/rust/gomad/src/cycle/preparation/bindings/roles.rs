@@ -11,7 +11,7 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     io::Write,
     os::unix::fs::DirBuilderExt,
-    path::{Path, PathBuf},
+    path::{Component, Path, PathBuf},
     sync::atomic::AtomicBool,
 };
 
@@ -52,6 +52,40 @@ pub(super) fn fields(value: &Value, required: &[&str], optional: &[&str]) -> Res
     Ok(())
 }
 
+fn native_input_path(input: &Path) -> Result<PathBuf, String> {
+    if !input.is_absolute() {
+        return Err("relative authenticated native input".into());
+    }
+    let mut physical = PathBuf::new();
+    for part in input.components() {
+        match part {
+            Component::RootDir => physical.push(part.as_os_str()),
+            Component::Normal(_) => {
+                physical.push(part.as_os_str());
+                if std::fs::symlink_metadata(&physical)
+                    .map_err(|e| e.to_string())?
+                    .file_type()
+                    .is_symlink()
+                {
+                    return Err("aliased authenticated native input".into());
+                }
+            }
+            Component::CurDir => {}
+            Component::ParentDir if physical.file_name().is_some() => {
+                physical.pop();
+            }
+            Component::ParentDir | Component::Prefix(_) => {
+                return Err("unsafe authenticated native input".into());
+            }
+        }
+    }
+    custody::clean_absolute(&physical)?;
+    if input.canonicalize().map_err(|e| e.to_string())? != physical {
+        return Err("aliased authenticated native input".into());
+    }
+    Ok(physical)
+}
+
 pub(crate) fn native_role_inputs(
     proof: &CheckoutProof,
     entry: &Value,
@@ -69,8 +103,9 @@ pub(crate) fn native_role_inputs(
     pin(&mut files, binary)?;
     pin(&mut files, &receipt.executable)?;
     for (input, expected) in &receipt.inputs {
-        pin(&mut files, input)?;
-        if files[input.to_str().ok_or("non-UTF8 native input")?] != *expected {
+        let physical = native_input_path(input)?;
+        pin(&mut files, &physical)?;
+        if files[physical.to_str().ok_or("non-UTF8 native input")?] != *expected {
             return Err("changed native role input".into());
         }
     }
@@ -183,14 +218,8 @@ pub(super) fn candidate_role(
     let mut selected = config.clone();
     selected["dry_run"] = json!(true);
     dry.enable(&selected);
-    let receipt = dry.read_record(
-        receipt_path,
-        None,
-        Some(role),
-        runner,
-        cancelled,
-        "freeze candidate role",
-    )?;
+    let private = super::private_context(runner)?;
+    let receipt = dry.read_record(receipt_path, None, Some(role), runner, cancelled, &private)?;
     if receipt["binary"].as_str() != binary.to_str() {
         return Err("candidate role binary differs from authenticated build publication".into());
     }
@@ -527,9 +556,10 @@ fn sqlite_capture(
 ) -> Result<custody::Capture, String> {
     let mut argv = vec![compiler.display().to_string()];
     argv.extend(arguments);
+    let private = super::private_context(runner)?;
     let result = custody::observe_command(
         runner,
-        "SQLite Go oracle",
+        &private,
         &path(config, "repo")?.join("tools/gomad"),
         argv,
         sqlite_environment(config, root, compiler)?,
@@ -797,6 +827,15 @@ pub(crate) fn sqlite_oracle_inputs(
 }
 
 #[cfg(test)]
+fn caught<T>(result: Result<T, String>, predicate: &str) -> Result<String, String> {
+    match result {
+        Err(error) if error.contains(predicate) => Ok(error),
+        Err(error) => Err(format!("wrong catcher; expected {predicate}: {error}")),
+        Ok(_) => Err(format!("mutation missed {predicate}")),
+    }
+}
+
+#[cfg(test)]
 pub(crate) fn run_owner_tests(
     config: &Value,
     runner: &mut Runner,
@@ -805,13 +844,6 @@ pub(crate) fn run_owner_tests(
     let release = json!({"binary":config["binary"],"build_receipt":config["build_receipt"]});
     let (_, control) = candidate_role(config, &release, "release", runner, cancelled)?;
     let harness_control = runtime_harness_inputs(config, runner, cancelled)?;
-    fn caught<T>(result: Result<T, String>, predicate: &str) -> Result<String, String> {
-        match result {
-            Err(error) if error.contains(predicate) => Ok(error),
-            Err(error) => Err(format!("wrong catcher; expected {predicate}: {error}")),
-            Ok(_) => Err(format!("mutation missed {predicate}")),
-        }
-    }
     let mut observations = Vec::new();
     let mut extra = release.clone();
     extra["caller_claim"] = json!(true);
@@ -904,15 +936,6 @@ pub(crate) fn native_owner_cases(
     let selected = json!({"native_measurement":{"admission":release_admission},"final_profiles":{"measure":release_entry,"ordinary":release_raw,"diagnostic":diagnostic_entry,"terminal_helper_receipt":release_admission,"terminal_diagnostic_helper_receipt":diagnostic_admission}});
     let bootstrap_control = native_bootstrap_inputs(&proof, &selected)?;
     let profile_control = native_profile_inputs(&proof, &selected)?;
-    fn caught(result: Result<Files, String>, predicate: &str) -> Result<String, String> {
-        match result {
-            Err(error) if error.contains(predicate) => Ok(error),
-            Err(error) => Err(format!(
-                "native wrong catcher; expected {predicate}: {error}"
-            )),
-            Ok(_) => Err(format!("native mutation missed {predicate}")),
-        }
-    }
     let mut rows = Vec::new();
     let mut extra = release_entry.clone();
     extra["caller_claim"] = json!(true);
@@ -957,4 +980,30 @@ pub(crate) fn native_owner_cases(
     Ok(
         json!({"schema":"gomad.bindings-native-controls/v1","release_receipt":release_receipt,"release_receipt_sha256":custody::digest(&custody::read_file(release_receipt,64<<20)?),"diagnostic_receipt":diagnostic_receipt,"diagnostic_receipt_sha256":custody::digest(&custody::read_file(diagnostic_receipt,64<<20)?),"selected":selected,"raw_control":raw_control,"staged_control":staged_control,"bootstrap_control":bootstrap_control,"profile_control":profile_control,"mutations":rows}),
     )
+}
+
+#[cfg(test)]
+mod path_tests {
+    use super::*;
+    #[test]
+    fn authenticated_native_parent_references_retain_nofollow_custody() {
+        let root =
+            std::env::temp_dir().join(format!("gomad-native-input-path-{}", std::process::id()));
+        std::fs::create_dir(&root).unwrap();
+        std::fs::create_dir(root.join("parent")).unwrap();
+        std::fs::write(root.join("input"), b"actual native input").unwrap();
+        assert_eq!(
+            native_input_path(&root.join("parent/../input")).unwrap(),
+            root.join("input")
+        );
+        std::os::unix::fs::symlink(root.join("parent"), root.join("alias")).unwrap();
+        for input in [
+            PathBuf::from("relative"),
+            PathBuf::from("/../escape"),
+            root.join("alias/../input"),
+        ] {
+            assert!(native_input_path(&input).is_err());
+        }
+        std::fs::remove_dir_all(root).unwrap();
+    }
 }

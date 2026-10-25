@@ -89,6 +89,13 @@ impl FrozenConfiguration {
         authenticate_bundle(&self.bundle, self.configured.value(), context)
     }
 }
+fn private_context(runner: &Runner) -> Result<String, String> {
+    runner
+        .private_context()
+        .filter(|value| !value.is_empty())
+        .map(str::to_owned)
+        .ok_or_else(|| "binding operations require a bound private observation context".into())
+}
 fn require(ok: bool, error: &str) -> Result<(), String> {
     if ok { Ok(()) } else { Err(error.into()) }
 }
@@ -178,11 +185,12 @@ fn check_source(
             && config["source_sha256"] == custody::digest(&source.manifest()),
         "frozen source identity differs",
     )?;
+    let private = private_context(context.runner)?;
     source.verify(
         context.trusted.repo_root,
         context.runner,
         context.cancelled,
-        "frozen source reopen",
+        &private,
     )?;
     let manifest = custody::read_file(roles::path(config, "source_manifest")?, 128 << 20)?;
     require(
@@ -398,11 +406,12 @@ pub(crate) fn freeze(
     for path in [&manifest, &descriptors, &companion, context.output] {
         publication::fresh(path)?;
     }
+    let private = private_context(context.runner)?;
     let source = Snapshot::observe(
         context.trusted.repo_root,
         context.runner,
         context.cancelled,
-        "freeze source",
+        &private,
     )?;
     let source_bytes = source.manifest();
     config["source_manifest"] = json!(manifest);

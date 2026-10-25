@@ -302,12 +302,8 @@ pub(crate) fn public_inputs(
     expected_file(&mut files, &source, &inventory["source_inventory_sha256"])?;
     let expected: custody::Snapshot =
         serde_json::from_value(read(&source)?).map_err(|e| e.to_string())?;
-    let snapshot = custody::Snapshot::observe(
-        path(config, "repo")?,
-        runner,
-        cancelled,
-        "public source inventory",
-    )?;
+    let private = super::private_context(runner)?;
+    let snapshot = custody::Snapshot::observe(path(config, "repo")?, runner, cancelled, &private)?;
     if expected != snapshot {
         return Err("public source inventory incomplete or foreign".into());
     }
@@ -320,12 +316,7 @@ pub(crate) fn public_inputs(
         )?,
     )?;
     merge(&mut files, snapshot.files.clone())?;
-    snapshot.verify(
-        path(config, "repo")?,
-        runner,
-        cancelled,
-        "public source inventory recheck",
-    )?;
+    snapshot.verify(path(config, "repo")?, runner, cancelled, &private)?;
     custody::check_files(&files)?;
     Ok((declared, files))
 }

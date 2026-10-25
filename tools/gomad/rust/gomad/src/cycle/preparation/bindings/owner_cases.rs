@@ -8,9 +8,10 @@ fn command(
     cancelled: &AtomicBool,
     argv: Vec<String>,
 ) -> Result<(), String> {
+    let private = private_context(runner)?;
     let output = custody::observe_command(
         runner,
-        "binding fixture command",
+        &private,
         roles::path(config, "repo")?,
         argv,
         BTreeMap::from([
@@ -68,6 +69,7 @@ fn reject<T>(
     Ok(())
 }
 fn source_cases(root: &Path, runner: &mut Runner, cancelled: &AtomicBool) -> Result<(), String> {
+    let private = private_context(runner)?;
     let repo = root.join("source-fixture");
     fs::create_dir(&repo).map_err(|e| e.to_string())?;
     let env = BTreeMap::from([
@@ -78,13 +80,17 @@ fn source_cases(root: &Path, runner: &mut Runner, cancelled: &AtomicBool) -> Res
     let mut git = |args: &[&str]| -> Result<(), String> {
         let mut argv = vec![
             "/usr/bin/git".into(),
+            "-c".into(),
+            "maintenance.auto=false".into(),
+            "-c".into(),
+            "gc.auto=0".into(),
             "-C".into(),
             repo.display().to_string(),
         ];
         argv.extend(args.iter().map(|s| (*s).into()));
         let output = custody::observe_command(
             runner,
-            "binding source fixture",
+            &private,
             &repo,
             argv,
             env.clone(),
@@ -108,7 +114,7 @@ fn source_cases(root: &Path, runner: &mut Runner, cancelled: &AtomicBool) -> Res
         "-m",
         "fixture",
     ])?;
-    let error = Snapshot::observe(&repo, runner, cancelled, "empty source fixture").unwrap_err();
+    let error = Snapshot::observe(&repo, runner, cancelled, &private).unwrap_err();
     require(error.contains("empty actual"), &error)?;
     println!(
         "B03_OWNER_PROOF {}",
@@ -118,13 +124,17 @@ fn source_cases(root: &Path, runner: &mut Runner, cancelled: &AtomicBool) -> Res
     let invoke = |runner: &mut Runner, args: &[&str]| -> Result<(), String> {
         let mut argv = vec![
             "/usr/bin/git".into(),
+            "-c".into(),
+            "maintenance.auto=false".into(),
+            "-c".into(),
+            "gc.auto=0".into(),
             "-C".into(),
             repo.display().to_string(),
         ];
         argv.extend(args.iter().map(|s| (*s).into()));
         let output = custody::observe_command(
             runner,
-            "binding source fixture",
+            &private,
             &repo,
             argv,
             env.clone(),
@@ -137,14 +147,14 @@ fn source_cases(root: &Path, runner: &mut Runner, cancelled: &AtomicBool) -> Res
         )
     };
     invoke(runner, &["add", "source.rs"])?;
-    let control = Snapshot::observe(&repo, runner, cancelled, "source fixture control")?;
+    let control = Snapshot::observe(&repo, runner, cancelled, &private)?;
     require(
         control.files.len() == 1,
         "source fixture control wrong selection",
     )?;
     fs::write(repo.join("line\nbreak.rs"), b"fn other() {}\n").map_err(|e| e.to_string())?;
     invoke(runner, &["add", "line\nbreak.rs"])?;
-    let error = Snapshot::observe(&repo, runner, cancelled, "newline source fixture").unwrap_err();
+    let error = Snapshot::observe(&repo, runner, cancelled, &private).unwrap_err();
     require(error.contains("clean custody"), &error)?;
     println!(
         "B03_OWNER_PROOF {}",
@@ -218,7 +228,7 @@ fn public_cases(
         ),
         "unsealed public",
     )?;
-    let mut foreign = declared.clone();
+    let mut foreign = declared;
     foreign["schema"] = json!("foreign");
     let bad = root.join("public-foreign.json");
     emit(root, "public-foreign.json", &foreign)?;
@@ -246,6 +256,144 @@ fn public_cases(
     )?;
     Ok(())
 }
+fn source_bound_case(
+    root: &Path,
+    files: &BTreeMap<String, String>,
+    runner: &mut Runner,
+    cancelled: &AtomicBool,
+) -> Result<(), String> {
+    let private = private_context(runner)?;
+    let (origin, size) = files
+        .keys()
+        .filter_map(|name| fs::metadata(name).ok().map(|meta| (name, meta.len())))
+        .filter(|(_, size)| *size >= 1 << 20 && *size <= 128 << 20)
+        .max_by_key(|(_, size)| *size)
+        .ok_or("genuine source bound input missing")?;
+    let repo = root.join("source-byte-bound");
+    fs::create_dir(&repo).map_err(|e| e.to_string())?;
+    let config = json!({"repo":repo});
+    let git = |runner: &mut Runner, args: &[&str]| -> Result<(), String> {
+        let mut argv = vec![
+            "/usr/bin/git".into(),
+            "-c".into(),
+            "maintenance.auto=false".into(),
+            "-c".into(),
+            "gc.auto=0".into(),
+            "-C".into(),
+            repo.display().to_string(),
+        ];
+        argv.extend(args.iter().map(|arg| (*arg).into()));
+        command(&config, runner, cancelled, argv)
+    };
+    git(runner, &["init", "--quiet"])?;
+    git(
+        runner,
+        &[
+            "-c",
+            "user.name=fixture",
+            "-c",
+            "user.email=fixture@example.invalid",
+            "commit",
+            "--quiet",
+            "--allow-empty",
+            "-m",
+            "source bound fixture",
+        ],
+    )?;
+    fs::write(repo.join("source.rs"), b"fn actual() {}\n").map_err(|e| e.to_string())?;
+    git(runner, &["add", "source.rs"])?;
+    let source_control = Snapshot::observe(&repo, runner, cancelled, &private)?;
+    let aliases = (512u64 << 20) / size + 1;
+    let mut paths = Vec::new();
+    for n in 0..aliases {
+        let target = repo.join(format!("genuine-input-{n}.bin"));
+        fs::hard_link(origin, &target).map_err(|e| e.to_string())?;
+        paths.push(target);
+    }
+    git(runner, &["add", "--all"])?;
+    let refused = Snapshot::observe(&repo, runner, cancelled, &private)
+        .err()
+        .ok_or("source512MiB bound disappeared")?;
+    require(refused.contains("source inventory byte bound"), &refused)?;
+    emit(
+        root,
+        "source-bound-control.json",
+        &json!({"source_control":source_control,"existing_genuine_origin":origin,"origin_sha256":files[origin],"alias_paths":paths,"logical_bytes":size*aliases,"refusal":refused,"mutation":"distinct tracked hard links to retained genuine immutable control bytes; no fabricated bulk payload"}),
+    )?;
+    Ok(())
+}
+fn file_boundary_cases(owner: &CycleOwner) -> Result<(), String> {
+    let root = PathBuf::from(std::env::var("GOMAD_BINDING_CASE_ROOT").map_err(|e| e.to_string())?);
+    fs::create_dir(&root).map_err(|e| e.to_string())?;
+    let mut runner = Runner::create(
+        owner,
+        &root.join("commands"),
+        Some("file-boundary-proof".into()),
+    )?;
+    let cancelled = AtomicBool::new(false);
+    let missing = Runner::create(owner, &root.join("unbound-commands"), None)?;
+    require(
+        private_context(&missing)
+            .unwrap_err()
+            .contains("bound private"),
+        "unbound caller context accepted",
+    )?;
+    let private = private_context(&runner)?;
+    let observe = |runner: &mut Runner, context: &str| {
+        custody::observe_command(
+            runner,
+            context,
+            &root,
+            vec!["/usr/bin/true".into()],
+            BTreeMap::new(),
+            Duration::from_secs(10),
+            &cancelled,
+        )
+    };
+    require(
+        observe(&mut runner, &private)?.completed.accepted(),
+        "private caller control failed",
+    )?;
+    let wrong = observe(&mut runner, "foreign-binding-context")
+        .err()
+        .ok_or("foreign context accepted")?;
+    require(
+        wrong.contains("foreign private observation context"),
+        &wrong,
+    )?;
+    require(
+        observe(&mut runner, &private)?.completed.accepted(),
+        "private caller restoration failed",
+    )?;
+    emit(
+        &root,
+        "context-control.json",
+        &json!({"private":private,"wrong_context":"foreign-binding-context","refusal":wrong,"valid_before_and_after":true,"missing_context":"binding operations require a bound private observation context"}),
+    )?;
+    source_cases(&root, &mut runner, &cancelled)?;
+    let inventory =
+        PathBuf::from(std::env::var("GOMAD_BINDING_FILE_INPUTS").map_err(|e| e.to_string())?);
+    let files: BTreeMap<String, String> =
+        serde_json::from_value(record(&inventory)?).map_err(|e| e.to_string())?;
+    source_bound_case(&root, &files, &mut runner, &cancelled)?;
+    let total = files.keys().try_fold(0u64, |sum, name| {
+        sum.checked_add(fs::metadata(name).map_err(|e| e.to_string())?.len())
+            .ok_or_else(|| "fixture byte overflow".to_owned())
+    })?;
+    require(
+        total > 512 << 20,
+        "aggregate fixture does not exceed old erroneous cap",
+    )?;
+    custody::check_files(&files)?;
+    emit(
+        &root,
+        "aggregate-control.json",
+        &json!({"inputs":inventory,"input_sha256":custody::digest(&custody::read_file(&inventory,64<<20)?),"file_count":files.len(),"total_bytes":total,"normal_return":true,"retained_bounds":{"per_file_bytes":128<<20,"count":50000,"source_bytes":512<<20}}),
+    )?;
+    println!("B03_EVENT genuine-aggregate-and-private-context-controls-returned");
+    Ok(())
+}
+
 fn native_cases(phase: &str) -> Result<(), String> {
     let root =
         PathBuf::from(std::env::var("GOMAD_BINDING_NATIVE_ROOT").map_err(|e| e.to_string())?);
@@ -306,6 +454,7 @@ fn role_case(owner: &CycleOwner) -> Result<(), String> {
         &root.join(format!("commands-{role}")),
         Some("binding-role-proof".into()),
     )?;
+    let private = private_context(&runner)?;
     let receipt = DryRun::build(
         &role,
         &repo,
@@ -314,7 +463,7 @@ fn role_case(owner: &CycleOwner) -> Result<(), String> {
         &target,
         &mut runner,
         &AtomicBool::new(false),
-        "binding-role-proof",
+        &private,
     )?;
     println!(
         "B03_ROLE_CONTROL {}",
@@ -328,6 +477,9 @@ fn role_case(owner: &CycleOwner) -> Result<(), String> {
 )]
 pub(super) fn run_cases(owner: &CycleOwner) -> Result<(), String> {
     let phase = std::env::var("GOMAD_BINDING_PHASE").unwrap_or_else(|_| "freeze".into());
+    if phase == "file-boundary" {
+        return file_boundary_cases(owner);
+    }
     if phase.starts_with("native-") {
         return native_cases(&phase);
     }
@@ -364,7 +516,8 @@ pub(super) fn run_cases(owner: &CycleOwner) -> Result<(), String> {
     }
     let release_record = record(&release)?;
     let runtime_record = record(&runtime)?;
-    let source = Snapshot::observe(&repo, &mut runner, &cancelled, "binding-proof")?;
+    let private = private_context(&runner)?;
+    let source = Snapshot::observe(&repo, &mut runner, &cancelled, &private)?;
     let staged_manifest = root.join("staged-source.manifest");
     publication::write(&staged_manifest, &source.manifest())?;
     let mut fixture = super::super::composition::tests::Fixture::new();
@@ -566,7 +719,7 @@ pub(super) fn run_cases(owner: &CycleOwner) -> Result<(), String> {
         mutant["admission"]["inputs_sha256"] =
             json!(custody::digest(&inputs::canonical(&inventory)?));
         fs::write(&installation, inputs::canonical(&mutant)?).map_err(|e| e.to_string())?;
-        let result = CandidateRoles::authenticate(&candidate, &mut context.runner, &cancelled);
+        let result = CandidateRoles::authenticate(&candidate, context.runner, &cancelled);
         fs::write(&installation, inputs::canonical(&control_installation)?)
             .map_err(|e| e.to_string())?;
         reject(
@@ -585,7 +738,7 @@ pub(super) fn run_cases(owner: &CycleOwner) -> Result<(), String> {
         "caller-sqlite-oracle",
         &oracle,
         &["orchestration:configure:129"],
-        roles::sqlite_oracle_inputs(&oracle, &mut context.runner, &cancelled),
+        roles::sqlite_oracle_inputs(&oracle, context.runner, &cancelled),
         "legacy SQLite oracle argv is forbidden",
     )?;
 

@@ -213,3 +213,40 @@ fn frozen_input_alias_and_relative_names_refuse_at_receiving() {
     );
     fs::remove_dir_all(root).unwrap();
 }
+
+#[test]
+fn file_boundary_retains_count_digest_and_per_file_limits() {
+    let root = root();
+    let file = root.join("limit-input");
+    std::fs::write(&file, b"actual control").unwrap();
+    let valid = BTreeMap::from([(
+        file.to_str().unwrap().to_owned(),
+        custody::digest(b"actual control"),
+    )]);
+    custody::check_files(&valid).unwrap();
+    let too_many: BTreeMap<_, _> = (0..50_001)
+        .map(|n| (format!("/unused-count-{n}"), "0".repeat(64)))
+        .collect();
+    assert!(
+        custody::check_files(&too_many)
+            .unwrap_err()
+            .contains("count bound")
+    );
+    for expected in ["malformed".into(), "0".repeat(64)] {
+        let mutant = BTreeMap::from([(file.to_str().unwrap().to_owned(), expected)]);
+        assert!(custody::check_files(&mutant).is_err());
+    }
+    let huge = root.join("per-file-bound");
+    std::fs::File::create(&huge)
+        .unwrap()
+        .set_len((128 << 20) + 1)
+        .unwrap();
+    let oversized = BTreeMap::from([(huge.to_str().unwrap().to_owned(), "0".repeat(64))]);
+    assert!(
+        custody::check_files(&oversized)
+            .unwrap_err()
+            .contains("bound")
+    );
+    custody::check_files(&valid).unwrap();
+    std::fs::remove_dir_all(root).unwrap();
+}
