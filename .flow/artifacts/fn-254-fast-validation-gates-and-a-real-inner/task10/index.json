@@ -1,0 +1,541 @@
+{
+  "schema_version": 1,
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.10",
+  "source_commit": "3858df60b843619c35ca06e51aee01017dc4bbb7",
+  "baseline_commit": "208610049cb93d2fb6cc107898497461f5ab4a6e",
+  "status": "source and focused checks complete; coordinator review and Flow closure pending",
+  "source_sha256": {
+    ".github/workflows/umpire.yml": "e5169a57b6c3bde68889a28c96089340ec1e8218b0ac786ed23d89c92c6453fb",
+    "Makefile": "fcafede29b79b2e62a5649f840bf57d3b64887d3420953e4c5a931d556123539",
+    "model/README.md": "5e211e9fb57a1b07084871f297e80cd7ef58ae6af995ecc3ca5ed149ec1c8823",
+    "model/dev/xtask/src/gate.rs": "36de0016ab6df22e848a60974634e63cce8a8442fa4015a883799c18f03cc3cd",
+    "model/dev/xtask/src/main.rs": "93f625c63190cb5ed082c82c52d55c87905e36329b86f1ade9b9ee49d4fe5c13",
+    "model/dev/xtask/src/test_run.rs": "ca82799aaa2b8017c86bb4fb12d4e425c72abb0ff3ac9336e2c10553161dcca9",
+    "model/dev/xtask/tests/main.rs": "8d9e8f7ffce0c90bbd6faa4c95b003bb4a16f8a4dc26bf0388f6d53a740926b8",
+    "model/scripts/proto-go.sh": "67d146dd170f5ce6df4d2c79aaa053fd912b6b0a198a7e274927c760f36145ff",
+    "model/scripts/retired-names.sh": "cd3c6ccc5917fbaadbf4e473109dad423a2318ab8e3a3442c3dfc30e1ca4839b",
+    "model/scripts/test-model-validate.sh": "4d02d4d348b6ac3b364577bff00bad2ec00c373826ce0c997167f8286530b26e",
+    "model/scripts/test-model-wiring.sh": "76ea54df5dc206226aca625f6d9699a2c8c4e70b01a04be51a6d44bfb7b643d4",
+    "model/scripts/test-time-gate.sh": "f30dbef2e590b45ff523431e02efc03018de0629923c75cf9d8996cf55a368fc",
+    "model/scripts/tests/build-guests.sh": "1eb8e6013517ba50f85703ce2e9732a4d0b43860ebc335e55d2d867b661ab190",
+    "model/scripts/tests/proto-go.sh": "8676d1e54b6fec1119d8bd939829e1c891758c4db8cfb5f3a380d2db7a900c94",
+    "model/scripts/time-gate.sh": "3613cb350cde9aea380913f91086e6f97dbd27d66a6a0d3310d3e094fdf9c9d3",
+    "model/umpire/README.md": "96b06402c474be862ab4f892dd543454f9fc9707db3317f2b868d22c47b35803",
+    "model/umpire/dev/gate/policy/framework-boundary.txt": "aab3810c1cac873f42d80e41ffcf2cefdbb175a8e8dc2a7bd3a587e12fe6ba40",
+    "model/umpire/dev/xtask/README.md": "098b04e4acc285916f8860014bee83ec469b2911345d2ddbe46e25c050844a37",
+    "model/umpire/dev/xtask/src/gate.rs": "c2f53af4c3a1ce0ed057996aa998385851b4953da52086a2c1149d1b9ba6094e",
+    "model/umpire/dev/xtask/src/gate/boundary.rs": "fd9e7e58ae113c87f12ebd8306979c9042788242df95e7e9ba6c6abe571c352d",
+    "model/umpire/dev/xtask/src/lib.rs": "ebda682a8df412effab763804c02d64370c6d116a17ccd094962b4c42138a670",
+    "model/umpire/dev/xtask/src/main.rs": "635e4d1f868b26b780daaaf1922d77905aba013eac878aac2f2c473c36473a59",
+    "model/umpire/dev/xtask/src/test_run.rs": "8b676efdcb7885f449981f2fe24a5fc6c797790f1f1e9ca98442ff71c7fd126c",
+    "model/umpire/dev/xtask/tests/gate_wiring.rs": "fafece83737aa3eba4e36392704bb5d03d97483527f9d23e68fb74b8ff6aacde",
+    "model/umpire/dev/xtask/tests/main.rs": "c8453d66adad9c3764c4fd2a9d6e457563fa38aacadd0d6b62fdcb696f5e0cd6",
+    "model/umpire/scripts/test-time-gate.sh": "fe00ca265166d3384e9177ef133e1522af7a9b6ff6bf21263fc8f178a2e569fe",
+    "model/umpire/scripts/tests/build-guests-controls.sh": "e76d467727d4198a43ce7f2c9809b31df7f144be822ef6b7836d71a7f4b99abc",
+    "model/umpire/scripts/time-gate.sh": "d6a382c36bd0118b6c09f7e241e6a487a2501492bace9ab6b714b5163a3e1be1"
+  },
+  "proof_sha256": {
+    "proof/accounting/account.py": "48b7664d8f94b0573f0252d7a08efe1d6c8514a4003612b5d6fff7712c789cc3",
+    "proof/accounting/baseline.json": "1415f339a8830e95cc31d6dc45b7a448d7688fc7014d5cc36e3f04dc5bf3d483",
+    "proof/accounting/compare_final.py": "01e4592b55e00a2db544a439949f9fec2d0530e11d939978efa16e38acfb7d3d",
+    "proof/accounting/comparison.json": "23290650fe64f3da188b5848f70a5557319a78f773174669eaf1ccebb661f5c2",
+    "proof/accounting/final-comparison.json": "a1d6482839c05e693564d4a0baccb9931caed7926dd63ec094bc803212f3256c",
+    "proof/accounting/final-inventory.json": "2b430e6465a37c9dfbd04b0b023f00c1f9a220df0d7cedb21f2697f080d72341",
+    "proof/accounting/final_account.py": "08fca6895748568b8d6b221bd105c08e5c688fdaa599505edb9e2ebdb5cc7711",
+    "proof/accounting/frozen-source/Makefile": "17f6f10f61fcc2eb0d3e0abd3471fae1605daf014a7a00689148b2be32376ac3",
+    "proof/accounting/frozen-source/model/scripts/retired-names.sh": "b463c9c439a3dd85c365fb3db93d3b4fff3926a13125fb4528594273448abdef",
+    "proof/accounting/frozen-source/model/scripts/test-model-validate.sh": "b6e1af13c36a4e67b284032838940f65a48cc580d38253ede280c4542175cbbe",
+    "proof/accounting/frozen-source/model/scripts/test-model-wiring.sh": "dac9cad90dec1f7fffbacf073d96300d1a48967ad52c65a92db14ef7f44e6756",
+    "proof/accounting/frozen-source/model/scripts/test-time-gate.sh": "34e769a4b81ba32aedbaa35ac283f499f92d9e3c1d57a68e868af954e2bf4fa6",
+    "proof/accounting/frozen-source/model/scripts/tests/build-guests.sh": "5c62d109c489f7ce126399e7959a65e71c2449b62455d646c3d674e0eeaeb161",
+    "proof/accounting/frozen-source/model/scripts/tests/proto-go.sh": "56285abd38af335140444fd291ec7a2315ad66a9930f359bf855c1f5af84afd0",
+    "proof/accounting/frozen-source/model/umpire/scripts/test-capabilities.sh": "78ac66736ac6c8469e32b05f43af3460ade436000edb129b32a9017b65fd8b52",
+    "proof/accounting/frozen-source/model/umpire/scripts/tests/bootstrap.sh": "90d1d7a85c5aa2c429a5d6dd86073af6d7a516a3673514c6863345af6a3c433a",
+    "proof/accounting/frozen-source/model/umpire/scripts/tests/build-guests.sh": "e3e486cffc161e6635154566c41e88ea7b7bb82d4f4ba429c35f0783789ccda3",
+    "proof/accounting/frozen-source/model/umpire/scripts/tests/proto-tools.sh": "474089adca28db659db1ddacd1972c9e5e6e3104e2cff0143596da56f8342867",
+    "proof/actual-boundary.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/actual-retired.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/actual-stage-commands.json": "542555eeb703215c71301720c5151fab181040b116fc6ae8f3ab44e61185bc86",
+    "proof/actual-stage-list.log": "e7208af0f7f6b03dc5819435f3f2402201219c5e6e8991653d702fdc62013fb1",
+    "proof/cli-independence.json": "a5f92c555a2080874893b2e01732abb729893d3e7ede77aeb93f80ba444932cf",
+    "proof/cli-independence.py": "61c26470b172e272717f8e51206ffb21564174d961c402ad54f564264d4d3575",
+    "proof/cli-initial-build.log": "7aa1df39d2a2b7d7404532ba584ceb97735c9f4521e03374279b242c0a7a627c",
+    "proof/cli-initial-guest.log": "f0d0e3500bf6491d5fa8b9063ffdf1e9ce6974f36a52ff9766768a909a46d314",
+    "proof/cli-mutated-build.log": "fc161d6886673f4a6f6cf683449f9669fae9a4f1c5f30fed76777cf0567dd3e1",
+    "proof/cli-mutated-guest.log": "25c4764a63018ddae3ea7315d938d1adbd8fbfc89286fb62c141b00c52aceea9",
+    "proof/cli-restored-build.log": "d8d33625885b4b82d7392ec5d593804f9bd526d68b05e56dd02ebc330b063628",
+    "proof/driver-build.log": "9872520e31e3d327843c509225318ecc80a9bff1a70d7d27a7d63ace2ab50e60",
+    "proof/driver-identity-controls.log": "724c47d3974cd224b66508a705b320d7da0c2861bc8446baf1d61110a70125af",
+    "proof/focused-commands-before-fmt.json": "d769debd57f9383498ecb4a453f5eb356b726e647eb851eec570f43043eef68f",
+    "proof/focused-commands-initial.json": "ed4db393bd1101cfe67d2f80f551fc1e988505a56d61a00187487cf03de96c31",
+    "proof/focused-commands.json": "8c791481a0c96ea3d367de257716b4b38b225c5293f873627904fbccb7f6ca0a",
+    "proof/framework-bootstrap-controls.log": "420d2ed99fa0e1efcc825a37c28dfced2c431812b4bdf52bcbc7533379a0dcb9",
+    "proof/framework-build-guest-controls.log": "33c200d5375068c480b98b852310ea91b0c71b08dce998f069ef7d22e37479fd",
+    "proof/framework-fmt-initial-failed.log": "458cb1dd7f4a8d3f8928d1bea73525df88140642c2beccd4532d50ec0c2a9871",
+    "proof/framework-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-native-clippy.log": "7ea12b435161e427ce95d214d18bd0cddacd38b34a096ae5faee9783693955f6",
+    "proof/framework-native-tests.log": "ba01d71a78f2e043f649e6c88a8879605dcd16e2b1c2908b0db469a6a10d6735",
+    "proof/framework-proto-controls.log": "8996adf736400c650e72c524dc7638a65b698182900f93cb9038cfa516373e66",
+    "proof/framework-proto-tools-controls.log": "4a6d05525712d5da71387c80a7a2a6343ed22bc4e0932cbd7a39e48de7055883",
+    "proof/framework-timer-controls.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/outer-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/outer-native-clippy.log": "a13905646e2aed93ec6ea9ed6ac91490a4e01f91af0215c3965279a910612149",
+    "proof/outer-native-tests-initial-failed.log": "d7b7333e9ee10fa5f9880e97db4e2040e9ee2ab9c6d4d38cfc4f7b643aa8fc96",
+    "proof/outer-native-tests.log": "ad2487205b87efcb28fd59fc3211a485e59c5403e06bc3df794ea731dc5ad3b4",
+    "proof/outer-proto-controls.log": "9b81be8784351fbdeaa6462cb755ed2eefeb0e66cc2997d552f000f74816596c",
+    "proof/root-timer-controls.log": "33542ea8e11f1092582935ad6883e7e2ea6a7c27f00d4a033a16385abe0a08fc",
+    "proof/root-timing-warnings.sh": "e5b9c6bc91e8deaba30d81cf88fa6537907cba8da31af4ae17dc5358d1b32eaf",
+    "proof/run-focused.py": "7c9c679da3539f653d6debdfcdd1ace48bf1fbac58fa2ba11b107b284b4a60a9",
+    "proof/shell-control-identity-ledger.json": "44029c04813c27f85b74f23e8b2d4f41170dd964225f2ac549993b2db2459779",
+    "proof/stock-initial.log": "bdbfba18d09457de0f2e14fda346f44b3ed3b7ed4880d1dbad28a44892ada6a5",
+    "proof/stage-recipes.json": "dbb0be9cbc44f71775b91da9ca1d527aa092c193bf2258313e1f1c761050cf1b"
+  },
+  "commands": [
+    {
+      "label": "framework-proto-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/umpire/scripts/tests/proto-go.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.4323485830000209
+    },
+    {
+      "label": "outer-proto-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/scripts/tests/proto-go.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.1487280000001192
+    },
+    {
+      "label": "framework-timer-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/umpire/scripts/test-time-gate.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.04649433299982775
+    },
+    {
+      "label": "framework-proto-tools-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/umpire/scripts/tests/proto-tools.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.11702212499949383
+    },
+    {
+      "label": "framework-bootstrap-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/umpire/scripts/tests/bootstrap.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.21664250000048924
+    },
+    {
+      "label": "framework-build-guest-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/umpire/scripts/tests/build-guests-controls.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.14012579200061737
+    },
+    {
+      "label": "root-timer-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/scripts/test-time-gate.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.31164191700008814
+    },
+    {
+      "label": "framework-native-tests",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "xtask",
+        "--lib",
+        "--test",
+        "main"
+      ],
+      "exit": 0,
+      "seconds": 0.9283719170007316
+    },
+    {
+      "label": "outer-native-tests",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "temporal-xtask"
+      ],
+      "exit": 0,
+      "seconds": 1.2858922499999608
+    },
+    {
+      "label": "driver-identity-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "umpire-guest-driver"
+      ],
+      "exit": 0,
+      "seconds": 1.2418054580002718
+    },
+    {
+      "label": "framework-native-clippy",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "xtask",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.15168925000034506
+    },
+    {
+      "label": "outer-native-clippy",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "temporal-xtask",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.06294683400028589
+    },
+    {
+      "label": "framework-fmt",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.5894967510002971
+    },
+    {
+      "label": "outer-fmt",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.888973334000184
+    },
+    {
+      "label": "actual-boundary",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "exit": 0,
+      "seconds": 0.7020037090005644
+    },
+    {
+      "label": "actual-retired",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "retired-names"
+      ],
+      "exit": 0,
+      "seconds": 0.6451300000007905
+    },
+    {
+      "label": "actual-stage-list",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--list"
+      ],
+      "exit": 0,
+      "seconds": 0.0008033330004764139
+    },
+    {
+      "label": "cli-initial-build",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "build",
+        "--locked",
+        "-p",
+        "xtask",
+        "--bin",
+        "xtask",
+        "-p",
+        "umpire-guest-driver",
+        "--bin",
+        "umpire-guest-driver",
+        "--profile",
+        "dev",
+        "--target-dir",
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "seconds": 0.6138505829994756
+    },
+    {
+      "label": "cli-initial-guest",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "guest",
+        "umpire-stock-guest",
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/stock.wasm",
+        "--check"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "seconds": 0.49921583400009695
+    },
+    {
+      "label": "cli-mutated-build",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "build",
+        "--locked",
+        "-p",
+        "xtask",
+        "--bin",
+        "xtask",
+        "-p",
+        "umpire-guest-driver",
+        "--bin",
+        "umpire-guest-driver",
+        "--profile",
+        "dev",
+        "--target-dir",
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "seconds": 0.35690216700004385
+    },
+    {
+      "label": "cli-mutated-guest",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "guest",
+        "umpire-stock-guest",
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/stock.wasm",
+        "--check"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "seconds": 0.46972966700013785
+    },
+    {
+      "label": "cli-restored-build",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "build",
+        "--locked",
+        "-p",
+        "xtask",
+        "--bin",
+        "xtask",
+        "-p",
+        "umpire-guest-driver",
+        "--bin",
+        "umpire-guest-driver",
+        "--profile",
+        "dev",
+        "--target-dir",
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "seconds": 0.34585175000029267
+    }
+  ],
+  "coverage": {
+    "baseline_unique_rust": 930,
+    "baseline_ignored_rust": 4,
+    "new_rust_controls": 19,
+    "old_timed_stages": 23,
+    "final_stage_ownership_partitions": 27,
+    "old_leaf_shell_controls": 152,
+    "exact_source_accounting_pass": true,
+    "execution_scope": "changed native tools, driver controls, shell controls, actual framework boundary and retired stages; no full930-test execution",
+    "existing_overlap": "Temporal source-boundary target remains explicitly run before workspace tests, as before; unique identity accounting does not claim invocation multiplicity once",
+    "snapshot_ui_preserved": 563,
+    "registry_tuples_preserved": 119
+  },
+  "cache_policy": {
+    "UMPIRE_QUICK_CACHE": "0",
+    "UMPIRE_CACHE_DISABLE": "1",
+    "scope": "all full gate child commands including provisioning; .6 must honor these before cache reads"
+  },
+  "cli_independence": {
+    "proof": "proof/cli-independence.json",
+    "driver_sha256": "ce4a2158f7b00d82e4f18af2def3fb66e4a6b0d72ac870d78a040025b71d4cb4",
+    "cli_before_sha256": "95fbc24a36165fe481ae02541d7e0fe780af229f859d9c5e3b1de0bf3abc2852",
+    "cli_mutated_sha256": "97e3569a8cfd7df6d61ef7dc039c8e33750964b28a73613ec65985cdfe62ef46",
+    "namespaces": [
+      "a2c4169682b4f0e0bc78ff61e5c0f322e1c27fd725f3078ec80ce92d9004cf34"
+    ],
+    "real_stock_guest_artifacts_reused": true,
+    "reuse_evidence": "exact wasm hash, size, mtime_ns and inode unchanged after retained help-diagnostic mutation compiled into the CLI"
+  },
+  "unchanged_input_checks": {
+    "model/umpire/dev/guest-driver": true,
+    "model/umpire/protocol": true,
+    "model/umpire/hosts/go": true,
+    "model/umpire/reference/kettle": true,
+    "model/umpire/author": true,
+    "model/umpire/backends": true,
+    "model/umpire/catalog": true,
+    "model/umpire/front": true,
+    "model/umpire/ir": true,
+    "model/temporal/guest": true,
+    "model/temporal/hosts/go": true,
+    "model/Cargo.toml": true,
+    "model/Cargo.lock": true,
+    "model/umpire/Cargo.toml": true,
+    "model/umpire/Cargo.lock": true
+  },
+  "reused_evidence": {
+    "pointer": "../task13/current-index.json",
+    "pointer_sha256": "53cf84fe4e47874a78fb5857deca160158d3916dcf831acf11737af34f733524",
+    "scope": "unchanged guest/native/protobuf/three Go host input closures and published Temporal guest; actual invocation remapping checked by current compiled process/shell controls",
+    "new_go_execution_claim": false,
+    "guest_regeneration_or_policy_edit": false
+  },
+  "failed_attempts": [
+    {
+      "record": "proof/focused-commands-initial.json",
+      "status": "outer-native-tests101: old integration test extracted removed Make freshness recipe; exact logical test ported to shipping delegation with real stale driver refusal; final package passed"
+    },
+    {
+      "record": "proof/focused-commands-before-fmt.json",
+      "status": "framework-fmt1: module ordering; rustfmt applied and final checks passed"
+    },
+    {
+      "record": "proof/accounting/final-comparison.json",
+      "status": "initial missing target-mode and full argv assertion matrix found during source accounting; all18 cases restored and final exact comparator has no issues"
+    }
+  ],
+  "deferred": [
+    {
+      "command": "make model-check / make model-validate (TLC required)",
+      "owner": "fn-254.8",
+      "status": "not run; owner cadence defers unrelated full combined execution; live root parity consumer bug tracked fn-246.9 remains independent"
+    },
+    {
+      "command": "real framework directory-only complete gate",
+      "owner": "fn-254.11",
+      "status": "not run; actual current-source isolated full proof remains required"
+    },
+    {
+      "command": "nextest/quick-cache population/overlap/budgets/mise-provider migration",
+      "owner": "fn-254.3/.6/.5/.12/.14/.16",
+      "status": "not implemented here"
+    }
+  ],
+  "working_seams": {
+    "framework_gate": "model/umpire/dev/xtask/src/gate.rs and gate/",
+    "framework_test_runner": "model/umpire/dev/xtask/src/test_run.rs",
+    "temporal_gate": "model/dev/xtask/src/gate.rs",
+    "temporal_test_runner": "model/dev/xtask/src/test_run.rs",
+    "future3": "only live runner leaves/config/pins",
+    "future6": "new quick implementation and dispatcher/Make/cache; honors gate cache flags",
+    "future11": "gate-local registration/standalone stage and own integration controls; no dormant module delivered"
+  },
+  "cleanup": {
+    "removed_worktrees": [
+      "fn25410-native",
+      "fn25410-outer",
+      "fn25410-controls"
+    ],
+    "removed_child_cache_MiB": [
+      401.1,
+      592.1,
+      268.2
+    ],
+    "child_targets_absent": true,
+    "parent_cache_retained": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent",
+    "child_branches_retained": [
+      "work/fn25410-native",
+      "work/fn25410-outer",
+      "work/fn25410-controls"
+    ],
+    "reason": "source units cherry-picked; original references retained, not deleted as ancestry-equivalent",
+    "disk_free_after": "115GiB",
+    "protected_prior13_and_other_repository_caches": "untouched"
+  },
+  "subagents": 3
+}
