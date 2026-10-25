@@ -12,6 +12,7 @@
   "id": "fn-251-one-probe-engine-and-one-catalog-build",
   "impl_review_rounds": {
     "fn-251-one-probe-engine-and-one-catalog-build.3": 0,
+    "fn-251-one-probe-engine-and-one-catalog-build.4": 0,
     "fn-251-one-probe-engine-and-one-catalog-build.5": 0,
     "fn-251-one-probe-engine-and-one-catalog-build.6": 0
   },
@@ -177,10 +178,99 @@
       "task": "fn-251-one-probe-engine-and-one-catalog-build.5",
       "timestamp": "2026-10-25T08:29:51.266318Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "2315a31f84f0c59fbf831b60d033cd12b8e121a5e5464cef3861d9476d9a25a6",
+      "backend": "codex",
+      "base_sha": "6079dbaddd2095d32427895be0e926843ba4028a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-4b7bf2402c8daa1e423d76805bae17c7",
+            "classification": "introduced",
+            "findingId": "finding-4b7bf2402c8daa1e423d76805bae17c7",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "87a395e0846b89ab851d8375760d9e6b962f7ec4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1060,
+      "output_sha256": "806864f7cf940e782caa64ff48a29f2be6e834911e14dd3f9cc11fd38d53abed",
+      "reservation_id": "660593e17428478e854d36acc4afc046",
+      "round_consumed": true,
+      "scope": "impl:fn-251-one-probe-engine-and-one-catalog-build.4",
+      "superseded_by": null,
+      "task": "fn-251-one-probe-engine-and-one-catalog-build.4",
+      "timestamp": "2026-10-25T09:09:09.368963Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "ea4f452717fdc3d80b1ee2257fea98531a1f81531c816d66dff7958e86a10ce2",
+      "backend": "codex",
+      "base_sha": "6079dbaddd2095d32427895be0e926843ba4028a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-4b7bf2402c8daa1e423d76805bae17c7",
+            "classification": "introduced",
+            "findingId": "finding-4b7bf2402c8daa1e423d76805bae17c7",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "94a94f4e5506e6c90fe2b9cd03e9c1e23aad3ec4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1007,
+      "output_sha256": "f7f8aeed772a36adebc20b896bea9ca9b69b55c5602af8aece47b6a5a34538c2",
+      "reservation_id": "69cfb3c9e0c5413b8d3ec3b9748cbbc9",
+      "round_consumed": true,
+      "scope": "impl:fn-251-one-probe-engine-and-one-catalog-build.4",
+      "superseded_by": null,
+      "task": "fn-251-one-probe-engine-and-one-catalog-build.4",
+      "timestamp": "2026-10-25T09:13:00.391242Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-251-one-probe-engine-and-one-catalog-build.3": 1,
+    "impl:fn-251-one-probe-engine-and-one-catalog-build.4": 1,
     "impl:fn-251-one-probe-engine-and-one-catalog-build.5": 1,
     "impl:fn-251-one-probe-engine-and-one-catalog-build.6": 1
   },
@@ -188,6 +278,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-251-one-probe-engine-and-one-catalog-build.3": 0,
+    "impl:fn-251-one-probe-engine-and-one-catalog-build.4": 0,
     "impl:fn-251-one-probe-engine-and-one-catalog-build.5": 0,
     "impl:fn-251-one-probe-engine-and-one-catalog-build.6": 0
   },
@@ -205,5 +296,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T08:29:51.269113Z"
+  "updated_at": "2026-10-25T09:13:00.396299Z"
 }
