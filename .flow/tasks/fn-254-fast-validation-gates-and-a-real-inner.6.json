@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-25T17:55:26.992285Z",
+  "depends_on": [
+    "fn-254-fast-validation-gates-and-a-real-inner.2",
+    "fn-254-fast-validation-gates-and-a-real-inner.10"
+  ],
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.6",
+  "priority": null,
+  "spec": "fn-254-fast-validation-gates-and-a-real-inner",
+  "spec_path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.6.md",
+  "status": "todo",
+  "title": "make model-quick: affected crates, native always, cached TLC for unchanged modules",
+  "updated_at": "2026-10-25T18:09:46.558294Z"
+}

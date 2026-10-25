@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-25T17:55:26.992200Z",
+  "depends_on": [
+    "fn-254-fast-validation-gates-and-a-real-inner.1",
+    "fn-254-fast-validation-gates-and-a-real-inner.10"
+  ],
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.5",
+  "priority": null,
+  "spec": "fn-254-fast-validation-gates-and-a-real-inner",
+  "spec_path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.5.md",
+  "status": "todo",
+  "title": "Gate composition: Apalache out, overlapping stages, trybuild trim, remove dead target",
+  "updated_at": "2026-10-25T18:09:46.254285Z"
+}

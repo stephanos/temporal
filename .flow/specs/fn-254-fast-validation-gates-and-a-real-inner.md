@@ -62,7 +62,7 @@ Findings this spec acts on (verified 2026-10-25):
 - **Memory.** Parallel TLC and test execution must stay within the host; TLC/JVM tests get a concurrency group. The fn-248 lesson applies: per-lane full targets of about 24 GB filled the disk twice, so measure in the main checkout against the shared target.
 - **Determinism.** Parallelism must not change outputs, snapshot bytes or report order.
 - **Concurrent owners.** fn-246 lanes edit `temporal/realization` and activity tests. Merging test binaries in `model/temporal/**` waits for fn-246's committed closure; `model/umpire/**` can go first.
-- **New tool.** cargo-nextest is a new third-party dev tool. AGENTS.md requires explicit approval; pin its version through `mise`.
+- **New tool.** cargo-nextest is a new third-party dev tool, approved by the owner on 2026-10-25; pin its version through `mise`.
 
 ## Acceptance Criteria
 
@@ -86,6 +86,7 @@ Findings this spec acts on (verified 2026-10-25):
 
   Errors: every stage still runs in `model-validate` and a failing stage still fails the gate with its own exit and name.
 - **R6:** Final measurement against R1's baseline, recorded in `model/design/gate-speed.md`. `time-gate.sh` gains the realistic Model-edit inner loop. Targets (proposed; owner to confirm): `model-quick` under 60 s for an activity edit, `model-check` under 3 min, TLC-required `model-validate` under 10 min, all warm. Errors: a missed target is reported with its cause, not relabelled as met.
+- **R7:** The framework's checks live in `model/umpire` and run without the Temporal tree. One framework entry point (decided in task .9) runs every framework stage: fmt, clippy, docs and tests of `umpire` crates; the stock, control and Kettle guests; core and Kettle protobuf; the generic and Kettle Go hosts; framework controls. The root `Makefile` keeps only Temporal steps and calls that entry point. Framework tools, pins and caches (TLC/Apalache jars, protoc generators, xtask modules) resolve relative to `model/umpire`, not the Temporal repository root. Errors: a control runs the framework entry point on a copy of `model/umpire` alone, with no `model/temporal` and no root `Makefile`, and it passes; a planted dependency from an `umpire` crate on a Temporal crate, or a Temporal name in `model/umpire`, fails the framework gate.
 
 ## Boundaries
 
@@ -108,10 +109,27 @@ Rejected options:
 - **Persistent TLC JVM server:** TLC keeps static state between runs; batching gets most of the gain without that risk.
 - **Caching TLC results in the full gate:** the receipt policy forbids it.
 
-Placement (my proposal, owner to confirm): first in the current order, as a lane parallel to fn-246. The `umpire/**`, Makefile, scripts and TLC-runner files are disjoint from fn-246's. Test-binary consolidation in `temporal/**` waits for fn-246's committed closure.
+2026-10-25, owner: cargo-nextest approved, pinned via mise (R4, task .3).
+
+2026-10-25, owner: "move any umpire-specific tasks/checks/targets out of the Makefile and into model/umpire as the framework stands alone and must be verifiable temporal-agnostic" (R7, tasks .9–.11). Couplings found: 45 framework paths of the form `../../../..` that reach the repository root, the TLC/Apalache caches rooted at `model/build/…`, `dev/xtask/src/apalache_pins.rs` included from a framework crate, protoc generators from the root `.bin/`, and one Cargo workspace and lockfile shared with the Temporal crates.
+
+2026-10-25, owner: fn-254 replaces fn-246 at the front of the current order.
+
+Placement: first in the current order (owner, 2026-10-25). fn-246's in-flight tasks continue to their boundaries. The `umpire/**`, Makefile, scripts and TLC-runner files are disjoint from fn-246's. Test-binary consolidation in `temporal/**` waits for fn-246's committed closure.
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+| --- | --- | --- | --- |
+| R1 | A baseline in `model/design/gate-speed.md` records, on a quiet host and warm target: | fn-254-fast-validation-gates-and-a-real-inner.1, fn-254-fast-validation-gates-and-a-real-inner.8 | — |
+| R2 | `make model-quick` exists. After an edit to `temporal/feature/activity/model.rs` it re-checks the activity natively and through the interpreter. It runs TLC only when the emitted TLA+ changed, and finishes in under 60 s warm. Errors: a changed emitted module always runs TLC fresh; a cache hit is labelled as such; `model-validate` never uses the cache; a planted stale entry with a different key is ignored. | fn-254-fast-validation-gates-and-a-real-inner.6 | — |
+| R3 | The TLC runner checks all properties of a module in one batched run and splits only on failure, with optional parallel property runs. Errors: an equivalence control over every TLC fixture and mutant shows identical verdicts and traces to per-property runs, including a module with two violated properties and a liveness violation under fairness. | fn-254-fast-validation-gates-and-a-real-inner.2 | — |
+| R4 | Tests run in parallel across binaries, with integration tests consolidated to one binary per crate where that cuts link time, and a cheaper test debuginfo profile. Errors: the full test list, including ignored tests, is identical before and after; JVM-backed tests run in a bounded concurrency group. | fn-254-fast-validation-gates-and-a-real-inner.3, fn-254-fast-validation-gates-and-a-real-inner.4, fn-254-fast-validation-gates-and-a-real-inner.7 | — |
+| R5 | Gate composition: | fn-254-fast-validation-gates-and-a-real-inner.5 | — |
+| R6 | Final measurement against R1's baseline, recorded in `model/design/gate-speed.md`. `time-gate.sh` gains the realistic Model-edit inner loop. Targets (proposed; owner to confirm): `model-quick` under 60 s for an activity edit, `model-check` under 3 min, TLC-required `model-validate` under 10 min, all warm. Errors: a missed target is reported with its cause, not relabelled as met. | fn-254-fast-validation-gates-and-a-real-inner.8 | — |
+| R7 | The framework's checks live in `model/umpire` and run without the Temporal tree. One framework entry point (decided in task .9) runs every framework stage: fmt, clippy, docs and tests of `umpire` crates; the stock, control and Kettle guests; core and Kettle protobuf; the generic and Kettle Go hosts; framework controls. The root `Makefile` keeps only Temporal steps and calls that entry point. Framework tools, pins and caches (TLC/Apalache jars, protoc generators, xtask modules) resolve relative to `model/umpire`, not the Temporal repository root. Errors: a control runs the framework entry point on a copy of `model/umpire` alone, with no `model/temporal` and no root `Makefile`, and it passes; a planted dependency from an `umpire` crate on a Temporal crate, or a Temporal name in `model/umpire`, fails the framework gate. | fn-254-fast-validation-gates-and-a-real-inner.10, fn-254-fast-validation-gates-and-a-real-inner.11, fn-254-fast-validation-gates-and-a-real-inner.9 | — |
 
 ## Parked unknowns
 
 - How compile/link time splits against run time inside the 1,707 s `tests` stage (R1 measures it).
 - Whether TLC can report several violated properties exactly in one run, or batching must stop at the first violation and rerun the rest.
-- Owner approval for cargo-nextest; without it, R4 falls back to a script that runs test binaries concurrently.

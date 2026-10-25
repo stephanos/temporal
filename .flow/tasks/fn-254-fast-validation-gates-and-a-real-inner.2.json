@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-25T17:55:26.991998Z",
+  "depends_on": [
+    "fn-254-fast-validation-gates-and-a-real-inner.1"
+  ],
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.2",
+  "priority": null,
+  "spec": "fn-254-fast-validation-gates-and-a-real-inner",
+  "spec_path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.2.md",
+  "status": "todo",
+  "title": "TLC runner: one batched run per check, split on failure, parallel properties",
+  "updated_at": "2026-10-25T17:55:26.991998Z"
+}

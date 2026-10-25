@@ -1,0 +1,22 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-25T17:55:26.992390Z",
+  "depends_on": [
+    "fn-254-fast-validation-gates-and-a-real-inner.2",
+    "fn-254-fast-validation-gates-and-a-real-inner.3",
+    "fn-254-fast-validation-gates-and-a-real-inner.4",
+    "fn-254-fast-validation-gates-and-a-real-inner.5",
+    "fn-254-fast-validation-gates-and-a-real-inner.6",
+    "fn-254-fast-validation-gates-and-a-real-inner.7",
+    "fn-254-fast-validation-gates-and-a-real-inner.11"
+  ],
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.8",
+  "priority": null,
+  "spec": "fn-254-fast-validation-gates-and-a-real-inner",
+  "spec_path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.8.md",
+  "status": "todo",
+  "title": "Final measurement, targets and docs",
+  "updated_at": "2026-10-25T18:10:07.407776Z"
+}

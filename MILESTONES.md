@@ -17,7 +17,12 @@ Umpire uses the Rust workspace described in [model/README.md](model/README.md).
 Its guest runs as stock WASM in a pure Go host.
 The Scala tree under `model/archived/` is frozen reference material.
 
-Current order: **fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
+Current order: **fn-254 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
+fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
+ranks a fast feedback loop among the most important properties. fn-246's in-flight tasks (.8, .11, .15) continue to their
+boundaries. fn-254.1 needs a quiet host; fn-254.7 waits for fn-246, and fn-254.10's workspace move lands at an
+integration boundary. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; fn-253.1, .7, .9
+and .10 edit the activity Model and wait for committed fn-246.15.
 Consolidation and build prerequisites for fn-246 are satisfied. Priority does not create dependencies;
 clear cross-spec blockers only after prerequisite closures are committed in `umpire`.
 Parallel work requires disjoint source and code-generation ownership.
@@ -27,6 +32,31 @@ Current formats migrate together; goldens may be re-accepted after review. Go si
 reviewed validation evidence and a committed validation-cost assessment.
 
 ## Open specs
+
+### fn-254: Fast validation gates and a real inner loop
+
+The TLC-required gate took 2,093 s at fn-247's close against a 60 s soft target; `cargo test --workspace` was 82% of it.
+Causes: test binaries run one after another, TLC starts one JVM per property (about 1.5 s each), Apalache runs
+although deferred, about 134 test binaries each link the whole graph, and no inner loop covers a real Model edit.
+Coverage stays: TLC remains the independent checker, and `model-validate` never uses the new TLC result cache.
+cargo-nextest approved, pinned via mise. The framework's checks move into `model/umpire` and must pass on that
+directory alone (R7). First in the current order; only .7 waits for fn-246's closure.
+
+[Spec](.flow/specs/fn-254-fast-validation-gates-and-a-real-inner.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-254.1 | ⬜ todo | Baseline: per-stage, per-binary (compile vs run), per-test and TLC-launch timings in `model/design/gate-speed.md` (R1) |
+| fn-254.2 | ⬜ todo | After .1: TLC one batched run per check, split on failure, parallel properties; equivalence control (R3) |
+| fn-254.3 | ⬜ todo | After .9: cargo-nextest across binaries with a JVM test group; identical test list (R4) |
+| fn-254.4 | ⬜ todo | After .1: one test binary per `umpire` crate, cheaper test debuginfo, faster linker if measured (R4) |
+| fn-254.5 | ⬜ todo | After .10: Apalache out of routine gates, overlapping stages, trybuild trim, dead `model-check-changed` removed (R5) |
+| fn-254.6 | ⬜ todo | After .2, .10: `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
+| fn-254.7 | ⬜ todo | After .4 and committed fn-246: one test binary per `temporal` crate (R4) |
+| fn-254.8 | ⬜ todo | After .2–.7, .11: final measurement against the baseline, targets, docs (R6, R1) |
+| fn-254.9 | ⬜ todo | After .1: classify gate steps, scripts and caches as framework or Temporal; owner picks entry point and workspace (R7) |
+| fn-254.10 | ⬜ todo | After .9: framework gate, paths, pins and caches move into `model/umpire`; root Makefile keeps Temporal steps (R7) |
+| fn-254.11 | ⬜ todo | After .10: framework gate passes on `model/umpire` alone; planted Temporal coupling fails (R7) |
 
 ### fn-246: Realization as a checked refinement
 
@@ -101,8 +131,8 @@ outstanding performance comparison of the interpreter and compiled checker.
 A generic countdown (`umpire_dsl::countdown`: pure arm/tick/expired functions and within/descends laws,
 lowered from source like `closable`) plus Temporal deadline semantics in `model/temporal`, so the
 activity and later workflow, Nexus and timer Models stop hand-writing each countdown. A spike on the
-activity settles the surface and the lifter gaps first. Not yet in the current order: the spike and
-`umpire-dsl` work are independent of fn-246; the activity migration waits for committed fn-246.15.
+activity settles the surface and the lifter gaps first. The spike and `umpire-dsl` work (.2–.5) are
+independent of fn-246; the activity tasks (.1, .7, .9, .10) wait for committed fn-246.15.
 Whether fn-246.13's protocol Model may share the Temporal layer is an open owner question.
 
 [Spec](.flow/specs/fn-253-reusable-deadline-countdowns-for-models.md).

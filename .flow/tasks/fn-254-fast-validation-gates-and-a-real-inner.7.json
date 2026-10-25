@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-25T17:55:26.992341Z",
+  "depends_on": [
+    "fn-254-fast-validation-gates-and-a-real-inner.4"
+  ],
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.7",
+  "priority": null,
+  "spec": "fn-254-fast-validation-gates-and-a-real-inner",
+  "spec_path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.7.md",
+  "status": "todo",
+  "title": "Temporal crates: one test binary per crate after fn-246",
+  "updated_at": "2026-10-25T17:55:26.992341Z"
+}
