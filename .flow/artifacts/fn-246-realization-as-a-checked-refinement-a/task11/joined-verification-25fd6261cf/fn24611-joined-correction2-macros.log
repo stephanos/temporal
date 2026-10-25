@@ -1,0 +1,28 @@
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/realization/macros)
+    Finished `test` profile [unoptimized] target(s) in 1.15s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/debug/deps/umpire_temporal_realization_macros-ec7b8866447c1a35)
+
+running 7 tests
+test roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths ... ok
+test tests::read_configuration_requires_a_typed_correlation_hook ... ok
+test tests::field_declarations_use_the_admitted_catalog_graph ... ok
+test tests::answer_contexts_follow_rpc_descriptor_edges ... ok
+test tests::migrated_realization_refusals_retain_source_locations ... ok
+test tests::typed_registry_expansion ... ok
+test tests::activity_expansion ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+
+     Running tests/renamed.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/debug/deps/renamed-65fd88990456eae3)
+
+running 1 test
+test renamed_dependencies_preserve_realization_and_enum_admission ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.21s
+
+   Doc-tests umpire_temporal_realization_macros
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,0 +1,165 @@
+{
+  "source_commit": "25fd6261cfa70c1643600fc45864404a6b3ee47a",
+  "model_tree": "b034a0b6c285dd33c7a5736c004aa11e8f059c90",
+  "prior_suite": "fn24611-joined-verification.json",
+  "scope": "Snapshot and fixture dependency-edge corrections only; all prior ordinary suite tests except affected macro test passed. Renew entire macro crate and six-crate doctests, remaining gates and guest freshness.",
+  "status": "terminal-passed",
+  "results": [
+    {
+      "name": "macros",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "umpire-temporal-realization-macros",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "seconds": 11.692,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24611-joined-correction2-macros.log",
+      "log_sha256": "9deacf3be42fd37d39027b611d5653610036c9b8a354d98a83b347723ccca922"
+    },
+    {
+      "name": "doctests",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "umpire-front",
+        "-p",
+        "umpire-dsl-macros",
+        "-p",
+        "umpire-temporal-annotate-syntax",
+        "-p",
+        "umpire-temporal",
+        "-p",
+        "umpire-temporal-realization-macros",
+        "-p",
+        "umpire-author-consumer",
+        "--doc",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "seconds": 10.008,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24611-joined-correction2-doctests.log",
+      "log_sha256": "1e7de734069df5b62efabe2fa10989ee03fddd8391b4e5d9ed606100786e3f13"
+    },
+    {
+      "name": "catalog",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "umpire-catalog",
+        "--test",
+        "admission",
+        "--test",
+        "ui",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "seconds": 4.916,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24611-joined-correction2-catalog.log",
+      "log_sha256": "1a00ec1f55cd494b945c51fdb27e582b7fd45ba52589eedac494496c2ab90937"
+    },
+    {
+      "name": "boundary",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "umpire-temporal-tests",
+        "--test",
+        "boundary",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "seconds": 10.147,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24611-joined-correction2-boundary.log",
+      "log_sha256": "fc5866ad88ada70924941f27d3890c37697ddc7b4a6e6f75b2e756847aa40aa6"
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "fmt",
+        "-p",
+        "umpire-front",
+        "-p",
+        "umpire-dsl-macros",
+        "-p",
+        "umpire-temporal-annotate-syntax",
+        "-p",
+        "umpire-temporal",
+        "-p",
+        "umpire-temporal-realization-macros",
+        "-p",
+        "umpire-author-consumer",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.275,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24611-joined-correction2-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "-p",
+        "umpire-front",
+        "-p",
+        "umpire-dsl-macros",
+        "-p",
+        "umpire-temporal-annotate-syntax",
+        "-p",
+        "umpire-temporal",
+        "-p",
+        "umpire-temporal-realization-macros",
+        "-p",
+        "umpire-author-consumer",
+        "--all-targets",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 17.066,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24611-joined-correction2-clippy.log",
+      "log_sha256": "90d31c4932eea654e8dc57baa96262a3a8b52bcbe7b269d3726a23ee824d0e0f"
+    },
+    {
+      "name": "guest-freshness",
+      "command": [
+        "bash",
+        "scripts/guest-freshness.sh",
+        "umpire-temporal-guest",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm"
+      ],
+      "exit_code": 0,
+      "seconds": 48.931,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24611-joined-correction2-guest-freshness.log",
+      "log_sha256": "1ea9cbaac144b26bd7cce63cb7abea7178094d35abb4aa61281d7940d00e1318"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "fn24611-joined-correction2-catalog.log": "1a00ec1f55cd494b945c51fdb27e582b7fd45ba52589eedac494496c2ab90937",
+  "fn24611-joined-correction2-guest-freshness.log": "1ea9cbaac144b26bd7cce63cb7abea7178094d35abb4aa61281d7940d00e1318",
+  "fn24611-joined-correction2-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fn24611-joined-correction2-doctests.log": "1e7de734069df5b62efabe2fa10989ee03fddd8391b4e5d9ed606100786e3f13",
+  "verification.json": "9e6571028d48df1dc272a74d8cfe014a9d54ed3dd5ace8aa6a1496c6a44bb979",
+  "scope.txt": "d8ff1e6743d94b629e8c38d54950f9b329b6da5b3f105ed9a3b543928799d790",
+  "fn24611-joined-correction2-boundary.log": "fc5866ad88ada70924941f27d3890c37697ddc7b4a6e6f75b2e756847aa40aa6",
+  "fn24611-joined-correction2-clippy.log": "90d31c4932eea654e8dc57baa96262a3a8b52bcbe7b269d3726a23ee824d0e0f",
+  "fn24611-joined-correction2-macros.log": "9deacf3be42fd37d39027b611d5653610036c9b8a354d98a83b347723ccca922"
+}
