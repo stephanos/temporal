@@ -1,0 +1,51 @@
+{
+  "base": "739652c9a5",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a1749c-5c8f-71d0-9a64-bf8f1bd2db70",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a1749c-5cae-7c12-b386-37bce3280960",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a1749c-5c9b-7f52-9794-0b289a7b8ff7",
+      "verdict": "SHIP"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "739652c9a5f441dcb7c4fff0047d37de324e848b",
+    "headSha": "633c2d2a914b44d9a4f6fbe113f67f16dcf9ef00",
+    "items": [],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-0ad16f3a9b509d5a8b809ac380c5f4698d7453fb31f072b0b0a675438ea8390a"
+  },
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.9",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "No findings.\n\n```json\n{\"classification_counts\": {\"introduced\": 0, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "c16ffa796ce6416293c9e673c4f32a05",
+  "rid": "c16ffa796ce6416293c9e673c4f32a05",
+  "session_id": "01a1749c-5c8f-71d0-9a64-bf8f1bd2db70",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-25T19:55:25.757966Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}
