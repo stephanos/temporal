@@ -11665,5 +11665,14 @@
       "preserved": "Production scheduler/qualification45GiB HOST/20GiB overlay/12GiB inner reservation code, tests, policy bindings, journals/attempts remain unchanged. All other build and diagnostic thresholds remain unchanged. This fixture supplies no qualification or timing acceptance.",
       "runner": "Preserve previous run-case-current.py bytes/hash and retain new runner hash+actual admission in case metadata; no old receipt rewritten or stale role/config resealed."
     }
+  },
+  "gate_speed_amendment": {
+    "authority": "Owner gate-speed amendment, 2026-10-25; authoritative fn-242 spec, commit 366a3ebba9",
+    "G1": "Full frozen inventory at freeze and before final verdict; cheap stage guards retain config digest, HEAD, symlink inventory, scratch-aware status and pinned-root checks. Consumed-input authentication remains independent and unchanged.",
+    "G2": "Jobs and test threads match admitted stage cores, with declared single-thread contract/isolation exceptions; producer and independent receipt validation use the same authenticated policy. Memory admission is unchanged.",
+    "G3": "Compile each identical artifact/feature input closure once in a cycle-scoped target; authenticate reuse and retain all lint/test assertions and actual writer locks.",
+    "local_acceptance": "Record original guard IDs against direct control/mutation proof; measure parallel 12-core boundary overhead and old/new portable, lint and Rust-test stage times as specified in R6.",
+    "integration": "Existing batch ownership and original dependency graph remain. Source slices join through the conductor before candidate preparation and whole-batch review; no administrative receipt earns execution proof.",
+    "preserved": "Fail-fast, bounds, memory guard, exclusive/solo admission, all leaf assertions, 3600-second policy and two unused full attempts. Final fn-246 qualification runs every stage fresh."
   }
 }
