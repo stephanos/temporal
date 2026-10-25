@@ -2,8 +2,8 @@ use super::{Entry as StrictEntry, Result, baseline, method, recipe};
 use crate::foundation::dc::{BLOB_SIZE_ERROR, Limits, MAX_ID_LENGTH};
 use std::{collections::BTreeSet, sync::OnceLock};
 use umpire_catalog::{
-    Expectation, GapEntry, MutationApplicability, ProbeResult, Violation, WireCase,
-    mutation_entries, probe_applicability, wire_cases,
+    Expectation, GapEntry, MutationApplicability, ProbeResult, UNCHANGED_REFUSAL, Violation,
+    WireCase, mutation_entries, probe_applicability, wire_cases,
 };
 use umpire_runtime::annotations::ProbeApplicability;
 use umpire_runtime::annotations::ProbeCase;
@@ -173,7 +173,7 @@ impl Entry {
         };
         if !request.baseline && bytes == original {
             metadata.applicability = ProbeApplicability::Unchanged as i32;
-            metadata.refusal = "mutation leaves the baseline unchanged".into();
+            metadata.refusal = UNCHANGED_REFUSAL.into();
             return Ok((metadata, Vec::new()));
         }
         if !request.baseline {
@@ -343,8 +343,7 @@ fn compatible_state(actual: i32, refusal: &str, expected: &ProbeCase) -> bool {
             Ok(ProbeApplicability::Applicable | ProbeApplicability::Unchanged)
         )
         && ((actual == ProbeApplicability::Applicable as i32 && refusal.is_empty())
-            || (actual == ProbeApplicability::Unchanged as i32
-                && refusal == "mutation leaves the baseline unchanged"))
+            || (actual == ProbeApplicability::Unchanged as i32 && refusal == UNCHANGED_REFUSAL))
 }
 
 #[cfg(test)]

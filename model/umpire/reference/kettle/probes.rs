@@ -9,8 +9,8 @@ use crate::{
 use prost::Message;
 use std::{collections::BTreeSet, fmt::Write};
 use umpire_catalog::{
-    Expectation, GapReport, MutationApplicability, ProbeResult, Violation, WireCase,
-    mutation_entries, probe_applicability, wire_cases,
+    Expectation, GapReport, MutationApplicability, ProbeResult, UNCHANGED_REFUSAL, Violation,
+    WireCase, mutation_entries, probe_applicability, wire_cases,
 };
 use umpire_runtime::annotations::{
     ProbeApplicability, ProbeCase, ProbeExpectation, ProbeObservation, ProbeResponse,
@@ -62,7 +62,7 @@ impl Entry {
         };
         if bytes == original {
             metadata.applicability = ProbeApplicability::Unchanged as i32;
-            metadata.refusal = "mutation leaves the baseline unchanged".into();
+            metadata.refusal = UNCHANGED_REFUSAL.into();
             return Ok((metadata, Vec::new(), Vec::new()));
         }
         let mut findings = api::request_findings(self.method, &bytes, "room")?;

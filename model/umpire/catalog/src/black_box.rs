@@ -89,6 +89,9 @@ pub enum MutationApplicability {
     Unchanged,
 }
 
+/// Refusal text carried by every probe whose mutation reproduces the baseline request.
+pub const UNCHANGED_REFUSAL: &str = "mutation leaves the baseline unchanged";
+
 /// Maps a mutation's local applicability and refusal onto the annotation protocol.
 pub fn probe_applicability(
     value: &MutationApplicability,
@@ -101,7 +104,7 @@ pub fn probe_applicability(
         }
         MutationApplicability::Refused(reason) => (ProbeApplicability::Refused, reason.clone()),
         MutationApplicability::Unchanged => {
-            (ProbeApplicability::Unchanged, "mutation leaves the baseline unchanged".into())
+            (ProbeApplicability::Unchanged, UNCHANGED_REFUSAL.into())
         }
     }
 }
