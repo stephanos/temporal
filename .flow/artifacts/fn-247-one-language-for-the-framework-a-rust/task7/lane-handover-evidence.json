@@ -1,0 +1,20 @@
+{
+  "commits": [
+    "e4899e270f052ff24e864fe4617e18911fb348de"
+  ],
+  "base_commit": "2c3c308ee27d2920063dcd29777c5ef084484381",
+  "tests": [
+    "baseline: green; python3 -m unittest discover -s model/scripts/tests -p test_retired_names.py (exit 0)",
+    "baseline: cd model && mise exec -- cargo test -p xtask --locked (exit 0)",
+    "baseline: cd model && mise exec -- cargo test -p umpire-temporal-tests compatibility --locked (exit 0; 2 fixture tests)",
+    "red: cd model && mise exec -- cargo test -p xtask --test retired_names --locked (exit 101; 3 intended absent-command failures)",
+    "cd model && mise exec -- cargo test -p xtask --test retired_names --locked (exit 0; 6 tests)",
+    "cd model && mise exec -- cargo test -p umpire-temporal-tests compatibility --locked (exit 0; 2 fixture tests)",
+    "cd model && mise exec -- cargo clippy -p xtask --all-targets --locked -- -D warnings (exit 0)",
+    "cd model && mise exec -- cargo fmt -p xtask (exit 0)",
+    "UMPIRE_XTASK=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2477-target/debug/xtask bash model/scripts/retired-names.sh (exit 0)",
+    "git diff --check (exit 0)",
+    "git diff --name-only -- model/temporal/feature/activity/compatibility/original .flow/artifacts (empty; originals unchanged)"
+  ],
+  "prs": []
+}

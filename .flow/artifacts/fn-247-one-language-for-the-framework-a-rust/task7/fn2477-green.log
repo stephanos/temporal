@@ -1,0 +1,11 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.35s
+     Running tests/retired_names.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2477-target/debug/deps/retired_names-f03c7b9d8af3683d)
+
+running 3 tests
+test malformed_records_fail_closed ... ok
+test posix_ere_recheck_and_grep_failure_propagate ... ok
+test raw_records_exempt_only_author_facade_tokens ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

@@ -1,0 +1,24 @@
+{
+  "source_commit": "e4899e270f052ff24e864fe4617e18911fb348de",
+  "source_sha256": {
+    "model/dev/xtask/README.md": "d7b56cca8d419a7bf13207c74a67f9eca4f533dcb84f105191afa257adcbb097",
+    "model/dev/xtask/src/lib.rs": "71eb5452c7b192da75cd6a28a2bef8ba555ee860dccd406ebefbda9f3de46f9e",
+    "model/dev/xtask/src/main.rs": "d5c6597396ae5a336ff747999e95393d9782835510a8785eb1f9ff0b956b9249",
+    "model/dev/xtask/src/retired_names.rs": "95eee7de0d8c63db5d18b08a8bd3856bf105de926858e136e88535541d1704d8",
+    "model/dev/xtask/tests/retired_names.rs": "d97162558664254a1a5cb1f87eb443607e1802b3b6b10ac323cf2970b0b55ccf",
+    "model/scripts/retired-names.sh": "10cd24bec13f4354266916e320609901581619ded9b0d23301042bbc2713a27a",
+    "model/temporal/feature/activity/compatibility/README.md": "a5117b5c4e1d72ffd6cdf4edf7a859a23ea0d4bd8afd4b3f376c2b257dd25e9d",
+    "model/temporal/feature/activity/compatibility/checkpoint.rs": "cacbdfb3814fab83132f68721dcabe89ccd4e072148ec288f86159b5f91e781e"
+  },
+  "log_sha256": {
+    "fn2477-baseline.log": "6b631232905562911fcc86cbffbdc7d72363854e40a3210ad3bca4ffc008550b",
+    "fn2477-shell.log": "7e12a3cad62b8f9840ca6829c294df45432d0a41e5be30662dabcffd4cff62b2",
+    "fn2477-green.log": "1fea5c799beb229f5bf9aeb371afe6b36165e99c4e95275113121001bd94415b",
+    "fn2477-final.log": "2c8cc6993d5bfb7f2592fe32f6735bc43efbc2a83335f7f092d708f79cb0d5b4",
+    "fn2477-verify.log": "87a051f60f65570073e261cd683bdcad3c6b0f3b41c74210ab2de3931ca939c3",
+    "fn2477-final2.log": "96a73ff0b99e452b8fdaaabf9bdd79ec73f6257d3c31b2bced305ad8dc2c6220",
+    "fn2477-red.log": "4751317e616078f434989c16d48b7dd6c63d1a06631a412e088d1a0b7dd0e049",
+    "fn2477-shell-final.log": "7e12a3cad62b8f9840ca6829c294df45432d0a41e5be30662dabcffd4cff62b2"
+  },
+  "joined_bootstrap_validation": "pending task5 integration; no completion or review claimed"
+}

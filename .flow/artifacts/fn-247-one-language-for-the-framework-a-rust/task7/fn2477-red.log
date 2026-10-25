@@ -1,0 +1,42 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.41s
+     Running tests/retired_names.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2477-target/debug/deps/retired_names-f03c7b9d8af3683d)
+
+running 3 tests
+test raw_records_exempt_only_author_facade_tokens ... FAILED
+test malformed_records_fail_closed ... FAILED
+test posix_ere_recheck_and_grep_failure_propagate ... FAILED
+
+failures:
+
+---- raw_records_exempt_only_author_facade_tokens stdout ----
+
+thread 'raw_records_exempt_only_author_facade_tokens' (687092) panicked at dev/xtask/tests/retired_names.rs:18:5:
+assertion `left == right` failed
+  left: Some(1)
+ right: Some(0)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- malformed_records_fail_closed stdout ----
+
+thread 'malformed_records_fail_closed' (687090) panicked at dev/xtask/tests/retired_names.rs:36:9:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "", stderr: "xtask: commands: guest-lock, guest-rustc\n" }
+  left: Some(1)
+ right: Some(2)
+
+---- posix_ere_recheck_and_grep_failure_propagate stdout ----
+
+thread 'posix_ere_recheck_and_grep_failure_propagate' (687091) panicked at dev/xtask/tests/retired_names.rs:46:9:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "", stderr: "xtask: commands: guest-lock, guest-rustc\n" }
+  left: Some(1)
+ right: Some(0)
+
+
+failures:
+    malformed_records_fail_closed
+    posix_ere_recheck_and_grep_failure_propagate
+    raw_records_exempt_only_author_facade_tokens
+
+test result: FAILED. 0 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p xtask --test retired_names`

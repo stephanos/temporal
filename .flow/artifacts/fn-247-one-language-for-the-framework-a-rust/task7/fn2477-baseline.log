@@ -1,0 +1,183 @@
+.
+----------------------------------------------------------------------
+Ran 1 test in 3.219s
+
+OK
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling serde_core v1.0.229
+   Compiling typenum v1.20.1
+   Compiling libc v0.2.191
+   Compiling zmij v1.0.23
+   Compiling const-oid v0.10.2
+   Compiling thiserror v2.0.21
+   Compiling winnow v1.0.4
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.154
+   Compiling cfg-if v1.0.5
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling hybrid-array v0.4.15
+   Compiling syn v3.0.9
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling cpufeatures v0.3.1
+   Compiling digest v0.11.3
+   Compiling sha2 v0.11.1
+   Compiling serde_spanned v1.1.2
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.21
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.80s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2477-target/debug/deps/xtask-27721ab0a370a30a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2477-target/debug/deps/xtask-a494e809185d402b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/guest_identity.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2477-target/debug/deps/guest_identity-a70d770d9f07c26c)
+
+running 25 tests
+test compiler::missing_required_inputs_and_option_values_refuse ... ok
+test compiler::os_bytes_and_lexical_root_boundaries_are_preserved ... ok
+test compiler::missing_ambiguous_and_malformed_lock_maps_refuse ... ok
+test compiler::package_features_profile_compiler_and_closure_remain_distinct ... ok
+test compiler::native_macro_identity_ignores_host_configuration_but_retains_argv_and_collisions ... ok
+test compiler::portable_identity_replaces_guest_metadata_and_remaps_generated_paths ... ok
+test compiler::dependency_identity_and_transitive_variants_propagate ... ok
+test compiler::probes_pass_through_without_guest_environment ... ok
+test compiler::build_std_requires_wasm_marker_and_trusted_source_or_rust_src_coordinate ... ok
+test compiler::inherited_jobserver_descriptor_reaches_direct_compiler_child ... ok
+test lock::malformed_native_documents_and_graphs_are_rejected ... ok
+test support::canonical_hash_uses_sorted_json_and_known_sha256 ... ok
+test compiler::invalid_or_missing_dependency_sidecars_and_macro_collisions_refuse ... ok
+test compiler::previous_wrapper_and_loader_environment_keep_raw_os_bytes ... ok
+test lock::sourced_entries_are_required_but_git_checksums_are_optional ... ok
+test lock::ambiguous_name_version_coordinates_are_marked_unavailable ... ok
+test lock::unified_edges_and_edge_topology_change_ancestor_identity ... ok
+test current_inputs::native_toml_accepts_current_documents_and_rejects_malformed_input ... ok
+test support::sidecar_lease_serializes_failure_cleanup_and_refuses_symlink ... ok
+test lock::content_addressed_publication_is_repeatable_and_portable ... ok
+test lock::unrelated_and_dev_only_dependencies_do_not_change_guest_closures ... ok
+test lock::checksum_changes_propagate_through_normal_and_all_platform_build_edges ... ok
+test compiler::sidecar_precedes_child_and_cleanup_preserves_exit_launch_and_signal_outcomes ... ok
+test support::publication_is_complete_under_concurrent_writers_and_cleans_rename_failure ... ok
+test compiler::actual_rustc_compiles_portable_native_macro_sidecars ... ok
+
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+
+   Doc-tests xtask
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling equivalent v1.0.3
+   Compiling hashbrown v0.17.1
+   Compiling prettyplease v0.3.0
+   Compiling bitflags v2.13.2
+   Compiling foldhash v0.1.5
+   Compiling fastrand v2.5.0
+   Compiling smallvec v1.16.3
+   Compiling winnow v1.0.4
+   Compiling fixedbitset v0.5.7
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling bytemuck v1.25.2
+   Compiling hashbrown v0.15.5
+   Compiling anyhow v1.0.104
+   Compiling safe_arch v0.7.4
+   Compiling rand_core v0.9.5
+   Compiling either v1.19.0
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/umpire/author/dsl/macros)
+   Compiling wide v0.7.33
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/umpire/author/dsl)
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling indexmap v2.14.2
+   Compiling itertools v0.14.0
+   Compiling rand_xoshiro v0.7.0
+   Compiling rustix v1.1.5
+   Compiling archery v1.2.3
+   Compiling prettyplease v0.2.37
+   Compiling regex-syntax v0.8.11
+   Compiling linux-raw-sys v0.12.1
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling bytes v1.12.1
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/umpire/backends/native)
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling proc-macro-utils v0.10.0
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling imbl v7.0.2
+   Compiling regex-automata v0.4.18
+   Compiling petgraph v0.8.3
+   Compiling rustc-hash v2.1.3
+   Compiling once_cell v1.21.4
+   Compiling log v0.4.34
+   Compiling manyhow-macros v0.14.1
+   Compiling proc-macro-crate v3.5.0
+   Compiling heck v0.5.0
+   Compiling tempfile v3.27.0
+   Compiling multimap v0.10.1
+   Compiling libc v0.2.191
+   Compiling getrandom v0.4.3
+   Compiling similar v2.7.0
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/umpire/author/suite)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/temporal/testing)
+   Compiling regex v1.13.1
+   Compiling manyhow v0.14.1
+   Compiling console v0.16.6
+   Compiling enum-iterator-derive v1.5.0
+   Compiling prost-derive v0.14.4
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/umpire/ir/derive)
+   Compiling thiserror-impl v2.0.21
+   Compiling insta v1.49.0
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/umpire/ir)
+   Compiling enum-iterator v2.3.0
+   Compiling thiserror v2.0.21
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/umpire/backends/process)
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/umpire/front)
+   Compiling prost v0.14.4
+   Compiling prost-types v0.14.4
+   Compiling prost-build v0.14.4
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/umpire/backends/tla)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/umpire/protocol/runtime)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/umpire/backends/tlc)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/umpire/dev/testing)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/temporal/annotate/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/umpire/catalog/macros)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/temporal/realization/macros)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/temporal/api)
+   Compiling umpire-temporal-annotate-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/temporal/annotate/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/umpire/catalog)
+   Compiling umpire-temporal-annotate v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/temporal/annotate)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port/model/temporal/realization)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 31.03s
+     Running boundary.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2477-target/debug/deps/boundary-9f96dfdefcfaf0ac)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+     Running fixtures.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2477-target/debug/deps/fixtures-7532de6524173c02)
+
+running 2 tests
+test activity_tests::compatibility::changed_original_lifecycle_edge_fails_the_same_comparison ... ok
+test activity_tests::compatibility::retained_original_hashes_and_exact_lifecycle_projection ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.03s
+
