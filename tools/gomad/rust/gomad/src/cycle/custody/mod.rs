@@ -150,9 +150,6 @@ pub(crate) fn check_files(files: &BTreeMap<String, String>) -> Result<(), String
         total = total
             .checked_add(bytes.len() as u64)
             .ok_or("frozen input byte overflow")?;
-        if total > 512 << 20 {
-            return Err("frozen input aggregate byte bound".into());
-        }
         if digest(&bytes) != *expected {
             return Err(format!("frozen input changed: {name}"));
         }

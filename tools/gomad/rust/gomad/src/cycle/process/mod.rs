@@ -205,6 +205,9 @@ fn duplicate(file: &impl std::os::fd::AsFd) -> Result<OwnedFd, String> {
     rustix::io::fcntl_dupfd_cloexec(file, 10).map_err(error)
 }
 impl Runner {
+    pub(crate) fn private_context(&self) -> Option<&str> {
+        self.context.as_deref()
+    }
     pub fn create(
         owner: &CycleOwner,
         root: &Path,

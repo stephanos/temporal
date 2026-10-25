@@ -1,0 +1,182 @@
+{
+  "verified_epoch": 1792897560.829557,
+  "worker_source": "3065f3278a2d31a19db223affb9ed3e0e11f0432",
+  "source_files": 2982,
+  "green_gates": 16,
+  "original_checks": 69,
+  "functions": 26,
+  "endpoints": 2,
+  "observations": 129,
+  "closure_files": 10245,
+  "closure_bytes": 579930275,
+  "referenced_compiler_original_and_backup_hashes_verified": 10,
+  "raw_proof_pins": {
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/proof-map.json": "b231587a418235a125dad4180bd9d363e6d69bfa3efaf969588b829af57d53a1",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/final-closure.json": "57d458e4830c1a2b7d181e892377b2731d4b02932f30e7315f3b6b7e5bba2ce2",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/source-freeze-v5.json": "537af13936d965f17ada51330e7e902340d5dbdfeddd791ec483287db98f5754",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/review-r2-provenance.json": "90ebc5f700d5023d583e1d5081bfff39e037350510a4cf7599180c941ae168ad",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/gates.jsonl": "63f9c4e6474432ef6ab63afde001377b6dd0d40eeda784e2486a95f2c872676c",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/cases.jsonl": "98817c9ab003f48944a73a5b3413e3f6ef2d5a6418cec6c9c4e442911c9bc43d",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/fixture-retention-1255635.json": "d5a29718cfc703a562995bacef75a0f9d434791600c032fa63ca7bee8993bdba",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/api.md": "e00fdc6297b952dc219ef5abf1b9123e7da1f7ad19b7a2eb6340dcc136bdd54b",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/retained-role-compiler-inputs-v5.json": "be69cd4bd07112fe16108e01423fa579950e540a2aa719e65468ee96916be619",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/review-r2-c862-snapshot/manifest.json": "c5b2ad1e5d32f9eac06c82d6d6730a8237c80a037926068997730efddd43e8dd",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/review-r2-c862-gap.json": "5122b727333a2235cbf39e8ea384193706f20d4a4ecabe343925a050bc174842",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/review-r2-combined-diff.patch": "87f5d2a0c6a687dc2bedc74122d9ea2ebb0d1c5892deaee153afea3b166df992",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/review-r2-native-release-duplicate-deletion.json": "2521d57eda9468149b42c61d8143dd5c4f656688c6992488d01fa424bafaf9b0",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/review-r2-native-diagnostic-duplicate-deletion.json": "30c6ebfa543b7d17c9db9325f7a582484d0f504b1e428a20072df01053062abd",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/review-r2-current-native-provenance.json": "5c29a429858836f215b05e8b71f0007b6a4434faf839d7fc424586999db5d1da",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/bounded-v5-freeze-runner-change.json": "637f9262059a09dbb45335b100e7781ecfe1dc582c45494f9454ad5d9808bab7",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/v5-freeze-admission.json": "b4922f051a8b1bbf1fe9b9957ac94ab59577c6f3f0fc5b1736cd3164e7256497",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/resume-bounded-fixture-policy.json": "38b2db8ca6b17f6a47e9c70a17b883d2d1c5bf8691f490a871e3b0dfa6fd9ff0",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/run-case-current.before-bounded-v5-freeze.py": "a8cbc68503be2a0716cbf27329d9a45cf2730b5fc27f7b6bddad6d9265bb66e1",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/run-case-current.py": "7ba4250a717cb79a66a545aed73d016bdc7420bafb3bafc543437a321b072bf5",
+    "/home/agent/wt/evidence/fn242-b03-bindings-composition/review-r2-terminal-processes.json": "a49b2810d5645fd935c66ccb7d551c497bccb4ad8222fc1c7bdb2263687b850c"
+  },
+  "proof_map_sha256": "b231587a418235a125dad4180bd9d363e6d69bfa3efaf969588b829af57d53a1",
+  "qualification_claim": false,
+  "integration_source_files_equal_worker": [
+    "tools/gomad/rust/Cargo.lock",
+    "tools/gomad/rust/Cargo.toml",
+    "tools/gomad/rust/gomad/Cargo.toml",
+    "tools/gomad/rust/gomad/src/cycle/custody/mod.rs",
+    "tools/gomad/rust/gomad/src/cycle/plan/leaf/mod.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/bindings/cells.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/bindings/mod.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/bindings/owner_cases.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/bindings/public.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/bindings/publication.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/bindings/roles.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/bindings/tests.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/composition/mod.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/composition/static_inputs.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/composition/tests.rs",
+    "tools/gomad/rust/gomad/src/cycle/process/mod.rs"
+  ],
+  "owner_fixture_integration": "Preserved B03bindings and reviewedB04command dispatch arms; original enforcing bodies unchanged.",
+  "worker_handoff": "/home/agent/wt/evidence/fn242-b03-bindings-composition/handoff.json",
+  "worker_handoff_sha256": "bdb75d3c1ca38cf738f923b13e75b6a89ecf7eaa8ed25e2b3cb75e51e5354ef7",
+  "proof_map": "/home/agent/wt/evidence/fn242-b03-bindings-composition/proof-map.json",
+  "integration_controls": {
+    "genuine-B03-bindings-pure.log": {
+      "path": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-B03-bindings-pure.log",
+      "sha256": "85a72c36f5b7e5521a26a422bbd30791215370d4c70545f0d8c43b960f5d75fa",
+      "result_lines": [
+        "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 865 filtered out; finished in 0.04s"
+      ]
+    },
+    "genuine-B03-composition-pure.log": {
+      "path": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-B03-composition-pure.log",
+      "sha256": "41edbe7a32417cd390ac629d78c727be59be73df15861bee50a35eef474c7830",
+      "result_lines": [
+        "test result: FAILED. 11 passed; 1 failed; 0 ignored; 0 measured; 858 filtered out; finished in 1.91s"
+      ]
+    },
+    "genuine-B03-current-inventory-registration.log": {
+      "path": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-B03-current-inventory-registration.log",
+      "sha256": "6af89a3ea0c582bf8fd6b5ab2d63e4b6766561e4e5f570bd1824111aeacdc6ce",
+      "result_lines": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 869 filtered out; finished in 0.48s"
+      ]
+    }
+  },
+  "integration_control_disposition": "B06combinede624 source compiled0; B03bindings5pass; composition11pass/1integrationfailure correctly refused unregisterednewB06ignoredtest. After exact additive registrydae7c52c97 the affected compiledinventorycase1pass; all12composition cases now have actualpassingevidence. No B03validator/source change for registry correction.",
+  "limits": "No qualification/fullcycle or timing acceptance. Source3065 genuine role/native/freeze controls; reviewedB04command arm retained in reviewtree, no new integratedcandidate binary claim. Historicalc862 rawclosure/gap retained, no oldreceipt rewritten.",
+  "review": {
+    "verdict": "SHIP",
+    "session_id": "01a170c0-bc0c-7d41-bcd1-c30003bc857a",
+    "reviewed_head": "d26ea2bbdc923a589012862ce5fd118f15d843af",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "receipt": "/home/agent/wt/evidence/fn242-b03-bindings-composition/review-receipt-round2.json",
+    "receipt_sha256": "f79ecebaeeee3ffd2596e19abedef6bbb95ea87c61444438f7294dbc38ab8e3d",
+    "finding_1": "fixed; all consumed paths/digests match authenticated roles at freeze/reopen; genuine normal control and9directmutations verified",
+    "unaddressed": [],
+    "reviewer_test_scope": "Formatting passed; local Cargo tests not run in read-only sandbox. Executed retained genuine evidence verified, no surviving blockers."
+  },
+  "acceptance": "B03 whole-batch independentSHIP;69originalchecks/26functions/2endpoints mapped with actual currentR2 controls. Formal member receipts follow17then19; noqualification.",
+  "prior_review_round1": {
+    "verdict": "NEEDS_WORK",
+    "rid": "0df920b683f541f6a2ac18fb0926f217",
+    "reviewed_head": "aeced47e0c",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "findings": 1,
+    "R2": "Composed HostTests/HelperTests/HostFixture leafpaths are not tied to authenticated CandidateRoles descriptors; genuine freeze-v4 accepted unsealed placeholder paths. Fix requires actualrole mapping/seals and catching currentexecutable/path mutations.",
+    "receipt": "/home/agent/wt/evidence/fn242-b03-bindings-composition/review-receipt-round1.json",
+    "receipt_sha256": "3b87995d2cd50d8e376f0c61bae3023499b2f9f2d3c71b0581d148561ca59d14",
+    "rereview": "Single same-receipt impl-review after actualproductionfix and greencontrols; no fanoutrestart"
+  },
+  "current_R2_correction": {
+    "source": "3065f3278a2d31a19db223affb9ed3e0e11f0432",
+    "freeze": {
+      "log": "/home/agent/wt/evidence/fn242-b03-bindings-composition/v5-freeze.log",
+      "log_sha256": "da74e980eaacfbbdac33b43e5986ccac5196dfaab8a1ebed59fdf60187a2aaba",
+      "exit": 0,
+      "owner_exit": 0,
+      "observations": 23,
+      "direct_R2_cases": [
+        "mismatched-consumed-ordinary-host-test",
+        "mismatched-consumed-ordinary-helper-test",
+        "mismatched-consumed-host-fixture",
+        "changed-consumed-ordinary-host-test",
+        "deleted-consumed-ordinary-host-test",
+        "changed-consumed-ordinary-helper-test",
+        "deleted-consumed-ordinary-helper-test",
+        "changed-consumed-host-fixture",
+        "deleted-consumed-host-fixture"
+      ],
+      "retention": "/home/agent/wt/evidence/fn242-b03-bindings-composition/fixture-retention-1255635.json"
+    },
+    "closure_audit": {
+      "time": 1792897436.3911266,
+      "closure": "/home/agent/wt/evidence/fn242-b03-bindings-composition/final-closure.json",
+      "closure_sha256": "57d458e4830c1a2b7d181e892377b2731d4b02932f30e7315f3b6b7e5bba2ce2",
+      "file_count": 10245,
+      "bytes_verified": 579930275,
+      "errors": [],
+      "configuration": "/home/agent/wt/evidence/fn242-b03-bindings-composition/freeze-v5/cycle.json",
+      "configuration_sha256": "77d3779639ccab7abdd36a2ff194c5bfa55a515dbeaaa11329d0af371a195ba6"
+    },
+    "handoff_audit": "/home/agent/wt/evidence/fn242-b03-bindings-composition/conductor-r2-handoff-audit.json",
+    "source_scope_audit": "/home/agent/wt/evidence/fn242-b03-bindings-composition/conductor-r2-pre-review-audit.json",
+    "owner_sha256": "2b700f3ac93429bfc48e20d559de6dd45a2d70140b34b6958665f1b4087f03d2",
+    "actual_role_bindings": [
+      {
+        "binding": "HostTests",
+        "role": "ordinary-host-test",
+        "actual_binary": "/home/agent/wt/evidence/fn242-b03-bindings-composition/roles-v5/ordinary-host-test/gomad-ordinary-libtest",
+        "sha256": "608b8e4a81cf7addc7d8a638520b5b80413028e4a390200e06df943e83ef2ccf",
+        "equal_authenticated_and_consumed": true,
+        "sealed_in_config_composition_and_roles": true
+      },
+      {
+        "binding": "HelperTests",
+        "role": "ordinary-helper-test",
+        "actual_binary": "/home/agent/wt/evidence/fn242-b03-bindings-composition/roles-v5/ordinary-helper-test/gomad-wasmhost-libtest",
+        "sha256": "7eea2ef1ef89b682df4b315271dd76faf391a638fa13b81933e48be615a67f3d",
+        "equal_authenticated_and_consumed": true,
+        "sealed_in_config_composition_and_roles": true
+      },
+      {
+        "binding": "HostFixture",
+        "role": "host-fixture",
+        "actual_binary": "/home/agent/wt/evidence/fn242-b03-bindings-composition/roles-v5/host-fixture/gomad",
+        "sha256": "b3f18ea2e07e8465c97430c008833f193332447daa9057624048c6b0ce305682",
+        "equal_authenticated_and_consumed": true,
+        "sealed_in_config_composition_and_roles": true
+      }
+    ],
+    "operational_policy_commit": "a4c2d8709d",
+    "qualification_floors_unchanged": true
+  },
+  "main_integration": {
+    "reviewed_binding_composition_files_byte_equal": 10,
+    "rustfmt_exit": 0,
+    "cargo_metadata_locked_exit": 0,
+    "whitespace_exit": 0,
+    "cargo_metadata": "/home/agent/wt/evidence/fn242-b03-bindings-composition/main-integration-cargo-metadata.json",
+    "cargo_metadata_sha256": "f5810e5a2ee93fb26b96ec3875ddd4cbf0052c67be0cd722b6a0210a0f239e7f",
+    "test_evidence": "Existing actual scoped source-matched batch controls reused; no new main candidate compilation or qualification claimed."
+  }
+}
