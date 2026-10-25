@@ -1,0 +1,16 @@
+{
+  "before_cases": 2317,
+  "after_cases": 1118,
+  "dispositions": {
+    "retained": 1112,
+    "removed": 1201,
+    "retained_strengthened": 4,
+    "added": 2
+  },
+  "retained_strict_cases": 79,
+  "after_strict_cases": 81,
+  "original_strict_metadata": "all79 exact; new actual metadata equality rechecked by probe_accounting test",
+  "report_correction": "Original retained_strict_count counted both retained and added strict cases. Corrected to79; separate after_strict_count81. Per-ID entries and metadata unchanged.",
+  "source_checkpoint": "3dd5486d3098a4348ab4cd1ba7681289c3d70c09",
+  "all_worker_final_gate_log_hashes": "verified"
+}

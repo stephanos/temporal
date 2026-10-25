@@ -4,7 +4,7 @@
   "after_count": 1118,
   "removed_count": 1201,
   "added_count": 2,
-  "retained_strict_count": 81,
+  "retained_strict_count": 79,
   "retained_metadata_changes": 4,
   "removed_rules": {
     "unclaimed Ignored subtree": 1182,
@@ -51190,5 +51190,6 @@
       },
       "reason": "Strict witness for independently sourced semantic rule; paired kind/name or explicit interval/default/disabled controls are in catalog.rs and provenance is recorded in semantic-provenance.md"
     }
-  ]
+  ],
+  "after_strict_count": 81
 }
