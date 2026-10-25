@@ -1,0 +1,195 @@
+{
+  "task": "fn-248-off-the-shelf-crates-and-consolidation.1",
+  "base_commit": "0a1a733c72b91054ca0a4ee3d21378c56c26abef",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2481-snapshots",
+  "branch": "work/fn2481-snapshots",
+  "cargo_target_dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target",
+  "checks": [
+    {
+      "cwd": "model",
+      "command": "mise exec -- cargo test -p umpire-testing --tests --locked",
+      "exit": 0,
+      "kind": "baseline",
+      "log": "baseline-testing.log",
+      "observed": "pre-edit runner/control suite green; base commit source. Kettle pre-edit baseline was not run."
+    },
+    {
+      "cwd": "model",
+      "command": "mise exec -- cargo test -p umpire-testing --test consumers consumers_select_generic_snapshot_files --locked",
+      "exit": 101,
+      "kind": "regression-red",
+      "log": "red-text-snapshot.log",
+      "observed": "Original binary runner refuses new logical-filename text snapshot selection; then replaced runner and rechecked."
+    },
+    {
+      "cwd": "model",
+      "command": "mise exec -- cargo test -p umpire-testing --tests --locked",
+      "exit": 0,
+      "kind": "test",
+      "log": "testing-final.log",
+      "observed": "All ordinary runner, consumer, orphan, skipped incomplete/missing/pending, external ownership and payload controls green."
+    },
+    {
+      "cwd": "model",
+      "command": "mise exec -- cargo test -p umpire-reference-kettle --test probes --test realization --locked",
+      "exit": 0,
+      "kind": "test",
+      "log": "kettle-focused.log",
+      "observed": "4 probes + 6 realization tests passed; payload expectations preserved."
+    },
+    {
+      "cwd": "model",
+      "command": "mise exec -- cargo test -p umpire-temporal-tests --test snapshot_ownership --locked",
+      "exit": 0,
+      "kind": "test",
+      "log": "ownership.log",
+      "observed": "2 controls passed; current fixture/named reader registrations, nonfixture orphan/pending/missing reader controls."
+    },
+    {
+      "cwd": "model",
+      "command": "mise exec -- cargo test -p umpire-fixtures --test fixtures fixtures --locked",
+      "exit": 0,
+      "kind": "test",
+      "log": "fixtures-focused.log",
+      "observed": "One real shared fixture pass, including TLA/CFG text snapshots. Optional TLC skipped, no TLC agreement claim."
+    },
+    {
+      "cwd": "model",
+      "command": "mise exec -- cargo test -p umpire-temporal-tests --test fixtures --test boundary --locked",
+      "exit": 0,
+      "kind": "test",
+      "log": "temporal-fixtures-boundary.log",
+      "observed": "Native fixture and boundary controls passed; 2 ignored explicit controls, no required TLC execution claim."
+    },
+    {
+      "cwd": "model",
+      "command": "mise exec -- cargo test -p umpire-runtime --test dispatch generated_dispatch_matches_trait_kettle_goldens --locked",
+      "exit": 0,
+      "kind": "test",
+      "log": "runtime-reader-final.log",
+      "observed": "Native output compared against actual shared text snapshot payloads, 1 selected test passed."
+    },
+    {
+      "cwd": "model",
+      "command": "mise exec -- cargo run -p umpire-caught-panic-guest --bin panic-control-reports --locked -- /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-native-controls",
+      "exit": 0,
+      "kind": "native-control",
+      "log": "native-panic-reader.log",
+      "observed": "Exit 0; two checker defect responses match reviewed payloads. Panic-hook output is expected and caught, not an uncaught process failure. No wasm execution/publication."
+    },
+    {
+      "cwd": "model/umpire/hosts/go",
+      "command": "mise exec -- go test -tags test_dep ./snapshot",
+      "exit": 1,
+      "kind": "mutation-red",
+      "log": "go-pending-red.log",
+      "observed": "Pending check deliberately omitted: valid reviewed snapshot + pending candidate falsely accepted; test observed pending snapshot was not refused. Guard restored."
+    },
+    {
+      "cwd": "model/umpire/hosts/go",
+      "command": "mise exec -- go test -tags test_dep ./snapshot",
+      "exit": 0,
+      "kind": "test",
+      "log": "go-payload.log",
+      "observed": "Stdlib payload extraction preserves body delimiters/blank lines, rejects missing/malformed/binary headers and pending reviewed candidate."
+    },
+    {
+      "cwd": "model/umpire/reference/kettle",
+      "command": "mise exec -- go test -tags test_dep -run '^$' .",
+      "exit": 0,
+      "kind": "compile-only",
+      "log": "go-kettle-compile.log",
+      "observed": "Kettle Go reader/producers compile; zero executed tests is explicitly not live execution evidence."
+    },
+    {
+      "cwd": ".",
+      "command": "mise exec -- go test -tags test_dep,integration ./tests -run '^$'",
+      "exit": 0,
+      "kind": "compile-only",
+      "log": "go-live-reader-compile.log",
+      "observed": "Changed main live gaps reader compiles; zero executed tests is explicitly not live execution evidence."
+    },
+    {
+      "cwd": "model",
+      "command": "mise exec -- cargo clippy -p umpire-testing -p umpire-temporal-tests -p umpire-reference-kettle --tests --locked -- -D warnings",
+      "exit": 0,
+      "kind": "lint",
+      "log": "clippy-focused.log"
+    },
+    {
+      "cwd": ".",
+      "command": "mise exec -- cargo fmt --manifest-path model/Cargo.toml --all --check",
+      "exit": 0,
+      "kind": "format",
+      "log": "rust-format.log"
+    },
+    {
+      "command": "migration payload inspection against base commit",
+      "kind": "migration-review",
+      "exit": 0,
+      "log": "migration-review.log",
+      "observed": "349 binary payloads preserved exactly. Six separately migrated raw current payloads also matched originals; historical originals unchanged."
+    },
+    {
+      "cwd": "model",
+      "command": "mise exec -- cargo test -p umpire-temporal --test realization named_guest_adapter_preserves_the_independent_report_and_ordered_rows --locked",
+      "exit": 0,
+      "kind": "test",
+      "log": "temporal-reader.log",
+      "observed": "1 selected native adapter test; independent report and ordered rows snapshot assertions passed. No wasm execution claim."
+    },
+    {
+      "cwd": ".",
+      "command": "git diff --check <base_commit>",
+      "exit": 0,
+      "kind": "whitespace",
+      "observed": "Source and normalized evidence logs have no whitespace errors."
+    }
+  ],
+  "source_sha256": {
+    "model/Cargo.lock": "5c5ac4b3e1bc5dfd70e9751e3df9bda3d39f608a492ed0558e2c83f8b4cc1fae",
+    "model/README.md": "fa701d425f68fc9a661cc66bf214ef9edc53463f8338c74184c2c81342d544c1",
+    "model/design/second-opinion.md": "322a42573952cd2d8c9550e5dfc8f234882cb1b44b7126bf5ab20c8b50b03f58",
+    "model/temporal/realization/Cargo.toml": "c07edb955a16221366345647d363581c7dc48a9ae18ed9317a86e08da246bd42",
+    "model/temporal/realization/tests/realization.rs": "eadfdd923543036e9e9185fc374c3dcdee8d36239564f7576939aec31a38c3ae",
+    "model/temporal/testing/Cargo.toml": "19d6a3343c5188e5a0007469b05af25479a96563d8c032df0fbf317ba7aac838",
+    "model/temporal/testing/fixtures.rs": "4fcde19d5afaf987879d6771b34df270a122eb37cab4afc466243de85a0e6250",
+    "model/temporal/testing/realization_control.rs": "5c6f57db9b1c1812a95e81ca6e0b83fc7e3b850c7aab30a5dbf6f494d3ab2a13",
+    "model/temporal/testing/snapshot_ownership.rs": "73c5398c511b9c7c04b62e93d8d59892c6d92dfe73aa0798ae3d5efa392ca2e0",
+    "model/umpire/dev/fixtures/fixtures.rs": "31798d0688cc79f2598ad8e4d61c9e2704fd96058976491bf1c19487a748fa7d",
+    "model/umpire/dev/testing/src/lib.rs": "efa2f727861bb9bcab61e751df318cad41d0f583651a99272010b7e292b87c85",
+    "model/umpire/dev/testing/src/runner.rs": "1bf54bf52099a5f381ba388f4c7f2bf2c271e05775cad51f344e0ec95c73629b",
+    "model/umpire/dev/testing/src/snapshot_payload.rs": "4af2876dafe0e48d7c8dea09d397fcd28e7ae4a1737e490817f7a4f90f5bc833",
+    "model/umpire/dev/testing/tests/consumers.rs": "bed4f72c12297d7345498e2a8fac0bdeefef4e302b18ce6f7e9b35a30013a214",
+    "model/umpire/dev/testing/tests/external_consumers.rs": "5321ddc4deebde15df8f0d8e8ee36483259804ba791952c3d147aa46219f10e8",
+    "model/umpire/dev/testing/tests/suite_consumers.rs": "b0fdf9f4b5687f37c7030d6f5ff07ccae145551e03cbe2245eccb06d25ad5c9f",
+    "model/umpire/hosts/go/snapshot/snapshot.go": "80e16a61ede06bb77287b9ed2130391020200ff94b8d73b77624ac31cc4320af",
+    "model/umpire/hosts/go/snapshot/snapshot_test.go": "843171fe1d809b106a08e80138e085453f6ffa3ed40e6d4d70c0747fd5a8806b",
+    "model/umpire/protocol/runtime/guests/caught-panic/src/bin/panic-control-reports.rs": "4c69acd69e720ad9924286039571de668f232ad4a6ee67ee773362da20f393c7",
+    "model/umpire/protocol/runtime/tests/dispatch.rs": "7960099a26635ba599cc81bbeff9b9b12c6048b513eb07bd1d8b055abcc22fb7",
+    "model/umpire/reference/kettle/Cargo.toml": "71d674686a4550dc13c3275ae27d4f8aad00a919b874b81684e1fd254350a50f",
+    "model/umpire/reference/kettle/README.md": "7f5bca4675b5df797dde6fbe23c2a1f66d52da95edadd1187a3c7fe4691c7948",
+    "model/umpire/reference/kettle/kettle_annotations_test.go": "182f49e5609fd93bdf0f30a25a67e1d1008c86224be9bce2e30ec17690c88923",
+    "model/umpire/reference/kettle/kettle_mutants_test.go": "53164a1ae7cc75d9e2164dbbea278a3c1c0ff219b73faf0eb749f9ecbfc17911",
+    "model/umpire/reference/kettle/kettle_test.go": "8f77478491e86f33ef4b84bed32fae14cf60f3e8e6ee37bd8e54952e81f95f21",
+    "model/umpire/reference/kettle/parity_test.go": "81d1368dac4f6250903c8c3433b481f59834eb0db0ad279f69d653e6198ad229",
+    "model/umpire/reference/kettle/snapshots_test.go": "c2119010a1726c489374c62c5e2fe1a3214a9064daf3f987fbed7c770b25f15b",
+    "model/umpire/reference/kettle/tests/live_snapshots.rs": "ee840a1761f24f3dd1941092c72629f834ca472750e9d967c2798bb582bfd4da",
+    "model/umpire/reference/kettle/tests/probes.rs": "de370ae9c68e802495577f5e030705139060d254ec7b62b3dbb4abf152d5b05d",
+    "model/umpire/reference/kettle/tests/realization.rs": "f9755890a9a5a9179a8c27ae814ccb54cacebbfe90b98626c7092083f06ee967",
+    "tests/testpilot_model_gaps_test.go": "cdadd2fea624aa768c8f21e4c932bf6be35298c488f42f2447d9b65c81014757"
+  },
+  "source_binding": "Final source hashes; each final focused command ran on its applicable unchanged source. The baseline and original-runner red observation explicitly refer to the base/original runner. This is lane-only evidence, not joined-source certification.",
+  "limitations": [
+    "Full model baseline/final gate, joined snapshot reacceptance, required backend proof and guest publication are owned by final7.",
+    "No live Go/wasm parity or main gap test executed in this lane; format-only unit and compile evidence are separate.",
+    "Ignored Go candidate import controls were compiled, not invoked, and are not execution evidence.",
+    "Kettle focused pre-edit baseline was not observed; testing runner baseline was green.",
+    "Initial Clippy/compile integration findings were corrected (runner function size/suffix check, borrowed slice, one renamed Go helper caller); final controls above are green."
+  ],
+  "native_outputs": {
+    "effect_panic.pb": "57e9cbe2fa91e1476b75eb392b7fb8a00cd723adc0a2fe5be4852605d0836c53",
+    "effect_overflow.pb": "a6676ea2fe6667eda4b26ea04419c3f7802e377aeb466e72b81399670b378cef"
+  },
+  "log_format": "Captured logs retain substantive command output; trailing empty lines removed for repository whitespace checks. Initial diff whitespace findings were limited to those log endings."
+}

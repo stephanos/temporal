@@ -1,0 +1,23 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+TLC 1.7.4; complete source-lifted exploration
+states: 18; native: 18; agreement: yes
+claim attempt_changes_only_on_retry: Verified; native: Verified; agreement: yes
+claim closed_rejects: Verified; native: Verified; agreement: yes
+claim countdowns_decrement: Verified; native: Verified; agreement: yes
+claim deadline_arming: Verified; native: Verified; agreement: yes
+claim eventually_closed: Verified; native: Verified; agreement: yes
+claim global_never_replenished: Verified; native: Verified; agreement: yes
+claim heartbeat_preserves_attempt_and_global: Verified; native: Verified; agreement: yes
+claim ordinary_nonretryable_failure_fails: Verified; native: Verified; agreement: yes
+claim ordinary_retry_at_cap_fails: Verified; native: Verified; agreement: yes
+claim ordinary_retry_rearms: Verified; native: Verified; agreement: yes
+claim pending_is_cooperative: Verified; native: Verified; agreement: yes
+claim pending_nonretryable_failure_fails: Verified; native: Verified; agreement: yes
+claim pending_retryable_failure_cancels: Verified; native: Verified; agreement: yes
+claim state_bounds: Verified; native: Verified; agreement: yes
+claim terminal_remains: Verified; native: Verified; agreement: yes
+claim tick_descends_and_expires: Verified; native: Verified; agreement: yes
+claim tick_priority: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0

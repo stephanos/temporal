@@ -234,7 +234,7 @@ func TestKettleMutants(t *testing.T) {
 	if t.Failed() {
 		return
 	}
-	kettleAnnotationGolden(t, "mutants.snap.txt", golden.String())
+	compareSnapshot(t, "mutants.txt", golden.String())
 }
 
 func TestKettleMutantMissingWitness(t *testing.T) {

@@ -1,0 +1,15 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+starts: 1
+reached: 9
+emitted: 20
+evaluated: 54
+refused: 34
+depth: 6
+cut: false
+outcome: Verified
+claim bounded: Verified
+claim monotonic: Verified
+claim closes: Verified
+vacuity: none

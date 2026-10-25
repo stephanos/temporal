@@ -64,7 +64,7 @@ fn added_catalog_field_fails_the_real_coverage_golden() -> umpire_testing::TestR
     let catalog = workspace.join("model/temporal/feature/activity/api.rs");
     let original = fs::read_to_string(&catalog)?;
     let result = (|| -> umpire_testing::TestResult {
-        let golden = "model/temporal/feature/activity/expected/realization.snap.txt";
+        let golden = "model/temporal/feature/activity/expected/realization.txt.snap";
         let before = fs::read(workspace.join(golden))?;
         if before != fs::read(root.join(golden))? {
             return Err("control requires the current committed coverage checkpoint".into());
@@ -96,7 +96,9 @@ fn added_catalog_field_fails_the_real_coverage_golden() -> umpire_testing::TestR
             String::from_utf8_lossy(&output.stderr)
         );
         fs::write(root.join(".flow/tmp/realization-added-field-control.log"), &log)?;
-        if output.status.success() || !log.contains("snapshot assertion for 'realization' failed") {
+        if output.status.success()
+            || !log.contains("snapshot assertion for 'realization.txt' failed")
+        {
             return Err(format!(
                 "added-field control did not reach the expected golden refusal: {}\n{log}",
                 output.status
@@ -106,26 +108,27 @@ fn added_catalog_field_fails_the_real_coverage_golden() -> umpire_testing::TestR
         if fs::read(workspace.join(golden))? != before {
             return Err("added-field control changed the coverage baseline".into());
         }
-        let pending = fs::read_to_string(
-            workspace.join("model/temporal/feature/activity/expected/realization.snap.new.txt"),
+        let pending_snapshot = fs::read_to_string(
+            workspace.join("model/temporal/feature/activity/expected/realization.txt.snap.new"),
         )?;
-        let expected = String::from_utf8(before)?.replacen(
+        let pending = umpire_testing::snapshot_payload(&pending_snapshot)?;
+        let before = String::from_utf8(before)?;
+        let expected = umpire_testing::snapshot_payload(&before)?.replacen(
             "message: temporal.api.workflowservice.v1.RequestCancelActivityExecutionResponse\n  (no fields)",
             "message: temporal.api.workflowservice.v1.RequestCancelActivityExecutionResponse\n  unsupported coverage_control",
             1,
         );
-        fs::write(root.join(".flow/tmp/realization-added-field-control.txt"), &pending)?;
+        fs::write(root.join(".flow/tmp/realization-added-field-control.txt"), pending)?;
         if pending != expected || !pending.contains("unsupported coverage_control") {
             return Err("added-field snapshot has an unexpected coverage delta".into());
         }
         Ok(())
     })();
     fs::write(&catalog, original)?;
-    for file in ["realization.snap.new", "realization.snap.new.txt"] {
-        let path = workspace.join("model/temporal/feature/activity/expected").join(file);
-        if path.is_file() {
-            fs::remove_file(path)?;
-        }
+    let pending =
+        workspace.join("model/temporal/feature/activity/expected/realization.txt.snap.new");
+    if pending.is_file() {
+        fs::remove_file(pending)?;
     }
     git(&root, &["worktree", "remove", &lane])?;
     git(&root, &["branch", "-d", &branch])?;

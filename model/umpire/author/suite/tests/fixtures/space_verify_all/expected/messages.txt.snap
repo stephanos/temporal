@@ -1,0 +1,34 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+from room temperature:
+starts: 1
+reached: 163
+emitted: 244
+evaluated: 652
+refused: 408
+depth: 82
+cut: false
+outcome: Verified
+claim beeps_only_when_off: Verified
+claim warms_only_when_on: Verified
+claim fails_over_at_boiling: Verified
+claim boils: Verified
+vacuity: none
+from room temperature, budget 10:
+starts: 1
+reached: 10
+emitted: 14
+evaluated: 35
+refused: 21
+depth: 6
+cut: true
+outcome: Unknown
+claim beeps_only_when_off: Unknown
+claim warms_only_when_on: Unknown
+claim fails_over_at_boiling: Unknown
+claim boils: Unknown
+vacuity: action Heater::Failover never fired
+vacuity: after claim fails_over_at_boiling never triggered
+budget 0:
+refused: state budget must be at least one (given: 0)

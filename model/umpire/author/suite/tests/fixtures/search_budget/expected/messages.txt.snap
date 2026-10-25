@@ -1,0 +1,32 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+unreachable, bounded by a billion steps, budget 4:
+refused: waypoint 1 is not reached from Node(4, open=false)
+twelve steps around three Model states, budget 3: 12 steps
+along one lap, budget 3:
+start: Node(0, open=false)
+1: Turn choice=0 -> Node(1, open=false)
+2: Turn choice=0 -> Node(2, open=false)
+3: Turn choice=0 -> Node(0, open=false)
+loop witness can hide shorter escape, budget 3:
+refused: waypoint 4 is not reached from Node(0, open=true) within the state budget
+loop witness can hide shorter escape, budget 4:
+start: Node(0, open=true)
+1: Turn choice=0 -> Node(1, open=true)
+2: Turn choice=0 -> Node(2, open=true)
+3: Escape choice=0 -> Node(3, open=true)
+loop witness at the cut frontier, budget 3:
+start: Node(0, open=true)
+1: Turn choice=0 -> Node(1, open=true)
+2: Turn choice=0 -> Node(2, open=true)
+3: Turn choice=0 -> Node(0, open=true)
+zero-step answer despite start cut:
+start: Node(0, open=false)
+omitted start cannot prove absence:
+refused: waypoint 0 is not reached from the space's 2 starts within the state budget
+shorter queued match survives a later younger arrival:
+start: Node(10, open=false)
+1: Turn choice=1 -> Node(12, open=false)
+2: Turn choice=0 -> Node(14, open=false)
+3: Turn choice=0 -> Node(15, open=false)

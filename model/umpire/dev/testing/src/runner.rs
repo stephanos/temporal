@@ -14,14 +14,14 @@ pub struct Consumer {
     pub render: fn(fn() -> crate::RunResult, &Path) -> crate::RunResult,
 }
 
-/// One direct artifact whose comparison belongs to a named external test.
+/// One text snapshot whose comparison belongs to a named external test.
 #[derive(Clone, Copy)]
 pub struct ExternalConsumer {
     /// Live consumer that must execute and compare this artifact separately.
     pub name: &'static str,
     /// Known fixture owning the artifact.
     pub fixture: &'static str,
-    /// Direct artifact basename, distinct from native snapshot files.
+    /// Snapshot basename, including the `.snap` suffix.
     pub expected: &'static str,
 }
 
@@ -114,6 +114,7 @@ pub fn run_at_skipping_with_external(
         let mut files = Vec::new();
         collect_files(&expected, &mut files)?;
         files.sort();
+        check_pending(&files)?;
         let mut selected = BTreeSet::new();
         for path in files.iter().filter(|path| !external_artifacts.contains(*path)) {
             let logical = logical_file(path, &expected)?;
@@ -152,7 +153,7 @@ pub fn run_at_skipping_with_external(
             }
             let location = folder.display();
             for (file, content) in output {
-                if external_artifacts.contains(&expected.join(&file)) {
+                if external_artifacts.contains(&golden_files(&expected.join(&file))[0]) {
                     return Err(format!(
                         "native producer emitted external artifact: {file} for {location}"
                     )
@@ -224,17 +225,14 @@ fn external_artifacts(
             return Err(format!("unknown external fixture: {}", declaration.fixture).into());
         }
         let file = declaration.expected;
-        if file.is_empty()
-            || matches!(file, "." | "..")
-            || file.contains(['/', '\\', '*', '?'])
-            || Path::new(file)
-                .extension()
-                .is_some_and(|extension| extension.eq_ignore_ascii_case("snap"))
-            || file.contains(".snap.")
-        {
+        let logical = file
+            .strip_suffix(".snap")
+            .filter(|name| !name.is_empty())
+            .ok_or_else(|| format!("invalid external artifact: {file}"))?;
+        if file.is_empty() || matches!(file, "." | "..") || file.contains(['/', '\\', '*', '?']) {
             return Err(format!("invalid external artifact: {file}").into());
         }
-        if !owners(file, consumers).is_empty() {
+        if !owners(logical, consumers).is_empty() {
             return Err(format!("external artifact has native consumer: {file}").into());
         }
         let expected = root.join(declaration.fixture).join("expected");
@@ -249,6 +247,13 @@ fn external_artifacts(
                 format!("missing external artifact or unsafe path: {}", path.display()).into()
             );
         }
+        let pending = PathBuf::from(format!("{}.new", path.display()));
+        if pending.exists() {
+            return Err(
+                format!("external artifact has pending golden: {}", pending.display()).into()
+            );
+        }
+        validate_text_snapshot(&path)?;
         eprintln!(
             "external artifact {}: requires {}; no execution or comparison evidence from native runner",
             path.display(),
@@ -264,95 +269,74 @@ fn skipped_files(
     consumer: &Consumer,
 ) -> Result<BTreeSet<PathBuf>, Box<dyn std::error::Error>> {
     let mut artifacts = BTreeSet::new();
+    for required in consumer.expected.iter().filter(|pattern| !pattern.contains('*')) {
+        validate_text_snapshot(&golden_files(&expected.join(required))[0])
+            .map_err(|error| format!("skipped backend has incomplete golden: {error}"))?;
+    }
     for path in files {
         let logical = logical_file(path, expected)?;
         if !consumer.owns(&logical) {
             continue;
         }
-        let [metadata, payload, pending_metadata, pending_payload] =
-            golden_files(&expected.join(&logical));
-        if !metadata.is_file() || !payload.is_file() {
-            return Err(format!("skipped backend has incomplete golden: {}", path.display()).into());
-        }
-        if pending_metadata.exists() || pending_payload.exists() {
+        let [snapshot, pending] = golden_files(&expected.join(&logical));
+        if pending.exists() {
             return Err(format!("skipped backend has pending golden: {}", path.display()).into());
         }
-        artifacts.extend([metadata, payload]);
+        validate_text_snapshot(&snapshot)
+            .map_err(|error| format!("skipped backend has incomplete golden: {error}"))?;
+        artifacts.insert(snapshot);
     }
     Ok(artifacts)
 }
 
-fn logical_file(path: &Path, root: &Path) -> Result<String, Box<dyn std::error::Error>> {
-    let relative = path.strip_prefix(root)?.to_string_lossy().replace('\\', "/");
-    let (stem, extension) = if let Some(stem) =
-        relative.strip_suffix(".snap.new").or_else(|| relative.strip_suffix(".snap"))
-    {
-        let metadata = fs::read_to_string(path)?;
-        let extension = metadata
-            .lines()
-            .find_map(|line| line.strip_prefix("extension: "))
-            .ok_or_else(|| format!("invalid binary snapshot metadata: {}", path.display()))?;
-        (stem.to_owned(), extension.to_owned())
-    } else if let Some((stem, extension)) =
-        relative.split_once(".snap.new.").or_else(|| relative.split_once(".snap."))
-    {
-        (stem.to_owned(), extension.to_owned())
-    } else {
-        return Ok(relative);
-    };
-    let stem = if extension == "txt" {
-        &stem
-    } else {
-        stem.strip_suffix(&format!("@{extension}")).unwrap_or(&stem)
-    };
-    Ok(format!("{stem}.{extension}"))
+fn check_pending(files: &[PathBuf]) -> crate::TestResult {
+    if let Some(pending) = files.iter().find(|path| path.to_string_lossy().ends_with(".snap.new")) {
+        return Err(format!("pending golden: {}", pending.display()).into());
+    }
+    Ok(())
 }
 
-fn golden_files(path: &Path) -> [PathBuf; 4] {
-    let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("txt");
-    let metadata = if extension == "txt" {
-        path.with_extension("snap")
-    } else {
-        path.with_file_name(format!(
-            "{}@{extension}.snap",
-            path.file_stem().unwrap_or_default().to_string_lossy()
-        ))
-    };
-    [
-        metadata.clone(),
-        metadata.with_extension(format!("snap.{extension}")),
-        metadata.with_extension("snap.new"),
-        metadata.with_extension(format!("snap.new.{extension}")),
-    ]
+fn logical_file(path: &Path, root: &Path) -> Result<String, Box<dyn std::error::Error>> {
+    let relative = path.strip_prefix(root)?.to_string_lossy().replace('\\', "/");
+    Ok(relative
+        .strip_suffix(".snap.new")
+        .or_else(|| relative.strip_suffix(".snap"))
+        .unwrap_or(&relative)
+        .to_owned())
+}
+
+fn golden_files(path: &Path) -> [PathBuf; 2] {
+    let snapshot = PathBuf::from(format!("{}.snap", path.display()));
+    let pending = PathBuf::from(format!("{}.new", snapshot.display()));
+    [snapshot, pending]
 }
 
 fn snapshot(path: &Path, content: &str) -> crate::TestResult {
     let parent = path.parent().ok_or("golden has no parent")?;
-    let [metadata, payload, _, _] = golden_files(path);
+    let [snapshot, pending] = golden_files(path);
+    if pending.exists() {
+        return Err(format!("pending golden: {}", pending.display()).into());
+    }
     if std::env::var("INSTA_UPDATE").as_deref() == Ok("always") {
         fs::create_dir_all(parent)?;
     } else {
-        fs::read(&payload).map_err(|error| {
-            format!("fixture has no readable golden {}: {error}", payload.display())
-        })?;
-        if !metadata.is_file() {
-            return Err(format!("fixture has no snapshot metadata: {}", path.display()).into());
-        }
+        validate_text_snapshot(&snapshot)?;
     }
     let mut settings = insta::Settings::clone_current();
     settings.set_snapshot_path(parent);
     settings.set_prepend_module_to_snapshot(false);
     settings.set_omit_expression(true);
-    let file = path.file_name().and_then(|name| name.to_str()).ok_or("invalid golden file name")?;
-    let extension =
-        path.extension().and_then(|name| name.to_str()).ok_or("golden has no extension")?;
-    if extension != "txt" {
-        settings.set_snapshot_suffix(extension);
-    }
-    let name = file;
-    settings.bind(|| {
-        insta::assert_binary_snapshot!(&name, content.as_bytes().to_vec());
-    });
+    let name = path.file_name().and_then(|name| name.to_str()).ok_or("invalid golden file name")?;
+    settings.bind(|| insta::assert_snapshot!(name, content));
+    Ok(())
+}
+
+fn validate_text_snapshot(path: &Path) -> crate::TestResult {
+    let content = fs::read_to_string(path)
+        .map_err(|error| format!("incomplete golden {}: {error}", path.display()))?;
+    crate::snapshot_payload(&content)
+        .map_err(|error| format!("invalid golden {}: {error}", path.display()))?;
+    insta::Snapshot::from_file(path)?;
     Ok(())
 }
 

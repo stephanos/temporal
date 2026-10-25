@@ -1,0 +1,61 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+manual default:
+starts: 1
+reached: 1
+emitted: 0
+evaluated: 2
+refused: 0
+depth: 0
+cut: false
+outcome: Refuted
+claim step_0_0: Refuted
+claim duplicate: Verified
+claim duplicate: Verified
+claim duplicate: Verified
+claim step_0_0: Refuted
+failure step_0_0: action false panicked: first failure
+claim step_0_1: Refuted
+failure step_0_1: action true panicked: second failure
+vacuity: action false never fired
+vacuity: action true never fired
+ordered world:
+starts: 1
+reached: 1
+emitted: 0
+evaluated: 2
+refused: 0
+depth: 0
+cut: false
+outcome: Refuted
+claim duplicate: Verified
+claim duplicate: Verified
+claim duplicate: Verified
+claim step_0_0: Refuted
+claim step_0_0: Refuted
+failure step_0_0: action false panicked: first failure
+claim step_0_1: Refuted
+failure step_0_1: action true panicked: second failure
+vacuity: action false never fired
+vacuity: action true never fired
+supplemental name collision:
+starts: 1
+reached: 1
+emitted: 0
+evaluated: 2
+refused: 0
+depth: 0
+cut: false
+outcome: Refuted
+claim duplicate: Verified
+claim duplicate: Verified
+claim duplicate: Refuted
+claim duplicate: Verified
+claim step_0_0: Refuted
+claim step_0_0: Refuted
+failure step_0_0: action false panicked: first failure
+claim step_0_1: Refuted
+failure step_0_1: action true panicked: second failure
+vacuity: action false never fired
+vacuity: action true never fired

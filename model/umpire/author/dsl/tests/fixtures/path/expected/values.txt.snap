@@ -1,0 +1,12 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+judged against: [Kettle { temperature: 20, beeping: false }, Kettle { temperature: 60, beeping: false }, Kettle { temperature: 100, beeping: true }]
+bools: 2 waypoints; yyy .. nnn
+bool or: 2 waypoints; yyy .. yyy
+closures: 2 waypoints; ynn ..=1 nny
+inferred closure: 2 waypoints; ynn .. nyy
+destructured closure: 2 waypoints; nny .. yyn
+states: 2 waypoints; ynn ..=4 nny
+chain: 3 waypoints; yyn ..=2 nyn .. nny
+chain as a claim: a progress claim has one trigger and one target; ask a longer progression with find or Run::along

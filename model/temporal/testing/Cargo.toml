@@ -13,6 +13,10 @@ name = "fixtures"
 path = "fixtures.rs"
 
 [[test]]
+name = "snapshot_ownership"
+path = "snapshot_ownership.rs"
+
+[[test]]
 name = "boundary"
 path = "boundary.rs"
 
@@ -20,6 +24,7 @@ path = "boundary.rs"
 workspace = true
 
 [dev-dependencies]
+insta.workspace = true
 umpire-front.workspace = true
 syn.workspace = true
 umpire-dsl.workspace = true

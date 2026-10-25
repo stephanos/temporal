@@ -1,2 +1,0 @@
-0: Model { value: false }
-1: Model { value: true }

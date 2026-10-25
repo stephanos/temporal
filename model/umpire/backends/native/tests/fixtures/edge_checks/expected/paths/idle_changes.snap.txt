@@ -1,4 +1,0 @@
-start: Value { 0: 0 }
-1: Action::Advance choice=0 -> Value { 0: 1 }
-2: Action::Advance choice=0 -> Value { 0: 2 }
-3: Action::Idle choice=0 -> Value { 0: 2 }

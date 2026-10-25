@@ -1,0 +1,26 @@
+{
+  "checks": [
+    {
+      "command": "mise exec -- rustc --edition=2024 --test model/umpire/dev/testing/src/snapshot_payload.rs -o /tmp/fn2481-snapshot-payload-test && /tmp/fn2481-snapshot-payload-test",
+      "exit": 0,
+      "observed": "1 passed; body delimiters and blank lines preserved; missing/unterminated/invalid/binary headers refused"
+    },
+    {
+      "cwd": "model/umpire/reference/kettle",
+      "command": "mise exec -- go test -tags test_dep -run '^TestSnapshotPayload$' .",
+      "exit": 0,
+      "log": "readers-go-snapshot.log",
+      "observed": "ok umpire.local/kettle 0.032s"
+    }
+  ],
+  "source_sha256": {
+    "model/umpire/dev/testing/src/snapshot_payload.rs": "4af2876dafe0e48d7c8dea09d397fcd28e7ae4a1737e490817f7a4f90f5bc833",
+    "model/umpire/reference/kettle/snapshots_test.go": "2465dd4a3daf9a893e98d2d79042066b5e95f453edf7fa07db1d6a32d2d32b96",
+    "model/umpire/reference/kettle/tests/live_snapshots.rs": "ee840a1761f24f3dd1941092c72629f834ca472750e9d967c2798bb582bfd4da"
+  },
+  "limitations": [
+    "No guest publication or whole-model gate run in source subtask.",
+    "Go native/wasm parity and live importer require joined current artifacts and exported real Go candidates.",
+    "Initial Go compile attempt found now-fixed unused os import; final actual Go selector passed."
+  ]
+}

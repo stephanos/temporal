@@ -1,0 +1,7 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+start: Model { phase: Queued, attempt: 1 }
+1: Client::Drop choice=0 -> Model { phase: Dropped, attempt: 1 }
+2: Client::Recheck choice=0 -> Model { phase: Dropped, attempt: 1 }
+failure: check!(*outcome == Outcome::Rejected(expected)) failed at Model { phase: Dropped, attempt: 1 }

@@ -1,8 +1,0 @@
-all allows: 0 1 2; fair:; excluded:; is_fair:
-legacy-empty allows: 0 1 2; fair:; excluded:; is_fair:
-legacy allows: 0 2; fair:; excluded: 1; is_fair:
-only allows: 0 2; fair:; excluded:; is_fair:
-only-without allows: 0; fair:; excluded: 1; is_fair:
-without-only allows: 0; fair:; excluded: 1; is_fair:
-replace-only allows: 2; fair:; excluded:; is_fair:
-repeat allows: 0; fair: 2 0 1; excluded: 1 2; is_fair: 0 1 2

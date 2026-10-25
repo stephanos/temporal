@@ -43,11 +43,8 @@ func TestKettleParity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	wantReport, err := os.ReadFile("../../backends/native/tests/fixtures/sample_kettle_trait/expected/report.snap.txt")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if report.Report != string(wantReport) {
+	wantReport := readSnapshot(t, "../../backends/native/tests/fixtures/sample_kettle_trait/expected/report.txt.snap")
+	if report.Report != wantReport {
 		t.Fatalf("report differs: %s", report.Report)
 	}
 	var rows strings.Builder
@@ -60,11 +57,8 @@ func TestKettleParity(t *testing.T) {
 			rows.WriteString(row)
 		}
 	}
-	wantRows, err := os.ReadFile("../../backends/native/tests/fixtures/sample_kettle_trait/expected/rows.snap.txt")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if rows.String() != string(wantRows) {
+	wantRows := readSnapshot(t, "../../backends/native/tests/fixtures/sample_kettle_trait/expected/rows.txt.snap")
+	if rows.String() != wantRows {
 		t.Fatal("ordered rows differ")
 	}
 }

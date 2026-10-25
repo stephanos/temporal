@@ -91,10 +91,10 @@ fn coverage_matches_catalog_golden() -> Result {
     let coverage = probes::run(&ProbeRequest { operation: 3, ..Default::default() })?.report;
     assert!(coverage.contains("legacy_note"));
     assert!(coverage.contains("Ignored"));
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("expected/coverage.snap");
-    if std::env::var_os("UMPIRE_UPDATE_KETTLE_COVERAGE").is_some() {
-        std::fs::write(&path, &coverage)?;
-    }
-    assert_eq!(coverage, std::fs::read_to_string(path)?);
+    let mut settings = insta::Settings::clone_current();
+    settings.set_snapshot_path("../expected");
+    settings.set_prepend_module_to_snapshot(false);
+    settings.set_omit_expression(true);
+    settings.bind(|| insta::assert_snapshot!("coverage.txt", coverage));
     Ok(())
 }

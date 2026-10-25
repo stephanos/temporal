@@ -1,0 +1,5 @@
+--- FAIL: TestReadPreservesPayloadAndRefusesPendingOrMalformed (0.00s)
+    snapshot_test.go:41: pending snapshot was not refused: <nil>
+FAIL
+FAIL	umpire.local/model/snapshot	0.003s
+FAIL

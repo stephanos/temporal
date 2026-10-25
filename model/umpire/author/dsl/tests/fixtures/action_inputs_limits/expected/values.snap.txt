@@ -1,1 +1,0 @@
-overflow: Err(ExpansionOverflow); empty: Ok(0); finite: Ok(4)

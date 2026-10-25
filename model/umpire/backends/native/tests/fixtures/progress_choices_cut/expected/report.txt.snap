@@ -1,0 +1,13 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+starts: 1
+reached: 2
+emitted: 2
+evaluated: 1
+refused: 0
+depth: 1
+cut: true
+outcome: Unknown
+claim reaches_target: Unknown
+vacuity: action Action::Loop never fired

@@ -52,7 +52,7 @@ fn fixtures() -> umpire_testing::TestResult {
             );
         }
         for name in admitted(&root) {
-            if !root.join(name).join("expected/tlc.snap.txt").is_file() {
+            if !root.join(name).join("expected/tlc.txt.snap").is_file() {
                 return Err(format!("unselected backend coverage: {name} has no TLC golden").into());
             }
         }

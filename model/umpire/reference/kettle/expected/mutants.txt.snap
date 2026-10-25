@@ -1,0 +1,7 @@
+---
+source: umpire/reference/kettle/tests/live_snapshots.rs
+---
+overlong-id -> Probe generic::Fill::umpire.reference.kettle.v1.FillRequest.kettle_id:mutation.limit_plus_one(32) -> umpire.reference.kettle.v1.FillRequest.kettle_id: string.max_bytes: Accepted
+premature-boil -> Judge -> Unexplained
+removed-validator -> Probe generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels.key:mutation.empty -> umpire.reference.kettle.v1.FillRequest.FillOptions.labels: bytes.min_len: Accepted
+wrong-status -> Probe generic::Fill::umpire.reference.kettle.v1.FillRequest.kettle_id:mutation.limit_plus_one(32) -> umpire.reference.kettle.v1.FillRequest.kettle_id: string.max_bytes: Mismatch { expected: Some(Rejects { code: 3, message_pattern: "kettle_id must contain 1..32 bytes", details_type: None }), actual: Rejected { code: 9, message_matches: true, details_type: None } }

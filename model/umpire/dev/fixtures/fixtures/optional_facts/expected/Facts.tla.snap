@@ -1,0 +1,94 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+---- MODULE Facts ----
+EXTENDS Integers, TLC, Sequences
+CONSTANT \* @type: Bool;
+__umpire_world_selector
+\* @type: (Int, Int) => Int;
+__umpire_Div(__umpire_a, __umpire_b) ==
+    IF Assert(__umpire_b # 0, "Rust integer division by zero") /\ Assert(~(__umpire_a = (-2147483647 - 1) /\ __umpire_b = -1), "Rust integer division overflow")
+    THEN IF __umpire_b = (-2147483647 - 1)
+         THEN IF __umpire_a = (-2147483647 - 1) THEN 1 ELSE 0
+         ELSE IF __umpire_a < 0
+              THEN LET (* @type: Int; *) __umpire_d == IF __umpire_b < 0 THEN -__umpire_b ELSE __umpire_b
+                       (* @type: Int; *) __umpire_n == -(__umpire_a + 1)
+                       (* @type: Int; *) __umpire_q == __umpire_n \div __umpire_d
+                       (* @type: Int; *) __umpire_r == __umpire_n - __umpire_q * __umpire_d
+                       (* @type: Int; *) __umpire_negative == -__umpire_q - (IF __umpire_r = __umpire_d - 1 THEN 1 ELSE 0)
+                   IN IF __umpire_b < 0 THEN -__umpire_negative ELSE __umpire_negative
+              ELSE IF __umpire_b < 0 THEN -(__umpire_a \div (-__umpire_b)) ELSE __umpire_a \div __umpire_b
+    ELSE 0
+
+VARIABLE \* @type: Int;
+value
+VARIABLE \* @type: Bool;
+__umpire_edge_tick
+VARIABLE \* @type: Int;
+__umpire_pending
+VARIABLE \* @type: Int;
+__umpire_steps
+VARIABLE \* @type: Str;
+__umpire_action
+VARIABLE \* @type: Int;
+__umpire_choice
+VARIABLE \* @type: Str;
+__umpire_outcome
+VARIABLE \* @type: Seq(Str);
+__umpire_facts
+\* @type: <<Int, Bool, Int, Int, Str, Int, Str, Seq(Str)>>;
+vars == <<value, __umpire_edge_tick, __umpire_pending, __umpire_steps, __umpire_action, __umpire_choice, __umpire_outcome, __umpire_facts>>
+\* @type: <<Int>>;
+ModelVars == <<value>>
+
+\* @type: Bool;
+Init == (((value = 0))) /\ (__umpire_edge_tick = FALSE) /\ (__umpire_pending = 0) /\ (__umpire_steps = 0) /\ (__umpire_action = "") /\ (__umpire_choice = 0) /\ (__umpire_outcome = "Outcome::Accepted") /\ (__umpire_facts = <<>>)
+
+\* @type: Bool;
+Signal_A == ((((value) = (0))) /\ ((1) = (1)) /\ ((1 # value)) /\ (value' = 1) /\ (__umpire_action' = "Signal::A") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<"Fact::A">>)) \/ ((((~(((value) = (0)))) /\ (TRUE))) /\ ((value # value)) /\ (value' = value) /\ (__umpire_action' = "Signal::A") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>))
+\* @type: Bool;
+Signal_B == ((((value) = (0))) /\ ((2) = (2)) /\ ((2 # value)) /\ (value' = 2) /\ (__umpire_action' = "Signal::B") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<"Fact::B">>)) \/ ((((~(((value) = (0)))) /\ (TRUE))) /\ ((value # value)) /\ (value' = value) /\ (__umpire_action' = "Signal::B") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>))
+\* @type: Bool;
+Signal_C == ((((value) = (0))) /\ ((3) = (3)) /\ ((3 # value)) /\ (value' = 3) /\ (__umpire_action' = "Signal::C") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<"Fact::C">>)) \/ ((((~(((value) = (0)))) /\ (TRUE))) /\ ((value # value)) /\ (value' = value) /\ (__umpire_action' = "Signal::C") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>))
+\* @type: Bool;
+Signal_D == ((((value) = (0))) /\ ((4) = (4)) /\ ((4 # value)) /\ (value' = 4) /\ (__umpire_action' = "Signal::D") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<"Fact::D">>)) \/ ((((~(((value) = (0)))) /\ (TRUE))) /\ ((value # value)) /\ (value' = value) /\ (__umpire_action' = "Signal::D") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>))
+\* @type: Bool;
+Signal_Overlap == ((((value) = (0))) /\ ((1) = (1)) /\ ((__umpire_world_selector) = (__umpire_world_selector)) /\ ((1 # value)) /\ (value' = 1) /\ (__umpire_action' = "Signal::Overlap") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = (IF __umpire_world_selector THEN <<"Fact::B">> ELSE <<"Fact::A">>))) \/ ((((~(((value) = (0)))) /\ (((value) = (0))))) /\ ((4) = (4)) /\ ((4 # value)) /\ (value' = 4) /\ (__umpire_action' = "Signal::Overlap") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<"Fact::D">>)) \/ ((((~(((((value) = (0))) \/ (((value) = (0)))))) /\ (TRUE))) /\ ((value # value)) /\ (value' = value) /\ (__umpire_action' = "Signal::Overlap") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>))
+\* @type: Bool;
+Signal_ChangedNone == ((((value) = (0))) /\ ((6) = (6)) /\ ((6 # value)) /\ (value' = 6) /\ (__umpire_action' = "Signal::ChangedNone") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>)) \/ ((((~(((value) = (0)))) /\ (TRUE))) /\ ((value # value)) /\ (value' = value) /\ (__umpire_action' = "Signal::ChangedNone") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>))
+\* @type: Bool;
+Signal_UnchangedNone == ((TRUE) /\ ((value # value)) /\ (value' = value) /\ (__umpire_action' = "Signal::UnchangedNone") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>))
+\* @type: Bool;
+Signal_UnchangedSome == ((TRUE) /\ ((value # value)) /\ (value' = value) /\ (__umpire_action' = "Signal::UnchangedSome") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<"Fact::D">>)) \/ ((FALSE) /\ ((value # value)) /\ (value' = value) /\ (__umpire_action' = "Signal::UnchangedSome") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>))
+\* @type: Bool;
+Signal_Stay == ((TRUE) /\ (value' = value) /\ (__umpire_action' = "Signal::Stay") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<"Fact::C">>)) \/ ((FALSE) /\ ((value # value)) /\ (value' = value) /\ (__umpire_action' = "Signal::Stay") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>))
+\* @type: Bool;
+Signal_HelperReject == ((TRUE) /\ (value' = value) /\ (__umpire_action' = "Signal::HelperReject") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Rejected(Unavailable)") /\ (__umpire_facts' = <<"Fact::B">>)) \/ ((FALSE) /\ ((value # value)) /\ (value' = value) /\ (__umpire_action' = "Signal::HelperReject") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>))
+\* @type: Bool;
+Ordinary_Clear == ((((((value) > (0))) /\ (((value) < (5))))) /\ ((5) = (5)) /\ ((5 # value)) /\ (value' = 5) /\ (__umpire_action' = "Ordinary::Clear") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>)) \/ ((((~(((((value) > (0))) /\ (((value) < (5)))))) /\ (TRUE))) /\ ((value # value)) /\ (value' = value) /\ (__umpire_action' = "Ordinary::Clear") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>))
+\* @type: Bool;
+Ordinary_Reject == ((TRUE) /\ (value' = value) /\ (__umpire_action' = "Ordinary::Reject") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Rejected(NotFound)") /\ (__umpire_facts' = <<>>))
+\* @type: Bool;
+ModelNext == (Signal_A) \/ (Signal_B) \/ (Signal_C) \/ (Signal_D) \/ (Signal_Overlap) \/ (Signal_ChangedNone) \/ (Signal_UnchangedNone) \/ (Signal_UnchangedSome) \/ (Signal_Stay) \/ (Signal_HelperReject) \/ (Ordinary_Clear) \/ (Ordinary_Reject)
+\* @type: Bool;
+ModelEdge == __umpire_edge_tick' # __umpire_edge_tick
+\* @type: Bool;
+Edge == ModelNext /\ (__umpire_edge_tick' = ~__umpire_edge_tick) /\ UNCHANGED <<__umpire_pending, __umpire_steps>>
+\* @type: Bool;
+Complete == ~ENABLED ModelNext /\ UNCHANGED vars
+\* @type: Bool;
+Next == Edge \/ Complete
+\* @type: Bool;
+Spec == Init /\ [][Next]_vars
+
+\* @type: Bool;
+Invariant_never_a == (<<((value) # (1))>> = <<TRUE>>)
+\* @type: Bool;
+Invariant_never_b == (<<((value) # (2))>> = <<TRUE>>)
+\* @type: Bool;
+Invariant_never_c == (<<((value) # (3))>> = <<TRUE>>)
+\* @type: Bool;
+Invariant_never_d == (<<((value) # (4))>> = <<TRUE>>)
+\* @type: Bool;
+Invariant_never_clear == (<<((value) # (5))>> = <<TRUE>>)
+====

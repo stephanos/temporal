@@ -1,0 +1,17 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+starts: 81
+reached: 283
+emitted: 424
+evaluated: 1132
+refused: 708
+depth: 62
+cut: false
+outcome: Refuted
+claim beeps_only_when_off: Verified
+claim never_beeps: Refuted
+claim warms_only_when_on: Verified
+claim fails_over_at_boiling: Verified
+claim boils: Verified
+vacuity: none

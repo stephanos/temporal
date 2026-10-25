@@ -1,0 +1,4 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+0: User::ActualChange choice=0 outcome=() facts=[] -> Model { value: true }

@@ -1,0 +1,2096 @@
+[
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/edge_checks/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/edge_checks/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/edge_checks/expected/rows.txt.snap",
+    "payload_sha256": "cc960833190094e568e749b9ff534caa0d62cae622c7189a91937914cd97eb27"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/edge_checks/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/edge_checks/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/edge_checks/expected/report.txt.snap",
+    "payload_sha256": "f98114edabe2a031f7636872c4283331266879c4bbbbecf06e58072d9aeb1eb4"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/edge_checks/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/edge_checks/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/edge_checks/expected/states.txt.snap",
+    "payload_sha256": "79954ae7dd998172adca9739387e91c05ce1b5a2a9cb5a5094bec946a3f9ca0f"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/edge_checks/expected/paths/never_decreases.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/edge_checks/expected/paths/never_decreases.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/edge_checks/expected/paths/never_decreases.txt.snap",
+    "payload_sha256": "78941bddfff451039619c72524f8d0eead30fbe445ca5e7596408b917247e0c2"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/edge_checks/expected/paths/idle_changes.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/edge_checks/expected/paths/idle_changes.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/edge_checks/expected/paths/idle_changes.txt.snap",
+    "payload_sha256": "3715f3d96b4eeb5b7849cc9c69f94eb59370fc4112a67888c0becb5320e83850"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_assumption_validation/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_assumption_validation/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_assumption_validation/expected/report.txt.snap",
+    "payload_sha256": "2dd84e2309c26e5af324dffb2355ded7fc95aa84e9b562ead2e93dcb309fdfff"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/rows.txt.snap",
+    "payload_sha256": "c7392a28b3219cd2d78677e0169cc8a34008006a38fc62a5cc43e5608b8d5091"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/report.txt.snap",
+    "payload_sha256": "a70c71873654a9116d62163a62a69a48f5f6dca7afa97aef5b70c030c3f5f113"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/states.txt.snap",
+    "payload_sha256": "01837f7e5d7e3591556050e92b72a129da99d143a5844ace7efe90700b7907e3"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/paths/trigger_panic.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/paths/trigger_panic.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/paths/trigger_panic.txt.snap",
+    "payload_sha256": "4edb4a330c315bb2f8870a4f8a12a9564e6fbca6b36c352bf00ba7275391f93c"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/paths/target_panic.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/paths/target_panic.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/paths/target_panic.txt.snap",
+    "payload_sha256": "95ffe750ea9dafc981513ac3cd32abe49da602a57462ae41e66080a247fecc4b"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_bounds/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_bounds/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_bounds/expected/report.txt.snap",
+    "payload_sha256": "d6da096b44bc4e3607ae34f390bf49e99bf0fa0888a23cbe2a380d1a991838f7"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_choices_cut/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_choices_cut/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_choices_cut/expected/rows.txt.snap",
+    "payload_sha256": "dbb2f561998ba4fb87cd95cf69f6e0cdf0c56043250ace5e28f4eb08bb9b80b3"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_choices_cut/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_choices_cut/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_choices_cut/expected/report.txt.snap",
+    "payload_sha256": "8686532265a96af45fd8826806a44a02d795e6af720967b3459294cb0557c9a1"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_choices_cut/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_choices_cut/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_choices_cut/expected/states.txt.snap",
+    "payload_sha256": "01837f7e5d7e3591556050e92b72a129da99d143a5844ace7efe90700b7907e3"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/rows.txt.snap",
+    "payload_sha256": "f12c5eb64276cd20d848d3eeb0be7d6f087bc601c3b677e9c8a5c6fc67d0dd13"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/report.txt.snap",
+    "payload_sha256": "c634e0099bd25d3833988fca44c9191debca352e0286afc6828a862711677056"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/states.txt.snap",
+    "payload_sha256": "9de08698834ee83caae0e493ab439998c7d5070c3abba979e5ba46f01d34c133"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/paths/reaches_target.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/paths/reaches_target.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/paths/reaches_target.txt.snap",
+    "payload_sha256": "a034d526c276c826c3ed18c4619b650983b15b3ed91a460e71c5760866cc7d8b"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/zero_budget/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/zero_budget/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/zero_budget/expected/report.txt.snap",
+    "payload_sha256": "fb96a71834cf118f808cefc485041e498e2f985c8936b1cfb525a4f44286b213"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/rows.txt.snap",
+    "payload_sha256": "cc960833190094e568e749b9ff534caa0d62cae622c7189a91937914cd97eb27"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/report.txt.snap",
+    "payload_sha256": "a3427fcfc7a4b6bc0ac01e711ac3306374613f7f2a5941f0c57fa9d13267a4dc"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/states.txt.snap",
+    "payload_sha256": "79954ae7dd998172adca9739387e91c05ce1b5a2a9cb5a5094bec946a3f9ca0f"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/paths/safe.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/paths/safe.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/paths/safe.txt.snap",
+    "payload_sha256": "b174597ecba45f4fe2f3f5d80599fce595909d017a878561a6a8216c5ec82eef"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_explicit_fairness/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_explicit_fairness/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_explicit_fairness/expected/report.txt.snap",
+    "payload_sha256": "6cd89eae791b31ad272f3baba77a0a984525345a9b42fef1100c0cdcf52476a1"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/rows.txt.snap",
+    "payload_sha256": "3c801a1cacdcd4dafc1c9540ee27777a4398b14a82077bc565403383eaaab0f2"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/report.txt.snap",
+    "payload_sha256": "00637f1ecb8becb84f2699c8be8bf1c4527d000787183f6e89f9eb4e72e7217c"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/states.txt.snap",
+    "payload_sha256": "812fc3941eca4b63289a2498c8be509e5cb5b8b84a6597e7c3a98c4b5a9cd547"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/paths/reaches_target.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/paths/reaches_target.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/paths/reaches_target.txt.snap",
+    "payload_sha256": "dfdd48ea1296ef5c859b1af44c6b11885d05e6ad29c822289984fb7143c7c277"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/rows.txt.snap",
+    "payload_sha256": "35762547442b27bafc9c4142959db61076bbc7854793b9830aa551e55373747f"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/report.txt.snap",
+    "payload_sha256": "e76c201fadf3f351ca5c40a923b5b861754fb060b6640bb37796bae86dbf1455"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/states.txt.snap",
+    "payload_sha256": "2367fea877490b9df195fa9f5c896bfdce51772c39ede9a7ba8037e8eb8500d7"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/paths/reaches_target.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/paths/reaches_target.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/paths/reaches_target.txt.snap",
+    "payload_sha256": "b4a1c0a26ca55bfac1d04d6fd5436ebffc2c11e66f07f43f865f2671c55f4e55"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/rows.txt.snap",
+    "payload_sha256": "cc960833190094e568e749b9ff534caa0d62cae622c7189a91937914cd97eb27"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/report.txt.snap",
+    "payload_sha256": "622da4582623bdbb9477973ce58d6a344fe1af358fb3371f713d675d46134326"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/states.txt.snap",
+    "payload_sha256": "79954ae7dd998172adca9739387e91c05ce1b5a2a9cb5a5094bec946a3f9ca0f"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/paths/panicking_edge.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/paths/panicking_edge.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/paths/panicking_edge.txt.snap",
+    "payload_sha256": "fe37d4bce22f3027c63a4ca9064c950a2b2ba99b54af6f568f5ebe24e4093114"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_admission_cut/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_admission_cut/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_admission_cut/expected/rows.txt.snap",
+    "payload_sha256": "ce262c9b11eee7b00e18998f172b6d4cd60a965df384003f4559b23bd257c986"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_admission_cut/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_admission_cut/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_admission_cut/expected/report.txt.snap",
+    "payload_sha256": "a502299dae4ceb50c1041884bcc8b7f74ef4d884ddbc5284f77e7c8acfa7726d"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_admission_cut/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_admission_cut/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_admission_cut/expected/states.txt.snap",
+    "payload_sha256": "812fc3941eca4b63289a2498c8be509e5cb5b8b84a6597e7c3a98c4b5a9cd547"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/rows.txt.snap",
+    "payload_sha256": "1104c7e2e4a1376492d98f19d58ba5e6d9d5fcb5b03e61eb3d6488bd2e6d298b"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/report.txt.snap",
+    "payload_sha256": "123d37d87a2b1526a5a02703c486afdb32677d5c93e4ecd9a92b69fd08ca21f0"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/states.txt.snap",
+    "payload_sha256": "afa607d8affbbb7063309d269f79d1d0345e2b65191570829e82112021ebec9c"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/paths/unchanged.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/paths/unchanged.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/paths/unchanged.txt.snap",
+    "payload_sha256": "f30bc38408a45b3bc0e61331e4747fc31c6c4d95c0899b26f897deac5f887acf"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_starts_cut/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_starts_cut/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_starts_cut/expected/rows.txt.snap",
+    "payload_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_starts_cut/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_starts_cut/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_starts_cut/expected/report.txt.snap",
+    "payload_sha256": "a614c2fb540f98cc717dde67a9c847dd7fede0987e34e67e0d7151c63d305f56"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_starts_cut/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_starts_cut/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_starts_cut/expected/states.txt.snap",
+    "payload_sha256": "812fc3941eca4b63289a2498c8be509e5cb5b8b84a6597e7c3a98c4b5a9cd547"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/rows.txt.snap",
+    "payload_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/report.txt.snap",
+    "payload_sha256": "9244c7962d49535883216e8070bf952e925b3bcaf857fc35f8bb333eec5fc922"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/states.txt.snap",
+    "payload_sha256": "812fc3941eca4b63289a2498c8be509e5cb5b8b84a6597e7c3a98c4b5a9cd547"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/paths/step_0_0.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/paths/step_0_0.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/paths/step_0_0.txt.snap",
+    "payload_sha256": "8bd77db15ef659a4fc63b9301b3d793778997891f06369fac7dd23f0d5e9125f"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/holes/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/holes/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/holes/expected/rows.txt.snap",
+    "payload_sha256": "cc960833190094e568e749b9ff534caa0d62cae622c7189a91937914cd97eb27"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/holes/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/holes/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/holes/expected/report.txt.snap",
+    "payload_sha256": "c8da03f134a94f1cdf4b9ab222d17bd1cb90efee3d989a81b37807189694f0b8"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/holes/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/holes/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/holes/expected/states.txt.snap",
+    "payload_sha256": "79954ae7dd998172adca9739387e91c05ce1b5a2a9cb5a5094bec946a3f9ca0f"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/choices/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/choices/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/choices/expected/rows.txt.snap",
+    "payload_sha256": "8ea4547902514ab4b76dc2e754fc5956a0549b65852ee14e4176d7e5989a9608"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/choices/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/choices/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/choices/expected/report.txt.snap",
+    "payload_sha256": "7c905a5b110b86e129280995628ffb2000df28ce41d74f8a097f06c56d59477b"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/choices/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/choices/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/choices/expected/states.txt.snap",
+    "payload_sha256": "d627090d9ada24de88f37976918fe02b43161bace043cd205e9994fab6d1f9bd"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/claim_order/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/claim_order/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/claim_order/expected/report.txt.snap",
+    "payload_sha256": "9adf669ae7c21b8447e975cd5a0a119a697d1ab9e312329a811b937fa144b60f"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/rejecting_mutation/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/rejecting_mutation/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/rejecting_mutation/expected/report.txt.snap",
+    "payload_sha256": "18da6c865d2073fed7dc23fb9bd79340bc344f806807305c3b133f72f069c48c"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/rows.txt.snap",
+    "payload_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/report.txt.snap",
+    "payload_sha256": "9635799d2d8b5f3270bc7b91f2c4a4000e57c12a85aebd4b40b74878e3418351"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/states.txt.snap",
+    "payload_sha256": "afa607d8affbbb7063309d269f79d1d0345e2b65191570829e82112021ebec9c"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/paths/step_0_0.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/paths/step_0_0.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/paths/step_0_0.txt.snap",
+    "payload_sha256": "0da8db87605867fdc7aea604d737341b36ad7d4516fd62cfe471041e7f451442"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/rows.txt.snap",
+    "payload_sha256": "be1e501b8fa00a2ff7df61282b8cd95f112c6c3d12d9ac74d3b62d860b523397"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/report.txt.snap",
+    "payload_sha256": "2a2ed766af4e43a839f53858b77930a1d98812ddfb46ed0ed72ce47d191c1dbe"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/states.txt.snap",
+    "payload_sha256": "16be30cdb9ac5aace977442324cd9e53c311e7bbc3d85ee177f2d88ee0e31757"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/negative_report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/negative_report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/negative_report.txt.snap",
+    "payload_sha256": "953ffbf605ef755251c4da15b210e0a8807417ffcde0d941711a1e591441a915"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/paths/stays_zero.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/paths/stays_zero.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/paths/stays_zero.txt.snap",
+    "payload_sha256": "b7ae6f7e9a188897e6d9103f3cd3e344ab5f2efdcf0879ffa444b943b25c66dd"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/paths/starts_zero.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/paths/starts_zero.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/paths/starts_zero.txt.snap",
+    "payload_sha256": "b7ae6f7e9a188897e6d9103f3cd3e344ab5f2efdcf0879ffa444b943b25c66dd"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/rows.txt.snap",
+    "payload_sha256": "8741e7c3b735cc5b2e21fee255c6ab5a0bedeaa143bc3e1c3f7beb924019ba70"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/report.txt.snap",
+    "payload_sha256": "119e6790de274127452d429f79253b90bbb27d964f8eca9f1c30e34e5844326a"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/states.txt.snap",
+    "payload_sha256": "75b449441158e2960bf63199281076fba92251234f72fb06bfb48598c34f05bf"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/format_values/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/format_values/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/format_values/expected/rows.txt.snap",
+    "payload_sha256": "6f17bac7add4d54a0e57c87fd98237082e0e889acfd298c10a1faa90fc9e62d6"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/format_values/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/format_values/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/format_values/expected/report.txt.snap",
+    "payload_sha256": "fae32d2729c5312b2995923fc2dcfede4c0160b2fb00f13498ad4ef654269f64"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/format_values/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/format_values/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/format_values/expected/states.txt.snap",
+    "payload_sha256": "47b79e5e7fb8bfe41738e02bae7ebb51207297c5764e4b4cd743f4f493723511"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/format_values/expected/paths/unchanged.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/format_values/expected/paths/unchanged.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/format_values/expected/paths/unchanged.txt.snap",
+    "payload_sha256": "c638d2d0a52a0ab08a0f5c6d9f4d223c84b1f348774586fc6494730dea0bb3b7"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/starts_cut/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/starts_cut/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/starts_cut/expected/rows.txt.snap",
+    "payload_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/starts_cut/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/starts_cut/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/starts_cut/expected/report.txt.snap",
+    "payload_sha256": "494ca447c4bd8bd9b6709be8ce1b8903033e6bb6be351f2dd97bc2180a82f34d"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/starts_cut/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/starts_cut/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/starts_cut/expected/states.txt.snap",
+    "payload_sha256": "afa607d8affbbb7063309d269f79d1d0345e2b65191570829e82112021ebec9c"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_chain_path/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_chain_path/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_chain_path/expected/report.txt.snap",
+    "payload_sha256": "c4a8e28c8e3c84bdb565b94d20922b6376ea6114356e58fcd8dd99caa8159e82"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/rows.txt.snap",
+    "payload_sha256": "3c801a1cacdcd4dafc1c9540ee27777a4398b14a82077bc565403383eaaab0f2"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/report.txt.snap",
+    "payload_sha256": "00637f1ecb8becb84f2699c8be8bf1c4527d000787183f6e89f9eb4e72e7217c"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/states.txt.snap",
+    "payload_sha256": "812fc3941eca4b63289a2498c8be509e5cb5b8b84a6597e7c3a98c4b5a9cd547"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/paths/reaches_target.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/paths/reaches_target.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/paths/reaches_target.txt.snap",
+    "payload_sha256": "dfdd48ea1296ef5c859b1af44c6b11885d05e6ad29c822289984fb7143c7c277"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/rows.txt.snap",
+    "payload_sha256": "12ff1c8055a5e2c8bf56179c669543be3751c7d63bddc124c99a0a7d7d19d4ed"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/report.txt.snap",
+    "payload_sha256": "14d601926dd0fde499e08a6610579be2e7cd54080024c963a88c76c7f4e0a233"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/states.txt.snap",
+    "payload_sha256": "8853b445b5ee29c682e6761b08f26463d8746a8ec2d12c7dcd7ab4fca4325e32"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/paths/reaches_target.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/paths/reaches_target.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/paths/reaches_target.txt.snap",
+    "payload_sha256": "b39692fa1f1cbe2695f9b4bbd9938d71efab09be856e9c82b7a577a911ad826a"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/shared_starts/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/shared_starts/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/shared_starts/expected/rows.txt.snap",
+    "payload_sha256": "cc960833190094e568e749b9ff534caa0d62cae622c7189a91937914cd97eb27"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/shared_starts/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/shared_starts/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/shared_starts/expected/report.txt.snap",
+    "payload_sha256": "5acd70916c4c8a3dbfac0a0f9910efe7f647e9580edccd7fbf784fd322932f4e"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/shared_starts/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/shared_starts/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/shared_starts/expected/states.txt.snap",
+    "payload_sha256": "79954ae7dd998172adca9739387e91c05ce1b5a2a9cb5a5094bec946a3f9ca0f"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_queued_cut/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_queued_cut/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_queued_cut/expected/rows.txt.snap",
+    "payload_sha256": "8073ae4ea1a37d4531649f2057f9a24b454a9bdf508cb51018c4a3f16d2e8ea5"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_queued_cut/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_queued_cut/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_queued_cut/expected/report.txt.snap",
+    "payload_sha256": "bb69da3bb8bbf38718abb393ae08c5a623f355f3852262528f724308280d1500"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_queued_cut/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_queued_cut/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_queued_cut/expected/states.txt.snap",
+    "payload_sha256": "01837f7e5d7e3591556050e92b72a129da99d143a5844ace7efe90700b7907e3"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/vacuity/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/vacuity/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/vacuity/expected/rows.txt.snap",
+    "payload_sha256": "cc960833190094e568e749b9ff534caa0d62cae622c7189a91937914cd97eb27"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/vacuity/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/vacuity/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/vacuity/expected/report.txt.snap",
+    "payload_sha256": "a817905c272e84d8ebebe490051a3cd31fd354ec5bd64367a628a7f053c3df7a"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/vacuity/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/vacuity/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/vacuity/expected/states.txt.snap",
+    "payload_sha256": "79954ae7dd998172adca9739387e91c05ce1b5a2a9cb5a5094bec946a3f9ca0f"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/rows.txt.snap",
+    "payload_sha256": "cc960833190094e568e749b9ff534caa0d62cae622c7189a91937914cd97eb27"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/report.txt.snap",
+    "payload_sha256": "1969901515d3741b61a904b6188db00e594af7597109ba29f04261351a803cbf"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/states.txt.snap",
+    "payload_sha256": "79954ae7dd998172adca9739387e91c05ce1b5a2a9cb5a5094bec946a3f9ca0f"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/paths/safe.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/paths/safe.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/paths/safe.txt.snap",
+    "payload_sha256": "f30bc38408a45b3bc0e61331e4747fc31c6c4d95c0899b26f897deac5f887acf"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/deep_chain/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/deep_chain/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/deep_chain/expected/report.txt.snap",
+    "payload_sha256": "7e0f59faa930f07f916e46cef49e2e715fa0114be75b6ed22280182f1a170ded"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/effect_panic/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/effect_panic/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/effect_panic/expected/rows.txt.snap",
+    "payload_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/effect_panic/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/effect_panic/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/effect_panic/expected/report.txt.snap",
+    "payload_sha256": "7cb1d86695c8ddac51330d4e45a9dd4f32b8c628cde683dd4fa1f1c3d32639d9"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/effect_panic/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/effect_panic/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/effect_panic/expected/states.txt.snap",
+    "payload_sha256": "afa607d8affbbb7063309d269f79d1d0345e2b65191570829e82112021ebec9c"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/effect_panic/expected/paths/step_0_0.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/effect_panic/expected/paths/step_0_0.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/effect_panic/expected/paths/step_0_0.txt.snap",
+    "payload_sha256": "b0d1f7355ab791b444a4e838b6e4514cd3f910c3e4b2c3fd01f1425b813c1cac"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/invalid_state/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/invalid_state/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/invalid_state/expected/report.txt.snap",
+    "payload_sha256": "a59574527eb86014b039834a29f32dbf792eb39033100b4c85aebf196ac6bf2b"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/rows.txt.snap",
+    "payload_sha256": "c7392a28b3219cd2d78677e0169cc8a34008006a38fc62a5cc43e5608b8d5091"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/report.txt.snap",
+    "payload_sha256": "5de0d3cdbaf180db149bc233920b41c419b5cd7d2a3cc6c4a5cbe2fe0f1deea4"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/states.txt.snap",
+    "payload_sha256": "01837f7e5d7e3591556050e92b72a129da99d143a5844ace7efe90700b7907e3"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/paths/trigger_panic.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/paths/trigger_panic.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/paths/trigger_panic.txt.snap",
+    "payload_sha256": "4edb4a330c315bb2f8870a4f8a12a9564e6fbca6b36c352bf00ba7275391f93c"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/paths/target_panic.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/paths/target_panic.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/paths/target_panic.txt.snap",
+    "payload_sha256": "95ffe750ea9dafc981513ac3cd32abe49da602a57462ae41e66080a247fecc4b"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/paths/independent_failure.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/paths/independent_failure.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/paths/independent_failure.txt.snap",
+    "payload_sha256": "c5bd22fc839eb22d123bfe19f58b08fdf5dc4400d4a03a22010aec80e110e692"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/rows.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/rows.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/rows.txt.snap",
+    "payload_sha256": "1104c7e2e4a1376492d98f19d58ba5e6d9d5fcb5b03e61eb3d6488bd2e6d298b"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/report.txt.snap",
+    "payload_sha256": "bac7da277aec3241ffb0fc51592eee92f566f63db15e8feee190989e747afec7"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/states.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/states.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/states.txt.snap",
+    "payload_sha256": "afa607d8affbbb7063309d269f79d1d0345e2b65191570829e82112021ebec9c"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/paths/safe.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/paths/safe.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/paths/safe.txt.snap",
+    "payload_sha256": "24cb1d276b0a9e2602eafdb2b6032cfa26104d797e12a87f409f0e317298bf97"
+  },
+  {
+    "old": "model/umpire/backends/native/tests/fixtures/progress_scope_refusal/expected/report.snap",
+    "payload": "model/umpire/backends/native/tests/fixtures/progress_scope_refusal/expected/report.snap.txt",
+    "new": "model/umpire/backends/native/tests/fixtures/progress_scope_refusal/expected/report.txt.snap",
+    "payload_sha256": "23ba9d1e847b9488591e78a677cc2bacb8f05a9f6ac41a9ccec0256b33e0811f"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/rows.txt.snap",
+    "payload_sha256": "d774a64cf91d78a3fdfa5d041c07b5eba8f9f85ff45ca7a08b5ab1d351d04080"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/Graph@cfg.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/Graph@cfg.snap.cfg",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/Graph.cfg.snap",
+    "payload_sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/report.txt.snap",
+    "payload_sha256": "a1710081656173cb7aca7312107d9ba6d54a5963797fbaf4329ebb840f0095ab"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/Graph@tla.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/Graph@tla.snap.tla",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/Graph.tla.snap",
+    "payload_sha256": "4f17fc5b50f9273e058d7a7c143f7c6f94985d85d98c6adb8bbecce420b453b7"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/tlc.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/tlc.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/tlc.txt.snap",
+    "payload_sha256": "307abce741e9fcee05686fe757e9ae1a5a6a4b1c7a5beacfda8d1367b4206fea"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/states.txt.snap",
+    "payload_sha256": "138ca7b0d49e3e93d7f5920c4e36e0614a671fe6b83e283da4ba4ec10b529bdb"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/paths/reaches_target.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/paths/reaches_target.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/paths/reaches_target.txt.snap",
+    "payload_sha256": "9e5c11a54f86e8a9349d4f2051078bcfbed1ec2897777fb7c4ff5e4439d51bb1"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/changed_state/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/changed_state/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/changed_state/expected/rows.txt.snap",
+    "payload_sha256": "3dfe4c10eb725e19330ad5916bf26577b1adf2da44b9edb502cfaa531e54124e"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/changed_state/expected/ChangedState@cfg.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/changed_state/expected/ChangedState@cfg.snap.cfg",
+    "new": "model/umpire/dev/fixtures/fixtures/changed_state/expected/ChangedState.cfg.snap",
+    "payload_sha256": "505cea8005296a997806591168a907dd3c7e6640f7578abce32b58b8fe84fb5a"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/changed_state/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/changed_state/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/changed_state/expected/report.txt.snap",
+    "payload_sha256": "4fa20b174685177727f5f0db929f98bd0acff0bb8794e93e45755d47e08f16f8"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/changed_state/expected/ChangedState@tla.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/changed_state/expected/ChangedState@tla.snap.tla",
+    "new": "model/umpire/dev/fixtures/fixtures/changed_state/expected/ChangedState.tla.snap",
+    "payload_sha256": "a4cc424d88675085f65ae2f4b3cf9f5730387bdf4f34dc91a04e80b498c3e607"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/changed_state/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/changed_state/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/changed_state/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/changed_state/expected/tlc.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/changed_state/expected/tlc.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/changed_state/expected/tlc.txt.snap",
+    "payload_sha256": "f217255a476bea0af2bf5ff32f21e21216014d22267001c6733599c8f16a88a4"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/changed_state/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/changed_state/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/changed_state/expected/states.txt.snap",
+    "payload_sha256": "318e7d9ac2712ddf4cad2f0d0a82ee69614e71bf10a4e80bbdb2a1b508c8d5a6"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/changed_state/expected/paths/actual_change_checked.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/changed_state/expected/paths/actual_change_checked.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/changed_state/expected/paths/actual_change_checked.txt.snap",
+    "payload_sha256": "d4d440239c03c9eafc1eabc5719b050de134b15016ddf5252a0c5d157534bab6"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/rows.txt.snap",
+    "payload_sha256": "579894e89525f73e466a6eabb69a37d457c9ea7320776486e1b58669dfa5fb3a"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/report.txt.snap",
+    "payload_sha256": "3cba62e70e15d2dbbc3c7e181990d421ca5eb71941d3bf22376dc7291e25c526"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/Countdown@tla.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/Countdown@tla.snap.tla",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/Countdown.tla.snap",
+    "payload_sha256": "47d93e1934906495629c8e8ac8c78f1f46b621135128724c310f2e3835960aec"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/Countdown@cfg.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/Countdown@cfg.snap.cfg",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/Countdown.cfg.snap",
+    "payload_sha256": "4aa086b3a4346c0e5c318c622ab696dbd630daea5552921826abf20b4a1062ff"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/tlc.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/tlc.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/tlc.txt.snap",
+    "payload_sha256": "5fe54359c81c30782a6480a125a5866437fd1afbb06f292456c74a7da5f910d8"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/states.txt.snap",
+    "payload_sha256": "abb5f4ce47f315ef3c22af1383ca05ef71e7536568f0a7b1f02b5d7fca5a2f25"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/negative_report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/negative_report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/negative_report.txt.snap",
+    "payload_sha256": "6d2b1b6a0b3d64d54d14aff0e6e4ab321a476203d8dace3d54c8879948c726b1"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/paths/never_decrements.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/paths/never_decrements.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/paths/never_decrements.txt.snap",
+    "payload_sha256": "91dd9c38a4cd4ff06a9b7e7e67eeca683d92833e5ad3c7f01cc17f02f769bf8f"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/paths/never_exhausted.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/paths/never_exhausted.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/paths/never_exhausted.txt.snap",
+    "payload_sha256": "c72f6f6eed650b88bc5c18329a15b15dd3f470c568420c48d7e758e435d1cf10"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/paths/never_started.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/paths/never_started.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/paths/never_started.txt.snap",
+    "payload_sha256": "f803399d294306b590b7a65629f77422645fab609ab87ad7a2fb94ca5c02a88a"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/rows.txt.snap",
+    "payload_sha256": "ee9f6fcfd14ff573f6fc22999e0130f5d4a9513bd517aa4df33396221db81532"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/report.txt.snap",
+    "payload_sha256": "ac1149e1ca68eb3adac9ae11b95d3c6cabc0583a88ceb87378cd03c5ec1fe81e"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/Counter@tla.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/Counter@tla.snap.tla",
+    "new": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/Counter.tla.snap",
+    "payload_sha256": "012c5e067fcbdd40135d7ae756874bfd1dac098f48f4dae894a32facd44ddfb5"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/tlc.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/tlc.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/tlc.txt.snap",
+    "payload_sha256": "68d98c79c8e85fe6cc9e1348dc933d866d89dd0185389850caa918ba64bd2506"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/states.txt.snap",
+    "payload_sha256": "4844f28a0862c906d511259bbc1cbcff21cc8115b4cc20e97c60f21dbf65cb5c"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/Counter@cfg.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/Counter@cfg.snap.cfg",
+    "new": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/Counter.cfg.snap",
+    "payload_sha256": "6a4faf0b5b8b4adb5c8c77b6daa4a7f23ddc16afb043c19f4c28745cf9b169d1"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/negative_report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/negative_report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/negative_report.txt.snap",
+    "payload_sha256": "618780a04d2cc0def081d8416f166be643cf8751f6a44c66be7a6b8b26ae74ee"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/paths/never_three.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/paths/never_three.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/paths/never_three.txt.snap",
+    "payload_sha256": "57df10fa48ddd61c88974ee05cbdca8575249e9085074c0604709e54655d1d71"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/report.txt.snap",
+    "payload_sha256": "4163927abb428845d114ae66042f290adb66a7a8e400ebe29ef1ed4bd2352f27"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/lift.txt.snap",
+    "payload_sha256": "80a973f9ba7e608bb31e57e0d1eb0cbd0af655d900b349790acc21b4763de4ed"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_within_80.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_within_80.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_within_80.txt.snap",
+    "payload_sha256": "6203867428b4e24136053f46c77abcba5e08c528027179d213a5424358e233fe"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_press_only.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_press_only.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_press_only.txt.snap",
+    "payload_sha256": "b23ebc5269c9d96afc4b3d849d422f4b447370caa4c182814dfef235e773426b"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_fair_heat.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_fair_heat.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_fair_heat.txt.snap",
+    "payload_sha256": "c3356a8b9995eb18e5f7feaac95c9b104c4c894c53f1aaec54a86a09542fc64f"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_unrestricted.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_unrestricted.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_unrestricted.txt.snap",
+    "payload_sha256": "c3356a8b9995eb18e5f7feaac95c9b104c4c894c53f1aaec54a86a09542fc64f"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/rows.txt.snap",
+    "payload_sha256": "37d3dce186ab51e4d27ec221036b19cb9bfad1decac85832318c7c6f97a8823c"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/Graph@cfg.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/Graph@cfg.snap.cfg",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/Graph.cfg.snap",
+    "payload_sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/report.txt.snap",
+    "payload_sha256": "9d692d27f717152bf67304d99fe56e518f871091a12007bbd60737abc509f122"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/Graph@tla.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/Graph@tla.snap.tla",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/Graph.tla.snap",
+    "payload_sha256": "38be2f1328275086fd89b9b7a5e320fdd2077c87c197512d59cc3e88af53eef7"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/tlc.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/tlc.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/tlc.txt.snap",
+    "payload_sha256": "758c3e222a39537b2396cc6bd8de28acf8891d23da1fdbbe3e17de47f1be3b74"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/states.txt.snap",
+    "payload_sha256": "e64db7be6290bd995557f56702a8c5ed2c407fcdc6b36ba81ba0afd5dcc967f0"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/paths/reaches_target.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/paths/reaches_target.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/paths/reaches_target.txt.snap",
+    "payload_sha256": "60db934858e8f43d6497d3bf74f27980ec957fce90360273b0d673554fc7ceb1"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/rows.txt.snap",
+    "payload_sha256": "29c47ab1e34d0f2d26aaa5c101c527852a856c625be21244f453b51309f7d57c"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/Graph@cfg.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/Graph@cfg.snap.cfg",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/Graph.cfg.snap",
+    "payload_sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/report.txt.snap",
+    "payload_sha256": "ccf41a97752183b2858fafd82e58285e0eae12ecf13426143f19dbff8a3c34b2"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/Graph@tla.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/Graph@tla.snap.tla",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/Graph.tla.snap",
+    "payload_sha256": "7cacd90a34d13bc2c41dd6616a5dea2339c15933fb5f8854f60860d3f590efbe"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/tlc.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/tlc.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/tlc.txt.snap",
+    "payload_sha256": "307abce741e9fcee05686fe757e9ae1a5a6a4b1c7a5beacfda8d1367b4206fea"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/states.txt.snap",
+    "payload_sha256": "4a3f59cb451315fae94875b37cd3538266c0769a8c8353d18343ea8dce4a8c98"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/paths/reaches_target.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/paths/reaches_target.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/paths/reaches_target.txt.snap",
+    "payload_sha256": "5e5889dcd7b1553d84f6eca0682b0c98a71f8e81cc744edff3574a25b9096e41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/rows.txt.snap",
+    "payload_sha256": "51a682875ad72d76eb0e48c5090d80d379a551e261b8e50e77fe23e8c70a46ae"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/report.txt.snap",
+    "payload_sha256": "f5f37eb25ae2dc7ba6dad79270e03ebf3bd6384cfdb374c2b9a581fb1ea0c21b"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/lift.txt.snap",
+    "payload_sha256": "e03276a826d1c2f4fd9f04e47f87e81f68a89a064e8cc2f71e2d47ec3b3b4463"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/states.txt.snap",
+    "payload_sha256": "4a3f59cb451315fae94875b37cd3538266c0769a8c8353d18343ea8dce4a8c98"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/rows.txt.snap",
+    "payload_sha256": "a79ff864f6ee6ed251d2b8c1d46af8b3fe006cac7eab4c1ea89363d7b1069d98"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/Graph@cfg.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/Graph@cfg.snap.cfg",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/Graph.cfg.snap",
+    "payload_sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/report.txt.snap",
+    "payload_sha256": "f9f29bdb4b5e115788ace25b5ff613bbdb8280e3caf6eae7e30c30061b3f05cc"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/Graph@tla.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/Graph@tla.snap.tla",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/Graph.tla.snap",
+    "payload_sha256": "cba3bbafa1722325bc4ddd951d721cc38df24028473ec60a4eb77bae7e872b90"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/tlc.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/tlc.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/tlc.txt.snap",
+    "payload_sha256": "d6f139de06400afc0f359b4dd415c90f30485d59f721615454026ecbbb461589"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/states.txt.snap",
+    "payload_sha256": "67aa7718d65403b17a7ac5cbc3b36739fbd6a7507b70b7778145826dfe0d1959"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/Graph@cfg.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/Graph@cfg.snap.cfg",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/Graph.cfg.snap",
+    "payload_sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/report.txt.snap",
+    "payload_sha256": "9ed9266c5f8aee70783912808a2b865e00505c3ad67bbb37ba3bf816f9a4fcb3"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/Graph@tla.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/Graph@tla.snap.tla",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/Graph.tla.snap",
+    "payload_sha256": "663de4575a0b2a796593938c6f6264bcff71c82b9896380fd3df7fef5fafd372"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/tlc.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/tlc.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/tlc.txt.snap",
+    "payload_sha256": "6441c50a84c73d018ec688cc88cb6406be4fc6a6af75985d4cb065c07234a597"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/states.txt.snap",
+    "payload_sha256": "a1199d547600f6d0ed1d37e7a157dad022335a4f10b64a7ce160c6f9038c3bea"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/paths/reaches_target.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/paths/reaches_target.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/paths/reaches_target.txt.snap",
+    "payload_sha256": "0aea6a0a3c59f084395d7383a569763ab6f7cedf6cc8bb581dc0f284919de213"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/kettle_cut/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/kettle_cut/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/kettle_cut/expected/report.txt.snap",
+    "payload_sha256": "3730e291c19a5640ed05def71b67b3d4163c28e66aaede6af5319adcf9dabb78"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/kettle_cut/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/kettle_cut/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/kettle_cut/expected/lift.txt.snap",
+    "payload_sha256": "0567837222f26077537a7c392589b893f045ad3b2b92e07d58ced439be6f2586"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/kettle_cut/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/kettle_cut/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/kettle_cut/expected/states.txt.snap",
+    "payload_sha256": "609d4207e15b2441cc48c8a83bb8d75000f54485f0eab8eb4444ce4f1b20c89e"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/rows.txt.snap",
+    "payload_sha256": "96bfd01ec090d894b6f8c466814ba5ed6d87a116c154b44e21cf2088484ac541"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/Graph@cfg.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/Graph@cfg.snap.cfg",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/Graph.cfg.snap",
+    "payload_sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/report.txt.snap",
+    "payload_sha256": "fefa58cc2d57f2753ab5e31f48418bf6af42c7ea76d793073ddc2df59325e6e5"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/Graph@tla.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/Graph@tla.snap.tla",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/Graph.tla.snap",
+    "payload_sha256": "c3b40bfddd5df176ea78e69e93f6813bc3119805af8bac3c932fa5db30c22917"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/tlc.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/tlc.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/tlc.txt.snap",
+    "payload_sha256": "5d1b39c23981fa91c4302ecb044a40ff9c58669ff280c247f1f6aa873acc9428"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/states.txt.snap",
+    "payload_sha256": "ce35d49521862911308980daad0f30eea16c439d3b41c957d4067a44aba94fd0"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/paths/reaches_target.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/paths/reaches_target.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/paths/reaches_target.txt.snap",
+    "payload_sha256": "9e5c11a54f86e8a9349d4f2051078bcfbed1ec2897777fb7c4ff5e4439d51bb1"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/Retry@tla.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/Retry@tla.snap.tla",
+    "new": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/Retry.tla.snap",
+    "payload_sha256": "9e34711ebcf83dc9e9c784fde3272b74410e4d21294ba9d2788dec2373079ba5"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/rows.txt.snap",
+    "payload_sha256": "100d9ada136aebc5a1811e26e5b02d414d460979b22ea6b148f057a09c8ebd9f"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/Retry@cfg.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/Retry@cfg.snap.cfg",
+    "new": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/Retry.cfg.snap",
+    "payload_sha256": "2d85734723fa66c0a7ea895b52cc8fe471e354e094bfce903c10d47ad0920b94"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/report.txt.snap",
+    "payload_sha256": "a18331b6bd1069cd3491d304c7b8980e14d8ab23698b35f66393cffbdeb69117"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/tlc.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/tlc.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/tlc.txt.snap",
+    "payload_sha256": "f5c8fa8026ebef39ca5c41f0d711e7e4d4536f252f389eb0c457add5726d7827"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/states.txt.snap",
+    "payload_sha256": "8899eba990396eb2f60d9780cd5a053c43147fa4535b941292a3218d9bbdbac0"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/negative_report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/negative_report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/negative_report.txt.snap",
+    "payload_sha256": "2a57ef26eb5eb2a9d12106aad2234a5fd2a16d6e4510530bec8826f80bfb19a9"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/paths/never_closed.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/paths/never_closed.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/world_fairness/expected/paths/never_closed.txt.snap",
+    "payload_sha256": "621ecc5401406b4a2d2cc8ccd06c399ca1805f2d81080f2eeedd5452d2fcf1d8"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/rows.txt.snap",
+    "payload_sha256": "6fc0c55efa4a3d377ed6edafeaa2f5136c9245edb41ab9e96ec8a866b42f2fd5"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/Graph@cfg.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/Graph@cfg.snap.cfg",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/Graph.cfg.snap",
+    "payload_sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/report.txt.snap",
+    "payload_sha256": "e881bd9163d7fcfafb68bdb0698027928daed881b6ed7c7c62e1c156f6b8c4ef"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/Graph@tla.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/Graph@tla.snap.tla",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/Graph.tla.snap",
+    "payload_sha256": "95f998d0e35dfb2f12fb4a507a410f733565436812bb0ce9b1d7aaa05b21cd1d"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/tlc.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/tlc.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/tlc.txt.snap",
+    "payload_sha256": "d6f139de06400afc0f359b4dd415c90f30485d59f721615454026ecbbb461589"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/states.txt.snap",
+    "payload_sha256": "e64db7be6290bd995557f56702a8c5ed2c407fcdc6b36ba81ba0afd5dcc967f0"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/rows.txt.snap",
+    "payload_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/Graph@cfg.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/Graph@cfg.snap.cfg",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/Graph.cfg.snap",
+    "payload_sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/report.txt.snap",
+    "payload_sha256": "e47767ade6012b24073011fcf1e0827dfedeb0fd67cb680ba9768d67f4127ca5"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/Graph@tla.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/Graph@tla.snap.tla",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/Graph.tla.snap",
+    "payload_sha256": "675af90909940607e37a5503b64300fd8260af8bc374fde926ff8084c463abf7"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/tlc.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/tlc.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/tlc.txt.snap",
+    "payload_sha256": "12a677193d9c505ace73700ba69af10747c54a423010a94493d07a04ffa36080"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/states.txt.snap",
+    "payload_sha256": "ce35d49521862911308980daad0f30eea16c439d3b41c957d4067a44aba94fd0"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/rows.txt.snap",
+    "payload_sha256": "89092379eac9c4f9064f8f333005516ae53cca542322bd69578d216e0b3c00af"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/Graph@cfg.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/Graph@cfg.snap.cfg",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/Graph.cfg.snap",
+    "payload_sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/report.txt.snap",
+    "payload_sha256": "ff621e51444c8e952f8f5a2adeaa795b9c32c720e1da798c85e4d935d6325663"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/Graph@tla.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/Graph@tla.snap.tla",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/Graph.tla.snap",
+    "payload_sha256": "767f680f20e5c823791be6cef55c968faeebbcff2670fbec1b87d73c86edcf0c"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/tlc.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/tlc.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/tlc.txt.snap",
+    "payload_sha256": "d6f139de06400afc0f359b4dd415c90f30485d59f721615454026ecbbb461589"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/states.txt.snap",
+    "payload_sha256": "e64db7be6290bd995557f56702a8c5ed2c407fcdc6b36ba81ba0afd5dcc967f0"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/rows.txt.snap",
+    "payload_sha256": "dfb68cca6286df078c806ea1847dd8e5a41059fe74a59149ba962f2b0fb29d8c"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/report.txt.snap",
+    "payload_sha256": "0cef0042d29ea29ef3ebd864f95a2887a0d4eef99036ac150c7e82179eaa5967"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/lift.txt.snap",
+    "payload_sha256": "c5baaa9a52c15f86474d83a42eeca1f18096362cd083d6b7932c478474a453cc"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/states.txt.snap",
+    "payload_sha256": "4a3f59cb451315fae94875b37cd3538266c0769a8c8353d18343ea8dce4a8c98"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/rows.txt.snap",
+    "payload_sha256": "4ea71ccffc731d9741feb3f0d06c88bfb9aad4d0a1a4726c1e34fc0de17af883"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/report.txt.snap",
+    "payload_sha256": "d6f6a11fd0816c44f8c9040e42f11e5b6616b8946cb127073be00372be848f04"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/lift.txt.snap",
+    "payload_sha256": "2f218f9053ccddc78671991ca6d65f2b2f23ca54269411d703e0a790a3faa8a2"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/states.txt.snap",
+    "payload_sha256": "76b43f4383757c924f08778bc7327dfd20950efffa3bbfdbcdacec0ab8fe69dd"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/paths/boils.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/paths/boils.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/paths/boils.txt.snap",
+    "payload_sha256": "b23ebc5269c9d96afc4b3d849d422f4b447370caa4c182814dfef235e773426b"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/report.txt.snap",
+    "payload_sha256": "119e6790de274127452d429f79253b90bbb27d964f8eca9f1c30e34e5844326a"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/Kettle@tla.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/Kettle@tla.snap.tla",
+    "new": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/Kettle.tla.snap",
+    "payload_sha256": "e3dadab67781b75ae429cec6663633caed6c9fb300f7e1d1d8c4d1d545e57015"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/coverage.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/coverage.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/coverage.txt.snap",
+    "payload_sha256": "ed01578296f03aafb7c789747d00271f57b8f762d95014790b61992522f6d2bc"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/tlc.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/tlc.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/tlc.txt.snap",
+    "payload_sha256": "a3772fb96094019b4383d580cdcd40cba45b049bcaf6c8d323219617ec0cb05a"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/states.txt.snap",
+    "payload_sha256": "8afc5e4c241e2dd6af140b4998a2831749a9e9b5312fdf1ba823baa2a702b799"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/Kettle@cfg.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/Kettle@cfg.snap.cfg",
+    "new": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/Kettle.cfg.snap",
+    "payload_sha256": "ed940745ec38fd8361f0231dc189ec22e29e821c8e51cd0615e4f5ff6c34b3b7"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/negative_report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/negative_report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/negative_report.txt.snap",
+    "payload_sha256": "e27222fec96dae8b15342c4de17ad807f0b8aeb5917e0c3d34dd4de11fb6b36e"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/expansion/closings.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/expansion/closings.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/expansion/closings.txt.snap",
+    "payload_sha256": "00461f4a71227debc7724cdb4b6ea5071e7d2dd6e82fbeaec85f2311dcf3f1d5"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/expansion/sample.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/expansion/sample.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/expansion/sample.txt.snap",
+    "payload_sha256": "b4835cb96997fd1a1e0801ffb5a3edd8a392c4d36b515d67052548c0a30d9d83"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/expansion/enabledness.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/expansion/enabledness.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/expansion/enabledness.txt.snap",
+    "payload_sha256": "cdd3d7d9d4e49a9ea54fa8b4e2f3b51f7d2f12e6192c56976f8c06a5509af50d"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/paths/never_beeps.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/paths/never_beeps.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/paths/never_beeps.txt.snap",
+    "payload_sha256": "669be523819722f527f84764d0d36303220918228a29035b57cd0ee75262dbed"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/rows.txt.snap",
+    "payload_sha256": "245d34faa8ab47f0c08a993704b4e2ca7e10cf2f21735a06d054856b0d635b2f"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/report.txt.snap",
+    "payload_sha256": "10e0b262c0ab0930584cf1dc1e7a6adaa71f817762f58fc5699cc6da3ad00e5f"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/Facts@tla.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/Facts@tla.snap.tla",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/Facts.tla.snap",
+    "payload_sha256": "5e8eac53226c0734ddf375eeba16ceffc03fe10f2dd7809640e938fa505aa708"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/tlc.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/tlc.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/tlc.txt.snap",
+    "payload_sha256": "2b0515e3d396fb2e644ac2ae757c684b80b00e743bc67e38e05152731f032031"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/states.txt.snap",
+    "payload_sha256": "7b9fca8ecbc8c3edbb0b7726cf0fee9c4f95fd0c9b4a0780d5196b182304842a"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/Facts@cfg.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/Facts@cfg.snap.cfg",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/Facts.cfg.snap",
+    "payload_sha256": "63b8a96a42524f1a676d416be769391c49ef34ff88adc20f73c512524516008a"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_d.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_d.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_d.txt.snap",
+    "payload_sha256": "c31916b5fda970a64174f96592d953793cef2dcf19f0e005f20ccaef07cf891a"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_c.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_c.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_c.txt.snap",
+    "payload_sha256": "36870b19cdc0df8b88b4259e7b041bc9c5f5d3afda3e4dbcf2d6221cb5c8d2fc"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_b.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_b.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_b.txt.snap",
+    "payload_sha256": "a69012bc4f32f13dc0ecad7fbd34b8bd241454120de0fb6ef55206b8c0db485a"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_clear.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_clear.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_clear.txt.snap",
+    "payload_sha256": "3e2450b93c9aee3bfd1aa9252a44f6f90eecab8a1b8fed514d1155df3954c141"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_a.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_a.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_a.txt.snap",
+    "payload_sha256": "209cae491da88957b7cdcc7aebcf9a8265aad298ff0035b694a40688e84b1079"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/rows.txt.snap",
+    "payload_sha256": "bdffc0f895210aa4b55b3599a65734c83ab244673f32025d80072d4ed2a62ab2"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/Graph@cfg.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/Graph@cfg.snap.cfg",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/Graph.cfg.snap",
+    "payload_sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/report.txt.snap",
+    "payload_sha256": "0542b229b7811292b04edab93f676dfcb1ae83763c153923b0463ed124a770fb"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/Graph@tla.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/Graph@tla.snap.tla",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/Graph.tla.snap",
+    "payload_sha256": "30171dde2c23cd5dfaab57c96ce03cb82713cc72f7ed2d368f93acd550c9a175"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/tlc.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/tlc.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/tlc.txt.snap",
+    "payload_sha256": "758c3e222a39537b2396cc6bd8de28acf8891d23da1fdbbe3e17de47f1be3b74"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/states.txt.snap",
+    "payload_sha256": "c1c480e2c77a78b84285ea1a077acbd9502a13515a3524c63ff4487154b361e3"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/paths/reaches_target.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/paths/reaches_target.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/progress_graph/expected/paths/reaches_target.txt.snap",
+    "payload_sha256": "ede7b72815e9d34677776b6c3079f49bff48fb7ce75dacb3a2ebf0b6f7f443e3"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/rows.txt.snap",
+    "payload_sha256": "2b107653d8b4c2148e17ce2c3b516240822c2c4e7ca01a232868b5e91867837c"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/Inputs@tla.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/Inputs@tla.snap.tla",
+    "new": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/Inputs.tla.snap",
+    "payload_sha256": "468813fe5b96356b6dbbb353528f45c9eef2cff841b98d26a16aa95fa63cb44d"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/report.txt.snap",
+    "payload_sha256": "55ba9639df8328e0b2029ed96b61de6c3c66e34aefd6860fc51e4d4bba9ef8d6"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/tlc.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/tlc.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/tlc.txt.snap",
+    "payload_sha256": "f3d70914bb9566bfaadd5b319ea384825a920375e7c7067d2e1dccd4802d9f22"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/states.txt.snap",
+    "payload_sha256": "3f929c50ad712fdb081fb80ab89dc752ae978f7067e356174d6cb122ae623ae6"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/Inputs@cfg.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/Inputs@cfg.snap.cfg",
+    "new": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/Inputs.cfg.snap",
+    "payload_sha256": "6e41d8991948a7dff311ee579807aaa5ff317afc7727c1a5e39d493742c448ad"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/negative_report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/negative_report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/negative_report.txt.snap",
+    "payload_sha256": "30d96dede57141f1006e9477bdddcc42ff02f384c21c26f723b61589d5df177e"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/never_retried.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/never_retried.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/never_retried.txt.snap",
+    "payload_sha256": "a2c50ce45c2adf9596b2e7bdd6b615de9268097e6c48ddd93284529282f254b9"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/stale_poll_settles.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/stale_poll_settles.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/stale_poll_settles.txt.snap",
+    "payload_sha256": "9c8a9e9fbc411620a4f9cd97fe37496c09d3d0a2bfc8007ed618e3cacfb160c3"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/excluded_poll_settles.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/excluded_poll_settles.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/excluded_poll_settles.txt.snap",
+    "payload_sha256": "9c8a9e9fbc411620a4f9cd97fe37496c09d3d0a2bfc8007ed618e3cacfb160c3"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/settles_within_four.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/settles_within_four.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/settles_within_four.txt.snap",
+    "payload_sha256": "9c8a9e9fbc411620a4f9cd97fe37496c09d3d0a2bfc8007ed618e3cacfb160c3"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/Gate@cfg.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/Gate@cfg.snap.cfg",
+    "new": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/Gate.cfg.snap",
+    "payload_sha256": "c3ecd5ddbc3ad59ebfcc98944a2a6543c5700deabec909813e8d82097a7d3d73"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/rows.txt.snap",
+    "payload_sha256": "d8233ca8aa0af1f6453e46f81b4a8ebb94d0946013ab4b12c432247b5903e578"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/Gate@tla.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/Gate@tla.snap.tla",
+    "new": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/Gate.tla.snap",
+    "payload_sha256": "162ea6c421ef9ab018e43d9f6532c9f3150a281858bbb36448cf6b3258925da4"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/report.txt.snap",
+    "payload_sha256": "b2ff49f259bb8a4dc0b0d770901d39507ab1a2ec4d3cf202528620756b4d6336"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/tlc.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/tlc.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/tlc.txt.snap",
+    "payload_sha256": "ff52df12e76e5c86aadc2ee881f04b311092238409898a34e5ba82c179388048"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/states.txt.snap",
+    "payload_sha256": "1c23346929e7d259221e6fd9776cdd50f4a37ed40da25b2a2258ac360f105d46"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/paths/steps_accept.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/paths/steps_accept.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/shared_returns/expected/paths/steps_accept.txt.snap",
+    "payload_sha256": "d416efa98689dbf4d942c7dd9045cc3c94834c2e8d7a5567f881dc6fe237cdfc"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/rows.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/rows.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/rows.txt.snap",
+    "payload_sha256": "1b7e86314122fa369183f33ffb20db23f1467198e6ffb433a4c265dcfb9beb20"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/report.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/report.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/report.txt.snap",
+    "payload_sha256": "105f88bbcd211ccaf6307e1059372945c12f7c0a0cf34f1f30b63bf676180903"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/lift.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/lift.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/Job@cfg.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/Job@cfg.snap.cfg",
+    "new": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/Job.cfg.snap",
+    "payload_sha256": "85a895daf60ee8daed24f937b3b7fd599244957f5a4635528ced41fd6f06ef24"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/tlc.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/tlc.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/tlc.txt.snap",
+    "payload_sha256": "a64f1f2873b1dea0f62be46ba124ab8318921386ed8d37d0dcf0b4298aa1a042"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/states.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/states.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/states.txt.snap",
+    "payload_sha256": "e58013adcf11b049f417a943fd06c74fde73c8cd2f6ec1a84b09825434901175"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/Job@tla.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/Job@tla.snap.tla",
+    "new": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/Job.tla.snap",
+    "payload_sha256": "0776391c203e11d142b718032d4337c88861e2f127f3c13c1046c0135fd6e747"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/touch_rejects.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/touch_rejects.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/touch_rejects.txt.snap",
+    "payload_sha256": "7ad2fe9f5f4b599f2c674d5a41c9c09cfcd8b3cc2a43514590e13c7663da65e1"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/reopen_remains.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/reopen_remains.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/reopen_remains.txt.snap",
+    "payload_sha256": "c08133ae7de7110fc0121d4addf41e679f86d31b2ff94c6c1ef61a2cf8a07050"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/terminal_remains.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/terminal_remains.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/terminal_remains.txt.snap",
+    "payload_sha256": "c08133ae7de7110fc0121d4addf41e679f86d31b2ff94c6c1ef61a2cf8a07050"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/steps_accept.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/steps_accept.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/steps_accept.txt.snap",
+    "payload_sha256": "3f1a21f7dc36205d07a73c66be2095d9959312498d4fe75ded979b7fbbb9aa95"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/recheck_rejects.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/recheck_rejects.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/recheck_rejects.txt.snap",
+    "payload_sha256": "ec29514c0e8f4eee03f011529f70a88e5baa905356a934c77c0d5f42a4afa70d"
+  },
+  {
+    "old": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/closed_rejects.snap",
+    "payload": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/closed_rejects.snap.txt",
+    "new": "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/closed_rejects.txt.snap",
+    "payload_sha256": "27fb52573ea8dff886b25ab4b619ea670cf63ce502e1d73c8e41361037aa1ddd"
+  },
+  {
+    "old": "model/umpire/author/dsl/macros/tests/fixtures/state/expected/expansion@rs.snap",
+    "payload": "model/umpire/author/dsl/macros/tests/fixtures/state/expected/expansion@rs.snap.rs",
+    "new": "model/umpire/author/dsl/macros/tests/fixtures/state/expected/expansion.rs.snap",
+    "payload_sha256": "3cfe8c0f3d1191b2e4b3b3efef06850f795e952053be8d743728a4390ce098a5"
+  },
+  {
+    "old": "model/umpire/author/dsl/macros/tests/fixtures/declared_world/expected/expansion@rs.snap",
+    "payload": "model/umpire/author/dsl/macros/tests/fixtures/declared_world/expected/expansion@rs.snap.rs",
+    "new": "model/umpire/author/dsl/macros/tests/fixtures/declared_world/expected/expansion.rs.snap",
+    "payload_sha256": "42631f799e1602a68efe0270767922fbb016ba842099bab2ec96709ee3e46cb6"
+  },
+  {
+    "old": "model/umpire/author/dsl/macros/tests/fixtures/staying_machine/expected/expansion@rs.snap",
+    "payload": "model/umpire/author/dsl/macros/tests/fixtures/staying_machine/expected/expansion@rs.snap.rs",
+    "new": "model/umpire/author/dsl/macros/tests/fixtures/staying_machine/expected/expansion.rs.snap",
+    "payload_sha256": "b024be67a111d0399c733197e188225c1b8da524edce9a846ee98db7fc5d3b33"
+  },
+  {
+    "old": "model/umpire/author/dsl/macros/tests/fixtures/finite/expected/expansion@rs.snap",
+    "payload": "model/umpire/author/dsl/macros/tests/fixtures/finite/expected/expansion@rs.snap.rs",
+    "new": "model/umpire/author/dsl/macros/tests/fixtures/finite/expected/expansion.rs.snap",
+    "payload_sha256": "f8aaca414068f29969638f16c92e75c967a969f79935183eb6f352a9a9b26ad1"
+  },
+  {
+    "old": "model/umpire/author/dsl/macros/tests/fixtures/action/expected/expansion@rs.snap",
+    "payload": "model/umpire/author/dsl/macros/tests/fixtures/action/expected/expansion@rs.snap.rs",
+    "new": "model/umpire/author/dsl/macros/tests/fixtures/action/expected/expansion.rs.snap",
+    "payload_sha256": "8e164867dcb0a151297cd9fc0e78e5aeb642d70c00035cdf7fd404de8d1dfdf8"
+  },
+  {
+    "old": "model/umpire/author/dsl/macros/tests/fixtures/world/expected/expansion@rs.snap",
+    "payload": "model/umpire/author/dsl/macros/tests/fixtures/world/expected/expansion@rs.snap.rs",
+    "new": "model/umpire/author/dsl/macros/tests/fixtures/world/expected/expansion.rs.snap",
+    "payload_sha256": "709a56b19e96bf588573d9ce82238dcc0808247ef82c4480faf4d6d57dab6c44"
+  },
+  {
+    "old": "model/umpire/author/dsl/macros/tests/fixtures/machine/expected/expansion@rs.snap",
+    "payload": "model/umpire/author/dsl/macros/tests/fixtures/machine/expected/expansion@rs.snap.rs",
+    "new": "model/umpire/author/dsl/macros/tests/fixtures/machine/expected/expansion.rs.snap",
+    "payload_sha256": "4dfbd08143756bfc7d5b6b04db11a1f89465ae1e01d15a06566ca97baf2987a7"
+  },
+  {
+    "old": "model/umpire/author/dsl/macros/tests/fixtures/rejecting_machine/expected/expansion@rs.snap",
+    "payload": "model/umpire/author/dsl/macros/tests/fixtures/rejecting_machine/expected/expansion@rs.snap.rs",
+    "new": "model/umpire/author/dsl/macros/tests/fixtures/rejecting_machine/expected/expansion.rs.snap",
+    "payload_sha256": "287a77205f64c777cbc032ed1263ff4ff118fbc7fec6b2439d29007f8cdc70ac"
+  },
+  {
+    "old": "model/umpire/author/dsl/macros/tests/fixtures/path/expected/expansion@rs.snap",
+    "payload": "model/umpire/author/dsl/macros/tests/fixtures/path/expected/expansion@rs.snap.rs",
+    "new": "model/umpire/author/dsl/macros/tests/fixtures/path/expected/expansion.rs.snap",
+    "payload_sha256": "551a19cc853feb3d2d125b968246348bbadfcd671e7506dbccf0526d9eb6e42f"
+  },
+  {
+    "old": "model/umpire/author/dsl/tests/fixtures/action_inputs_values/expected/values.snap",
+    "payload": "model/umpire/author/dsl/tests/fixtures/action_inputs_values/expected/values.snap.txt",
+    "new": "model/umpire/author/dsl/tests/fixtures/action_inputs_values/expected/values.txt.snap",
+    "payload_sha256": "ab4cff85b8312701ec61f66ab12e64001992fbba10952f5686b4057bbbb87966"
+  },
+  {
+    "old": "model/umpire/author/dsl/tests/fixtures/action_inputs_limits/expected/values.snap",
+    "payload": "model/umpire/author/dsl/tests/fixtures/action_inputs_limits/expected/values.snap.txt",
+    "new": "model/umpire/author/dsl/tests/fixtures/action_inputs_limits/expected/values.txt.snap",
+    "payload_sha256": "b36e173f3053a7ac03e8f7af185baef94c5afef383e0306a335980263cba71a9"
+  },
+  {
+    "old": "model/umpire/author/dsl/tests/fixtures/assumptions/expected/values.snap",
+    "payload": "model/umpire/author/dsl/tests/fixtures/assumptions/expected/values.snap.txt",
+    "new": "model/umpire/author/dsl/tests/fixtures/assumptions/expected/values.txt.snap",
+    "payload_sha256": "344f1b071592c7e9f7f7c9f88089d3e581b6c547e71e6c945a1add37d2cf39b6"
+  },
+  {
+    "old": "model/umpire/author/dsl/tests/fixtures/empty_actions/expected/values.snap",
+    "payload": "model/umpire/author/dsl/tests/fixtures/empty_actions/expected/values.snap.txt",
+    "new": "model/umpire/author/dsl/tests/fixtures/empty_actions/expected/values.txt.snap",
+    "payload_sha256": "ba2ebbac061042833ee1954f001278f0bbe9817b2d88b01f86174c023b91e733"
+  },
+  {
+    "old": "model/umpire/author/dsl/tests/fixtures/formatting/expected/values.snap",
+    "payload": "model/umpire/author/dsl/tests/fixtures/formatting/expected/values.snap.txt",
+    "new": "model/umpire/author/dsl/tests/fixtures/formatting/expected/values.txt.snap",
+    "payload_sha256": "a7d8c94ecede938b44fc19740f38dfca3de1d02eb3b7ca8cd36873bd30e7d01d"
+  },
+  {
+    "old": "model/umpire/author/dsl/tests/fixtures/machine/expected/values.snap",
+    "payload": "model/umpire/author/dsl/tests/fixtures/machine/expected/values.snap.txt",
+    "new": "model/umpire/author/dsl/tests/fixtures/machine/expected/values.txt.snap",
+    "payload_sha256": "8d955e1369f327dac01b7fbae56a87fb3557b748eaab36e57f2389b66644c1bc"
+  },
+  {
+    "old": "model/umpire/author/dsl/tests/fixtures/derives/expected/values.snap",
+    "payload": "model/umpire/author/dsl/tests/fixtures/derives/expected/values.snap.txt",
+    "new": "model/umpire/author/dsl/tests/fixtures/derives/expected/values.txt.snap",
+    "payload_sha256": "226e5c55f8e813d41709dc35cf9380b89f68d7772b8e9e8c9905431cc305e393"
+  },
+  {
+    "old": "model/umpire/author/dsl/tests/fixtures/path/expected/values.snap",
+    "payload": "model/umpire/author/dsl/tests/fixtures/path/expected/values.snap.txt",
+    "new": "model/umpire/author/dsl/tests/fixtures/path/expected/values.txt.snap",
+    "payload_sha256": "350557159ea7eb4632ec6c307562da5da466961b0b5d1a95b597f6521a7b33a9"
+  },
+  {
+    "old": "model/umpire/author/suite/tests/fixtures/disabled_step/expected/messages.snap",
+    "payload": "model/umpire/author/suite/tests/fixtures/disabled_step/expected/messages.snap.txt",
+    "new": "model/umpire/author/suite/tests/fixtures/disabled_step/expected/messages.txt.snap",
+    "payload_sha256": "a33040ba6056bce232fc6bed2e7a83d9996324a30e0c18b0e7c6ece9117af03b"
+  },
+  {
+    "old": "model/umpire/author/suite/tests/fixtures/space_skipped/expected/messages.snap",
+    "payload": "model/umpire/author/suite/tests/fixtures/space_skipped/expected/messages.snap.txt",
+    "new": "model/umpire/author/suite/tests/fixtures/space_skipped/expected/messages.txt.snap",
+    "payload_sha256": "b6bf7654ce2988fa09d5389f56e116a7cb591bfb078ae8916ff488da62eaa3b9"
+  },
+  {
+    "old": "model/umpire/author/suite/tests/fixtures/ambiguous_step/expected/messages.snap",
+    "payload": "model/umpire/author/suite/tests/fixtures/ambiguous_step/expected/messages.snap.txt",
+    "new": "model/umpire/author/suite/tests/fixtures/ambiguous_step/expected/messages.txt.snap",
+    "payload_sha256": "177ab509d19d2eb5fff9db4bb30839a946943580abec382e15b976acacf4b65a"
+  },
+  {
+    "old": "model/umpire/author/suite/tests/fixtures/test_space/expected/messages.snap",
+    "payload": "model/umpire/author/suite/tests/fixtures/test_space/expected/messages.snap.txt",
+    "new": "model/umpire/author/suite/tests/fixtures/test_space/expected/messages.txt.snap",
+    "payload_sha256": "bfb03cbcbbed62eff6013ea835a1d2851731c2ac328ebd03275c43552cfae159"
+  },
+  {
+    "old": "model/umpire/author/suite/tests/fixtures/test_space/expected/coverage.snap",
+    "payload": "model/umpire/author/suite/tests/fixtures/test_space/expected/coverage.snap.txt",
+    "new": "model/umpire/author/suite/tests/fixtures/test_space/expected/coverage.txt.snap",
+    "payload_sha256": "216020ce4de6996aa4c6a984f99c56e4e8286c0f6f144d3123ae5ec53cb2be0e"
+  },
+  {
+    "old": "model/umpire/author/suite/tests/fixtures/test_space/expected/expansion/closings.snap",
+    "payload": "model/umpire/author/suite/tests/fixtures/test_space/expected/expansion/closings.snap.txt",
+    "new": "model/umpire/author/suite/tests/fixtures/test_space/expected/expansion/closings.txt.snap",
+    "payload_sha256": "964a1358378922a2411d2c3799224ae44b4adf3d9d2cc4b941a6ab7a46c5a2e3"
+  },
+  {
+    "old": "model/umpire/author/suite/tests/fixtures/test_space/expected/expansion/sample.snap",
+    "payload": "model/umpire/author/suite/tests/fixtures/test_space/expected/expansion/sample.snap.txt",
+    "new": "model/umpire/author/suite/tests/fixtures/test_space/expected/expansion/sample.txt.snap",
+    "payload_sha256": "a5d7730d354109448c304417c95482f0de4e1c876af46befd07b0013f234f10a"
+  },
+  {
+    "old": "model/umpire/author/suite/tests/fixtures/expect_line/expected/messages.snap",
+    "payload": "model/umpire/author/suite/tests/fixtures/expect_line/expected/messages.snap.txt",
+    "new": "model/umpire/author/suite/tests/fixtures/expect_line/expected/messages.txt.snap",
+    "payload_sha256": "3cd2c8df092d99f6420fc16ed65eed3b26b99fd62ed559c7544cc8fbff7fbcf4"
+  },
+  {
+    "old": "model/umpire/author/suite/tests/fixtures/search_budget/expected/messages.snap",
+    "payload": "model/umpire/author/suite/tests/fixtures/search_budget/expected/messages.snap.txt",
+    "new": "model/umpire/author/suite/tests/fixtures/search_budget/expected/messages.txt.snap",
+    "payload_sha256": "734b543d54260c4321c6480615dfd515559f20818e3e296ab2ec4adb0149d04a"
+  },
+  {
+    "old": "model/umpire/author/suite/tests/fixtures/along/expected/messages.snap",
+    "payload": "model/umpire/author/suite/tests/fixtures/along/expected/messages.snap.txt",
+    "new": "model/umpire/author/suite/tests/fixtures/along/expected/messages.txt.snap",
+    "payload_sha256": "b33c7ffc35c4ea7efc72cffe10a50a3aedd23a59951b8be5ee26f69b03e5ec73"
+  },
+  {
+    "old": "model/umpire/author/suite/tests/fixtures/space_find/expected/messages.snap",
+    "payload": "model/umpire/author/suite/tests/fixtures/space_find/expected/messages.snap.txt",
+    "new": "model/umpire/author/suite/tests/fixtures/space_find/expected/messages.txt.snap",
+    "payload_sha256": "db151947b8824a9d2649c044ed4b8202955f49049c0411e4c5df9dedd307976c"
+  },
+  {
+    "old": "model/umpire/author/suite/tests/fixtures/space_refuted/expected/messages.snap",
+    "payload": "model/umpire/author/suite/tests/fixtures/space_refuted/expected/messages.snap.txt",
+    "new": "model/umpire/author/suite/tests/fixtures/space_refuted/expected/messages.txt.snap",
+    "payload_sha256": "c8e0ae03b721026988d64cf965d4aa7265483a623603222b50b45f21c41462b9"
+  },
+  {
+    "old": "model/umpire/author/suite/tests/fixtures/space_verify_all/expected/messages.snap",
+    "payload": "model/umpire/author/suite/tests/fixtures/space_verify_all/expected/messages.snap.txt",
+    "new": "model/umpire/author/suite/tests/fixtures/space_verify_all/expected/messages.txt.snap",
+    "payload_sha256": "944fdd1021c4f6888a75bd284bb39f091df898218e01f36951fa60a2b96123a9"
+  },
+  {
+    "old": "model/temporal/feature/activity/expected/rows.snap",
+    "payload": "model/temporal/feature/activity/expected/rows.snap.txt",
+    "new": "model/temporal/feature/activity/expected/rows.txt.snap",
+    "payload_sha256": "d83c7c53bfd74d3ee8eb1171dab1d5effdeb6ebefbff0dc51e2350db2068bc34"
+  },
+  {
+    "old": "model/temporal/feature/activity/expected/Activity@cfg.snap",
+    "payload": "model/temporal/feature/activity/expected/Activity@cfg.snap.cfg",
+    "new": "model/temporal/feature/activity/expected/Activity.cfg.snap",
+    "payload_sha256": "a051abf2b55d53cd064a4f29b5edfbcc7dd22bdd15efa233c08bbaec541905e0"
+  },
+  {
+    "old": "model/temporal/feature/activity/expected/report.snap",
+    "payload": "model/temporal/feature/activity/expected/report.snap.txt",
+    "new": "model/temporal/feature/activity/expected/report.txt.snap",
+    "payload_sha256": "ccb4d183763d03e14a00c38d0d24ed6ced104e1ba6a154f6e9a0ae6d86378a12"
+  },
+  {
+    "old": "model/temporal/feature/activity/expected/realization.snap",
+    "payload": "model/temporal/feature/activity/expected/realization.snap.txt",
+    "new": "model/temporal/feature/activity/expected/realization.txt.snap",
+    "payload_sha256": "d7b7aa3be865568f8daf41aa7f209a22e9dabfcaeec6dd58a42c1e0c1b8b009b"
+  },
+  {
+    "old": "model/temporal/feature/activity/expected/lift.snap",
+    "payload": "model/temporal/feature/activity/expected/lift.snap.txt",
+    "new": "model/temporal/feature/activity/expected/lift.txt.snap",
+    "payload_sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  {
+    "old": "model/temporal/feature/activity/expected/Activity@tla.snap",
+    "payload": "model/temporal/feature/activity/expected/Activity@tla.snap.tla",
+    "new": "model/temporal/feature/activity/expected/Activity.tla.snap",
+    "payload_sha256": "32004472a945babc752d846a6ada7ec9250c23880836a404eb647f2a558bf96e"
+  },
+  {
+    "old": "model/temporal/feature/activity/expected/coverage.snap",
+    "payload": "model/temporal/feature/activity/expected/coverage.snap.txt",
+    "new": "model/temporal/feature/activity/expected/coverage.txt.snap",
+    "payload_sha256": "22f0acc3b3b943bf6c5e3e69794bfb12e134dc1f55b7490cbe0fad1f836dcd06"
+  },
+  {
+    "old": "model/temporal/feature/activity/expected/tlc.snap",
+    "payload": "model/temporal/feature/activity/expected/tlc.snap.txt",
+    "new": "model/temporal/feature/activity/expected/tlc.txt.snap",
+    "payload_sha256": "18f90e57b103ce9def3400898109a72e86196e4ed2e5885bd21185d81127211c"
+  },
+  {
+    "old": "model/temporal/feature/activity/expected/states.snap",
+    "payload": "model/temporal/feature/activity/expected/states.snap.txt",
+    "new": "model/temporal/feature/activity/expected/states.txt.snap",
+    "payload_sha256": "a73500197c2135b063f665e9c067af9313aa92a8a7fdef5ea7d9701d468d488c"
+  },
+  {
+    "old": "model/temporal/feature/activity/expected/expansion/closings.snap",
+    "payload": "model/temporal/feature/activity/expected/expansion/closings.snap.txt",
+    "new": "model/temporal/feature/activity/expected/expansion/closings.txt.snap",
+    "payload_sha256": "76e8a125a1230aba6d0cace6a378b1b4aaa41d02a05da4b5f59f4162994d1030"
+  }
+]

@@ -1,0 +1,6 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+start: Model { phase: Queued, attempt: 1 }
+1: Worker::Claim(2) choice=0 -> Model { phase: Queued, attempt: 1 }
+failure: check!(*outcome == Outcome::Accepted || self.closed()) failed at Model { phase: Queued, attempt: 1 }

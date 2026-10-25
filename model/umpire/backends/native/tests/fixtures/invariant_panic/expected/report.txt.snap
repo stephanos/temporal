@@ -1,0 +1,14 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+starts: 1
+reached: 3
+emitted: 4
+evaluated: 12
+refused: 8
+depth: 2
+cut: false
+outcome: Refuted
+claim safe: Refuted
+failure safe: claim safe panicked: broken invariant
+vacuity: action Action::Unused never fired
