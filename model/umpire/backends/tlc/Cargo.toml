@@ -10,6 +10,10 @@ rust-version.workspace = true
 [lints]
 workspace = true
 
+[features]
+# Development control: independently recheck every check/check_module caller and compare semantics.
+strategy-equivalence = []
+
 [dependencies]
 umpire-backend-process.workspace = true
 thiserror.workspace = true

@@ -26,7 +26,7 @@ pub enum Verdict {
 }
 
 /// A counterexample with a possible final back-edge to a zero-based trace index.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Trace {
     /// All assignments, retaining private observers for real-edge replay.
     pub states: Vec<TraceState>,
@@ -35,7 +35,7 @@ pub struct Trace {
 }
 
 /// One selected property, checked independently of other violations.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PropertyResult {
     /// The selected property's answer.
     pub verdict: Verdict,
@@ -64,6 +64,9 @@ pub struct Tlc {
     java: PathBuf,
     /// Bounds applied to every subprocess.
     pub limits: Limits,
+    /// Maximum simultaneous singleton recovery processes within one check. Must be positive.
+    /// The default is at most two; gates must also bound concurrent test processes and invocations.
+    pub property_workers: usize,
 }
 
 impl Tlc {
@@ -111,7 +114,14 @@ impl Tlc {
             if status.code() != Some(1) || !output.contains(TLC_VERSION) {
                 return Err(Refusal(format!("wrong TLC version: {output}")));
             }
-            Ok(Self { root, jar, java, limits: Limits::default() })
+            Ok(Self {
+                root,
+                jar,
+                java,
+                limits: Limits::default(),
+                property_workers: std::thread::available_parallelism()
+                    .map_or(1, |n| n.get().min(2)),
+            })
         })
         .map_err(|Refusal(message)| {
             if message.starts_with("missing pinned jar") {
@@ -122,7 +132,7 @@ impl Tlc {
         })
     }
 
-    /// Explore without claims first, then independently check every inline PROPERTY/INVARIANT.
+    /// Explore without claims first, then batch inline properties, recovering singleton traces on failure.
     ///
     /// # Errors
     /// A refusal, or TLC's typed evaluation error naming the property and state it failed in.
@@ -133,54 +143,143 @@ impl Tlc {
         cfg: &str,
         schema: &Schema,
     ) -> Result<TlcResult, Error> {
+        let result = self.check_strategy(name, tla, cfg, schema, true);
+        #[cfg(feature = "strategy-equivalence")]
+        {
+            let independent = self.check_strategy(name, tla, cfg, schema, false);
+            assert!(
+                equivalent(&result, &independent),
+                "TLC strategy equivalence failed for {name}:\nbatched: {result:?}\nindependent: {independent:?}"
+            );
+        }
+        result
+    }
+
+    fn check_strategy(
+        &self,
+        name: &str,
+        tla: &str,
+        cfg: &str,
+        schema: &Schema,
+        batch: bool,
+    ) -> Result<TlcResult, Error> {
         schema.validate()?;
         umpire_tla::identifier(name)?;
         if self.limits.timeout.is_zero()
             || self.limits.output_bytes == 0
             || self.limits.dump_bytes == 0
             || self.limits.heap_mb == 0
+            || self.property_workers == 0
         {
             return Err(Refusal("subprocess limits must be positive".into()).into());
         }
         let (base_cfg, properties) = split_cfg(cfg)?;
-        let scratch = Scratch::new(&self.root)?;
-        let result = (|| -> Result<TlcResult, Error> {
-            fs::write(scratch.path().join(format!("{name}.tla")), tla)?;
-            let (output, dump) = self.execute(name, &base_cfg, scratch.path(), None, schema)?;
-            let exploration_messages = messages(&output)?;
-            let count = distinct_count(&exploration_messages)?;
-            let states = decode_dump(&dump, count, schema)?;
-            let mut result = TlcResult {
-                states: states.into_iter().map(|state| state.state).collect(),
-                raw_state_count: count,
-                properties: BTreeMap::new(),
-                output,
-            };
-            for (kind, property) in properties {
-                let property_cfg = format!("{base_cfg}\n{kind} {property}\n");
-                let (output, _) =
-                    self.execute(name, &property_cfg, scratch.path(), Some(&property), schema)?;
-                let messages = messages(&output)?;
-                let violated = messages
-                    .iter()
-                    .any(|(code, _)| matches!(*code, 2107 | 2108 | 2110 | 2112 | 2116));
-                let trace = if violated { Some(decode_trace(&messages, schema)?) } else { None };
-                result.properties.insert(
-                    property,
-                    PropertyResult {
-                        verdict: if violated { Verdict::Refuted } else { Verdict::Verified },
-                        trace,
-                    },
-                );
-                if u64::try_from(result.output.len().saturating_add(output.len()))
-                    .unwrap_or(u64::MAX)
-                    > self.limits.output_bytes
-                {
-                    return Err(Refusal("combined check output limit exceeded".into()).into());
+        let (output, dump) = self.execution(name, tla, &base_cfg, Selection::Explore, schema)?;
+        let count = distinct_count(&messages(&output)?)?;
+        let states = decode_dump(&dump, count, schema)?;
+        let mut result = TlcResult {
+            states: states.into_iter().map(|state| state.state).collect(),
+            raw_state_count: count,
+            properties: BTreeMap::new(),
+            output,
+        };
+        if batch && properties.len() > 1 {
+            let cfg = property_cfg(&base_cfg, &properties);
+            match self.execution(name, tla, &cfg, Selection::Batch(&properties), schema) {
+                Ok((output, _)) => {
+                    let violated =
+                        messages(&output)?.iter().any(|(code, _)| VIOLATIONS.contains(code));
+                    append_output(&mut result.output, &output, self.limits.output_bytes)?;
+                    if !violated {
+                        for (_, property) in properties {
+                            result.properties.insert(
+                                property,
+                                PropertyResult { verdict: Verdict::Verified, trace: None },
+                            );
+                        }
+                        return Ok(result);
+                    }
                 }
-                result.output.push_str(&output);
+                Err(Error::Evaluation(_)) => {}
+                Err(error) => return Err(error),
             }
-            Ok(result)
+        }
+        let workers = if batch { self.property_workers } else { 1 };
+        for wave in properties.chunks(workers) {
+            let checked = if wave.len() == 1 {
+                vec![self.check_property(name, tla, &base_cfg, &wave[0], schema)]
+            } else {
+                self.recover_properties(name, tla, &base_cfg, wave, schema)?
+            };
+            for ((_, property), checked) in wave.iter().zip(checked) {
+                let (answer, output) = checked?;
+                append_output(&mut result.output, &output, self.limits.output_bytes)?;
+                result.properties.insert(property.clone(), answer);
+            }
+        }
+        Ok(result)
+    }
+
+    fn check_property(
+        &self,
+        name: &str,
+        tla: &str,
+        base: &str,
+        property: &(String, String),
+        schema: &Schema,
+    ) -> Result<(PropertyResult, String), Error> {
+        let cfg = property_cfg(base, std::slice::from_ref(property));
+        let (output, _) =
+            self.execution(name, tla, &cfg, Selection::Property(&property.1), schema)?;
+        let messages = messages(&output)?;
+        let violated = messages.iter().any(|(code, _)| VIOLATIONS.contains(code));
+        let trace = if violated { Some(decode_trace(&messages, schema)?) } else { None };
+        Ok((
+            PropertyResult {
+                verdict: if violated { Verdict::Refuted } else { Verdict::Verified },
+                trace,
+            },
+            output,
+        ))
+    }
+
+    fn recover_properties(
+        &self,
+        name: &str,
+        tla: &str,
+        base: &str,
+        properties: &[(String, String)],
+        schema: &Schema,
+    ) -> Result<Vec<Result<(PropertyResult, String), Error>>, Error> {
+        assert!(properties.len() <= self.property_workers);
+        std::thread::scope(|scope| {
+            let mut handles = Vec::new();
+            for property in properties {
+                handles.push(std::thread::Builder::new().spawn_scoped(scope, move || {
+                    self.check_property(name, tla, base, property, schema)
+                })?);
+            }
+            handles
+                .into_iter()
+                .map(|handle| {
+                    handle.join().map_err(|_| Refusal("property worker panicked".into()).into())
+                })
+                .collect()
+        })
+    }
+
+    fn execution(
+        &self,
+        name: &str,
+        tla: &str,
+        cfg: &str,
+        selection: Selection<'_>,
+        schema: &Schema,
+    ) -> Result<(String, String), Error> {
+        let scratch = Scratch::new(&self.root)?;
+        let result = (|| {
+            fs::write(scratch.path().join(format!("{name}.tla")), tla)?;
+            self.execute(name, cfg, scratch.path(), selection, schema)
         })();
         scratch.finish(result)
     }
@@ -190,10 +289,18 @@ impl Tlc {
         name: &str,
         cfg: &str,
         directory: &Path,
-        property: Option<&str>,
+        selection: Selection<'_>,
         schema: &Schema,
     ) -> Result<(String, String), Error> {
-        let label = property.unwrap_or("explore");
+        let property = match selection {
+            Selection::Property(property) => Some(property),
+            _ => None,
+        };
+        let label = match selection {
+            Selection::Explore => "explore",
+            Selection::Property(property) => property,
+            Selection::Batch(_) => "batch",
+        };
         let config = directory.join("Run.cfg");
         fs::write(&config, cfg)?;
         let dump = directory.join(format!("{label}.dump"));
@@ -208,7 +315,18 @@ impl Tlc {
                 "-cp",
             ])
             .arg(&self.jar)
-            .args(["tlc2.TLC", "-tool", "-workers", "1", "-cleanup", "-checkpoint", "0", "-config"])
+            .args([
+                "tlc2.TLC",
+                "-tool",
+                "-workers",
+                "1",
+                "-fp",
+                "0",
+                "-cleanup",
+                "-checkpoint",
+                "0",
+                "-config",
+            ])
             .arg(&config)
             .arg("-metadir")
             .arg(directory.join("states"))
@@ -220,10 +338,18 @@ impl Tlc {
             run_process(&mut command, directory, label, self.limits, Some(&dump))?;
         let parsed = parse(&output).map_err(|error| Refusal(format!("{error}\n{output}")))?;
         let tla = fs::read_to_string(directory.join(format!("{name}.tla")))?;
+        if matches!(selection, Selection::Batch(_))
+            && !parsed.iter().any(|message| message.code == 2186)
+        {
+            return Err(Refusal(format!("incomplete TLC property batch:\n{output}")).into());
+        }
         failure(&parsed, property, &tla, schema)?;
         let messages: Vec<_> =
             parsed.into_iter().map(|message| (message.code, message.body)).collect();
-        let violation = selected_violation(&messages, property, &tla)?;
+        let violation = match selection {
+            Selection::Batch(properties) => batch_violation(&messages, properties, &tla)?,
+            _ => selected_violation(&messages, property, &tla)?,
+        };
         let finished = messages.iter().any(|(code, _)| *code == 2186);
         let success = messages.iter().any(|(code, _)| *code == 2193);
         let unexpected_error = messages.iter().any(|(code, _)| {
@@ -232,7 +358,7 @@ impl Tlc {
         });
         if !finished
             || unexpected_error
-            || !(status.success() || property.is_some() && violation)
+            || !(status.success() || !matches!(selection, Selection::Explore) && violation)
             || (status.success() && !success)
         {
             return Err(Refusal(format!(
@@ -241,10 +367,76 @@ impl Tlc {
             ))
             .into());
         }
-        if violation && property.is_none() {
+        if violation && matches!(selection, Selection::Explore) {
             return Err(Refusal(format!("reachability unexpectedly refuted:\n{output}")).into());
         }
         Ok((output, bounded_text(&dump, self.limits.dump_bytes)?))
+    }
+}
+
+#[derive(Clone, Copy)]
+enum Selection<'a> {
+    Explore,
+    Property(&'a str),
+    Batch(&'a [(String, String)]),
+}
+
+fn property_cfg(base: &str, properties: &[(String, String)]) -> String {
+    let mut cfg = base.to_owned();
+    for (kind, property) in properties {
+        cfg.push('\n');
+        cfg.push_str(kind);
+        cfg.push(' ');
+        cfg.push_str(property);
+        cfg.push('\n');
+    }
+    cfg
+}
+
+fn append_output(output: &mut String, additional: &str, limit: u64) -> Result<(), Refusal> {
+    if u64::try_from(output.len().saturating_add(additional.len())).unwrap_or(u64::MAX) > limit {
+        return Err(Refusal("combined check output limit exceeded".into()));
+    }
+    output.push_str(additional);
+    Ok(())
+}
+
+fn batch_violation(
+    messages: &[(u32, String)],
+    properties: &[(String, String)],
+    tla: &str,
+) -> Result<bool, Refusal> {
+    let mut violated = false;
+    for message in messages.iter().filter(|(code, _)| VIOLATIONS.contains(code)) {
+        let selected = properties.iter().any(|(kind, property)| {
+            (message.0 != 2116 || kind == "PROPERTY")
+                && selected_violation(std::slice::from_ref(message), Some(property), tla)
+                    .is_ok_and(|violated| violated)
+        });
+        if !selected {
+            return Err(Refusal(format!("unexpected batch property violation: {}", message.1)));
+        }
+        violated = true;
+    }
+    Ok(violated)
+}
+
+#[cfg(feature = "strategy-equivalence")]
+fn equivalent(actual: &Result<TlcResult, Error>, independent: &Result<TlcResult, Error>) -> bool {
+    match (actual, independent) {
+        (Ok(actual), Ok(independent)) => {
+            actual.states == independent.states
+                && actual.raw_state_count == independent.raw_state_count
+                && actual.properties == independent.properties
+        }
+        (Err(Error::Evaluation(actual)), Err(Error::Evaluation(independent))) => {
+            actual.property == independent.property
+                && actual.message == independent.message
+                && actual.trace == independent.trace
+                && actual.state == independent.state
+        }
+        (Err(Error::Refusal(_)), Err(Error::Refusal(_))) => true,
+        _ => false,
     }
 }
 
@@ -344,6 +536,7 @@ pub(super) fn split_cfg(cfg: &str) -> Result<(String, Vec<(String, String)>), Re
 const START: &str = "@!@!@STARTMSG ";
 const END: &str = "@!@!@ENDMSG ";
 /// The violation and behavior messages TLC marks as errors.
+const VIOLATIONS: [u32; 5] = [2107, 2108, 2110, 2112, 2116];
 const REPORTED: [u32; 9] = [2103, 2107, 2108, 2110, 2112, 2116, 2121, 2122, 2264];
 
 /// One TLC message: its code, whether TLC marks it an error, and its text, followed by the text
@@ -572,6 +765,7 @@ mod tests {
             jar: PathBuf::from("/unused"),
             java: PathBuf::from("/missing-java"),
             limits: Limits::default(),
+            property_workers: 2,
         };
         let mut invalid = module.clone();
         invalid.metadata.fields.push(invalid.metadata.fields[0].clone());
@@ -819,3 +1013,6 @@ mod tests {
         scratch.finish(result)
     }
 }
+
+#[cfg(test)]
+mod batch_tests;

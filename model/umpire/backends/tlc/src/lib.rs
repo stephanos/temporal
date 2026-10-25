@@ -1,4 +1,21 @@
 //! Pinned TLC execution, complete reachable sets and typed counterexamples.
+//!
+//! Each existing main, progress or negative configuration explores without claims, then checks
+//! its properties together. Failed batches recover canonical singleton traces in cfg order.
+//! Executions use fingerprint polynomial zero (`-fp 0`) in both strategies: TLC otherwise chooses
+//! a random polynomial, which can change the lasso even between identical singleton checks.
+//!
+//! `Tlc::property_workers` bounds singleton recovery within a check (default: available cores,
+//! capped at two). Gates must additionally bound test processes and concurrent gate invocations.
+//! With two test threads or two nextest JVM-group slots, the default permits at most four model
+//! JVMs and 2 GiB of configured Java heap, plus native JVM memory. Run only one required-backend
+//! gate invocation per resource allocation; this limit does not coordinate separate processes.
+//!
+//! The development-only `strategy-equivalence` feature also runs the sequential singleton strategy
+//! beneath every `check`/`check_module` caller, including shared fixtures and source mutants. It
+//! asserts exact states, property verdicts, trace assignments/private observers, lasso destinations
+//! and typed evaluation fields. Raw subprocess output is excluded; both strategies must refuse
+//! execution failures. It adds comparison work and is not enabled in the routine fast gate.
 
 #![forbid(unsafe_code)]
 
