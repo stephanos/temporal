@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-251-one-probe-engine-and-one-catalog-build",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-25T09:45:01.297115Z",
   "created_at": "2026-10-24T22:10:14.854886Z",
   "default_impl": null,
   "default_review": null,
@@ -266,24 +266,62 @@
       "task": "fn-251-one-probe-engine-and-one-catalog-build.4",
       "timestamp": "2026-10-25T09:13:00.391242Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "40f6212a470c855ccb66fe81cb4411c59ae33f313849133721929af844e73e6f",
+      "backend": "codex",
+      "base_sha": "0a55396440b04c316eaf2a5bd477aae9f5a74cd4",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4c4192db6a3752968733a1a1b88eb5cb60b2ec20",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 651349,
+      "output_sha256": "3166ac5605da018365a4976631a197e4feb4017616a57350bf92afe3b1a8cadc",
+      "reservation_id": "86fd81eace3141069fca4f4ea18638bd",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-25T09:45:01.284463Z",
+      "tool_calls": 29,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-251-one-probe-engine-and-one-catalog-build.3": 1,
     "impl:fn-251-one-probe-engine-and-one-catalog-build.4": 1,
     "impl:fn-251-one-probe-engine-and-one-catalog-build.5": 1,
-    "impl:fn-251-one-probe-engine-and-one-catalog-build.6": 1
+    "impl:fn-251-one-probe-engine-and-one-catalog-build.6": 1,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-251-one-probe-engine-and-one-catalog-build.3": 0,
     "impl:fn-251-one-probe-engine-and-one-catalog-build.4": 0,
     "impl:fn-251-one-probe-engine-and-one-catalog-build.5": 0,
     "impl:fn-251-one-probe-engine-and-one-catalog-build.6": 0
   },
   "spec_path": ".flow/specs/fn-251-one-probe-engine-and-one-catalog-build.md",
-  "status": "open",
+  "status": "done",
   "title": "One probe engine and one catalog build path for Kettle and Temporal (model, temporal)",
   "tracker": {
     "baseHashFlow": null,
@@ -296,5 +334,10 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T09:13:00.396299Z"
+  "updated_at": "2026-10-25T09:47:52.339711Z",
+  "validation_review": {
+    "path": ".flow/artifacts/fn-251-one-probe-engine-and-one-catalog-build/validation-cost-review-8b50ef5d9517fd44619f97821d7c7c495ee7e64afd9a2b9d06a66b444883e20e.json",
+    "schema_version": 1,
+    "sha256": "8b50ef5d9517fd44619f97821d7c7c495ee7e64afd9a2b9d06a66b444883e20e"
+  }
 }

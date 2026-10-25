@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "spec_id": "fn-251-one-probe-engine-and-one-catalog-build",
+  "gates": [
+    {
+      "command": "UMPIRE_APALACHE=require make model-validate",
+      "mode": "Joined transport/tooling checkpoint8da35e97e4 with TLC and Apalache required; independent concurrent work active",
+      "cost": {
+        "kind": "measured",
+        "seconds": 1201.646
+      },
+      "coverage": "Strict workspace fmt/clippy/docs/tests, real backend controls, current guest freshness, six wasm/native controls and all three Go hosts; inner edit/test6.370s",
+      "evidence": [
+        ".flow/artifacts/consolidation-20261025/transport-tooling-validation-8da35e97e4/receipt.json",
+        ".flow/artifacts/consolidation-20261025/transport-tooling-validation-8da35e97e4/model-validate.log"
+      ]
+    },
+    {
+      "command": "UMPIRE_APALACHE=require make model-validate",
+      "mode": "Final combined source tree abe4560501278986bc8ab74853d07b5b7128f30e at02751bfef564e9fb08c84a8179e337ce51f336f0; one unchanged-tree union gate shared across fn250/fn251/fn252",
+      "cost": {
+        "kind": "measured",
+        "seconds": 1188.04
+      },
+      "coverage": "All current consolidation code: strict workspace fmt/clippy/docs,1016.986s real native/TLC/Apalache tests, current Temporal guest freshness, six wasm/native controls, all3 Go hosts and6.155s edit/test loop",
+      "evidence": [
+        ".flow/artifacts/consolidation-20261025/final-validation-02751bfef5/receipt.json",
+        ".flow/artifacts/consolidation-20261025/final-validation-02751bfef5/model-validate.log",
+        ".flow/artifacts/consolidation-20261025/quality-audit.md"
+      ]
+    },
+    {
+      "command": "flowctl codex impl-review-fanout and focused supplemental reviews; paired quality-auditor axes",
+      "mode": "Independent fresh same-family gpt-6.1-sol high; distinct correctness/contracts/integration and correctness/standards assessments",
+      "cost": {
+        "kind": "unknown",
+        "reason": "Some draw timings are available, but total cumulative wall time for all task and supplemental reviews is not recorded consistently"
+      },
+      "coverage": "Independent task contracts, integration, refusal controls and documented standards; final paired audits found zero issues",
+      "evidence": [
+        ".flow/artifacts/consolidation-20261025/quality-audit.md",
+        ".flow/artifacts/consolidation-20261025/quality-audit-receipt.json",
+        "Committed per-task review ledgers and original conductor receipts"
+      ]
+    }
+  ],
+  "speedup_decisions": [
+    {
+      "opportunity": "One full suite per task/spec repeats identical workspace, backend, wasm and Go coverage",
+      "decision": "Reuse each successful unchanged-tree gate across the tasks it contains; run one final union gate for fn250/fn251/fn252",
+      "rationale": "The source tree includes every consolidation plus reviewed report/current guest updates; one execution of the exact full command covers all parents together",
+      "coverage_preserved": "Every distinct task retains focused semantic/mutation controls and independent review; all original real-tool/wasm/current-host checks remain in the union gate"
+    },
+    {
+      "opportunity": "Real backend workspace tests dominated prior full run at1028.724s",
+      "decision": "Retain actual TLC/Apalache execution and use focused native/cache checks during iteration",
+      "rationale": "Typed witnesses, fairness lassos, current World identity, facts, arithmetic, payloads and semantic mutations are not proved by compilation or handwritten traces. No safely removable subset was demonstrated",
+      "coverage_preserved": "Exhaustive native/interpreted/TLC agreement and real bounded Apalache controls, with exact typed replay and refusal behavior"
+    },
+    {
+      "opportunity": "A new isolated checkout lacked its pinned TLC jar and caused an avoidable first gate failure",
+      "decision": "Provision and checksum-admit pinned tools before required runs, preserving failed diagnostics",
+      "rationale": "Existing fetch-tlc.sh and the exact previously failed real-tool control established a repaired environment before retry; source was unchanged",
+      "coverage_preserved": "The actual required solver checks still run; the optimization avoids a missing-tool attempt without substituting or weakening tool admission"
+    },
+    {
+      "opportunity": "Additional generator/compiler controls add gate work",
+      "decision": "Keep the bounded controls in model-check",
+      "rationale": "Observed proto controls0.196s and capability controls0.282s are small compared with solver execution and guard build-safety contracts",
+      "coverage_preserved": "All module selectors, version/freshness/refusal controls and non-overridable unsafe protection remain verified"
+    }
+  ]
+}

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-251-one-probe-engine-and-one-catalog-build",
   "spec_path": ".flow/tasks/fn-251-one-probe-engine-and-one-catalog-build.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Generated annotation dispatch and AnnotationRuntime::with_probes",
   "updated_at": "2026-10-24T22:11:07.087058Z"
 }

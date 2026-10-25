@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-250-shared-value-type-and-trace-layer-for",
   "spec_path": ".flow/tasks/fn-250-shared-value-type-and-trace-layer-for.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Schema keyed by ir::Type; remove the wire Type and dead Set/Record decoding",
   "updated_at": "2026-10-24T22:11:02.036366Z"
 }

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-251-one-probe-engine-and-one-catalog-build",
   "spec_path": ".flow/tasks/fn-251-one-probe-engine-and-one-catalog-build.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "One generic probe engine for Kettle and Temporal",
   "updated_at": "2026-10-24T22:27:56.620348Z"
 }

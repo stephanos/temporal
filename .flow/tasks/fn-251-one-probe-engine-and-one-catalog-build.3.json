@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-251-one-probe-engine-and-one-catalog-build",
   "spec_path": ".flow/tasks/fn-251-one-probe-engine-and-one-catalog-build.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Generated request_findings replaces Temporal's Wire enum",
   "updated_at": "2026-10-24T22:27:56.366430Z"
 }

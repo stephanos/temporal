@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "spec_id": "fn-250-shared-value-type-and-trace-layer-for",
+  "gates": [
+    {
+      "command": "UMPIRE_APALACHE=require make model-validate",
+      "mode": "TLC and Apalache required, isolated joined Rust cache, concurrent independent lanes",
+      "cost": {
+        "kind": "measured",
+        "seconds": 1308.17
+      },
+      "coverage": "All workspace tests and native-tool replay controls, strict fmt/clippy/docs, current guest freshness, six wasm guests/native controls and all three Go hosts; inner edit/test loop 8.882 seconds",
+      "evidence": [
+        "consolidation-retry-model-validate.log and .exit retained under .flow/tmp/milestones-resume-20261024",
+        "Pinned d30d679fc1 model tree verified unchanged before task closure; code point integrated in umpire",
+        ".flow/artifacts/fn-250-shared-value-type-and-trace-layer-for/validation-d30d679fc1/receipt.json"
+      ]
+    },
+    {
+      "command": "flowctl codex impl-review-fanout fn-250.3 and supplemental re-review",
+      "mode": "Independent same-family gpt-6.1-sol high; correctness, contracts and integration draws",
+      "cost": {
+        "kind": "unknown",
+        "reason": "Exact elapsed time was not recorded for every original and supplemental draw"
+      },
+      "coverage": "Shared typed replay/observers, real fact controls, native-only fixture capability and downstream integration",
+      "evidence": [
+        "Task review ledger and SHIP receipts; final full workspace strict clippy and required gate green"
+      ]
+    },
+    {
+      "command": "flowctl codex completion-review fn-250",
+      "mode": "Independent same-family gpt-6.1-sol high over all R1-R6",
+      "cost": {
+        "kind": "unknown",
+        "reason": "Completion reviewer elapsed time not yet captured as a stable receipt field"
+      },
+      "coverage": "Requirement-by-requirement parent completion assessment across all five tasks",
+      "evidence": [
+        "Conductor runs this review before closure"
+      ]
+    },
+    {
+      "command": "UMPIRE_APALACHE=require make model-validate",
+      "mode": "Final combined source tree abe4560501278986bc8ab74853d07b5b7128f30e at02751bfef564e9fb08c84a8179e337ce51f336f0; one unchanged-tree union gate shared across fn250/fn251/fn252",
+      "cost": {
+        "kind": "measured",
+        "seconds": 1188.04
+      },
+      "coverage": "All current consolidation code: strict workspace fmt/clippy/docs,1016.986s real native/TLC/Apalache tests, current Temporal guest freshness, six wasm/native controls, all3 Go hosts and6.155s edit/test loop",
+      "evidence": [
+        ".flow/artifacts/consolidation-20261025/final-validation-02751bfef5/receipt.json",
+        ".flow/artifacts/consolidation-20261025/final-validation-02751bfef5/model-validate.log",
+        ".flow/artifacts/consolidation-20261025/quality-audit.md"
+      ]
+    }
+  ],
+  "speedup_decisions": [
+    {
+      "opportunity": "Duplicate full-suite validation for three independent consolidation tasks",
+      "decision": "Reuse one unchanged-tree joined required gate for fn250.3, fn251.3 and fn252.5",
+      "rationale": "All three code changes and supplemental fixes are integrated at the verified d30d679fc1 model tree; their distinct semantic controls remain in the full workspace run",
+      "coverage_preserved": "Every task retains scoped red/green controls and independent implementation review; one full gate executes the union of workspace, real-tool, wasm and host checks"
+    },
+    {
+      "opportunity": "Required real-tool workspace tests account for 1107.343 seconds of the 1308.170-second gate",
+      "decision": "Retain real TLC and Apalache controls; use isolated reusable caches and focused checks during implementation",
+      "rationale": "These controls prove actual typed facts, payloads, arithmetic prefixes and divergence behavior that handwritten traces cannot establish. This concurrent run is not a controlled backend-speed comparison, so no unsupported coverage reduction or timing attribution is justified",
+      "coverage_preserved": "Actual tool execution, strict replay refusal/mutation controls, full downstream guests and native/Go interoperability all remain"
+    },
+    {
+      "opportunity": "Three-draw review and supplemental review cost",
+      "decision": "Use one focused supplemental review after findings are fixed; retain the initial three-axis review",
+      "rationale": "Avoid repeating independent first-round fanout where the review route already carries the finding context",
+      "coverage_preserved": "All surviving findings and all parent requirements are checked before closure"
+    }
+  ]
+}

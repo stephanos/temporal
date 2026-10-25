@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-250-shared-value-type-and-trace-layer-for",
   "spec_path": ".flow/tasks/fn-250-shared-value-type-and-trace-layer-for.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Observer names in one module and one trace-replay core for TLC and Apalache",
   "updated_at": "2026-10-24T22:11:02.609572Z"
 }

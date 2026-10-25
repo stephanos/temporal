@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-251-one-probe-engine-and-one-catalog-build",
   "spec_path": ".flow/tasks/fn-251-one-probe-engine-and-one-catalog-build.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "System::generate replaces build-configuration layers",
   "updated_at": "2026-10-24T22:11:05.392368Z"
 }

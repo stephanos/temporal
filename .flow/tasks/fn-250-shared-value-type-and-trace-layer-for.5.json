@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-250-shared-value-type-and-trace-layer-for",
   "spec_path": ".flow/tasks/fn-250-shared-value-type-and-trace-layer-for.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "PinnedJar admission with in-process sha2 and one identifier() for TLC and Apalache",
   "updated_at": "2026-10-24T22:13:12.293787Z"
 }

@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-252-quick-consolidation-wins-in-model-code",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-25T09:44:47.878906Z",
   "created_at": "2026-10-24T22:10:15.961750Z",
   "default_impl": null,
   "default_review": null,
@@ -301,6 +301,42 @@
       "task": "fn-252-quick-consolidation-wins-in-model-code.6",
       "timestamp": "2026-10-25T08:50:58.134197Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "c472731901ec70144f2d5888556ee413f1a6506a1a6c5cb57bc65de6b870f175",
+      "backend": "codex",
+      "base_sha": "4c4e99ca7e89d87f6c64e7b30cdbbb764294d758",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4c4192db6a3752968733a1a1b88eb5cb60b2ec20",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 735153,
+      "output_sha256": "5029dd13816a54a603471ea06a51eab7825192b0ec91974d06d1f98d35467602",
+      "reservation_id": "9d0b13588c3a4d3087556e61479ca666",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-25T09:44:47.867003Z",
+      "tool_calls": 26,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -309,11 +345,13 @@
     "impl:fn-252-quick-consolidation-wins-in-model-code.5": 1,
     "impl:fn-252-quick-consolidation-wins-in-model-code.6": 1,
     "impl:fn-252-quick-consolidation-wins-in-model-code.7": 1,
-    "impl:fn-252-quick-consolidation-wins-in-model-code.8": 1
+    "impl:fn-252-quick-consolidation-wins-in-model-code.8": 1,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-252-quick-consolidation-wins-in-model-code.3": 0,
     "impl:fn-252-quick-consolidation-wins-in-model-code.4": 0,
     "impl:fn-252-quick-consolidation-wins-in-model-code.5": 0,
@@ -335,5 +373,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T08:50:58.137396Z"
+  "updated_at": "2026-10-25T09:44:47.882971Z"
 }

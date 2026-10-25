@@ -102,28 +102,7 @@ fn-248 closed locally on 2026-10-25: crates replace hand-written code (insta gol
 
 fn-250.1/.2, fn-251.1/.2 and fn-252.1/.2 are complete locally: their scoped reviews and the joined `UMPIRE_APALACHE=require make model-validate` passed at `1c1e7fbf07`, including TLC, Apalache, workspace tests, guest freshness and all three Go hosts. The gate took 1549.246s against the 60s soft target; the inner loop took 7.623s against 10s. This used a cold task-owned cache with other independent work active, so it is not a controlled speed comparison.
 
-All tasks in fn-250, fn-251 and fn-252 are complete locally and integrated, including shared typed replay, one probe engine, generated transport/findings, facade removal, test/search/tooling consolidation and the stock fixture move. The final combined TLC/Apalache-required gate passed at `02751bfef5` (1188.040s full gate, 6.155s edit/test loop), with current guests and all three Go hosts green. Both independent quality audits found zero issues. The three parent completion reviews and closures remain pending.
-
-### fn-250: Shared value, type and trace layer for the TLA+ back ends (model)
-
-Filed on 2026-10-24 from the owner's duplication review. The back ends re-derive the same things from the IR: a wire
-`Type` mirroring `ir::Type` (lowered five times), `Schema` from `Module` (five times), a `Literal` mirroring the DSL
-`Value` (converted in about eight places), the observer names as literals, and one trace replay each for TLC and
-Apalache. One layer replaces them (about 600–800 lines). A parallel lane after fn-248; fn-245, fn-240 and fn-211 wait for it.
-[Spec](.flow/specs/fn-250-shared-value-type-and-trace-layer-for.md).
-
-All five tasks are complete locally. The final required gate passed after the Activity replay and observer-ownership follow-up; the parent completion re-review remains pending.
-
-### fn-251: One probe engine and one catalog build path for Kettle and Temporal (model, temporal)
-
-Filed on 2026-10-24 from the owner's duplication review. Kettle and Temporal each implement the probe engine, the
-descriptor-to-Rust graph builder, annotation/probe transport dispatch and build-configuration layers; Temporal also
-hand-writes a `Wire` enum over catalogs the derived `Inspect` already walks, and keeps two facade crates. Each moves
-to one system-neutral place in `model/umpire` (about 850–950 lines and two crates). A parallel lane after fn-248,
-before fn-246, which rewrites the same probes.
-[Spec](.flow/specs/fn-251-one-probe-engine-and-one-catalog-build.md).
-
-All six tasks are complete locally; parent completion review remains pending.
+All tasks in fn-250, fn-251 and fn-252 are complete locally and integrated, including shared typed replay, one probe engine, generated transport/findings, facade removal, test/search/tooling consolidation and the stock fixture move. The final combined TLC/Apalache-required gate passed at `02751bfef5` (1188.040s full gate, 6.155s edit/test loop), with current guests and all three Go hosts green. Both independent quality audits found zero issues. fn-250 and fn-251 passed parent completion review and are closed locally. fn-252 also received SHIP, but closure is held for a standalone symbolic-probe lockfile synchronization discovered by a targeted check; its six native tests pass after the repair.
 
 ### fn-252: Quick consolidation wins in model code, tests and tooling (model)
 
@@ -134,7 +113,7 @@ On 2026-10-25 the owner authorized .3 and .4 ahead of the whole fn-248 closure i
 Both tasks completed locally with focused checks and scoped SHIP reviews: .3 removed regenerable spike output and shared the authored Kettle source; .4 consolidated native fixtures and SpaceBinding. The parent R9 full validation remains open.
 [Spec](.flow/specs/fn-252-quick-consolidation-wins-in-model-code.md).
 
-All eight tasks are complete locally; parent completion review remains pending.
+All eight tasks are complete locally and parent review reached SHIP. The retained standalone symbolic probe needs a one-line lock dependency synchronization after the shared front-end changes; the isolated locked test run passes six controls. Integrate and validate that follow-up before parent closure.
 
 ### fn-246: Realization as a checked refinement: shared Temporal layer, action registry, Reach, derived strategies (model, temporal)
 

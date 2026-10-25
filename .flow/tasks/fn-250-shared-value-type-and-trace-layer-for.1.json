@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-250-shared-value-type-and-trace-layer-for",
   "spec_path": ".flow/tasks/fn-250-shared-value-type-and-trace-layer-for.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Literal in umpire-ir with one admit function",
   "updated_at": "2026-10-24T22:11:01.455212Z"
 }
