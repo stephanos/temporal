@@ -65,6 +65,22 @@ correlation hooks. Production activity lens/probe installation remains separate 
 boundary against system-specific imports and names. The Go host, Runner, generated protocol
 and Kettle module ownership rows below describe their current paths.
 
+## Current Go tooling ownership
+
+`tools/umpire/` contains only `cmd/umpire`, the shared Runner command, and
+`temporaldriver`, which composes Testpilot's Temporal Driver with the raw and SDK
+reference workers. The command depends on the shared Go Runner and that driver;
+the driver depends on Testpilot's `temporal/act`, the Temporal SDK and the reference
+workers. Testpilot, the canary, Go hosts, generated protocols and embedded guests
+remain live consumers, with their ownership rows recorded below.
+
+fn-256 retires the Scala-era Go IR reader, interpreter, checker, realization
+admission, private engine and Quint exporter, together with their backend Make
+hooks. The retained Go host, Runner, Driver and canary rows below still describe
+live ownership. The removed reader rows and later Scala/Go migration instructions
+are historical; their removed paths, planned interfaces and old commands do not
+describe current build targets or permitted imports.
+
 ## Historical Scala and Go migration ownership
 
 Paths below are destinations, except the explicitly planned Answering module. Public entry points
