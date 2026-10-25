@@ -185,10 +185,10 @@ impl umpire_runtime::capability::Snapshot<specimen::World> for Binding {
         let mut target = state.clone();
         match observation.method.as_str() {
             "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution" => {
-                target.ping = true
+                target.ping = true;
             }
             "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution" => {
-                target.ping = false
+                target.ping = false;
             }
             _ => return Err(Refusal::unsupported("synthetic projection method unsupported")),
         }
