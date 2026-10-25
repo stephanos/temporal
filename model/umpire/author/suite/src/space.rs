@@ -150,33 +150,23 @@ pub trait SpaceBinding<S: Associated>: sealed::Sealed {
     fn world(&self) -> Rc<S::World>;
 }
 
-impl<S: Registered> SpaceBinding<S> for Space<S> {
-    fn starts(&self) -> &[S] {
-        &self.starts
-    }
+trait WorldSource<S: Associated> {
+    fn world(&self) -> Rc<S::World>;
+}
 
-    fn state_budget(&self) -> usize {
-        self.budget
-    }
-
-    fn alternative_budget(&self) -> usize {
-        self.alternatives
-    }
-
-    fn walk_bound(&self) -> usize {
-        self.walk_bound
-    }
-
-    fn catalog_limit(&self) -> usize {
-        self.catalog_limit
-    }
-
-    fn world(&self) -> Rc<<S as Associated>::World> {
+impl<S: Registered> WorldSource<S> for () {
+    fn world(&self) -> Rc<S::World> {
         Rc::new(S::world())
     }
 }
 
-impl<S: Associated> SpaceBinding<S> for Space<S, Rc<S::World>> {
+impl<S: Associated> WorldSource<S> for Rc<S::World> {
+    fn world(&self) -> Rc<S::World> {
+        self.clone()
+    }
+}
+
+impl<S: Associated, W: WorldSource<S>> SpaceBinding<S> for Space<S, W> {
     fn starts(&self) -> &[S] {
         &self.starts
     }
@@ -198,7 +188,7 @@ impl<S: Associated> SpaceBinding<S> for Space<S, Rc<S::World>> {
     }
 
     fn world(&self) -> Rc<S::World> {
-        self.world.clone()
+        self.world.world()
     }
 }
 
