@@ -11,6 +11,7 @@ rust-version.workspace = true
 workspace = true
 
 [dependencies]
+umpire-checker.workspace = true
 prost.workspace = true
 umpire-runtime.workspace = true
 umpire-catalog-macros.workspace = true

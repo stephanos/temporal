@@ -124,11 +124,7 @@ fn explored<M: Machine>(
 /// even where a start domain fails.
 fn enumerated<M: Machine>(world: &M) -> Result<Vec<M::State>, String> {
     std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| world.starts())).map_err(|panic| {
-        let message = panic
-            .downcast_ref::<&str>()
-            .copied()
-            .or_else(|| panic.downcast_ref::<String>().map(String::as_str))
-            .unwrap_or("non-string panic payload");
+        let message = umpire_checker::panic_message(panic.as_ref());
         format!("starts panicked: {message}")
     })
 }

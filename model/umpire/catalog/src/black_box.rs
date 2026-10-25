@@ -89,6 +89,23 @@ pub enum MutationApplicability {
     Unchanged,
 }
 
+/// Maps a mutation's local applicability and refusal onto the annotation protocol.
+pub fn probe_applicability(
+    value: &MutationApplicability,
+) -> (umpire_runtime::annotations::ProbeApplicability, String) {
+    use umpire_runtime::annotations::ProbeApplicability;
+    match value {
+        MutationApplicability::Applicable => (ProbeApplicability::Applicable, String::new()),
+        MutationApplicability::NotApplicable(reason) => {
+            (ProbeApplicability::NotApplicable, reason.clone())
+        }
+        MutationApplicability::Refused(reason) => (ProbeApplicability::Refused, reason.clone()),
+        MutationApplicability::Unchanged => {
+            (ProbeApplicability::Unchanged, "mutation leaves the baseline unchanged".into())
+        }
+    }
+}
+
 /// One attributed generic mutation, retained even when construction is unavailable.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WireCase {
@@ -364,4 +381,40 @@ pub fn mutation_entries(
         ProbeResult::Unverifiable => GapOutcome::Unverifiable,
     };
     Ok(vec![entry])
+}
+
+#[cfg(test)]
+mod applicability_tests {
+    use super::{MutationApplicability, probe_applicability};
+    use umpire_runtime::annotations::ProbeApplicability;
+
+    #[test]
+    fn maps_all_variants_and_wire_values_stay_closed() {
+        for (value, expected, refusal) in [
+            (MutationApplicability::Applicable, ProbeApplicability::Applicable, ""),
+            (
+                MutationApplicability::NotApplicable("not applicable".into()),
+                ProbeApplicability::NotApplicable,
+                "not applicable",
+            ),
+            (
+                MutationApplicability::Refused("refused".into()),
+                ProbeApplicability::Refused,
+                "refused",
+            ),
+            (
+                MutationApplicability::Unchanged,
+                ProbeApplicability::Unchanged,
+                "mutation leaves the baseline unchanged",
+            ),
+        ] {
+            let (actual, reason) = probe_applicability(&value);
+            assert_eq!(actual, expected);
+            assert_eq!(reason, refusal);
+            assert_eq!(ProbeApplicability::try_from(actual as i32), Ok(expected));
+        }
+        for unknown in [-1, 4, i32::MAX] {
+            assert!(ProbeApplicability::try_from(unknown).is_err());
+        }
+    }
 }

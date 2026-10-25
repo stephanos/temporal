@@ -179,3 +179,16 @@ pub(crate) fn any(value: u8) -> Any {
 pub(crate) fn runtime() -> Runtime<World, Realization> {
     Runtime::new(World { starts: 1 }, Realization)
 }
+
+#[allow(dead_code, reason = "other runtime test binaries share this support module")]
+pub(crate) fn decode_hex(hex: &str) -> Vec<u8> {
+    let (pairs, remainder) = hex.as_bytes().as_chunks::<2>();
+    assert!(remainder.is_empty(), "odd hex vector length");
+    pairs
+        .iter()
+        .map(|pair| {
+            let pair = std::str::from_utf8(pair).unwrap_or_else(|error| panic!("{error}"));
+            u8::from_str_radix(pair, 16).unwrap_or_else(|error| panic!("{error}"))
+        })
+        .collect()
+}

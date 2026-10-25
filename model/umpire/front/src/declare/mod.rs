@@ -699,16 +699,7 @@ fn check_claim(method: &syn::ImplItemFn) -> Result<()> {
 fn check_progress(method: &syn::ImplItemFn, actors: &[syn::Ident]) -> Result<()> {
     struct ClaimPaths<'a> {
         actors: &'a [syn::Ident],
-        error: Option<syn::Error>,
-    }
-    impl ClaimPaths<'_> {
-        fn refuse(&mut self, error: syn::Error) {
-            if let Some(previous) = &mut self.error {
-                previous.combine(error);
-            } else {
-                self.error = Some(error);
-            }
-        }
+        errors: crate::Errors,
     }
     impl syn::visit::Visit<'_> for ClaimPaths<'_> {
         fn visit_expr_method_call(&mut self, call: &syn::ExprMethodCall) {
@@ -721,10 +712,9 @@ fn check_progress(method: &syn::ImplItemFn, actors: &[syn::Ident]) -> Result<()>
                 && path.mac.path.segments.last().is_some_and(|segment| segment.ident == "path")
             {
                 // The outermost builder refuses once for the whole chain.
-                return self.refuse(syn::Error::new_spanned(
-                    path,
-                    "a path! claim takes only .assuming(..)",
-                ));
+                return self
+                    .errors
+                    .push(syn::Error::new_spanned(path, "a path! claim takes only .assuming(..)"));
             }
             syn::visit::visit_expr_method_call(self, call);
         }
@@ -732,14 +722,14 @@ fn check_progress(method: &syn::ImplItemFn, actors: &[syn::Ident]) -> Result<()>
             if call.path.segments.last().is_some_and(|segment| segment.ident == "path")
                 && let Err(error) = crate::path::validate_claim(call, self.actors)
             {
-                self.refuse(error);
+                self.errors.push(error);
             }
             syn::visit::visit_macro(self, call);
         }
     }
-    let mut paths = ClaimPaths { actors, error: None };
+    let mut paths = ClaimPaths { actors, errors: crate::Errors::default() };
     syn::visit::Visit::visit_impl_item_fn(&mut paths, method);
-    paths.error.map_or(Ok(()), Err)
+    paths.errors.finish(())
 }
 
 fn check_legacy(input: &ItemImpl, state: &syn::Ident) -> Result<()> {

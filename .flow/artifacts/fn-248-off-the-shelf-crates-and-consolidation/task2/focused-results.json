@@ -1,0 +1,37 @@
+[
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-runtime --test wire --test core_protocol --test proposal_wire --locked",
+    "exit_code": 0,
+    "log": "verify-wire-final.log"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-catalog --test generation --test black_box --locked",
+    "exit_code": 0,
+    "log": "verify-generation.log"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-suite --test fixtures --locked",
+    "exit_code": 0,
+    "log": "verify-suite-goldens.log"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-reference-kettle --test probes --locked",
+    "exit_code": 0,
+    "log": "verify-kettle-probes.log"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-temporal --lib probes::generic::tests --locked",
+    "exit_code": 0,
+    "log": "verify-generic-probes.log"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-fixtures --test fixtures world_fairness_source_only_selectors_and_leaves_discriminate --locked",
+    "exit_code": 0,
+    "log": "verify-world-source-edits.log"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-temporal-tests --test fixtures source_only_global_budget_controls_keep_laws_and_discriminate --locked",
+    "exit_code": 0,
+    "log": "verify-activity-source-edits.log"
+  }
+]

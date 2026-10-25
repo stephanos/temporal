@@ -76,11 +76,7 @@ pub(crate) fn coverage<M: Machine>(
 ) -> Result<Coverage, Refusal> {
     catch_unwind(AssertUnwindSafe(|| observe(world, catalog_limit, traces))).unwrap_or_else(
         |panic| {
-            let failure = panic
-                .downcast_ref::<String>()
-                .map(String::as_str)
-                .or_else(|| panic.downcast_ref::<&str>().copied())
-                .unwrap_or("non-string panic");
+            let failure = umpire_checker::panic_message(panic.as_ref());
             Err(metadata(format!("callback panicked: {failure}")))
         },
     )

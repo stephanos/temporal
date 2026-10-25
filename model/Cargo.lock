@@ -1009,6 +1009,7 @@ dependencies = [
  "prost",
  "trybuild",
  "umpire-catalog-macros",
+ "umpire-checker",
  "umpire-runtime",
 ]
 

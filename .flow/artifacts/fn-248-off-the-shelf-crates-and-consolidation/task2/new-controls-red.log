@@ -1,0 +1,30 @@
+   Compiling syn v2.0.119
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/front)
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/backends/tla)
+error[E0433]: cannot find `Errors` in `super`
+   --> umpire/front/src/lib.rs:175:33
+    |
+175 |         let mut errors = super::Errors::default();
+    |                                 ^^^^^^ could not find `Errors` in the crate root
+    |
+note: struct `crate::declare::action::Errors` exists but is inaccessible
+   --> umpire/front/src/declare/action.rs:82:1
+    |
+ 82 | struct Errors(Option<syn::Error>);
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: cannot find `Errors` in `super`
+   --> umpire/front/src/lib.rs:181:27
+    |
+181 |         assert_eq!(super::Errors::default().finish(42).ok(), Some(42));
+    |                           ^^^^^^ could not find `Errors` in the crate root
+    |
+note: struct `crate::declare::action::Errors` exists but is inaccessible
+   --> umpire/front/src/declare/action.rs:82:1
+    |
+ 82 | struct Errors(Option<syn::Error>);
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+For more information about this error, try `rustc --explain E0433`.
+error: could not compile `umpire-front` (lib test) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...

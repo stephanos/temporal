@@ -1,3 +1,4 @@
+use umpire_testing::{replace_once, replace_in};
 use super::{bound_for, checked_world, configured};
 use crate::activity::activity::{
     Action, Client, Deadline, ExpiredDeadline, Model, Phase, Remaining, Ticks, Worker, World,
@@ -362,10 +363,6 @@ fn folder() -> std::path::PathBuf {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../feature/activity")
 }
 
-fn replace_once(source: &str, from: &str, to: &str) -> String {
-    assert_eq!(source.matches(from).count(), 1, "mutation target: {from}");
-    source.replacen(from, to, 1)
-}
 
 fn extra_method(method: &str) -> String {
     if method.contains("#[postcondition") {
@@ -591,13 +588,6 @@ fn required_tlc_replays_both_canceled_attempt_expiry_facts() -> TestResult {
     Ok(())
 }
 
-fn replace_in(source: &str, start: &str, end: &str, from: &str, to: &str) -> String {
-    assert_eq!(source.matches(start).count(), 1, "region start: {start}");
-    let begin = source.find(start).unwrap_or_else(|| panic!("missing {start}"));
-    let finish = begin + source[begin..].find(end).unwrap_or_else(|| panic!("missing {end}"));
-    let changed = replace_once(&source[begin..finish], from, to);
-    format!("{}{}{}", &source[..begin], changed, &source[finish..])
-}
 
 #[test]
 #[allow(clippy::print_stderr)]

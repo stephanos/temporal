@@ -18,11 +18,13 @@ use proc_macro2::{Span, TokenStream};
 use quote::ToTokens;
 mod body;
 pub mod declare;
+mod errors;
 mod library;
 pub mod path;
 mod shape;
 mod source;
 mod syntax;
+use errors::Errors;
 pub use source::source;
 #[doc(hidden)]
 pub use umpire_ir::{Bounded, Diagnostic, Embedded, Lifted, REJECTIONS, Source, Type, expr, tree};
@@ -166,4 +168,21 @@ pub fn unlifted(ast: &syn::File) -> Diagnostic {
 fn rust_type(ty: &syn::Type) -> String {
     let alias = prettyplease::unparse(&syn::parse_quote!(type T = #ty;));
     alias.trim().trim_start_matches("type T = ").trim_end_matches(';').to_owned()
+}
+
+#[cfg(test)]
+mod error_tests {
+    #[test]
+    fn errors_preserve_order_and_success_value() {
+        let mut errors = super::Errors::default();
+        for message in ["first", "second"] {
+            errors.push(syn::Error::new(proc_macro2::Span::call_site(), message));
+        }
+        let Err(error) = errors.finish(42) else { panic!("errors were discarded") };
+        assert_eq!(
+            error.into_iter().map(|error| error.to_string()).collect::<Vec<_>>(),
+            ["first", "second"]
+        );
+        assert_eq!(super::Errors::default().finish(42).ok(), Some(42));
+    }
 }

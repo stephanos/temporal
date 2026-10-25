@@ -556,7 +556,7 @@ fn native<T>(evaluate: impl FnOnce() -> T) -> Result<T, String> {
     catch_unwind(AssertUnwindSafe(evaluate)).map_err(|error| native_panic(error.as_ref()))
 }
 fn native_panic(error: &(dyn Any + Send)) -> String {
-    let message = panic_text(error);
+    let message = umpire_checker::panic_message(error);
     if [
         "attempt to add with overflow",
         "attempt to subtract with overflow",
@@ -567,9 +567,9 @@ fn native_panic(error: &(dyn Any + Send)) -> String {
         "attempt to divide by zero",
         "attempt to calculate the remainder with a divisor of zero",
     ]
-    .contains(&message.as_str())
+    .contains(&message)
     {
-        message
+        message.into()
     } else {
         format!("non-arithmetic native panic: {message}")
     }
@@ -580,13 +580,6 @@ fn arithmetic_reason(reason: String) -> Result<String, Refusal> {
     } else {
         Ok(reason)
     }
-}
-fn panic_text(error: &(dyn Any + Send)) -> String {
-    error
-        .downcast_ref::<String>()
-        .cloned()
-        .or_else(|| error.downcast_ref::<&str>().map(|s| (*s).into()))
-        .unwrap_or_else(|| "unrecognized panic payload".into())
 }
 fn kind(ty: &SourceType) -> Type {
     match ty {

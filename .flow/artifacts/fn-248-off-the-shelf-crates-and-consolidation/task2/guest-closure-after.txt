@@ -1,0 +1,214 @@
+umpire-kettle-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/reference/kettle/guest)
+├── umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/reference/kettle)
+│   ├── prost v0.14.4
+│   │   ├── bytes v1.12.1
+│   │   └── prost-derive v0.14.4 (proc-macro)
+│   │       ├── anyhow v1.0.104
+│   │       ├── itertools v0.14.0
+│   │       │   └── either v1.19.0
+│   │       ├── proc-macro2 v1.0.107
+│   │       │   └── unicode-ident v1.0.27
+│   │       ├── quote v1.0.47
+│   │       │   └── proc-macro2 v1.0.107 (*)
+│   │       └── syn v2.0.119
+│   │           ├── proc-macro2 v1.0.107 (*)
+│   │           ├── quote v1.0.47 (*)
+│   │           └── unicode-ident v1.0.27
+│   ├── umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/umpire)
+│   │   ├── umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog)
+│   │   │   ├── prost v0.14.4 (*)
+│   │   │   ├── umpire-catalog-macros v0.0.1 (proc-macro) (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog/macros)
+│   │   │   │   ├── proc-macro-crate v3.5.0
+│   │   │   │   │   └── toml_edit v0.25.17+spec-1.1.0
+│   │   │   │   │       ├── indexmap v2.14.2
+│   │   │   │   │       │   ├── equivalent v1.0.3
+│   │   │   │   │       │   └── hashbrown v0.17.1
+│   │   │   │   │       ├── toml_datetime v1.1.2+spec-1.1.0
+│   │   │   │   │       ├── toml_parser v1.1.5+spec-1.1.0
+│   │   │   │   │       │   └── winnow v1.0.4
+│   │   │   │   │       └── winnow v1.0.4
+│   │   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   │   ├── quote v1.0.47 (*)
+│   │   │   │   ├── syn v3.0.9
+│   │   │   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   │   │   ├── quote v1.0.47 (*)
+│   │   │   │   │   └── unicode-ident v1.0.27
+│   │   │   │   └── umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog/syntax)
+│   │   │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │   │       ├── prost v0.14.4
+│   │   │   │       │   ├── bytes v1.12.1
+│   │   │   │       │   └── prost-derive v0.14.4 (proc-macro) (*)
+│   │   │   │       ├── quote v1.0.47 (*)
+│   │   │   │       ├── syn v3.0.9 (*)
+│   │   │   │       └── umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/protocol/runtime)
+│   │   │   │           ├── prost v0.14.4 (*)
+│   │   │   │           ├── umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/backends/native)
+│   │   │   │           │   ├── fixedbitset v0.5.7
+│   │   │   │           │   ├── indexmap v2.14.2 (*)
+│   │   │   │           │   ├── petgraph v0.8.3
+│   │   │   │           │   │   ├── fixedbitset v0.5.7
+│   │   │   │           │   │   ├── hashbrown v0.15.5
+│   │   │   │           │   │   │   └── foldhash v0.1.5
+│   │   │   │           │   │   └── indexmap v2.14.2 (*)
+│   │   │   │           │   ├── rustc-hash v2.1.3
+│   │   │   │           │   ├── thiserror v2.0.21
+│   │   │   │           │   │   └── thiserror-impl v2.0.21 (proc-macro)
+│   │   │   │           │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │   │           │   │       ├── quote v1.0.47 (*)
+│   │   │   │           │   │       └── syn v3.0.9 (*)
+│   │   │   │           │   └── umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/dsl)
+│   │   │   │           │       ├── enum-iterator v2.3.0
+│   │   │   │           │       │   └── enum-iterator-derive v1.5.0 (proc-macro)
+│   │   │   │           │       │       ├── proc-macro2 v1.0.107 (*)
+│   │   │   │           │       │       ├── quote v1.0.47 (*)
+│   │   │   │           │       │       └── syn v2.0.119 (*)
+│   │   │   │           │       ├── imbl v7.0.2
+│   │   │   │           │       │   ├── archery v1.2.3
+│   │   │   │           │       │   ├── equivalent v1.0.3
+│   │   │   │           │       │   ├── imbl-sized-chunks v0.2.0
+│   │   │   │           │       │   ├── rand_core v0.9.5
+│   │   │   │           │       │   ├── rand_xoshiro v0.7.0
+│   │   │   │           │       │   │   └── rand_core v0.9.5
+│   │   │   │           │       │   └── wide v0.7.33
+│   │   │   │           │       │       ├── bytemuck v1.25.2
+│   │   │   │           │       │       └── safe_arch v0.7.4
+│   │   │   │           │       │           └── bytemuck v1.25.2
+│   │   │   │           │       │   [build-dependencies]
+│   │   │   │           │       │   └── version_check v0.9.5
+│   │   │   │           │       ├── smallvec v1.16.3
+│   │   │   │           │       ├── umpire-dsl-macros v0.0.1 (proc-macro) (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/dsl/macros)
+│   │   │   │           │       │   ├── manyhow v0.14.1
+│   │   │   │           │       │   │   ├── manyhow-macros v0.14.1 (proc-macro)
+│   │   │   │           │       │   │   │   ├── proc-macro-utils v0.10.0
+│   │   │   │           │       │   │   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   │           │       │   │   │   │   ├── quote v1.0.47 (*)
+│   │   │   │           │       │   │   │   │   └── smallvec v1.16.3
+│   │   │   │           │       │   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   │           │       │   │   │   └── quote v1.0.47 (*)
+│   │   │   │           │       │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   │           │       │   │   ├── quote v1.0.47 (*)
+│   │   │   │           │       │   │   └── syn v3.0.9 (*)
+│   │   │   │           │       │   ├── proc-macro-crate v3.5.0 (*)
+│   │   │   │           │       │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   │           │       │   ├── quote v1.0.47 (*)
+│   │   │   │           │       │   ├── syn v3.0.9 (*)
+│   │   │   │           │       │   ├── umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/front)
+│   │   │   │           │       │   │   ├── prettyplease v0.3.0
+│   │   │   │           │       │   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   │           │       │   │   │   └── syn v3.0.9 (*)
+│   │   │   │           │       │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   │           │       │   │   ├── quote v1.0.47 (*)
+│   │   │   │           │       │   │   ├── syn v3.0.9 (*)
+│   │   │   │           │       │   │   └── umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/ir)
+│   │   │   │           │       │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │   │           │       │   │       ├── quote v1.0.47 (*)
+│   │   │   │           │       │   │       └── umpire-ir-derive v0.0.1 (proc-macro) (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/ir/derive)
+│   │   │   │           │       │   │           ├── proc-macro2 v1.0.107 (*)
+│   │   │   │           │       │   │           ├── quote v1.0.47 (*)
+│   │   │   │           │       │   │           └── syn v3.0.9 (*)
+│   │   │   │           │       │   └── umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/ir) (*)
+│   │   │   │           │       └── umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/ir) (*)
+│   │   │   │           └── umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/dsl) (*)
+│   │   │   │           [build-dependencies]
+│   │   │   │           └── prost-build v0.14.4
+│   │   │   │               ├── heck v0.5.0
+│   │   │   │               ├── itertools v0.14.0 (*)
+│   │   │   │               ├── log v0.4.34
+│   │   │   │               ├── multimap v0.10.1
+│   │   │   │               ├── petgraph v0.8.3 (*)
+│   │   │   │               ├── prettyplease v0.2.37
+│   │   │   │               │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   │               │   └── syn v2.0.119 (*)
+│   │   │   │               ├── prost v0.14.4 (*)
+│   │   │   │               ├── prost-types v0.14.4
+│   │   │   │               │   └── prost v0.14.4 (*)
+│   │   │   │               ├── regex v1.13.1
+│   │   │   │               │   ├── regex-automata v0.4.18
+│   │   │   │               │   │   └── regex-syntax v0.8.11
+│   │   │   │               │   └── regex-syntax v0.8.11
+│   │   │   │               ├── syn v2.0.119 (*)
+│   │   │   │               └── tempfile v3.27.0
+│   │   │   │                   ├── fastrand v2.5.0
+│   │   │   │                   ├── once_cell v1.21.4
+│   │   │   │                   └── rustix v1.1.5
+│   │   │   │                       ├── bitflags v2.13.2
+│   │   │   │                       └── linux-raw-sys v0.12.1
+│   │   │   ├── umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/backends/native)
+│   │   │   │   ├── fixedbitset v0.5.7
+│   │   │   │   ├── indexmap v2.14.2
+│   │   │   │   │   ├── equivalent v1.0.3
+│   │   │   │   │   └── hashbrown v0.17.1
+│   │   │   │   ├── petgraph v0.8.3
+│   │   │   │   │   ├── fixedbitset v0.5.7
+│   │   │   │   │   ├── hashbrown v0.15.5
+│   │   │   │   │   │   └── foldhash v0.1.5
+│   │   │   │   │   └── indexmap v2.14.2 (*)
+│   │   │   │   ├── rustc-hash v2.1.3
+│   │   │   │   ├── thiserror v2.0.21
+│   │   │   │   │   └── thiserror-impl v2.0.21 (proc-macro) (*)
+│   │   │   │   └── umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/dsl)
+│   │   │   │       ├── enum-iterator v2.3.0
+│   │   │   │       │   └── enum-iterator-derive v1.5.0 (proc-macro) (*)
+│   │   │   │       ├── smallvec v1.16.3
+│   │   │   │       └── umpire-dsl-macros v0.0.1 (proc-macro) (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/dsl/macros) (*)
+│   │   │   └── umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/protocol/runtime)
+│   │   │       ├── prost v0.14.4 (*)
+│   │   │       ├── umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/backends/native) (*)
+│   │   │       └── umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/dsl) (*)
+│   │   │       [build-dependencies]
+│   │   │       └── prost-build v0.14.4 (*)
+│   │   ├── umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/dsl) (*)
+│   │   ├── umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/protocol/runtime) (*)
+│   │   └── umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/suite)
+│   │       ├── thiserror v2.0.21 (*)
+│   │       ├── umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/backends/native) (*)
+│   │       └── umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/dsl) (*)
+│   ├── umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog) (*)
+│   ├── umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/backends/native) (*)
+│   ├── umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/dsl) (*)
+│   └── umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/protocol/runtime) (*)
+│   [build-dependencies]
+│   ├── prost-build v0.14.4 (*)
+│   └── umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog/build)
+│       ├── prost v0.14.4 (*)
+│       ├── prost-build v0.14.4 (*)
+│       ├── quote v1.0.47 (*)
+│       ├── umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog/syntax) (*)
+│       └── umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/protocol/runtime) (*)
+└── umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/protocol/runtime) (*)
+
+umpire-temporal-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/temporal/guest)
+├── umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/protocol/runtime) (*)
+└── umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/temporal/realization)
+    ├── prost v0.14.4 (*)
+    ├── umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog) (*)
+    ├── umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/dsl) (*)
+    ├── umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/protocol/runtime) (*)
+    ├── umpire-temporal-annotate v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/temporal/annotate)
+    │   ├── prost v0.14.4 (*)
+    │   ├── umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog) (*)
+    │   ├── umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/protocol/runtime) (*)
+    │   └── umpire-temporal-annotate-macros v0.0.1 (proc-macro) (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/temporal/annotate/macros)
+    │       ├── syn v3.0.9 (*)
+    │       └── umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/temporal/annotate/syntax)
+    │           ├── proc-macro2 v1.0.107 (*)
+    │           ├── prost v0.14.4 (*)
+    │           ├── quote v1.0.47 (*)
+    │           ├── syn v3.0.9 (*)
+    │           ├── umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog/build) (*)
+    │           ├── umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog/syntax) (*)
+    │           └── umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/protocol/runtime) (*)
+    ├── umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/temporal/api)
+    │   ├── prost v0.14.4 (*)
+    │   ├── umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog) (*)
+    │   └── umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/protocol/runtime) (*)
+    │   [build-dependencies]
+    │   ├── prost-build v0.14.4 (*)
+    │   ├── umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog/build) (*)
+    │   └── umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/temporal/annotate/syntax) (*)
+    └── umpire-temporal-realization-macros v0.0.1 (proc-macro) (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/temporal/realization/macros)
+        ├── quote v1.0.47 (*)
+        ├── syn v3.0.9 (*)
+        └── umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/temporal/annotate/syntax) (*)
+        [build-dependencies]
+        └── umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/temporal/annotate/syntax) (*)

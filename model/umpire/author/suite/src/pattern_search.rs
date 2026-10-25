@@ -43,23 +43,7 @@ struct Arc {
     row: Option<usize>,
 }
 
-pub(crate) struct Rng(u64);
-
-impl Rng {
-    pub(crate) const fn new(seed: u64) -> Self {
-        Self(seed)
-    }
-
-    pub(crate) fn index(&mut self, len: usize) -> usize {
-        assert!(len > 0);
-        self.0 = self.0.wrapping_add(0x9e37_79b9_7f4a_7c15);
-        let mut value = self.0;
-        value = (value ^ (value >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
-        value = (value ^ (value >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);
-        value ^= value >> 31;
-        usize::try_from(value % u64::try_from(len).unwrap_or(u64::MAX)).unwrap_or(0)
-    }
-}
+pub(crate) use umpire_checker::SplitMix64 as Rng;
 
 impl<'a, M: Machine> Graph<'a, M> {
     pub(crate) fn new(explored: &'a umpire_checker::Result<M>) -> Result<Self, Refusal> {
@@ -102,12 +86,7 @@ impl<'a, M: Machine> Graph<'a, M> {
         catch_unwind(AssertUnwindSafe(predicate)).map_err(|error| Refusal::Predicate {
             waypoint: index,
             state: self.states[state.0].to_string(),
-            failure: error
-                .downcast_ref::<&str>()
-                .copied()
-                .or_else(|| error.downcast_ref::<String>().map(String::as_str))
-                .unwrap_or("non-string panic payload")
-                .into(),
+            failure: umpire_checker::panic_message(error.as_ref()).into(),
         })
     }
 
@@ -533,6 +512,16 @@ mod tests {
             let second = graph.walk(&request, false, 5, &mut Rng::new(seed))?;
             assert_eq!(first.rows, second.rows);
             assert!(first.trace.steps.len() <= 5);
+            let mut state = first.trace.start;
+            assert_eq!(state, 0);
+            for step in &first.trace.steps {
+                let successors = World.step(&state, step.action);
+                let (_, _, after) = &successors[step.choice];
+                assert_eq!(*after, step.after);
+                state = *after;
+            }
+            assert_eq!(state, 1);
+            assert_eq!(first.trace.steps.last().map(|step| step.action), Some(1));
             found_loop |= first.trace.steps.iter().any(|step| step.action == 0);
             experiments.insert(first.rows);
         }
