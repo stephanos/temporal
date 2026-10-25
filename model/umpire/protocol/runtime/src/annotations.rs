@@ -1,25 +1,33 @@
 use crate::AnyMessage as _;
-use prost::Message;
+use prost::{Message, Name};
+
+use crate::annotations::{AnnotationRequest, AnnotationResponse};
 
 use crate::{Dispatch, prost_types::Any, protocol};
 
 /// A dispatcher with an independent, stateless annotation extension.
-pub struct AnnotationRuntime<D, A> {
+pub struct AnnotationRuntime<D, P, R> {
     model: D,
-    annotate: A,
+    probe: fn(&P) -> Result<R, protocol::Refusal>,
+    annotate: fn(&AnnotationRequest) -> Result<AnnotationResponse, protocol::Refusal>,
 }
 
-impl<D, A> AnnotationRuntime<D, A> {
-    /// Attach a stateless annotation handler to an existing dispatcher.
-    pub fn new(model: D, annotate: A) -> Self {
-        Self { model, annotate }
+impl<D, P, R> AnnotationRuntime<D, P, R> {
+    /// Attach typed, stateless probe and annotation handlers to an existing dispatcher.
+    pub fn with_probes(
+        model: D,
+        probe: fn(&P) -> Result<R, protocol::Refusal>,
+        annotate: fn(&AnnotationRequest) -> Result<AnnotationResponse, protocol::Refusal>,
+    ) -> Self {
+        Self { model, probe, annotate }
     }
 }
 
-impl<D, A> Dispatch for AnnotationRuntime<D, A>
+impl<D, P, R> Dispatch for AnnotationRuntime<D, P, R>
 where
     D: Dispatch,
-    A: Fn(&Any) -> Result<Any, protocol::Refusal>,
+    P: Name + Default,
+    R: Name,
 {
     type Transaction = D::Transaction;
 
@@ -34,7 +42,13 @@ where
         let result = protocol::AnnotateRequest::decode(request)
             .map_err(|_| protocol::Refusal::malformed("malformed Annotate request"))
             .and_then(|request| Any::required(request.input))
-            .and_then(|input| (self.annotate)(&input));
+            .and_then(|input| {
+                if input.type_url == P::type_url() {
+                    (self.probe)(&input.unpack()?).map(|response| Any::pack(&response))
+                } else {
+                    (self.annotate)(&input.unpack()?).map(|response| Any::pack(&response))
+                }
+            });
         let outcome = match result {
             Ok(output) => protocol::response::Outcome::Annotate(protocol::AnnotateResponse {
                 output: Some(output),

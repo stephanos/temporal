@@ -28,6 +28,25 @@ fn annotation_route_admits_empty_successful_worker_polls() {
     assert_eq!(output.out_of_scope, "");
 }
 
+#[test]
+fn generated_dispatch_selects_declared_directions_and_exact_service_paths() {
+    let mut guest = Guest::new(annotation_runtime());
+    for prefix in ["", "/temporal.api.workflowservice.v1.WorkflowService/"] {
+        for response in [false, true] {
+            let output =
+                annotate(&mut guest, &format!("{prefix}PollActivityTaskQueue"), response, &[]);
+            assert_eq!(output.violations.is_empty(), response);
+            assert_eq!(output.out_of_scope, "");
+            let opaque = [255, 1, 2, 3];
+            let outside =
+                annotate(&mut guest, &format!("{prefix}GetSystemInfo"), response, &opaque);
+            assert_eq!(outside.message, opaque);
+            assert_eq!(outside.violations, [] as [String; 0]);
+            assert_eq!(outside.out_of_scope, "Cluster and service information");
+        }
+    }
+}
+
 fn request(method: &str, response: bool, bytes: &[u8]) -> protocol::AnnotateRequest {
     protocol::AnnotateRequest {
         input: Some(Any::pack(&AnnotationRequest {
@@ -126,6 +145,35 @@ fn annotation_envelope_and_unknown_traffic_refuse_without_payload_diagnostics() 
             RefusalCode::MalformedRequest,
         ),
         (request("UnknownRpc", false, b"private-task-token"), RefusalCode::Unsupported),
+        (request("/other.Service/PollActivityTaskQueue", false, &[]), RefusalCode::Unsupported),
+        (
+            request(
+                "temporal.api.workflowservice.v1.WorkflowService.PollActivityTaskQueue",
+                false,
+                &[],
+            ),
+            RefusalCode::Unsupported,
+        ),
+        (
+            request(
+                "temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue",
+                false,
+                &[],
+            ),
+            RefusalCode::Unsupported,
+        ),
+        (
+            request("/temporal.api.workflowservice.v1.WorkflowService/UnknownRpc", false, &[]),
+            RefusalCode::Unsupported,
+        ),
+        (
+            request(
+                "/temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue/extra",
+                false,
+                &[],
+            ),
+            RefusalCode::Unsupported,
+        ),
         (request("PollActivityTaskQueue", true, &[255]), RefusalCode::MalformedRequest),
     ];
     for (request, code) in cases {

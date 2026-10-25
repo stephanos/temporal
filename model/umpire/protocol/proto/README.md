@@ -27,7 +27,9 @@ remain pinned by host tests.
 Annotate (7) carries an opaque input Any and returns an opaque output Any at
 Response tag 8. Shared `umpire.annotations.v1` messages carry annotation requests,
 results and probe metadata; system probe controls remain system-owned.
-`AnnotationRuntime` dispatches this stateless operation independently of Judge's frozen run.
+`AnnotationRuntime::with_probes(model, probe_fn, annotate_fn)` admits the system's typed
+probe request or a shared annotation request and packs the corresponding response. Both
+handlers are stateless; other methods and their publication transactions delegate to the Model.
 Response tag 7 stays reserved; Propose uses fresh tag 9.
 
 The wasm32-wasip1 guest directly exports application functions
