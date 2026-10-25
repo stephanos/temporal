@@ -12,6 +12,8 @@ Author R5's independent standalone-activity protocol Model and native/TLC fixtur
 
 ### Approach
 
+Consume task .15's committed, independently proved corrected timeout-retry baseline. This task introduces no further Model-policy changes and preserves the original independent lifecycle checkpoint outside the approved retry cell.
+
 All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
 
 1. Reanchor final World domains, bounded Tick/timeout/failure/cancel/heartbeat dimensions and pinned standalone API/cancellation contract before authoring. Document the independent contract/protocol evidence behind each state class, RPC outcome and invariant. Existing feature transitions are a comparison target, never the source of protocol edges.
@@ -42,18 +44,12 @@ From model/: `mise exec -- cargo test -p umpire-temporal-tests --test fixtures`;
 - [ ] Native graphs/goldens and required TLC own-invariant/state-set agreement execute for comparable finite scopes; wrong World, incomplete, unsupported and mismatching answers fail.
 - [ ] Terminal outcome, retained retry history, cancellation/heartbeat/acknowledgement and rejected RPC outcomes remain distinct; no projected feature edge defines protocol behavior.
 - [ ] Shared parameter contract and protocol-local adapter account for every independently declared World field with exact name/kind/domain/type provenance. Omission, misnaming, wrong bounds/kind, clamping/default substitution and None/present-zero mutants fail; no imported-World front-end admission is added.
-- [ ] Original lifecycle evidence still supports the independent semantic refinement proof and feature semantics are unchanged; representation/goldens may regenerate. Focused backend/fixture evidence includes actual counts, bounds and tool identity; no online or TLC-refinement proof is claimed here.
+- [ ] Original lifecycle evidence still supports the independent semantic refinement proof and the task .15 corrected feature baseline gains no further Model-policy changes; representation/goldens may regenerate. Focused backend/fixture evidence includes actual counts, bounds and tool identity; no online or TLC-refinement proof is claimed here.
 
 
 ## Done summary
-Blocked:
-Owner Model-policy decision required for fn-246.13/R5.
+TBD
 
-An existing selected World has maximum_attempts=3, schedule_to_start=Some(1), start_to_close=Some(1), schedule_to_close=None, heartbeat=None and asynchronous_cancel=false. The feature path Start -> Poll(1) -> Tick ends TimedOut(attempt1) with StartToClose fact. The pinned public standalone API makes this attempt timeout retryable. Exact R5 cannot preserve both API continuation and unchanged feature policy; substituting retryable Worker failure loses the expiry fact.
-
-Independent analysis: .flow/tmp/milestones-resume-20261024/fn24613-contract-analysis.txt. User decision requested asynchronously: recommended align nonpending start-to-close/heartbeat retries with pinned API and update independent contract/proofs; alternative explicitly revise R5. No answer/approval has been received. Do not infer approval from elapsed time or the preselected UI choice. No Model policy change is authorized yet.
-
-Transactional Reach and the separate earliest SDK transport proof continue independently. This task is not admitted for Model authoring until the policy conflict is resolved.
 ## Evidence
 - Commits:
 - Tests:

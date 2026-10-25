@@ -14,17 +14,19 @@
     "registry": "fn-246-realization-as-a-checked-refinement-a.11",
     "catalog": "fn-246-realization-as-a-checked-refinement-a.12",
     "protocol": "fn-246-realization-as-a-checked-refinement-a.13",
-    "executor": "fn-246-realization-as-a-checked-refinement-a.14"
+    "executor": "fn-246-realization-as-a-checked-refinement-a.14",
+    "timeout-retry-correction": "fn-246-realization-as-a-checked-refinement-a.15"
   },
   "waves": [
     [
       "fn-246-realization-as-a-checked-refinement-a.1",
       "fn-246-realization-as-a-checked-refinement-a.12",
-      "fn-246-realization-as-a-checked-refinement-a.13",
-      "fn-246-realization-as-a-checked-refinement-a.14"
+      "fn-246-realization-as-a-checked-refinement-a.14",
+      "fn-246-realization-as-a-checked-refinement-a.15"
     ],
     [
-      "fn-246-realization-as-a-checked-refinement-a.7"
+      "fn-246-realization-as-a-checked-refinement-a.7",
+      "fn-246-realization-as-a-checked-refinement-a.13"
     ],
     [
       "fn-246-realization-as-a-checked-refinement-a.8",
@@ -210,5 +212,164 @@
       "priority": null,
       "depends_on": []
     }
-  ]
+  ],
+  "tasks": [
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.1",
+      "spec": "fn-246-realization-as-a-checked-refinement-a",
+      "title": "Transactional bounded Reach and Kettle proof point",
+      "status": "done",
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.2",
+      "spec": "fn-246-realization-as-a-checked-refinement-a",
+      "title": "Shared Temporal entity lens and filler-driven probes with equivalence pins",
+      "status": "todo",
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.1",
+        "fn-246-realization-as-a-checked-refinement-a.7",
+        "fn-246-realization-as-a-checked-refinement-a.10",
+        "fn-246-realization-as-a-checked-refinement-a.11",
+        "fn-246-realization-as-a-checked-refinement-a.12"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.3",
+      "spec": "fn-246-realization-as-a-checked-refinement-a",
+      "title": "Activity registry/lens/projection migration, exact probe parity and mapping count",
+      "status": "todo",
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.2",
+        "fn-246-realization-as-a-checked-refinement-a.13",
+        "fn-246-realization-as-a-checked-refinement-a.14"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.4",
+      "spec": "fn-246-realization-as-a-checked-refinement-a",
+      "title": "Generic native Refinement consumer and shared activity declaration",
+      "status": "todo",
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.1",
+        "fn-246-realization-as-a-checked-refinement-a.3",
+        "fn-246-realization-as-a-checked-refinement-a.13",
+        "fn-246-realization-as-a-checked-refinement-a.11"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.5",
+      "spec": "fn-246-realization-as-a-checked-refinement-a",
+      "title": "Complete observable-worker policies, coverage construction and filler-derived programs",
+      "status": "todo",
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.3",
+        "fn-246-realization-as-a-checked-refinement-a.4",
+        "fn-246-realization-as-a-checked-refinement-a.14"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.6",
+      "spec": "fn-246-realization-as-a-checked-refinement-a",
+      "title": "Integrated evidence, artifact/count/timing gates and checked-refinement author docs",
+      "status": "todo",
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.3",
+        "fn-246-realization-as-a-checked-refinement-a.4",
+        "fn-246-realization-as-a-checked-refinement-a.5"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.7",
+      "spec": "fn-246-realization-as-a-checked-refinement-a",
+      "title": "Typed capabilities, fillers and internal evidence adapters",
+      "status": "done",
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.1"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.8",
+      "spec": "fn-246-realization-as-a-checked-refinement-a",
+      "title": "Default whole-prefix guest protocol and current Host admission",
+      "status": "todo",
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.7"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.9",
+      "spec": "fn-246-realization-as-a-checked-refinement-a",
+      "title": "Current-format whole-prefix Run recording, replay and presentation",
+      "status": "todo",
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.8"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.10",
+      "spec": "fn-246-realization-as-a-checked-refinement-a",
+      "title": "Bounded Reach alternatives and coherent immutable explanation publication",
+      "status": "todo",
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.7",
+        "fn-246-realization-as-a-checked-refinement-a.9"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.11",
+      "spec": "fn-246-realization-as-a-checked-refinement-a",
+      "title": "Generic variant metadata and Temporal action/entity/read registry",
+      "status": "in_progress",
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.7"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.12",
+      "spec": "fn-246-realization-as-a-checked-refinement-a",
+      "title": "Shared descriptor catalog, claims and per-case opaque probe accounting",
+      "status": "done",
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.13",
+      "spec": "fn-246-realization-as-a-checked-refinement-a",
+      "title": "Independent standalone-activity protocol Model and native/TLC invariants",
+      "status": "todo",
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.15"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.14",
+      "spec": "fn-246-realization-as-a-checked-refinement-a",
+      "title": "Heartbeat task key and raw/SDK continuation capability",
+      "status": "in_progress",
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.15",
+      "spec": "fn-246-realization-as-a-checked-refinement-a",
+      "title": "Correct nonpending attempt-timeout retry and renew native/TLC proofs",
+      "status": "todo",
+      "priority": 0,
+      "depends_on": []
+    }
+  ],
+  "wave_scope": "Dependency-only levels; Flow ready/admit and actual source/code-generation ownership decide concurrency."
 }

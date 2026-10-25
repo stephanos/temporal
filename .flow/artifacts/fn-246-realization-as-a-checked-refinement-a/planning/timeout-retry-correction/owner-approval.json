@@ -1,0 +1,14 @@
+{
+  "status": "approved; correction planning precedes protocol admission",
+  "requested": true,
+  "recommendation": "Align nonpending start-to-close/heartbeat timeout retry with pinned API when attempts remain, updating independent contract/proofs",
+  "approval_received": true,
+  "analysis": ".flow/tmp/milestones-resume-20261024/fn24613-contract-analysis.txt",
+  "independent_active_tasks": [
+    "fn-246.11 registry",
+    "fn-246.14 production continuation"
+  ],
+  "user_answer": "Approve retry correction (Recommended)",
+  "recorded_at": "2026-10-25T15:28:07.266976+00:00",
+  "approved_scope": "Nonpending StartToClose and Heartbeat timeouts retry while attempts and the overall timeout budget permit; explicit refinement-contract amendment and renewed native/TLC proofs. Other lifecycle/cancellation rules retain their selected semantics."
+}

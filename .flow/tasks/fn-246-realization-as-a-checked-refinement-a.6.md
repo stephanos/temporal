@@ -13,6 +13,8 @@ Complete integrated R1-R7 evidence, counts/timing and author documentation after
 
 ## Approach
 
+Consume task .15's committed, independently proved corrected timeout-retry baseline. This task introduces no further Model-policy changes and preserves the original independent lifecycle checkpoint outside the approved retry cell.
+
 All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
 
 1. Review regenerated current artifacts and document the guest/wire/API format break. Preserve non-Temporal checking results and independent lifecycle/counterexample evidence semantically. Current readers/executors need not support historical formats; old-byte/hash comparisons and legacy guest loading are not gates. Unexpected semantic case/coverage loss still fails.
@@ -34,6 +36,8 @@ All source coordinates are provisional planning anchors. Reanchor final fn-237.3
 - Current fn-243.5/fn-237.4 task contracts and actual `tests/testpilot_model*test.go` for mandatory retained live rows.
 
 ## Verification
+
+Renew task .15's corrected timeout-retry, exact-fact and reset/priority controls on the integrated source, including actual worker-program successor validation. Report original and corrected evidence scopes separately; all mandatory actual raw/SDK live rows remain required.
 
 From root, in dependency-safe order: `make umpire-guest`; `make model-validate`; `make umpire-check-model-slice`; `make umpire-check-model-gaps`; current explore/record/replay controls. Use `test_dep` for every Go command and integration only where its harness requires it. Run only required focused regressions again if integrated changes expose a new failure; retain real exits/output and inherited-failure distinctions.
 
