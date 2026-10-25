@@ -40,9 +40,9 @@ mandatory live proofs. The final required gate remains open after an Apalache su
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-246.15 | ⬜ todo | Approved nonpending timeout-retry correction and native/TLC proof renewal (R5) |
+| fn-246.15 | ⬜ todo | Approved plan; after .14 releases shared manifest ownership: nonpending timeout-retry correction and native/TLC proof renewal (R5) |
 | fn-246.13 | ⬜ todo | After committed .15: independent standalone-activity protocol Model and native/TLC invariants (R5) |
-| fn-246.14 | 🔄 in progress | SDK proof integrated; bounded history/codec and raw/SDK continuation implementation (R6) |
+| fn-246.14 | 🔄 in progress | Bounded history/codec and raw/SDK continuation integrated; joined validation and review remain (R6) |
 | fn-246.8 | ⬜ todo | Current default whole-prefix guest/Host contract; serialized with .14 (R1, R2) |
 | fn-246.11 | 🔄 in progress | Variant metadata and synthetic Temporal action/entity/read registry (R2, R3) |
 | fn-246.9 | ⬜ todo | After .8: current-format whole-prefix Run recording, replay and presentation (R1, R5) |
