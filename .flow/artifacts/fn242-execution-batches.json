@@ -11606,6 +11606,7 @@
     "shared_files": "Conductor serializes Cargo and exclusive-owner fixture integration; provisional workers own only declared producer subtrees.",
     "current_allocation": {
       "B04": 1,
+      "B07": 1,
       "B08": 1,
       "B09": 1,
       "B12": 1
@@ -11635,9 +11636,10 @@
       "maximum": 1,
       "authority": "Repeated owner requests to accept more risk and parallelize; inspected host has12logicalCPUs, ~12GiB availableRAM,90GiBhost/39GiBoverlay free",
       "scope": "Single-job opt-level0 host diagnostics and directly focused tests only; isolated target, no shared mutable artifacts",
-      "admission": "At dispatch require MemAvailable>=8GiB, hostfree>=60GiB, overlayfree>=24GiB and existing task-specific floors; no new dispatch when below. Preserve evidence/active targets. Copy/reflink only idle donor caches with distinct inodes; clean only local gomad/wasmhost packages when foreign provenance.",
+      "admission": "At dispatch require MemAvailable>=8GiB, hostfree>=60GiB, overlayfree>=22GiB and existing task-specific floors; no new dispatch when below. Preserve evidence/active targets. Copy/reflink only idle donor caches with distinct inodes; clean only local gomad/wasmhost packages when foreign provenance.",
       "excluded": "Production timing, broad stress/soak, full qualification and acceptance-budget dispatch. Existing final qualification contracts remain unchanged.",
-      "lease": "Conductor assigns and returns diagnostic slot3; no worker self-admission."
+      "lease": "Conductor assigns and returns diagnostic slot3; no worker self-admission.",
+      "overlay_reserve_rationale": "Observed same-worktree project outputs122.3MiB plus95MiB retained testbinary;2GiB reserve above unchanged20GiB normal overlayfloor suffices for one bounded diagnostic. Memory8GiB and host60GiB thresholds unchanged; actual taskfloors remain."
     }
   },
   "aggressive_verification_amendment": {

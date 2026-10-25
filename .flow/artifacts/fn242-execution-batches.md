@@ -370,7 +370,7 @@ Shared target handoff guard: verify the actual executable, worktree manifest pro
 
 ## Additional diagnostic slot (owner risk amendment, 2026-10-24)
 
-Keep two normal heavy slots. The conductor may lease one additional short opt-level0, jobs1 diagnostic on an isolated target when available RAM is at least8GiB, host free space at least60GiB and overlay free space at least24GiB, also satisfying task-specific floors. The inspected host has12logicalCPUs and about12GiB available RAM. Copy only idle dependency caches into distinct-inode targets; verify emitted worktree provenance and actual named test selection. Return the lease after the bounded command. Production timing, broad stress/soak and full qualification use their original gates. This amendment supersedes earlier two-total-build wording only for this one diagnostic slot.
+Keep two normal heavy slots. The conductor may lease one additional short opt-level0, jobs1 diagnostic on an isolated target when available RAM is at least8GiB, host free space at least60GiB and overlay free space at least22GiB, also satisfying task-specific floors. The inspected host has12logicalCPUs and about12GiB available RAM. Copy only idle dependency caches into distinct-inode targets; verify emitted worktree provenance and actual named test selection. Return the lease after the bounded command. Production timing, broad stress/soak and full qualification use their original gates. This amendment supersedes earlier two-total-build wording only for this one diagnostic slot.
 
 ## Aggressive verification (owner amendment, 2026-10-24)
 
@@ -379,3 +379,5 @@ Fixture or expected-refusal edits run current-parser preflight and the affected 
 Map existing meaningful, executed Rust tests to the guarantees they already enforce. Thin wrappers prove new behavior, exact parameter forwarding and genuine delegation with normal/refusal controls. Reuse those owner tests across original IDs; do not reproduce every old Python predicate as another Rust corruption matrix. Keep exact evidence/dependency bindings and all retained guarantees.
 
 A conductor-granted diagnostic lease permits focused compiler fixes and retries for15minutes in the same-worktree target, without repeated cleaning or permission. Capture each source checkpoint/command/exit and return the lease at the deadline. Correctness-only harnesses may use opt-level0 in the release profile for final functional proof; actual role identities, native profiles, timing/budget checks and final qualification retain their genuine configurations. One independent batch review remains.
+
+The short diagnostic overlay reserve is2GiB above the unchanged20GiB normal floor, revised from4GiB after observing122.3MiB of disposable project outputs and a95MiB retained binary. Memory8GiB/host60GiB admission thresholds remain unchanged.
