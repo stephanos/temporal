@@ -1,0 +1,35 @@
+{
+  "commits": [
+    "be919e0999dbab7f3084f3211080c91d773e128e",
+    "2d596d0f5c845e35d851f88e53e6e759151c788c"
+  ],
+  "base_commit": "7567f4359e",
+  "tests": [
+    "INCONCLUSIVE(exit124 at600s): UMPIRE_BACKENDS=require RUST_TEST_THREADS=2 mise exec -- cargo test --workspace --locked --features umpire-tlc/strategy-equivalence -- --nocapture; exact completed prefix/frozen continuation provenance: proof/frozen-corpus-completion.json",
+    "FROZEN_CORPUS(be919):171 selected/168passed/3existingignored; exact environment, original workspace feature/binary/source provenance and all deferred identities: proof/validation-scope-ledger.json, proof/workspace-frozen-inventory.json, proof/frozen-execution-plan.json, proof/tlc-consumer-proof-closure.json",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/interpreted-f6f3e3899458f603 --nocapture ; environment/cwd/source/SHA receipts in proof/frozen-000.json",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/fixtures-f1770712f2edc2c0 fixtures --exact --nocapture ; environment/cwd/source/SHA receipts in proof/frozen-001.json",
+    "timeout 2700 /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/fixtures-fca66d8cdb7711bc --nocapture ; environment/cwd/source/SHA receipts in proof/helper-a/021.json",
+    "timeout 2700 /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/narrow_remainder-b74a2c01da430d37 --nocapture ; environment/cwd/source/SHA receipts in proof/helper-b/retained/065.json",
+    "timeout 2700 /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/world-7f6fb5523b2329d6 --nocapture ; environment/cwd/source/SHA receipts in proof/helper-b/retained/066.json",
+    "timeout 2700 /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/controls-4c23810bd639ee6b --nocapture ; environment/cwd/source/SHA receipts in proof/helper-b/retained/071.json",
+    "timeout 2700 /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/optional_ticks-1a5e4dc25f07f939 --nocapture ; environment/cwd/source/SHA receipts in proof/helper-b/retained/072.json",
+    "timeout 2700 /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/phased-e33d2f925863d229 --nocapture ; environment/cwd/source/SHA receipts in proof/helper-b/retained/073.json",
+    "timeout 2700 /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/umpire_testing-e298227f4600cc2d --nocapture ; environment/cwd/source/SHA receipts in proof/helper-b/retained/074.json",
+    "timeout 2700 /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/scaling-f7d1e98a5510f43b --nocapture ; environment/cwd/source/SHA receipts in proof/helper-b/retained/076.json",
+    "timeout 2700 /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/sequential_checks-2a223bebe5f23d00 --nocapture ; environment/cwd/source/SHA receipts in proof/helper-b/retained/078.json",
+    "timeout 2700 /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/shadowing-c58065f21912129f --nocapture ; environment/cwd/source/SHA receipts in proof/helper-b/retained/079.json",
+    "timeout 2700 /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/emission-5fded70eaf6509bf --nocapture ; environment/cwd/source/SHA receipts in proof/helper-b/retained/080.json",
+    "timeout 2700 /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/vector-f0167fd818bd0c4d --nocapture ; environment/cwd/source/SHA receipts in proof/helper-b/retained/082.json",
+    "timeout 2700 /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/umpire_tlc-b26801645bf53e29 --nocapture ; environment/cwd/source/SHA receipts in proof/helper-b/retained/083.json",
+    "EXPECTED_RED(exit101): mise exec -- cargo test -p umpire-tlc --lib singleton_ -- --nocapture; proof/recovery-bounds-red.log",
+    "PASS(exit0): mise exec -- cargo test -p umpire-tlc --lib singleton_ -- --nocapture; proof/recovery-bounds-green.log",
+    "PASS(exit0,current2d596d0f5c): UMPIRE_BACKENDS=require RUST_TEST_THREADS=2 CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-tlc --features strategy-equivalence -- --nocapture;23passed; exact cwd/toolchain/binary provenance: proof/current-core-validation.json",
+    "PASS(exit0): mise exec -- cargo fmt --all -- --check; proof/fmt-bounded.log",
+    "PASS(exit0): mise exec -- cargo clippy -p umpire-tlc --all-targets --all-features -- -D warnings; proof/clippy-bounded.log",
+    "DEFERRED(owner81f509b088226986e5ea2cbd8ee10a2942d430e4):752 unrelated original workspace identities to fn254.8; exact names/ignored status in proof/validation-scope-ledger.json",
+    "CORPUS_REUSE: be919 frozen all-fixture proof retained under collector-only delta to2d596d0f5c; exact unchanged production-byte/path/budget argument and new multiwave controls: proof/collector-delta-reuse.json"
+  ],
+  "prs": [],
+  "integrated_head": "e14a3c2276546e33edd28a08a5e0a46f8efd270d"
+}

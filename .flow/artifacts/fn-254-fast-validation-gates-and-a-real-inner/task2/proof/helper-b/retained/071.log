@@ -1,0 +1,12 @@
+
+running 7 tests
+test real_tlc_batch_evaluation_recovers_original_property_order ... ok
+test real_tlc_evaluation_errors_are_typed_and_located ... ok
+test real_tlc_failed_batches_preserve_independent_traces ... ok
+test real_tlc_healthy_batches_use_at_most_two_model_launches ... ok
+test real_tlc_initial_invariant_has_a_typed_counterexample ... ok
+test real_tlc_keeps_deadlock_checks_and_refuses_tool_errors ... ok
+test real_tlc_maximality_fairness_bounds_and_action_properties ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 112.21s
+

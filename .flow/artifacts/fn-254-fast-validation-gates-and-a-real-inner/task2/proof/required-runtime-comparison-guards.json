@@ -1,0 +1,107 @@
+[
+  {
+    "index": 0,
+    "package": "umpire-fixtures",
+    "target": "interpreted",
+    "binary_sha256": "aa31f2b3fbd3d0a9654fca22c743c115143e53a0d0105cc39b18fb6d81182673",
+    "independent_strategy_assertion_present": true
+  },
+  {
+    "index": 1,
+    "package": "umpire-fixtures",
+    "target": "fixtures",
+    "binary_sha256": "58f2d99a25b394c50b7f9564c78d37f392d51e2698b7d2cb2d2bcc63fe160e41",
+    "independent_strategy_assertion_present": true
+  },
+  {
+    "index": 21,
+    "package": "umpire-temporal-tests",
+    "target": "fixtures",
+    "binary_sha256": "329cbb6a5852d8001d2e56fde50113547584016d8aad5754016f9cd4885039d2",
+    "independent_strategy_assertion_present": true
+  },
+  {
+    "index": 65,
+    "package": "umpire-tla",
+    "target": "narrow_remainder",
+    "binary_sha256": "5ed5da3477e1ec22014cc6eb550f41f56de7e7f23c2e8262fdaed288fc9236c5",
+    "independent_strategy_assertion_present": true
+  },
+  {
+    "index": 66,
+    "package": "umpire-tla",
+    "target": "world",
+    "binary_sha256": "9189390c09aa7a67544d33403dcb08f032d3c1923e71ce5114d8d3c54c8eba1d",
+    "independent_strategy_assertion_present": true
+  },
+  {
+    "index": 71,
+    "package": "umpire-tlc",
+    "target": "controls",
+    "binary_sha256": "c7f9005d72fe1f8f635bd6e512549d930092dc475eb540a8d3cf9be63b29828e",
+    "independent_strategy_assertion_present": true
+  },
+  {
+    "index": 72,
+    "package": "umpire-tla",
+    "target": "optional_ticks",
+    "binary_sha256": "029c9b428dafa9a95669ca72195a3a6ce954ce9fe7b9ecb930f7f2b83ce5df7f",
+    "independent_strategy_assertion_present": true
+  },
+  {
+    "index": 73,
+    "package": "umpire-tla",
+    "target": "phased",
+    "binary_sha256": "f6443ea07810f698c8a0d9972f0f6939a386551b8be0a6c7e4bf0235da924155",
+    "independent_strategy_assertion_present": true
+  },
+  {
+    "index": 74,
+    "package": "umpire-testing",
+    "target": "umpire_testing",
+    "binary_sha256": "00c642a972be5cf9b7a05c12b4a980f933bd0fea476bf207d8109fd09fd368fc",
+    "independent_strategy_assertion_present": true
+  },
+  {
+    "index": 76,
+    "package": "umpire-tlc",
+    "target": "scaling",
+    "binary_sha256": "7cbcc002b72051c4451eb1cdc6e1e49ff31e120d7b685eb327d6957c5cd6d37a",
+    "independent_strategy_assertion_present": true
+  },
+  {
+    "index": 78,
+    "package": "umpire-tla",
+    "target": "sequential_checks",
+    "binary_sha256": "72dc173e7afc76e17c847fa97100242d247cf5616e8243f8fb8c21b6e2dd4505",
+    "independent_strategy_assertion_present": true
+  },
+  {
+    "index": 79,
+    "package": "umpire-tla",
+    "target": "shadowing",
+    "binary_sha256": "0c4d1eefe2b4386de9faf8ed6a993ae673efb87382203192d0d5d601414d944f",
+    "independent_strategy_assertion_present": true
+  },
+  {
+    "index": 80,
+    "package": "umpire-tla",
+    "target": "emission",
+    "binary_sha256": "ca07c87574c0f6ee2dc67b37bbcea14b32f8c7e089f82ef2038c9662ebbeb2cb",
+    "independent_strategy_assertion_present": true
+  },
+  {
+    "index": 82,
+    "package": "umpire-tla",
+    "target": "vector",
+    "binary_sha256": "3fc5488301655f39d30e99152072e7b565cf37b61d887a8789f0bb81f032089e",
+    "independent_strategy_assertion_present": true
+  },
+  {
+    "index": 83,
+    "package": "umpire-tlc",
+    "target": "umpire_tlc",
+    "binary_sha256": "9733ee720359352ff7c2924548ff2829aeadd445763dc2b9b68eace129c7d8ff",
+    "independent_strategy_assertion_present": true
+  }
+]

@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/run-frozen-workspace.py", line 9, in <module>
+    target=inventory['artifacts'][item['executable']];package=packages[target['package']];env=os.environ.copy()
+                                                              ~~~~~~~~^^^^^^^^^^^^^^^^^^^
+KeyError: '0.0.1'

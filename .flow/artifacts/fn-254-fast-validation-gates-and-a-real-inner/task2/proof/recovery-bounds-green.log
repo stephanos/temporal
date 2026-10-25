@@ -1,0 +1,12 @@
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tlc)
+    Finished `test` profile [unoptimized] target(s) in 1.03s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug/deps/umpire_tlc-439d85f98ebd8da3)
+
+running 4 tests
+test runner::batch_tests::batch_resource_refusal_does_not_launch_singleton_recovery ... ok
+test runner::batch_tests::singleton_evaluation_stops_recovery_after_current_wave ... ok
+test runner::batch_tests::singleton_recovery_measures_worker_peak_and_owns_each_scratch ... ok
+test runner::batch_tests::singleton_output_budget_precedes_later_evaluation_and_stops_new_waves ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.11s
+

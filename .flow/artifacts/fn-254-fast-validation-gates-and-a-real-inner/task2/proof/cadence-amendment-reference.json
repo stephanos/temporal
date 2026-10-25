@@ -1,0 +1,10 @@
+{
+  "conductor_commit": "81f509b088226986e5ea2cbd8ee10a2942d430e4",
+  "policy_source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/planning/validation-cadence-20261025/policy.json",
+  "policy_sha256": "eda2b22c687f54ace0ad03e5571bbfaeb18bdd57b3332d15b1402edfab1846dc",
+  "worker_source_remains": "be919e0999dbab7f3084f3211080c91d773e128e",
+  "required_selected_cases": 171,
+  "required_existing_ignored_cases": 3,
+  "deferred_selected_cases": 752,
+  "deferred_existing_ignored_cases": 1
+}

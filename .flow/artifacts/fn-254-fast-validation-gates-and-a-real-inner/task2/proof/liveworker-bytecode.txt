@@ -1,0 +1,2055 @@
+Compiled from "LiveWorker.java"
+public class tlc2.tool.liveness.LiveWorker implements java.util.concurrent.Callable<java.lang.Boolean> {
+  private static final long SCC_MARKER;
+
+  public static final tlc2.util.statistics.IBucketStatistics STATS;
+
+  private static int errFoundByThread;
+
+  private static final java.lang.Object workerLock;
+
+  private tlc2.tool.liveness.OrderOfSolution oos;
+
+  private tlc2.tool.liveness.AbstractDiskGraph dg;
+
+  private tlc2.tool.liveness.PossibleErrorModel pem;
+
+  private final tlc2.tool.liveness.ILiveCheck liveCheck;
+
+  private final java.util.concurrent.BlockingQueue<tlc2.tool.liveness.ILiveChecker> queue;
+
+  private final boolean isFinalCheck;
+
+  private final int numWorkers;
+
+  private final tlc2.tool.ITool tool;
+
+  private final int id;
+
+  static final boolean $assertionsDisabled;
+
+  public tlc2.tool.liveness.LiveWorker(tlc2.tool.ITool, int, int, tlc2.tool.liveness.ILiveCheck, java.util.concurrent.BlockingQueue<tlc2.tool.liveness.ILiveChecker>, boolean);
+    Code:
+         0: aload_0
+         1: invokespecial #2                  // Method java/lang/Object."<init>":()V
+         4: aload_0
+         5: aconst_null
+         6: putfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+         9: aload_0
+        10: aconst_null
+        11: putfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+        14: aload_0
+        15: aconst_null
+        16: putfield      #4                  // Field pem:Ltlc2/tool/liveness/PossibleErrorModel;
+        19: aload_0
+        20: iload_2
+        21: putfield      #5                  // Field id:I
+        24: aload_0
+        25: aload_1
+        26: putfield      #6                  // Field tool:Ltlc2/tool/ITool;
+        29: aload_0
+        30: iload_3
+        31: putfield      #7                  // Field numWorkers:I
+        34: aload_0
+        35: aload         4
+        37: putfield      #8                  // Field liveCheck:Ltlc2/tool/liveness/ILiveCheck;
+        40: aload_0
+        41: aload         5
+        43: putfield      #9                  // Field queue:Ljava/util/concurrent/BlockingQueue;
+        46: aload_0
+        47: iload         6
+        49: putfield      #10                 // Field isFinalCheck:Z
+        52: return
+
+  private static boolean hasErrFound();
+    Code:
+         0: getstatic     #11                 // Field workerLock:Ljava/lang/Object;
+         3: dup
+         4: astore_0
+         5: monitorenter
+         6: getstatic     #12                 // Field errFoundByThread:I
+         9: iconst_m1
+        10: if_icmpeq     17
+        13: iconst_1
+        14: goto          18
+        17: iconst_0
+        18: aload_0
+        19: monitorexit
+        20: ireturn
+        21: astore_1
+        22: aload_0
+        23: monitorexit
+        24: aload_1
+        25: athrow
+      Exception table:
+         from    to  target type
+             6    20    21   any
+            21    24    21   any
+
+  private static boolean hasErrFound(int);
+    Code:
+         0: getstatic     #11                 // Field workerLock:Ljava/lang/Object;
+         3: dup
+         4: astore_1
+         5: monitorenter
+         6: getstatic     #12                 // Field errFoundByThread:I
+         9: iload_0
+        10: if_icmpne     17
+        13: iconst_1
+        14: goto          18
+        17: iconst_0
+        18: aload_1
+        19: monitorexit
+        20: ireturn
+        21: astore_2
+        22: aload_1
+        23: monitorexit
+        24: aload_2
+        25: athrow
+      Exception table:
+         from    to  target type
+             6    20    21   any
+            21    24    21   any
+
+  private boolean setErrFound();
+    Code:
+         0: getstatic     #11                 // Field workerLock:Ljava/lang/Object;
+         3: dup
+         4: astore_1
+         5: monitorenter
+         6: getstatic     #12                 // Field errFoundByThread:I
+         9: iconst_m1
+        10: if_icmpne     24
+        13: aload_0
+        14: getfield      #5                  // Field id:I
+        17: putstatic     #12                 // Field errFoundByThread:I
+        20: iconst_1
+        21: aload_1
+        22: monitorexit
+        23: ireturn
+        24: getstatic     #12                 // Field errFoundByThread:I
+        27: aload_0
+        28: getfield      #5                  // Field id:I
+        31: if_icmpne     38
+        34: iconst_1
+        35: aload_1
+        36: monitorexit
+        37: ireturn
+        38: iconst_0
+        39: aload_1
+        40: monitorexit
+        41: ireturn
+        42: astore_2
+        43: aload_1
+        44: monitorexit
+        45: aload_2
+        46: athrow
+      Exception table:
+         from    to  target type
+             6    23    42   any
+            24    37    42   any
+            38    41    42   any
+            42    45    42   any
+
+  private final void checkSccs(tlc2.tool.ITool) throws java.io.IOException, java.lang.InterruptedException, java.util.concurrent.ExecutionException;
+    Code:
+         0: aload_0
+         1: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+         4: invokevirtual #13                 // Method tlc2/tool/liveness/AbstractDiskGraph.makeNodePtrTbl:()V
+         7: aload_0
+         8: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+        11: invokevirtual #14                 // Method tlc2/tool/liveness/AbstractDiskGraph.getInitNodes:()Ltlc2/util/LongVec;
+        14: astore_2
+        15: aload_2
+        16: invokevirtual #15                 // Method tlc2/util/LongVec.size:()I
+        19: istore_3
+        20: new           #16                 // class tlc2/util/MemIntQueue
+        23: dup
+        24: aload_0
+        25: getfield      #8                  // Field liveCheck:Ltlc2/tool/liveness/ILiveCheck;
+        28: invokeinterface #17,  1           // InterfaceMethod tlc2/tool/liveness/ILiveCheck.getMetaDir:()Ljava/lang/String;
+        33: ldc           #18                 // String root
+        35: iload_3
+        36: iconst_2
+        37: idiv
+        38: iconst_5
+        39: imul
+        40: invokespecial #19                 // Method tlc2/util/MemIntQueue."<init>":(Ljava/lang/String;Ljava/lang/String;I)V
+        43: astore        4
+        45: iconst_0
+        46: istore        5
+        48: iload         5
+        50: iload_3
+        51: if_icmpge     184
+        54: aload_2
+        55: iload         5
+        57: invokevirtual #20                 // Method tlc2/util/LongVec.elementAt:(I)J
+        60: lstore        6
+        62: aload_2
+        63: iload         5
+        65: iconst_1
+        66: iadd
+        67: invokevirtual #20                 // Method tlc2/util/LongVec.elementAt:(I)J
+        70: l2i
+        71: istore        8
+        73: aload_0
+        74: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+        77: lload         6
+        79: iload         8
+        81: invokevirtual #21                 // Method tlc2/tool/liveness/AbstractDiskGraph.getLink:(JI)J
+        84: lstore        9
+        86: lload         9
+        88: lconst_0
+        89: lcmp
+        90: iflt          139
+        93: getstatic     #22                 // Field $assertionsDisabled:Z
+        96: ifne          115
+        99: lload         9
+       101: invokestatic  #23                 // Method tlc2/tool/liveness/DiskGraph.isFilePointer:(J)Z
+       104: ifne          115
+       107: new           #24                 // class java/lang/AssertionError
+       110: dup
+       111: invokespecial #25                 // Method java/lang/AssertionError."<init>":()V
+       114: athrow
+       115: aload         4
+       117: lload         6
+       119: invokevirtual #26                 // Method tlc2/util/MemIntQueue.enqueueLong:(J)V
+       122: aload         4
+       124: iload         8
+       126: invokevirtual #27                 // Method tlc2/util/MemIntQueue.enqueueInt:(I)V
+       129: aload         4
+       131: lload         9
+       133: invokevirtual #26                 // Method tlc2/util/MemIntQueue.enqueueLong:(J)V
+       136: goto          178
+       139: getstatic     #22                 // Field $assertionsDisabled:Z
+       142: ifne          178
+       145: aload_0
+       146: getfield      #10                 // Field isFinalCheck:Z
+       149: ifeq          178
+       152: lload         9
+       154: ldc2_w        #29                 // long -8589934592l
+       157: lcmp
+       158: ifeq          170
+       161: lload         9
+       163: ldc2_w        #31                 // long -12884901888l
+       166: lcmp
+       167: ifne          178
+       170: new           #24                 // class java/lang/AssertionError
+       173: dup
+       174: invokespecial #25                 // Method java/lang/AssertionError."<init>":()V
+       177: athrow
+       178: iinc          5, 2
+       181: goto          48
+       184: aload_0
+       185: getfield      #4                  // Field pem:Ltlc2/tool/liveness/PossibleErrorModel;
+       188: getfield      #33                 // Field tlc2/tool/liveness/PossibleErrorModel.EAAction:[I
+       191: astore        5
+       193: aload_0
+       194: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+       197: invokevirtual #34                 // Method tlc2/tool/liveness/OrderOfSolution.getCheckState:()[Ltlc2/tool/liveness/LiveExprNode;
+       200: arraylength
+       201: istore        6
+       203: aload_0
+       204: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+       207: invokevirtual #35                 // Method tlc2/tool/liveness/OrderOfSolution.getCheckAction:()[Ltlc2/tool/liveness/LiveExprNode;
+       210: arraylength
+       211: istore        7
+       213: ldc           #36                 // class tlc2/tool/liveness/LiveWorker
+       215: dup
+       216: astore        10
+       218: monitorenter
+       219: aload_0
+       220: aload_0
+       221: getfield      #8                  // Field liveCheck:Ltlc2/tool/liveness/ILiveCheck;
+       224: invokeinterface #17,  1           // InterfaceMethod tlc2/tool/liveness/ILiveCheck.getMetaDir:()Ljava/lang/String;
+       229: new           #37                 // class java/lang/StringBuilder
+       232: dup
+       233: invokespecial #38                 // Method java/lang/StringBuilder."<init>":()V
+       236: ldc           #39                 // String dfs
+       238: invokevirtual #40                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       241: aload_0
+       242: getfield      #5                  // Field id:I
+       245: invokevirtual #41                 // Method java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+       248: invokevirtual #42                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+       251: invokespecial #43                 // Method getStack:(Ljava/lang/String;Ljava/lang/String;)Ltlc2/util/IntStack;
+       254: astore        8
+       256: aload_0
+       257: aload_0
+       258: getfield      #8                  // Field liveCheck:Ltlc2/tool/liveness/ILiveCheck;
+       261: invokeinterface #17,  1           // InterfaceMethod tlc2/tool/liveness/ILiveCheck.getMetaDir:()Ljava/lang/String;
+       266: new           #37                 // class java/lang/StringBuilder
+       269: dup
+       270: invokespecial #38                 // Method java/lang/StringBuilder."<init>":()V
+       273: ldc           #44                 // String com
+       275: invokevirtual #40                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       278: aload_0
+       279: getfield      #5                  // Field id:I
+       282: invokevirtual #41                 // Method java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+       285: invokevirtual #42                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+       288: invokespecial #43                 // Method getStack:(Ljava/lang/String;Ljava/lang/String;)Ltlc2/util/IntStack;
+       291: astore        9
+       293: aload         10
+       295: monitorexit
+       296: goto          307
+       299: astore        11
+       301: aload         10
+       303: monitorexit
+       304: aload         11
+       306: athrow
+       307: aload         4
+       309: invokevirtual #45                 // Method tlc2/util/MemIntQueue.size:()J
+       312: lconst_0
+       313: lcmp
+       314: ifle          923
+       317: aload         4
+       319: invokevirtual #46                 // Method tlc2/util/MemIntQueue.dequeueLong:()J
+       322: lstore        10
+       324: aload         4
+       326: invokevirtual #47                 // Method tlc2/util/MemIntQueue.dequeueInt:()I
+       329: istore        12
+       331: aload         4
+       333: invokevirtual #46                 // Method tlc2/util/MemIntQueue.dequeueLong:()J
+       336: lstore        13
+       338: aload         8
+       340: invokeinterface #48,  1           // InterfaceMethod tlc2/util/IntStack.reset:()V
+       345: aload         8
+       347: lload         10
+       349: invokeinterface #49,  3           // InterfaceMethod tlc2/util/IntStack.pushLong:(J)V
+       354: aload         8
+       356: iload         12
+       358: invokeinterface #50,  2           // InterfaceMethod tlc2/util/IntStack.pushInt:(I)V
+       363: aload         8
+       365: lload         13
+       367: invokeinterface #49,  3           // InterfaceMethod tlc2/util/IntStack.pushLong:(J)V
+       372: aload         8
+       374: ldc2_w        #52                 // long 4611686018427387904l
+       377: invokeinterface #49,  3           // InterfaceMethod tlc2/util/IntStack.pushLong:(J)V
+       382: ldc2_w        #52                 // long 4611686018427387904l
+       385: lstore        15
+       387: aload         8
+       389: invokeinterface #54,  1           // InterfaceMethod tlc2/util/IntStack.size:()J
+       394: ldc2_w        #55                 // long 7l
+       397: lcmp
+       398: iflt          920
+       401: aload         8
+       403: invokeinterface #57,  1           // InterfaceMethod tlc2/util/IntStack.popLong:()J
+       408: lstore        17
+       410: aload         8
+       412: invokeinterface #57,  1           // InterfaceMethod tlc2/util/IntStack.popLong:()J
+       417: lstore        19
+       419: aload         8
+       421: invokeinterface #58,  1           // InterfaceMethod tlc2/util/IntStack.popInt:()I
+       426: istore        21
+       428: aload         8
+       430: invokeinterface #57,  1           // InterfaceMethod tlc2/util/IntStack.popLong:()J
+       435: lstore        22
+       437: getstatic     #22                 // Field $assertionsDisabled:Z
+       440: ifne          459
+       443: lload         19
+       445: invokestatic  #23                 // Method tlc2/tool/liveness/DiskGraph.isFilePointer:(J)Z
+       448: ifne          459
+       451: new           #24                 // class java/lang/AssertionError
+       454: dup
+       455: invokespecial #25                 // Method java/lang/AssertionError."<init>":()V
+       458: athrow
+       459: lload         19
+       461: ldc2_w        #59                 // long -42l
+       464: lcmp
+       465: ifne          557
+       468: aload_0
+       469: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+       472: lload         22
+       474: iload         21
+       476: invokevirtual #21                 // Method tlc2/tool/liveness/AbstractDiskGraph.getLink:(JI)J
+       479: lstore        24
+       481: getstatic     #22                 // Field $assertionsDisabled:Z
+       484: ifne          504
+       487: lload         24
+       489: ldc2_w        #62                 // long 9223372036854775807l
+       492: lcmp
+       493: iflt          504
+       496: new           #24                 // class java/lang/AssertionError
+       499: dup
+       500: invokespecial #25                 // Method java/lang/AssertionError."<init>":()V
+       503: athrow
+       504: lload         24
+       506: lload         17
+       508: lcmp
+       509: ifne          531
+       512: aload_0
+       513: aload_1
+       514: lload         22
+       516: iload         21
+       518: aload         9
+       520: invokespecial #64                 // Method checkComponent:(Ltlc2/tool/ITool;JILtlc2/util/IntStack;)Z
+       523: istore        26
+       525: iload         26
+       527: ifne          531
+       530: return
+       531: aload         8
+       533: invokeinterface #57,  1           // InterfaceMethod tlc2/util/IntStack.popLong:()J
+       538: lstore        26
+       540: aload         8
+       542: lload         26
+       544: lload         17
+       546: invokestatic  #65                 // Method java/lang/Math.min:(JJ)J
+       549: invokeinterface #49,  3           // InterfaceMethod tlc2/util/IntStack.pushLong:(J)V
+       554: goto          917
+       557: aload_0
+       558: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+       561: lload         22
+       563: iload         21
+       565: lload         15
+       567: invokevirtual #66                 // Method tlc2/tool/liveness/AbstractDiskGraph.putLink:(JIJ)J
+       570: lstore        24
+       572: lload         24
+       574: ldc2_w        #67                 // long -1l
+       577: lcmp
+       578: ifne          871
+       581: aload         8
+       583: lload         17
+       585: invokeinterface #49,  3           // InterfaceMethod tlc2/util/IntStack.pushLong:(J)V
+       590: aload         8
+       592: lload         22
+       594: invokeinterface #49,  3           // InterfaceMethod tlc2/util/IntStack.pushLong:(J)V
+       599: aload         8
+       601: iload         21
+       603: invokeinterface #50,  2           // InterfaceMethod tlc2/util/IntStack.pushInt:(I)V
+       608: aload         8
+       610: ldc2_w        #59                 // long -42l
+       613: invokeinterface #49,  3           // InterfaceMethod tlc2/util/IntStack.pushLong:(J)V
+       618: aload         9
+       620: lload         19
+       622: invokeinterface #49,  3           // InterfaceMethod tlc2/util/IntStack.pushLong:(J)V
+       627: aload         9
+       629: iload         21
+       631: invokeinterface #50,  2           // InterfaceMethod tlc2/util/IntStack.pushInt:(I)V
+       636: aload         9
+       638: lload         22
+       640: invokeinterface #49,  3           // InterfaceMethod tlc2/util/IntStack.pushLong:(J)V
+       645: aload_0
+       646: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+       649: lload         22
+       651: iload         21
+       653: lload         19
+       655: invokevirtual #69                 // Method tlc2/tool/liveness/AbstractDiskGraph.getNode:(JIJ)Ltlc2/tool/liveness/GraphNode;
+       658: astore        26
+       660: aload         26
+       662: invokevirtual #70                 // Method tlc2/tool/liveness/GraphNode.succSize:()I
+       665: istore        27
+       667: lload         15
+       669: lstore        28
+       671: lload         15
+       673: lconst_1
+       674: ladd
+       675: lstore        15
+       677: iconst_0
+       678: istore        30
+       680: iload         30
+       682: iload         27
+       684: if_icmpge     859
+       687: aload         26
+       689: iload         30
+       691: invokevirtual #71                 // Method tlc2/tool/liveness/GraphNode.getStateFP:(I)J
+       694: lstore        31
+       696: aload         26
+       698: iload         30
+       700: invokevirtual #72                 // Method tlc2/tool/liveness/GraphNode.getTidx:(I)I
+       703: istore        33
+       705: aload_0
+       706: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+       709: lload         31
+       711: iload         33
+       713: invokevirtual #21                 // Method tlc2/tool/liveness/AbstractDiskGraph.getLink:(JI)J
+       716: lstore        34
+       718: lload         34
+       720: lconst_0
+       721: lcmp
+       722: iflt          823
+       725: aload         26
+       727: iload         6
+       729: iload         7
+       731: iload         30
+       733: aload         5
+       735: invokevirtual #73                 // Method tlc2/tool/liveness/GraphNode.getCheckAction:(III[I)Z
+       738: ifeq          791
+       741: lload         34
+       743: invokestatic  #23                 // Method tlc2/tool/liveness/DiskGraph.isFilePointer:(J)Z
+       746: ifeq          779
+       749: aload         8
+       751: lload         31
+       753: invokeinterface #49,  3           // InterfaceMethod tlc2/util/IntStack.pushLong:(J)V
+       758: aload         8
+       760: iload         33
+       762: invokeinterface #50,  2           // InterfaceMethod tlc2/util/IntStack.pushInt:(I)V
+       767: aload         8
+       769: lload         34
+       771: invokeinterface #49,  3           // InterfaceMethod tlc2/util/IntStack.pushLong:(J)V
+       776: goto          853
+       779: lload         28
+       781: lload         34
+       783: invokestatic  #65                 // Method java/lang/Math.min:(JJ)J
+       786: lstore        28
+       788: goto          853
+       791: lload         34
+       793: invokestatic  #23                 // Method tlc2/tool/liveness/DiskGraph.isFilePointer:(J)Z
+       796: ifeq          853
+       799: aload         4
+       801: lload         31
+       803: invokevirtual #26                 // Method tlc2/util/MemIntQueue.enqueueLong:(J)V
+       806: aload         4
+       808: iload         33
+       810: invokevirtual #27                 // Method tlc2/util/MemIntQueue.enqueueInt:(I)V
+       813: aload         4
+       815: lload         34
+       817: invokevirtual #26                 // Method tlc2/util/MemIntQueue.enqueueLong:(J)V
+       820: goto          853
+       823: getstatic     #22                 // Field $assertionsDisabled:Z
+       826: ifne          853
+       829: aload_0
+       830: getfield      #10                 // Field isFinalCheck:Z
+       833: ifeq          853
+       836: lload         34
+       838: ldc2_w        #29                 // long -8589934592l
+       841: lcmp
+       842: ifne          853
+       845: new           #24                 // class java/lang/AssertionError
+       848: dup
+       849: invokespecial #25                 // Method java/lang/AssertionError."<init>":()V
+       852: athrow
+       853: iinc          30, 1
+       856: goto          680
+       859: aload         8
+       861: lload         28
+       863: invokeinterface #49,  3           // InterfaceMethod tlc2/util/IntStack.pushLong:(J)V
+       868: goto          917
+       871: getstatic     #22                 // Field $assertionsDisabled:Z
+       874: ifne          903
+       877: ldc2_w        #52                 // long 4611686018427387904l
+       880: lload         24
+       882: lcmp
+       883: ifgt          895
+       886: lload         24
+       888: ldc2_w        #62                 // long 9223372036854775807l
+       891: lcmp
+       892: ifle          903
+       895: new           #24                 // class java/lang/AssertionError
+       898: dup
+       899: invokespecial #25                 // Method java/lang/AssertionError."<init>":()V
+       902: athrow
+       903: aload         8
+       905: lload         17
+       907: lload         24
+       909: invokestatic  #65                 // Method java/lang/Math.min:(JJ)J
+       912: invokeinterface #49,  3           // InterfaceMethod tlc2/util/IntStack.pushLong:(J)V
+       917: goto          387
+       920: goto          307
+       923: getstatic     #22                 // Field $assertionsDisabled:Z
+       926: ifne          949
+       929: aload         9
+       931: invokeinterface #54,  1           // InterfaceMethod tlc2/util/IntStack.size:()J
+       936: lconst_0
+       937: lcmp
+       938: ifeq          949
+       941: new           #24                 // class java/lang/AssertionError
+       944: dup
+       945: invokespecial #25                 // Method java/lang/AssertionError."<init>":()V
+       948: athrow
+       949: return
+      Exception table:
+         from    to  target type
+           219   296   299   any
+           299   304   299   any
+
+  private tlc2.util.IntStack getStack(java.lang.String, java.lang.String) throws java.io.IOException;
+    Code:
+         0: invokestatic  #74                 // Method java/lang/Runtime.getRuntime:()Ljava/lang/Runtime;
+         3: invokevirtual #75                 // Method java/lang/Runtime.freeMemory:()J
+         6: l2d
+         7: aload_0
+         8: getfield      #7                  // Field numWorkers:I
+        11: i2d
+        12: dconst_1
+        13: dmul
+        14: ddiv
+        15: dstore_3
+        16: aload_0
+        17: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+        20: invokevirtual #76                 // Method tlc2/tool/liveness/AbstractDiskGraph.getSizeOnDisk:()J
+        23: lstore        5
+        25: lload         5
+        27: l2d
+        28: dload_3
+        29: ddiv
+        30: dstore        7
+        32: dload         7
+        34: getstatic     #77                 // Field tlc2/TLCGlobals.livenessGraphSizeThreshold:D
+        37: dcmpl
+        38: ifle          83
+        41: ldc           #79                 // int 8388608
+        43: dload         7
+        45: d2i
+        46: iconst_5
+        47: invokestatic  #80                 // Method java/lang/Math.min:(II)I
+        50: ishl
+        51: istore        9
+        53: iload         9
+        55: i2d
+        56: dload_3
+        57: dcmpg
+        58: ifge          73
+        61: new           #78                 // class tlc2/util/SynchronousDiskIntStack
+        64: dup
+        65: aload_1
+        66: aload_2
+        67: iload         9
+        69: invokespecial #81                 // Method tlc2/util/SynchronousDiskIntStack."<init>":(Ljava/lang/String;Ljava/lang/String;I)V
+        72: areturn
+        73: new           #78                 // class tlc2/util/SynchronousDiskIntStack
+        76: dup
+        77: aload_1
+        78: aload_2
+        79: invokespecial #82                 // Method tlc2/util/SynchronousDiskIntStack."<init>":(Ljava/lang/String;Ljava/lang/String;)V
+        82: areturn
+        83: new           #83                 // class tlc2/util/MemIntStack
+        86: dup
+        87: aload_1
+        88: aload_2
+        89: invokespecial #84                 // Method tlc2/util/MemIntStack."<init>":(Ljava/lang/String;Ljava/lang/String;)V
+        92: areturn
+        93: astore_3
+        94: invokestatic  #86                 // Method java/lang/System.gc:()V
+        97: new           #78                 // class tlc2/util/SynchronousDiskIntStack
+       100: dup
+       101: aload_1
+       102: aload_2
+       103: ldc           #87                 // int 4194304
+       105: invokespecial #81                 // Method tlc2/util/SynchronousDiskIntStack."<init>":(Ljava/lang/String;Ljava/lang/String;I)V
+       108: astore        4
+       110: sipush        1000
+       113: ldc           #89                 // String Liveness checking will be extremely slow because TLC is running low on memory.\nTry allocating more memory to the Java pool (heap) in future TLC runs.
+       115: invokestatic  #90                 // Method tlc2/output/MP.printWarning:(ILjava/lang/String;)V
+       118: aload         4
+       120: areturn
+      Exception table:
+         from    to  target type
+             0    72    93   Class java/lang/OutOfMemoryError
+            73    82    93   Class java/lang/OutOfMemoryError
+            83    92    93   Class java/lang/OutOfMemoryError
+
+  private boolean checkComponent(tlc2.tool.ITool, long, int, tlc2.util.IntStack) throws java.io.IOException, java.lang.InterruptedException, java.util.concurrent.ExecutionException;
+    Code:
+         0: aload         5
+         2: invokeinterface #54,  1           // InterfaceMethod tlc2/util/IntStack.size:()J
+         7: lstore        6
+         9: getstatic     #22                 // Field $assertionsDisabled:Z
+        12: ifne          43
+        15: lload         6
+        17: ldc2_w        #91                 // long 5l
+        20: lcmp
+        21: iflt          35
+        24: lload         6
+        26: ldc2_w        #91                 // long 5l
+        29: lrem
+        30: lconst_0
+        31: lcmp
+        32: ifeq          43
+        35: new           #24                 // class java/lang/AssertionError
+        38: dup
+        39: invokespecial #25                 // Method java/lang/AssertionError."<init>":()V
+        42: athrow
+        43: aload         5
+        45: invokeinterface #57,  1           // InterfaceMethod tlc2/util/IntStack.popLong:()J
+        50: lstore        8
+        52: aload         5
+        54: invokeinterface #58,  1           // InterfaceMethod tlc2/util/IntStack.popInt:()I
+        59: istore        10
+        61: aload         5
+        63: invokeinterface #57,  1           // InterfaceMethod tlc2/util/IntStack.popLong:()J
+        68: lstore        11
+        70: lload         8
+        72: lload_2
+        73: lcmp
+        74: ifne          109
+        77: iload         10
+        79: iload         4
+        81: if_icmpne     109
+        84: aload_0
+        85: lload         8
+        87: iload         10
+        89: lload         11
+        91: invokespecial #93                 // Method isStuttering:(JIJ)Z
+        94: ifne          109
+        97: aload_0
+        98: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+       101: lload_2
+       102: iload         4
+       104: invokevirtual #94                 // Method tlc2/tool/liveness/AbstractDiskGraph.setMaxLink:(JI)V
+       107: iconst_1
+       108: ireturn
+       109: new           #28                 // class tlc2/tool/liveness/TableauNodePtrTable
+       112: dup
+       113: sipush        128
+       116: invokespecial #95                 // Method tlc2/tool/liveness/TableauNodePtrTable."<init>":(I)V
+       119: astore        13
+       121: aload         13
+       123: lload         8
+       125: iload         10
+       127: lload         11
+       129: invokevirtual #96                 // Method tlc2/tool/liveness/TableauNodePtrTable.put:(JIJ)V
+       132: getstatic     #22                 // Field $assertionsDisabled:Z
+       135: ifne          154
+       138: lload         11
+       140: invokestatic  #97                 // Method tlc2/tool/liveness/AbstractDiskGraph.isFilePointer:(J)Z
+       143: ifne          154
+       146: new           #24                 // class java/lang/AssertionError
+       149: dup
+       150: invokespecial #25                 // Method java/lang/AssertionError."<init>":()V
+       153: athrow
+       154: aload_0
+       155: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+       158: lload         8
+       160: iload         10
+       162: invokevirtual #94                 // Method tlc2/tool/liveness/AbstractDiskGraph.setMaxLink:(JI)V
+       165: lload_2
+       166: lload         8
+       168: lcmp
+       169: ifne          182
+       172: iload         4
+       174: iload         10
+       176: if_icmpne     182
+       179: goto          212
+       182: aload         5
+       184: invokeinterface #57,  1           // InterfaceMethod tlc2/util/IntStack.popLong:()J
+       189: lstore        8
+       191: aload         5
+       193: invokeinterface #58,  1           // InterfaceMethod tlc2/util/IntStack.popInt:()I
+       198: istore        10
+       200: aload         5
+       202: invokeinterface #57,  1           // InterfaceMethod tlc2/util/IntStack.popLong:()J
+       207: lstore        11
+       209: goto          121
+       212: getstatic     #22                 // Field $assertionsDisabled:Z
+       215: ifne          242
+       218: aload         13
+       220: invokevirtual #98                 // Method tlc2/tool/liveness/TableauNodePtrTable.size:()I
+       223: i2l
+       224: lload         6
+       226: ldc2_w        #91                 // long 5l
+       229: ldiv
+       230: lcmp
+       231: ifle          242
+       234: new           #24                 // class java/lang/AssertionError
+       237: dup
+       238: invokespecial #25                 // Method java/lang/AssertionError."<init>":()V
+       241: athrow
+       242: getstatic     #99                 // Field STATS:Ltlc2/util/statistics/IBucketStatistics;
+       245: aload         13
+       247: invokevirtual #98                 // Method tlc2/tool/liveness/TableauNodePtrTable.size:()I
+       250: invokeinterface #100,  2          // InterfaceMethod tlc2/util/statistics/IBucketStatistics.addSample:(I)V
+       255: aload_0
+       256: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+       259: invokevirtual #34                 // Method tlc2/tool/liveness/OrderOfSolution.getCheckState:()[Ltlc2/tool/liveness/LiveExprNode;
+       262: arraylength
+       263: istore        14
+       265: aload_0
+       266: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+       269: invokevirtual #35                 // Method tlc2/tool/liveness/OrderOfSolution.getCheckAction:()[Ltlc2/tool/liveness/LiveExprNode;
+       272: arraylength
+       273: istore        15
+       275: aload_0
+       276: getfield      #4                  // Field pem:Ltlc2/tool/liveness/PossibleErrorModel;
+       279: getfield      #101                // Field tlc2/tool/liveness/PossibleErrorModel.AEState:[I
+       282: arraylength
+       283: istore        16
+       285: aload_0
+       286: getfield      #4                  // Field pem:Ltlc2/tool/liveness/PossibleErrorModel;
+       289: getfield      #102                // Field tlc2/tool/liveness/PossibleErrorModel.AEAction:[I
+       292: arraylength
+       293: istore        17
+       295: aload_0
+       296: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+       299: invokevirtual #103                // Method tlc2/tool/liveness/OrderOfSolution.getPromises:()[Ltlc2/tool/liveness/LNEven;
+       302: arraylength
+       303: istore        18
+       305: iload         16
+       307: newarray       boolean
+       309: astore        19
+       311: iload         17
+       313: newarray       boolean
+       315: astore        20
+       317: iload         18
+       319: newarray       boolean
+       321: astore        21
+       323: aload_0
+       324: getfield      #4                  // Field pem:Ltlc2/tool/liveness/PossibleErrorModel;
+       327: getfield      #33                 // Field tlc2/tool/liveness/PossibleErrorModel.EAAction:[I
+       330: astore        22
+       332: aload         13
+       334: invokevirtual #104                // Method tlc2/tool/liveness/TableauNodePtrTable.getSize:()I
+       337: istore        23
+       339: iconst_0
+       340: istore        24
+       342: iload         24
+       344: iload         23
+       346: if_icmpge     684
+       349: aload         13
+       351: iload         24
+       353: invokevirtual #105                // Method tlc2/tool/liveness/TableauNodePtrTable.getNodesByLoc:(I)[I
+       356: astore        25
+       358: aload         25
+       360: ifnonnull     366
+       363: goto          678
+       366: aload         25
+       368: invokestatic  #106                // Method tlc2/tool/liveness/TableauNodePtrTable.getKey:([I)J
+       371: lstore        8
+       373: iconst_2
+       374: istore        26
+       376: iload         26
+       378: aload         25
+       380: arraylength
+       381: if_icmpge     678
+       384: aload         25
+       386: iload         26
+       388: invokestatic  #107                // Method tlc2/tool/liveness/TableauNodePtrTable.getTidx:([II)I
+       391: istore        10
+       393: aload         25
+       395: iload         26
+       397: invokestatic  #108                // Method tlc2/tool/liveness/TableauNodePtrTable.getElem:([II)J
+       400: lstore        11
+       402: aload_0
+       403: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+       406: lload         8
+       408: iload         10
+       410: lload         11
+       412: invokevirtual #69                 // Method tlc2/tool/liveness/AbstractDiskGraph.getNode:(JIJ)Ltlc2/tool/liveness/GraphNode;
+       415: astore        27
+       417: iconst_0
+       418: istore        28
+       420: iload         28
+       422: iload         16
+       424: if_icmpge     465
+       427: aload         19
+       429: iload         28
+       431: baload
+       432: ifne          459
+       435: aload_0
+       436: getfield      #4                  // Field pem:Ltlc2/tool/liveness/PossibleErrorModel;
+       439: getfield      #101                // Field tlc2/tool/liveness/PossibleErrorModel.AEState:[I
+       442: iload         28
+       444: iaload
+       445: istore        29
+       447: aload         19
+       449: iload         28
+       451: aload         27
+       453: iload         29
+       455: invokevirtual #109                // Method tlc2/tool/liveness/GraphNode.getCheckState:(I)Z
+       458: bastore
+       459: iinc          28, 1
+       462: goto          420
+       465: iload         17
+       467: ifle          478
+       470: aload         27
+       472: invokevirtual #70                 // Method tlc2/tool/liveness/GraphNode.succSize:()I
+       475: goto          479
+       478: iconst_0
+       479: istore        28
+       481: iconst_0
+       482: istore        29
+       484: iload         29
+       486: iload         28
+       488: if_icmpge     604
+       491: aload         27
+       493: iload         29
+       495: invokevirtual #71                 // Method tlc2/tool/liveness/GraphNode.getStateFP:(I)J
+       498: lstore        30
+       500: aload         27
+       502: iload         29
+       504: invokevirtual #72                 // Method tlc2/tool/liveness/GraphNode.getTidx:(I)I
+       507: istore        32
+       509: aload         13
+       511: lload         30
+       513: iload         32
+       515: invokevirtual #110                // Method tlc2/tool/liveness/TableauNodePtrTable.getLoc:(JI)I
+       518: iconst_m1
+       519: if_icmpne     525
+       522: goto          598
+       525: aload         27
+       527: iload         14
+       529: iload         15
+       531: iload         29
+       533: aload         22
+       535: invokevirtual #73                 // Method tlc2/tool/liveness/GraphNode.getCheckAction:(III[I)Z
+       538: ifne          544
+       541: goto          598
+       544: iconst_0
+       545: istore        33
+       547: iload         33
+       549: iload         17
+       551: if_icmpge     598
+       554: aload         20
+       556: iload         33
+       558: baload
+       559: ifne          592
+       562: aload_0
+       563: getfield      #4                  // Field pem:Ltlc2/tool/liveness/PossibleErrorModel;
+       566: getfield      #102                // Field tlc2/tool/liveness/PossibleErrorModel.AEAction:[I
+       569: iload         33
+       571: iaload
+       572: istore        34
+       574: aload         20
+       576: iload         33
+       578: aload         27
+       580: iload         14
+       582: iload         15
+       584: iload         29
+       586: iload         34
+       588: invokevirtual #111                // Method tlc2/tool/liveness/GraphNode.getCheckAction:(IIII)Z
+       591: bastore
+       592: iinc          33, 1
+       595: goto          547
+       598: iinc          29, 1
+       601: goto          484
+       604: iconst_0
+       605: istore        29
+       607: iload         29
+       609: iload         18
+       611: if_icmpge     665
+       614: aload_0
+       615: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+       618: invokevirtual #103                // Method tlc2/tool/liveness/OrderOfSolution.getPromises:()[Ltlc2/tool/liveness/LNEven;
+       621: iload         29
+       623: aaload
+       624: astore        30
+       626: aload         27
+       628: aload_0
+       629: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+       632: invokevirtual #112                // Method tlc2/tool/liveness/OrderOfSolution.getTableau:()Ltlc2/tool/liveness/TBGraph;
+       635: invokevirtual #113                // Method tlc2/tool/liveness/GraphNode.getTNode:(Ltlc2/tool/liveness/TBGraph;)Ltlc2/tool/liveness/TBGraphNode;
+       638: invokevirtual #114                // Method tlc2/tool/liveness/TBGraphNode.getPar:()Ltlc2/tool/liveness/TBPar;
+       641: astore        31
+       643: aload         31
+       645: aload         30
+       647: invokevirtual #115                // Method tlc2/tool/liveness/TBPar.isFulfilling:(Ltlc2/tool/liveness/LNEven;)Z
+       650: ifeq          659
+       653: aload         21
+       655: iload         29
+       657: iconst_1
+       658: bastore
+       659: iinc          29, 1
+       662: goto          607
+       665: iload         26
+       667: aload         13
+       669: invokevirtual #116                // Method tlc2/tool/liveness/TableauNodePtrTable.getElemLength:()I
+       672: iadd
+       673: istore        26
+       675: goto          376
+       678: iinc          24, 1
+       681: goto          342
+       684: iconst_0
+       685: istore        24
+       687: iload         24
+       689: iload         16
+       691: if_icmpge     710
+       694: aload         19
+       696: iload         24
+       698: baload
+       699: ifne          704
+       702: iconst_1
+       703: ireturn
+       704: iinc          24, 1
+       707: goto          687
+       710: iconst_0
+       711: istore        24
+       713: iload         24
+       715: iload         17
+       717: if_icmpge     736
+       720: aload         20
+       722: iload         24
+       724: baload
+       725: ifne          730
+       728: iconst_1
+       729: ireturn
+       730: iinc          24, 1
+       733: goto          713
+       736: iconst_0
+       737: istore        24
+       739: iload         24
+       741: iload         18
+       743: if_icmpge     762
+       746: aload         21
+       748: iload         24
+       750: baload
+       751: ifne          756
+       754: iconst_1
+       755: ireturn
+       756: iinc          24, 1
+       759: goto          739
+       762: aload_0
+       763: invokespecial #117                // Method setErrFound:()Z
+       766: ifeq          779
+       769: aload_0
+       770: aload_1
+       771: lload_2
+       772: iload         4
+       774: aload         13
+       776: invokespecial #118                // Method printTrace:(Ltlc2/tool/ITool;JILtlc2/tool/liveness/TableauNodePtrTable;)V
+       779: iconst_0
+       780: ireturn
+
+  private boolean isStuttering(long, int, long) throws java.io.IOException;
+    Code:
+         0: aload_0
+         1: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+         4: invokevirtual #34                 // Method tlc2/tool/liveness/OrderOfSolution.getCheckState:()[Ltlc2/tool/liveness/LiveExprNode;
+         7: arraylength
+         8: istore        6
+        10: aload_0
+        11: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+        14: invokevirtual #35                 // Method tlc2/tool/liveness/OrderOfSolution.getCheckAction:()[Ltlc2/tool/liveness/LiveExprNode;
+        17: arraylength
+        18: istore        7
+        20: aload_0
+        21: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+        24: lload_1
+        25: iload_3
+        26: lload         4
+        28: invokevirtual #69                 // Method tlc2/tool/liveness/AbstractDiskGraph.getNode:(JIJ)Ltlc2/tool/liveness/GraphNode;
+        31: astore        8
+        33: aload         8
+        35: invokevirtual #70                 // Method tlc2/tool/liveness/GraphNode.succSize:()I
+        38: istore        9
+        40: iconst_0
+        41: istore        10
+        43: iload         10
+        45: iload         9
+        47: if_icmpge     106
+        50: aload         8
+        52: iload         10
+        54: invokevirtual #71                 // Method tlc2/tool/liveness/GraphNode.getStateFP:(I)J
+        57: lstore        11
+        59: aload         8
+        61: iload         10
+        63: invokevirtual #72                 // Method tlc2/tool/liveness/GraphNode.getTidx:(I)I
+        66: istore        13
+        68: lload_1
+        69: lload         11
+        71: lcmp
+        72: ifne          100
+        75: iload_3
+        76: iload         13
+        78: if_icmpne     100
+        81: aload         8
+        83: iload         6
+        85: iload         7
+        87: iload         10
+        89: aload_0
+        90: getfield      #4                  // Field pem:Ltlc2/tool/liveness/PossibleErrorModel;
+        93: getfield      #33                 // Field tlc2/tool/liveness/PossibleErrorModel.EAAction:[I
+        96: invokevirtual #73                 // Method tlc2/tool/liveness/GraphNode.getCheckAction:(III[I)Z
+        99: ireturn
+       100: iinc          10, 1
+       103: goto          43
+       106: iconst_0
+       107: ireturn
+
+  private void printTrace(tlc2.tool.ITool, long, int, tlc2.tool.liveness.TableauNodePtrTable) throws java.io.IOException, java.lang.InterruptedException, java.util.concurrent.ExecutionException;
+    Code:
+         0: sipush        2116
+         3: invokestatic  #119                // Method tlc2/output/MP.printError:(I)I
+         6: pop
+         7: sipush        2264
+        10: invokestatic  #119                // Method tlc2/output/MP.printError:(I)I
+        13: pop
+        14: iconst_1
+        15: invokestatic  #120                // Method java/util/concurrent/Executors.newFixedThreadPool:(I)Ljava/util/concurrent/ExecutorService;
+        18: astore        6
+        20: aload         6
+        22: new           #121                // class tlc2/tool/liveness/LiveWorker$1
+        25: dup
+        26: aload_0
+        27: lload_2
+        28: iload         4
+        30: aload_1
+        31: invokespecial #122                // Method tlc2/tool/liveness/LiveWorker$1."<init>":(Ltlc2/tool/liveness/LiveWorker;JILtlc2/tool/ITool;)V
+        34: invokeinterface #123,  2          // InterfaceMethod java/util/concurrent/ExecutorService.submit:(Ljava/util/concurrent/Callable;)Ljava/util/concurrent/Future;
+        39: astore        7
+        41: new           #83                 // class tlc2/util/MemIntStack
+        44: dup
+        45: aload_0
+        46: getfield      #8                  // Field liveCheck:Ltlc2/tool/liveness/ILiveCheck;
+        49: invokeinterface #17,  1           // InterfaceMethod tlc2/tool/liveness/ILiveCheck.getMetaDir:()Ljava/lang/String;
+        54: ldc           #124                // String cycle
+        56: invokespecial #84                 // Method tlc2/util/MemIntStack."<init>":(Ljava/lang/String;Ljava/lang/String;)V
+        59: astore        8
+        61: aload_0
+        62: lload_2
+        63: iload         4
+        65: aload         5
+        67: aload         8
+        69: invokespecial #125                // Method dfsPostFix:(JILtlc2/tool/liveness/TableauNodePtrTable;Ltlc2/util/MemIntStack;)Ltlc2/tool/liveness/GraphNode;
+        72: astore        9
+        74: aload_0
+        75: lload_2
+        76: iload         4
+        78: aload         5
+        80: aload         9
+        82: invokespecial #126                // Method bfsPostFix:(JILtlc2/tool/liveness/TableauNodePtrTable;Ltlc2/tool/liveness/GraphNode;)Ltlc2/util/LongVec;
+        85: astore        10
+        87: aload         8
+        89: invokevirtual #127                // Method tlc2/util/MemIntStack.size:()J
+        92: lconst_0
+        93: lcmp
+        94: ifle          116
+        97: aload         10
+        99: aload         8
+       101: invokevirtual #128                // Method tlc2/util/MemIntStack.popLong:()J
+       104: invokevirtual #129                // Method tlc2/util/LongVec.addElement:(J)V
+       107: aload         8
+       109: invokevirtual #130                // Method tlc2/util/MemIntStack.popInt:()I
+       112: pop
+       113: goto          87
+       116: new           #131                // class java/util/ArrayList
+       119: dup
+       120: iconst_0
+       121: invokespecial #132                // Method java/util/ArrayList."<init>":(I)V
+       124: astore        11
+       126: aload         7
+       128: invokeinterface #133,  1          // InterfaceMethod java/util/concurrent/Future.get:()Ljava/lang/Object;
+       133: checkcast     #134                // class java/util/List
+       136: astore        11
+       138: goto          166
+       141: astore        12
+       143: aload         12
+       145: invokevirtual #136                // Method java/util/concurrent/ExecutionException.getCause:()Ljava/lang/Throwable;
+       148: instanceof    #137                // class tlc2/tool/EvalException
+       151: ifeq          163
+       154: aload         12
+       156: invokevirtual #136                // Method java/util/concurrent/ExecutionException.getCause:()Ljava/lang/Throwable;
+       159: checkcast     #137                // class tlc2/tool/EvalException
+       162: athrow
+       163: aload         12
+       165: athrow
+       166: aload         11
+       168: aload         11
+       170: invokeinterface #138,  1          // InterfaceMethod java/util/List.size:()I
+       175: iconst_1
+       176: isub
+       177: invokeinterface #139,  2          // InterfaceMethod java/util/List.get:(I)Ljava/lang/Object;
+       182: checkcast     #140                // class tlc2/tool/TLCStateInfo
+       185: astore        12
+       187: aload         12
+       189: astore        13
+       191: aload         10
+       193: invokevirtual #15                 // Method tlc2/util/LongVec.size:()I
+       196: iconst_1
+       197: isub
+       198: istore        14
+       200: iload         14
+       202: iflt          248
+       205: aload         10
+       207: iload         14
+       209: invokevirtual #20                 // Method tlc2/util/LongVec.elementAt:(I)J
+       212: lstore        15
+       214: lload         15
+       216: aload         13
+       218: invokevirtual #141                // Method tlc2/tool/TLCStateInfo.fingerPrint:()J
+       221: lcmp
+       222: ifeq          242
+       225: aload_1
+       226: lload         15
+       228: aload         13
+       230: invokeinterface #142,  4          // InterfaceMethod tlc2/tool/ITool.getState:(JLtlc2/tool/TLCStateInfo;)Ltlc2/tool/TLCStateInfo;
+       235: astore        13
+       237: aload         13
+       239: invokestatic  #143                // Method tlc2/output/StatePrinter.printState:(Ltlc2/tool/TLCStateInfo;)V
+       242: iinc          14, -1
+       245: goto          200
+       248: aload         12
+       250: getfield      #144                // Field tlc2/tool/TLCStateInfo.stateNumber:J
+       253: l2i
+       254: istore        14
+       256: aload         13
+       258: invokevirtual #141                // Method tlc2/tool/TLCStateInfo.fingerPrint:()J
+       261: aload         12
+       263: invokevirtual #141                // Method tlc2/tool/TLCStateInfo.fingerPrint:()J
+       266: lcmp
+       267: ifne          278
+       270: iload         14
+       272: invokestatic  #145                // Method tlc2/output/StatePrinter.printStutteringState:(I)V
+       275: goto          331
+       278: aload_1
+       279: aload         12
+       281: invokevirtual #141                // Method tlc2/tool/TLCStateInfo.fingerPrint:()J
+       284: aload         13
+       286: invokeinterface #142,  4          // InterfaceMethod tlc2/tool/ITool.getState:(JLtlc2/tool/TLCStateInfo;)Ltlc2/tool/TLCStateInfo;
+       291: astore        13
+       293: getstatic     #22                 // Field $assertionsDisabled:Z
+       296: ifne          323
+       299: aload         12
+       301: getfield      #146                // Field tlc2/tool/TLCStateInfo.state:Ltlc2/tool/TLCState;
+       304: aload         13
+       306: getfield      #146                // Field tlc2/tool/TLCStateInfo.state:Ltlc2/tool/TLCState;
+       309: invokevirtual #147                // Method java/lang/Object.equals:(Ljava/lang/Object;)Z
+       312: ifne          323
+       315: new           #24                 // class java/lang/AssertionError
+       318: dup
+       319: invokespecial #25                 // Method java/lang/AssertionError."<init>":()V
+       322: athrow
+       323: aload         13
+       325: iload         14
+       327: i2l
+       328: invokestatic  #148                // Method tlc2/output/StatePrinter.printBackToState:(Ltlc2/tool/TLCStateInfo;J)V
+       331: return
+      Exception table:
+         from    to  target type
+           126   138   141   Class java/util/concurrent/ExecutionException
+
+  private tlc2.util.LongVec bfsPostFix(long, int, tlc2.tool.liveness.TableauNodePtrTable, tlc2.tool.liveness.GraphNode) throws java.io.IOException;
+    Code:
+         0: aload_0
+         1: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+         4: invokevirtual #34                 // Method tlc2/tool/liveness/OrderOfSolution.getCheckState:()[Ltlc2/tool/liveness/LiveExprNode;
+         7: arraylength
+         8: istore        6
+        10: aload_0
+        11: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+        14: invokevirtual #35                 // Method tlc2/tool/liveness/OrderOfSolution.getCheckAction:()[Ltlc2/tool/liveness/LiveExprNode;
+        17: arraylength
+        18: istore        7
+        20: aload_0
+        21: getfield      #4                  // Field pem:Ltlc2/tool/liveness/PossibleErrorModel;
+        24: getfield      #33                 // Field tlc2/tool/liveness/PossibleErrorModel.EAAction:[I
+        27: astore        8
+        29: new           #149                // class tlc2/util/LongVec
+        32: dup
+        33: bipush        16
+        35: invokespecial #150                // Method tlc2/util/LongVec."<init>":(I)V
+        38: astore        9
+        40: aload         5
+        42: getfield      #151                // Field tlc2/tool/liveness/GraphNode.stateFP:J
+        45: lstore        10
+        47: aload         5
+        49: getfield      #152                // Field tlc2/tool/liveness/GraphNode.tindex:I
+        52: i2l
+        53: lstore        12
+        55: lload         10
+        57: lload_1
+        58: lcmp
+        59: ifne          70
+        62: lload         12
+        64: iload_3
+        65: i2l
+        66: lcmp
+        67: ifeq          424
+        70: new           #16                 // class tlc2/util/MemIntQueue
+        73: dup
+        74: aload_0
+        75: getfield      #8                  // Field liveCheck:Ltlc2/tool/liveness/ILiveCheck;
+        78: invokeinterface #17,  1           // InterfaceMethod tlc2/tool/liveness/ILiveCheck.getMetaDir:()Ljava/lang/String;
+        83: aconst_null
+        84: invokespecial #153                // Method tlc2/util/MemIntQueue."<init>":(Ljava/lang/String;Ljava/lang/String;)V
+        87: astore        14
+        89: lload         10
+        91: lstore        15
+        93: iconst_m1
+        94: istore        17
+        96: aload         4
+        98: lload         15
+       100: invokevirtual #154                // Method tlc2/tool/liveness/TableauNodePtrTable.getNodesLoc:(J)I
+       103: istore        18
+       105: aload         4
+       107: iload         18
+       109: invokevirtual #105                // Method tlc2/tool/liveness/TableauNodePtrTable.getNodesByLoc:(I)[I
+       112: astore        19
+       114: aload         19
+       116: invokestatic  #155                // Method tlc2/tool/liveness/TableauNodePtrTable.setSeen:([I)V
+       119: aload         19
+       121: invokestatic  #156                // Method tlc2/tool/liveness/TableauNodePtrTable.startLoc:([I)I
+       124: istore        20
+       126: iload         20
+       128: iconst_m1
+       129: if_icmpeq     382
+       132: aload         19
+       134: iload         20
+       136: invokestatic  #107                // Method tlc2/tool/liveness/TableauNodePtrTable.getTidx:([II)I
+       139: istore        21
+       141: aload         19
+       143: iload         20
+       145: invokestatic  #108                // Method tlc2/tool/liveness/TableauNodePtrTable.getElem:([II)J
+       148: invokestatic  #157                // Method tlc2/tool/liveness/TableauNodePtrTable.getPtr:(J)J
+       151: lstore        22
+       153: aload_0
+       154: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+       157: lload         15
+       159: iload         21
+       161: lload         22
+       163: invokevirtual #69                 // Method tlc2/tool/liveness/AbstractDiskGraph.getNode:(JIJ)Ltlc2/tool/liveness/GraphNode;
+       166: astore        5
+       168: aload         5
+       170: invokevirtual #70                 // Method tlc2/tool/liveness/GraphNode.succSize:()I
+       173: istore        24
+       175: iconst_0
+       176: istore        25
+       178: iload         25
+       180: iload         24
+       182: if_icmpge     370
+       185: aload         5
+       187: iload         25
+       189: invokevirtual #71                 // Method tlc2/tool/liveness/GraphNode.getStateFP:(I)J
+       192: lstore        26
+       194: aload         5
+       196: iload         25
+       198: invokevirtual #72                 // Method tlc2/tool/liveness/GraphNode.getTidx:(I)I
+       201: istore        28
+       203: lload         15
+       205: lload         26
+       207: lcmp
+       208: ifne          240
+       211: iload         21
+       213: iload         28
+       215: if_icmpne     240
+       218: getstatic     #22                 // Field $assertionsDisabled:Z
+       221: ifne          364
+       224: aload         19
+       226: invokestatic  #158                // Method tlc2/tool/liveness/TableauNodePtrTable.isSeen:([I)Z
+       229: ifne          364
+       232: new           #24                 // class java/lang/AssertionError
+       235: dup
+       236: invokespecial #25                 // Method java/lang/AssertionError."<init>":()V
+       239: athrow
+       240: aload         5
+       242: iload         6
+       244: iload         7
+       246: iload         25
+       248: aload         8
+       250: invokevirtual #73                 // Method tlc2/tool/liveness/GraphNode.getCheckAction:(III[I)Z
+       253: ifne          259
+       256: goto          364
+       259: lload         26
+       261: lload_1
+       262: lcmp
+       263: ifne          323
+       266: iload         28
+       268: iload_3
+       269: if_icmpne     323
+       272: lload         15
+       274: lload         10
+       276: lcmp
+       277: ifeq          313
+       280: aload         9
+       282: lload         15
+       284: invokevirtual #129                // Method tlc2/util/LongVec.addElement:(J)V
+       287: aload         4
+       289: iload         17
+       291: invokevirtual #105                // Method tlc2/tool/liveness/TableauNodePtrTable.getNodesByLoc:(I)[I
+       294: astore        19
+       296: aload         19
+       298: invokestatic  #106                // Method tlc2/tool/liveness/TableauNodePtrTable.getKey:([I)J
+       301: lstore        15
+       303: aload         19
+       305: invokestatic  #159                // Method tlc2/tool/liveness/TableauNodePtrTable.getParent:([I)I
+       308: istore        17
+       310: goto          272
+       313: aload         9
+       315: lload         10
+       317: invokevirtual #129                // Method tlc2/util/LongVec.addElement:(J)V
+       320: goto          424
+       323: aload         4
+       325: lload         26
+       327: invokevirtual #160                // Method tlc2/tool/liveness/TableauNodePtrTable.getNodes:(J)[I
+       330: astore        29
+       332: aload         29
+       334: ifnull        364
+       337: aload         29
+       339: invokestatic  #158                // Method tlc2/tool/liveness/TableauNodePtrTable.isSeen:([I)Z
+       342: ifne          364
+       345: aload         29
+       347: invokestatic  #155                // Method tlc2/tool/liveness/TableauNodePtrTable.setSeen:([I)V
+       350: aload         14
+       352: lload         26
+       354: invokevirtual #26                 // Method tlc2/util/MemIntQueue.enqueueLong:(J)V
+       357: aload         14
+       359: iload         18
+       361: invokevirtual #27                 // Method tlc2/util/MemIntQueue.enqueueInt:(I)V
+       364: iinc          25, 1
+       367: goto          178
+       370: aload         19
+       372: iload         20
+       374: invokestatic  #161                // Method tlc2/tool/liveness/TableauNodePtrTable.nextLoc:([II)I
+       377: istore        20
+       379: goto          126
+       382: aload         19
+       384: iload         17
+       386: invokestatic  #162                // Method tlc2/tool/liveness/TableauNodePtrTable.setParent:([II)V
+       389: aload         14
+       391: invokevirtual #46                 // Method tlc2/util/MemIntQueue.dequeueLong:()J
+       394: lstore        15
+       396: aload         14
+       398: invokevirtual #47                 // Method tlc2/util/MemIntQueue.dequeueInt:()I
+       401: istore        17
+       403: aload         4
+       405: lload         15
+       407: invokevirtual #154                // Method tlc2/tool/liveness/TableauNodePtrTable.getNodesLoc:(J)I
+       410: istore        18
+       412: aload         4
+       414: iload         18
+       416: invokevirtual #105                // Method tlc2/tool/liveness/TableauNodePtrTable.getNodesByLoc:(I)[I
+       419: astore        19
+       421: goto          119
+       424: aload         9
+       426: areturn
+
+  private tlc2.tool.liveness.GraphNode dfsPostFix(long, int, tlc2.tool.liveness.TableauNodePtrTable, tlc2.util.MemIntStack) throws java.io.IOException;
+    Code:
+         0: aload_0
+         1: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+         4: invokevirtual #34                 // Method tlc2/tool/liveness/OrderOfSolution.getCheckState:()[Ltlc2/tool/liveness/LiveExprNode;
+         7: arraylength
+         8: istore        6
+        10: aload_0
+        11: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+        14: invokevirtual #35                 // Method tlc2/tool/liveness/OrderOfSolution.getCheckAction:()[Ltlc2/tool/liveness/LiveExprNode;
+        17: arraylength
+        18: istore        7
+        20: aload_0
+        21: getfield      #4                  // Field pem:Ltlc2/tool/liveness/PossibleErrorModel;
+        24: getfield      #101                // Field tlc2/tool/liveness/PossibleErrorModel.AEState:[I
+        27: arraylength
+        28: newarray       boolean
+        30: astore        8
+        32: aload_0
+        33: getfield      #4                  // Field pem:Ltlc2/tool/liveness/PossibleErrorModel;
+        36: getfield      #102                // Field tlc2/tool/liveness/PossibleErrorModel.AEAction:[I
+        39: arraylength
+        40: newarray       boolean
+        42: astore        9
+        44: aload_0
+        45: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+        48: invokevirtual #103                // Method tlc2/tool/liveness/OrderOfSolution.getPromises:()[Ltlc2/tool/liveness/LNEven;
+        51: arraylength
+        52: newarray       boolean
+        54: astore        10
+        56: aload_0
+        57: getfield      #4                  // Field pem:Ltlc2/tool/liveness/PossibleErrorModel;
+        60: getfield      #33                 // Field tlc2/tool/liveness/PossibleErrorModel.EAAction:[I
+        63: astore        11
+        65: aload         8
+        67: arraylength
+        68: aload         9
+        70: arraylength
+        71: iadd
+        72: aload         10
+        74: arraylength
+        75: iadd
+        76: istore        12
+        78: aload         4
+        80: lload_1
+        81: invokevirtual #160                // Method tlc2/tool/liveness/TableauNodePtrTable.getNodes:(J)[I
+        84: astore        13
+        86: aload         4
+        88: aload         13
+        90: iload_3
+        91: invokevirtual #163                // Method tlc2/tool/liveness/TableauNodePtrTable.getIdx:([II)I
+        94: istore        14
+        96: aload         13
+        98: iload         14
+       100: invokestatic  #108                // Method tlc2/tool/liveness/TableauNodePtrTable.getElem:([II)J
+       103: lstore        15
+       105: aload         13
+       107: iload         14
+       109: invokestatic  #164                // Method tlc2/tool/liveness/TableauNodePtrTable.setSeen:([II)V
+       112: aload_0
+       113: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+       116: lload_1
+       117: iload_3
+       118: lload         15
+       120: invokevirtual #69                 // Method tlc2/tool/liveness/AbstractDiskGraph.getNode:(JIJ)Ltlc2/tool/liveness/GraphNode;
+       123: astore        17
+       125: iload         12
+       127: ifle          852
+       130: iload         12
+       132: istore        18
+       134: iconst_0
+       135: istore        19
+       137: iload         19
+       139: aload_0
+       140: getfield      #4                  // Field pem:Ltlc2/tool/liveness/PossibleErrorModel;
+       143: getfield      #101                // Field tlc2/tool/liveness/PossibleErrorModel.AEState:[I
+       146: arraylength
+       147: if_icmpge     195
+       150: aload_0
+       151: getfield      #4                  // Field pem:Ltlc2/tool/liveness/PossibleErrorModel;
+       154: getfield      #101                // Field tlc2/tool/liveness/PossibleErrorModel.AEState:[I
+       157: iload         19
+       159: iaload
+       160: istore        20
+       162: aload         8
+       164: iload         19
+       166: baload
+       167: ifne          189
+       170: aload         17
+       172: iload         20
+       174: invokevirtual #109                // Method tlc2/tool/liveness/GraphNode.getCheckState:(I)Z
+       177: ifeq          189
+       180: aload         8
+       182: iload         19
+       184: iconst_1
+       185: bastore
+       186: iinc          12, -1
+       189: iinc          19, 1
+       192: goto          137
+       195: iconst_0
+       196: istore        19
+       198: iload         19
+       200: aload_0
+       201: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+       204: invokevirtual #103                // Method tlc2/tool/liveness/OrderOfSolution.getPromises:()[Ltlc2/tool/liveness/LNEven;
+       207: arraylength
+       208: if_icmpge     273
+       211: aload_0
+       212: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+       215: invokevirtual #103                // Method tlc2/tool/liveness/OrderOfSolution.getPromises:()[Ltlc2/tool/liveness/LNEven;
+       218: iload         19
+       220: aaload
+       221: astore        20
+       223: aload         17
+       225: aload_0
+       226: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+       229: invokevirtual #112                // Method tlc2/tool/liveness/OrderOfSolution.getTableau:()Ltlc2/tool/liveness/TBGraph;
+       232: invokevirtual #113                // Method tlc2/tool/liveness/GraphNode.getTNode:(Ltlc2/tool/liveness/TBGraph;)Ltlc2/tool/liveness/TBGraphNode;
+       235: invokevirtual #114                // Method tlc2/tool/liveness/TBGraphNode.getPar:()Ltlc2/tool/liveness/TBPar;
+       238: astore        21
+       240: aload         10
+       242: iload         19
+       244: baload
+       245: ifne          267
+       248: aload         21
+       250: aload         20
+       252: invokevirtual #115                // Method tlc2/tool/liveness/TBPar.isFulfilling:(Ltlc2/tool/liveness/LNEven;)Z
+       255: ifeq          267
+       258: aload         10
+       260: iload         19
+       262: iconst_1
+       263: bastore
+       264: iinc          12, -1
+       267: iinc          19, 1
+       270: goto          198
+       273: iload         12
+       275: ifgt          281
+       278: goto          849
+       281: lconst_0
+       282: lstore        19
+       284: lconst_0
+       285: lstore        21
+       287: iconst_0
+       288: istore        23
+       290: iconst_0
+       291: istore        24
+       293: iconst_m1
+       294: istore        25
+       296: iconst_m1
+       297: istore        26
+       299: aconst_null
+       300: astore        27
+       302: aconst_null
+       303: astore        28
+       305: iconst_0
+       306: istore        29
+       308: iload         12
+       310: istore        30
+       312: aload         17
+       314: invokevirtual #70                 // Method tlc2/tool/liveness/GraphNode.succSize:()I
+       317: istore        31
+       319: iconst_0
+       320: istore        32
+       322: iload         32
+       324: iload         31
+       326: if_icmpge     591
+       329: aload         17
+       331: iload         32
+       333: invokevirtual #71                 // Method tlc2/tool/liveness/GraphNode.getStateFP:(I)J
+       336: lstore        33
+       338: aload         17
+       340: iload         32
+       342: invokevirtual #72                 // Method tlc2/tool/liveness/GraphNode.getTidx:(I)I
+       345: istore        35
+       347: aload         4
+       349: lload         33
+       351: invokevirtual #160                // Method tlc2/tool/liveness/TableauNodePtrTable.getNodes:(J)[I
+       354: astore        13
+       356: aload         13
+       358: ifnull        483
+       361: aload         4
+       363: aload         13
+       365: iload         35
+       367: invokevirtual #163                // Method tlc2/tool/liveness/TableauNodePtrTable.getIdx:([II)I
+       370: istore        14
+       372: iload         14
+       374: iconst_m1
+       375: if_icmpne     381
+       378: goto          585
+       381: aload         17
+       383: iload         6
+       385: iload         7
+       387: iload         32
+       389: aload         11
+       391: invokevirtual #73                 // Method tlc2/tool/liveness/GraphNode.getCheckAction:(III[I)Z
+       394: ifne          400
+       397: goto          585
+       400: lload         33
+       402: lstore        19
+       404: iload         35
+       406: istore        23
+       408: iload         14
+       410: istore        25
+       412: aload         13
+       414: astore        27
+       416: iconst_0
+       417: istore        36
+       419: iload         36
+       421: aload_0
+       422: getfield      #4                  // Field pem:Ltlc2/tool/liveness/PossibleErrorModel;
+       425: getfield      #102                // Field tlc2/tool/liveness/PossibleErrorModel.AEAction:[I
+       428: arraylength
+       429: if_icmpge     483
+       432: aload_0
+       433: getfield      #4                  // Field pem:Ltlc2/tool/liveness/PossibleErrorModel;
+       436: getfield      #102                // Field tlc2/tool/liveness/PossibleErrorModel.AEAction:[I
+       439: iload         36
+       441: iaload
+       442: istore        37
+       444: aload         9
+       446: iload         36
+       448: baload
+       449: ifne          477
+       452: aload         17
+       454: iload         6
+       456: iload         7
+       458: iload         32
+       460: iload         37
+       462: invokevirtual #111                // Method tlc2/tool/liveness/GraphNode.getCheckAction:(IIII)Z
+       465: ifeq          477
+       468: aload         9
+       470: iload         36
+       472: iconst_1
+       473: bastore
+       474: iinc          12, -1
+       477: iinc          36, 1
+       480: goto          419
+       483: iload         12
+       485: iload         30
+       487: if_icmpge     545
+       490: aload         5
+       492: aload         17
+       494: getfield      #152                // Field tlc2/tool/liveness/GraphNode.tindex:I
+       497: invokevirtual #165                // Method tlc2/util/MemIntStack.pushInt:(I)V
+       500: aload         5
+       502: aload         17
+       504: getfield      #151                // Field tlc2/tool/liveness/GraphNode.stateFP:J
+       507: invokevirtual #166                // Method tlc2/util/MemIntStack.pushLong:(J)V
+       510: aload         13
+       512: iload         14
+       514: invokestatic  #108                // Method tlc2/tool/liveness/TableauNodePtrTable.getElem:([II)J
+       517: invokestatic  #157                // Method tlc2/tool/liveness/TableauNodePtrTable.getPtr:(J)J
+       520: lstore        36
+       522: aload_0
+       523: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+       526: lload         33
+       528: iload         35
+       530: lload         36
+       532: invokevirtual #69                 // Method tlc2/tool/liveness/AbstractDiskGraph.getNode:(JIJ)Ltlc2/tool/liveness/GraphNode;
+       535: astore        17
+       537: aload         4
+       539: invokevirtual #167                // Method tlc2/tool/liveness/TableauNodePtrTable.resetElems:()V
+       542: goto          849
+       545: aload         13
+       547: ifnull        585
+       550: iload         14
+       552: iconst_m1
+       553: if_icmpeq     585
+       556: aload         13
+       558: iload         14
+       560: invokestatic  #168                // Method tlc2/tool/liveness/TableauNodePtrTable.isSeen:([II)Z
+       563: ifne          585
+       566: iconst_1
+       567: istore        29
+       569: lload         33
+       571: lstore        21
+       573: iload         35
+       575: istore        24
+       577: iload         14
+       579: istore        26
+       581: aload         13
+       583: astore        28
+       585: iinc          32, 1
+       588: goto          322
+       591: iload         12
+       593: iload         18
+       595: if_icmpge     653
+       598: aload         5
+       600: aload         17
+       602: getfield      #152                // Field tlc2/tool/liveness/GraphNode.tindex:I
+       605: invokevirtual #165                // Method tlc2/util/MemIntStack.pushInt:(I)V
+       608: aload         5
+       610: aload         17
+       612: getfield      #151                // Field tlc2/tool/liveness/GraphNode.stateFP:J
+       615: invokevirtual #166                // Method tlc2/util/MemIntStack.pushLong:(J)V
+       618: aload         27
+       620: iload         25
+       622: invokestatic  #108                // Method tlc2/tool/liveness/TableauNodePtrTable.getElem:([II)J
+       625: invokestatic  #157                // Method tlc2/tool/liveness/TableauNodePtrTable.getPtr:(J)J
+       628: lstore        32
+       630: aload_0
+       631: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+       634: lload         19
+       636: iload         23
+       638: lload         32
+       640: invokevirtual #69                 // Method tlc2/tool/liveness/AbstractDiskGraph.getNode:(JIJ)Ltlc2/tool/liveness/GraphNode;
+       643: astore        17
+       645: aload         4
+       647: invokevirtual #167                // Method tlc2/tool/liveness/TableauNodePtrTable.resetElems:()V
+       650: goto          849
+       653: iload         29
+       655: ifne          792
+       658: aload         5
+       660: invokevirtual #128                // Method tlc2/util/MemIntStack.popLong:()J
+       663: lstore        32
+       665: aload         5
+       667: invokevirtual #130                // Method tlc2/util/MemIntStack.popInt:()I
+       670: istore        34
+       672: aload         4
+       674: lload         32
+       676: iload         34
+       678: invokevirtual #169                // Method tlc2/tool/liveness/TableauNodePtrTable.get:(JI)J
+       681: invokestatic  #157                // Method tlc2/tool/liveness/TableauNodePtrTable.getPtr:(J)J
+       684: lstore        35
+       686: aload_0
+       687: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+       690: lload         32
+       692: iload         34
+       694: lload         35
+       696: invokevirtual #69                 // Method tlc2/tool/liveness/AbstractDiskGraph.getNode:(JIJ)Ltlc2/tool/liveness/GraphNode;
+       699: astore        17
+       701: aload         17
+       703: invokevirtual #70                 // Method tlc2/tool/liveness/GraphNode.succSize:()I
+       706: istore        31
+       708: iconst_0
+       709: istore        37
+       711: iload         37
+       713: iload         31
+       715: if_icmpge     789
+       718: aload         17
+       720: iload         37
+       722: invokevirtual #71                 // Method tlc2/tool/liveness/GraphNode.getStateFP:(I)J
+       725: lstore        21
+       727: aload         17
+       729: iload         37
+       731: invokevirtual #72                 // Method tlc2/tool/liveness/GraphNode.getTidx:(I)I
+       734: istore        24
+       736: aload         4
+       738: lload         21
+       740: invokevirtual #160                // Method tlc2/tool/liveness/TableauNodePtrTable.getNodes:(J)[I
+       743: astore        28
+       745: aload         28
+       747: ifnull        783
+       750: aload         4
+       752: aload         28
+       754: iload         24
+       756: invokevirtual #163                // Method tlc2/tool/liveness/TableauNodePtrTable.getIdx:([II)I
+       759: istore        26
+       761: iload         26
+       763: iconst_m1
+       764: if_icmpeq     783
+       767: aload         28
+       769: iload         26
+       771: invokestatic  #168                // Method tlc2/tool/liveness/TableauNodePtrTable.isSeen:([II)Z
+       774: ifne          783
+       777: iconst_1
+       778: istore        29
+       780: goto          789
+       783: iinc          37, 1
+       786: goto          711
+       789: goto          653
+       792: aload         5
+       794: aload         17
+       796: getfield      #152                // Field tlc2/tool/liveness/GraphNode.tindex:I
+       799: invokevirtual #165                // Method tlc2/util/MemIntStack.pushInt:(I)V
+       802: aload         5
+       804: aload         17
+       806: getfield      #151                // Field tlc2/tool/liveness/GraphNode.stateFP:J
+       809: invokevirtual #166                // Method tlc2/util/MemIntStack.pushLong:(J)V
+       812: aload         28
+       814: iload         26
+       816: invokestatic  #108                // Method tlc2/tool/liveness/TableauNodePtrTable.getElem:([II)J
+       819: invokestatic  #157                // Method tlc2/tool/liveness/TableauNodePtrTable.getPtr:(J)J
+       822: lstore        32
+       824: aload_0
+       825: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+       828: lload         21
+       830: iload         24
+       832: lload         32
+       834: invokevirtual #69                 // Method tlc2/tool/liveness/AbstractDiskGraph.getNode:(JIJ)Ltlc2/tool/liveness/GraphNode;
+       837: astore        17
+       839: aload         28
+       841: iload         26
+       843: invokestatic  #164                // Method tlc2/tool/liveness/TableauNodePtrTable.setSeen:([II)V
+       846: goto          134
+       849: goto          125
+       852: aload         4
+       854: invokevirtual #167                // Method tlc2/tool/liveness/TableauNodePtrTable.resetElems:()V
+       857: aload         17
+       859: areturn
+
+  public final java.lang.Boolean call() throws java.io.IOException, java.lang.InterruptedException, java.util.concurrent.ExecutionException;
+    Code:
+         0: aload_0
+         1: getfield      #9                  // Field queue:Ljava/util/concurrent/BlockingQueue;
+         4: invokeinterface #170,  1          // InterfaceMethod java/util/concurrent/BlockingQueue.poll:()Ljava/lang/Object;
+         9: checkcast     #171                // class tlc2/tool/liveness/ILiveChecker
+        12: astore_1
+        13: aload_1
+        14: ifnull        153
+        17: invokestatic  #172                // Method hasErrFound:()Z
+        20: ifeq          26
+        23: goto          153
+        26: aload_0
+        27: aload_1
+        28: invokeinterface #173,  1          // InterfaceMethod tlc2/tool/liveness/ILiveChecker.getSolution:()Ltlc2/tool/liveness/OrderOfSolution;
+        33: putfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+        36: aload_0
+        37: aload_1
+        38: invokeinterface #174,  1          // InterfaceMethod tlc2/tool/liveness/ILiveChecker.getDiskGraph:()Ltlc2/tool/liveness/AbstractDiskGraph;
+        43: putfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+        46: aload_0
+        47: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+        50: invokevirtual #175                // Method tlc2/tool/liveness/AbstractDiskGraph.createCache:()V
+        53: aload_0
+        54: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+        57: invokevirtual #176                // Method tlc2/tool/liveness/OrderOfSolution.getPems:()[Ltlc2/tool/liveness/PossibleErrorModel;
+        60: astore_2
+        61: iconst_0
+        62: istore_3
+        63: iload_3
+        64: aload_2
+        65: arraylength
+        66: if_icmpge     96
+        69: invokestatic  #172                // Method hasErrFound:()Z
+        72: ifne          90
+        75: aload_0
+        76: aload_2
+        77: iload_3
+        78: aaload
+        79: putfield      #4                  // Field pem:Ltlc2/tool/liveness/PossibleErrorModel;
+        82: aload_0
+        83: aload_0
+        84: getfield      #6                  // Field tool:Ltlc2/tool/ITool;
+        87: invokespecial #177                // Method checkSccs:(Ltlc2/tool/ITool;)V
+        90: iinc          3, 1
+        93: goto          63
+        96: aload_0
+        97: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+       100: invokevirtual #178                // Method tlc2/tool/liveness/AbstractDiskGraph.destroyCache:()V
+       103: aload_0
+       104: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+       107: invokevirtual #179                // Method tlc2/tool/liveness/AbstractDiskGraph.recordSize:()V
+       110: getstatic     #22                 // Field $assertionsDisabled:Z
+       113: ifne          150
+       116: aload_0
+       117: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+       120: aload_0
+       121: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+       124: invokevirtual #34                 // Method tlc2/tool/liveness/OrderOfSolution.getCheckState:()[Ltlc2/tool/liveness/LiveExprNode;
+       127: arraylength
+       128: aload_0
+       129: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+       132: invokevirtual #35                 // Method tlc2/tool/liveness/OrderOfSolution.getCheckAction:()[Ltlc2/tool/liveness/LiveExprNode;
+       135: arraylength
+       136: invokevirtual #180                // Method tlc2/tool/liveness/AbstractDiskGraph.checkInvariants:(II)Z
+       139: ifne          150
+       142: new           #24                 // class java/lang/AssertionError
+       145: dup
+       146: invokespecial #25                 // Method java/lang/AssertionError."<init>":()V
+       149: athrow
+       150: goto          0
+       153: aload_0
+       154: getfield      #5                  // Field id:I
+       157: invokestatic  #181                // Method hasErrFound:(I)Z
+       160: invokestatic  #182                // Method java/lang/Boolean.valueOf:(Z)Ljava/lang/Boolean;
+       163: areturn
+
+  public java.lang.String toDotViz(long, int, tlc2.tool.liveness.TableauNodePtrTable) throws java.io.IOException;
+    Code:
+         0: new           #183                // class java/lang/StringBuffer
+         3: dup
+         4: aload         4
+         6: invokevirtual #98                 // Method tlc2/tool/liveness/TableauNodePtrTable.size:()I
+         9: bipush        10
+        11: imul
+        12: invokespecial #184                // Method java/lang/StringBuffer."<init>":(I)V
+        15: astore        5
+        17: aload         5
+        19: ldc           #185                // String digraph TableauNodePtrTable {\n
+        21: invokevirtual #186                // Method java/lang/StringBuffer.append:(Ljava/lang/String;)Ljava/lang/StringBuffer;
+        24: pop
+        25: aload         5
+        27: ldc           #187                // String nodesep = 0.7\n
+        29: invokevirtual #186                // Method java/lang/StringBuffer.append:(Ljava/lang/String;)Ljava/lang/StringBuffer;
+        32: pop
+        33: aload         5
+        35: ldc           #188                // String rankdir=LR;\n
+        37: invokevirtual #186                // Method java/lang/StringBuffer.append:(Ljava/lang/String;)Ljava/lang/StringBuffer;
+        40: pop
+        41: aload         4
+        43: invokevirtual #104                // Method tlc2/tool/liveness/TableauNodePtrTable.getSize:()I
+        46: istore        6
+        48: iconst_0
+        49: istore        7
+        51: iload         7
+        53: iload         6
+        55: if_icmpge     193
+        58: aload         4
+        60: iload         7
+        62: invokevirtual #105                // Method tlc2/tool/liveness/TableauNodePtrTable.getNodesByLoc:(I)[I
+        65: astore        8
+        67: aload         8
+        69: ifnonnull     75
+        72: goto          187
+        75: aload         8
+        77: invokestatic  #106                // Method tlc2/tool/liveness/TableauNodePtrTable.getKey:([I)J
+        80: lstore        9
+        82: iconst_2
+        83: istore        11
+        85: iload         11
+        87: aload         8
+        89: arraylength
+        90: if_icmpge     187
+        93: aload         8
+        95: iload         11
+        97: invokestatic  #107                // Method tlc2/tool/liveness/TableauNodePtrTable.getTidx:([II)I
+       100: istore        12
+       102: aload         8
+       104: iload         11
+       106: invokestatic  #108                // Method tlc2/tool/liveness/TableauNodePtrTable.getElem:([II)J
+       109: lstore        13
+       111: aload_0
+       112: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+       115: lload         9
+       117: iload         12
+       119: lload         13
+       121: invokevirtual #69                 // Method tlc2/tool/liveness/AbstractDiskGraph.getNode:(JIJ)Ltlc2/tool/liveness/GraphNode;
+       124: astore        15
+       126: aload         5
+       128: aload         15
+       130: lload         9
+       132: lload_1
+       133: lcmp
+       134: ifne          147
+       137: iload         12
+       139: iload_3
+       140: if_icmpne     147
+       143: iconst_1
+       144: goto          148
+       147: iconst_0
+       148: iconst_1
+       149: aload_0
+       150: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+       153: invokevirtual #34                 // Method tlc2/tool/liveness/OrderOfSolution.getCheckState:()[Ltlc2/tool/liveness/LiveExprNode;
+       156: arraylength
+       157: aload_0
+       158: getfield      #3                  // Field oos:Ltlc2/tool/liveness/OrderOfSolution;
+       161: invokevirtual #35                 // Method tlc2/tool/liveness/OrderOfSolution.getCheckAction:()[Ltlc2/tool/liveness/LiveExprNode;
+       164: arraylength
+       165: aload         4
+       167: invokevirtual #189                // Method tlc2/tool/liveness/GraphNode.toDotViz:(ZZIILtlc2/tool/liveness/TableauNodePtrTable;)Ljava/lang/String;
+       170: invokevirtual #186                // Method java/lang/StringBuffer.append:(Ljava/lang/String;)Ljava/lang/StringBuffer;
+       173: pop
+       174: iload         11
+       176: aload         4
+       178: invokevirtual #116                // Method tlc2/tool/liveness/TableauNodePtrTable.getElemLength:()I
+       181: iadd
+       182: istore        11
+       184: goto          85
+       187: iinc          7, 1
+       190: goto          51
+       193: aload         5
+       195: ldc           #190                // String }
+       197: invokevirtual #186                // Method java/lang/StringBuffer.append:(Ljava/lang/String;)Ljava/lang/StringBuffer;
+       200: pop
+       201: aload         5
+       203: invokevirtual #191                // Method java/lang/StringBuffer.toString:()Ljava/lang/String;
+       206: areturn
+
+  public void writeDotViz(long, int, tlc2.tool.liveness.TableauNodePtrTable, java.io.File);
+    Code:
+         0: aload         4
+         2: invokevirtual #98                 // Method tlc2/tool/liveness/TableauNodePtrTable.size:()I
+         5: iconst_1
+         6: if_icmpgt     10
+         9: return
+        10: new           #192                // class java/io/BufferedWriter
+        13: dup
+        14: new           #193                // class java/io/FileWriter
+        17: dup
+        18: aload         5
+        20: invokespecial #194                // Method java/io/FileWriter."<init>":(Ljava/io/File;)V
+        23: invokespecial #195                // Method java/io/BufferedWriter."<init>":(Ljava/io/Writer;)V
+        26: astore        6
+        28: aload         6
+        30: aload_0
+        31: lload_1
+        32: iload_3
+        33: aload         4
+        35: invokevirtual #196                // Method toDotViz:(JILtlc2/tool/liveness/TableauNodePtrTable;)Ljava/lang/String;
+        38: invokevirtual #197                // Method java/io/BufferedWriter.write:(Ljava/lang/String;)V
+        41: aload         6
+        43: invokevirtual #198                // Method java/io/BufferedWriter.flush:()V
+        46: aload         6
+        48: invokevirtual #199                // Method java/io/BufferedWriter.close:()V
+        51: goto          61
+        54: astore        6
+        56: aload         6
+        58: invokevirtual #201                // Method java/io/IOException.printStackTrace:()V
+        61: return
+      Exception table:
+         from    to  target type
+            10    51    54   Class java/io/IOException
+
+  public java.lang.Object call() throws java.lang.Exception;
+    Code:
+         0: aload_0
+         1: invokevirtual #202                // Method call:()Ljava/lang/Boolean;
+         4: areturn
+
+  static tlc2.tool.liveness.AbstractDiskGraph access$000(tlc2.tool.liveness.LiveWorker);
+    Code:
+         0: aload_0
+         1: getfield      #1                  // Field dg:Ltlc2/tool/liveness/AbstractDiskGraph;
+         4: areturn
+
+  static {};
+    Code:
+         0: ldc           #36                 // class tlc2/tool/liveness/LiveWorker
+         2: invokevirtual #203                // Method java/lang/Class.desiredAssertionStatus:()Z
+         5: ifne          12
+         8: iconst_1
+         9: goto          13
+        12: iconst_0
+        13: putstatic     #22                 // Field $assertionsDisabled:Z
+        16: new           #204                // class tlc2/util/statistics/BucketStatistics
+        19: dup
+        20: ldc           #205                // String Histogram SCC sizes
+        22: ldc           #36                 // class tlc2/tool/liveness/LiveWorker
+        24: invokevirtual #206                // Method java/lang/Class.getPackage:()Ljava/lang/Package;
+        27: invokevirtual #207                // Method java/lang/Package.getName:()Ljava/lang/String;
+        30: ldc           #208                // String StronglyConnectedComponent sizes
+        32: invokespecial #209                // Method tlc2/util/statistics/BucketStatistics."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+        35: putstatic     #99                 // Field STATS:Ltlc2/util/statistics/IBucketStatistics;
+        38: iconst_m1
+        39: putstatic     #12                 // Field errFoundByThread:I
+        42: new           #210                // class java/lang/Object
+        45: dup
+        46: invokespecial #2                  // Method java/lang/Object."<init>":()V
+        49: putstatic     #11                 // Field workerLock:Ljava/lang/Object;
+        52: return
+}

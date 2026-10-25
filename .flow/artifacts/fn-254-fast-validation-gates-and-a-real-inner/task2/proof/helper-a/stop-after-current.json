@@ -1,0 +1,6 @@
+{
+  "driver": 4009455,
+  "current_child": 4009457,
+  "action": "orchestrator paused; current owned binary continues unchanged until exit",
+  "reason": "owner amendment defers unrelated targets; no additional target may start"
+}

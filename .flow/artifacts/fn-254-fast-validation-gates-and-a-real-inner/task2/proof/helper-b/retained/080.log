@@ -1,0 +1,8 @@
+
+running 3 tests
+test real_tlc_empty_half_open_starts_have_no_checked_underflow ... ok
+test real_tlc_preserves_ordered_mutations_and_reports_checked_overflow ... ok
+test real_tlc_signed_division_and_remainder_use_rust_rounding ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 13.69s
+

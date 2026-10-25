@@ -1,0 +1,174 @@
+{
+  "consumers": [
+    {
+      "path": "model/umpire/backends/tlc/tests/controls.rs",
+      "sha256": "d595476fdb13da9f1f3a6ee9593f1a1983eedfcfcdd374c5e9d5f6a482877ca6",
+      "proof_indices": [
+        71
+      ]
+    },
+    {
+      "path": "model/umpire/backends/tlc/tests/scaling.rs",
+      "sha256": "0db13c35014abf0f2753664cb0907f036895bbf62073f1a5ade445457df2c80c",
+      "proof_indices": [
+        76
+      ]
+    },
+    {
+      "path": "model/umpire/backends/tlc/src/runner.rs",
+      "sha256": "3f4b33c7298aac3d21dc075255a927d3f0bec25e4af5058a8e045066a49886f4",
+      "proof_indices": [
+        83
+      ]
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/emission.rs",
+      "sha256": "9c3be5df4f4facf92392d5d040821eeef12e873e6945549b9e05370fa76bf63b",
+      "proof_indices": [
+        80
+      ]
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/sequential_checks.rs",
+      "sha256": "ccbb22a785f259d88da4e9eb5d7e28168bf33154f9523c375520dc92292e6499",
+      "proof_indices": [
+        78
+      ]
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/phased.rs",
+      "sha256": "e546e4bc3eec5edd517fb75d084a0d626b1ef76267bce566f32a7f7c466cfd4f",
+      "proof_indices": [
+        73
+      ]
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/optional_ticks.rs",
+      "sha256": "1884e9c35f12b5a6b3899f21d09749fc21fb761c3673e55118da41c88aea7b10",
+      "proof_indices": [
+        72
+      ]
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/shadowing.rs",
+      "sha256": "3c4cc1960bdc30d563ed0ccd80dfbe6744f428cdb8c1be53ea19c5c945e2337b",
+      "proof_indices": [
+        79
+      ]
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/vector.rs",
+      "sha256": "f806c3eec2b6990385a6e749307b3873e033cb63ed6923c34320c80e11f1cd95",
+      "proof_indices": [
+        82
+      ]
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/narrow_remainder.rs",
+      "sha256": "a5cb97f45671c8a53fe7ab87f8523e823264ed4594b8b05bf37361dc92b84554",
+      "proof_indices": [
+        65
+      ]
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/world.rs",
+      "sha256": "fde4c239c1763813c320c3eaebaa526d78dc2e428c4ace70f208e44e3adfeb98",
+      "proof_indices": [
+        66
+      ]
+    },
+    {
+      "path": "model/umpire/dev/fixtures/interpreted.rs",
+      "sha256": "c0dc7fc7ee0d0c587704612a44a12f1c1ac9cb25a49e2cf3604bff0f7e49cc04",
+      "proof_indices": [
+        0
+      ]
+    },
+    {
+      "path": "model/umpire/dev/testing/src/backend_tests.rs",
+      "sha256": "0953279948e2e5c6634476c8fb03a3f53fc7020cae7f5b5240e42e78bf94fd64",
+      "proof_indices": [
+        74
+      ]
+    },
+    {
+      "path": "model/umpire/dev/testing/src/backend.rs",
+      "sha256": "c542c2dc8e80cfdf9edb98a2b2677cb89835ef518aee4255fc35b721d01a96c7",
+      "proof_indices": [
+        0,
+        1,
+        21,
+        74
+      ]
+    },
+    {
+      "path": "model/umpire/dev/testing/src/bound.rs",
+      "sha256": "78c6e140d2f969bcc93bcc8f1e1cb32717efb96697590392013c5c6df64d93b8",
+      "proof_indices": [
+        0,
+        1,
+        21,
+        74
+      ]
+    },
+    {
+      "path": "model/umpire/dev/fixtures/fixtures/phased_rejection/tests.rs",
+      "sha256": "92a48143218a45334e20dc974aa5bf154ed8ef870215f4c5f9dcfe2846c38378",
+      "proof_indices": [
+        1
+      ]
+    },
+    {
+      "path": "model/umpire/dev/fixtures/fixtures/action_inputs/tests.rs",
+      "sha256": "09548274be0ea582abb968f5ffa49452e4a546286433dd4e79f83d7017ca790a",
+      "proof_indices": [
+        1
+      ]
+    },
+    {
+      "path": "model/umpire/dev/fixtures/fixtures/optional_facts/tests.rs",
+      "sha256": "700504cb2cbc8e07f9aa8b0c2dc6a25ebbc0097236403d5376b5f8286a18b744",
+      "proof_indices": [
+        1
+      ]
+    },
+    {
+      "path": "model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs",
+      "sha256": "7a4235633ad45786f4457e071da833af6870c1917f4f6d6af2d703d70ac7e1d4",
+      "proof_indices": [
+        1
+      ]
+    },
+    {
+      "path": "model/umpire/dev/fixtures/fixtures/optional_ticks/tests.rs",
+      "sha256": "401b6eb037fb22056d3204c4aab51af9dfeaed559502141e2690d247c17d9f24",
+      "proof_indices": [
+        1
+      ]
+    },
+    {
+      "path": "model/temporal/feature/activity/policy_checks.rs",
+      "sha256": "f820bd569cc6db3d23afaf13cc01f4277eb760b93a5ca729fa855ba4614d2e5e",
+      "proof_indices": [
+        21
+      ]
+    },
+    {
+      "path": "model/temporal/feature/activity/tests.rs",
+      "sha256": "bc7dc565354985db8a53eeb24e720dadbc54c23a987c3bce90f32e18f768e6e0",
+      "proof_indices": [
+        21
+      ]
+    },
+    {
+      "path": "model/temporal/feature/activity/proof_checks.rs",
+      "sha256": "456c295d3bbb63376f196aa65011a9697feeb812a1e609ca5017d985c7bea906",
+      "proof_indices": [
+        21
+      ]
+    }
+  ],
+  "shared_fixture_golden_inventory": "tlc-consumer-inventory.json",
+  "case_identities": "validation-scope-ledger.json",
+  "runner_fake_protocol_and_limit_tests": "proof index83 also includes runner/batch_tests.rs; source hash in frozen-source-hashes.json"
+}

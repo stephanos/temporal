@@ -1,0 +1,4 @@
+{"targets": 173, "logical_tests": 923, "complete_targets_before_timeout": 66, "remaining_commands": 107}
+RUN 000 umpire-fixtures interpreted tests=14
+END 000 rc=0 seconds=22.361
+RUN 001 umpire-fixtures fixtures tests=1

@@ -1,0 +1,28 @@
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tlc)
+    Finished `test` profile [unoptimized] target(s) in 1.34s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug/deps/umpire_tlc-74daab20e254939c)
+
+running 13 tests
+test decode::tests::observer_only_safety_assignment_keeps_empty_state_refusal ... ok
+test decode::tests::string_and_collection_values_preserve_authored_contents ... ok
+test decode::tests::typed_dump_rejects_missing_extra_wrong_type_and_truncation ... ok
+Error: Refusal(Refusal("events: No such file or directory (os error 2); check: Err(Refusal(Refusal(\"empty state schema\")))"))
+test runner::batch_tests::batch_resource_refusal_does_not_launch_singleton_recovery ... FAILED
+test runner::batch_tests::singleton_recovery_measures_worker_peak_and_owns_each_scratch ... ok
+test runner::tests::counterexample_requires_consecutive_states_and_a_valid_lasso ... ok
+test runner::tests::escaping_cache_symlinks_are_refused_before_creating_files ... ok
+test runner::tests::evaluation_errors_name_the_property_and_state ... ok
+test runner::tests::incomplete_messages_and_exploration_are_refused ... ok
+test runner::tests::located_property_invariants_name_only_the_selected_operator ... ok
+test runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed ... ok
+test runner::tests::typed_module_refuses_inconsistent_declarations_before_spawning ... ok
+test runner::batch_tests::batch_protocol_requires_complete_selected_evidence ... ok
+
+failures:
+
+failures:
+    runner::batch_tests::batch_resource_refusal_does_not_launch_singleton_recovery
+
+test result: FAILED. 12 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+error: test failed, to rerun pass `-p umpire-tlc --lib`

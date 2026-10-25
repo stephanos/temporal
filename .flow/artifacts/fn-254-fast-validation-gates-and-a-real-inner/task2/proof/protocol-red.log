@@ -1,0 +1,25 @@
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tlc)
+    Finished `test` profile [unoptimized] target(s) in 1.47s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug/deps/umpire_tlc-439d85f98ebd8da3)
+
+running 3 tests
+Error: Refusal(Refusal("No such file or directory (os error 2)"))
+test runner::batch_tests::batch_resource_refusal_does_not_launch_singleton_recovery ... FAILED
+test runner::batch_tests::singleton_recovery_measures_worker_peak_and_owns_each_scratch ... ok
+
+thread 'runner::batch_tests::batch_protocol_requires_complete_selected_evidence' (3846944) panicked at umpire/backends/tlc/src/runner/batch_tests.rs:91:13:
+assertion `left == right` failed: unfinished_evaluation: Err(Evaluation(Evaluation { property: Some("A"), message: "Overflow", trace: None, state: None }))
+  left: "evaluation"
+ right: "refusal"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test runner::batch_tests::batch_protocol_requires_complete_selected_evidence ... FAILED
+
+failures:
+
+failures:
+    runner::batch_tests::batch_protocol_requires_complete_selected_evidence
+    runner::batch_tests::batch_resource_refusal_does_not_launch_singleton_recovery
+
+test result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.19s
+
+error: test failed, to rerun pass `-p umpire-tlc --lib`

@@ -1,0 +1,30 @@
+{
+  "commit": "be919e0999dbab7f3084f3211080c91d773e128e",
+  "base_commit": "3d54e19b1bfbce799ada92e4d5ffc7e8db636797",
+  "descriptor_sha256": "0f8845ad30e19673abb7b5e7638cd32d4041d9ae7afe32318a673ac62eb4630d",
+  "descriptor_source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/proto/api.binpb",
+  "descriptor_action": "byte-identical copy; no source regeneration",
+  "baseline": "owner waived fresh baseline measurements; historical references model/design/gate-speed.md",
+  "target": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc",
+  "cargo_jobs": 2,
+  "test_threads": 2,
+  "property_workers_default": "available cores capped at2",
+  "java_heap_mb_per_process": 512,
+  "jvm_flags_changed": [
+    "-fp 0"
+  ],
+  "jvm_flags_preserved": [
+    "-XX:+UseSerialGC",
+    "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+    "-workers 1"
+  ],
+  "determinism_primary_evidence": [
+    "tlc-bytecode.txt: constructor Random.nextInt selects fpIndex; process passes fpIndex to FP64.Init",
+    "tlc-help.txt: -fp option"
+  ],
+  "red_evidence": [
+    "launch-red.log: healthy triple launched4, expected2",
+    "protocol-red.log: unfinished evaluation returned Evaluation, expected Refusal",
+    "tlc-equivalence.log: unchanged singleton liveness differs in trace length/back_to"
+  ]
+}

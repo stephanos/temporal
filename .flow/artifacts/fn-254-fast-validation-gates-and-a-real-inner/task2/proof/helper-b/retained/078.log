@@ -1,0 +1,10 @@
+
+running 1 test
+test failed_check_does_not_hide_a_later_division_failure ... 
+thread 'failed_check_does_not_hide_a_later_division_failure' (4035157) panicked at umpire/backends/tla/tests/fixtures/sequential_checks.rs:30:20:
+attempt to divide by zero
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.53s
+

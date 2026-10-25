@@ -1,0 +1,14 @@
+
+running 2 tests
+test i16_min_remainder_negative_one_refuses ... 
+thread 'i16_min_remainder_negative_one_refuses' (4017588) panicked at umpire/backends/tla/tests/fixtures/remainder_i16.rs:27:37:
+attempt to calculate the remainder with overflow
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+ok
+test i8_min_remainder_negative_one_refuses ... 
+thread 'i8_min_remainder_negative_one_refuses' (4017744) panicked at umpire/backends/tla/tests/fixtures/remainder_i8.rs:27:37:
+attempt to calculate the remainder with overflow
+ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.64s
+

@@ -1,0 +1,52 @@
+
+running 1 test
+test kettle_exhaustiveness_names_every_missing_declaration ... error: rustc 1.98.0 is not supported by the following packages:
+  umpire@0.0.1 requires rustc 1.99
+  umpire-catalog@0.0.1 requires rustc 1.99
+  umpire-catalog-build@0.0.1 requires rustc 1.99
+  umpire-catalog-macros@0.0.1 requires rustc 1.99
+  umpire-catalog-syntax@0.0.1 requires rustc 1.99
+  umpire-catalog-syntax@0.0.1 requires rustc 1.99
+  umpire-checker@0.0.1 requires rustc 1.99
+  umpire-checker@0.0.1 requires rustc 1.99
+  umpire-checker@0.0.1 requires rustc 1.99
+  umpire-checker@0.0.1 requires rustc 1.99
+  umpire-checker@0.0.1 requires rustc 1.99
+  umpire-dsl@0.0.1 requires rustc 1.99
+  umpire-dsl@0.0.1 requires rustc 1.99
+  umpire-dsl@0.0.1 requires rustc 1.99
+  umpire-dsl@0.0.1 requires rustc 1.99
+  umpire-dsl@0.0.1 requires rustc 1.99
+  umpire-dsl-macros@0.0.1 requires rustc 1.99
+  umpire-dsl-macros@0.0.1 requires rustc 1.99
+  umpire-dsl-macros@0.0.1 requires rustc 1.99
+  umpire-front@0.0.1 requires rustc 1.99
+  umpire-ir@0.0.1 requires rustc 1.99
+  umpire-ir@0.0.1 requires rustc 1.99
+  umpire-ir-derive@0.0.1 requires rustc 1.99
+  umpire-reference-kettle@0.0.1 requires rustc 1.99
+  umpire-reference-kettle@0.0.1 requires rustc 1.99
+  umpire-reference-kettle@0.0.1 requires rustc 1.99
+  umpire-runtime@0.0.1 requires rustc 1.99
+  umpire-runtime@0.0.1 requires rustc 1.99
+  umpire-runtime@0.0.1 requires rustc 1.99
+  umpire-runtime@0.0.1 requires rustc 1.99
+  umpire-runtime@0.0.1 requires rustc 1.99
+  umpire-runtime@0.0.1 requires rustc 1.99
+  umpire-suite@0.0.1 requires rustc 1.99
+  umpire-suite@0.0.1 requires rustc 1.99
+  umpire-suite@0.0.1 requires rustc 1.99
+
+
+thread 'kettle_exhaustiveness_names_every_missing_declaration' (4010330) panicked at /home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/trybuild-1.0.122/src/run.rs:63:13:
+tests failed
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    kettle_exhaustiveness_names_every_missing_declaration
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.45s
+

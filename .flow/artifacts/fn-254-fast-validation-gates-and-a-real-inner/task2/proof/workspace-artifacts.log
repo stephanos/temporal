@@ -1,0 +1,7 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/temporal/api)
+   Compiling umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/reference/kettle)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/temporal/realization)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/temporal/testing)
+   Compiling umpire-temporal-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/temporal/guest)
+   Compiling umpire-kettle-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/reference/kettle/guest)
+    Finished `test` profile [unoptimized] target(s) in 25.76s

@@ -1,0 +1,28 @@
+{
+  "frozen_corpus_source": "be919e0999dbab7f3084f3211080c91d773e128e",
+  "current_source": "2d596d0f5c845e35d851f88e53e6e759151c788c",
+  "production_file": "model/umpire/backends/tlc/src/runner.rs",
+  "changed_methods": [
+    "check_strategy",
+    "recover_properties"
+  ],
+  "remaining_production_bytes_sha256": "9034d9fe546692307041f75908d2329f5fe59a9905ce6284f0bacdf364d91b4a",
+  "remaining_production_bytes_identical": true,
+  "unchanged_contracts": [
+    "TLA emission/config splitting and scope/fairness boundaries",
+    "JVM flags including fixed fingerprint, Java/jar admission and process limits",
+    "execution/violation attribution/evaluation decoding/state/observer/lasso decoding",
+    "per-property invocation inputs and canonical singleton verdict/trace construction"
+  ],
+  "bounded_inflight": "at most property_workers current-wave executions/results; one property per handle; reference path width1; retained output cap checked in cfg order before next wave",
+  "ordered_failure": "current-wave jobs drain, then cfg-first evaluation/refusal or accumulated output-overflow returns before further waves; earlier output-overflow outranks later evaluation error",
+  "changed_path_evidence": [
+    "recovery-bounds-red.log",
+    "recovery-bounds-green.log",
+    "tlc-bounded-equivalence.log",
+    "clippy-bounded.log",
+    "fmt-bounded.log"
+  ],
+  "normal_multiwave": "existing passing_safety_and_failed_liveness control extended from2 to4 properties, crossing2 default-width recovery waves, exact independent trace/private-observer/lasso comparison retained",
+  "corpus_reuse_reason": "All-fixture proof remains explicitly attributed to be919. The delta changes only resource admission/collection scheduling. Healthy multi-property success returns before this region; singleton invocation semantics are unchanged; full successful/refuted recovery still invokes identical singleton inputs in the same returned order. New core comparison covers ordered resource errors and a four-property mixed multiwave recovery. The conductor explicitly authorized reuse on this collector-only delta."
+}

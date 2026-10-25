@@ -1,0 +1,18 @@
+    Checking umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tlc)
+error: `format!(..)` appended to existing `String`
+   --> umpire/backends/tlc/tests/controls.rs:383:13
+    |
+383 |             cfg.push_str(&format!("{} {}\n", claim.0, claim.1));
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: you may need to import the `std::fmt::Write` trait
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#format_push_string
+    = note: `-D clippy::format-push-string` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::format_push_string)]`
+help: consider using `write!` to avoid the extra allocation
+    |
+383 -             cfg.push_str(&format!("{} {}\n", claim.0, claim.1));
+383 +             let _ = write!(cfg, "{} {}\n", claim.0, claim.1);
+    |
+
+error: could not compile `umpire-tlc` (test "controls") due to 1 previous error

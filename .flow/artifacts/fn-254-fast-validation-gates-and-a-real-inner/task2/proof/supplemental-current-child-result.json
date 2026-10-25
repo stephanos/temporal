@@ -1,0 +1,8 @@
+{
+  "child": 3963042,
+  "state": "completed zombie awaiting paused parent",
+  "raw_wait_status": 0,
+  "exit_code": 0,
+  "log": "resume-001.log",
+  "mode": "per-package Cargo; supplemental only, not workspace-union coverage"
+}

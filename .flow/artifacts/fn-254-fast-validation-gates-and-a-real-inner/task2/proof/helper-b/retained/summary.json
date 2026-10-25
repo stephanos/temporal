@@ -1,0 +1,10 @@
+{
+  "cohort": "helper_b_retained_tlc",
+  "source_commit": "be919e0999dbab7f3084f3211080c91d773e128e",
+  "status": "passed",
+  "completed_targets": 12,
+  "allocated_targets": 12,
+  "selected_cases": 69,
+  "results": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/helper-b/retained/results.json",
+  "remaining_indices": []
+}

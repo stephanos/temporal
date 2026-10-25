@@ -1,0 +1,70 @@
+{
+  "index": 83,
+  "package": "umpire-tlc",
+  "target": "umpire_tlc",
+  "kind": "lib",
+  "source_commit": "be919e0999dbab7f3084f3211080c91d773e128e",
+  "binary_sha256": "9733ee720359352ff7c2924548ff2829aeadd445763dc2b9b68eace129c7d8ff",
+  "command": [
+    "timeout",
+    "2700",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/umpire_tlc-b26801645bf53e29",
+    "--nocapture"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tlc",
+  "runtime_bindings": {
+    "RUSTUP_TOOLCHAIN": "1.99.1",
+    "RUSTUP_HOME": "/home/agent/.rustup",
+    "CARGO_HOME": "/home/agent/.cargo",
+    "RUST_TEST_THREADS": "1",
+    "UMPIRE_BACKENDS": "require",
+    "PATH": "/home/agent/.local/share/mise/installs/go/1.27.0/bin:/home/agent/.local/share/mise/installs/protoc/29.5/bin:/home/agent/.local/share/mise/installs/scala-cli/1.17.1:/home/agent/.local/share/mise/installs/java/temurin-27/bin:/home/agent/.cargo/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0-linux/codex-arg0WtdcCC:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "CARGO": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+    "LD_LIBRARY_PATH": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug/deps:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/aarch64-unknown-linux-gnu/lib:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib",
+    "CARGO_MANIFEST_PATH": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tlc/Cargo.toml",
+    "CARGO_MANIFEST_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tlc",
+    "CARGO_PKG_NAME": "umpire-tlc",
+    "CARGO_PKG_VERSION": "0.0.1",
+    "CARGO_PKG_VERSION_MAJOR": "0",
+    "CARGO_PKG_VERSION_MINOR": "0",
+    "CARGO_PKG_VERSION_PATCH": "1",
+    "CARGO_PKG_VERSION_PRE": "",
+    "CARGO_PKG_DESCRIPTION": "Pinned TLC execution and typed result admission",
+    "CARGO_PKG_HOMEPAGE": "",
+    "CARGO_PKG_REPOSITORY": "",
+    "CARGO_PKG_LICENSE": "MIT",
+    "CARGO_PKG_LICENSE_FILE": "",
+    "CARGO_PKG_README": "",
+    "CARGO_PKG_RUST_VERSION": "1.99",
+    "CARGO_PKG_AUTHORS": "",
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc"
+  },
+  "expected_tests": [
+    "decode::tests::observer_only_safety_assignment_keeps_empty_state_refusal",
+    "decode::tests::string_and_collection_values_preserve_authored_contents",
+    "decode::tests::typed_dump_rejects_missing_extra_wrong_type_and_truncation",
+    "runner::batch_tests::batch_protocol_requires_complete_selected_evidence",
+    "runner::batch_tests::batch_resource_refusal_does_not_launch_singleton_recovery",
+    "runner::batch_tests::singleton_recovery_measures_worker_peak_and_owns_each_scratch",
+    "runner::tests::counterexample_requires_consecutive_states_and_a_valid_lasso",
+    "runner::tests::escaping_cache_symlinks_are_refused_before_creating_files",
+    "runner::tests::evaluation_errors_name_the_property_and_state",
+    "runner::tests::incomplete_messages_and_exploration_are_refused",
+    "runner::tests::located_property_invariants_name_only_the_selected_operator",
+    "runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed",
+    "runner::tests::typed_module_refuses_inconsistent_declarations_before_spawning"
+  ],
+  "rc": 0,
+  "status": "passed",
+  "summaries": [
+    [
+      "ok",
+      "13",
+      "0",
+      "0"
+    ]
+  ],
+  "seconds": 0.307,
+  "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/helper-b/retained/083.log",
+  "log_sha256": "2e10d418128f341a3839b14d6a7ed6a7ea1daaef4f366a2c30f7c5f0999da1be"
+}

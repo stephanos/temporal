@@ -1,0 +1,13 @@
+{
+  "integration_head": "e14a3c2276546e33edd28a08a5e0a46f8efd270d",
+  "review_base": "7567f4359e",
+  "original_base": "3d54e19b1bfbce799ada92e4d5ffc7e8db636797",
+  "changed_source_exact_worker_bytes": [
+    "model/umpire/backends/tlc/Cargo.toml",
+    "model/umpire/backends/tlc/src/lib.rs",
+    "model/umpire/backends/tlc/src/runner.rs",
+    "model/umpire/backends/tlc/src/runner/batch_tests.rs",
+    "model/umpire/backends/tlc/tests/controls.rs"
+  ],
+  "scope": "Both original source commits reachable; merge introduces no source delta from tested worker."
+}

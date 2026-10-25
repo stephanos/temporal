@@ -1,0 +1,62 @@
+{
+  "index": 2,
+  "package": "umpire-reference-kettle",
+  "target": "realization",
+  "kind": "test",
+  "source_commit": "be919e0999dbab7f3084f3211080c91d773e128e",
+  "binary_sha256": "c2fa0ac5bb417d1e9a03d83b67f0c9a2a4997309fd722551cd84f92cf32a6bbb",
+  "command": [
+    "timeout",
+    "2700",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/realization-055cca69aa641f7f",
+    "--nocapture"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/reference/kettle",
+  "runtime_bindings": {
+    "RUST_TEST_THREADS": "1",
+    "UMPIRE_BACKENDS": "require",
+    "PATH": "/home/agent/.local/share/mise/installs/go/1.27.0/bin:/home/agent/.local/share/mise/installs/protoc/29.5/bin:/home/agent/.local/share/mise/installs/scala-cli/1.17.1:/home/agent/.local/share/mise/installs/java/temurin-27/bin:/home/agent/.cargo/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0-linux/codex-arg0WtdcCC:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "CARGO": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+    "LD_LIBRARY_PATH": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug/deps:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/aarch64-unknown-linux-gnu/lib:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib",
+    "CARGO_MANIFEST_PATH": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/reference/kettle/Cargo.toml",
+    "CARGO_MANIFEST_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/reference/kettle",
+    "CARGO_PKG_NAME": "umpire-reference-kettle",
+    "CARGO_PKG_VERSION": "0.0.1",
+    "CARGO_PKG_VERSION_MAJOR": "0",
+    "CARGO_PKG_VERSION_MINOR": "0",
+    "CARGO_PKG_VERSION_PATCH": "1",
+    "CARGO_PKG_VERSION_PRE": "",
+    "CARGO_PKG_DESCRIPTION": "Framework-owned Kettle reference realization",
+    "CARGO_PKG_HOMEPAGE": "",
+    "CARGO_PKG_REPOSITORY": "",
+    "CARGO_PKG_LICENSE": "MIT",
+    "CARGO_PKG_LICENSE_FILE": "",
+    "CARGO_PKG_README": "README.md",
+    "CARGO_PKG_RUST_VERSION": "1.99",
+    "CARGO_PKG_AUTHORS": "",
+    "OUT_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug/build/umpire-reference-kettle-0b665d357f9d5986/out",
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc"
+  },
+  "expected_tests": [
+    "callback_requires_exact_state_identity_and_enabled_action",
+    "describe_never_infers_a_transition",
+    "exact_receipts_reject_wrong_state_or_action",
+    "explore_retains_canonical_report",
+    "healthy_trace_answer_does_not_commit_and_receipt_commits_once",
+    "heat_projects_reach_with_an_exact_target_and_method_owned_evidence",
+    "malformed_evidence_refuses_without_advancing"
+  ],
+  "rc": 0,
+  "status": "passed",
+  "summaries": [
+    [
+      "ok",
+      "7",
+      "0",
+      "0"
+    ]
+  ],
+  "seconds": 0.304,
+  "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/helper-b/002.log",
+  "log_sha256": "649289fcd3da6196b6c1d9315ad3da772cfaf0d151391da6c7fddf2ee1c78f51"
+}

@@ -1,0 +1,54 @@
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tlc/src/runner.rs:119:
+                 jar,
+                 java,
+                 limits: Limits::default(),
+-                property_workers: std::thread::available_parallelism().map_or(1, |n| n.get().min(2)),
++                property_workers: std::thread::available_parallelism()
++                    .map_or(1, |n| n.get().min(2)),
+             })
+         })
+         .map_err(|Refusal(message)| {
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tlc/src/runner.rs:188:
+             let cfg = property_cfg(&base_cfg, &properties);
+             match self.execution(name, tla, &cfg, Selection::Batch(&properties), schema) {
+                 Ok((output, _)) => {
+-                    let violated = messages(&output)?.iter().any(|(code, _)| REPORTED.contains(code));
++                    let violated =
++                        messages(&output)?.iter().any(|(code, _)| REPORTED.contains(code));
+                     append_output(&mut result.output, &output, self.limits.output_bytes)?;
+                     if !violated {
+                         for (_, property) in properties {
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tlc/src/runner.rs:228:
+         schema: &Schema,
+     ) -> Result<(PropertyResult, String), Error> {
+         let cfg = property_cfg(base, std::slice::from_ref(property));
+-        let (output, _) = self.execution(name, tla, &cfg, Selection::Property(&property.1), schema)?;
++        let (output, _) =
++            self.execution(name, tla, &cfg, Selection::Property(&property.1), schema)?;
+         let messages = messages(&output)?;
+         let violated = messages.iter().any(|(code, _)| REPORTED.contains(code));
+         let trace = if violated { Some(decode_trace(&messages, schema)?) } else { None };
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tlc/src/runner.rs:267:
+             }
+             let mut checked = Vec::new();
+             for handle in handles {
+-                checked.extend(handle.join().map_err(|_| Refusal("property worker panicked".into()))?);
++                checked
++                    .extend(handle.join().map_err(|_| Refusal("property worker panicked".into()))?);
+             }
+             Ok::<_, Error>(checked)
+         })?;
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tlc/tests/controls.rs:406:
+                 }
+                 (None, None) => {}
+                 _ => {
+-                    return Err(
+-                        Refusal(format!("{name}: different trace presence for {operator}")).into()
+-                    );
++                    return Err(Refusal(format!(
++                        "{name}: different trace presence for {operator}"
++                    ))
++                    .into());
+                 }
+             }
+         }

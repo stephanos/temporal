@@ -1,0 +1,51 @@
+{
+  "executable": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug/deps/interpreted-f6f3e3899458f603",
+  "expected_tests": [
+    "backend_controls_agree",
+    "checked_arithmetic_fails_as_compiled",
+    "every_claim_has_its_own_callback",
+    "fact_only_tree_mutant_disagrees",
+    "interpreted_fact_decoder_checks_admitted_values",
+    "interpreted_facts_evaluate_disabled_tail",
+    "interpreted_facts_fail_closed",
+    "length_differences_agree_on_every_back_end",
+    "length_sums_and_products_are_refused",
+    "lifter_controls_agree",
+    "rewrite_visits_replacement_children_in_preorder",
+    "seeded_mutant_trees_disagree",
+    "start_domains_evaluate_lazily",
+    "timing"
+  ],
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "test",
+    "--locked",
+    "--features",
+    "umpire-tlc/strategy-equivalence",
+    "-p",
+    "umpire-fixtures",
+    "--test",
+    "interpreted",
+    "--",
+    "--nocapture"
+  ],
+  "rc": 0,
+  "seconds": 22.361,
+  "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/resume-000.log",
+  "passed": [
+    "interpreted_fact_decoder_checks_admitted_values",
+    "checked_arithmetic_fails_as_compiled",
+    "length_sums_and_products_are_refused",
+    "lifter_controls_agree",
+    "rewrite_visits_replacement_children_in_preorder",
+    "seeded_mutant_trees_disagree",
+    "start_domains_evaluate_lazily",
+    "length_differences_agree_on_every_back_end"
+  ],
+  "ignored": [
+    "timing"
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "RUSTUP_TOOLCHAIN": "1.99.1",
+  "RUSTUP_HOME": "/home/agent/.rustup",
+  "CARGO_HOME": "/home/agent/.cargo"
+}

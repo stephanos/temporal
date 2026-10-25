@@ -1,0 +1,17 @@
+
+running 8 tests
+test bounded_vector_operations_are_lifted_with_safe_defaulted_get ... ok
+test conditional_guards_preserve_common_bound_facts ... ok
+test length_sums_and_products_refuse_at_their_span ... ok
+test real_vector_native_and_tlc_states_and_properties_agree ... ok
+test shared_boolean_guards_keep_vector_admission_linear ... ok
+test unrelated_conditionals_preserve_vector_length_identity ... ok
+test unsupported_vector_operations_and_unbounded_growth_refuse ... ok
+test vector_get_keeps_eager_default_failures_when_element_is_present ... 
+thread 'vector_get_keeps_eager_default_failures_when_element_is_present' (4039916) panicked at umpire/backends/tla/tests/fixtures/vector_fallback.rs:32:62:
+attempt to add with overflow
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 29.75s
+

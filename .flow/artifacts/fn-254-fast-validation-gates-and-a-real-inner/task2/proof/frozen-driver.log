@@ -1,0 +1,4 @@
+FROZEN_PLAN commands=107 source=be919e0999dbab7f3084f3211080c91d773e128e
+RUN 000 umpire-fixtures interpreted tests=14
+END 000 rc=0 seconds=6.423
+RUN 001 umpire-fixtures fixtures tests=1

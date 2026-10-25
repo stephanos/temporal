@@ -1,0 +1,64 @@
+{
+  "index": 71,
+  "package": "umpire-tlc",
+  "target": "controls",
+  "kind": "test",
+  "source_commit": "be919e0999dbab7f3084f3211080c91d773e128e",
+  "binary_sha256": "c7f9005d72fe1f8f635bd6e512549d930092dc475eb540a8d3cf9be63b29828e",
+  "command": [
+    "timeout",
+    "2700",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/controls-4c23810bd639ee6b",
+    "--nocapture"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tlc",
+  "runtime_bindings": {
+    "RUSTUP_TOOLCHAIN": "1.99.1",
+    "RUSTUP_HOME": "/home/agent/.rustup",
+    "CARGO_HOME": "/home/agent/.cargo",
+    "RUST_TEST_THREADS": "1",
+    "UMPIRE_BACKENDS": "require",
+    "PATH": "/home/agent/.local/share/mise/installs/go/1.27.0/bin:/home/agent/.local/share/mise/installs/protoc/29.5/bin:/home/agent/.local/share/mise/installs/scala-cli/1.17.1:/home/agent/.local/share/mise/installs/java/temurin-27/bin:/home/agent/.cargo/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0-linux/codex-arg0WtdcCC:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "CARGO": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+    "LD_LIBRARY_PATH": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug/deps:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/aarch64-unknown-linux-gnu/lib:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib",
+    "CARGO_MANIFEST_PATH": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tlc/Cargo.toml",
+    "CARGO_MANIFEST_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tlc",
+    "CARGO_PKG_NAME": "umpire-tlc",
+    "CARGO_PKG_VERSION": "0.0.1",
+    "CARGO_PKG_VERSION_MAJOR": "0",
+    "CARGO_PKG_VERSION_MINOR": "0",
+    "CARGO_PKG_VERSION_PATCH": "1",
+    "CARGO_PKG_VERSION_PRE": "",
+    "CARGO_PKG_DESCRIPTION": "Pinned TLC execution and typed result admission",
+    "CARGO_PKG_HOMEPAGE": "",
+    "CARGO_PKG_REPOSITORY": "",
+    "CARGO_PKG_LICENSE": "MIT",
+    "CARGO_PKG_LICENSE_FILE": "",
+    "CARGO_PKG_README": "",
+    "CARGO_PKG_RUST_VERSION": "1.99",
+    "CARGO_PKG_AUTHORS": "",
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc"
+  },
+  "expected_tests": [
+    "real_tlc_batch_evaluation_recovers_original_property_order",
+    "real_tlc_evaluation_errors_are_typed_and_located",
+    "real_tlc_failed_batches_preserve_independent_traces",
+    "real_tlc_healthy_batches_use_at_most_two_model_launches",
+    "real_tlc_initial_invariant_has_a_typed_counterexample",
+    "real_tlc_keeps_deadlock_checks_and_refuses_tool_errors",
+    "real_tlc_maximality_fairness_bounds_and_action_properties"
+  ],
+  "rc": 0,
+  "status": "passed",
+  "summaries": [
+    [
+      "ok",
+      "7",
+      "0",
+      "0"
+    ]
+  ],
+  "seconds": 112.304,
+  "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/helper-b/retained/071.log",
+  "log_sha256": "d996a0eed313621905f7cb200f2e652821d16f9a19fe21ece8719d8955ba937e"
+}

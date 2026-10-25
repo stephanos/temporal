@@ -1,0 +1,30 @@
+
+running 6 tests
+test binding_preserves_nominal_identity_and_refuses_malformed_fields ... ok
+test exact_optional_decode_includes_before_observers_and_rejects_wrong_kinds ... ok
+test optional_complete_starts_keep_whole_row_correlation_and_empty_selection ... ok
+test present_optional_keeps_eager_errors_in_guard_assignment_and_claim ... 
+thread 'present_optional_keeps_eager_errors_in_guard_assignment_and_claim' (4031126) panicked at umpire/backends/tla/tests/fixtures/optional_eager.rs:40:63:
+attempt to divide by zero
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'present_optional_keeps_eager_errors_in_guard_assignment_and_claim' (4031126) panicked at umpire/backends/native/src/interpret.rs:935:13:
+attempt to divide by zero
+
+thread 'present_optional_keeps_eager_errors_in_guard_assignment_and_claim' (4031126) panicked at umpire/backends/tla/tests/fixtures/optional_eager.rs:43:74:
+attempt to divide by zero
+
+thread 'present_optional_keeps_eager_errors_in_guard_assignment_and_claim' (4031126) panicked at umpire/backends/native/src/interpret.rs:935:13:
+attempt to divide by zero
+
+thread 'present_optional_keeps_eager_errors_in_guard_assignment_and_claim' (4031126) panicked at umpire/backends/tla/tests/fixtures/optional_eager.rs:54:55:
+attempt to divide by zero
+
+thread 'present_optional_keeps_eager_errors_in_guard_assignment_and_claim' (4031126) panicked at umpire/backends/native/src/interpret.rs:935:13:
+attempt to divide by zero
+ok
+test shared_countdown_keeps_selected_codes_in_all_cfgs_and_before_metadata ... ok
+test source_local_optional_ticks_are_admitted ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 19.02s
+

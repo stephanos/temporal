@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/resume-workspace.py", line 13, in <module>
+    listing=subprocess.run([executable,'--list'],cwd=pathlib.Path(row['manifest_path']).parent,text=True,capture_output=True,check=True)
+  File "/usr/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug/deps/umpire_dsl_macros-f1d1608d037be004', '--list']' returned non-zero exit status 127.

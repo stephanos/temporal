@@ -1,0 +1,3287 @@
+Compiled from "TLC.java"
+public class tlc2.TLC {
+  private static boolean MODEL_PART_OF_JAR;
+
+  private tlc2.TLC$RunMode runMode;
+
+  private boolean cleanup;
+
+  private boolean deadlock;
+
+  private boolean noSeed;
+
+  private long seed;
+
+  private long aril;
+
+  private long startTime;
+
+  private java.lang.String mainFile;
+
+  private java.lang.String configFile;
+
+  private java.lang.String metadir;
+
+  private tlc2.util.IStateWriter stateWriter;
+
+  private java.lang.String fromChkpt;
+
+  private int fpIndex;
+
+  private static long traceNum;
+
+  private java.lang.String traceFile;
+
+  private int traceDepth;
+
+  private util.FilenameToStream resolver;
+
+  private boolean welcomePrinted;
+
+  private tlc2.tool.fp.FPSetConfiguration fpSetConfiguration;
+
+  private java.io.File temporaryMCOutputLogFile;
+
+  private java.io.FileOutputStream temporaryMCOutputStream;
+
+  private java.io.File specTETLAFile;
+
+  private tlc2.input.MCParserResults mcParserResults;
+
+  private tlc2.input.MCOutputPipeConsumer mcOutputConsumer;
+
+  private boolean avoidMonolithSpecTECreation;
+
+  private final java.util.concurrent.Phaser waitingOnGenerationCompletion;
+
+  public tlc2.TLC();
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: aload_0
+         5: new           #2                  // class tlc2/util/NoopStateWriter
+         8: dup
+         9: invokespecial #3                  // Method tlc2/util/NoopStateWriter."<init>":()V
+        12: putfield      #4                  // Field stateWriter:Ltlc2/util/IStateWriter;
+        15: aload_0
+        16: aconst_null
+        17: putfield      #5                  // Field traceFile:Ljava/lang/String;
+        20: aload_0
+        21: iconst_0
+        22: putfield      #6                  // Field welcomePrinted:Z
+        25: aload_0
+        26: getstatic     #7                  // Field tlc2/TLC$RunMode.MODEL_CHECK:Ltlc2/TLC$RunMode;
+        29: putfield      #8                  // Field runMode:Ltlc2/TLC$RunMode;
+        32: aload_0
+        33: iconst_0
+        34: putfield      #9                  // Field cleanup:Z
+        37: aload_0
+        38: iconst_1
+        39: putfield      #10                 // Field deadlock:Z
+        42: aload_0
+        43: iconst_1
+        44: putfield      #11                 // Field noSeed:Z
+        47: aload_0
+        48: lconst_0
+        49: putfield      #12                 // Field seed:J
+        52: aload_0
+        53: lconst_0
+        54: putfield      #13                 // Field aril:J
+        57: aload_0
+        58: aconst_null
+        59: putfield      #14                 // Field mainFile:Ljava/lang/String;
+        62: aload_0
+        63: aconst_null
+        64: putfield      #15                 // Field configFile:Ljava/lang/String;
+        67: aload_0
+        68: aconst_null
+        69: putfield      #16                 // Field fromChkpt:Ljava/lang/String;
+        72: aload_0
+        73: aconst_null
+        74: putfield      #17                 // Field resolver:Lutil/FilenameToStream;
+        77: aload_0
+        78: new           #18                 // class java/util/Random
+        81: dup
+        82: invokespecial #19                 // Method java/util/Random."<init>":()V
+        85: getstatic     #20                 // Field tlc2/util/FP64.Polys:[J
+        88: arraylength
+        89: invokevirtual #21                 // Method java/util/Random.nextInt:(I)I
+        92: putfield      #22                 // Field fpIndex:I
+        95: aload_0
+        96: bipush        100
+        98: putfield      #23                 // Field traceDepth:I
+       101: aload_0
+       102: new           #24                 // class tlc2/tool/fp/FPSetConfiguration
+       105: dup
+       106: invokespecial #25                 // Method tlc2/tool/fp/FPSetConfiguration."<init>":()V
+       109: putfield      #26                 // Field fpSetConfiguration:Ltlc2/tool/fp/FPSetConfiguration;
+       112: aload_0
+       113: iconst_0
+       114: putfield      #27                 // Field avoidMonolithSpecTECreation:Z
+       117: aload_0
+       118: new           #28                 // class java/util/concurrent/Phaser
+       121: dup
+       122: invokespecial #29                 // Method java/util/concurrent/Phaser."<init>":()V
+       125: putfield      #30                 // Field waitingOnGenerationCompletion:Ljava/util/concurrent/Phaser;
+       128: aload_0
+       129: getfield      #30                 // Field waitingOnGenerationCompletion:Ljava/util/concurrent/Phaser;
+       132: invokevirtual #31                 // Method java/util/concurrent/Phaser.register:()I
+       135: pop
+       136: return
+
+  public static void main(java.lang.String[]) throws java.lang.Exception;
+    Code:
+         0: new           #32                 // class tlc2/TLC
+         3: dup
+         4: invokespecial #33                 // Method "<init>":()V
+         7: astore_1
+         8: aload_1
+         9: aload_0
+        10: invokevirtual #34                 // Method handleParameters:([Ljava/lang/String;)Z
+        13: ifne          20
+        16: iconst_1
+        17: invokestatic  #35                 // Method java/lang/System.exit:(I)V
+        20: aload_1
+        21: invokespecial #36                 // Method checkEnvironment:()Z
+        24: ifne          31
+        27: iconst_1
+        28: invokestatic  #35                 // Method java/lang/System.exit:(I)V
+        31: new           #37                 // class util/MailSender
+        34: dup
+        35: invokespecial #38                 // Method util/MailSender."<init>":()V
+        38: astore_2
+        39: getstatic     #39                 // Field MODEL_PART_OF_JAR:Z
+        42: ifeq          61
+        45: aload_1
+        46: new           #40                 // class model/InJarFilenameToStream
+        49: dup
+        50: ldc           #42                 // String /model/
+        52: invokespecial #43                 // Method model/InJarFilenameToStream."<init>":(Ljava/lang/String;)V
+        55: invokevirtual #44                 // Method setResolver:(Lutil/FilenameToStream;)V
+        58: goto          102
+        61: aload_1
+        62: invokevirtual #45                 // Method getMainFile:()Ljava/lang/String;
+        65: invokestatic  #46                 // Method util/FileUtil.parseDirname:(Ljava/lang/String;)Ljava/lang/String;
+        68: astore_3
+        69: aload_3
+        70: invokevirtual #47                 // Method java/lang/String.isEmpty:()Z
+        73: ifne          91
+        76: aload_1
+        77: new           #48                 // class util/SimpleFilenameToStream
+        80: dup
+        81: aload_3
+        82: invokespecial #49                 // Method util/SimpleFilenameToStream."<init>":(Ljava/lang/String;)V
+        85: invokevirtual #44                 // Method setResolver:(Lutil/FilenameToStream;)V
+        88: goto          102
+        91: aload_1
+        92: new           #48                 // class util/SimpleFilenameToStream
+        95: dup
+        96: invokespecial #50                 // Method util/SimpleFilenameToStream."<init>":()V
+        99: invokevirtual #44                 // Method setResolver:(Lutil/FilenameToStream;)V
+       102: aload_2
+       103: aload_1
+       104: invokevirtual #51                 // Method getModelName:()Ljava/lang/String;
+       107: invokevirtual #52                 // Method util/MailSender.setModelName:(Ljava/lang/String;)V
+       110: aload_2
+       111: aload_1
+       112: invokevirtual #53                 // Method getSpecName:()Ljava/lang/String;
+       115: invokevirtual #54                 // Method util/MailSender.setSpecName:(Ljava/lang/String;)V
+       118: aload_1
+       119: invokevirtual #55                 // Method process:()I
+       122: istore_3
+       123: aload_2
+       124: aload_1
+       125: invokevirtual #56                 // Method getModuleFiles:()Ljava/util/List;
+       128: invokevirtual #57                 // Method util/MailSender.send:(Ljava/util/List;)Z
+       131: istore        4
+       133: iload         4
+       135: ifne          142
+       138: iconst_1
+       139: invokestatic  #35                 // Method java/lang/System.exit:(I)V
+       142: iload_3
+       143: invokestatic  #58                 // Method tlc2/output/EC$ExitStatus.errorConstantToExitStatus:(I)I
+       146: invokestatic  #35                 // Method java/lang/System.exit:(I)V
+       149: return
+
+  private boolean checkEnvironment();
+    Code:
+         0: invokestatic  #59                 // Method util/TLCRuntime.getInstance:()Lutil/TLCRuntime;
+         3: invokevirtual #60                 // Method util/TLCRuntime.isThroughputOptimizedGC:()Z
+         6: ifne          15
+         9: sipush        2401
+        12: invokestatic  #62                 // Method tlc2/output/MP.printWarning:(I)V
+        15: iconst_1
+        16: ireturn
+
+  public static void setTraceNum(int);
+    Code:
+         0: iload_0
+         1: i2l
+         2: putstatic     #63                 // Field traceNum:J
+         5: return
+
+  public boolean handleParameters(java.lang.String[]);
+    Code:
+         0: aconst_null
+         1: astore_2
+         2: iconst_0
+         3: istore_3
+         4: iconst_0
+         5: istore        4
+         7: iconst_0
+         8: istore        5
+        10: iconst_0
+        11: istore        6
+        13: iconst_0
+        14: istore        7
+        16: iload         7
+        18: aload_1
+        19: arraylength
+        20: if_icmpge     2448
+        23: aload_1
+        24: iload         7
+        26: aaload
+        27: ldc           #64                 // String -simulate
+        29: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+        32: ifeq          179
+        35: aload_0
+        36: getstatic     #66                 // Field tlc2/TLC$RunMode.SIMULATE:Ltlc2/TLC$RunMode;
+        39: putfield      #8                  // Field runMode:Ltlc2/TLC$RunMode;
+        42: iinc          7, 1
+        45: iload         7
+        47: iconst_1
+        48: iadd
+        49: aload_1
+        50: arraylength
+        51: if_icmpge     16
+        54: aload_1
+        55: iload         7
+        57: aaload
+        58: ldc           #67                 // String file=
+        60: invokevirtual #68                 // Method java/lang/String.contains:(Ljava/lang/CharSequence;)Z
+        63: ifne          78
+        66: aload_1
+        67: iload         7
+        69: aaload
+        70: ldc           #69                 // String num=
+        72: invokevirtual #68                 // Method java/lang/String.contains:(Ljava/lang/CharSequence;)Z
+        75: ifeq          16
+        78: aload_1
+        79: iload         7
+        81: aaload
+        82: ldc           #70                 // String ,
+        84: invokevirtual #71                 // Method java/lang/String.split:(Ljava/lang/String;)[Ljava/lang/String;
+        87: astore        8
+        89: iinc          7, 1
+        92: aload         8
+        94: astore        9
+        96: aload         9
+        98: arraylength
+        99: istore        10
+       101: iconst_0
+       102: istore        11
+       104: iload         11
+       106: iload         10
+       108: if_icmpge     176
+       111: aload         9
+       113: iload         11
+       115: aaload
+       116: astore        12
+       118: aload         12
+       120: ldc           #69                 // String num=
+       122: invokevirtual #72                 // Method java/lang/String.startsWith:(Ljava/lang/String;)Z
+       125: ifeq          147
+       128: aload         12
+       130: ldc           #69                 // String num=
+       132: ldc           #73                 // String
+       134: invokevirtual #74                 // Method java/lang/String.replace:(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Ljava/lang/String;
+       137: invokestatic  #75                 // Method java/lang/Integer.parseInt:(Ljava/lang/String;)I
+       140: i2l
+       141: putstatic     #63                 // Field traceNum:J
+       144: goto          170
+       147: aload         12
+       149: ldc           #67                 // String file=
+       151: invokevirtual #72                 // Method java/lang/String.startsWith:(Ljava/lang/String;)Z
+       154: ifeq          170
+       157: aload_0
+       158: aload         12
+       160: ldc           #67                 // String file=
+       162: ldc           #73                 // String
+       164: invokevirtual #74                 // Method java/lang/String.replace:(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Ljava/lang/String;
+       167: putfield      #5                  // Field traceFile:Ljava/lang/String;
+       170: iinc          11, 1
+       173: goto          104
+       176: goto          16
+       179: aload_1
+       180: iload         7
+       182: aaload
+       183: ldc           #76                 // String -modelcheck
+       185: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       188: ifeq          197
+       191: iinc          7, 1
+       194: goto          16
+       197: aload_1
+       198: iload         7
+       200: aaload
+       201: ldc           #77                 // String -difftrace
+       203: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       206: ifeq          219
+       209: iinc          7, 1
+       212: iconst_1
+       213: putstatic     #78                 // Field tlc2/TLCGlobals.printDiffsOnly:Z
+       216: goto          16
+       219: aload_1
+       220: iload         7
+       222: aaload
+       223: ldc           #79                 // String -deadlock
+       225: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       228: ifeq          242
+       231: iinc          7, 1
+       234: aload_0
+       235: iconst_0
+       236: putfield      #10                 // Field deadlock:Z
+       239: goto          16
+       242: aload_1
+       243: iload         7
+       245: aaload
+       246: ldc           #80                 // String -cleanup
+       248: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       251: ifeq          265
+       254: iinc          7, 1
+       257: aload_0
+       258: iconst_1
+       259: putfield      #9                  // Field cleanup:Z
+       262: goto          16
+       265: aload_1
+       266: iload         7
+       268: aaload
+       269: ldc           #81                 // String -nowarning
+       271: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       274: ifeq          287
+       277: iinc          7, 1
+       280: iconst_0
+       281: putstatic     #82                 // Field tlc2/TLCGlobals.warn:Z
+       284: goto          16
+       287: aload_1
+       288: iload         7
+       290: aaload
+       291: ldc           #83                 // String -gzip
+       293: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       296: ifeq          309
+       299: iinc          7, 1
+       302: iconst_1
+       303: putstatic     #84                 // Field tlc2/TLCGlobals.useGZIP:Z
+       306: goto          16
+       309: aload_1
+       310: iload         7
+       312: aaload
+       313: ldc           #85                 // String -terse
+       315: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       318: ifeq          331
+       321: iinc          7, 1
+       324: iconst_0
+       325: putstatic     #86                 // Field tlc2/TLCGlobals.expand:Z
+       328: goto          16
+       331: aload_1
+       332: iload         7
+       334: aaload
+       335: ldc           #87                 // String -continue
+       337: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       340: ifeq          353
+       343: iinc          7, 1
+       346: iconst_1
+       347: putstatic     #88                 // Field tlc2/TLCGlobals.continuation:Z
+       350: goto          16
+       353: aload_1
+       354: iload         7
+       356: aaload
+       357: ldc           #89                 // String -view
+       359: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       362: ifeq          375
+       365: iinc          7, 1
+       368: iconst_1
+       369: putstatic     #90                 // Field tlc2/TLCGlobals.useView:Z
+       372: goto          16
+       375: aload_1
+       376: iload         7
+       378: aaload
+       379: ldc           #91                 // String -debug
+       381: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       384: ifeq          397
+       387: iinc          7, 1
+       390: iconst_1
+       391: putstatic     #92                 // Field tlc2/TLCGlobals.debug:Z
+       394: goto          16
+       397: aload_1
+       398: iload         7
+       400: aaload
+       401: ldc           #93                 // String -tool
+       403: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       406: ifeq          419
+       409: iinc          7, 1
+       412: iconst_1
+       413: putstatic     #94                 // Field tlc2/TLCGlobals.tool:Z
+       416: goto          16
+       419: aload_1
+       420: iload         7
+       422: aaload
+       423: ldc           #95                 // String -generateSpecTE
+       425: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       428: ifeq          650
+       431: iinc          7, 1
+       434: iconst_1
+       435: putstatic     #94                 // Field tlc2/TLCGlobals.tool:Z
+       438: iload         7
+       440: aload_1
+       441: arraylength
+       442: if_icmpge     465
+       445: aload_1
+       446: iload         7
+       448: aaload
+       449: ldc           #96                 // String nomonolith
+       451: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       454: ifeq          465
+       457: iinc          7, 1
+       460: aload_0
+       461: iconst_1
+       462: putfield      #27                 // Field avoidMonolithSpecTECreation:Z
+       465: aload_0
+       466: ldc           #97                 // String mcout_
+       468: ldc           #98                 // String .out
+       470: invokestatic  #99                 // Method java/io/File.createTempFile:(Ljava/lang/String;Ljava/lang/String;)Ljava/io/File;
+       473: putfield      #100                // Field temporaryMCOutputLogFile:Ljava/io/File;
+       476: aload_0
+       477: getfield      #100                // Field temporaryMCOutputLogFile:Ljava/io/File;
+       480: invokevirtual #101                // Method java/io/File.deleteOnExit:()V
+       483: aload_0
+       484: new           #102                // class java/io/FileOutputStream
+       487: dup
+       488: aload_0
+       489: getfield      #100                // Field temporaryMCOutputLogFile:Ljava/io/File;
+       492: invokespecial #103                // Method java/io/FileOutputStream."<init>":(Ljava/io/File;)V
+       495: putfield      #104                // Field temporaryMCOutputStream:Ljava/io/FileOutputStream;
+       498: new           #105                // class java/io/BufferedOutputStream
+       501: dup
+       502: aload_0
+       503: getfield      #104                // Field temporaryMCOutputStream:Ljava/io/FileOutputStream;
+       506: invokespecial #106                // Method java/io/BufferedOutputStream."<init>":(Ljava/io/OutputStream;)V
+       509: astore        8
+       511: new           #107                // class java/io/PipedInputStream
+       514: dup
+       515: invokespecial #108                // Method java/io/PipedInputStream."<init>":()V
+       518: astore        9
+       520: new           #109                // class tlc2/output/TeeOutputStream
+       523: dup
+       524: aload         8
+       526: new           #110                // class java/io/PipedOutputStream
+       529: dup
+       530: aload         9
+       532: invokespecial #111                // Method java/io/PipedOutputStream."<init>":(Ljava/io/PipedInputStream;)V
+       535: invokespecial #112                // Method tlc2/output/TeeOutputStream."<init>":(Ljava/io/OutputStream;Ljava/io/OutputStream;)V
+       538: astore        10
+       540: new           #109                // class tlc2/output/TeeOutputStream
+       543: dup
+       544: getstatic     #113                // Field util/ToolIO.out:Ljava/io/PrintStream;
+       547: aload         10
+       549: invokespecial #112                // Method tlc2/output/TeeOutputStream."<init>":(Ljava/io/OutputStream;Ljava/io/OutputStream;)V
+       552: astore        11
+       554: new           #114                // class java/io/PrintStream
+       557: dup
+       558: aload         11
+       560: invokespecial #115                // Method java/io/PrintStream."<init>":(Ljava/io/OutputStream;)V
+       563: putstatic     #113                // Field util/ToolIO.out:Ljava/io/PrintStream;
+       566: aload_0
+       567: new           #116                // class tlc2/input/MCOutputPipeConsumer
+       570: dup
+       571: aload         9
+       573: aconst_null
+       574: invokespecial #117                // Method tlc2/input/MCOutputPipeConsumer."<init>":(Ljava/io/InputStream;Ltlc2/input/MCOutputPipeConsumer$ConsumerLifespanListener;)V
+       577: putfield      #118                // Field mcOutputConsumer:Ltlc2/input/MCOutputPipeConsumer;
+       580: aload_0
+       581: aload         8
+       583: invokedynamic #119,  0            // InvokeDynamic #0:run:(Ltlc2/TLC;Ljava/io/BufferedOutputStream;)Ljava/lang/Runnable;
+       588: astore        12
+       590: new           #120                // class java/lang/Thread
+       593: dup
+       594: aload         12
+       596: invokespecial #121                // Method java/lang/Thread."<init>":(Ljava/lang/Runnable;)V
+       599: invokevirtual #122                // Method java/lang/Thread.start:()V
+       602: sipush        1000
+       605: ldc           #124                // String Will generate a SpecTE file pair if error states are encountered.
+       607: invokestatic  #125                // Method tlc2/output/MP.printMessage:(ILjava/lang/String;)V
+       610: goto          16
+       613: astore        8
+       615: aload_0
+       616: new           #127                // class java/lang/StringBuilder
+       619: dup
+       620: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+       623: ldc           #129                // String Failed to set up piped output consumers; no potential SpecTE will be generated:
+       625: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       628: aload         8
+       630: invokevirtual #131                // Method java/io/IOException.getMessage:()Ljava/lang/String;
+       633: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       636: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+       639: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+       642: aload_0
+       643: aconst_null
+       644: putfield      #118                // Field mcOutputConsumer:Ltlc2/input/MCOutputPipeConsumer;
+       647: goto          16
+       650: aload_1
+       651: iload         7
+       653: aaload
+       654: ldc           #134                // String -help
+       656: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       659: ifne          674
+       662: aload_1
+       663: iload         7
+       665: aaload
+       666: ldc           #135                // String -h
+       668: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       671: ifeq          680
+       674: aload_0
+       675: invokespecial #136                // Method printUsage:()V
+       678: iconst_0
+       679: ireturn
+       680: aload_1
+       681: iload         7
+       683: aaload
+       684: ldc           #137                // String -lncheck
+       686: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       689: ifeq          726
+       692: iinc          7, 1
+       695: iload         7
+       697: aload_1
+       698: arraylength
+       699: if_icmpge     718
+       702: aload_1
+       703: iload         7
+       705: aaload
+       706: invokevirtual #138                // Method java/lang/String.toLowerCase:()Ljava/lang/String;
+       709: putstatic     #139                // Field tlc2/TLCGlobals.lnCheck:Ljava/lang/String;
+       712: iinc          7, 1
+       715: goto          16
+       718: aload_0
+       719: ldc           #140                // String Error: expect a strategy such as final for -lncheck option.
+       721: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+       724: iconst_0
+       725: ireturn
+       726: aload_1
+       727: iload         7
+       729: aaload
+       730: ldc           #141                // String -config
+       732: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       735: ifeq          807
+       738: iinc          7, 1
+       741: iload         7
+       743: aload_1
+       744: arraylength
+       745: if_icmpge     799
+       748: aload_0
+       749: aload_1
+       750: iload         7
+       752: aaload
+       753: putfield      #15                 // Field configFile:Ljava/lang/String;
+       756: aload_0
+       757: getfield      #15                 // Field configFile:Ljava/lang/String;
+       760: ldc           #143                // String .cfg
+       762: invokevirtual #144                // Method java/lang/String.endsWith:(Ljava/lang/String;)Z
+       765: ifeq          793
+       768: aload_0
+       769: aload_0
+       770: getfield      #15                 // Field configFile:Ljava/lang/String;
+       773: iconst_0
+       774: aload_0
+       775: getfield      #15                 // Field configFile:Ljava/lang/String;
+       778: invokevirtual #145                // Method java/lang/String.length:()I
+       781: ldc           #143                // String .cfg
+       783: invokevirtual #145                // Method java/lang/String.length:()I
+       786: isub
+       787: invokevirtual #146                // Method java/lang/String.substring:(II)Ljava/lang/String;
+       790: putfield      #15                 // Field configFile:Ljava/lang/String;
+       793: iinc          7, 1
+       796: goto          16
+       799: aload_0
+       800: ldc           #147                // String Error: expect a file name for -config option.
+       802: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+       805: iconst_0
+       806: ireturn
+       807: aload_1
+       808: iload         7
+       810: aaload
+       811: ldc           #148                // String -dump
+       813: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       816: ifeq          931
+       819: iinc          7, 1
+       822: iload         7
+       824: iconst_1
+       825: iadd
+       826: aload_1
+       827: arraylength
+       828: if_icmpge     900
+       831: aload_1
+       832: iload         7
+       834: aaload
+       835: ldc           #149                // String dot
+       837: invokevirtual #72                 // Method java/lang/String.startsWith:(Ljava/lang/String;)Z
+       840: ifeq          900
+       843: aload_1
+       844: iload         7
+       846: aaload
+       847: invokevirtual #138                // Method java/lang/String.toLowerCase:()Ljava/lang/String;
+       850: astore        8
+       852: iinc          7, 1
+       855: iconst_1
+       856: istore_3
+       857: aload         8
+       859: ldc           #150                // String colorize
+       861: invokevirtual #68                 // Method java/lang/String.contains:(Ljava/lang/CharSequence;)Z
+       864: istore        4
+       866: aload         8
+       868: ldc           #151                // String actionlabels
+       870: invokevirtual #68                 // Method java/lang/String.contains:(Ljava/lang/CharSequence;)Z
+       873: istore        5
+       875: aload         8
+       877: ldc           #152                // String snapshot
+       879: invokevirtual #68                 // Method java/lang/String.contains:(Ljava/lang/CharSequence;)Z
+       882: istore        6
+       884: aload_1
+       885: iload         7
+       887: iinc          7, 1
+       890: aaload
+       891: ldc           #153                // String .dot
+       893: invokestatic  #154                // Method getDumpFile:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+       896: astore_2
+       897: goto          16
+       900: iload         7
+       902: aload_1
+       903: arraylength
+       904: if_icmpge     923
+       907: aload_1
+       908: iload         7
+       910: iinc          7, 1
+       913: aaload
+       914: ldc           #155                // String .dump
+       916: invokestatic  #154                // Method getDumpFile:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+       919: astore_2
+       920: goto          16
+       923: aload_0
+       924: ldc           #156                // String Error: A file name for dumping states required.
+       926: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+       929: iconst_0
+       930: ireturn
+       931: aload_1
+       932: iload         7
+       934: aaload
+       935: ldc           #157                // String -coverage
+       937: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       940: ifeq          1028
+       943: iinc          7, 1
+       946: iload         7
+       948: aload_1
+       949: arraylength
+       950: if_icmpge     1020
+       953: aload_1
+       954: iload         7
+       956: aaload
+       957: invokestatic  #75                 // Method java/lang/Integer.parseInt:(Ljava/lang/String;)I
+       960: bipush        60
+       962: imul
+       963: sipush        1000
+       966: imul
+       967: putstatic     #158                // Field tlc2/TLCGlobals.coverageInterval:I
+       970: getstatic     #158                // Field tlc2/TLCGlobals.coverageInterval:I
+       973: ifge          984
+       976: aload_0
+       977: ldc           #159                // String Error: expect a nonnegative integer for -coverage option.
+       979: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+       982: iconst_0
+       983: ireturn
+       984: iinc          7, 1
+       987: goto          16
+       990: astore        8
+       992: aload_0
+       993: new           #127                // class java/lang/StringBuilder
+       996: dup
+       997: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      1000: ldc           #161                // String Error: An integer for coverage report interval required. But encountered
+      1002: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1005: aload_1
+      1006: iload         7
+      1008: aaload
+      1009: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1012: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      1015: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1018: iconst_0
+      1019: ireturn
+      1020: aload_0
+      1021: ldc           #162                // String Error: coverage report interval required.
+      1023: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1026: iconst_0
+      1027: ireturn
+      1028: aload_1
+      1029: iload         7
+      1031: aaload
+      1032: ldc           #163                // String -checkpoint
+      1034: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+      1037: ifeq          1128
+      1040: iinc          7, 1
+      1043: iload         7
+      1045: aload_1
+      1046: arraylength
+      1047: if_icmpge     1120
+      1050: aload_1
+      1051: iload         7
+      1053: aaload
+      1054: invokestatic  #75                 // Method java/lang/Integer.parseInt:(Ljava/lang/String;)I
+      1057: sipush        1000
+      1060: imul
+      1061: bipush        60
+      1063: imul
+      1064: i2l
+      1065: putstatic     #164                // Field tlc2/TLCGlobals.chkptDuration:J
+      1068: getstatic     #164                // Field tlc2/TLCGlobals.chkptDuration:J
+      1071: lconst_0
+      1072: lcmp
+      1073: ifge          1084
+      1076: aload_0
+      1077: ldc           #165                // String Error: expect a nonnegative integer for -checkpoint option.
+      1079: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1082: iconst_0
+      1083: ireturn
+      1084: iinc          7, 1
+      1087: goto          16
+      1090: astore        8
+      1092: aload_0
+      1093: new           #127                // class java/lang/StringBuilder
+      1096: dup
+      1097: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      1100: ldc           #167                // String Error: An integer for checkpoint interval is required. But encountered
+      1102: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1105: aload_1
+      1106: iload         7
+      1108: aaload
+      1109: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1112: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      1115: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1118: iconst_0
+      1119: ireturn
+      1120: aload_0
+      1121: ldc           #168                // String Error: checkpoint interval required.
+      1123: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1126: iconst_0
+      1127: ireturn
+      1128: aload_1
+      1129: iload         7
+      1131: aaload
+      1132: ldc           #169                // String -depth
+      1134: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+      1137: ifeq          1205
+      1140: iinc          7, 1
+      1143: iload         7
+      1145: aload_1
+      1146: arraylength
+      1147: if_icmpge     1197
+      1150: aload_0
+      1151: aload_1
+      1152: iload         7
+      1154: aaload
+      1155: invokestatic  #75                 // Method java/lang/Integer.parseInt:(Ljava/lang/String;)I
+      1158: putfield      #23                 // Field traceDepth:I
+      1161: iinc          7, 1
+      1164: goto          16
+      1167: astore        8
+      1169: aload_0
+      1170: new           #127                // class java/lang/StringBuilder
+      1173: dup
+      1174: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      1177: ldc           #170                // String Error: An integer for trace length required. But encountered
+      1179: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1182: aload_1
+      1183: iload         7
+      1185: aaload
+      1186: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1189: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      1192: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1195: iconst_0
+      1196: ireturn
+      1197: aload_0
+      1198: ldc           #171                // String Error: trace length required.
+      1200: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1203: iconst_0
+      1204: ireturn
+      1205: aload_1
+      1206: iload         7
+      1208: aaload
+      1209: ldc           #172                // String -seed
+      1211: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+      1214: ifeq          1287
+      1217: iinc          7, 1
+      1220: iload         7
+      1222: aload_1
+      1223: arraylength
+      1224: if_icmpge     1279
+      1227: aload_0
+      1228: aload_1
+      1229: iload         7
+      1231: aaload
+      1232: invokestatic  #173                // Method java/lang/Long.parseLong:(Ljava/lang/String;)J
+      1235: putfield      #12                 // Field seed:J
+      1238: iinc          7, 1
+      1241: aload_0
+      1242: iconst_0
+      1243: putfield      #11                 // Field noSeed:Z
+      1246: goto          16
+      1249: astore        8
+      1251: aload_0
+      1252: new           #127                // class java/lang/StringBuilder
+      1255: dup
+      1256: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      1259: ldc           #174                // String Error: An integer for seed required. But encountered
+      1261: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1264: aload_1
+      1265: iload         7
+      1267: aaload
+      1268: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1271: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      1274: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1277: iconst_0
+      1278: ireturn
+      1279: aload_0
+      1280: ldc           #175                // String Error: seed required.
+      1282: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1285: iconst_0
+      1286: ireturn
+      1287: aload_1
+      1288: iload         7
+      1290: aaload
+      1291: ldc           #176                // String -aril
+      1293: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+      1296: ifeq          1364
+      1299: iinc          7, 1
+      1302: iload         7
+      1304: aload_1
+      1305: arraylength
+      1306: if_icmpge     1356
+      1309: aload_0
+      1310: aload_1
+      1311: iload         7
+      1313: aaload
+      1314: invokestatic  #173                // Method java/lang/Long.parseLong:(Ljava/lang/String;)J
+      1317: putfield      #13                 // Field aril:J
+      1320: iinc          7, 1
+      1323: goto          16
+      1326: astore        8
+      1328: aload_0
+      1329: new           #127                // class java/lang/StringBuilder
+      1332: dup
+      1333: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      1336: ldc           #177                // String Error: An integer for aril required. But encountered
+      1338: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1341: aload_1
+      1342: iload         7
+      1344: aaload
+      1345: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1348: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      1351: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1354: iconst_0
+      1355: ireturn
+      1356: aload_0
+      1357: ldc           #178                // String Error: aril required.
+      1359: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1362: iconst_0
+      1363: ireturn
+      1364: aload_1
+      1365: iload         7
+      1367: aaload
+      1368: ldc           #179                // String -maxSetSize
+      1370: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+      1373: ifeq          1494
+      1376: iinc          7, 1
+      1379: iload         7
+      1381: aload_1
+      1382: arraylength
+      1383: if_icmpge     1486
+      1386: aload_1
+      1387: iload         7
+      1389: aaload
+      1390: invokestatic  #75                 // Method java/lang/Integer.parseInt:(Ljava/lang/String;)I
+      1393: istore        8
+      1395: iload         8
+      1397: invokestatic  #180                // Method tlc2/TLCGlobals.isValidSetSize:(I)Z
+      1400: ifne          1445
+      1403: ldc           #182                // int 2147483647
+      1405: istore        9
+      1407: aload_0
+      1408: new           #127                // class java/lang/StringBuilder
+      1411: dup
+      1412: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      1415: ldc           #183                // String Error: Value in interval [0,
+      1417: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1420: iload         9
+      1422: invokevirtual #184                // Method java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+      1425: ldc           #185                // String ] for maxSetSize required. But encountered
+      1427: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1430: aload_1
+      1431: iload         7
+      1433: aaload
+      1434: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1437: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      1440: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1443: iconst_0
+      1444: ireturn
+      1445: iload         8
+      1447: putstatic     #186                // Field tlc2/TLCGlobals.setBound:I
+      1450: iinc          7, 1
+      1453: goto          16
+      1456: astore        8
+      1458: aload_0
+      1459: new           #127                // class java/lang/StringBuilder
+      1462: dup
+      1463: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      1466: ldc           #187                // String Error: An integer for maxSetSize required. But encountered
+      1468: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1471: aload_1
+      1472: iload         7
+      1474: aaload
+      1475: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1478: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      1481: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1484: iconst_0
+      1485: ireturn
+      1486: aload_0
+      1487: ldc           #188                // String Error: maxSetSize required.
+      1489: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1492: iconst_0
+      1493: ireturn
+      1494: aload_1
+      1495: iload         7
+      1497: aaload
+      1498: ldc           #189                // String -recover
+      1500: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+      1503: ifeq          1557
+      1506: iinc          7, 1
+      1509: iload         7
+      1511: aload_1
+      1512: arraylength
+      1513: if_icmpge     1549
+      1516: aload_0
+      1517: new           #127                // class java/lang/StringBuilder
+      1520: dup
+      1521: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      1524: aload_1
+      1525: iload         7
+      1527: iinc          7, 1
+      1530: aaload
+      1531: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1534: getstatic     #190                // Field util/FileUtil.separator:Ljava/lang/String;
+      1537: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1540: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      1543: putfield      #16                 // Field fromChkpt:Ljava/lang/String;
+      1546: goto          16
+      1549: aload_0
+      1550: ldc           #191                // String Error: need to specify the metadata directory for recovery.
+      1552: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1555: iconst_0
+      1556: ireturn
+      1557: aload_1
+      1558: iload         7
+      1560: aaload
+      1561: ldc           #192                // String -metadir
+      1563: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+      1566: ifeq          1619
+      1569: iinc          7, 1
+      1572: iload         7
+      1574: aload_1
+      1575: arraylength
+      1576: if_icmpge     1611
+      1579: new           #127                // class java/lang/StringBuilder
+      1582: dup
+      1583: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      1586: aload_1
+      1587: iload         7
+      1589: iinc          7, 1
+      1592: aaload
+      1593: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1596: getstatic     #190                // Field util/FileUtil.separator:Ljava/lang/String;
+      1599: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1602: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      1605: putstatic     #193                // Field tlc2/TLCGlobals.metaDir:Ljava/lang/String;
+      1608: goto          16
+      1611: aload_0
+      1612: ldc           #194                // String Error: need to specify the metadata directory.
+      1614: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1617: iconst_0
+      1618: ireturn
+      1619: aload_1
+      1620: iload         7
+      1622: aaload
+      1623: ldc           #195                // String -userFile
+      1625: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+      1628: ifeq          1693
+      1631: iinc          7, 1
+      1634: iload         7
+      1636: aload_1
+      1637: arraylength
+      1638: if_icmpge     1685
+      1641: new           #196                // class java/io/BufferedWriter
+      1644: dup
+      1645: new           #197                // class java/io/FileWriter
+      1648: dup
+      1649: new           #198                // class java/io/File
+      1652: dup
+      1653: aload_1
+      1654: iload         7
+      1656: iinc          7, 1
+      1659: aaload
+      1660: invokespecial #199                // Method java/io/File."<init>":(Ljava/lang/String;)V
+      1663: invokespecial #200                // Method java/io/FileWriter."<init>":(Ljava/io/File;)V
+      1666: invokespecial #201                // Method java/io/BufferedWriter."<init>":(Ljava/io/Writer;)V
+      1669: putstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+      1672: goto          16
+      1675: astore        8
+      1677: aload_0
+      1678: ldc           #203                // String Error: Failed to create user output log file.
+      1680: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1683: iconst_0
+      1684: ireturn
+      1685: aload_0
+      1686: ldc           #204                // String Error: need to specify the full qualified file.
+      1688: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1691: iconst_0
+      1692: ireturn
+      1693: aload_1
+      1694: iload         7
+      1696: aaload
+      1697: ldc           #205                // String -workers
+      1699: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+      1702: ifeq          1814
+      1705: iinc          7, 1
+      1708: iload         7
+      1710: aload_1
+      1711: arraylength
+      1712: if_icmpge     1806
+      1715: aload_1
+      1716: iload         7
+      1718: aaload
+      1719: invokevirtual #206                // Method java/lang/String.trim:()Ljava/lang/String;
+      1722: invokevirtual #138                // Method java/lang/String.toLowerCase:()Ljava/lang/String;
+      1725: ldc           #207                // String auto
+      1727: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+      1730: ifeq          1742
+      1733: invokestatic  #208                // Method java/lang/Runtime.getRuntime:()Ljava/lang/Runtime;
+      1736: invokevirtual #209                // Method java/lang/Runtime.availableProcessors:()I
+      1739: goto          1749
+      1742: aload_1
+      1743: iload         7
+      1745: aaload
+      1746: invokestatic  #75                 // Method java/lang/Integer.parseInt:(Ljava/lang/String;)I
+      1749: istore        8
+      1751: iload         8
+      1753: iconst_1
+      1754: if_icmpge     1765
+      1757: aload_0
+      1758: ldc           #210                // String Error: at least one worker required.
+      1760: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1763: iconst_0
+      1764: ireturn
+      1765: iload         8
+      1767: invokestatic  #211                // Method tlc2/TLCGlobals.setNumWorkers:(I)V
+      1770: iinc          7, 1
+      1773: goto          16
+      1776: astore        8
+      1778: aload_0
+      1779: new           #127                // class java/lang/StringBuilder
+      1782: dup
+      1783: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      1786: ldc           #212                // String Error: worker number or \'auto\' required. But encountered
+      1788: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1791: aload_1
+      1792: iload         7
+      1794: aaload
+      1795: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1798: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      1801: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1804: iconst_0
+      1805: ireturn
+      1806: aload_0
+      1807: ldc           #213                // String Error: expect an integer or \'auto\' for -workers option.
+      1809: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1812: iconst_0
+      1813: ireturn
+      1814: aload_1
+      1815: iload         7
+      1817: aaload
+      1818: ldc           #214                // String -dfid
+      1820: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+      1823: ifeq          1904
+      1826: iinc          7, 1
+      1829: iload         7
+      1831: aload_1
+      1832: arraylength
+      1833: if_icmpge     1896
+      1836: aload_1
+      1837: iload         7
+      1839: aaload
+      1840: invokestatic  #75                 // Method java/lang/Integer.parseInt:(Ljava/lang/String;)I
+      1843: putstatic     #215                // Field tlc2/TLCGlobals.DFIDMax:I
+      1846: getstatic     #215                // Field tlc2/TLCGlobals.DFIDMax:I
+      1849: ifge          1860
+      1852: aload_0
+      1853: ldc           #216                // String Error: expect a nonnegative integer for -dfid option.
+      1855: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1858: iconst_0
+      1859: ireturn
+      1860: iinc          7, 1
+      1863: goto          16
+      1866: astore        8
+      1868: aload_0
+      1869: new           #127                // class java/lang/StringBuilder
+      1872: dup
+      1873: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      1876: ldc           #217                // String Errorexpect a nonnegative integer for -dfid option. But encountered
+      1878: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1881: aload_1
+      1882: iload         7
+      1884: aaload
+      1885: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1888: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      1891: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1894: iconst_0
+      1895: ireturn
+      1896: aload_0
+      1897: ldc           #216                // String Error: expect a nonnegative integer for -dfid option.
+      1899: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1902: iconst_0
+      1903: ireturn
+      1904: aload_1
+      1905: iload         7
+      1907: aaload
+      1908: ldc           #218                // String -fp
+      1910: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+      1913: ifeq          2034
+      1916: iinc          7, 1
+      1919: iload         7
+      1921: aload_1
+      1922: arraylength
+      1923: if_icmpge     2026
+      1926: aload_0
+      1927: aload_1
+      1928: iload         7
+      1930: aaload
+      1931: invokestatic  #75                 // Method java/lang/Integer.parseInt:(Ljava/lang/String;)I
+      1934: putfield      #22                 // Field fpIndex:I
+      1937: aload_0
+      1938: getfield      #22                 // Field fpIndex:I
+      1941: iflt          1955
+      1944: aload_0
+      1945: getfield      #22                 // Field fpIndex:I
+      1948: getstatic     #20                 // Field tlc2/util/FP64.Polys:[J
+      1951: arraylength
+      1952: if_icmplt     1990
+      1955: aload_0
+      1956: new           #127                // class java/lang/StringBuilder
+      1959: dup
+      1960: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      1963: ldc           #219                // String Error: The number for -fp must be between 0 and
+      1965: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1968: getstatic     #20                 // Field tlc2/util/FP64.Polys:[J
+      1971: arraylength
+      1972: iconst_1
+      1973: isub
+      1974: invokevirtual #184                // Method java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+      1977: ldc           #220                // String  (inclusive).
+      1979: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1982: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      1985: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      1988: iconst_0
+      1989: ireturn
+      1990: iinc          7, 1
+      1993: goto          16
+      1996: astore        8
+      1998: aload_0
+      1999: new           #127                // class java/lang/StringBuilder
+      2002: dup
+      2003: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      2006: ldc           #221                // String Error: A number for -fp is required. But encountered
+      2008: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2011: aload_1
+      2012: iload         7
+      2014: aaload
+      2015: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2018: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      2021: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      2024: iconst_0
+      2025: ireturn
+      2026: aload_0
+      2027: ldc           #222                // String Error: expect an integer for -fp option.
+      2029: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      2032: iconst_0
+      2033: ireturn
+      2034: aload_1
+      2035: iload         7
+      2037: aaload
+      2038: ldc           #223                // String -fpmem
+      2040: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+      2043: ifeq          2189
+      2046: iinc          7, 1
+      2049: iload         7
+      2051: aload_1
+      2052: arraylength
+      2053: if_icmpge     2181
+      2056: aload_1
+      2057: iload         7
+      2059: aaload
+      2060: invokestatic  #224                // Method java/lang/Double.parseDouble:(Ljava/lang/String;)D
+      2063: dstore        8
+      2065: dload         8
+      2067: dconst_0
+      2068: dcmpg
+      2069: ifge          2100
+      2072: aload_0
+      2073: new           #127                // class java/lang/StringBuilder
+      2076: dup
+      2077: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      2080: ldc           #225                // String Error: An positive integer or a fraction for fpset memory size/percentage required. But encountered
+      2082: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2085: aload_1
+      2086: iload         7
+      2088: aaload
+      2089: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2092: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      2095: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      2098: iconst_0
+      2099: ireturn
+      2100: dload         8
+      2102: dconst_1
+      2103: dcmpl
+      2104: ifle          2136
+      2107: getstatic     #113                // Field util/ToolIO.out:Ljava/io/PrintStream;
+      2110: ldc           #226                // String Using -fpmem with an abolute memory value has been deprecated. Please allocate memory for the TLC process via the JVM mechanisms and use -fpmem to set the fraction to be used for fingerprint storage.
+      2112: invokevirtual #227                // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+      2115: aload_0
+      2116: getfield      #26                 // Field fpSetConfiguration:Ltlc2/tool/fp/FPSetConfiguration;
+      2119: dload         8
+      2121: d2l
+      2122: invokevirtual #228                // Method tlc2/tool/fp/FPSetConfiguration.setMemory:(J)V
+      2125: aload_0
+      2126: getfield      #26                 // Field fpSetConfiguration:Ltlc2/tool/fp/FPSetConfiguration;
+      2129: dconst_1
+      2130: invokevirtual #229                // Method tlc2/tool/fp/FPSetConfiguration.setRatio:(D)V
+      2133: goto          2145
+      2136: aload_0
+      2137: getfield      #26                 // Field fpSetConfiguration:Ltlc2/tool/fp/FPSetConfiguration;
+      2140: dload         8
+      2142: invokevirtual #229                // Method tlc2/tool/fp/FPSetConfiguration.setRatio:(D)V
+      2145: iinc          7, 1
+      2148: goto          16
+      2151: astore        8
+      2153: aload_0
+      2154: new           #127                // class java/lang/StringBuilder
+      2157: dup
+      2158: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      2161: ldc           #225                // String Error: An positive integer or a fraction for fpset memory size/percentage required. But encountered
+      2163: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2166: aload_1
+      2167: iload         7
+      2169: aaload
+      2170: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2173: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      2176: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      2179: iconst_0
+      2180: ireturn
+      2181: aload_0
+      2182: ldc           #230                // String Error: fpset memory size required.
+      2184: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      2187: iconst_0
+      2188: ireturn
+      2189: aload_1
+      2190: iload         7
+      2192: aaload
+      2193: ldc           #231                // String -fpbits
+      2195: invokevirtual #65                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+      2198: ifeq          2309
+      2201: iinc          7, 1
+      2204: iload         7
+      2206: aload_1
+      2207: arraylength
+      2208: if_icmpge     2301
+      2211: aload_1
+      2212: iload         7
+      2214: aaload
+      2215: invokestatic  #75                 // Method java/lang/Integer.parseInt:(Ljava/lang/String;)I
+      2218: istore        8
+      2220: iload         8
+      2222: invokestatic  #232                // Method tlc2/tool/fp/FPSet.isValid:(I)Z
+      2225: ifne          2256
+      2228: aload_0
+      2229: new           #127                // class java/lang/StringBuilder
+      2232: dup
+      2233: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      2236: ldc           #233                // String Error: Value in interval [0, 30] for fpbits required. But encountered
+      2238: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2241: aload_1
+      2242: iload         7
+      2244: aaload
+      2245: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2248: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      2251: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      2254: iconst_0
+      2255: ireturn
+      2256: aload_0
+      2257: getfield      #26                 // Field fpSetConfiguration:Ltlc2/tool/fp/FPSetConfiguration;
+      2260: iload         8
+      2262: invokevirtual #234                // Method tlc2/tool/fp/FPSetConfiguration.setFpBits:(I)V
+      2265: iinc          7, 1
+      2268: goto          16
+      2271: astore        8
+      2273: aload_0
+      2274: new           #127                // class java/lang/StringBuilder
+      2277: dup
+      2278: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      2281: ldc           #235                // String Error: An integer for fpbits required. But encountered
+      2283: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2286: aload_1
+      2287: iload         7
+      2289: aaload
+      2290: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2293: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      2296: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      2299: iconst_0
+      2300: ireturn
+      2301: aload_0
+      2302: ldc           #236                // String Error: fpbits required.
+      2304: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      2307: iconst_0
+      2308: ireturn
+      2309: aload_1
+      2310: iload         7
+      2312: aaload
+      2313: iconst_0
+      2314: invokevirtual #237                // Method java/lang/String.charAt:(I)C
+      2317: bipush        45
+      2319: if_icmpne     2350
+      2322: aload_0
+      2323: new           #127                // class java/lang/StringBuilder
+      2326: dup
+      2327: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      2330: ldc           #238                // String Error: unrecognized option:
+      2332: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2335: aload_1
+      2336: iload         7
+      2338: aaload
+      2339: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2342: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      2345: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      2348: iconst_0
+      2349: ireturn
+      2350: aload_0
+      2351: getfield      #14                 // Field mainFile:Ljava/lang/String;
+      2354: ifnull        2397
+      2357: aload_0
+      2358: new           #127                // class java/lang/StringBuilder
+      2361: dup
+      2362: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      2365: ldc           #239                // String Error: more than one input files:
+      2367: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2370: aload_0
+      2371: getfield      #14                 // Field mainFile:Ljava/lang/String;
+      2374: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2377: ldc           #240                // String  and
+      2379: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2382: aload_1
+      2383: iload         7
+      2385: aaload
+      2386: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2389: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      2392: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      2395: iconst_0
+      2396: ireturn
+      2397: aload_0
+      2398: aload_1
+      2399: iload         7
+      2401: iinc          7, 1
+      2404: aaload
+      2405: putfield      #14                 // Field mainFile:Ljava/lang/String;
+      2408: aload_0
+      2409: getfield      #14                 // Field mainFile:Ljava/lang/String;
+      2412: ldc           #241                // String .tla
+      2414: invokevirtual #144                // Method java/lang/String.endsWith:(Ljava/lang/String;)Z
+      2417: ifeq          16
+      2420: aload_0
+      2421: aload_0
+      2422: getfield      #14                 // Field mainFile:Ljava/lang/String;
+      2425: iconst_0
+      2426: aload_0
+      2427: getfield      #14                 // Field mainFile:Ljava/lang/String;
+      2430: invokevirtual #145                // Method java/lang/String.length:()I
+      2433: ldc           #241                // String .tla
+      2435: invokevirtual #145                // Method java/lang/String.length:()I
+      2438: isub
+      2439: invokevirtual #146                // Method java/lang/String.substring:(II)Ljava/lang/String;
+      2442: putfield      #14                 // Field mainFile:Ljava/lang/String;
+      2445: goto          16
+      2448: aload_0
+      2449: invokestatic  #242                // Method java/lang/System.currentTimeMillis:()J
+      2452: putfield      #243                // Field startTime:J
+      2455: aload_0
+      2456: getfield      #14                 // Field mainFile:Ljava/lang/String;
+      2459: ifnonnull     2501
+      2462: invokestatic  #244                // Method model/ModelInJar.hasModel:()Z
+      2465: ifeq          2493
+      2468: iconst_1
+      2469: putstatic     #39                 // Field MODEL_PART_OF_JAR:Z
+      2472: invokestatic  #245                // Method model/ModelInJar.loadProperties:()Z
+      2475: pop
+      2476: iconst_1
+      2477: putstatic     #94                 // Field tlc2/TLCGlobals.tool:Z
+      2480: lconst_0
+      2481: putstatic     #164                // Field tlc2/TLCGlobals.chkptDuration:J
+      2484: aload_0
+      2485: ldc           #246                // String MC
+      2487: putfield      #14                 // Field mainFile:Ljava/lang/String;
+      2490: goto          2501
+      2493: aload_0
+      2494: ldc           #247                // String Error: Missing input TLA+ module.
+      2496: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      2499: iconst_0
+      2500: ireturn
+      2501: new           #198                // class java/io/File
+      2504: dup
+      2505: aload_0
+      2506: getfield      #14                 // Field mainFile:Ljava/lang/String;
+      2509: invokespecial #199                // Method java/io/File."<init>":(Ljava/lang/String;)V
+      2512: astore        8
+      2514: ldc           #73                 // String
+      2516: astore        9
+      2518: aload         8
+      2520: invokevirtual #248                // Method java/io/File.isAbsolute:()Z
+      2523: ifeq          2566
+      2526: new           #127                // class java/lang/StringBuilder
+      2529: dup
+      2530: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      2533: aload         8
+      2535: invokevirtual #249                // Method java/io/File.getParent:()Ljava/lang/String;
+      2538: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2541: getstatic     #190                // Field util/FileUtil.separator:Ljava/lang/String;
+      2544: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2547: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      2550: astore        9
+      2552: aload_0
+      2553: aload         8
+      2555: invokevirtual #250                // Method java/io/File.getName:()Ljava/lang/String;
+      2558: putfield      #14                 // Field mainFile:Ljava/lang/String;
+      2561: aload         9
+      2563: invokestatic  #251                // Method util/ToolIO.setUserDir:(Ljava/lang/String;)V
+      2566: aload_0
+      2567: getfield      #15                 // Field configFile:Ljava/lang/String;
+      2570: ifnonnull     2581
+      2573: aload_0
+      2574: aload_0
+      2575: getfield      #14                 // Field mainFile:Ljava/lang/String;
+      2578: putfield      #15                 // Field configFile:Ljava/lang/String;
+      2581: aload_0
+      2582: getfield      #9                  // Field cleanup:Z
+      2585: ifeq          2602
+      2588: aload_0
+      2589: getfield      #16                 // Field fromChkpt:Ljava/lang/String;
+      2592: ifnonnull     2602
+      2595: ldc           #253                // String states
+      2597: iconst_1
+      2598: invokestatic  #254                // Method util/FileUtil.deleteDir:(Ljava/lang/String;Z)Z
+      2601: pop
+      2602: aload_0
+      2603: new           #255                // class java/util/Date
+      2606: dup
+      2607: aload_0
+      2608: getfield      #243                // Field startTime:J
+      2611: invokespecial #256                // Method java/util/Date."<init>":(J)V
+      2614: aload         9
+      2616: aload_0
+      2617: getfield      #16                 // Field fromChkpt:Ljava/lang/String;
+      2620: invokestatic  #257                // Method util/FileUtil.makeMetaDir:(Ljava/util/Date;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+      2623: putfield      #258                // Field metadir:Ljava/lang/String;
+      2626: aload_2
+      2627: ifnull        2714
+      2630: aload_2
+      2631: ldc_w         #259                // String ${metadir}
+      2634: invokevirtual #72                 // Method java/lang/String.startsWith:(Ljava/lang/String;)Z
+      2637: ifeq          2652
+      2640: aload_2
+      2641: ldc_w         #259                // String ${metadir}
+      2644: aload_0
+      2645: getfield      #258                // Field metadir:Ljava/lang/String;
+      2648: invokevirtual #74                 // Method java/lang/String.replace:(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Ljava/lang/String;
+      2651: astore_2
+      2652: iload_3
+      2653: ifeq          2677
+      2656: aload_0
+      2657: new           #260                // class tlc2/util/DotStateWriter
+      2660: dup
+      2661: aload_2
+      2662: iload         4
+      2664: iload         5
+      2666: iload         6
+      2668: invokespecial #261                // Method tlc2/util/DotStateWriter."<init>":(Ljava/lang/String;ZZZ)V
+      2671: putfield      #4                  // Field stateWriter:Ltlc2/util/IStateWriter;
+      2674: goto          2689
+      2677: aload_0
+      2678: new           #262                // class tlc2/util/StateWriter
+      2681: dup
+      2682: aload_2
+      2683: invokespecial #263                // Method tlc2/util/StateWriter."<init>":(Ljava/lang/String;)V
+      2686: putfield      #4                  // Field stateWriter:Ltlc2/util/IStateWriter;
+      2689: goto          2714
+      2692: astore        10
+      2694: aload_0
+      2695: ldc_w         #264                // String Error: Given file name %s for dumping states invalid.
+      2698: iconst_1
+      2699: anewarray     #265                // class java/lang/Object
+      2702: dup
+      2703: iconst_0
+      2704: aload_2
+      2705: aastore
+      2706: invokestatic  #266                // Method java/lang/String.format:(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
+      2709: invokespecial #133                // Method printErrorMsg:(Ljava/lang/String;)V
+      2712: iconst_0
+      2713: ireturn
+      2714: getstatic     #92                 // Field tlc2/TLCGlobals.debug:Z
+      2717: ifeq          2793
+      2720: new           #127                // class java/lang/StringBuilder
+      2723: dup
+      2724: ldc_w         #267                // String TLC arguments:
+      2727: invokespecial #268                // Method java/lang/StringBuilder."<init>":(Ljava/lang/String;)V
+      2730: astore        10
+      2732: iconst_0
+      2733: istore        11
+      2735: iload         11
+      2737: aload_1
+      2738: arraylength
+      2739: if_icmpge     2776
+      2742: aload         10
+      2744: aload_1
+      2745: iload         11
+      2747: aaload
+      2748: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2751: pop
+      2752: iload         11
+      2754: aload_1
+      2755: arraylength
+      2756: iconst_1
+      2757: isub
+      2758: if_icmpge     2770
+      2761: aload         10
+      2763: ldc_w         #269                // String
+      2766: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2769: pop
+      2770: iinc          11, 1
+      2773: goto          2735
+      2776: aload         10
+      2778: ldc_w         #270                // String \n
+      2781: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      2784: pop
+      2785: aload         10
+      2787: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      2790: invokestatic  #271                // Method util/DebugPrinter.print:(Ljava/lang/String;)V
+      2793: aload_0
+      2794: invokespecial #272                // Method printWelcome:()V
+      2797: iconst_1
+      2798: ireturn
+      Exception table:
+         from    to  target type
+           465   610   613   Class java/io/IOException
+           953   983   990   Class java/lang/NumberFormatException
+           984   987   990   Class java/lang/NumberFormatException
+          1050  1083  1090   Class java/lang/Exception
+          1084  1087  1090   Class java/lang/Exception
+          1150  1164  1167   Class java/lang/Exception
+          1227  1246  1249   Class java/lang/Exception
+          1309  1323  1326   Class java/lang/Exception
+          1386  1444  1456   Class java/lang/Exception
+          1445  1453  1456   Class java/lang/Exception
+          1641  1672  1675   Class java/io/IOException
+          1715  1764  1776   Class java/lang/Exception
+          1765  1773  1776   Class java/lang/Exception
+          1836  1859  1866   Class java/lang/Exception
+          1860  1863  1866   Class java/lang/Exception
+          1926  1989  1996   Class java/lang/Exception
+          1990  1993  1996   Class java/lang/Exception
+          2056  2099  2151   Class java/lang/Exception
+          2100  2148  2151   Class java/lang/Exception
+          2211  2255  2271   Class java/lang/Exception
+          2256  2268  2271   Class java/lang/Exception
+          2652  2689  2692   Class java/io/IOException
+
+  private static java.lang.String getDumpFile(java.lang.String, java.lang.String);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: invokevirtual #144                // Method java/lang/String.endsWith:(Ljava/lang/String;)Z
+         5: ifeq          10
+         8: aload_0
+         9: areturn
+        10: new           #127                // class java/lang/StringBuilder
+        13: dup
+        14: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+        17: aload_0
+        18: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        21: aload_1
+        22: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        25: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+        28: areturn
+
+  public int process();
+    Code:
+         0: invokestatic  #273                // Method tlc2/tool/management/TLCStandardMBean.getNullTLCStandardMBean:()Ltlc2/tool/management/TLCStandardMBean;
+         3: astore_1
+         4: aload_0
+         5: getfield      #16                 // Field fromChkpt:Ljava/lang/String;
+         8: ifnull        21
+        11: getstatic     #274                // Field util/UniqueString.internTbl:Lutil/InternTable;
+        14: aload_0
+        15: getfield      #16                 // Field fromChkpt:Ljava/lang/String;
+        18: invokevirtual #275                // Method util/InternTable.recover:(Ljava/lang/String;)V
+        21: aload_0
+        22: getfield      #22                 // Field fpIndex:I
+        25: invokestatic  #276                // Method tlc2/util/FP64.Init:(I)V
+        28: new           #277                // class tlc2/util/RandomGenerator
+        31: dup
+        32: invokespecial #278                // Method tlc2/util/RandomGenerator."<init>":()V
+        35: astore_2
+        36: getstatic     #66                 // Field tlc2/TLC$RunMode.SIMULATE:Ltlc2/TLC$RunMode;
+        39: aload_0
+        40: getfield      #8                  // Field runMode:Ltlc2/TLC$RunMode;
+        43: invokevirtual #279                // Method tlc2/TLC$RunMode.equals:(Ljava/lang/Object;)Z
+        46: ifeq          159
+        49: aload_0
+        50: getfield      #11                 // Field noSeed:Z
+        53: ifeq          75
+        56: aload_0
+        57: aload_2
+        58: invokevirtual #280                // Method tlc2/util/RandomGenerator.nextLong:()J
+        61: putfield      #12                 // Field seed:J
+        64: aload_2
+        65: aload_0
+        66: getfield      #12                 // Field seed:J
+        69: invokevirtual #281                // Method tlc2/util/RandomGenerator.setSeed:(J)V
+        72: goto          87
+        75: aload_2
+        76: aload_0
+        77: getfield      #12                 // Field seed:J
+        80: aload_0
+        81: getfield      #13                 // Field aril:J
+        84: invokevirtual #282                // Method tlc2/util/RandomGenerator.setSeed:(JJ)V
+        87: aload_0
+        88: sipush        2188
+        91: aload_0
+        92: getfield      #12                 // Field seed:J
+        95: invokestatic  #283                // Method getSimulationRuntime:(J)Ljava/util/Map;
+        98: invokespecial #284                // Method printStartupBanner:(ILjava/util/Map;)V
+       101: new           #285                // class tlc2/tool/Simulator
+       104: dup
+       105: aload_0
+       106: getfield      #14                 // Field mainFile:Ljava/lang/String;
+       109: aload_0
+       110: getfield      #15                 // Field configFile:Ljava/lang/String;
+       113: aload_0
+       114: getfield      #5                  // Field traceFile:Ljava/lang/String;
+       117: aload_0
+       118: getfield      #10                 // Field deadlock:Z
+       121: aload_0
+       122: getfield      #23                 // Field traceDepth:I
+       125: getstatic     #63                 // Field traceNum:J
+       128: aload_2
+       129: aload_0
+       130: getfield      #12                 // Field seed:J
+       133: aload_0
+       134: getfield      #17                 // Field resolver:Lutil/FilenameToStream;
+       137: invokestatic  #286                // Method tlc2/TLCGlobals.getNumWorkers:()I
+       140: invokespecial #287                // Method tlc2/tool/Simulator."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZIJLtlc2/util/RandomGenerator;JLutil/FilenameToStream;I)V
+       143: astore        4
+       145: aload         4
+       147: putstatic     #288                // Field tlc2/TLCGlobals.simulator:Ltlc2/tool/Simulator;
+       150: aload         4
+       152: invokevirtual #289                // Method tlc2/tool/Simulator.simulate:()I
+       155: istore_3
+       156: goto          483
+       159: aload_0
+       160: getfield      #11                 // Field noSeed:Z
+       163: ifeq          174
+       166: aload_0
+       167: aload_2
+       168: invokevirtual #280                // Method tlc2/util/RandomGenerator.nextLong:()J
+       171: putfield      #12                 // Field seed:J
+       174: aload_0
+       175: getfield      #12                 // Field seed:J
+       178: invokestatic  #290                // Method tlc2/value/RandomEnumerableValues.setSeed:(J)V
+       181: aload_0
+       182: invokestatic  #291                // Method isBFS:()Z
+       185: ifeq          194
+       188: sipush        2187
+       191: goto          197
+       194: sipush        2271
+       197: aload_0
+       198: getfield      #22                 // Field fpIndex:I
+       201: aload_0
+       202: getfield      #26                 // Field fpSetConfiguration:Ltlc2/tool/fp/FPSetConfiguration;
+       205: invokestatic  #292                // Method getModelCheckingRuntime:(ILtlc2/tool/fp/FPSetConfiguration;)Ljava/util/Map;
+       208: invokespecial #284                // Method printStartupBanner:(ILjava/util/Map;)V
+       211: new           #293                // class tlc2/tool/impl/FastTool
+       214: dup
+       215: aload_0
+       216: getfield      #14                 // Field mainFile:Ljava/lang/String;
+       219: aload_0
+       220: getfield      #15                 // Field configFile:Ljava/lang/String;
+       223: aload_0
+       224: getfield      #17                 // Field resolver:Lutil/FilenameToStream;
+       227: invokespecial #294                // Method tlc2/tool/impl/FastTool."<init>":(Ljava/lang/String;Ljava/lang/String;Lutil/FilenameToStream;)V
+       230: astore        4
+       232: aload_0
+       233: aload_0
+       234: getfield      #10                 // Field deadlock:Z
+       237: ifeq          255
+       240: aload         4
+       242: invokevirtual #295                // Method tlc2/tool/impl/FastTool.getModelConfig:()Ltlc2/tool/impl/ModelConfig;
+       245: invokevirtual #296                // Method tlc2/tool/impl/ModelConfig.getCheckDeadlock:()Z
+       248: ifeq          255
+       251: iconst_1
+       252: goto          256
+       255: iconst_0
+       256: putfield      #10                 // Field deadlock:Z
+       259: invokestatic  #291                // Method isBFS:()Z
+       262: ifeq          347
+       265: new           #297                // class tlc2/tool/ModelChecker
+       268: dup
+       269: aload         4
+       271: aload_0
+       272: getfield      #258                // Field metadir:Ljava/lang/String;
+       275: aload_0
+       276: getfield      #4                  // Field stateWriter:Ltlc2/util/IStateWriter;
+       279: aload_0
+       280: getfield      #10                 // Field deadlock:Z
+       283: aload_0
+       284: getfield      #16                 // Field fromChkpt:Ljava/lang/String;
+       287: aload_0
+       288: getfield      #26                 // Field fpSetConfiguration:Ltlc2/tool/fp/FPSetConfiguration;
+       291: aload_0
+       292: getfield      #258                // Field metadir:Ljava/lang/String;
+       295: new           #198                // class java/io/File
+       298: dup
+       299: aload_0
+       300: getfield      #14                 // Field mainFile:Ljava/lang/String;
+       303: invokespecial #199                // Method java/io/File."<init>":(Ljava/lang/String;)V
+       306: invokevirtual #250                // Method java/io/File.getName:()Ljava/lang/String;
+       309: invokestatic  #298                // Method tlc2/tool/fp/FPSetFactory.getFPSetInitialized:(Ltlc2/tool/fp/FPSetConfiguration;Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/Future;
+       312: aload_0
+       313: getfield      #243                // Field startTime:J
+       316: invokespecial #299                // Method tlc2/tool/ModelChecker."<init>":(Ltlc2/tool/ITool;Ljava/lang/String;Ltlc2/util/IStateWriter;ZLjava/lang/String;Ljava/util/concurrent/Future;J)V
+       319: putstatic     #300                // Field tlc2/TLCGlobals.mainChecker:Ltlc2/tool/AbstractChecker;
+       322: new           #301                // class tlc2/tool/management/ModelCheckerMXWrapper
+       325: dup
+       326: getstatic     #300                // Field tlc2/TLCGlobals.mainChecker:Ltlc2/tool/AbstractChecker;
+       329: checkcast     #297                // class tlc2/tool/ModelChecker
+       332: aload_0
+       333: invokespecial #302                // Method tlc2/tool/management/ModelCheckerMXWrapper."<init>":(Ltlc2/tool/ModelChecker;Ltlc2/TLC;)V
+       336: astore_1
+       337: getstatic     #300                // Field tlc2/TLCGlobals.mainChecker:Ltlc2/tool/AbstractChecker;
+       340: invokevirtual #303                // Method tlc2/tool/AbstractChecker.modelCheck:()I
+       343: istore_3
+       344: goto          386
+       347: new           #304                // class tlc2/tool/DFIDModelChecker
+       350: dup
+       351: aload         4
+       353: aload_0
+       354: getfield      #258                // Field metadir:Ljava/lang/String;
+       357: aload_0
+       358: getfield      #4                  // Field stateWriter:Ltlc2/util/IStateWriter;
+       361: aload_0
+       362: getfield      #10                 // Field deadlock:Z
+       365: aload_0
+       366: getfield      #16                 // Field fromChkpt:Ljava/lang/String;
+       369: aload_0
+       370: getfield      #243                // Field startTime:J
+       373: invokespecial #305                // Method tlc2/tool/DFIDModelChecker."<init>":(Ltlc2/tool/ITool;Ljava/lang/String;Ltlc2/util/IStateWriter;ZLjava/lang/String;J)V
+       376: putstatic     #300                // Field tlc2/TLCGlobals.mainChecker:Ltlc2/tool/AbstractChecker;
+       379: getstatic     #300                // Field tlc2/TLCGlobals.mainChecker:Ltlc2/tool/AbstractChecker;
+       382: invokevirtual #303                // Method tlc2/tool/AbstractChecker.modelCheck:()I
+       385: istore_3
+       386: aload_0
+       387: getfield      #118                // Field mcOutputConsumer:Ltlc2/input/MCOutputPipeConsumer;
+       390: ifnull        483
+       393: aload_0
+       394: getfield      #118                // Field mcOutputConsumer:Ltlc2/input/MCOutputPipeConsumer;
+       397: invokevirtual #306                // Method tlc2/input/MCOutputPipeConsumer.getError:()Ltlc2/model/MCError;
+       400: ifnull        483
+       403: aload         4
+       405: invokevirtual #307                // Method tlc2/tool/impl/FastTool.getSpecProcessor:()Ltlc2/tool/impl/SpecProcessor;
+       408: astore        5
+       410: aload         4
+       412: invokevirtual #295                // Method tlc2/tool/impl/FastTool.getModelConfig:()Ltlc2/tool/impl/ModelConfig;
+       415: astore        6
+       417: aload_0
+       418: getfield      #118                // Field mcOutputConsumer:Ltlc2/input/MCOutputPipeConsumer;
+       421: invokevirtual #308                // Method tlc2/input/MCOutputPipeConsumer.getSourceDirectory:()Ljava/io/File;
+       424: astore        7
+       426: aload_0
+       427: getfield      #118                // Field mcOutputConsumer:Ltlc2/input/MCOutputPipeConsumer;
+       430: invokevirtual #309                // Method tlc2/input/MCOutputPipeConsumer.getSpecName:()Ljava/lang/String;
+       433: astore        8
+       435: sipush        1000
+       438: ldc_w         #310                // String The model check run produced error-states - we will generate the SpecTE files now.
+       441: invokestatic  #125                // Method tlc2/output/MP.printMessage:(ILjava/lang/String;)V
+       444: aload_0
+       445: aload         5
+       447: aload         6
+       449: invokestatic  #311                // Method tlc2/input/MCParser.generateResultsFromProcessorAndConfig:(Ltlc2/tool/impl/SpecProcessor;Ltlc2/tool/impl/ModelConfig;)Ltlc2/input/MCParserResults;
+       452: putfield      #312                // Field mcParserResults:Ltlc2/input/MCParserResults;
+       455: aload         7
+       457: aload         8
+       459: aload_0
+       460: getfield      #312                // Field mcParserResults:Ltlc2/input/MCParserResults;
+       463: aload_0
+       464: getfield      #118                // Field mcOutputConsumer:Ltlc2/input/MCOutputPipeConsumer;
+       467: invokevirtual #306                // Method tlc2/input/MCOutputPipeConsumer.getError:()Ltlc2/model/MCError;
+       470: invokestatic  #313                // Method tlc2/TraceExplorer.writeSpecTEFiles:(Ljava/io/File;Ljava/lang/String;Ltlc2/input/MCParserResults;Ltlc2/model/MCError;)[Ljava/io/File;
+       473: astore        9
+       475: aload_0
+       476: aload         9
+       478: iconst_0
+       479: aaload
+       480: putfield      #314                // Field specTETLAFile:Ljava/io/File;
+       483: iload_3
+       484: istore        4
+       486: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+       489: ifnull        509
+       492: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+       495: invokevirtual #315                // Method java/io/BufferedWriter.flush:()V
+       498: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+       501: invokevirtual #316                // Method java/io/BufferedWriter.close:()V
+       504: goto          509
+       507: astore        5
+       509: aload_1
+       510: invokevirtual #317                // Method tlc2/tool/management/TLCStandardMBean.unregister:()Z
+       513: pop
+       514: invokestatic  #242                // Method java/lang/System.currentTimeMillis:()J
+       517: aload_0
+       518: getfield      #243                // Field startTime:J
+       521: lsub
+       522: lstore        5
+       524: sipush        2186
+       527: getstatic     #94                 // Field tlc2/TLCGlobals.tool:Z
+       530: ifeq          560
+       533: new           #127                // class java/lang/StringBuilder
+       536: dup
+       537: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+       540: lload         5
+       542: invokestatic  #318                // Method java/lang/Long.toString:(J)Ljava/lang/String;
+       545: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       548: ldc_w         #319                // String ms
+       551: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       554: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+       557: goto          565
+       560: lload         5
+       562: invokestatic  #320                // Method convertRuntimeToHumanReadable:(J)Ljava/lang/String;
+       565: invokestatic  #125                // Method tlc2/output/MP.printMessage:(ILjava/lang/String;)V
+       568: invokestatic  #321                // Method tlc2/output/MP.flush:()V
+       571: aload_0
+       572: getfield      #30                 // Field waitingOnGenerationCompletion:Ljava/util/concurrent/Phaser;
+       575: invokevirtual #322                // Method java/util/concurrent/Phaser.arriveAndAwaitAdvance:()I
+       578: pop
+       579: iload         4
+       581: ireturn
+       582: astore_2
+       583: aload_2
+       584: instanceof    #324                // class java/lang/StackOverflowError
+       587: ifeq          696
+       590: invokestatic  #325                // Method java/lang/System.gc:()V
+       593: sipush        1005
+       596: aload_2
+       597: invokestatic  #326                // Method tlc2/output/MP.printError:(ILjava/lang/Throwable;)I
+       600: istore_3
+       601: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+       604: ifnull        624
+       607: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+       610: invokevirtual #315                // Method java/io/BufferedWriter.flush:()V
+       613: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+       616: invokevirtual #316                // Method java/io/BufferedWriter.close:()V
+       619: goto          624
+       622: astore        4
+       624: aload_1
+       625: invokevirtual #317                // Method tlc2/tool/management/TLCStandardMBean.unregister:()Z
+       628: pop
+       629: invokestatic  #242                // Method java/lang/System.currentTimeMillis:()J
+       632: aload_0
+       633: getfield      #243                // Field startTime:J
+       636: lsub
+       637: lstore        4
+       639: sipush        2186
+       642: getstatic     #94                 // Field tlc2/TLCGlobals.tool:Z
+       645: ifeq          675
+       648: new           #127                // class java/lang/StringBuilder
+       651: dup
+       652: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+       655: lload         4
+       657: invokestatic  #318                // Method java/lang/Long.toString:(J)Ljava/lang/String;
+       660: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       663: ldc_w         #319                // String ms
+       666: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       669: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+       672: goto          680
+       675: lload         4
+       677: invokestatic  #320                // Method convertRuntimeToHumanReadable:(J)Ljava/lang/String;
+       680: invokestatic  #125                // Method tlc2/output/MP.printMessage:(ILjava/lang/String;)V
+       683: invokestatic  #321                // Method tlc2/output/MP.flush:()V
+       686: aload_0
+       687: getfield      #30                 // Field waitingOnGenerationCompletion:Ljava/util/concurrent/Phaser;
+       690: invokevirtual #322                // Method java/util/concurrent/Phaser.arriveAndAwaitAdvance:()I
+       693: pop
+       694: iload_3
+       695: ireturn
+       696: aload_2
+       697: instanceof    #327                // class java/lang/OutOfMemoryError
+       700: ifeq          809
+       703: invokestatic  #325                // Method java/lang/System.gc:()V
+       706: sipush        1001
+       709: aload_2
+       710: invokestatic  #326                // Method tlc2/output/MP.printError:(ILjava/lang/Throwable;)I
+       713: istore_3
+       714: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+       717: ifnull        737
+       720: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+       723: invokevirtual #315                // Method java/io/BufferedWriter.flush:()V
+       726: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+       729: invokevirtual #316                // Method java/io/BufferedWriter.close:()V
+       732: goto          737
+       735: astore        4
+       737: aload_1
+       738: invokevirtual #317                // Method tlc2/tool/management/TLCStandardMBean.unregister:()Z
+       741: pop
+       742: invokestatic  #242                // Method java/lang/System.currentTimeMillis:()J
+       745: aload_0
+       746: getfield      #243                // Field startTime:J
+       749: lsub
+       750: lstore        4
+       752: sipush        2186
+       755: getstatic     #94                 // Field tlc2/TLCGlobals.tool:Z
+       758: ifeq          788
+       761: new           #127                // class java/lang/StringBuilder
+       764: dup
+       765: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+       768: lload         4
+       770: invokestatic  #318                // Method java/lang/Long.toString:(J)Ljava/lang/String;
+       773: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       776: ldc_w         #319                // String ms
+       779: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       782: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+       785: goto          793
+       788: lload         4
+       790: invokestatic  #320                // Method convertRuntimeToHumanReadable:(J)Ljava/lang/String;
+       793: invokestatic  #125                // Method tlc2/output/MP.printMessage:(ILjava/lang/String;)V
+       796: invokestatic  #321                // Method tlc2/output/MP.flush:()V
+       799: aload_0
+       800: getfield      #30                 // Field waitingOnGenerationCompletion:Ljava/util/concurrent/Phaser;
+       803: invokevirtual #322                // Method java/util/concurrent/Phaser.arriveAndAwaitAdvance:()I
+       806: pop
+       807: iload_3
+       808: ireturn
+       809: aload_2
+       810: instanceof    #328                // class util/Assert$TLCRuntimeException
+       813: ifeq          919
+       816: aload_2
+       817: checkcast     #328                // class util/Assert$TLCRuntimeException
+       820: invokestatic  #329                // Method tlc2/output/MP.printTLCRuntimeException:(Lutil/Assert$TLCRuntimeException;)I
+       823: istore_3
+       824: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+       827: ifnull        847
+       830: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+       833: invokevirtual #315                // Method java/io/BufferedWriter.flush:()V
+       836: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+       839: invokevirtual #316                // Method java/io/BufferedWriter.close:()V
+       842: goto          847
+       845: astore        4
+       847: aload_1
+       848: invokevirtual #317                // Method tlc2/tool/management/TLCStandardMBean.unregister:()Z
+       851: pop
+       852: invokestatic  #242                // Method java/lang/System.currentTimeMillis:()J
+       855: aload_0
+       856: getfield      #243                // Field startTime:J
+       859: lsub
+       860: lstore        4
+       862: sipush        2186
+       865: getstatic     #94                 // Field tlc2/TLCGlobals.tool:Z
+       868: ifeq          898
+       871: new           #127                // class java/lang/StringBuilder
+       874: dup
+       875: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+       878: lload         4
+       880: invokestatic  #318                // Method java/lang/Long.toString:(J)Ljava/lang/String;
+       883: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       886: ldc_w         #319                // String ms
+       889: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       892: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+       895: goto          903
+       898: lload         4
+       900: invokestatic  #320                // Method convertRuntimeToHumanReadable:(J)Ljava/lang/String;
+       903: invokestatic  #125                // Method tlc2/output/MP.printMessage:(ILjava/lang/String;)V
+       906: invokestatic  #321                // Method tlc2/output/MP.flush:()V
+       909: aload_0
+       910: getfield      #30                 // Field waitingOnGenerationCompletion:Ljava/util/concurrent/Phaser;
+       913: invokevirtual #322                // Method java/util/concurrent/Phaser.arriveAndAwaitAdvance:()I
+       916: pop
+       917: iload_3
+       918: ireturn
+       919: aload_2
+       920: instanceof    #330                // class java/lang/RuntimeException
+       923: ifeq          1029
+       926: sipush        1000
+       929: aload_2
+       930: invokestatic  #326                // Method tlc2/output/MP.printError:(ILjava/lang/Throwable;)I
+       933: istore_3
+       934: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+       937: ifnull        957
+       940: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+       943: invokevirtual #315                // Method java/io/BufferedWriter.flush:()V
+       946: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+       949: invokevirtual #316                // Method java/io/BufferedWriter.close:()V
+       952: goto          957
+       955: astore        4
+       957: aload_1
+       958: invokevirtual #317                // Method tlc2/tool/management/TLCStandardMBean.unregister:()Z
+       961: pop
+       962: invokestatic  #242                // Method java/lang/System.currentTimeMillis:()J
+       965: aload_0
+       966: getfield      #243                // Field startTime:J
+       969: lsub
+       970: lstore        4
+       972: sipush        2186
+       975: getstatic     #94                 // Field tlc2/TLCGlobals.tool:Z
+       978: ifeq          1008
+       981: new           #127                // class java/lang/StringBuilder
+       984: dup
+       985: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+       988: lload         4
+       990: invokestatic  #318                // Method java/lang/Long.toString:(J)Ljava/lang/String;
+       993: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       996: ldc_w         #319                // String ms
+       999: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1002: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      1005: goto          1013
+      1008: lload         4
+      1010: invokestatic  #320                // Method convertRuntimeToHumanReadable:(J)Ljava/lang/String;
+      1013: invokestatic  #125                // Method tlc2/output/MP.printMessage:(ILjava/lang/String;)V
+      1016: invokestatic  #321                // Method tlc2/output/MP.flush:()V
+      1019: aload_0
+      1020: getfield      #30                 // Field waitingOnGenerationCompletion:Ljava/util/concurrent/Phaser;
+      1023: invokevirtual #322                // Method java/util/concurrent/Phaser.arriveAndAwaitAdvance:()I
+      1026: pop
+      1027: iload_3
+      1028: ireturn
+      1029: sipush        1000
+      1032: aload_2
+      1033: invokestatic  #326                // Method tlc2/output/MP.printError:(ILjava/lang/Throwable;)I
+      1036: istore_3
+      1037: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+      1040: ifnull        1060
+      1043: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+      1046: invokevirtual #315                // Method java/io/BufferedWriter.flush:()V
+      1049: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+      1052: invokevirtual #316                // Method java/io/BufferedWriter.close:()V
+      1055: goto          1060
+      1058: astore        4
+      1060: aload_1
+      1061: invokevirtual #317                // Method tlc2/tool/management/TLCStandardMBean.unregister:()Z
+      1064: pop
+      1065: invokestatic  #242                // Method java/lang/System.currentTimeMillis:()J
+      1068: aload_0
+      1069: getfield      #243                // Field startTime:J
+      1072: lsub
+      1073: lstore        4
+      1075: sipush        2186
+      1078: getstatic     #94                 // Field tlc2/TLCGlobals.tool:Z
+      1081: ifeq          1111
+      1084: new           #127                // class java/lang/StringBuilder
+      1087: dup
+      1088: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      1091: lload         4
+      1093: invokestatic  #318                // Method java/lang/Long.toString:(J)Ljava/lang/String;
+      1096: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1099: ldc_w         #319                // String ms
+      1102: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1105: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      1108: goto          1116
+      1111: lload         4
+      1113: invokestatic  #320                // Method convertRuntimeToHumanReadable:(J)Ljava/lang/String;
+      1116: invokestatic  #125                // Method tlc2/output/MP.printMessage:(ILjava/lang/String;)V
+      1119: invokestatic  #321                // Method tlc2/output/MP.flush:()V
+      1122: aload_0
+      1123: getfield      #30                 // Field waitingOnGenerationCompletion:Ljava/util/concurrent/Phaser;
+      1126: invokevirtual #322                // Method java/util/concurrent/Phaser.arriveAndAwaitAdvance:()I
+      1129: pop
+      1130: iload_3
+      1131: ireturn
+      1132: astore        10
+      1134: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+      1137: ifnull        1157
+      1140: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+      1143: invokevirtual #315                // Method java/io/BufferedWriter.flush:()V
+      1146: getstatic     #202                // Field tlc2/module/TLC.OUTPUT:Ljava/io/BufferedWriter;
+      1149: invokevirtual #316                // Method java/io/BufferedWriter.close:()V
+      1152: goto          1157
+      1155: astore        11
+      1157: aload_1
+      1158: invokevirtual #317                // Method tlc2/tool/management/TLCStandardMBean.unregister:()Z
+      1161: pop
+      1162: invokestatic  #242                // Method java/lang/System.currentTimeMillis:()J
+      1165: aload_0
+      1166: getfield      #243                // Field startTime:J
+      1169: lsub
+      1170: lstore        11
+      1172: sipush        2186
+      1175: getstatic     #94                 // Field tlc2/TLCGlobals.tool:Z
+      1178: ifeq          1208
+      1181: new           #127                // class java/lang/StringBuilder
+      1184: dup
+      1185: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+      1188: lload         11
+      1190: invokestatic  #318                // Method java/lang/Long.toString:(J)Ljava/lang/String;
+      1193: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1196: ldc_w         #319                // String ms
+      1199: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      1202: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      1205: goto          1213
+      1208: lload         11
+      1210: invokestatic  #320                // Method convertRuntimeToHumanReadable:(J)Ljava/lang/String;
+      1213: invokestatic  #125                // Method tlc2/output/MP.printMessage:(ILjava/lang/String;)V
+      1216: invokestatic  #321                // Method tlc2/output/MP.flush:()V
+      1219: aload_0
+      1220: getfield      #30                 // Field waitingOnGenerationCompletion:Ljava/util/concurrent/Phaser;
+      1223: invokevirtual #322                // Method java/util/concurrent/Phaser.arriveAndAwaitAdvance:()I
+      1226: pop
+      1227: aload         10
+      1229: athrow
+      Exception table:
+         from    to  target type
+           492   504   507   Class java/io/IOException
+             4   486   582   Class java/lang/Throwable
+           607   619   622   Class java/io/IOException
+           720   732   735   Class java/io/IOException
+           830   842   845   Class java/io/IOException
+           940   952   955   Class java/io/IOException
+          1043  1055  1058   Class java/io/IOException
+             4   486  1132   any
+           582   601  1132   any
+           696   714  1132   any
+           809   824  1132   any
+           919   934  1132   any
+          1029  1037  1132   any
+          1140  1152  1155   Class java/io/IOException
+          1132  1134  1132   any
+
+  private static boolean isBFS();
+    Code:
+         0: getstatic     #215                // Field tlc2/TLCGlobals.DFIDMax:I
+         3: iconst_m1
+         4: if_icmpne     11
+         7: iconst_1
+         8: goto          12
+        11: iconst_0
+        12: ireturn
+
+  public static java.util.Map<java.lang.String, java.lang.String> getSimulationRuntime(long);
+    Code:
+         0: invokestatic  #208                // Method java/lang/Runtime.getRuntime:()Ljava/lang/Runtime;
+         3: astore_2
+         4: aload_2
+         5: invokevirtual #331                // Method java/lang/Runtime.maxMemory:()J
+         8: ldc2_w        #332                // long 1024l
+        11: ldiv
+        12: ldc2_w        #332                // long 1024l
+        15: ldiv
+        16: lstore_3
+        17: invokestatic  #59                 // Method util/TLCRuntime.getInstance:()Lutil/TLCRuntime;
+        20: astore        5
+        22: aload         5
+        24: invokevirtual #334                // Method util/TLCRuntime.getNonHeapPhysicalMemory:()J
+        27: ldc2_w        #332                // long 1024l
+        30: ldiv
+        31: ldc2_w        #332                // long 1024l
+        34: ldiv
+        35: lstore        6
+        37: aload         5
+        39: invokevirtual #335                // Method util/TLCRuntime.pid:()J
+        42: lstore        8
+        44: new           #336                // class java/util/LinkedHashMap
+        47: dup
+        48: invokespecial #337                // Method java/util/LinkedHashMap."<init>":()V
+        51: astore        10
+        53: aload         10
+        55: ldc_w         #338                // String seed
+        58: lload_0
+        59: invokestatic  #339                // Method java/lang/String.valueOf:(J)Ljava/lang/String;
+        62: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        67: pop
+        68: aload         10
+        70: ldc_w         #341                // String workers
+        73: invokestatic  #286                // Method tlc2/TLCGlobals.getNumWorkers:()I
+        76: invokestatic  #342                // Method java/lang/String.valueOf:(I)Ljava/lang/String;
+        79: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        84: pop
+        85: aload         10
+        87: ldc_w         #343                // String plural
+        90: invokestatic  #286                // Method tlc2/TLCGlobals.getNumWorkers:()I
+        93: iconst_1
+        94: if_icmpne     102
+        97: ldc           #73                 // String
+        99: goto          105
+       102: ldc_w         #344                // String s
+       105: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       110: pop
+       111: aload         10
+       113: ldc_w         #345                // String cores
+       116: aload_2
+       117: invokevirtual #209                // Method java/lang/Runtime.availableProcessors:()I
+       120: invokestatic  #346                // Method java/lang/Integer.toString:(I)Ljava/lang/String;
+       123: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       128: pop
+       129: aload         10
+       131: ldc_w         #347                // String osName
+       134: ldc_w         #348                // String os.name
+       137: invokestatic  #349                // Method java/lang/System.getProperty:(Ljava/lang/String;)Ljava/lang/String;
+       140: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       145: pop
+       146: aload         10
+       148: ldc_w         #350                // String osVersion
+       151: ldc_w         #351                // String os.version
+       154: invokestatic  #349                // Method java/lang/System.getProperty:(Ljava/lang/String;)Ljava/lang/String;
+       157: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       162: pop
+       163: aload         10
+       165: ldc_w         #352                // String osArch
+       168: ldc_w         #353                // String os.arch
+       171: invokestatic  #349                // Method java/lang/System.getProperty:(Ljava/lang/String;)Ljava/lang/String;
+       174: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       179: pop
+       180: aload         10
+       182: ldc_w         #354                // String jvmVendor
+       185: ldc_w         #355                // String java.vendor
+       188: invokestatic  #349                // Method java/lang/System.getProperty:(Ljava/lang/String;)Ljava/lang/String;
+       191: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       196: pop
+       197: aload         10
+       199: ldc_w         #356                // String jvmVersion
+       202: ldc_w         #357                // String java.version
+       205: invokestatic  #349                // Method java/lang/System.getProperty:(Ljava/lang/String;)Ljava/lang/String;
+       208: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       213: pop
+       214: aload         10
+       216: ldc_w         #358                // String jvmArch
+       219: aload         5
+       221: invokevirtual #359                // Method util/TLCRuntime.getArchitecture:()Lutil/TLCRuntime$ARCH;
+       224: invokevirtual #360                // Method util/TLCRuntime$ARCH.name:()Ljava/lang/String;
+       227: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       232: pop
+       233: aload         10
+       235: ldc_w         #361                // String jvmHeapMem
+       238: lload_3
+       239: invokestatic  #318                // Method java/lang/Long.toString:(J)Ljava/lang/String;
+       242: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       247: pop
+       248: aload         10
+       250: ldc_w         #362                // String jvmOffHeapMem
+       253: lload         6
+       255: invokestatic  #318                // Method java/lang/Long.toString:(J)Ljava/lang/String;
+       258: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       263: pop
+       264: aload         10
+       266: ldc_w         #363                // String jvmPid
+       269: lload         8
+       271: ldc2_w        #364                // long -1l
+       274: lcmp
+       275: ifne          283
+       278: ldc           #73                 // String
+       280: goto          288
+       283: lload         8
+       285: invokestatic  #339                // Method java/lang/String.valueOf:(J)Ljava/lang/String;
+       288: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       293: pop
+       294: aload         10
+       296: areturn
+
+  public static java.util.Map<java.lang.String, java.lang.String> getModelCheckingRuntime(int, tlc2.tool.fp.FPSetConfiguration);
+    Code:
+         0: invokestatic  #208                // Method java/lang/Runtime.getRuntime:()Ljava/lang/Runtime;
+         3: astore_2
+         4: aload_2
+         5: invokevirtual #331                // Method java/lang/Runtime.maxMemory:()J
+         8: ldc2_w        #332                // long 1024l
+        11: ldiv
+        12: ldc2_w        #332                // long 1024l
+        15: ldiv
+        16: lstore_3
+        17: invokestatic  #59                 // Method util/TLCRuntime.getInstance:()Lutil/TLCRuntime;
+        20: astore        5
+        22: aload         5
+        24: invokevirtual #334                // Method util/TLCRuntime.getNonHeapPhysicalMemory:()J
+        27: ldc2_w        #332                // long 1024l
+        30: ldiv
+        31: ldc2_w        #332                // long 1024l
+        34: ldiv
+        35: lstore        6
+        37: aload         5
+        39: invokevirtual #335                // Method util/TLCRuntime.pid:()J
+        42: lstore        8
+        44: aload_1
+        45: invokevirtual #366                // Method tlc2/tool/fp/FPSetConfiguration.getImplementation:()Ljava/lang/String;
+        48: aload_1
+        49: invokevirtual #366                // Method tlc2/tool/fp/FPSetConfiguration.getImplementation:()Ljava/lang/String;
+        52: ldc_w         #367                // String .
+        55: invokevirtual #368                // Method java/lang/String.lastIndexOf:(Ljava/lang/String;)I
+        58: iconst_1
+        59: iadd
+        60: invokevirtual #369                // Method java/lang/String.substring:(I)Ljava/lang/String;
+        63: astore        10
+        65: invokestatic  #370                // Method tlc2/tool/ModelChecker.getStateQueueName:()Ljava/lang/String;
+        68: astore        11
+        70: new           #336                // class java/util/LinkedHashMap
+        73: dup
+        74: invokespecial #337                // Method java/util/LinkedHashMap."<init>":()V
+        77: astore        12
+        79: aload         12
+        81: ldc_w         #341                // String workers
+        84: invokestatic  #286                // Method tlc2/TLCGlobals.getNumWorkers:()I
+        87: invokestatic  #342                // Method java/lang/String.valueOf:(I)Ljava/lang/String;
+        90: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        95: pop
+        96: aload         12
+        98: ldc_w         #343                // String plural
+       101: invokestatic  #286                // Method tlc2/TLCGlobals.getNumWorkers:()I
+       104: iconst_1
+       105: if_icmpne     113
+       108: ldc           #73                 // String
+       110: goto          116
+       113: ldc_w         #344                // String s
+       116: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       121: pop
+       122: aload         12
+       124: ldc_w         #345                // String cores
+       127: aload_2
+       128: invokevirtual #209                // Method java/lang/Runtime.availableProcessors:()I
+       131: invokestatic  #346                // Method java/lang/Integer.toString:(I)Ljava/lang/String;
+       134: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       139: pop
+       140: aload         12
+       142: ldc_w         #347                // String osName
+       145: ldc_w         #348                // String os.name
+       148: invokestatic  #349                // Method java/lang/System.getProperty:(Ljava/lang/String;)Ljava/lang/String;
+       151: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       156: pop
+       157: aload         12
+       159: ldc_w         #350                // String osVersion
+       162: ldc_w         #351                // String os.version
+       165: invokestatic  #349                // Method java/lang/System.getProperty:(Ljava/lang/String;)Ljava/lang/String;
+       168: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       173: pop
+       174: aload         12
+       176: ldc_w         #352                // String osArch
+       179: ldc_w         #353                // String os.arch
+       182: invokestatic  #349                // Method java/lang/System.getProperty:(Ljava/lang/String;)Ljava/lang/String;
+       185: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       190: pop
+       191: aload         12
+       193: ldc_w         #354                // String jvmVendor
+       196: ldc_w         #355                // String java.vendor
+       199: invokestatic  #349                // Method java/lang/System.getProperty:(Ljava/lang/String;)Ljava/lang/String;
+       202: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       207: pop
+       208: aload         12
+       210: ldc_w         #356                // String jvmVersion
+       213: ldc_w         #357                // String java.version
+       216: invokestatic  #349                // Method java/lang/System.getProperty:(Ljava/lang/String;)Ljava/lang/String;
+       219: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       224: pop
+       225: aload         12
+       227: ldc_w         #358                // String jvmArch
+       230: aload         5
+       232: invokevirtual #359                // Method util/TLCRuntime.getArchitecture:()Lutil/TLCRuntime$ARCH;
+       235: invokevirtual #360                // Method util/TLCRuntime$ARCH.name:()Ljava/lang/String;
+       238: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       243: pop
+       244: aload         12
+       246: ldc_w         #361                // String jvmHeapMem
+       249: lload_3
+       250: invokestatic  #318                // Method java/lang/Long.toString:(J)Ljava/lang/String;
+       253: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       258: pop
+       259: aload         12
+       261: ldc_w         #362                // String jvmOffHeapMem
+       264: lload         6
+       266: invokestatic  #318                // Method java/lang/Long.toString:(J)Ljava/lang/String;
+       269: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       274: pop
+       275: aload         12
+       277: ldc_w         #338                // String seed
+       280: invokestatic  #371                // Method tlc2/value/RandomEnumerableValues.getSeed:()J
+       283: invokestatic  #318                // Method java/lang/Long.toString:(J)Ljava/lang/String;
+       286: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       291: pop
+       292: aload         12
+       294: ldc_w         #372                // String fpidx
+       297: iload_0
+       298: invokestatic  #346                // Method java/lang/Integer.toString:(I)Ljava/lang/String;
+       301: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       306: pop
+       307: aload         12
+       309: ldc_w         #363                // String jvmPid
+       312: lload         8
+       314: ldc2_w        #364                // long -1l
+       317: lcmp
+       318: ifne          326
+       321: ldc           #73                 // String
+       323: goto          331
+       326: lload         8
+       328: invokestatic  #339                // Method java/lang/String.valueOf:(J)Ljava/lang/String;
+       331: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       336: pop
+       337: aload         12
+       339: ldc_w         #373                // String fpset
+       342: aload         10
+       344: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       349: pop
+       350: aload         12
+       352: ldc_w         #374                // String queue
+       355: aload         11
+       357: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       362: pop
+       363: aload         12
+       365: areturn
+
+  public static java.lang.String convertRuntimeToHumanReadable(long);
+    Code:
+         0: aconst_null
+         1: astore_2
+         2: lload_0
+         3: ldc2_w        #375                // long 86400000l
+         6: lcmp
+         7: ifle          30
+        10: new           #377                // class java/text/SimpleDateFormat
+        13: dup
+        14: ldc_w         #378                // String D\'d\' HH\'h\'
+        17: invokespecial #379                // Method java/text/SimpleDateFormat."<init>":(Ljava/lang/String;)V
+        20: astore_2
+        21: lload_0
+        22: ldc2_w        #375                // long 86400000l
+        25: lsub
+        26: lstore_0
+        27: goto          113
+        30: lload_0
+        31: ldc2_w        #375                // long 86400000l
+        34: lcmp
+        35: ifle          58
+        38: new           #377                // class java/text/SimpleDateFormat
+        41: dup
+        42: ldc_w         #378                // String D\'d\' HH\'h\'
+        45: invokespecial #379                // Method java/text/SimpleDateFormat."<init>":(Ljava/lang/String;)V
+        48: astore_2
+        49: lload_0
+        50: ldc2_w        #375                // long 86400000l
+        53: lsub
+        54: lstore_0
+        55: goto          113
+        58: lload_0
+        59: ldc2_w        #380                // long 3600000l
+        62: lcmp
+        63: ifle          80
+        66: new           #377                // class java/text/SimpleDateFormat
+        69: dup
+        70: ldc_w         #382                // String HH\'h\' mm\'min\'
+        73: invokespecial #379                // Method java/text/SimpleDateFormat."<init>":(Ljava/lang/String;)V
+        76: astore_2
+        77: goto          113
+        80: lload_0
+        81: ldc2_w        #383                // long 60000l
+        84: lcmp
+        85: ifle          102
+        88: new           #377                // class java/text/SimpleDateFormat
+        91: dup
+        92: ldc_w         #385                // String mm\'min\' ss\'s\'
+        95: invokespecial #379                // Method java/text/SimpleDateFormat."<init>":(Ljava/lang/String;)V
+        98: astore_2
+        99: goto          113
+       102: new           #377                // class java/text/SimpleDateFormat
+       105: dup
+       106: ldc_w         #386                // String ss\'s\'
+       109: invokespecial #379                // Method java/text/SimpleDateFormat."<init>":(Ljava/lang/String;)V
+       112: astore_2
+       113: aload_2
+       114: ldc_w         #387                // String UTC
+       117: invokestatic  #388                // Method java/util/TimeZone.getTimeZone:(Ljava/lang/String;)Ljava/util/TimeZone;
+       120: invokevirtual #389                // Method java/text/SimpleDateFormat.setTimeZone:(Ljava/util/TimeZone;)V
+       123: aload_2
+       124: lload_0
+       125: invokestatic  #390                // Method java/lang/Long.valueOf:(J)Ljava/lang/Long;
+       128: invokevirtual #391                // Method java/text/SimpleDateFormat.format:(Ljava/lang/Object;)Ljava/lang/String;
+       131: areturn
+
+  public java.util.List<java.io.File> getModuleFiles();
+    Code:
+         0: new           #392                // class java/util/ArrayList
+         3: dup
+         4: invokespecial #393                // Method java/util/ArrayList."<init>":()V
+         7: astore_1
+         8: getstatic     #300                // Field tlc2/TLCGlobals.mainChecker:Ltlc2/tool/AbstractChecker;
+        11: instanceof    #297                // class tlc2/tool/ModelChecker
+        14: ifeq          55
+        17: getstatic     #300                // Field tlc2/TLCGlobals.mainChecker:Ltlc2/tool/AbstractChecker;
+        20: checkcast     #297                // class tlc2/tool/ModelChecker
+        23: astore_2
+        24: aload_1
+        25: aload_2
+        26: aload_0
+        27: getfield      #17                 // Field resolver:Lutil/FilenameToStream;
+        30: invokevirtual #394                // Method tlc2/tool/ModelChecker.getModuleFiles:(Lutil/FilenameToStream;)Ljava/util/List;
+        33: invokeinterface #395,  2          // InterfaceMethod java/util/List.addAll:(Ljava/util/Collection;)Z
+        38: pop
+        39: invokestatic  #396                // Method model/ModelInJar.hasCfg:()Z
+        42: ifeq          55
+        45: aload_1
+        46: invokestatic  #397                // Method model/ModelInJar.getCfg:()Ljava/io/File;
+        49: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+        54: pop
+        55: aload_1
+        56: areturn
+
+  public void setResolver(util.FilenameToStream);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: putfield      #17                 // Field resolver:Lutil/FilenameToStream;
+         5: aload_1
+         6: invokestatic  #399                // Method util/ToolIO.setDefaultResolver:(Lutil/FilenameToStream;)V
+         9: return
+
+  private void printErrorMsg(java.lang.String);
+    Code:
+         0: aload_0
+         1: invokespecial #272                // Method printWelcome:()V
+         4: sipush        1102
+         7: aload_1
+         8: invokestatic  #400                // Method tlc2/output/MP.printError:(ILjava/lang/String;)I
+        11: pop
+        12: return
+
+  private void printWelcome();
+    Code:
+         0: aload_0
+         1: getfield      #6                  // Field welcomePrinted:Z
+         4: ifne          70
+         7: aload_0
+         8: iconst_1
+         9: putfield      #6                  // Field welcomePrinted:Z
+        12: invokestatic  #401                // Method tlc2/TLCGlobals.getRevision:()Ljava/lang/String;
+        15: ifnonnull     30
+        18: sipush        2262
+        21: getstatic     #402                // Field tlc2/TLCGlobals.versionOfTLC:Ljava/lang/String;
+        24: invokestatic  #125                // Method tlc2/output/MP.printMessage:(ILjava/lang/String;)V
+        27: goto          70
+        30: sipush        2262
+        33: new           #127                // class java/lang/StringBuilder
+        36: dup
+        37: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+        40: getstatic     #402                // Field tlc2/TLCGlobals.versionOfTLC:Ljava/lang/String;
+        43: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        46: ldc_w         #403                // String  (rev:
+        49: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        52: invokestatic  #401                // Method tlc2/TLCGlobals.getRevision:()Ljava/lang/String;
+        55: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        58: ldc_w         #404                // String )
+        61: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        64: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+        67: invokestatic  #125                // Method tlc2/output/MP.printMessage:(ILjava/lang/String;)V
+        70: return
+
+  private void printStartupBanner(int, java.util.Map<java.lang.String, java.lang.String>);
+    Code:
+         0: iload_1
+         1: aload_2
+         2: invokeinterface #405,  1          // InterfaceMethod java/util/Map.values:()Ljava/util/Collection;
+         7: aload_2
+         8: invokeinterface #406,  1          // InterfaceMethod java/util/Map.size:()I
+        13: anewarray     #407                // class java/lang/String
+        16: invokeinterface #408,  2          // InterfaceMethod java/util/Collection.toArray:([Ljava/lang/Object;)[Ljava/lang/Object;
+        21: checkcast     #409                // class "[Ljava/lang/String;"
+        24: invokestatic  #410                // Method tlc2/output/MP.printMessage:(I[Ljava/lang/String;)V
+        27: new           #336                // class java/util/LinkedHashMap
+        30: dup
+        31: invokespecial #337                // Method java/util/LinkedHashMap."<init>":()V
+        34: astore_3
+        35: aload_3
+        36: ldc_w         #411                // String ver
+        39: invokestatic  #412                // Method tlc2/TLCGlobals.getRevisionOrDev:()Ljava/lang/String;
+        42: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        47: pop
+        48: aload_3
+        49: ldc_w         #413                // String mode
+        52: iload_1
+        53: invokestatic  #414                // Method mode2String:(I)Ljava/lang/String;
+        56: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        61: pop
+        62: aload_2
+        63: ldc_w         #343                // String plural
+        66: invokeinterface #415,  2          // InterfaceMethod java/util/Map.remove:(Ljava/lang/Object;)Ljava/lang/Object;
+        71: pop
+        72: aload_2
+        73: ldc_w         #363                // String jvmPid
+        76: invokeinterface #415,  2          // InterfaceMethod java/util/Map.remove:(Ljava/lang/Object;)Ljava/lang/Object;
+        81: pop
+        82: aload_2
+        83: ldc_w         #372                // String fpidx
+        86: invokeinterface #415,  2          // InterfaceMethod java/util/Map.remove:(Ljava/lang/Object;)Ljava/lang/Object;
+        91: pop
+        92: aload_2
+        93: ldc_w         #338                // String seed
+        96: invokeinterface #415,  2          // InterfaceMethod java/util/Map.remove:(Ljava/lang/Object;)Ljava/lang/Object;
+       101: pop
+       102: aload_3
+       103: aload_2
+       104: invokeinterface #416,  2          // InterfaceMethod java/util/Map.putAll:(Ljava/util/Map;)V
+       109: aload_3
+       110: ldc_w         #417                // String toolbox
+       113: getstatic     #94                 // Field tlc2/TLCGlobals.tool:Z
+       116: invokestatic  #418                // Method java/lang/Boolean.toString:(Z)Ljava/lang/String;
+       119: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       124: pop
+       125: aload_3
+       126: ldc_w         #419                // String ide
+       129: new           #127                // class java/lang/StringBuilder
+       132: dup
+       133: invokespecial #128                // Method java/lang/StringBuilder."<init>":()V
+       136: ldc           #32                 // class tlc2/TLC
+       138: invokevirtual #420                // Method java/lang/Class.getName:()Ljava/lang/String;
+       141: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       144: ldc_w         #421                // String .ide
+       147: invokevirtual #130                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       150: invokevirtual #132                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+       153: getstatic     #94                 // Field tlc2/TLCGlobals.tool:Z
+       156: ifeq          165
+       159: ldc_w         #417                // String toolbox
+       162: goto          168
+       165: ldc_w         #422                // String cli
+       168: invokestatic  #423                // Method java/lang/System.getProperty:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+       171: invokeinterface #340,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       176: pop
+       177: new           #424                // class util/ExecutionStatisticsCollector
+       180: dup
+       181: invokespecial #425                // Method util/ExecutionStatisticsCollector."<init>":()V
+       184: aload_3
+       185: invokevirtual #426                // Method util/ExecutionStatisticsCollector.collect:(Ljava/util/Map;)V
+       188: return
+
+  private static java.lang.String mode2String(int);
+    Code:
+         0: iload_0
+         1: lookupswitch  { // 3
+                    2187: 36
+                    2188: 44
+                    2271: 40
+                 default: 48
+            }
+        36: ldc_w         #427                // String bfs
+        39: areturn
+        40: ldc_w         #428                // String dfs
+        43: areturn
+        44: ldc_w         #429                // String simulation
+        47: areturn
+        48: ldc_w         #430                // String unknown
+        51: areturn
+
+  private static long copyStream(java.io.InputStream, java.io.OutputStream) throws java.io.IOException;
+    Code:
+         0: sipush        4096
+         3: newarray       byte
+         5: astore_2
+         6: lconst_0
+         7: lstore_3
+         8: aload_0
+         9: instanceof    #431                // class java/io/BufferedInputStream
+        12: ifeq          22
+        15: aload_0
+        16: checkcast     #431                // class java/io/BufferedInputStream
+        19: goto          30
+        22: new           #431                // class java/io/BufferedInputStream
+        25: dup
+        26: aload_0
+        27: invokespecial #432                // Method java/io/BufferedInputStream."<init>":(Ljava/io/InputStream;)V
+        30: astore        6
+        32: aload_1
+        33: instanceof    #105                // class java/io/BufferedOutputStream
+        36: ifeq          46
+        39: aload_1
+        40: checkcast     #105                // class java/io/BufferedOutputStream
+        43: goto          54
+        46: new           #105                // class java/io/BufferedOutputStream
+        49: dup
+        50: aload_1
+        51: invokespecial #106                // Method java/io/BufferedOutputStream."<init>":(Ljava/io/OutputStream;)V
+        54: astore        7
+        56: aload         6
+        58: aload_2
+        59: invokevirtual #433                // Method java/io/BufferedInputStream.read:([B)I
+        62: dup
+        63: istore        5
+        65: iconst_m1
+        66: if_icmpeq     87
+        69: aload         7
+        71: aload_2
+        72: iconst_0
+        73: iload         5
+        75: invokevirtual #434                // Method java/io/BufferedOutputStream.write:([BII)V
+        78: lload_3
+        79: iload         5
+        81: i2l
+        82: ladd
+        83: lstore_3
+        84: goto          56
+        87: aload         7
+        89: invokevirtual #435                // Method java/io/BufferedOutputStream.flush:()V
+        92: lload_3
+        93: lreturn
+
+  private void printUsage();
+    Code:
+         0: new           #392                // class java/util/ArrayList
+         3: dup
+         4: invokespecial #393                // Method java/util/ArrayList."<init>":()V
+         7: astore_1
+         8: new           #392                // class java/util/ArrayList
+        11: dup
+        12: invokespecial #393                // Method java/util/ArrayList."<init>":()V
+        15: astore_2
+        16: aload_2
+        17: new           #436                // class util/UsageGenerator$Argument
+        20: dup
+        21: ldc           #163                // String -checkpoint
+        23: ldc_w         #437                // String minutes
+        26: ldc_w         #438                // String interval between check point; defaults to 30
+        29: iconst_1
+        30: invokespecial #439                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
+        33: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+        38: pop
+        39: aload_2
+        40: new           #436                // class util/UsageGenerator$Argument
+        43: dup
+        44: ldc           #80                 // String -cleanup
+        46: ldc_w         #440                // String clean up the states directory
+        49: iconst_1
+        50: invokespecial #441                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Z)V
+        53: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+        58: pop
+        59: aload_2
+        60: new           #436                // class util/UsageGenerator$Argument
+        63: dup
+        64: ldc           #141                // String -config
+        66: ldc_w         #442                // String file
+        69: ldc_w         #443                // String provide the configuration file; defaults to SPEC.cfg
+        72: iconst_1
+        73: invokespecial #439                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
+        76: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+        81: pop
+        82: aload_2
+        83: new           #436                // class util/UsageGenerator$Argument
+        86: dup
+        87: ldc           #87                 // String -continue
+        89: ldc_w         #444                // String continue running even when an invariant is violated; default\nbehavior is to halt on first violation
+        92: iconst_1
+        93: invokespecial #441                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Z)V
+        96: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       101: pop
+       102: aload_2
+       103: new           #436                // class util/UsageGenerator$Argument
+       106: dup
+       107: ldc           #157                // String -coverage
+       109: ldc_w         #437                // String minutes
+       112: ldc_w         #445                // String interval between the collection of coverage information;\nif not specified, no coverage will be collected
+       115: iconst_1
+       116: invokespecial #439                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
+       119: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       124: pop
+       125: aload_2
+       126: new           #436                // class util/UsageGenerator$Argument
+       129: dup
+       130: ldc           #79                 // String -deadlock
+       132: ldc_w         #446                // String if specified DO NOT CHECK FOR DEADLOCK. Setting the flag is\nthe same as setting CHECK_DEADLOCK to FALSE in config\nfile. When -deadlock is specified, config entry is\nignored; default behavior is to check for deadlocks
+       135: iconst_1
+       136: invokespecial #441                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Z)V
+       139: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       144: pop
+       145: aload_2
+       146: new           #436                // class util/UsageGenerator$Argument
+       149: dup
+       150: ldc           #77                 // String -difftrace
+       152: ldc_w         #447                // String show only the differences between successive states when\nprinting trace information; defaults to printing\nfull state descriptions
+       155: iconst_1
+       156: invokespecial #441                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Z)V
+       159: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       164: pop
+       165: aload_2
+       166: new           #436                // class util/UsageGenerator$Argument
+       169: dup
+       170: ldc           #91                 // String -debug
+       172: ldc_w         #448                // String print various debugging information - not for production use\n
+       175: iconst_1
+       176: invokespecial #441                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Z)V
+       179: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       184: pop
+       185: aload_2
+       186: new           #436                // class util/UsageGenerator$Argument
+       189: dup
+       190: ldc           #148                // String -dump
+       192: ldc_w         #442                // String file
+       195: ldc_w         #449                // String dump all states into the specified file; this parameter takes\noptional parameters for dot graph generation. Specifying\n\'dot\' allows further options, comma delimited, of zero\nor more of \'actionlabels\', \'colorize\', \'snapshot\' to be\nspecified before the \'.dot\'-suffixed filename
+       198: iconst_1
+       199: ldc_w         #450                // String dot actionlabels,colorize,snapshot
+       202: invokespecial #451                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;)V
+       205: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       210: pop
+       211: aload_2
+       212: new           #436                // class util/UsageGenerator$Argument
+       215: dup
+       216: ldc           #218                // String -fp
+       218: ldc_w         #452                // String N
+       221: ldc_w         #453                // String use the Nth irreducible polynomial from the list stored\nin the class FP64
+       224: iconst_1
+       225: invokespecial #439                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
+       228: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       233: pop
+       234: aload_2
+       235: new           #436                // class util/UsageGenerator$Argument
+       238: dup
+       239: ldc           #231                // String -fpbits
+       241: ldc_w         #454                // String num
+       244: ldc_w         #455                // String the number of MSB used by MultiFPSet to create nested\nFPSets; defaults to 1
+       247: iconst_1
+       248: invokespecial #439                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
+       251: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       256: pop
+       257: aload_2
+       258: new           #436                // class util/UsageGenerator$Argument
+       261: dup
+       262: ldc           #223                // String -fpmem
+       264: ldc_w         #454                // String num
+       267: ldc_w         #456                // String a value in (0.0,1.0) representing the ratio of total\nphysical memory to devote to storing the fingerprints\nof found states; defaults to 0.25
+       270: iconst_1
+       271: invokespecial #439                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
+       274: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       279: pop
+       280: aload_2
+       281: new           #436                // class util/UsageGenerator$Argument
+       284: dup
+       285: ldc           #95                 // String -generateSpecTE
+       287: aconst_null
+       288: ldc_w         #457                // String if errors are encountered during model checking, generate\na SpecTE tla/cfg file pair which encapsulates Init-Next\ndefinitions to specify the state conditions of the error\nstate; this enables \'tool\' mode. The generated SpecTE\nwill include tool output as well as all non-Standard-\nModules dependencies embeded in the module. To prevent\nthe embedding of dependencies, add the parameter\n\'nomonolith\' to this declaration
+       291: iconst_1
+       292: ldc           #96                 // String nomonolith
+       294: invokespecial #451                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;)V
+       297: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       302: pop
+       303: aload_2
+       304: new           #436                // class util/UsageGenerator$Argument
+       307: dup
+       308: ldc           #83                 // String -gzip
+       310: ldc_w         #458                // String control if gzip is applied to value input/output streams;\ndefaults to \'off\'
+       313: iconst_1
+       314: invokespecial #441                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Z)V
+       317: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       322: pop
+       323: aload_2
+       324: new           #436                // class util/UsageGenerator$Argument
+       327: dup
+       328: ldc           #135                // String -h
+       330: ldc_w         #459                // String display these help instructions
+       333: iconst_1
+       334: invokespecial #441                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Z)V
+       337: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       342: pop
+       343: aload_2
+       344: new           #436                // class util/UsageGenerator$Argument
+       347: dup
+       348: ldc           #179                // String -maxSetSize
+       350: ldc_w         #454                // String num
+       353: ldc_w         #460                // String the size of the largest set which TLC will enumerate; defaults\nto 1000000 (10^6)
+       356: iconst_1
+       357: invokespecial #439                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
+       360: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       365: pop
+       366: aload_2
+       367: new           #436                // class util/UsageGenerator$Argument
+       370: dup
+       371: ldc           #192                // String -metadir
+       373: ldc_w         #461                // String path
+       376: ldc_w         #462                // String specify the directory in which to store metadata; defaults to\nSPEC-directory/states if not specified
+       379: iconst_1
+       380: invokespecial #439                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
+       383: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       388: pop
+       389: aload_2
+       390: new           #436                // class util/UsageGenerator$Argument
+       393: dup
+       394: ldc           #81                 // String -nowarning
+       396: ldc_w         #463                // String disable all warnings; defaults to reporting warnings
+       399: iconst_1
+       400: invokespecial #441                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Z)V
+       403: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       408: pop
+       409: aload_2
+       410: new           #436                // class util/UsageGenerator$Argument
+       413: dup
+       414: ldc           #189                // String -recover
+       416: ldc_w         #464                // String id
+       419: ldc_w         #465                // String recover from the checkpoint with the specified id
+       422: iconst_1
+       423: invokespecial #439                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
+       426: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       431: pop
+       432: aload_2
+       433: new           #436                // class util/UsageGenerator$Argument
+       436: dup
+       437: ldc           #85                 // String -terse
+       439: ldc_w         #466                // String do not expand values in Print statements; defaults to\nexpanding values
+       442: iconst_1
+       443: invokespecial #441                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Z)V
+       446: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       451: pop
+       452: aload_2
+       453: new           #436                // class util/UsageGenerator$Argument
+       456: dup
+       457: ldc           #93                 // String -tool
+       459: ldc_w         #467                // String run in \'tool\' mode, surrounding output with message codes;\nif \'-generateSpecTE\' is specified, this is enabled\nautomatically
+       462: iconst_1
+       463: invokespecial #441                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Z)V
+       466: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       471: pop
+       472: aload_2
+       473: new           #436                // class util/UsageGenerator$Argument
+       476: dup
+       477: ldc           #195                // String -userFile
+       479: ldc_w         #442                // String file
+       482: ldc_w         #468                // String an absolute path to a file in which to log user output (for\nexample, that which is produced by Print)
+       485: iconst_1
+       486: invokespecial #439                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
+       489: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       494: pop
+       495: aload_2
+       496: new           #436                // class util/UsageGenerator$Argument
+       499: dup
+       500: ldc           #205                // String -workers
+       502: ldc_w         #454                // String num
+       505: ldc_w         #469                // String the number of TLC worker threads; defaults to 1. Use \'auto\'\nto automatically select the number of threads based on the\nnumber of available cores.
+       508: iconst_1
+       509: invokespecial #439                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
+       512: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       517: pop
+       518: aload_2
+       519: new           #436                // class util/UsageGenerator$Argument
+       522: dup
+       523: ldc_w         #470                // String SPEC
+       526: aconst_null
+       527: invokespecial #471                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;)V
+       530: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       535: pop
+       536: new           #392                // class java/util/ArrayList
+       539: dup
+       540: aload_2
+       541: invokespecial #472                // Method java/util/ArrayList."<init>":(Ljava/util/Collection;)V
+       544: astore_3
+       545: aload_3
+       546: new           #436                // class util/UsageGenerator$Argument
+       549: dup
+       550: ldc           #214                // String -dfid
+       552: ldc_w         #454                // String num
+       555: ldc_w         #473                // String run the model check in depth-first iterative deepening\nstarting with an initial depth of \'num\'
+       558: iconst_1
+       559: invokespecial #439                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
+       562: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       567: pop
+       568: aload_3
+       569: new           #436                // class util/UsageGenerator$Argument
+       572: dup
+       573: ldc           #89                 // String -view
+       575: ldc_w         #474                // String apply VIEW (if provided) when printing out states
+       578: iconst_1
+       579: invokespecial #441                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Z)V
+       582: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       587: pop
+       588: aload_1
+       589: aload_3
+       590: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       595: pop
+       596: new           #392                // class java/util/ArrayList
+       599: dup
+       600: aload_2
+       601: invokespecial #472                // Method java/util/ArrayList."<init>":(Ljava/util/Collection;)V
+       604: astore        4
+       606: aload         4
+       608: new           #436                // class util/UsageGenerator$Argument
+       611: dup
+       612: ldc           #169                // String -depth
+       614: ldc_w         #454                // String num
+       617: ldc_w         #475                // String specifies the depth of random simulation; defaults to 100
+       620: iconst_1
+       621: invokespecial #439                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
+       624: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       629: pop
+       630: aload         4
+       632: new           #436                // class util/UsageGenerator$Argument
+       635: dup
+       636: ldc           #172                // String -seed
+       638: ldc_w         #454                // String num
+       641: ldc_w         #476                // String provide the seed for random simulation; defaults to a\nrandom long pulled from a pseudo-RNG
+       644: iconst_1
+       645: invokespecial #439                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
+       648: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       653: pop
+       654: aload         4
+       656: new           #436                // class util/UsageGenerator$Argument
+       659: dup
+       660: ldc           #176                // String -aril
+       662: ldc_w         #454                // String num
+       665: ldc_w         #477                // String adjust the seed for random simulation; defaults to 0
+       668: iconst_1
+       669: invokespecial #439                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
+       672: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       677: pop
+       678: aload         4
+       680: new           #436                // class util/UsageGenerator$Argument
+       683: dup
+       684: ldc           #64                 // String -simulate
+       686: aconst_null
+       687: ldc_w         #478                // String run in simulation mode; optional parameters may be specified\ncomma delimited: \'num=X\' where X is the maximum number of\ntotal traces to generate and/or \'file=Y\' where Y is the\nabsolute-pathed prefix for trace file modules to be written\nby the simulation workers; for example Y=\'/a/b/c/tr\' would\nproduce, e.g, \'/a/b/c/tr_1_15\'
+       690: iconst_0
+       691: ldc_w         #479                // String file=X,num=Y
+       694: invokespecial #451                // Method util/UsageGenerator$Argument."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;)V
+       697: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       702: pop
+       703: aload_1
+       704: aload         4
+       706: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       711: pop
+       712: new           #392                // class java/util/ArrayList
+       715: dup
+       716: invokespecial #393                // Method java/util/ArrayList."<init>":()V
+       719: astore        5
+       721: aload         5
+       723: ldc_w         #480                // String When using the  \'-generateSpecTE\' you can version the generated specification by doing:\n\t./tla2tools.jar -generateSpecTE MySpec.tla && NAME=\"SpecTE-$(date +%s)\" && sed -e \"s/MODULE SpecTE/MODULE $NAME/g\" SpecTE.tla > $NAME.tla
+       726: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       731: pop
+       732: aload         5
+       734: ldc_w         #481                // String If, while checking a SpecTE created via \'-generateSpecTE\', you get an error message concerning\nCONSTANT declaration and you\'ve previous used \'integers\' as model values, rename your\nmodel values to start with a non-numeral and rerun the model check to generate a new SpecTE.
+       737: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       742: pop
+       743: aload         5
+       745: ldc_w         #482                // String If, while checking a SpecTE created via \'-generateSpecTE\', you get a warning concerning\nduplicate operator definitions, this is likely due to the \'monolith\' specification\ncreation. Try re-running TLC adding the \'nomonolith\' option to the \'-generateSpecTE\'\nparameter.
+       748: invokeinterface #398,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       753: pop
+       754: getstatic     #113                // Field util/ToolIO.out:Ljava/io/PrintStream;
+       757: ldc_w         #483                // String TLC
+       760: getstatic     #402                // Field tlc2/TLCGlobals.versionOfTLC:Ljava/lang/String;
+       763: ldc_w         #484                // String provides model checking and simulation of TLA+ specifications
+       766: ldc_w         #485                // String TLCDescription
+       769: invokestatic  #486                // Method tlc2/output/Messages.getString:(Ljava/lang/String;)Ljava/lang/String;
+       772: aload_1
+       773: aload         5
+       775: bipush        32
+       777: invokestatic  #487                // Method util/UsageGenerator.displayUsage:(Ljava/io/PrintStream;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;C)V
+       780: return
+
+  tlc2.tool.fp.FPSetConfiguration getFPSetConfiguration();
+    Code:
+         0: aload_0
+         1: getfield      #26                 // Field fpSetConfiguration:Ltlc2/tool/fp/FPSetConfiguration;
+         4: areturn
+
+  public tlc2.TLC$RunMode getRunMode();
+    Code:
+         0: aload_0
+         1: getfield      #8                  // Field runMode:Ltlc2/TLC$RunMode;
+         4: areturn
+
+  public java.lang.String getMainFile();
+    Code:
+         0: aload_0
+         1: getfield      #14                 // Field mainFile:Ljava/lang/String;
+         4: areturn
+
+  public java.lang.String getModelName();
+    Code:
+         0: ldc_w         #488                // String modelName
+         3: aload_0
+         4: getfield      #14                 // Field mainFile:Ljava/lang/String;
+         7: invokestatic  #423                // Method java/lang/System.getProperty:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+        10: areturn
+
+  public java.lang.String getSpecName();
+    Code:
+         0: ldc_w         #489                // String specName
+         3: aload_0
+         4: getfield      #14                 // Field mainFile:Ljava/lang/String;
+         7: invokestatic  #423                // Method java/lang/System.getProperty:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+        10: areturn
+
+  private void lambda$handleParameters$0(java.io.BufferedOutputStream);
+    Code:
+         0: iconst_0
+         1: istore_2
+         2: aload_0
+         3: getfield      #30                 // Field waitingOnGenerationCompletion:Ljava/util/concurrent/Phaser;
+         6: invokevirtual #31                 // Method java/util/concurrent/Phaser.register:()I
+         9: pop
+        10: aload_0
+        11: getfield      #118                // Field mcOutputConsumer:Ltlc2/input/MCOutputPipeConsumer;
+        14: iconst_0
+        15: invokevirtual #490                // Method tlc2/input/MCOutputPipeConsumer.consumeOutput:(Z)Ljava/util/List;
+        18: pop
+        19: aload_1
+        20: invokevirtual #435                // Method java/io/BufferedOutputStream.flush:()V
+        23: aload_0
+        24: getfield      #104                // Field temporaryMCOutputStream:Ljava/io/FileOutputStream;
+        27: invokevirtual #491                // Method java/io/FileOutputStream.close:()V
+        30: iconst_1
+        31: istore_2
+        32: aload_0
+        33: getfield      #118                // Field mcOutputConsumer:Ltlc2/input/MCOutputPipeConsumer;
+        36: invokevirtual #306                // Method tlc2/input/MCOutputPipeConsumer.getError:()Ltlc2/model/MCError;
+        39: ifnull        215
+        42: ldc_w         #492                // String temp_tlc_tla_
+        45: ldc           #241                // String .tla
+        47: invokestatic  #99                 // Method java/io/File.createTempFile:(Ljava/lang/String;Ljava/lang/String;)Ljava/io/File;
+        50: astore_3
+        51: aload_3
+        52: invokevirtual #101                // Method java/io/File.deleteOnExit:()V
+        55: aload_0
+        56: getfield      #314                // Field specTETLAFile:Ljava/io/File;
+        59: aload_3
+        60: invokestatic  #493                // Method util/FileUtil.copyFile:(Ljava/io/File;Ljava/io/File;)V
+        63: new           #102                // class java/io/FileOutputStream
+        66: dup
+        67: aload_0
+        68: getfield      #314                // Field specTETLAFile:Ljava/io/File;
+        71: invokespecial #103                // Method java/io/FileOutputStream."<init>":(Ljava/io/File;)V
+        74: astore        4
+        76: new           #494                // class java/io/FileInputStream
+        79: dup
+        80: aload_0
+        81: getfield      #100                // Field temporaryMCOutputLogFile:Ljava/io/File;
+        84: invokespecial #495                // Method java/io/FileInputStream."<init>":(Ljava/io/File;)V
+        87: astore        5
+        89: aload         5
+        91: aload         4
+        93: invokestatic  #496                // Method copyStream:(Ljava/io/InputStream;Ljava/io/OutputStream;)J
+        96: pop2
+        97: new           #494                // class java/io/FileInputStream
+       100: dup
+       101: aload_3
+       102: invokespecial #495                // Method java/io/FileInputStream."<init>":(Ljava/io/File;)V
+       105: astore        6
+       107: aload         6
+       109: aload         4
+       111: invokestatic  #496                // Method copyStream:(Ljava/io/InputStream;Ljava/io/OutputStream;)J
+       114: pop2
+       115: aload         4
+       117: invokevirtual #491                // Method java/io/FileOutputStream.close:()V
+       120: aload         5
+       122: invokevirtual #497                // Method java/io/FileInputStream.close:()V
+       125: aload         6
+       127: invokevirtual #497                // Method java/io/FileInputStream.close:()V
+       130: aload_0
+       131: getfield      #27                 // Field avoidMonolithSpecTECreation:Z
+       134: ifeq          166
+       137: new           #498                // class tlc2/output/TLAMonolithCreator
+       140: dup
+       141: ldc_w         #499                // String SpecTE
+       144: aload_0
+       145: getfield      #118                // Field mcOutputConsumer:Ltlc2/input/MCOutputPipeConsumer;
+       148: invokevirtual #308                // Method tlc2/input/MCOutputPipeConsumer.getSourceDirectory:()Ljava/io/File;
+       151: aload_0
+       152: getfield      #312                // Field mcParserResults:Ltlc2/input/MCParserResults;
+       155: invokevirtual #500                // Method tlc2/input/MCParserResults.getAllExtendedModules:()Ljava/util/Set;
+       158: invokespecial #501                // Method tlc2/output/TLAMonolithCreator."<init>":(Ljava/lang/String;Ljava/io/File;Ljava/util/Set;)V
+       161: astore        7
+       163: goto          210
+       166: aload_0
+       167: getfield      #118                // Field mcOutputConsumer:Ltlc2/input/MCOutputPipeConsumer;
+       170: invokevirtual #502                // Method tlc2/input/MCOutputPipeConsumer.getExtendedModuleLocations:()Ljava/util/List;
+       173: astore        8
+       175: new           #498                // class tlc2/output/TLAMonolithCreator
+       178: dup
+       179: ldc_w         #499                // String SpecTE
+       182: aload_0
+       183: getfield      #118                // Field mcOutputConsumer:Ltlc2/input/MCOutputPipeConsumer;
+       186: invokevirtual #308                // Method tlc2/input/MCOutputPipeConsumer.getSourceDirectory:()Ljava/io/File;
+       189: aload         8
+       191: aload_0
+       192: getfield      #312                // Field mcParserResults:Ltlc2/input/MCParserResults;
+       195: invokevirtual #500                // Method tlc2/input/MCParserResults.getAllExtendedModules:()Ljava/util/Set;
+       198: aload_0
+       199: getfield      #312                // Field mcParserResults:Ltlc2/input/MCParserResults;
+       202: invokevirtual #503                // Method tlc2/input/MCParserResults.getAllInstantiatedModules:()Ljava/util/Set;
+       205: invokespecial #504                // Method tlc2/output/TLAMonolithCreator."<init>":(Ljava/lang/String;Ljava/io/File;Ljava/util/List;Ljava/util/Set;Ljava/util/Set;)V
+       208: astore        7
+       210: aload         7
+       212: invokevirtual #505                // Method tlc2/output/TLAMonolithCreator.copy:()V
+       215: aload_0
+       216: getfield      #30                 // Field waitingOnGenerationCompletion:Ljava/util/concurrent/Phaser;
+       219: invokevirtual #506                // Method java/util/concurrent/Phaser.arriveAndDeregister:()I
+       222: pop
+       223: iload_2
+       224: ifne          302
+       227: aload_1
+       228: invokevirtual #435                // Method java/io/BufferedOutputStream.flush:()V
+       231: aload_0
+       232: getfield      #104                // Field temporaryMCOutputStream:Ljava/io/FileOutputStream;
+       235: invokevirtual #491                // Method java/io/FileOutputStream.close:()V
+       238: goto          302
+       241: astore_3
+       242: goto          302
+       245: astore_3
+       246: sipush        1000
+       249: ldc_w         #507                // String A model checking error occurred while parsing tool output; the execution ended before the potential SpecTE generation stage.
+       252: invokestatic  #125                // Method tlc2/output/MP.printMessage:(ILjava/lang/String;)V
+       255: iload_2
+       256: ifne          302
+       259: aload_1
+       260: invokevirtual #435                // Method java/io/BufferedOutputStream.flush:()V
+       263: aload_0
+       264: getfield      #104                // Field temporaryMCOutputStream:Ljava/io/FileOutputStream;
+       267: invokevirtual #491                // Method java/io/FileOutputStream.close:()V
+       270: goto          302
+       273: astore_3
+       274: goto          302
+       277: astore        9
+       279: iload_2
+       280: ifne          299
+       283: aload_1
+       284: invokevirtual #435                // Method java/io/BufferedOutputStream.flush:()V
+       287: aload_0
+       288: getfield      #104                // Field temporaryMCOutputStream:Ljava/io/FileOutputStream;
+       291: invokevirtual #491                // Method java/io/FileOutputStream.close:()V
+       294: goto          299
+       297: astore        10
+       299: aload         9
+       301: athrow
+       302: return
+      Exception table:
+         from    to  target type
+           227   238   241   Class java/lang/Exception
+             2   223   245   Class java/lang/Exception
+           259   270   273   Class java/lang/Exception
+             2   223   277   any
+           245   255   277   any
+           283   294   297   Class java/lang/Exception
+           277   279   277   any
+
+  static {};
+    Code:
+         0: iconst_0
+         1: putstatic     #39                 // Field MODEL_PART_OF_JAR:Z
+         4: ldc2_w        #509                // long 9223372036854775807l
+         7: putstatic     #63                 // Field traceNum:J
+        10: return
+}

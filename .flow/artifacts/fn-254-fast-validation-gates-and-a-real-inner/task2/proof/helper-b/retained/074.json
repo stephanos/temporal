@@ -1,0 +1,69 @@
+{
+  "index": 74,
+  "package": "umpire-testing",
+  "target": "umpire_testing",
+  "kind": "lib",
+  "source_commit": "be919e0999dbab7f3084f3211080c91d773e128e",
+  "binary_sha256": "00c642a972be5cf9b7a05c12b4a980f933bd0fea476bf207d8109fd09fd368fc",
+  "command": [
+    "timeout",
+    "2700",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/umpire_testing-e298227f4600cc2d",
+    "--nocapture"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/dev/testing",
+  "runtime_bindings": {
+    "RUSTUP_TOOLCHAIN": "1.99.1",
+    "RUSTUP_HOME": "/home/agent/.rustup",
+    "CARGO_HOME": "/home/agent/.cargo",
+    "RUST_TEST_THREADS": "1",
+    "UMPIRE_BACKENDS": "require",
+    "PATH": "/home/agent/.local/share/mise/installs/go/1.27.0/bin:/home/agent/.local/share/mise/installs/protoc/29.5/bin:/home/agent/.local/share/mise/installs/scala-cli/1.17.1:/home/agent/.local/share/mise/installs/java/temurin-27/bin:/home/agent/.cargo/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0-linux/codex-arg0WtdcCC:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "CARGO": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+    "LD_LIBRARY_PATH": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug/deps:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/aarch64-unknown-linux-gnu/lib:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib",
+    "CARGO_MANIFEST_PATH": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/dev/testing/Cargo.toml",
+    "CARGO_MANIFEST_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/dev/testing",
+    "CARGO_PKG_NAME": "umpire-testing",
+    "CARGO_PKG_VERSION": "0.0.1",
+    "CARGO_PKG_VERSION_MAJOR": "0",
+    "CARGO_PKG_VERSION_MINOR": "0",
+    "CARGO_PKG_VERSION_PATCH": "1",
+    "CARGO_PKG_VERSION_PRE": "",
+    "CARGO_PKG_DESCRIPTION": "Shared Umpire fixture discovery and golden runner",
+    "CARGO_PKG_HOMEPAGE": "",
+    "CARGO_PKG_REPOSITORY": "",
+    "CARGO_PKG_LICENSE": "MIT",
+    "CARGO_PKG_LICENSE_FILE": "",
+    "CARGO_PKG_README": "",
+    "CARGO_PKG_RUST_VERSION": "1.99",
+    "CARGO_PKG_AUTHORS": "",
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc"
+  },
+  "expected_tests": [
+    "backend::tests::actual_tlc_fact_traces_replay_exact_vectors",
+    "backend::tests::agreement_compares_complete_sets_and_every_verdict",
+    "backend::tests::nominal_debug_preserves_authored_shapes_and_exact_optional_codes",
+    "backend::tests::nonempty_facts_are_typed_and_preserved_on_observer_activation",
+    "backend::tests::projection_refuses_state_or_edge_changes_without_a_real_edge",
+    "backend::tests::replay_compares_the_typed_outcome_of_a_rejected_self_loop",
+    "backend::tests::replay_uses_checked_steps_without_panicking",
+    "backend::tests::replay_uses_retained_starts_without_enumerating_again",
+    "backend::tests::typed_replay_identifies_the_exact_catalog_payload_without_display_identity",
+    "snapshot_payload::tests::preserves_body_and_refuses_invalid_headers",
+    "source_edit_tests::source_edits_preserve_surrounding_text_and_unicode",
+    "source_edit_tests::source_edits_refuse_missing_duplicate_and_empty_anchors"
+  ],
+  "rc": 0,
+  "status": "passed",
+  "summaries": [
+    [
+      "ok",
+      "12",
+      "0",
+      "0"
+    ]
+  ],
+  "seconds": 13.77,
+  "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/helper-b/retained/074.log",
+  "log_sha256": "a6a3cd187ef64ddd38a9542372633a87e58b290e3404c2031c55a89dcf19308e"
+}

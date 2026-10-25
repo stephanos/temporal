@@ -1,0 +1,41 @@
+{
+  "source_commit": "2d596d0f5c845e35d851f88e53e6e759151c788c",
+  "command": "mise exec -- cargo test -p umpire-tlc --features strategy-equivalence -- --nocapture",
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model",
+  "environment": {
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "2",
+    "RUST_TEST_THREADS": "2",
+    "UMPIRE_BACKENDS": "require",
+    "RUSTUP_TOOLCHAIN": "1.99.1"
+  },
+  "result_rc": 0,
+  "selected_cases": 23,
+  "passed": 23,
+  "ignored": 0,
+  "doctests": 0,
+  "binary_provenance": [
+    {
+      "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug/deps/umpire_tlc-74daab20e254939c",
+      "sha256": "f1f1ee220b298bfe585c714e015c9b9183460f14fb22e8fc30b0dde5d7452f35",
+      "strategy_assertion_present": true
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug/deps/controls-0e65af7f5e816744",
+      "sha256": "ddd43f690203fe765551052e00b634395f8dd1f78a33246d2d9db06888fb43d0",
+      "strategy_assertion_present": true
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug/deps/scaling-17dfa375953ca533",
+      "sha256": "0726c6b26c93784d96ff27fd91fcf682248f120930cf2c7259cb2e4604f63f44",
+      "strategy_assertion_present": true
+    }
+  ],
+  "additional_case_identities": [
+    "runner::batch_tests::singleton_output_budget_precedes_later_evaluation_and_stops_new_waves",
+    "runner::batch_tests::singleton_evaluation_stops_recovery_after_current_wave"
+  ]
+}

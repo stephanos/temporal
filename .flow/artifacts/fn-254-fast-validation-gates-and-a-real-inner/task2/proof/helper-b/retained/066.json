@@ -1,0 +1,66 @@
+{
+  "index": 66,
+  "package": "umpire-tla",
+  "target": "world",
+  "kind": "test",
+  "source_commit": "be919e0999dbab7f3084f3211080c91d773e128e",
+  "binary_sha256": "9189390c09aa7a67544d33403dcb08f032d3c1923e71ce5114d8d3c54c8eba1d",
+  "command": [
+    "timeout",
+    "2700",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/world-7f6fb5523b2329d6",
+    "--nocapture"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tla",
+  "runtime_bindings": {
+    "RUSTUP_TOOLCHAIN": "1.99.1",
+    "RUSTUP_HOME": "/home/agent/.rustup",
+    "CARGO_HOME": "/home/agent/.cargo",
+    "RUST_TEST_THREADS": "1",
+    "UMPIRE_BACKENDS": "require",
+    "PATH": "/home/agent/.local/share/mise/installs/go/1.27.0/bin:/home/agent/.local/share/mise/installs/protoc/29.5/bin:/home/agent/.local/share/mise/installs/scala-cli/1.17.1:/home/agent/.local/share/mise/installs/java/temurin-27/bin:/home/agent/.cargo/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0-linux/codex-arg0WtdcCC:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "CARGO": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+    "LD_LIBRARY_PATH": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug/deps:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/aarch64-unknown-linux-gnu/lib:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib",
+    "CARGO_MANIFEST_PATH": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tla/Cargo.toml",
+    "CARGO_MANIFEST_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tla",
+    "CARGO_PKG_NAME": "umpire-tla",
+    "CARGO_PKG_VERSION": "0.0.1",
+    "CARGO_PKG_VERSION_MAJOR": "0",
+    "CARGO_PKG_VERSION_MINOR": "0",
+    "CARGO_PKG_VERSION_PATCH": "1",
+    "CARGO_PKG_VERSION_PRE": "",
+    "CARGO_PKG_DESCRIPTION": "World binding and TLA+ emission from the admitted Model",
+    "CARGO_PKG_HOMEPAGE": "",
+    "CARGO_PKG_REPOSITORY": "",
+    "CARGO_PKG_LICENSE": "MIT",
+    "CARGO_PKG_LICENSE_FILE": "",
+    "CARGO_PKG_README": "",
+    "CARGO_PKG_RUST_VERSION": "1.99",
+    "CARGO_PKG_AUTHORS": "",
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc"
+  },
+  "expected_tests": [
+    "bare_world_and_before_parameters_do_not_resolve_as_source_constants",
+    "binding_refuses_malformed_world_and_complete_state_values",
+    "complete_starts_preserve_correlation_deduplicate_and_keep_empty",
+    "declared_world_computed_starts_admit_before_value_binding",
+    "generated_world_constants_avoid_synthesized_action_names",
+    "real_tlc_executes_each_cfg_family_with_both_world_bindings",
+    "scalar_enum_world_and_sequence_starts_use_the_admitted_types",
+    "typed_world_signatures_and_outcome_fields_refuse_by_source_location",
+    "world_free_starts_of_any_name_admit_and_bind"
+  ],
+  "rc": 0,
+  "status": "passed",
+  "summaries": [
+    [
+      "ok",
+      "9",
+      "0",
+      "0"
+    ]
+  ],
+  "seconds": 32.347,
+  "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/helper-b/retained/066.log",
+  "log_sha256": "a6b373d65b6d2a0fe1df439756ac8518d8d7eef8cb0a53535a8f8811359cf673"
+}

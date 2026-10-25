@@ -1,0 +1,28 @@
+{
+  "cohort": "helper_a",
+  "original_assigned_target_count": 57,
+  "amended_retained_indices": [
+    21
+  ],
+  "completed_indices": [
+    21
+  ],
+  "retained_scope_passed": true,
+  "rc": 0,
+  "passed": 39,
+  "ignored": 2,
+  "failed": 0,
+  "libtest_seconds": 2307.66,
+  "source_commit": "be919e0999dbab7f3084f3211080c91d773e128e",
+  "source_files_verified_after_run": 1360,
+  "result_file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/helper-a/results.json",
+  "deferred_ledger": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/helper-a/deferred-identities.json",
+  "deferred_targets": 56,
+  "deferred_cases": 283,
+  "reason": "owner explicitly deferred unrelated validation to final fn254 checkpoint",
+  "utc": "2026-10-25T20:43:45.970119+00:00",
+  "orchestrator_stop": "interrupt after child completed; no deferred target started",
+  "running_commands": [],
+  "orchestrator_exit_code": 130,
+  "orchestrator_exit_explanation": "intentional interrupt after retained child exited0; prevents deferred targets from starting"
+}

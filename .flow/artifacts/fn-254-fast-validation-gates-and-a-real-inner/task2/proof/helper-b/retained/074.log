@@ -1,0 +1,71 @@
+
+running 12 tests
+test backend::tests::actual_tlc_fact_traces_replay_exact_vectors ... ok
+test backend::tests::agreement_compares_complete_sets_and_every_verdict ... ok
+test backend::tests::nominal_debug_preserves_authored_shapes_and_exact_optional_codes ... ok
+test backend::tests::nonempty_facts_are_typed_and_preserved_on_observer_activation ... ok
+test backend::tests::projection_refuses_state_or_edge_changes_without_a_real_edge ... ok
+test backend::tests::replay_compares_the_typed_outcome_of_a_rejected_self_loop ... ok
+test backend::tests::replay_uses_checked_steps_without_panicking ... ok
+test backend::tests::replay_uses_retained_starts_without_enumerating_again ... ok
+test backend::tests::typed_replay_identifies_the_exact_catalog_payload_without_display_identity ... ok
+test snapshot_payload::tests::preserves_body_and_refuses_invalid_headers ... ok
+test source_edit_tests::source_edits_preserve_surrounding_text_and_unicode ... ok
+test source_edit_tests::source_edits_refuse_missing_duplicate_and_empty_anchors ... 
+thread 'source_edit_tests::source_edits_refuse_missing_duplicate_and_empty_anchors' (4034607) panicked at umpire/dev/testing/src/source_edit.rs:3:5:
+assertion `left == right` failed: mutation target: target
+  left: 0
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'source_edit_tests::source_edits_refuse_missing_duplicate_and_empty_anchors' (4034607) panicked at umpire/dev/testing/src/source_edit.rs:23:5:
+assertion `left == right` failed: mutation anchor: target
+  left: 0
+ right: 1
+
+thread 'source_edit_tests::source_edits_refuse_missing_duplicate_and_empty_anchors' (4034607) panicked at umpire/dev/testing/src/source_edit.rs:3:5:
+assertion `left == right` failed: mutation target: target
+  left: 2
+ right: 1
+
+thread 'source_edit_tests::source_edits_refuse_missing_duplicate_and_empty_anchors' (4034607) panicked at umpire/dev/testing/src/source_edit.rs:23:5:
+assertion `left == right` failed: mutation anchor: target
+  left: 2
+ right: 1
+
+thread 'source_edit_tests::source_edits_refuse_missing_duplicate_and_empty_anchors' (4034607) panicked at umpire/dev/testing/src/source_edit.rs:9:5:
+assertion `left == right` failed: region start: [
+  left: 0
+ right: 1
+
+thread 'source_edit_tests::source_edits_refuse_missing_duplicate_and_empty_anchors' (4034607) panicked at umpire/dev/testing/src/source_edit.rs:9:5:
+assertion `left == right` failed: region start: [
+  left: 2
+ right: 1
+
+thread 'source_edit_tests::source_edits_refuse_missing_duplicate_and_empty_anchors' (4034607) panicked at umpire/dev/testing/src/source_edit.rs:11:5:
+assertion `left == right` failed: region end: ]
+  left: 0
+ right: 1
+
+thread 'source_edit_tests::source_edits_refuse_missing_duplicate_and_empty_anchors' (4034607) panicked at umpire/dev/testing/src/source_edit.rs:11:5:
+assertion `left == right` failed: region end: ]
+  left: 2
+ right: 1
+
+thread 'source_edit_tests::source_edits_refuse_missing_duplicate_and_empty_anchors' (4034607) panicked at umpire/dev/testing/src/source_edit.rs:3:5:
+assertion `left == right` failed: mutation target: x
+  left: 0
+ right: 1
+
+thread 'source_edit_tests::source_edits_refuse_missing_duplicate_and_empty_anchors' (4034607) panicked at umpire/dev/testing/src/source_edit.rs:3:5:
+assertion `left == right` failed: mutation target: x
+  left: 2
+ right: 1
+
+thread 'source_edit_tests::source_edits_refuse_missing_duplicate_and_empty_anchors' (4034607) panicked at umpire/dev/testing/src/source_edit.rs:22:5:
+empty mutation anchor
+ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 13.74s
+

@@ -1,0 +1,8 @@
+
+running 3 tests
+test generated_dispatch_refuses_unknown_routes_and_preserves_out_of_scope_bytes ... ok
+test generic_fill_preserves_supplied_keys_and_response_wire_bytes ... ok
+test scoped_limits_and_nested_predicates_inspect_actual_wire_values ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

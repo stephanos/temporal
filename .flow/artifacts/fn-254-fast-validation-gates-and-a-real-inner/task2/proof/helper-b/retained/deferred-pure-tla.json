@@ -1,0 +1,147 @@
+[
+  {
+    "index": 67,
+    "package": "umpire-tla",
+    "target": "inputs",
+    "expected_tests": [
+      "a_fair_unit_variant_named_like_a_fair_position_refuses",
+      "assumptions_naming_values_outside_the_selected_catalog_refuse_as_natively",
+      "catalog_values_outside_their_admitted_types_refuse_at_the_source_declaration",
+      "exact_payload_scopes_and_fairness_specialize_the_variant_relation",
+      "inputs_bind_in_declaration_product_order_keeping_duplicates_and_empty_variants",
+      "inputs_without_a_declared_world_refuse_at_the_variant",
+      "internal_payload_actors_keep_their_classification",
+      "native_domain_forms_lift_from_the_bound_catalog",
+      "payload_patterns_resolve_lexically_through_their_typed_identities",
+      "the_catalog_limit_boundary_binds_and_emits",
+      "the_source_limit_is_the_native_catalog_limit",
+      "unsupported_input_sources_refuse_by_location"
+    ],
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tla/tests/inputs.rs",
+    "source_sha256": "c78c1c288c5088b88363c7829d9485bb5fd3d760ca124dac4fb01a2fdc0aad98",
+    "reason": "source/emission/binding/unit-only; no TLC runtime imports/calls or indirect helper route; parsed string mentions are not executed"
+  },
+  {
+    "index": 68,
+    "package": "umpire-tla",
+    "target": "optional_facts",
+    "expected_tests": [
+      "canonical_option_constructor_paths_are_admitted",
+      "canonical_optional_imports_preserve_the_existing_fact_carrier",
+      "disabled_handler_tail_arithmetic_is_checked_by_both_emitters",
+      "fact_tail_world_and_input_references_receive_emitted_names",
+      "legacy_unit_fact_metadata_remains_exact",
+      "mixed_unit_handler_clears_the_previous_fact_on_every_real_edge",
+      "overlapping_action_guards_keep_the_first_matching_fact",
+      "prefix_effects_and_locals_feed_the_tail_in_ssa_order",
+      "source_only_constructor_swap_changes_both_emitters",
+      "unsupported_tail_results_refuse_at_the_source"
+    ],
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tla/tests/optional_facts.rs",
+    "source_sha256": "4db4e26b8dc732d01e329fe90ecd9bc8667e5328cbc319a381c20c1b26e97b05",
+    "reason": "source/emission/binding/unit-only; no TLC runtime imports/calls or indirect helper route; parsed string mentions are not executed"
+  },
+  {
+    "index": 69,
+    "package": "umpire-tla",
+    "target": "world_fairness_binding",
+    "expected_tests": [
+      "empty_selected_restrictions_keep_existing_refusal_and_empty_fair_lists",
+      "every_selected_registration_and_progress_leaf_is_catalog_checked",
+      "native_interpretation_selects_before_converting_exact_actions",
+      "possible_leaf_names_and_post_selection_aliases_are_reserved",
+      "rebinding_reselects_original_conditional_branches_and_preserves_flat_scopes",
+      "selected_leaves_keep_authored_world_identity_and_exact_fairness",
+      "source_plans_resolve_before_any_action_conversion",
+      "unresolved_embedded_plan_cannot_emit_as_an_empty_scope",
+      "world_shape_validation_precedes_selection"
+    ],
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tla/tests/world_fairness_binding.rs",
+    "source_sha256": "d96cd7179668f1c4e8530ee17f3446f7704fd6356cb09db3c61ab3a8f24cdecc",
+    "reason": "source/emission/binding/unit-only; no TLC runtime imports/calls or indirect helper route; parsed string mentions are not executed"
+  },
+  {
+    "index": 70,
+    "package": "umpire-tla",
+    "target": "optional_source",
+    "expected_tests": [
+      "canonical_optional_imports_preserve_builtin_identity",
+      "canonical_optional_paths_and_nominal_operations",
+      "option_remains_an_ordinary_fieldless_enum_without_bounded_types",
+      "optional_spellings_remain_ordinary_scalar_names_without_bounded_types",
+      "unsupported_optional_sources_refuse_at_source_locations"
+    ],
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tla/tests/optional_source.rs",
+    "source_sha256": "716986073b54f11af778a0be6da0d51ba3fb3635818ce6f766a8c8c2fc6d4354",
+    "reason": "source/emission/binding/unit-only; no TLC runtime imports/calls or indirect helper route; parsed string mentions are not executed"
+  },
+  {
+    "index": 75,
+    "package": "umpire-tla",
+    "target": "safety",
+    "expected_tests": [
+      "initialization_growth_stays_linear_in_declared_fields",
+      "safety_definition_growth_stays_linear",
+      "safety_has_typed_history_and_preserving_stutter",
+      "safety_history_names_refuse_collisions_and_temporaries_are_hygienic",
+      "tlc_declarations_carry_snowcat_types",
+      "unsupported_source_type_refuses_at_its_declaration"
+    ],
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tla/tests/safety.rs",
+    "source_sha256": "1949531492648ca379c71b036ccc2671f90f78f00170ab01e105c0a6f6490fb8",
+    "reason": "source/emission/binding/unit-only; no TLC runtime imports/calls or indirect helper route; parsed string mentions are not executed"
+  },
+  {
+    "index": 77,
+    "package": "umpire-tla",
+    "target": "umpire_tla",
+    "expected_tests": [
+      "bind::tests::cfg_representation_looks_inside_tuples_and_sequences",
+      "emit::optional_tests::optional_default_forces_eager_checked_fallback_in_main_emission",
+      "emit::optional_tests::priming_recurses_through_nested_vectors_and_three_children_without_changing_other_leaves",
+      "emit::optional_tests::priming_visits_each_nominal_child_and_keeps_world_identity",
+      "emit::optional_tests::signed_remainder_asserts_overflow_and_divides_parenthesised_operands",
+      "emit::optional_tests::unsigned_division_has_no_overflow_guard",
+      "names::optional_tests::rename_visits_nominal_construction_projection_and_both_default_children",
+      "names::traversal_tests::rename_override_stops_before_replacement_children",
+      "safety::value::optional_tests::negative_literal_divisor_is_parenthesised_in_the_remainder",
+      "safety::value::optional_tests::present_optional_requires_fallback_validity_and_checks_some_encoding",
+      "safety::value::optional_tests::signed_remainder_requires_nonzero_divisor_and_no_overflow",
+      "safety::value::optional_tests::unsigned_division_has_no_overflow_guard",
+      "values::tests::composite_values_accept_exact_shapes_only",
+      "values::tests::enum_variants_admit_one_fieldless_payload_only",
+      "values::tests::nominal_types_validate_descriptor_and_accept_exact_codes"
+    ],
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tla/src/lib.rs",
+    "source_sha256": "b34a8caffeb6bf3ae71c795013380198de22b94660cf3daac32f27691942742e",
+    "reason": "source/emission/binding/unit-only; no TLC runtime imports/calls or indirect helper route; parsed string mentions are not executed"
+  },
+  {
+    "index": 81,
+    "package": "umpire-tla",
+    "target": "source",
+    "expected_tests": [
+      "a_hook_claim_name_collision_refuses_in_tests_rs",
+      "a_world_of_another_machine_refuses_at_this_source",
+      "admission_refuses_type_cfg_resolution_and_observer_collisions",
+      "enum_helper_and_terminal_postcondition_are_admitted",
+      "generated_tla_names_refuse_authored_namespace_collisions",
+      "hand_written_machine_refusal_prints_the_type_as_written",
+      "hook_refusal_in_tests_rs_names_tests_rs",
+      "imports_that_can_rebind_a_macro_read_by_name_refuse",
+      "inherent_enum_into_is_resolved_before_primitive_conversion",
+      "integer_literal_types_follow_field_context_on_either_side",
+      "kettle_source_lifts_registered_properties_and_explicit_assumptions",
+      "path_claims_refuse_builders_chains_and_other_gaps",
+      "progress_bounds_are_fail_closed",
+      "pure_same_impl_helper_is_typed_and_lifted",
+      "repeated_progress_builders_refuse_instead_of_reversing_rust_order",
+      "the_state_struct_keeps_its_authored_name",
+      "unsupported_control_characters_refuse_at_the_authored_literal",
+      "unsupported_expression_refuses_with_source_location"
+    ],
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tla/tests/source.rs",
+    "source_sha256": "27bc9864192adda8138980c5babceb29085b05acb1af2745b5144776277c84a6",
+    "reason": "source/emission/binding/unit-only; no TLC runtime imports/calls or indirect helper route; parsed string mentions are not executed"
+  }
+]

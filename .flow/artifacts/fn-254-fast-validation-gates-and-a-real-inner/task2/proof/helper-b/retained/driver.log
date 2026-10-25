@@ -1,0 +1,26 @@
+{"cohort": "helper_b_retained_tlc", "targets": 12, "logical_cases": 69, "source_commit": "be919e0999dbab7f3084f3211080c91d773e128e", "threads": 1}
+RUN 065 umpire-tla narrow_remainder cases=2
+END 065 rc=0 status=passed seconds=2.714
+RUN 066 umpire-tla world cases=9
+END 066 rc=0 status=passed seconds=32.347
+RUN 071 umpire-tlc controls cases=7
+END 071 rc=0 status=passed seconds=112.304
+RUN 072 umpire-tla optional_ticks cases=6
+END 072 rc=0 status=passed seconds=19.104
+RUN 073 umpire-tla phased cases=6
+END 073 rc=0 status=passed seconds=1.619
+RUN 074 umpire-testing umpire_testing cases=12
+END 074 rc=0 status=passed seconds=13.77
+RUN 076 umpire-tlc scaling cases=1
+END 076 rc=0 status=passed seconds=5.026
+RUN 078 umpire-tla sequential_checks cases=1
+END 078 rc=0 status=passed seconds=2.617
+RUN 079 umpire-tla shadowing cases=1
+END 079 rc=0 status=passed seconds=2.616
+RUN 080 umpire-tla emission cases=3
+END 080 rc=0 status=passed seconds=13.78
+RUN 082 umpire-tla vector cases=8
+END 082 rc=0 status=passed seconds=29.834
+RUN 083 umpire-tlc umpire_tlc cases=13
+END 083 rc=0 status=passed seconds=0.307
+{"cohort": "helper_b_retained_tlc", "source_commit": "be919e0999dbab7f3084f3211080c91d773e128e", "status": "passed", "completed_targets": 12, "allocated_targets": 12, "selected_cases": 69, "results": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/helper-b/retained/results.json", "remaining_indices": []}

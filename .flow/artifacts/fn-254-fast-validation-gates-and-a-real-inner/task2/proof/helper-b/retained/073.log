@@ -1,0 +1,20 @@
+
+running 6 tests
+test admitted_tree_and_constructor_data_grow_linearly ... linear pattern=returns count=8: nodes=305 constructor_bytes=86748 elapsed=11.112833ms
+linear pattern=returns count=16: nodes=601 constructor_bytes=168292 elapsed=20.261166ms
+linear pattern=returns count=32: nodes=1193 constructor_bytes=331658 elapsed=40.993917ms
+linear pattern=updates count=8: nodes=142 constructor_bytes=39194 elapsed=5.628083ms
+linear pattern=updates count=16: nodes=238 constructor_bytes=62986 elapsed=8.321083ms
+linear pattern=updates count=32: nodes=430 constructor_bytes=110570 elapsed=14.247541ms
+linear pattern=vectors count=8: nodes=133 constructor_bytes=39775 elapsed=5.789125ms
+linear pattern=vectors count=16: nodes=213 constructor_bytes=61191 elapsed=8.342125ms
+linear pattern=vectors count=32: nodes=373 constructor_bytes=104023 elapsed=13.400375ms
+ok
+test emitted_size_is_linear_in_sequential_conditional_returns ... ok
+test large_handlers_compile_with_their_admitted_data ... ok
+test rejections_lower_to_typed_outcomes_and_kept_self_loops ... ok
+test shared_definitions_never_take_an_authored_name ... ok
+test unsupported_phase_rejection_and_law_forms_refuse_at_their_location ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.57s
+

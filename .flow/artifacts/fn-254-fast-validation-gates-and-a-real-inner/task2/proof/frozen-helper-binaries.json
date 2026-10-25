@@ -1,0 +1,14 @@
+{
+  "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug/identity-compiler-fixture": {
+    "copy": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/helper-identity-compiler-fixture",
+    "sha256": "999bd8024b5b5d27b0836fadc57e8fb3e2bbedffb935825cef5f4811e80b8c05"
+  },
+  "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug/xtask": {
+    "copy": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/helper-xtask",
+    "sha256": "a9e6cb27c383fb04e3037b4a1cf55f5f64312090223d3bd4ad73ea911e0091b3"
+  },
+  "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug/umpire-process-fixture": {
+    "copy": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/.flow/tmp/fn2542/frozen-workspace-binaries/helper-umpire-process-fixture",
+    "sha256": "673eadea7eb5a03d411bcfca5e773e2703f93bb6e766f6a25aaab9b8f40d5638"
+  }
+}

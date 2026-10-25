@@ -1,0 +1,7 @@
+{
+  "driver": 3992974,
+  "children": [
+    "3993440"
+  ],
+  "reason": "delegate disjoint remaining original-binary proof at next owned child boundary"
+}

@@ -1,0 +1,34 @@
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2542-tlc/model/umpire/backends/tlc)
+    Finished `test` profile [unoptimized] target(s) in 1.18s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2542-tlc/debug/deps/umpire_tlc-439d85f98ebd8da3)
+
+running 4 tests
+test runner::batch_tests::batch_resource_refusal_does_not_launch_singleton_recovery ... ok
+
+thread 'runner::batch_tests::singleton_evaluation_stops_recovery_after_current_wave' (4133517) panicked at umpire/backends/tlc/src/runner/batch_tests.rs:318:9:
+assertion `left == right` failed: explore
+batch
+P1
+P0
+P2
+P3
+
+  left: {"P0", "P1", "P2", "P3", "batch", "explore"}
+ right: {"P0", "P1", "batch", "explore"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test runner::batch_tests::singleton_evaluation_stops_recovery_after_current_wave ... FAILED
+
+thread 'runner::batch_tests::singleton_output_budget_precedes_later_evaluation_and_stops_new_waves' (4133526) panicked at umpire/backends/tlc/src/runner/batch_tests.rs:258:13:
+batch=false: Err(Evaluation(Evaluation { property: Some("P1"), message: "Overflow", trace: None, state: None }))
+test runner::batch_tests::singleton_output_budget_precedes_later_evaluation_and_stops_new_waves ... FAILED
+test runner::batch_tests::singleton_recovery_measures_worker_peak_and_owns_each_scratch ... ok
+
+failures:
+
+failures:
+    runner::batch_tests::singleton_evaluation_stops_recovery_after_current_wave
+    runner::batch_tests::singleton_output_budget_precedes_later_evaluation_and_stops_new_waves
+
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.14s
+
+error: test failed, to rerun pass `-p umpire-tlc --lib`

@@ -1,0 +1,40 @@
+{
+  "source_commit": "be919e0999dbab7f3084f3211080c91d773e128e",
+  "source_hash_count": 1360,
+  "selected_cases": 171,
+  "runnable_cases_passed": 168,
+  "existing_ignored_cases": 3,
+  "whole_workspace_pass": false,
+  "required_indices": [
+    0,
+    1,
+    21,
+    65,
+    66,
+    71,
+    72,
+    73,
+    74,
+    76,
+    78,
+    79,
+    80,
+    82,
+    83
+  ],
+  "original_shared_case_prefix": {
+    "source_log": "workspace-required-equivalence.log",
+    "completed_case_statuses": 46,
+    "enclosing_command_rc": 124,
+    "remaining_case_receipt": "frozen-001.json"
+  },
+  "interpreter_receipt": "frozen-000.json",
+  "temporal_receipts": [
+    "helper-a/021.json",
+    "helper-a/results.json"
+  ],
+  "framework_receipts": "helper-b/retained/results.json",
+  "scope_ledger": "validation-scope-ledger.json",
+  "consumer_closure": "tlc-consumer-proof-closure.json",
+  "source_hashes_verified_after_all_required_executions": true
+}
