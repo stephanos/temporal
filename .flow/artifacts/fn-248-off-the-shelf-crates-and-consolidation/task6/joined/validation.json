@@ -1,0 +1,21 @@
+{
+  "base": "232292523157176fd484c648aae23bebaedf7870",
+  "integrated_source_commit": "c58fda6a1d4d0fa34c2df82f910cc91bfc68d0b4",
+  "source_sha256": {
+    "model/umpire/backends/apalache/Cargo.toml": "3c6316aded5cea4d3281c5f0ffacd7c133bb62ae7df8cc3a6186da54d009a66d",
+    "model/umpire/backends/apalache/src/decode.rs": "a405669f8bc67e01065eb86b1cb3d289229f5823b945ca46c65ad90c00c34a1b",
+    "model/umpire/backends/apalache/tests/controls.rs": "f2fbb4053c7602df0cc6c38c7b2e3df042727e1ab212efd6f735b60494a3ff49"
+  },
+  "focused_exit": 0,
+  "actual_live_vector_exit": 0,
+  "actual_live_vector_seconds": 7.18,
+  "commands": [
+    "cargo test -p umpire-apalache --test controls --test decode --test replay --locked",
+    "UMPIRE_APALACHE=require cargo test -p umpire-apalache --test controls real_vector_witness_replays_typed_sequence --locked -- --exact"
+  ],
+  "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target",
+  "limitations": [
+    "Optional controls in first command do not establish actual backend execution; second selected control does",
+    "No whole pipeline/guest publication; final7 owns those"
+  ]
+}
