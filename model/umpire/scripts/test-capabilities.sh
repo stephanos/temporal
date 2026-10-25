@@ -41,7 +41,7 @@ done
 printf 'capability controls: both core policies reject filesystem, clock and thread APIs/types\n'
 
 for root in author/dsl/src/lib.rs dev/xtask/src/main.rs dev/guest-driver/src/main.rs \
-  backends/native/build.rs author/dsl/tests/main.rs; do
+  backends/native/build.rs author/dsl/tests/main.rs author/dsl/tests/ui.rs; do
   policy=$(grep -Fx '#![forbid(unsafe_code)]' "$root")
   printf '%s\n#[allow(unsafe_code)]\npub unsafe fn forbidden() {}\n' "$policy" > "$scratch/unsafe.rs"
   if mise exec -- rustc --edition=2024 --crate-type=lib --emit=metadata \
