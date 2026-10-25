@@ -140,6 +140,8 @@ type heartbeatWorker struct {
 	release              chan struct{}
 	completions          chan heartbeatCompletion
 	terminals            chan proto.Message
+	beginStop            func()
+	joinStop             func()
 	stop                 func()
 }
 
@@ -265,11 +267,22 @@ func newHeartbeatWorker(t *testing.T, throttle time.Duration, hold string) *hear
 		}
 	}, activity.DynamicRegisterOptions{})
 	require.NoError(t, worker.Start())
-	var stopOnce sync.Once
+	var sdkStopOnce sync.Once
+	stopped := make(chan struct{})
+	f.beginStop = func() {
+		sdkStopOnce.Do(func() {
+			go func() { worker.Stop(); close(stopped) }()
+		})
+	}
+	f.joinStop = func() {
+		f.beginStop()
+		heartbeatReceive(f.ctxWithoutCancellation(t), t, stopped)
+	}
+	var cleanupOnce sync.Once
 	f.stop = func() {
-		stopOnce.Do(func() {
+		cleanupOnce.Do(func() {
 			cancel()
-			worker.Stop()
+			f.joinStop()
 			conn.Close()
 			server.Stop()
 			<-served
@@ -385,21 +398,51 @@ func TestNativeHeartbeatDetachedFromFirstWindow(t *testing.T) {
 	}
 }
 
-func TestNativeHeartbeatSwitchAfterTrueKeepsCanceledTimerContext(t *testing.T) {
-	f := newHeartbeatWorker(t, 100*time.Millisecond, "")
-	heartbeatReceive(f.ctx, t, f.started)
-	f.heartbeat(t, 0, true, false)
-	require.True(t, temporal.IsCanceledError(heartbeatReceive(f.ctx, t, f.canceled)))
-	f.command(t, heartbeatCommand{details: []int{1}, detached: true})
-	require.True(t, temporal.IsCanceledError(heartbeatReceive(f.ctx, t, f.returned).cause))
-	completion := heartbeatReceive(f.ctx, t, f.completions)
-	require.Equal(t, codes.Canceled, status.Code(completion.err))
-	checkHeartbeatIdentity(t, completion.request, 1)
-	require.False(t, completion.response.GetCancelRequested())
-	require.Empty(t, f.service.heartbeats)
-	f.cancel()
-	heartbeatReceive(f.ctxWithoutCancellation(t), t, f.handlerDone)
-	f.stop()
+func TestNativeHeartbeatStopFlushUsesOpeningContext(t *testing.T) {
+	for _, opening := range []struct {
+		name     string
+		detached bool
+	}{{name: "original"}, {name: "detached-from-first", detached: true}} {
+		t.Run(opening.name, func(t *testing.T) {
+			f := newHeartbeatWorker(t, time.Hour, "")
+			heartbeatReceive(f.ctx, t, f.started)
+			f.heartbeat(t, 0, true, opening.detached)
+			require.True(t, temporal.IsCanceledError(heartbeatReceive(f.ctx, t, f.canceled)))
+			f.command(t, heartbeatCommand{details: []int{1}, detached: true})
+			require.True(t, temporal.IsCanceledError(heartbeatReceive(f.ctx, t, f.returned).cause))
+			require.Empty(t, f.service.heartbeats)
+			require.Empty(t, f.completions)
+			require.NoError(t, f.ctx.Err())
+			f.beginStop()
+			if opening.detached {
+				call := heartbeatReceive(f.ctx, t, f.service.heartbeats)
+				checkHeartbeatIdentity(t, call.request, 1)
+				require.Empty(t, f.terminals)
+				call.reply <- heartbeatReply{response: &workflowservice.RecordActivityTaskHeartbeatResponse{CancelRequested: true}}
+			}
+			completion := heartbeatReceive(f.ctx, t, f.completions)
+			checkHeartbeatIdentity(t, completion.request, 1)
+			if opening.detached {
+				require.NoError(t, completion.err)
+				require.True(t, completion.response.GetCancelRequested())
+			} else {
+				require.Equal(t, codes.Canceled, status.Code(completion.err))
+				require.False(t, completion.response.GetCancelRequested())
+				require.Empty(t, f.service.heartbeats)
+			}
+			require.NoError(t, f.ctx.Err())
+			f.command(t, heartbeatCommand{terminal: "completed"})
+			checkHeartbeatTerminal(t, heartbeatReceive(f.ctx, t, f.terminals), "completed")
+			heartbeatReceive(f.ctx, t, f.handlerDone)
+			f.joinStop()
+			require.NoError(t, f.ctx.Err())
+			f.stop()
+			require.Equal(t, int32(1), f.service.delivered.Load())
+			require.Empty(t, f.completions)
+			require.Empty(t, f.terminals)
+			require.Empty(t, f.service.heartbeats)
+		})
+	}
 }
 
 func (f *heartbeatWorker) ctxWithoutCancellation(t *testing.T) context.Context {
