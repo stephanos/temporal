@@ -29,6 +29,40 @@ impl RecoveryImage {
         self.fs.volumes.keys().cloned().collect()
     }
 
+    #[cfg(not(feature = "conformance"))]
+    pub(crate) fn observation(self) -> crate::linked_storage_inspection::RecoveryObservation {
+        use crate::linked_storage_inspection::{RecoveryObservation, RecoveryVolume};
+        RecoveryObservation {
+            model_identity: self.model_identity,
+            identity: self.identity,
+            next_inode: self.fs.next_inode,
+            generation: self.fs.generation,
+            occurrences: self.occurrences,
+            volumes: self
+                .fs
+                .volumes
+                .into_values()
+                .map(|volume| RecoveryVolume {
+                    id: volume.id,
+                    mount: volume.mount,
+                    capacity_bytes: volume.capacity_bytes,
+                    objects: volume
+                        .persisted
+                        .objects
+                        .into_iter()
+                        .map(|(inode, object)| (inode, observe_object(object)))
+                        .collect(),
+                    paths: volume.persisted.paths,
+                    owned: volume.persisted.owned,
+                    pending: volume.pending.into_iter().map(observe_operation).collect(),
+                    history: volume.history.into_iter().map(observe_operation).collect(),
+                    next_operation: volume.next_operation,
+                    last: volume.last,
+                })
+                .collect(),
+        }
+    }
+
     pub(crate) fn encode(
         fs: &Fs,
         model: &str,
@@ -629,6 +663,51 @@ impl<'a> Reader<'a> {
     }
 }
 
+#[cfg(not(feature = "conformance"))]
+fn observe_object(mut object: DiskObject) -> crate::linked_storage_inspection::RecoveryObject {
+    crate::linked_storage_inspection::RecoveryObject {
+        inode: object.inode,
+        kind: object.kind as u64,
+        mode: object.mode,
+        mod_time: object.mod_time,
+        data: std::mem::take(&mut *object.data),
+    }
+}
+
+#[cfg(not(feature = "conformance"))]
+fn observe_operation(
+    operation: PersistenceOperation,
+) -> crate::linked_storage_inspection::RecoveryOperation {
+    use crate::linked_storage_inspection::{RecoveryEffect, RecoveryNamespace, RecoveryOperation};
+    let effect = operation.effect;
+    RecoveryOperation {
+        id: operation.id,
+        kind: operation.kind,
+        dependencies: operation.deps,
+        stores: operation.stores,
+        effect: RecoveryEffect {
+            kind: effect.kind,
+            inode: effect.inode,
+            parent: effect.parent,
+            parents: effect.parents,
+            offset: effect.offset,
+            size: effect.size,
+            mode: effect.mode,
+            mod_time: effect.mod_time,
+            data: effect.data,
+            object: effect.object.map(observe_object),
+            namespace: effect
+                .namespace
+                .into_iter()
+                .map(|entry| RecoveryNamespace {
+                    path: entry.path,
+                    inode: entry.inode,
+                })
+                .collect(),
+        },
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -710,6 +789,694 @@ mod tests {
                 .is_err()
             );
         }
+    }
+
+    #[test]
+    #[cfg(not(feature = "conformance"))]
+    fn admitted_image_projection_retains_durable_objects_and_complete_effects() {
+        let model: crate::volume::StorageModel = serde_json::from_value(serde_json::json!({
+            "volumes":configs(),"limits":limits()
+        }))
+        .unwrap();
+        let input: crate::linked::StorageInput = serde_json::from_value(serde_json::json!({
+            "descriptor":{"model":model,"model_identity":model.identity(),"return_image":true}
+        }))
+        .unwrap();
+        let mut fs = Fs::new(0);
+        fs.configure_volumes(&configs(), limits(), 0).unwrap();
+        let inode = fs
+            .create("/workspace/retained", Kind::File, 0o640, 11)
+            .unwrap();
+        fs.write_at(inode, 0, b"durable", 12).unwrap();
+        fs.sync_node(inode).unwrap();
+        fs.write_at(inode, 2, b"pending", 13).unwrap();
+        fs.chmod("/workspace/retained", 0o600, 14).unwrap();
+        let occurrences = BTreeMap::from([("/workspace/retained\0write".into(), 3)]);
+        let raw = RecoveryImage::encode(&fs, &model.identity(), &occurrences, 8 << 20).unwrap();
+        let observed = crate::linked_storage_inspection::recovery_image(
+            &input,
+            &raw,
+            &image_digest(&raw),
+            8 << 20,
+        )
+        .unwrap();
+        assert_eq!(observed.identity(), image_digest(&raw));
+        assert_eq!(observed.model_identity(), model.identity());
+        assert_eq!(observed.next_inode(), fs.next_inode);
+        assert_eq!(observed.generation(), fs.generation);
+        assert_eq!(observed.occurrences(), &occurrences);
+        let volume = &observed.volumes()[0];
+        let source = &fs.volumes["data"];
+        assert_eq!(volume.id(), source.id);
+        assert_eq!(volume.mount(), source.mount);
+        assert_eq!(volume.capacity_bytes(), source.capacity_bytes);
+        assert_eq!(volume.paths(), &source.persisted.paths);
+        assert_eq!(volume.owned(), &source.persisted.owned);
+        assert_eq!(volume.last(), &source.last);
+        assert_eq!(volume.next_operation(), source.next_operation);
+        assert_eq!(volume.objects().len(), source.persisted.objects.len());
+        for (id, object) in volume.objects() {
+            let expected = &source.persisted.objects[id];
+            assert_eq!(
+                (
+                    object.inode(),
+                    object.kind(),
+                    object.mode(),
+                    object.mod_time(),
+                    object.data()
+                ),
+                (
+                    expected.inode,
+                    expected.kind as u64,
+                    expected.mode,
+                    expected.mod_time,
+                    expected.data.as_ref()
+                )
+            );
+        }
+        for (operations, expected) in [
+            (volume.pending(), &source.pending),
+            (volume.history(), &source.history),
+        ] {
+            assert_eq!(operations.len(), expected.len());
+            for (operation, expected) in operations.iter().zip(expected) {
+                assert_eq!(
+                    (
+                        operation.id(),
+                        operation.kind(),
+                        operation.dependencies(),
+                        operation.stores()
+                    ),
+                    (
+                        expected.id,
+                        expected.kind.as_str(),
+                        expected.deps.as_slice(),
+                        expected.stores.as_slice()
+                    )
+                );
+                let effect = operation.effect();
+                let expected = &expected.effect;
+                assert_eq!(
+                    (
+                        effect.kind(),
+                        effect.inode(),
+                        effect.parent(),
+                        effect.parents(),
+                        effect.offset(),
+                        effect.size()
+                    ),
+                    (
+                        expected.kind.as_str(),
+                        expected.inode,
+                        expected.parent,
+                        expected.parents.as_slice(),
+                        expected.offset,
+                        expected.size
+                    )
+                );
+                assert_eq!(
+                    (effect.mode(), effect.mod_time(), effect.data()),
+                    (expected.mode, expected.mod_time, expected.data.as_slice())
+                );
+                assert_eq!(
+                    effect.object().map(|object| (
+                        object.inode(),
+                        object.kind(),
+                        object.mode(),
+                        object.mod_time(),
+                        object.data()
+                    )),
+                    expected.object.as_ref().map(|object| (
+                        object.inode,
+                        object.kind as u64,
+                        object.mode,
+                        object.mod_time,
+                        object.data.as_ref()
+                    ))
+                );
+                assert_eq!(
+                    effect
+                        .namespace()
+                        .iter()
+                        .map(|entry| (entry.path(), entry.inode()))
+                        .collect::<Vec<_>>(),
+                    expected
+                        .namespace
+                        .iter()
+                        .map(|entry| (entry.path.as_str(), entry.inode))
+                        .collect::<Vec<_>>()
+                );
+            }
+        }
+        println!(
+            "GOMAD_CORE_OBSERVATION {}",
+            serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"storage.admitted-image-projection","inputs":{"storage":input,"image_base64":STANDARD.encode(&raw),"image_digest":image_digest(&raw)},"observed":{"identity":observed.identity(),"model_identity":observed.model_identity(),"volumes":observed.volumes().len(),"pending":volume.pending().len(),"history":volume.history().len()}})
+        );
+        let selection = BTreeMap::from([(
+            "data".to_string(),
+            volume
+                .pending()
+                .iter()
+                .map(|operation| operation.id())
+                .collect(),
+        )]);
+        fs.crash_volumes(&selection).unwrap();
+        let selected_raw =
+            RecoveryImage::encode(&fs, &model.identity(), &occurrences, 8 << 20).unwrap();
+        let selected = crate::linked_storage_inspection::recovery_image(
+            &input,
+            &selected_raw,
+            &image_digest(&selected_raw),
+            8 << 20,
+        )
+        .unwrap();
+        assert!(selected.volumes()[0].pending().is_empty());
+        assert_eq!(selected.volumes()[0].objects()[&inode].data(), b"dupending");
+        assert_eq!(selected.volumes()[0].objects()[&inode].mode(), 0o600);
+        if let Some(directory) = std::env::var_os("FN242_CORE_PROOF_DIRECTORY") {
+            let directory = std::path::PathBuf::from(directory);
+            std::fs::create_dir_all(&directory).unwrap();
+            std::fs::write(directory.join("effect-baseline-image.bin"), &raw).unwrap();
+            std::fs::write(directory.join("effect-selected-image.bin"), &selected_raw).unwrap();
+            std::fs::write(
+                directory.join("effect-input.json"),
+                serde_json::to_vec(&input).unwrap(),
+            )
+            .unwrap();
+        }
+        println!(
+            "GOMAD_CORE_OBSERVATION {}",
+            serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"storage.admitted-effects-selected-control","inputs":{"storage":input,"baseline_image_base64":STANDARD.encode(&raw),"baseline_image_digest":image_digest(&raw),"selected_image_base64":STANDARD.encode(&selected_raw),"selected_image_digest":image_digest(&selected_raw),"selection":selection},"observed":{"accepted":true,"pending":selected.volumes()[0].pending().len()}})
+        );
+        for (name, bytes, maximum) in [
+            ("trailing", [raw.as_slice(), &[0]].concat(), 8 << 20),
+            ("oversized", raw.clone(), raw.len() as u64 - 1),
+            ("malformed", vec![0; 56], 8 << 20),
+        ] {
+            let error = crate::linked_storage_inspection::recovery_image(
+                &input,
+                &bytes,
+                &image_digest(&bytes),
+                maximum,
+            )
+            .unwrap_err();
+            println!(
+                "GOMAD_CORE_OBSERVATION {}",
+                serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"storage.admitted-image-refusal","inputs":{"mutation":name,"storage":input,"image_base64":STANDARD.encode(&bytes),"image_digest":image_digest(&bytes),"maximum":maximum},"observed":{"error":error}})
+            );
+        }
+    }
+
+    #[test]
+    #[cfg(not(feature = "conformance"))]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "One table binds the production image decoder's semantic guards to genuine encoded controls and exact mutated bytes."
+    )]
+    fn admitted_image_semantic_guard_mutations_reach_common_decoder() {
+        let model: crate::volume::StorageModel = serde_json::from_value(serde_json::json!({
+            "volumes":configs(),"limits":limits()
+        }))
+        .unwrap();
+        let input: crate::linked::StorageInput = serde_json::from_value(serde_json::json!({
+            "descriptor":{"model":model,"model_identity":model.identity(),"return_image":true}
+        }))
+        .unwrap();
+        for (mutation, expected) in [
+            ("object-zero-inode", "recovery object state"),
+            ("object-mode-range", "recovery object mode"),
+            ("object-kind", "recovery object kind"),
+            ("directory-payload", "recovery object state"),
+            ("effect-mode-range", "recovery effect mode"),
+            ("object-presence", "recovery object presence"),
+            ("effect-kind-mismatch", "recovery persistence effect"),
+            ("effect-kind-unsupported", "recovery persistence effect"),
+            ("dependency-zero", "recovery operation dependencies"),
+            ("dependency-future", "recovery operation dependencies"),
+            ("dependency-order", "recovery state ordering"),
+            ("allocation-missing", "recovery persistence effect"),
+            ("allocation-inode", "recovery persistence effect"),
+            ("nonallocation-object", "recovery persistence effect"),
+            ("effect-size", "recovery persistence effect"),
+            ("effect-offset-overflow", "recovery persistence effect"),
+            ("effect-write-bound", "recovery persistence effect"),
+            ("namespace-root", "recovery persistence effect"),
+            ("namespace-relative", "recovery persistence effect"),
+            ("namespace-noncanonical", "recovery persistence effect"),
+            ("owned-missing-object", "recovery object ownership"),
+            ("durable-relative", "recovery durable tree"),
+            ("durable-noncanonical", "recovery durable tree"),
+            ("durable-missing-object", "recovery durable tree"),
+            ("durable-inode-alias", "recovery path inode alias"),
+            ("durable-root-missing", "recovery durable tree"),
+            ("durable-root-file", "recovery durable tree"),
+            ("history-id", "recovery operation history"),
+            ("pending-order", "recovery state ordering"),
+            ("pending-history-mismatch", "recovery pending operation"),
+            ("operation-counter", "recovery operation counter"),
+            ("last-store-value", "recovery pending operation stores"),
+            ("last-store-missing", "recovery pending operation stores"),
+            ("volume-id", "recovery volume configuration"),
+            ("volume-mount", "recovery volume configuration"),
+            ("volume-capacity", "recovery volume configuration"),
+            ("volume-inventory", "recovery volume configuration"),
+            ("occurrence-count", "recovery fault occurrence"),
+            ("occurrence-key", "recovery fault occurrence"),
+            ("occurrence-path", "recovery fault occurrence"),
+            ("occurrence-operation", "recovery fault occurrence"),
+        ] {
+            let mut fs = Fs::new(0);
+            fs.configure_volumes(&configs(), limits(), 0).unwrap();
+            let inode = fs
+                .create("/workspace/retained", Kind::File, 0o640, 11)
+                .unwrap();
+            fs.write_at(inode, 0, b"durable", 12).unwrap();
+            fs.sync_node(inode).unwrap();
+            let root = fs.lookup("/workspace").unwrap().inode;
+            fs.sync_node(root).unwrap();
+            fs.create("/workspace/pending", Kind::File, 0o600, 13)
+                .unwrap();
+            let mut occurrences = BTreeMap::from([("/workspace/retained\0write".into(), 3)]);
+            let original =
+                RecoveryImage::encode(&fs, &model.identity(), &occurrences, 8 << 20).unwrap();
+            crate::linked_storage_inspection::recovery_image(
+                &input,
+                &original,
+                &image_digest(&original),
+                8 << 20,
+            )
+            .unwrap();
+            let volume = fs.volumes.get_mut("data").unwrap();
+            match mutation {
+                "object-zero-inode" => volume.persisted.objects.get_mut(&root).unwrap().inode = 0,
+                "directory-payload" => {
+                    volume.persisted.objects.get_mut(&root).unwrap().data = vec![1].into()
+                }
+                "effect-kind-mismatch" => volume.history[0].effect.kind = "metadata".into(),
+                "effect-kind-unsupported" => {
+                    volume.history[0].kind = "unsupported".into();
+                    volume.history[0].effect.kind = "unsupported".into();
+                }
+                "dependency-zero" => volume.history[0].deps = vec![0],
+                "dependency-future" => volume.history[0].deps = vec![1],
+                "dependency-order" => {
+                    let last = volume.history.last_mut().unwrap();
+                    last.deps = vec![2, 1];
+                }
+                "allocation-missing" => volume.history[0].effect.object = None,
+                "allocation-inode" => volume.history[0].effect.object.as_mut().unwrap().inode += 1,
+                "nonallocation-object" => {
+                    let object = volume.history[0].effect.object.clone();
+                    volume.history[1].effect.object = object;
+                }
+                "effect-size" => volume.history[0].effect.size = (256 << 20) + 1,
+                "effect-offset-overflow" => {
+                    volume.history[0].effect.offset = u64::MAX;
+                    volume.history[0].effect.data = vec![1];
+                }
+                "effect-write-bound" => {
+                    volume.history[0].effect.offset = 256 << 20;
+                    volume.history[0].effect.data = vec![1];
+                }
+                "namespace-root" | "namespace-relative" | "namespace-noncanonical" => {
+                    volume.history[1].effect.namespace[0].path = match mutation {
+                        "namespace-root" => "/",
+                        "namespace-relative" => "relative",
+                        _ => "/a/../b",
+                    }
+                    .into();
+                }
+                "owned-missing-object" => {
+                    volume.persisted.owned.insert(u64::MAX);
+                }
+                "durable-relative"
+                | "durable-noncanonical"
+                | "durable-missing-object"
+                | "durable-inode-alias" => {
+                    let (path, id) = match mutation {
+                        "durable-relative" => ("relative", inode),
+                        "durable-noncanonical" => ("/a/../b", inode),
+                        "durable-missing-object" => ("/missing", u64::MAX),
+                        _ => ("/alias", root),
+                    };
+                    volume.persisted.paths.insert(path.into(), id);
+                }
+                "durable-root-missing" => {
+                    volume.persisted.paths.remove("/");
+                }
+                "durable-root-file" => {
+                    volume.persisted.objects.get_mut(&root).unwrap().kind = Kind::File
+                }
+                "history-id" => volume.history[0].id = 2,
+                "pending-order" => volume.pending.reverse(),
+                "pending-history-mismatch" => volume.pending[0].effect.mod_time += 1,
+                "operation-counter" => volume.next_operation += 1,
+                "last-store-value" => {
+                    *volume.last.values_mut().next().unwrap() += 1;
+                }
+                "last-store-missing" => volume.last.clear(),
+                "volume-id" => volume.id = "foreign".into(),
+                "volume-mount" => volume.mount = "/foreign".into(),
+                "volume-capacity" => volume.capacity_bytes += 1,
+                "volume-inventory" => fs.volumes.clear(),
+                "occurrence-count" => {
+                    *occurrences.values_mut().next().unwrap() = 0;
+                }
+                "occurrence-key" | "occurrence-path" | "occurrence-operation" => {
+                    occurrences.clear();
+                    occurrences.insert(
+                        match mutation {
+                            "occurrence-key" => "no-separator",
+                            "occurrence-path" => "/a/../b\0write",
+                            _ => "/workspace/retained\0unsupported",
+                        }
+                        .into(),
+                        1,
+                    );
+                }
+                "object-mode-range" | "object-kind" | "effect-mode-range" | "object-presence" => {}
+                _ => unreachable!("table mutation"),
+            }
+            let mut raw =
+                RecoveryImage::encode(&fs, &model.identity(), &occurrences, 8 << 20).unwrap();
+            if matches!(
+                mutation,
+                "object-mode-range" | "object-kind" | "effect-mode-range" | "object-presence"
+            ) {
+                patch_image_scalar(&mut raw, mutation);
+            }
+            let error = crate::linked_storage_inspection::recovery_image(
+                &input,
+                &raw,
+                &image_digest(&raw),
+                8 << 20,
+            )
+            .unwrap_err();
+            assert!(
+                error.contains(expected),
+                "{mutation}: expected {expected}: {error}"
+            );
+            println!(
+                "GOMAD_CORE_OBSERVATION {}",
+                serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"storage.admitted-image-semantic-guard","inputs":{"mutation":mutation,"storage":input,"control_image_base64":STANDARD.encode(&original),"control_image_digest":image_digest(&original),"image_base64":STANDARD.encode(&raw),"image_digest":image_digest(&raw),"maximum":8 << 20},"observed":{"error":error,"predicate":expected}})
+            );
+        }
+    }
+
+    #[cfg(not(feature = "conformance"))]
+    fn patch_image_scalar(raw: &mut [u8], mutation: &str) {
+        let mut frame = Reader::new(raw);
+        frame.take(16).unwrap();
+        for _ in 0..2 {
+            frame.small_number().unwrap();
+            frame.blob().unwrap();
+        }
+        frame.small_number().unwrap();
+        let state_start = frame.offset + 8;
+        let state = frame.blob().unwrap();
+        let mut reader = Reader::new(state);
+        reader.number().unwrap();
+        reader.number().unwrap();
+        reader.count().unwrap();
+        reader.text().unwrap();
+        reader.text().unwrap();
+        reader.number().unwrap();
+        let objects = reader.count().unwrap();
+        let first_object = reader.offset;
+        for _ in 0..objects {
+            reader.object().unwrap();
+        }
+        for _ in 0..reader.count().unwrap() {
+            reader.text().unwrap();
+            reader.number().unwrap();
+        }
+        reader.numbers().unwrap();
+        reader.count().unwrap();
+        reader.number().unwrap();
+        reader.text().unwrap();
+        reader.numbers().unwrap();
+        for _ in 0..reader.count().unwrap() {
+            reader.text().unwrap();
+        }
+        reader.text().unwrap();
+        reader.number().unwrap();
+        reader.number().unwrap();
+        reader.numbers().unwrap();
+        reader.number().unwrap();
+        reader.number().unwrap();
+        let effect_mode = reader.offset;
+        reader.number().unwrap();
+        reader.number().unwrap();
+        reader.blob().unwrap();
+        let object_presence = reader.offset;
+        let (offset, value) = match mutation {
+            "object-mode-range" => (first_object + 8, u64::MAX),
+            "object-kind" => (first_object + 16, 3),
+            "effect-mode-range" => (effect_mode, u64::MAX),
+            "object-presence" => (object_presence, 2),
+            _ => unreachable!("scalar mutation"),
+        };
+        raw[state_start + offset..state_start + offset + 8].copy_from_slice(&value.to_le_bytes());
+    }
+
+    #[test]
+    #[cfg(not(feature = "conformance"))]
+    fn admitted_image_ordering_and_framing_mutations_reach_common_decoder() {
+        let mut configuration = configs();
+        configuration.insert(
+            0,
+            VolumeConfig {
+                id: "data2".into(),
+                mount: "/other".into(),
+                capacity_bytes: 1 << 20,
+            },
+        );
+        let model: crate::volume::StorageModel = serde_json::from_value(serde_json::json!({
+            "volumes":configuration,"limits":limits()
+        }))
+        .unwrap();
+        let input: crate::linked::StorageInput = serde_json::from_value(serde_json::json!({
+            "descriptor":{"model":model,"model_identity":model.identity(),"return_image":true}
+        }))
+        .unwrap();
+        let mut fs = Fs::new(0);
+        fs.configure_volumes(&configuration, limits(), 0).unwrap();
+        let inode = fs
+            .create("/workspace/retained", Kind::File, 0o640, 11)
+            .unwrap();
+        fs.write_at(inode, 0, b"durable", 12).unwrap();
+        fs.sync_node(inode).unwrap();
+        let root = fs.lookup("/workspace").unwrap().inode;
+        fs.sync_node(root).unwrap();
+        fs.create("/workspace/pending", Kind::File, 0o600, 13)
+            .unwrap();
+        fs.volumes
+            .get_mut("data")
+            .unwrap()
+            .persisted
+            .owned
+            .extend([root, inode]);
+        let original =
+            RecoveryImage::encode(&fs, &model.identity(), &BTreeMap::new(), 8 << 20).unwrap();
+        crate::linked_storage_inspection::recovery_image(
+            &input,
+            &original,
+            &image_digest(&original),
+            8 << 20,
+        )
+        .unwrap();
+        let mut frame = Reader::new(&original);
+        frame.take(16).unwrap();
+        let mut sections = Vec::new();
+        for _ in 0..3 {
+            frame.small_number().unwrap();
+            sections.push(frame.blob().unwrap().to_vec());
+        }
+        let mut reader = Reader::new(&sections[2]);
+        reader.number().unwrap();
+        reader.number().unwrap();
+        reader.count().unwrap();
+        let first_id = reader.offset + 8;
+        reader.text().unwrap();
+        reader.text().unwrap();
+        reader.number().unwrap();
+        let count = reader.count().unwrap();
+        let mut object_offsets = Vec::new();
+        for _ in 0..count {
+            object_offsets.push(reader.offset);
+            reader.object().unwrap();
+        }
+        let count = reader.count().unwrap();
+        let mut path_offsets = Vec::new();
+        for _ in 0..count {
+            path_offsets.push(reader.offset + 8);
+            reader.text().unwrap();
+            reader.number().unwrap();
+        }
+        let owned = reader.offset + 8;
+        assert!(reader.numbers().unwrap().len() >= 2);
+        let pending_count = reader.offset;
+        reader.operations().unwrap();
+        reader.operations().unwrap();
+        reader.number().unwrap();
+        let count = reader.count().unwrap();
+        let mut last_offsets = Vec::new();
+        let mut last_keys = Vec::new();
+        for _ in 0..count {
+            last_offsets.push(reader.offset + 8);
+            last_keys.push(reader.text().unwrap());
+            reader.number().unwrap();
+        }
+        let second_id = reader.offset + 8;
+        assert!(object_offsets.len() >= 2 && path_offsets.len() >= 2 && last_offsets.len() >= 2);
+        for (mutation, expected) in [
+            ("text-utf8", "recovery image UTF-8"),
+            ("state-count-bound", "truncated recovery image"),
+            ("operation-count-bound", "truncated recovery image"),
+            ("model-inner-finish", "recovery image trailing bytes"),
+            ("occurrence-inner-finish", "recovery image trailing bytes"),
+            ("state-inner-finish", "recovery image trailing bytes"),
+            ("generation-zero", "recovery filesystem counters"),
+            ("object-order", "recovery state ordering"),
+            ("owned-order", "recovery state ordering"),
+            ("path-order", "recovery state ordering"),
+            ("volume-order", "recovery state ordering"),
+            ("last-map-order", "recovery state ordering"),
+            ("path-duplicate", "recovery state ordering"),
+            ("volume-duplicate", "recovery state ordering"),
+            ("last-map-duplicate", "recovery state ordering"),
+        ] {
+            let mut parts = sections.clone();
+            match mutation {
+                "text-utf8" => parts[2][first_id] = 0xff,
+                "state-count-bound" => parts[2][16..24].copy_from_slice(&u64::MAX.to_le_bytes()),
+                "operation-count-bound" => parts[2][pending_count..pending_count + 8]
+                    .copy_from_slice(&u64::MAX.to_le_bytes()),
+                "model-inner-finish" => parts[0].push(0),
+                "occurrence-inner-finish" => parts[1].push(0),
+                "state-inner-finish" => parts[2].push(0),
+                "generation-zero" => parts[2][8..16].copy_from_slice(&0u64.to_le_bytes()),
+                "object-order" => parts[2][object_offsets[1]..object_offsets[1] + 8]
+                    .copy_from_slice(&root.to_le_bytes()),
+                "owned-order" => {
+                    parts[2][owned + 8..owned + 16].copy_from_slice(&root.to_le_bytes())
+                }
+                "path-order" => parts[2][path_offsets[1]] = b'!',
+                "volume-order" => parts[2][second_id] = b'a',
+                "last-map-order" => parts[2][last_offsets[1]] = 0,
+                "path-duplicate" | "volume-duplicate" | "last-map-duplicate" => {
+                    let (offset, replacement) = match mutation {
+                        "path-duplicate" => (path_offsets[1], "/"),
+                        "volume-duplicate" => (second_id, "data"),
+                        _ => (last_offsets[1], last_keys[0].as_str()),
+                    };
+                    let length = usize::try_from(u64::from_le_bytes(
+                        parts[2][offset - 8..offset].try_into().unwrap(),
+                    ))
+                    .unwrap();
+                    let mut field = (replacement.len() as u64).to_le_bytes().to_vec();
+                    field.extend_from_slice(replacement.as_bytes());
+                    parts[2].splice(offset - 8..offset + length, field);
+                }
+                _ => unreachable!("table mutation"),
+            }
+            let mut writer = Writer::new(8 << 20);
+            writer.raw(b"GMVOLIMG").unwrap();
+            writer.raw(&1u32.to_le_bytes()).unwrap();
+            writer.raw(&3u32.to_le_bytes()).unwrap();
+            for (tag, section) in parts.iter().enumerate() {
+                writer
+                    .raw(&(u32::try_from(tag).unwrap() + 1).to_le_bytes())
+                    .unwrap();
+                writer.blob(section).unwrap();
+            }
+            let raw = writer.data;
+            let error = crate::linked_storage_inspection::recovery_image(
+                &input,
+                &raw,
+                &image_digest(&raw),
+                8 << 20,
+            )
+            .unwrap_err();
+            assert!(
+                error.contains(expected),
+                "{mutation}: expected {expected}: {error}"
+            );
+            println!(
+                "GOMAD_CORE_OBSERVATION {}",
+                serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"storage.admitted-image-framing-guard","inputs":{"mutation":mutation,"storage":input,"control_image_base64":STANDARD.encode(&original),"control_image_digest":image_digest(&original),"image_base64":STANDARD.encode(&raw),"image_digest":image_digest(&raw),"maximum":8 << 20},"observed":{"error":error,"predicate":expected}})
+            );
+        }
+    }
+
+    #[test]
+    #[cfg(not(feature = "conformance"))]
+    fn admitted_image_preserves_genuine_partial_durability_above_volatile_capacity() {
+        let configuration = vec![VolumeConfig {
+            id: "data".into(),
+            mount: "/workspace".into(),
+            capacity_bytes: 8,
+        }];
+        let model: crate::volume::StorageModel = serde_json::from_value(serde_json::json!({
+            "volumes":configuration,"limits":limits()
+        }))
+        .unwrap();
+        let input: crate::linked::StorageInput = serde_json::from_value(serde_json::json!({
+            "descriptor":{"model":model,"model_identity":model.identity(),"return_image":true}
+        }))
+        .unwrap();
+        let mut fs = Fs::new(0);
+        fs.configure_volumes(&configuration, limits(), 0).unwrap();
+        let root = fs.lookup("/workspace").unwrap().inode;
+        let old = fs.create("/workspace/old", Kind::File, 0o600, 1).unwrap();
+        fs.write_at(old, 0, b"old-data", 2).unwrap();
+        fs.sync_node(old).unwrap();
+        fs.sync_node(root).unwrap();
+        fs.resize(old, 0, 3).unwrap();
+        let new = fs.create("/workspace/new", Kind::File, 0o600, 4).unwrap();
+        fs.write_at(new, 0, b"new-data", 5).unwrap();
+        fs.sync_node(new).unwrap();
+        fs.sync_node(root).unwrap();
+        let raw = RecoveryImage::encode(&fs, &model.identity(), &BTreeMap::new(), 8 << 20).unwrap();
+        let observed = crate::linked_storage_inspection::recovery_image(
+            &input,
+            &raw,
+            &image_digest(&raw),
+            8 << 20,
+        )
+        .unwrap();
+        let volume = &observed.volumes()[0];
+        let durable_bytes: usize = volume
+            .objects()
+            .values()
+            .map(|object| object.data().len())
+            .sum();
+        assert_eq!(durable_bytes, 16);
+        assert_eq!(volume.capacity_bytes(), 8);
+        assert_eq!(volume.paths()["/old"], old);
+        assert_eq!(volume.paths()["/new"], new);
+        assert!(
+            volume
+                .objects()
+                .values()
+                .all(|object| object.inode() < observed.next_inode())
+        );
+        assert_eq!(fs.lookup("/workspace/old").unwrap().data.len(), 0);
+        assert_eq!(fs.lookup("/workspace/new").unwrap().data.len(), 8);
+        if let Some(directory) = std::env::var_os("FN242_CORE_PROOF_DIRECTORY") {
+            let directory = std::path::PathBuf::from(directory);
+            std::fs::create_dir_all(&directory).unwrap();
+            std::fs::write(directory.join("over-capacity-image.bin"), &raw).unwrap();
+            std::fs::write(
+                directory.join("over-capacity-input.json"),
+                serde_json::to_vec(&input).unwrap(),
+            )
+            .unwrap();
+        }
+        println!(
+            "GOMAD_CORE_OBSERVATION {}",
+            serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"storage.admitted-partial-durability-capacity","inputs":{"storage":input,"image_base64":STANDARD.encode(&raw),"image_digest":image_digest(&raw),"maximum":8 << 20},"observed":{"durable_bytes":durable_bytes,"capacity":volume.capacity_bytes(),"next_inode":observed.next_inode(),"accepted":true}})
+        );
     }
 
     fn configs() -> Vec<VolumeConfig> {

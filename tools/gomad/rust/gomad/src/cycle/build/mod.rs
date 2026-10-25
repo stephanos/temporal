@@ -291,10 +291,6 @@ impl DryRun {
     pub fn enabled(&self) -> bool {
         self.enabled
     }
-    #[expect(
-        clippy::too_many_lines,
-        reason = "One transaction retains all parsed input pins until final source and byte revalidation"
-    )]
     pub fn read_record(
         &self,
         path: &Path,
@@ -308,218 +304,15 @@ impl DryRun {
             self.enabled(),
             "dry-run build record outside a dry-run configuration",
         )?;
-        let record_bytes = read_file(path, JSON_BOUND)?;
-        let record = strict_json(&record_bytes)?;
-        let mut retained = BTreeMap::from([(path.to_owned(), digest(&record_bytes))]);
-        let role = record
-            .get("role")
-            .and_then(Value::as_str)
-            .and_then(|v| Role::parse(v).ok());
-        require(
-            record["schema"] == SCHEMA
-                && role.is_some()
-                && expected_role.is_none_or(|v| record["role"] == v),
-            "foreign dry-run build role",
-        )?;
-        let role = role.ok_or("foreign dry-run build role")?;
-        let binary = PathBuf::from(text(&record, "binary")?);
-        let binary_digest = digest(&read_file(&binary, FILE_BOUND)?);
-        retained.insert(binary.clone(), binary_digest.clone());
-        require(
-            binary_digest == record["binary_sha256"],
-            "dry-run binary changed after its build",
-        )?;
-        require(
-            record["features"] == json!(role.features())
-                && record["helper_features"] == json!(role.helper_features()),
-            "dry-run compiled role features differ",
-        )?;
-        let cargo = path
-            .parent()
-            .ok_or("build record parent missing")?
-            .join("cargo.stdout");
-        let cargo_bytes = read_file(&cargo, JSON_BOUND)?;
-        retained.insert(cargo, digest(&cargo_bytes));
-        let frames = frames(&cargo_bytes)?;
-        let finished: Vec<_> = frames
-            .iter()
-            .filter(|v| v["reason"] == "build-finished")
-            .collect();
-        require(
-            finished.len() == 1
-                && finished[0]["success"] == true
-                && frames.last() == Some(finished[0]),
-            "dry-run Cargo build did not complete",
-        )?;
-        let empty = Value::Null;
-        let candidate = frozen.or(self.config.as_ref()).unwrap_or(&empty);
-        let repo = candidate
-            .get("repo")
-            .and_then(Value::as_str)
-            .map_or_else(default_repo, |v| Ok(PathBuf::from(v)))?;
-        let mut helpers = Vec::new();
-        for row in &frames {
-            let env = env_pairs(row)?;
-            if env
-                .get("GOMAD_LINKED_IMPLEMENTATION_SHA256")
-                .is_some_and(|v| record["helper_sha256"] == *v)
-            {
-                helpers.push(row);
-            }
-        }
-        require(
-            helpers.len() == 1 && package(helpers[0], &repo, true),
-            "dry-run linked build identity missing or ambiguous",
-        )?;
-        let out = PathBuf::from(text(helpers[0], "out_dir")?);
-        let compiler = out.join("identity-compiler.txt");
-        let bindings = out.join("identity-bindings.tsv");
-        let compiler_text =
-            String::from_utf8(read_file(&compiler, JSON_BOUND)?).map_err(|e| e.to_string())?;
-        let binding_text =
-            String::from_utf8(read_file(&bindings, JSON_BOUND)?).map_err(|e| e.to_string())?;
-        let mut observed = BTreeMap::new();
-        let mut unique = true;
-        for line in binding_text.lines() {
-            if let Some((key, value)) = line.split_once('\t') {
-                unique &= observed.insert(key.to_owned(), value.to_owned()).is_none();
-            } else {
-                unique = false;
-            }
-        }
-        retained.insert(compiler, digest(compiler_text.as_bytes()));
-        retained.insert(bindings, digest(binding_text.as_bytes()));
-        let target = observed.get("TARGET").cloned().unwrap_or_default();
-        require(
-            unique
-                && !target.is_empty()
-                && observed == feature_bindings(&role.helper_features(), &target)
-                && compiler_text.starts_with("rustc 1.99.1 "),
-            "dry-run compiler/feature context differs",
-        )?;
-        let artifacts = selected(&frames, role, &repo);
-        require(
-            artifacts.len() == 1 && {
-                let row = artifacts[0];
-                let mut got: Vec<_> = row["features"]
-                    .as_array()
-                    .map(|a| a.iter().filter_map(Value::as_str).collect())
-                    .unwrap_or_default();
-                got.sort_unstable();
-                let mut want = role.features();
-                want.sort_unstable();
-                row["features"]
-                    .as_array()
-                    .is_some_and(|v| v.iter().all(Value::is_string))
-                    && got == want
-                    && row["profile"]["opt_level"] == "3"
-                    && row["profile"]["debug_assertions"] == false
-                    && row["profile"]["test"] == role.libtest()
-            },
-            "dry-run Cargo artifact role differs",
-        )?;
-        let artifact = PathBuf::from(text(artifacts[0], "executable")?);
-        super::custody::clean_absolute(&artifact)?;
-        require(
-            binary
-                == path
-                    .parent()
-                    .ok_or("build record parent missing")?
-                    .join(role.binary_name())
-                && record["cargo_artifact"]
-                    == json!({"executable":artifact,"sha256":binary_digest}),
-            "dry-run published binary differs from actual Cargo artifact",
-        )?;
-        let snapshot = Snapshot::observe(&repo, runner, cancelled, context)?;
-        let (identity, runtime) = identities(&repo, &snapshot, role, &compiler_text, &target)?;
-        require(
-            record["host_sha256"] == identity["host"]
-                && record["helper_sha256"] == identity["helper"]
-                && record["runtime_implementation_sha256"] == runtime,
-            "dry-run compiled implementation differs from current source/features",
-        )?;
-        if !role.helper() {
-            let hosts = frames
-                .iter()
-                .map(|row| Ok((package(row, &repo, false), env_pairs(row)?)))
-                .collect::<Result<Vec<_>, String>>()?
-                .into_iter()
-                .filter_map(|(own, env)| {
-                    env.contains_key("GOMAD_HOST_IMPLEMENTATION_SHA256")
-                        .then_some((own, env))
-                })
-                .collect::<Vec<_>>();
-            require(
-                hosts.len() == 1
-                    && hosts[0].0
-                    && hosts[0]
-                        .1
-                        .get("GOMAD_HOST_IMPLEMENTATION_SHA256")
-                        .is_some_and(|v| identity["host"] == *v)
-                    && hosts[0]
-                        .1
-                        .get("GOMAD_RUNTIME_IMPLEMENTATION_SHA256")
-                        .is_some_and(|v| runtime == *v),
-                "dry-run host build identity differs",
-            )?;
-        }
-        let mut inputs = snapshot.files.clone();
-        for (name, sha) in &retained {
-            inputs.insert(name.display().to_string(), sha.clone());
-        }
-        let source = source_digest(&snapshot);
-        if !candidate.is_null() {
-            require(
-                candidate["source_sha256"] == source
-                    && candidate["head"] == snapshot.head
-                    && candidate["symlinks"] == json!(snapshot.symlinks),
-                "dry-run source custody differs from current candidate",
-            )?;
-            if role.helper_features().is_empty() {
-                require(
-                    candidate["identity"]["helper"] == record["helper_sha256"],
-                    "dry-run helper differs from the candidate helper",
-                )?;
-            }
-            if matches!(
-                role.0,
-                "release"
-                    | "runtime-harness"
-                    | "fn222-support"
-                    | "interception-harness"
-                    | "ordinary-host-test"
-            ) {
-                require(
-                    candidate["identity"]["host"] == record["host_sha256"],
-                    "dry-run host differs from the candidate host",
-                )?;
-            }
-            if frozen.is_some() {
-                require(
-                    inputs
-                        .iter()
-                        .all(|(name, sha)| candidate["files"][name] == *sha),
-                    "dry-run build custody is incompletely sealed",
-                )?;
-                if role.0 == "release" {
-                    require(
-                        candidate["binary"] == record["binary"]
-                            && candidate["binary_sha256"] == record["binary_sha256"],
-                        "dry-run release differs from the admitted candidate",
-                    )?;
-                }
-            }
-        }
-        snapshot.verify(&repo, runner, cancelled, context)?;
-        for (path, sha) in retained {
-            require(
-                digest(&read_file(&path, FILE_BOUND)?) == sha,
-                "dry-run build inputs changed during authentication",
-            )?;
-        }
-        let mut receipt = record;
-        for (key,value) in json!({"exit":0,"profile":"release","inputs":inputs,"root":path.parent(),"source_sha256":source,"head":snapshot.head,"symlinks":snapshot.symlinks,"tools_plan":null,"gnu_plan":null,"context":{"compiler_utf8":compiler_text,"bindings":{"PROFILE":"release","TARGET":target}}}).as_object().ok_or("invalid receipt fields")?{receipt[key]=value.clone();}
-        Ok(receipt)
+        read_record_inner(
+            path,
+            frozen,
+            self.config.as_ref(),
+            expected_role,
+            runner,
+            cancelled,
+            context,
+        )
     }
     #[expect(
         clippy::too_many_arguments,
@@ -756,8 +549,251 @@ fn feature_bindings(features: &[&str], target: &str) -> BTreeMap<String, String>
     values
 }
 mod identity;
+pub(crate) use identity::helper_identity;
 use identity::identities;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]
 pub(crate) use tests::run_cases;
+
+pub(crate) fn read_record(
+    path: &Path,
+    frozen: Option<&Value>,
+    expected_role: Option<&str>,
+    runner: &mut Runner,
+    cancelled: &AtomicBool,
+    context: &str,
+) -> Result<Value, String> {
+    read_record_inner(
+        path,
+        frozen,
+        None,
+        expected_role,
+        runner,
+        cancelled,
+        context,
+    )
+}
+#[expect(
+    clippy::too_many_lines,
+    reason = "One transaction retains all parsed input pins until final source and byte revalidation"
+)]
+fn read_record_inner(
+    path: &Path,
+    frozen: Option<&Value>,
+    fallback: Option<&Value>,
+    expected_role: Option<&str>,
+    runner: &mut Runner,
+    cancelled: &AtomicBool,
+    context: &str,
+) -> Result<Value, String> {
+    let record_bytes = read_file(path, JSON_BOUND)?;
+    let record = strict_json(&record_bytes)?;
+    let mut retained = BTreeMap::from([(path.to_owned(), digest(&record_bytes))]);
+    let role = record
+        .get("role")
+        .and_then(Value::as_str)
+        .and_then(|v| Role::parse(v).ok());
+    require(
+        record["schema"] == SCHEMA
+            && role.is_some()
+            && expected_role.is_none_or(|v| record["role"] == v),
+        "foreign dry-run build role",
+    )?;
+    let role = role.ok_or("foreign dry-run build role")?;
+    let binary = PathBuf::from(text(&record, "binary")?);
+    let binary_digest = digest(&read_file(&binary, FILE_BOUND)?);
+    retained.insert(binary.clone(), binary_digest.clone());
+    require(
+        binary_digest == record["binary_sha256"],
+        "dry-run binary changed after its build",
+    )?;
+    require(
+        record["features"] == json!(role.features())
+            && record["helper_features"] == json!(role.helper_features()),
+        "dry-run compiled role features differ",
+    )?;
+    let cargo = path
+        .parent()
+        .ok_or("build record parent missing")?
+        .join("cargo.stdout");
+    let cargo_bytes = read_file(&cargo, JSON_BOUND)?;
+    retained.insert(cargo, digest(&cargo_bytes));
+    let frames = frames(&cargo_bytes)?;
+    let finished: Vec<_> = frames
+        .iter()
+        .filter(|v| v["reason"] == "build-finished")
+        .collect();
+    require(
+        finished.len() == 1 && finished[0]["success"] == true && frames.last() == Some(finished[0]),
+        "dry-run Cargo build did not complete",
+    )?;
+    let empty = Value::Null;
+    let candidate = frozen.or(fallback).unwrap_or(&empty);
+    let repo = candidate
+        .get("repo")
+        .and_then(Value::as_str)
+        .map_or_else(default_repo, |v| Ok(PathBuf::from(v)))?;
+    let mut helpers = Vec::new();
+    for row in &frames {
+        let env = env_pairs(row)?;
+        if env
+            .get("GOMAD_LINKED_IMPLEMENTATION_SHA256")
+            .is_some_and(|v| record["helper_sha256"] == *v)
+        {
+            helpers.push(row);
+        }
+    }
+    require(
+        helpers.len() == 1 && package(helpers[0], &repo, true),
+        "dry-run linked build identity missing or ambiguous",
+    )?;
+    let out = PathBuf::from(text(helpers[0], "out_dir")?);
+    let compiler = out.join("identity-compiler.txt");
+    let bindings = out.join("identity-bindings.tsv");
+    let compiler_text =
+        String::from_utf8(read_file(&compiler, JSON_BOUND)?).map_err(|e| e.to_string())?;
+    let binding_text =
+        String::from_utf8(read_file(&bindings, JSON_BOUND)?).map_err(|e| e.to_string())?;
+    let mut observed = BTreeMap::new();
+    let mut unique = true;
+    for line in binding_text.lines() {
+        if let Some((key, value)) = line.split_once('\t') {
+            unique &= observed.insert(key.to_owned(), value.to_owned()).is_none();
+        } else {
+            unique = false;
+        }
+    }
+    retained.insert(compiler, digest(compiler_text.as_bytes()));
+    retained.insert(bindings, digest(binding_text.as_bytes()));
+    let target = observed.get("TARGET").cloned().unwrap_or_default();
+    require(
+        unique
+            && !target.is_empty()
+            && observed == feature_bindings(&role.helper_features(), &target)
+            && compiler_text.starts_with("rustc 1.99.1 "),
+        "dry-run compiler/feature context differs",
+    )?;
+    let artifacts = selected(&frames, role, &repo);
+    require(
+        artifacts.len() == 1 && {
+            let row = artifacts[0];
+            let mut got: Vec<_> = row["features"]
+                .as_array()
+                .map(|a| a.iter().filter_map(Value::as_str).collect())
+                .unwrap_or_default();
+            got.sort_unstable();
+            let mut want = role.features();
+            want.sort_unstable();
+            row["features"]
+                .as_array()
+                .is_some_and(|v| v.iter().all(Value::is_string))
+                && got == want
+                && row["profile"]["opt_level"] == "3"
+                && row["profile"]["debug_assertions"] == false
+                && row["profile"]["test"] == role.libtest()
+        },
+        "dry-run Cargo artifact role differs",
+    )?;
+    let artifact = PathBuf::from(text(artifacts[0], "executable")?);
+    super::custody::clean_absolute(&artifact)?;
+    require(
+        binary
+            == path
+                .parent()
+                .ok_or("build record parent missing")?
+                .join(role.binary_name())
+            && record["cargo_artifact"] == json!({"executable":artifact,"sha256":binary_digest}),
+        "dry-run published binary differs from actual Cargo artifact",
+    )?;
+    let snapshot = Snapshot::observe(&repo, runner, cancelled, context)?;
+    let (identity, runtime) = identities(&repo, &snapshot, role, &compiler_text, &target)?;
+    require(
+        record["host_sha256"] == identity["host"]
+            && record["helper_sha256"] == identity["helper"]
+            && record["runtime_implementation_sha256"] == runtime,
+        "dry-run compiled implementation differs from current source/features",
+    )?;
+    if !role.helper() {
+        let hosts = frames
+            .iter()
+            .map(|row| Ok((package(row, &repo, false), env_pairs(row)?)))
+            .collect::<Result<Vec<_>, String>>()?
+            .into_iter()
+            .filter_map(|(own, env)| {
+                env.contains_key("GOMAD_HOST_IMPLEMENTATION_SHA256")
+                    .then_some((own, env))
+            })
+            .collect::<Vec<_>>();
+        require(
+            hosts.len() == 1
+                && hosts[0].0
+                && hosts[0]
+                    .1
+                    .get("GOMAD_HOST_IMPLEMENTATION_SHA256")
+                    .is_some_and(|v| identity["host"] == *v)
+                && hosts[0]
+                    .1
+                    .get("GOMAD_RUNTIME_IMPLEMENTATION_SHA256")
+                    .is_some_and(|v| runtime == *v),
+            "dry-run host build identity differs",
+        )?;
+    }
+    let mut inputs = snapshot.files.clone();
+    for (name, sha) in &retained {
+        inputs.insert(name.display().to_string(), sha.clone());
+    }
+    let source = source_digest(&snapshot);
+    if !candidate.is_null() {
+        require(
+            candidate["source_sha256"] == source
+                && candidate["head"] == snapshot.head
+                && candidate["symlinks"] == json!(snapshot.symlinks),
+            "dry-run source custody differs from current candidate",
+        )?;
+        if role.helper_features().is_empty() {
+            require(
+                candidate["identity"]["helper"] == record["helper_sha256"],
+                "dry-run helper differs from the candidate helper",
+            )?;
+        }
+        if matches!(
+            role.0,
+            "release"
+                | "runtime-harness"
+                | "fn222-support"
+                | "interception-harness"
+                | "ordinary-host-test"
+        ) {
+            require(
+                candidate["identity"]["host"] == record["host_sha256"],
+                "dry-run host differs from the candidate host",
+            )?;
+        }
+        if frozen.is_some() {
+            require(
+                inputs
+                    .iter()
+                    .all(|(name, sha)| candidate["files"][name] == *sha),
+                "dry-run build custody is incompletely sealed",
+            )?;
+            if role.0 == "release" {
+                require(
+                    candidate["binary"] == record["binary"]
+                        && candidate["binary_sha256"] == record["binary_sha256"],
+                    "dry-run release differs from the admitted candidate",
+                )?;
+            }
+        }
+    }
+    snapshot.verify(&repo, runner, cancelled, context)?;
+    for (path, sha) in retained {
+        require(
+            digest(&read_file(&path, FILE_BOUND)?) == sha,
+            "dry-run build inputs changed during authentication",
+        )?;
+    }
+    let mut receipt = record;
+    for (key,value) in json!({"exit":0,"profile":"release","inputs":inputs,"root":path.parent(),"source_sha256":source,"head":snapshot.head,"symlinks":snapshot.symlinks,"tools_plan":null,"gnu_plan":null,"context":{"compiler_utf8":compiler_text,"bindings":{"PROFILE":"release","TARGET":target}}}).as_object().ok_or("invalid receipt fields")?{receipt[key]=value.clone();}
+    Ok(receipt)
+}
