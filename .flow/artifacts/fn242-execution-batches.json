@@ -11607,9 +11607,9 @@
     "current_allocation": {
       "B03": 1,
       "B04": 1,
+      "B07": 1,
       "B08": 1,
       "B09": 1,
-      "B11": 1,
       "B09/module-cache-helper": 1
     },
     "risk_followthrough_2026_10_24": {
@@ -11625,11 +11625,12 @@
         "B03": "process/mod.rs readonly Runner::private_context accessor; preserve strict context guard.",
         "B05": "Visibility only replay/inspection.rs search_admission and wasmhost linked_inspection.rs validate; additive coordination with B06.",
         "B08": "Single-parser build/mod.rs sealed read-only record reader; command/private_inputs.rs admission and exact command/mod.rs map/resolver hooks coordinated B04; preparation/inputs/inventory.rs single resolver translates admitted private roots while preserving raw keys and validating bytes/existence/listings/generated cache separately; replay.rs retain_observed current backend_publication and exact campaign/execution.rs caller plumbing. Exact readers/command/preparation.rs verifier callsite routes through single Inventory private resolver; wasmhost model/inspection.rs shared diagnostic96/terminal16 typed views factor existing Witness prefix without acceptance changes, exact model/imports.rs RuntimeFinish and campaign/execution.rs consumers. Derived postfreeze role authority design must retain one validator and authenticate generated outputs through actual canonical command; no caller hash augmentation.",
-        "B09": "Use existing tar/extract and measurement executable publication for authenticated private copies; shared B08 admission, no second tree copier or cache verifier. Exact preparation/inputs/module_cache.rs shared current ZIP/extracted cache and go.mod h1 verifier binds candidate frozen go.sum, inputs/mod.rs module/reexport only. One delegated writer lane, leader sole committer, dependency pin separately checked; no integrity waiver.",
+        "B09": "Use existing tar/extract and measurement executable publication for authenticated private copies; shared B08 admission, no second tree copier or cache verifier. Exact preparation/inputs/module_cache.rs shared current ZIP/extracted cache and go.mod h1 verifier binds candidate frozen go.sum, inputs/mod.rs module/reexport only. One delegated writer lane, leader sole committer, dependency pin separately checked; no integrity waiver. Approved workspace zip=9.1.0 default-features=false features=[deflate-flate2-zlib-rs], gomad workspace import only; primary published Cargo.toml independently checked Rust1.88 and exact backend feature.",
         "B10": "primary/preparation.rs session-preserving wrappers delegate one existing capture body. B11 released writer lane reassigned to B10."
       },
       "deferred_proof": "B13 must supply actual module-cache integrity authority; B09 source may depend on it provisionally, no integrity waiver.",
       "role_fixture": "B11 selected current roles use existing DryRun/build, compose, authenticate, freeze/open APIs; no second builder or stale donor sourcepins."
-    }
+    },
+    "shared_target_provenance": "Before crediting a cross-worktree target run, verify actual emitted executable, correct package/worktree manifest provenance and nonzero named test selection. Cargo relative dep paths/mtime reused B04 libtest in B06 and selected0: no proof. On foreign provenance, preserve copied evidence and rebuild only gomad/gomad-wasmhost packages under exclusive lease; no blanket cache wipe or live-command restart."
   }
 }
