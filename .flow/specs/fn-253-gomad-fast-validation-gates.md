@@ -44,6 +44,15 @@ Owner, 2026-10-25: "one of the most important things is the validation gates; an
 
 ### Implementation clarification — 2026-10-25
 
+Owner validation-cadence amendment, 2026-10-25: defer broad validation to the end
+of the spec. During a task, run the gates that task changes and focused checks
+for its affected behavior; source checkpoints do not require the full matrix or
+unrelated suites. Run the complete required acceptance on the integrated spec
+candidate before closure, sharing builds and unchanged evidence across tasks.
+Checks not yet run remain pending, and later changes invalidate only the evidence
+they affect. This changes scheduling, not acceptance scope, and does not resume
+owner-parked fn-242 work or authorize a qualification launch.
+
 The existing host and engine deliberately reject incompatible feature combinations with `compile_error!`; literal `clippy --all-features` cannot be a passing gate. R1 therefore uses the complete existing supported feature matrix (9 host modes and 7 engine modes), with `--all-targets -D warnings`, shared by the fast and pre-merge entrypoints from one authoritative Rust table. One lint phase may require one Cargo invocation per valid mode. Invalid-feature guards stay intact; selecting only the default or a convenient combined mode does not satisfy R1.
 
 Golden coverage includes the valid engine `reference-helper` mode required by the existing engine, cluster, helper-corpus and replay-preflight integration targets. Default and reference-helper test discovery are compared separately; doctests run separately from nextest. Timing is recorded honestly under the existing quiet-host deferral, without dropping feature or test coverage to reach the target.

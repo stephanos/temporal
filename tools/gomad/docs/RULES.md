@@ -28,6 +28,9 @@
 
 ## Delivery
 
+- During each task, validate changed gates and affected behavior.
+- Run broad validation on the integrated spec candidate before closing the spec.
+- Repeat passed checks only when later changes affect what they prove.
 - Keep preparation independently testable.
 - Get one end-to-end path working early.
 - Exercise small, real boundaries before expensive runs.
