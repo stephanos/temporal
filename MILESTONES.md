@@ -128,9 +128,9 @@ The obsolete whole-fn-243 dependency is removed; the whole-fn-247 dependency rem
 | Name | Status | What |
 | --- | --- | --- |
 | fn-246.13 | ⛔ blocked | Owner Model-policy decision: selected retry World conflicts with pinned API; exact R5 cannot preserve both |
-| fn-246.14 | 🔄 in progress | Actual SDK transport proof integrated; production key/codec/raw-and-SDK continuation remains (R6) |
+| fn-246.14 | 🔄 in progress | SDK proof integrated; bounded history/codec and raw/SDK continuation implementation (R6) |
 | fn-246.8 | ⬜ todo | After .7: current default whole-prefix guest/Host contract (R1, R2) |
-| fn-246.11 | ⬜ todo | After .7: variant metadata and Temporal action/entity/read registry (R2, R3) |
+| fn-246.11 | 🔄 in progress | Variant metadata and synthetic Temporal action/entity/read registry (R2, R3) |
 | fn-246.9 | ⬜ todo | After .8: current-format whole-prefix Run recording, replay and presentation (R1, R5) |
 | fn-246.10 | ⬜ todo | After .7 and .9: bounded alternatives and coherent explanation publication (R1, R5) |
 | fn-246.2 | ⬜ todo | After .7, .10, .11, .12: shared entity lens and filler-driven probes with equivalence pins (R3) |

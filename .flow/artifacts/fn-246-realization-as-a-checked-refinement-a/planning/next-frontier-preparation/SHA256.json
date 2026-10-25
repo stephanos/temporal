@@ -1,4 +1,7 @@
 {
+  "compare-descriptor-images.go": "3c573cffa43313f5e397cd76ac8ebe14bb54a08c30ff0ae2d78ce335580bfe25",
+  "descriptor-image-comparison.json": "20aa29a04702a47b906bd5a37eb7a84d3c05b5934f3e744b762855341ef16e52",
+  "descriptor-image-provenance.txt": "321c5013e13460ab4b9dd487d1132df18d01d3e94e11ba55a9e51fbb732c1c51",
   "fn24611-preparation.txt": "6ade21eafe6a509406603d953a84446dfebedc6d7937b927afe91ca74ee9f8e5",
   "fn24614-bridge-decision.json": "fdd2b4de7e0d1b0c4f65e4e516bc28d4263359f078f3b4d16d8733a332832a35",
   "fn24614-bridge-proposal.txt": "18fc9997db1c86f8d324eac4808e398365747c0d6ad8760fabd5654c53ba4803",
