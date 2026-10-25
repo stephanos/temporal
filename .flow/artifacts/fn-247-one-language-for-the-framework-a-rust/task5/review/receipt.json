@@ -1,0 +1,46 @@
+{
+  "base": "535f6bd90ea83cadda452262aab93d2b790e0466",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "535f6bd90ea83cadda452262aab93d2b790e0466",
+    "headSha": "56a195491b60a4c4d999a73699dfcb14242ff527",
+    "items": [
+      {
+        "body": "The replacement loader control runs `#!/bin/bash` fixtures while requiring `DYLD_FALLBACK_LIBRARY_PATH=loader-marker`. On macOS with SIP enabled, protected system binaries purge dyld environment variables. The fake mise, previous wrapper, and compiler probe therefore discard the marker, causing guest success-path tests to fail regardless of whether the native launcher preserves it. [Apple\u2019s runtime protection documentation](https://developer.apple.com/library/archive/documentation/Security/Conceptual/System_Integrity_Protection_Guide/RuntimeProtections/RuntimeProtections.html) confirms this behavior.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-7e9f227b0487d87fe484cbef188f1ed8466edc626d6a482bff20905ffe42131c",
+        "id": "finding-7a733bc7f8c261f5aebba329db185278",
+        "lastSeenReceiptId": "review-f1480ee9386531a6b408984d104206a68140e59db14410102cef6c7603a515e8",
+        "ordinal": 1,
+        "rIds": [
+          "R2",
+          "R3"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Inject the marker immediately before launching the native wrapper and observe it through native compiler and previous-wrapper fixtures. Keep shell orchestration checks separate from the loader inheritance assertion.",
+        "title": "The replacement loader control runs `#!/bin/bash` fixtures while requiring `DYLD_FALLBACK_LIBRARY_PATH=loader-marker`"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-f1480ee9386531a6b408984d104206a68140e59db14410102cef6c7603a515e8",
+    "supersedesReceiptId": "review-7e9f227b0487d87fe484cbef188f1ed8466edc626d6a482bff20905ffe42131c"
+  },
+  "id": "fn-247-one-language-for-the-framework-a-rust.5",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "Prior finding #1: fixed\n\nThe loader control now uses native binaries for the previous wrapper and compiler, injecting the marker immediately before the native launcher. Both native processes assert its preservation; the regression test also verifies raw marker bytes after simulated orchestration-layer purging.\n\nCommitted logs record nine passing pipeline tests and the focused identity control. Independent rerun was blocked before execution by the sandbox\u2019s read-only Cargo build lock. No new blocking issue was found.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n| --- | --- | --- |\n| R2 | met | Task .5\u2019s native orchestration contracts remain intact. |\n| R3 | met | Loader coverage is retained through native fixtures and the purge regression control. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "793be3edab624b8c9a6de04c10a34a77",
+  "session_id": "01a1707f-e7f1-7f63-8cc1-c4b682e851fc",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-25T00:45:49.790360Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}

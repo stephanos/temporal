@@ -12,7 +12,7 @@
     "fn-247-one-language-for-the-framework-a-rust.1": 0,
     "fn-247-one-language-for-the-framework-a-rust.2": 0,
     "fn-247-one-language-for-the-framework-a-rust.4": 0,
-    "fn-247-one-language-for-the-framework-a-rust.5": 1,
+    "fn-247-one-language-for-the-framework-a-rust.5": 0,
     "fn-247-one-language-for-the-framework-a-rust.6": 0,
     "fn-247-one-language-for-the-framework-a-rust.7": 0,
     "fn-247-one-language-for-the-framework-a-rust.8": 0,
@@ -664,12 +664,57 @@
       "task": "fn-247-one-language-for-the-framework-a-rust.5",
       "timestamp": "2026-10-25T00:43:29.806407Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "4808a3d4abd9ddfbc125146db4c8798023525a1f8f65b417141e5e594f8fe98e",
+      "backend": "codex",
+      "base_sha": "535f6bd90ea83cadda452262aab93d2b790e0466",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7a733bc7f8c261f5aebba329db185278",
+            "classification": "introduced",
+            "findingId": "finding-7a733bc7f8c261f5aebba329db185278",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "56a195491b60a4c4d999a73699dfcb14242ff527",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 966,
+      "output_sha256": "6e3e7198526f8fce1a4c23e13c4aedda8bd67d2cecd385513bae06112975cea4",
+      "reservation_id": "793be3edab624b8c9a6de04c10a34a77",
+      "round_consumed": true,
+      "scope": "impl:fn-247-one-language-for-the-framework-a-rust.5",
+      "superseded_by": null,
+      "task": "fn-247-one-language-for-the-framework-a-rust.5",
+      "timestamp": "2026-10-25T00:45:49.792090Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-247-one-language-for-the-framework-a-rust.1": 1,
     "impl:fn-247-one-language-for-the-framework-a-rust.2": 1,
     "impl:fn-247-one-language-for-the-framework-a-rust.4": 1,
+    "impl:fn-247-one-language-for-the-framework-a-rust.5": 1,
     "impl:fn-247-one-language-for-the-framework-a-rust.6": 1,
     "impl:fn-247-one-language-for-the-framework-a-rust.7": 1,
     "impl:fn-247-one-language-for-the-framework-a-rust.8": 1,
@@ -704,5 +749,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T00:43:29.811276Z"
+  "updated_at": "2026-10-25T00:45:49.797639Z"
 }
