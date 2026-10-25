@@ -28,6 +28,7 @@ Rejected the same day: Kani (0), turmoil/madsim (-1) and a tokio host (-3).
 
 ## Constraints
 
+- **Cleanup first (owner ordering, 2026-10-25).** Start fn-254 only after fn-240 closes, including its fn-242 driver-cutover and fn-247/fn-248/fn-249 cleanup prerequisites. New mutation, fuzzing and concurrency infrastructure targets the resulting crate/API structure. Focused tests needed to validate ongoing cleanup continue in their owning tasks. fn-242 remains parked until explicit owner resume; this ordering does not resume it or waive qualification.
 - **Fast gates first (fn-253, MILESTONES).** Nothing here enters the fast inner loop or the pre-merge gate except small proptest runs, and nothing here enters the one-hour cycle. The deep tier runs as `mise run deep` (fn-253.4 entrypoints) on a schedule or on demand.
 - **Every finding becomes a regression fixture.** A crash input, a surviving mutant that gets fixed, or a failing seed/schedule is kept as a golden fixture, or as a named-invariant test that the normal suites run.
 - **Test-only seams.** The shuttle/loom sync shims are swapped in by `cfg`, so the production build doesn't change. No production code paths are added for testability.

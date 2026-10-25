@@ -73,7 +73,7 @@ Workers pick fn-253 tasks ahead of any other ready task outside fn-242.
 
 Owner simplification amendment, 2026-10-25: fn-253.4 and .6 also remove the gomad Makefiles, subset runs in `premerge`, the always-true CI `changes` job, the per-mode `lint-rust-*` tasks (one `lint-rust` with `--plan`), passthrough gate-tool subcommands, tests that re-assert `mise.toml`, and repeated version pins. They add the missing slim-seam CI paths. Details are in the two task files.
 
-[fn-254](.flow/specs/fn-254-gomad-deeper-rust-host-testing-mutation.md) (deeper testing: cargo-mutants, decoder fuzzing, shuttle/loom, proptest, Miri, ThreadSanitizer; owner-approved 2026-10-25) follows fn-253 and runs alongside the cleanup ladder without blocking it. It adds only small proptest runs to the fast loop; everything else runs in the scheduled `mise run deep` tier.
+[fn-254](.flow/specs/fn-254-gomad-deeper-rust-host-testing-mutation.md) (deeper testing: cargo-mutants, decoder fuzzing, shuttle/loom, proptest, Miri, ThreadSanitizer; owner-approved 2026-10-25) follows fn-253 and fn-240. Finish the driver and crate cleanup before adding this infrastructure, so it targets the resulting structure. Focused tests for ongoing cleanup continue in their owning tasks. It adds only small proptest runs to the fast loop; everything else runs in the scheduled `mise run deep` tier.
 
 ### Size counting is informational (owner ruling, 2026-10-25)
 
@@ -558,7 +558,7 @@ CI, PR, or push authority.
 
 ## Open specs
 
-Listed by spec dependencies and the current delivery order (2026-10-25): fn-253 (∥ fn-242 where it does not touch the cycle argv) → fn-242 cutover → fn-253.2/.3 → (fn-249 ∥ fn-248 ∥ fn-254) → fn-247 → fn-240 → (fn-245 ∥ fn-246) → fn-232 acceptance closeout. Deferred work follows the active ladder.
+Listed by spec dependencies and the current delivery order (2026-10-25): fn-253 (∥ fn-242 where it does not touch the cycle argv) → fn-242 cutover → fn-253.2/.3 → (fn-249 ∥ fn-248) → fn-247 → fn-240 → (fn-245 ∥ fn-246 ∥ fn-254) → fn-232 acceptance closeout. Deferred work follows the active ladder.
 
 ### Fast validation gates — [fn-253](.flow/specs/fn-253-gomad-fast-validation-gates.md)
 
@@ -575,7 +575,7 @@ Owner amendment 2026-10-25: highest priority while fn-242 is parked. Gates get f
 
 ### Deeper Rust host testing — [fn-254](.flow/specs/fn-254-gomad-deeper-rust-host-testing-mutation.md)
 
-Owner-approved 2026-10-25 (tools rated +1 to +3). After fn-253; a scheduled deep tier, never in the fast gates or the cycle; every finding becomes a regression fixture.
+Owner-approved 2026-10-25 (tools rated +1 to +3). After fn-253 and fn-240's cleanup prerequisites, including fn-242; a scheduled deep tier, never in the fast gates or the cycle; every finding becomes a regression fixture.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
