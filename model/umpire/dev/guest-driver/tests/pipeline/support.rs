@@ -14,6 +14,7 @@ pub(crate) struct Fixture {
     pub model: PathBuf,
 }
 impl Fixture {
+    #[allow(clippy::too_many_lines)]
     pub(crate) fn new() -> Self {
         static NEXT: AtomicU64 = AtomicU64::new(0);
         let root = std::env::temp_dir().join(format!(
@@ -59,6 +60,9 @@ impl Fixture {
 set -eu
 [[ "$MISE_AUTO_INSTALL" = false && "$MISE_EXEC_AUTO_INSTALL" = false ]] || { echo auto-install-enabled >&2; exit 98; }
 printf '%s\n' "$*" >> "$FIXTURE/calls"
+if [[ -n "${EXPECTED_CARGO_HOME:-}" ]]; then
+  [[ "$CARGO_HOME" = "$EXPECTED_CARGO_HOME" ]] || { echo "wrong-cargo-home: $CARGO_HOME from $PWD" >&2; exit 96; }
+fi
 if [[ "$1" = ls ]]; then
   [[ "${FAIL_PROBE:-}" != 1 ]] || { echo probe-failed >&2; exit 23; }
   [[ "${BAD_METADATA:-}" != 1 ]] || { echo '[{}]'; exit; }

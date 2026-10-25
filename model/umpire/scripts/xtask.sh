@@ -5,6 +5,10 @@ case "${CARGO_TARGET_DIR:-}" in
   ""|/*) ;;
   *) export CARGO_TARGET_DIR="$PWD/$CARGO_TARGET_DIR" ;;
 esac
+case "${CARGO_HOME:-}" in
+  ""|/*) ;;
+  *) export CARGO_HOME="$PWD/$CARGO_HOME" ;;
+esac
 cd "$(dirname "$0")/.."
 export UMPIRE_TOOL_ROOT="$PWD"
 if ! command -v mise >/dev/null 2>&1; then

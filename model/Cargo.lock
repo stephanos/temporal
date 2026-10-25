@@ -733,6 +733,7 @@ version = "0.0.1"
 dependencies = [
  "serde_json",
  "toml",
+ "umpire-guest-driver",
  "xtask",
 ]
 

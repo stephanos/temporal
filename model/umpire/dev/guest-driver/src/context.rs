@@ -66,6 +66,15 @@ pub(crate) fn lexical(path: &Path) -> Result<PathBuf> {
     Ok(normalized)
 }
 
+/// Resolve Cargo's user home against the caller before commands enter the tool root.
+pub fn cargo_home(caller: &Path) -> Result<PathBuf> {
+    let home = env::var_os("CARGO_HOME")
+        .map(PathBuf::from)
+        .or_else(|| env::var_os("HOME").map(|p| PathBuf::from(p).join(".cargo")))
+        .ok_or_else(|| Error::Invalid("missing CARGO_HOME/HOME".into()))?;
+    Ok(caller_path(home, caller))
+}
+
 pub(crate) fn caller_path(path: PathBuf, base: &Path) -> PathBuf {
     if path.is_absolute() { path } else { base.join(path) }
 }
@@ -100,7 +109,7 @@ impl Context {
         ]
     }
     pub(crate) fn encode(&self, command: &mut Command) {
-        command.envs(self.entries());
+        command.envs(self.entries()).env("CARGO_HOME", &self.cargo_home);
     }
     pub(crate) fn decode(environment: &Environment) -> Result<Self> {
         Ok(Self {

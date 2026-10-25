@@ -10,6 +10,10 @@ case "$2" in
   /*) output=$2 ;;
   *) output="$PWD/$2" ;;
 esac
+case "${CARGO_HOME:-}" in
+  ""|/*) ;;
+  *) export CARGO_HOME="$PWD/$CARGO_HOME" ;;
+esac
 tool_root=$(cd "$(dirname "$0")/.." && pwd -P)
 export UMPIRE_TOOL_ROOT="$tool_root"
 helper=$(/bin/bash "$(dirname "$0")/xtask.sh")

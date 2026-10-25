@@ -187,3 +187,23 @@ fn loader_inheritance_survives_orchestration_environment_purge() {
         serde_json::from_slice(&fs::read(f.root.join("loader.json")).unwrap()).unwrap();
     assert_eq!(observed["loader"], serde_json::json!(b"loader-marker".as_slice()));
 }
+
+#[test]
+fn relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build() {
+    let f = Fixture::new();
+    fs::write(f.root.join("out.wasm"), b"\0asm\x01\0\0\0").unwrap();
+    let caller = f.root.join("caller");
+    fs::create_dir_all(caller.join("cargo home")).unwrap();
+    fs::create_dir_all(f.model.join("cargo home")).unwrap();
+    fs::copy(f.model.join("Cargo.lock"), caller.join("Cargo.lock")).unwrap();
+    for shell in [false, true] {
+        let result = f
+            .command(true, shell)
+            .current_dir(&caller)
+            .env("CARGO_HOME", "cargo home")
+            .env("EXPECTED_CARGO_HOME", caller.join("cargo home"))
+            .output()
+            .unwrap();
+        code(&result, 0);
+    }
+}

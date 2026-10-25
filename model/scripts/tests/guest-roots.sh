@@ -9,7 +9,7 @@ for entry in guest.sh guest-freshness.sh; do
   cat > "$scratch/model/umpire/scripts/$entry" <<'DRIVER'
 #!/usr/bin/env bash
 set -euo pipefail
-printf '%s\0' "$PWD" "$@" "$CARGO_TARGET_DIR" > "$UMPIRE_ROUTE_RECORD"
+printf '%s\0' "$PWD" "$@" "$CARGO_TARGET_DIR" "$CARGO_HOME" > "$UMPIRE_ROUTE_RECORD"
 exit "${UMPIRE_ROUTE_STATUS:-0}"
 DRIVER
 done
@@ -21,8 +21,8 @@ for package in umpire-stock-guest umpire-kettle-guest umpire-control-guest umpir
     *) workspace="$scratch/model/umpire" ;;
   esac
   for entry in guest.sh guest-freshness.sh; do
-    CARGO_TARGET_DIR='relative target' bash "$scratch/model/scripts/$entry" "$package" 'relative output.wasm'
-    printf '%s\0' "$workspace" "$package" "$PWD/relative output.wasm" "$PWD/relative target" > "$scratch/expected"
+    CARGO_HOME='relative cargo' CARGO_TARGET_DIR='relative target' bash "$scratch/model/scripts/$entry" "$package" 'relative output.wasm'
+    printf '%s\0' "$workspace" "$package" "$PWD/relative output.wasm" "$PWD/relative target" "$PWD/relative cargo" > "$scratch/expected"
     cmp "$scratch/expected" "$scratch/actual"
   done
 done

@@ -13,6 +13,7 @@ set -euo pipefail
 [ -z "${CARGO_BUILD_TARGET:-}" ]
 [ "$UMPIRE_TOOL_ROOT" = "$CONTROL_FRAMEWORK" ]
 [ "$PWD" = "$CONTROL_FRAMEWORK" ]
+[ "$CARGO_HOME" = "$CONTROL_CALLER/relative cargo" ]
 [ "$1" = exec ] && [ "$2" = -- ] && [ "$3" = cargo ] && [ "$4" = build ]
 shift 4
 while [ "$#" -gt 0 ]; do
@@ -24,6 +25,7 @@ cat > "$target/debug/xtask" <<'DRIVER'
 #!/usr/bin/env bash
 set -euo pipefail
 [ "$PWD" = "$CONTROL_CALLER" ]
+[ "$CARGO_HOME" = "$CONTROL_CALLER/relative cargo" ]
 [ "$UMPIRE_TOOL_ROOT" = "$CONTROL_FRAMEWORK" ]
 printf '%s\n' "$@" > "$CONTROL_OUTPUT"
 DRIVER
@@ -33,7 +35,8 @@ TOOL
 chmod +x "$scratch/bin/mise"
 export PATH="$scratch/bin:$PATH" CONTROL_FRAMEWORK="$scratch/framework" CONTROL_CALLER="$scratch/caller" CONTROL_OUTPUT="$scratch/arguments"
 cd "$scratch/caller"
-CARGO_BUILD_TARGET=wasm32-wasip1 CARGO_TARGET_DIR=target RUSTC_WRAPPER=bad RUSTFLAGS=bad bash "$scratch/framework/scripts/guest.sh" example relative.wasm --check
+export CARGO_HOME="$CONTROL_CALLER/relative cargo"
+CARGO_HOME="relative cargo" CARGO_BUILD_TARGET=wasm32-wasip1 CARGO_TARGET_DIR=target RUSTC_WRAPPER=bad RUSTFLAGS=bad bash "$scratch/framework/scripts/guest.sh" example relative.wasm --check
 [ -x "$scratch/caller/target/xtask-bootstrap/debug/umpire-guest-driver" ]
 printf 'guest\nexample\n%s/relative.wasm\n--check\n' "$scratch/caller" > "$scratch/expected"
 cmp "$scratch/expected" "$scratch/arguments"

@@ -315,10 +315,9 @@ fn present_optional_keeps_eager_errors_in_guard_assignment_and_claim()
             umpire_tlc::Verdict::Refuted,
             "site {site}"
         );
-        std::fs::write(
-            root.join(format!("build/evidence/fn2372-eager-safety-{site}.log")),
-            checked.output,
-        )?;
+        let evidence = root.join("build/evidence");
+        std::fs::create_dir_all(&evidence)?;
+        std::fs::write(evidence.join(format!("fn2372-eager-safety-{site}.log")), checked.output)?;
     }
     let world = World::new(1, 1);
     let state = world.starts().remove(0);

@@ -9,7 +9,7 @@ mkdir -p "$control/model/scripts" "$control/bin" "$control/output"
 cp model/scripts/time-gate.sh "$control/model/scripts/"
 printf 'control source\n' > "$control/model/inner.rs"
 export UMPIRE_INNER_SOURCE=inner.rs UMPIRE_INNER_CRATE=control-checker
-export CONTROL_LOG="$control/calls" TMPDIR="$control/output"
+export CONTROL_LOG="$control/calls" CONTROL_MODEL="$control/model" TMPDIR="$control/output"
 export UMPIRE_GATE_BUDGET=-1 UMPIRE_INNER_BUDGET=-1
 unset UMPIRE_BACKENDS UMPIRE_APALACHE MAKEFLAGS MFLAGS MAKEOVERRIDES
 printf 'COLOR = "%%s\\n"\n' > "$control/Makefile"
@@ -24,6 +24,7 @@ cat > "$control/bin/mise" <<'CHILD'
 #!/usr/bin/env bash
 set -euo pipefail
 [ "$*" = 'exec -- cargo test -p control-checker --quiet' ]
+[ "$PWD" = "$CONTROL_MODEL" ]
 printf 'benchmark:%s:%s\n' "${UMPIRE_BACKENDS-unset}" "${UMPIRE_APALACHE-unset}" >> "$CONTROL_LOG"
 printf 'benchmark stdout diagnostic\n'
 printf 'benchmark stderr diagnostic\n' >&2
