@@ -124,6 +124,11 @@ set -euo pipefail
 [ "$UMPIRE_QUICK_CACHE" = 0 ] && [ "$UMPIRE_CACHE_DISABLE" = 1 ]
 [ "$MISE_AUTO_INSTALL" = false ] && [ "$MISE_EXEC_AUTO_INSTALL" = false ]
 printf '%s|%s|%s|%s|%s|%s|%s|%s\n' "$label" "$PWD" "$CARGO_TARGET_DIR" "$CARGO_HOME" "$UMPIRE_QUICK_CACHE" "$UMPIRE_CACHE_DISABLE" "${{UMPIRE_BACKENDS:-unset}}" "$*" >> "$CONTROL_LOG"
+if [ "${{CONTROL_SIGNAL:-}}" = "$label" ]; then
+ printf 'signal stdout diagnostic\n'
+ printf 'signal stderr diagnostic\n' >&2
+ kill -TERM $$
+fi
 [ "${{CONTROL_FAIL:-}}" != "$label" ] || {{ printf '%s child diagnostic\n' "$label" >&2; exit 37; }}
 if [ "${{CONTROL_EXPECT_UPDATE:-0}}" = 1 ]; then
  [ "$INSTA_UPDATE" = always ] && [ "$TRYBUILD" = overwrite ]
@@ -322,6 +327,10 @@ fn validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_fai
     write(&fixture.root.join("backends/native/src/lib.rs"), "// benchmark input\n");
     for entry in ["time", "validate"] {
         fixture.clear();
+        let before = fs::metadata(fixture.root.join("backends/native/src/lib.rs"))
+            .unwrap()
+            .modified()
+            .unwrap();
         let output = fixture
             .command(false)
             .arg(entry)
@@ -334,6 +343,13 @@ fn validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_fai
         assert_eq!(fixture.labels().last().unwrap(), "tests");
         let log = fs::read_to_string(&fixture.log).unwrap();
         assert!(!log.contains("cargo test -p"));
+        assert_eq!(
+            fs::metadata(fixture.root.join("backends/native/src/lib.rs"))
+                .unwrap()
+                .modified()
+                .unwrap(),
+            before
+        );
         if entry == "validate" {
             assert!(log.lines().all(|line| line.contains("|0|1|require|")), "{log}");
         }
@@ -372,14 +388,54 @@ fn convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status() 
     write(&fixture.root.join("backends/native/src/lib.rs"), "// benchmark input\n");
     for entry in ["time", "validate"] {
         fixture.clear();
-        let output =
-            fixture.command(false).arg(entry).env("CONTROL_FAIL_INNER", "1").output().unwrap();
+        let output = fixture
+            .command(false)
+            .arg(entry)
+            .env("CONTROL_FAIL_INNER", "1")
+            .env("UMPIRE_GATE_BUDGET", "-1")
+            .env("UMPIRE_INNER_BUDGET", "-1")
+            .output()
+            .unwrap();
         assert_status(&output, 37);
         assert!(
             stderr(&output).contains("framework stage inner loop (edit+test) failed (exit 37)"),
             "{output:?}"
         );
         assert!(stderr(&output).contains("inner child diagnostic"), "{output:?}");
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(!stdout.contains("gate total"), "{output:?}");
+        assert!(!stdout.contains("over soft target"), "{output:?}");
         assert_eq!(fixture.labels().len(), LEAVES.len() + 1);
+    }
+}
+
+#[test]
+fn signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch() {
+    let fixture = Fixture::new();
+    for timed in [false, true] {
+        for full in [false, true] {
+            fixture.clear();
+            let mut command = fixture.command(timed);
+            command.arg("gate").env("CONTROL_SIGNAL", "capability-controls");
+            if !full {
+                command.args(["--stage", "capability-controls"]);
+            }
+            let output = command.output().unwrap();
+            assert_status(&output, 143);
+            assert!(
+                stderr(&output).contains("framework stage capability-controls failed (exit 143)"),
+                "{output:?}"
+            );
+            let diagnostics =
+                format!("{}{}", String::from_utf8_lossy(&output.stdout), stderr(&output));
+            assert!(diagnostics.contains("signal stdout diagnostic"), "{output:?}");
+            assert!(diagnostics.contains("signal stderr diagnostic"), "{output:?}");
+            let expected = if full {
+                vec!["proto-tools", "timing-controls", "guest-controls", "capability-controls"]
+            } else {
+                vec!["capability-controls"]
+            };
+            assert_eq!(fixture.labels(), expected);
+        }
     }
 }
