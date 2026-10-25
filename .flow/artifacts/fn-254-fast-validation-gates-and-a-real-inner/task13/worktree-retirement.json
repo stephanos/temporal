@@ -1,0 +1,78 @@
+{
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.13",
+  "root_head": "03c83b1bd81f878963fe3ece509936e70180d1cb",
+  "source_integrated": "914e63f643",
+  "committed_task_closure": "03c83b1bd8",
+  "review_status": "Parent reports SHIP and committed Flow DONE; no re-review or build invoked by this retirement",
+  "own_checkout_removed": true,
+  "own_branch_deleted_with_safe_d": true,
+  "removed_checkout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace",
+  "archive": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.git/retired-worktrees/fn254-20261025/fn25413-workspace",
+  "archive_manifest_sha256": "aa345fa7dea677615bcc13c2e0ebd057e5d2d217831f6cd4151c45d3a3c951aa",
+  "archive_paths": 285,
+  "unique_source_inodes_hashed": 283,
+  "archive_integrity": "All regular files SHA256 verified during retention; hardlink source/archive inode identity checked; cross-filesystem proof copies verified after copy; after worktree removal all285 archived paths remain with expected types/sizes. Symlinks never followed.",
+  "external_cleanup_loss": {
+    "removed_targets": [
+      "guest-a",
+      "framework-native",
+      "temporal-native",
+      "standalone/target",
+      "guest-b/xtask-bootstrap executable path"
+    ],
+    "lost_unique_binary_bytes": [
+      "Exact A-native driver wrapper bytes",
+      "Framework/Temporal test execution and identity-list binaries",
+      "Standalone compiled build outputs"
+    ],
+    "historical_run_proofs": "All198 committed proof files and source indexes preserved in Git; no rerun or renewed pass inferred from absent caches.",
+    "recovered_independence_executable": {
+      "archive": "retained-cache-proof/driver-independence-current/umpire-guest-driver",
+      "sha256": "d4fc90f3092f570404106d25b04340ec8f6f90f34a01654c322fc174b6ad0a75",
+      "recovery": "Exact same bytes retained in both current B driver wrappers; recovered from one."
+    },
+    "retained_and_archived": [
+      "Four B current/historical driver wrappers",
+      "All six final B WASMs (same bytes as final A)",
+      "All55 B native report files (same bytes as final A)",
+      "Six alias-trial WASMs",
+      "Both prior source-B archives",
+      "All210 ignored checkout entries including logs/generated inputs/local pinned tools/evidence and one Cargo-home symlink"
+    ]
+  },
+  "cache_prefix_untouched": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace",
+  "retained_cache_paths": [
+    "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/guest-b",
+    "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/reproduction",
+    "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/revision-alias-trial",
+    "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/standalone"
+  ],
+  "child_checkouts": [
+    {
+      "checkout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-driver",
+      "head": "86f812692797a0e3451133f0d59f382818584312",
+      "tracked_untracked_status": "",
+      "is_ancestor_of_umpire": false,
+      "action": "preserved",
+      "reason": "Non-ancestor branch with uncertain unique ignored proof/source; no patch-equivalence retirement performed."
+    },
+    {
+      "checkout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-paths",
+      "head": "23c3d4881995feffa8f4711e477bfe26323d2a71",
+      "tracked_untracked_status": "",
+      "is_ancestor_of_umpire": false,
+      "action": "preserved",
+      "reason": "Non-ancestor branch with uncertain unique ignored proof/source; no patch-equivalence retirement performed."
+    },
+    {
+      "checkout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-scripts",
+      "head": "0bd07ad88d7b8dc6b8aaade2d97b6d81e82db205",
+      "tracked_untracked_status": "",
+      "is_ancestor_of_umpire": false,
+      "action": "preserved",
+      "reason": "Non-ancestor branch with uncertain unique ignored proof/source; no patch-equivalence retirement performed."
+    }
+  ],
+  "root_agents_user_delta": "Root AGENTS.md routing change at652507af02 preserved; no root source/Flow/MILESTONES/plan edits performed.",
+  "next_owner": "Conductor owns any later eligible cache or child-checkout cleanup."
+}

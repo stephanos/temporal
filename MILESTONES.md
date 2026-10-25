@@ -59,7 +59,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.6 | ⬜ todo | After .10: `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
-| fn-254.10 | ⬜ todo | Next: independent framework gate and root delegation; prove CLI changes preserve guest caches (R7) |
+| fn-254.10 | 🔄 in progress | Independent framework gate and root delegation; prove CLI changes preserve guest caches (R7) |
 | fn-254.11 | ⬜ todo | After .10: framework gate passes on `model/umpire` alone; planted Temporal coupling fails (R7) |
 | fn-254.12 | ⬜ todo | After framework optimizations and controls: committed stage budgets; hard work counts, bounded timing retry, unbudgeted stages fail (R8) |
 | fn-254.13 | ✅ done | Standalone workspace and dedicated guest driver; caller/root/remap controls and guest reproduction reviewed (R7) |
