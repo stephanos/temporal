@@ -1,6 +1,6 @@
 //! The protobuf descriptor graph and its prost-generated Rust names.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use prost::Message as _;
 use umpire_runtime::prost_types::{
@@ -17,7 +17,8 @@ pub struct Graph {
     pub messages: BTreeMap<String, Message>,
     /// Enums keyed by protobuf identity, nested enums included.
     pub enums: BTreeMap<String, Enum>,
-    services: BTreeMap<String, BTreeMap<String, Method>>,
+    /// Methods keyed by fully qualified service, then method name.
+    pub services: BTreeMap<String, BTreeMap<String, Method>>,
 }
 
 /// A protobuf message and its generated Rust representation.
@@ -57,7 +58,8 @@ pub struct Field {
     pub repeated: bool,
     /// A map, whose target is a synthetic map-entry message.
     pub map: bool,
-    /// Protobuf presence represented by a Rust Option.
+    /// Protobuf presence represented by a Rust Option: messages, oneof members and proto3
+    /// `optional` scalars. Proto2 optional scalars, which prost also wraps, are unsupported.
     pub optional: bool,
     /// A real oneof alternative, excluding synthetic proto3 optional groups.
     pub oneof: Option<Oneof>,
@@ -153,7 +155,7 @@ impl Graph {
                 }
             }
         }
-        let entries: Vec<_> = graph
+        let entries: BTreeSet<String> = graph
             .messages
             .values()
             .filter(|message| message.map_entry)
@@ -177,15 +179,20 @@ impl Graph {
             .ok_or_else(|| format!("missing service descriptor: {service}"))
     }
 
-    /// The fully qualified service whose last segment is `name`, when exactly one exists.
-    pub fn service_named(&self, name: &str) -> Option<&str> {
-        let mut matches = self
+    /// The fully qualified service whose last segment is `name`; `None` when no service has
+    /// it, and an error when several packages do.
+    pub fn service_named(&self, name: &str) -> Result<Option<&str>, String> {
+        let matches: Vec<_> = self
             .services
             .keys()
             .filter(|service| service.rsplit('.').next() == Some(name))
-            .map(String::as_str);
-        let found = matches.next()?;
-        matches.next().is_none().then_some(found)
+            .map(String::as_str)
+            .collect();
+        match matches.as_slice() {
+            [] => Ok(None),
+            [service] => Ok(Some(service)),
+            _ => Err(format!("ambiguous service short name {name}: {}", matches.join(", "))),
+        }
     }
 
     /// Resolve the actual protobuf input/output edges of a service method.
@@ -307,9 +314,7 @@ impl Graph {
         }
         Ok(())
     }
-}
 
-impl Graph {
     fn collect_enums(
         &mut self,
         parent: &str,
@@ -330,7 +335,8 @@ impl Graph {
     }
 }
 
-fn clean(name: &str) -> String {
+/// A protobuf identity without its leading dot.
+pub fn clean(name: &str) -> String {
     name.trim_start_matches('.').to_owned()
 }
 
@@ -357,6 +363,10 @@ mod tests {
     }
 
     fn bytes() -> Vec<u8> {
+        set().encode_to_vec()
+    }
+
+    fn set() -> FileDescriptorSet {
         let message = |name: &str, target: &str| FieldDescriptorProto {
             type_name: Some(target.into()),
             ..field(name, 0, Type::Message)
@@ -393,6 +403,7 @@ mod tests {
                                 ..message("labels", ".self.v1.Self_.LabelsEntry")
                             },
                             message("wrapped", ".google.protobuf.StringValue"),
+                            field("type", 6, Type::Bool),
                         ],
                         nested_type: vec![DescriptorProto {
                             name: Some("LabelsEntry".into()),
@@ -432,7 +443,6 @@ mod tests {
                 ..Default::default()
             }],
         }
-        .encode_to_vec()
     }
 
     #[test]
@@ -459,7 +469,7 @@ mod tests {
     fn fields_retain_decoded_presence_oneofs_and_maps() -> Result<(), String> {
         let graph = Graph::new(&bytes(), "")?;
         let fields = &graph.message("self.v1.Self_")?.fields;
-        let [text, choice, maybe, labels, wrapped] = fields.as_slice() else {
+        let [text, choice, maybe, labels, wrapped, keyword] = fields.as_slice() else {
             return Err("unexpected field count".into());
         };
         assert!(!text.optional && text.oneof.is_none());
@@ -470,6 +480,7 @@ mod tests {
         assert!(maybe.optional && maybe.oneof.is_none());
         assert!(labels.repeated && labels.map && !labels.optional);
         assert!(wrapped.optional && !wrapped.map);
+        assert_eq!((keyword.member.as_str(), keyword.optional), ("r#type", false));
         let entry = graph.message("self.v1.Self_.LabelsEntry")?;
         assert!(entry.map_entry);
         assert_eq!(
@@ -490,8 +501,8 @@ mod tests {
     #[test]
     fn rpc_edges_resolve_by_service_and_short_name() -> Result<(), String> {
         let graph = Graph::new(&bytes(), "")?;
-        assert_eq!(graph.service_named("Service"), Some("self.v1.Service"));
-        assert_eq!(graph.service_named("Missing"), None);
+        assert_eq!(graph.service_named("Service")?, Some("self.v1.Service"));
+        assert_eq!(graph.service_named("Missing")?, None);
         assert_eq!(graph.method("self.v1.Service", "Call")?.output, "self.v1._42Foo");
         assert_eq!(graph.request_methods(".self.v1.Self_"), ["/self.v1.Service/Call"]);
         assert_eq!(graph.response_methods("self.v1._42Foo"), ["/self.v1.Service/Call"]);
@@ -499,5 +510,45 @@ mod tests {
         assert!(graph.method("self.v1.Service", "Missing").is_err());
         assert!(graph.service("self.v1.Missing").is_err());
         Ok(())
+    }
+
+    #[test]
+    fn a_short_service_name_shared_by_two_packages_is_ambiguous() -> Result<(), String> {
+        let mut descriptors = set();
+        let mut other = descriptors.file[0].clone();
+        other.package = Some("other.v1".into());
+        other.message_type.clear();
+        other.service[0].method.clear();
+        descriptors.file.push(other);
+        let graph = Graph::new(&descriptors.encode_to_vec(), "")?;
+        assert_eq!(
+            graph.service_named("Service"),
+            Err("ambiguous service short name Service: other.v1.Service, self.v1.Service".into())
+        );
+        assert_eq!(graph.service("self.v1.Service")?.len(), 1);
+        Ok(())
+    }
+
+    #[test]
+    fn malformed_descriptors_are_refused_anywhere_in_the_set() {
+        let cases: [(&str, fn(&mut FileDescriptorSet)); 7] = [
+            ("unnamed service", |set| set.file[0].service[0].name = None),
+            ("unnamed method", |set| set.file[0].service[0].method[0].name = None),
+            ("unnamed message", |set| set.file[0].message_type[1].name = None),
+            ("unnamed field", |set| set.file[0].message_type[0].field[0].name = None),
+            ("unnamed enum", |set| set.file[0].message_type[0].enum_type[0].name = None),
+            ("protobuf groups are unsupported", |set| {
+                set.file[0].message_type[0].field[0].r#type = Some(Type::Group as i32);
+            }),
+            ("missing oneof declaration", |set| set.file[0].message_type[0].oneof_decl.clear()),
+        ];
+        for (expected, corrupt) in cases {
+            let mut descriptors = set();
+            corrupt(&mut descriptors);
+            assert_eq!(
+                Graph::new(&descriptors.encode_to_vec(), "").err().as_deref(),
+                Some(expected)
+            );
+        }
     }
 }

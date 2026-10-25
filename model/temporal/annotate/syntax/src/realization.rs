@@ -8,6 +8,7 @@ use std::{
 
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
+use umpire_catalog_syntax::proto::clean;
 pub use umpire_catalog_syntax::proto::{Field, Graph, Kind, Message, Method, Scalar};
 
 use crate::Catalog;
@@ -137,8 +138,8 @@ impl Schema {
         Ok((Self::new(&bytes, rust_root, &catalogs)?, inputs))
     }
 
-    /// The fully qualified service whose last segment is `name`, when exactly one exists.
-    pub fn service_named(&self, name: &str) -> Option<&str> {
+    /// The fully qualified service whose last segment is `name`; see [`Graph::service_named`].
+    pub fn service_named(&self, name: &str) -> Result<Option<&str>, String> {
         self.graph.service_named(name)
     }
 
@@ -345,10 +346,6 @@ impl Schema {
             Kind::Message { .. } => quote!(true),
         })
     }
-}
-
-fn clean(name: &str) -> String {
-    name.trim_start_matches('.').to_owned()
 }
 
 fn qualified(parent: &str, name: &str) -> String {

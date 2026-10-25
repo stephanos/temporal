@@ -288,10 +288,12 @@ fn rpc(target: &Path, schema: &Schema) -> syn::Result<(String, String)> {
     if names.len() < 2 {
         return Err(syn::Error::new(target.span(), "observe requires Service::Method"));
     }
-    let service = match schema.service_named(&names[0]) {
-        Some(service) if names.len() == 2 => service.to_owned(),
-        _ => names[..names.len() - 1].join("."),
+    let short = if names.len() == 2 {
+        schema.service_named(&names[0]).map_err(|error| syn::Error::new(target.span(), error))?
+    } else {
+        None
     };
+    let service = short.map_or_else(|| names[..names.len() - 1].join("."), str::to_owned);
     Ok((service, names[names.len() - 1].clone()))
 }
 
@@ -307,6 +309,7 @@ fn classify(
 }
 
 fn metadata(
+    runtime: &Path,
     kind: &str,
     method: Option<&str>,
     message: &str,
@@ -322,9 +325,9 @@ fn metadata(
         };
         let reason =
             if let Some(reason) = &field.reason { quote!(Some(#reason)) } else { quote!(None) };
-        quote!(::umpire_temporal::Field { path: #path, class: #class, reason: #reason })
+        quote!(#runtime::Field { path: #path, class: #class, reason: #reason })
     });
-    quote!(::umpire_temporal::Context { kind: #kind, method: #method, message: #message, fields: &[#(#fields),*] })
+    quote!(#runtime::Context { kind: #kind, method: #method, message: #message, fields: &[#(#fields),*] })
 }
 
 fn call(handler: &Handler, value: &TokenStream) -> TokenStream {
@@ -345,6 +348,7 @@ fn call(handler: &Handler, value: &TokenStream) -> TokenStream {
 fn observation(
     handler: &Handler,
     model: &Path,
+    runtime: &Path,
     schema: &Schema,
     contexts: &mut Vec<TokenStream>,
 ) -> syn::Result<TokenStream> {
@@ -358,7 +362,7 @@ fn observation(
     }
     let method = format!("/{service}/{method}");
     let fields = classify(schema, &response.name, &handler.declaration.fields, target.span())?;
-    contexts.push(metadata("observed response", Some(&method), &response.name, &fields));
+    contexts.push(metadata(runtime, "observed response", Some(&method), &response.name, &fields));
     let guards = schema
         .guards(&response.name, &fields, &quote!(__response))
         .map_err(|error| syn::Error::new(target.span(), error))?;
@@ -404,6 +408,7 @@ fn observation(
 fn answer(
     handler: &Handler,
     model: &Path,
+    runtime: &Path,
     schema: &Schema,
     contexts: &mut Vec<TokenStream>,
 ) -> syn::Result<TokenStream> {
@@ -420,6 +425,7 @@ fn answer(
     }
     let fields = classify(schema, &response.name, &handler.declaration.fields, target.span())?;
     contexts.push(metadata(
+        runtime,
         "incoming callback",
         if methods.len() == 1 { Some(methods[0].as_str()) } else { None },
         &response.name,
@@ -446,6 +452,7 @@ fn answer(
         }
         let fields = classify(schema, &request.name, &produced.fields, produced.ty.span())?;
         contexts.push(metadata(
+            runtime,
             "outgoing request",
             if methods.len() == 1 { Some(methods[0].as_str()) } else { None },
             &request.name,
@@ -784,14 +791,21 @@ fn check_enums(
     visitor.error.map_or(Ok(()), Err)
 }
 
-/// Expand one realization impl against the admitted declaration graph.
-pub fn expand(model: &Path, item: ItemImpl, schema: &Schema) -> syn::Result<TokenStream> {
-    expand_scoped(model, item, schema, Scope::default())
+/// Expand one realization impl against the admitted declaration graph. `runtime` is the
+/// system's realization crate, providing `Context`, `Field` and `support::Observed`.
+pub fn expand(
+    model: &Path,
+    runtime: &Path,
+    item: ItemImpl,
+    schema: &Schema,
+) -> syn::Result<TokenStream> {
+    expand_scoped(model, runtime, item, schema, Scope::default())
 }
 
 /// Expand using the enclosing source module's ordinary Rust type aliases and imports.
 pub fn expand_in_source(
     model: &Path,
+    runtime: &Path,
     item: ItemImpl,
     schema: &Schema,
     source: &str,
@@ -799,7 +813,7 @@ pub fn expand_in_source(
 ) -> syn::Result<TokenStream> {
     let scope = Scope::in_source(source, location)
         .map_err(|error| syn::Error::new(item.impl_token.span, error.to_string()))?;
-    expand_scoped(model, item, schema, scope)
+    expand_scoped(model, runtime, item, schema, scope)
 }
 
 struct ProposalHandler {
@@ -921,6 +935,7 @@ fn admit_handlers(
 
 fn expand_scoped(
     model: &Path,
+    runtime: &Path,
     mut item: ItemImpl,
     schema: &Schema,
     scope: Scope,
@@ -945,9 +960,9 @@ fn expand_scoped(
     let mut answers = vec![];
     for handler in &handlers {
         if handler.answer {
-            answers.push(answer(handler, model, schema, &mut contexts)?);
+            answers.push(answer(handler, model, runtime, schema, &mut contexts)?);
         } else {
-            observations.push(observation(handler, model, schema, &mut contexts)?);
+            observations.push(observation(handler, model, runtime, schema, &mut contexts)?);
         }
     }
     let proposal = proposal.as_ref().map(|name| proposal_dispatch(model, name));
@@ -973,14 +988,14 @@ fn expand_scoped(
         #item
         impl #ty {
             /// Declared coverage in each incoming and outgoing protobuf context.
-            pub const REALIZATION: &'static [::umpire_temporal::Context] = &[#(#contexts),*];
+            pub const REALIZATION: &'static [#runtime::Context] = &[#(#contexts),*];
         }
         impl ::umpire_runtime::Realize<#model::World> for #ty {
             #proposal
             fn observe(&self, observation: &::umpire_runtime::prost_types::Any, state: &#model::Model)
                 -> Result<::umpire_runtime::Projection<<#model::World as ::umpire_dsl::Machine>::Action>, ::umpire_runtime::protocol::Refusal> {
                 let _ = state;
-                let __observed = ::umpire_temporal::support::Observed::new(observation)?;
+                let __observed = #runtime::support::Observed::new(observation)?;
                 #(#observations)*
                 Err(::umpire_runtime::protocol::Refusal::unsupported("unsupported observation method"))
             }

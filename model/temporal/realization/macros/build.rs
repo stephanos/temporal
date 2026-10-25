@@ -38,6 +38,5 @@ fn main() -> io::Result<()> {
     {
         return Err(io::Error::other("linking realization API descriptors failed"));
     }
-    println!("cargo:rustc-env=UMPIRE_REALIZATION_RUST_ROOT=::umpire_temporal_api");
     Ok(())
 }

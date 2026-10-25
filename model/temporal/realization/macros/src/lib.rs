@@ -8,11 +8,16 @@ use umpire_temporal_annotate_syntax::{realization::Schema, realize::expand_in_so
 #[cfg(test)]
 use umpire_temporal_annotate_syntax::realize::expand;
 
+/// Generated Temporal API packages, the root of every admitted protobuf Rust type.
+const RUST_ROOT: &str = "::umpire_temporal_api";
+/// The realization crate providing `Context`, `Field` and `support::Observed`.
+const RUNTIME_ROOT: &str = "::umpire_temporal";
+
 fn schema() -> Result<(Schema, Vec<std::path::PathBuf>), String> {
     Schema::load(
         &Path::new(env!("CARGO_MANIFEST_DIR")).join("../.."),
         Path::new(concat!(env!("OUT_DIR"), "/realization-api.binpb")),
-        env!("UMPIRE_REALIZATION_RUST_ROOT"),
+        RUST_ROOT,
     )
 }
 
@@ -36,7 +41,14 @@ pub fn realization(
             let text = std::fs::read_to_string(&source).map_err(|error| {
                 syn::Error::new(span, format!("cannot read realization source scope: {error}"))
             })?;
-            let expanded = expand_in_source(&model, item, &schema, &text, span.start())?;
+            let expanded = expand_in_source(
+                &model,
+                &syn::parse_str(RUNTIME_ROOT)?,
+                item,
+                &schema,
+                &text,
+                span.start(),
+            )?;
             inputs.push(source);
             let tracked =
                 inputs.iter().map(|input| input.to_string_lossy().into_owned()).map(|input| {
@@ -98,9 +110,14 @@ mod tests {
             let item = syn::parse_str(&format!(
                 "impl Binding {{ #[answer({task}, produces({produced}, fields()))] fn respond(task: {task}) -> Result<Reply<Worker>, Refusal> {{ todo!() }} }}"
             ))?;
-            let error = super::expand(&syn::parse_str("activity")?, item, &schema)
-                .err()
-                .ok_or("expected RPC edge admission refusal")?;
+            let error = super::expand(
+                &syn::parse_str("activity")?,
+                &syn::parse_str(super::RUNTIME_ROOT)?,
+                item,
+                &schema,
+            )
+            .err()
+            .ok_or("expected RPC edge admission refusal")?;
             assert!(error.to_string().contains(expected), "{error}");
         }
         Ok(())
@@ -118,9 +135,14 @@ mod tests {
             let item = syn::parse_str(&format!(
                 "impl Binding {{ #[observe(WorkflowService::DescribeActivityExecution, {declarations})] fn describe(response: DescribeActivityExecutionResponse) -> Result<Projection<Action>, Refusal> {{ todo!() }} }}"
             ))?;
-            let error = super::expand(&syn::parse_str("activity")?, item, &schema)
-                .err()
-                .ok_or("expected field admission refusal")?;
+            let error = super::expand(
+                &syn::parse_str("activity")?,
+                &syn::parse_str(super::RUNTIME_ROOT)?,
+                item,
+                &schema,
+            )
+            .err()
+            .ok_or("expected field admission refusal")?;
             assert!(error.to_string().contains(expected), "{error}");
         }
         Ok(())
@@ -150,6 +172,7 @@ mod tests {
         let location = item.impl_token.span.start();
         let expanded = umpire_temporal_annotate_syntax::realize::expand_in_source(
             &syn::parse_str("activity")?,
+            &syn::parse_str(super::RUNTIME_ROOT)?,
             item,
             &schema,
             source,
