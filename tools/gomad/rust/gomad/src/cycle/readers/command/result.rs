@@ -4,6 +4,15 @@ use super::{
 };
 use crate::qualify::result::{self, Manifest, QualificationResult};
 
+pub(super) const CHOICE_SOURCES: [&str; 7] = [
+    "choice/schema/choicewire.json",
+    "choice/schema/choicewire.go.tmpl",
+    "choice/schema/choicewire_runtime.go.tmpl",
+    "choice/schema/choicewire_test.go.tmpl",
+    "runtimesource/gomad_semantics.go.txt",
+    "choice/trace.go",
+    "choice/tape.go",
+];
 impl RetainedSession {
     pub(crate) fn provenance(&self, provenance: &Value) -> Result<Manifest, String> {
         let inputs = &provenance["inputs"];
@@ -27,6 +36,13 @@ impl RetainedSession {
                     == text(inputs, "compiler_sha256")?,
                 "actual frozen compiler changed",
             )?;
+        }
+        if configuration["profile"] == "gomad.wasi-cooperative/v1" {
+            let inventory = crate::cycle::preparation::inputs::Inventory::new(&self.config)?;
+            let root = Path::new(text(&self.config, "repo")?).join("tools/gomad/internal/model");
+            for name in CHOICE_SOURCES {
+                inventory.file_bytes(&root.join(name))?;
+            }
         }
         let manifest = Manifest {
             schema: result::MANIFEST_SCHEMA.into(),
@@ -118,12 +134,25 @@ impl RetainedSession {
             "Result lacks complete within-budget raw accounting",
         )?;
         for execution in &report.executions {
+            Self::stream_owners(&execution.record)?;
             for phase in ["execute", "replay"] {
                 require(
                     retained.observations.samples.iter().any(|sample| {
                         sample.phase == phase && sample.iteration == execution.iteration
                     }),
                     "Result raw store sample coverage differs",
+                )?;
+            }
+        }
+        Ok(())
+    }
+    pub(super) fn stream_owners(record: &crate::evidence::record::Record) -> Result<(), String> {
+        for name in record.streams.keys() {
+            if let Some(owner) = name.strip_prefix("evidence/cluster/") {
+                let parts = owner.splitn(3, '/').collect::<Vec<_>>();
+                require(
+                    parts.len() == 3 && parts.iter().all(|part| !part.is_empty()),
+                    "malformed cluster stream owner",
                 )?;
             }
         }
