@@ -76,16 +76,37 @@ fn runtime_formats_unit_outcomes_with_debug() {
                 .collect()
         }
     }
-    impl Realize<UnitWorld> for support::Realization {
+    struct UnitBinding;
+    impl umpire_runtime::capability::Identity for UnitBinding {
+        type Id = ();
+
+        fn identify(&self, _: &prost_types::Any) -> Result<(), protocol::Refusal> {
+            Ok(())
+        }
+    }
+
+    impl umpire_runtime::capability::Fill<<UnitWorld as Machine>::Action> for UnitBinding {
+        type World = UnitWorld;
+        type Inputs = ();
+        type Request = umpire_runtime::capability::NoRequest;
+    }
+
+    impl umpire_runtime::capability::Snapshot<UnitWorld> for UnitBinding {
         type Target = umpire_runtime::NoTarget;
 
-        fn observe(
+        fn project(
             &self,
+            _world: &UnitWorld,
             observation: &prost_types::Any,
             state: &support::State,
         ) -> Result<Projection<support::Action, (), umpire_runtime::NoTarget>, protocol::Refusal>
         {
-            match <Self as Realize<support::World>>::observe(self, observation, state)? {
+            match <support::Realization as Realize<support::World>>::observe(
+                &support::Realization,
+                &support::World { starts: 1 },
+                observation,
+                state,
+            )? {
                 Projection::Reach(target) | Projection::Stutter(target) => match target {},
                 Projection::Current => Ok(Projection::Current),
                 Projection::Candidates(candidates) => {
@@ -93,15 +114,31 @@ fn runtime_formats_unit_outcomes_with_debug() {
                 }
             }
         }
+    }
+
+    impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for UnitBinding {
+        type World = UnitWorld;
+        type View = umpire_runtime::capability::NoEvidence;
+    }
+
+    impl umpire_runtime::capability::ReplyPolicy<UnitWorld> for UnitBinding {
         fn answer(
             &self,
+            _world: &UnitWorld,
             callback: &prost_types::Any,
             state: &support::State,
         ) -> Result<AnswerPlan<support::Action>, protocol::Refusal> {
-            <Self as Realize<support::World>>::answer(self, callback, state)
+            <support::Realization as Realize<support::World>>::answer(
+                &support::Realization,
+                &support::World { starts: 1 },
+                callback,
+                state,
+            )
         }
     }
-    let mut runtime = Runtime::new(UnitWorld, support::Realization);
+
+    impl Realize<UnitWorld> for UnitBinding {}
+    let mut runtime = Runtime::new(UnitWorld, UnitBinding);
     let Some(Outcome::Judge(result)) = runtime
         .dispatch(
             Method::Judge as u32,

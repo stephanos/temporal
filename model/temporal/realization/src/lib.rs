@@ -20,14 +20,14 @@ pub struct Step<A> {
     pub expected: Option<umpire_dsl::Outcome>,
 }
 
-/// A callback's delivery evidence and raw typed outgoing request.
-pub struct Reply<A> {
+/// A callback's delivery evidence and typed inputs for the realization's filler.
+pub struct Reply<A, I> {
     /// Actions evidenced by callback delivery.
     pub delivery: Vec<A>,
     /// Response action whose enablement the runtime checks.
     pub action: A,
-    /// `Any::pack(&typed_request)`; generation adds the Temporal Reply envelope once.
-    pub request: umpire_runtime::prost_types::Any,
+    /// Explicit inputs passed to the shared typed request constructor.
+    pub inputs: I,
 }
 
 /// Declared coverage for one distinct protobuf use.

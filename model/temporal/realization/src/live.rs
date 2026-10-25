@@ -43,19 +43,49 @@ struct LiveRealization {
     receipt: Option<Receipt>,
 }
 
-impl Realize<activity::World> for LiveRealization {
-    type Target = NoTarget;
-
+impl umpire_runtime::capability::Identity for LiveRealization {
+    type Id = <Realization as umpire_runtime::capability::Identity>::Id;
+    fn identify(&self, value: &Any) -> Result<Self::Id, Refusal> {
+        umpire_runtime::capability::Identity::identify(&self.inner, value)
+    }
+}
+impl umpire_runtime::capability::Fill<Action> for LiveRealization {
+    type World = activity::World;
+    type Inputs = <Realization as umpire_runtime::capability::Fill<Action>>::Inputs;
+    type Request = <Realization as umpire_runtime::capability::Fill<Action>>::Request;
+    fn fill(
+        &self,
+        action: &Action,
+        world: &activity::World,
+        inputs: &Self::Inputs,
+        identity: &Self::Id,
+    ) -> Result<Self::Request, Refusal> {
+        umpire_runtime::capability::Fill::fill(&self.inner, action, world, inputs, identity)
+    }
+}
+impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for LiveRealization {
+    type World = activity::World;
+    type View = crate::support::Observed;
+    fn admit_evidence(&self, actual: &Any) -> Result<Self::View, Refusal> {
+        crate::support::Observed::new(actual)
+    }
+}
+impl umpire_runtime::capability::ReplyPolicy<activity::World> for LiveRealization {
     fn program(&self) -> Result<Any, Refusal> {
-        self.inner.program()
+        Realize::program(&self.inner)
     }
 
-    fn propose(&self, current: &activity::Model, seed: u64) -> Result<Proposal<Action>, Refusal> {
-        self.inner.propose(current, seed)
+    fn propose(
+        &self,
+        world: &activity::World,
+        current: &activity::Model,
+        seed: u64,
+    ) -> Result<Proposal<Action>, Refusal> {
+        Realize::propose(&self.inner, world, current, seed)
     }
 
     fn matches(&self, request: &Any, observation: &Any) -> Result<(), Refusal> {
-        self.inner.matches(request, observation)
+        Realize::matches(&self.inner, request, observation)
     }
 
     fn continue_polling(
@@ -64,17 +94,21 @@ impl Realize<activity::World> for LiveRealization {
         current: &activity::Model,
         action: Option<&Action>,
     ) -> Result<bool, Refusal> {
-        self.inner.continue_polling(observation, current, action)
+        Realize::continue_polling(&self.inner, observation, current, action)
     }
+}
 
-    fn observe(
+impl umpire_runtime::capability::Snapshot<activity::World> for LiveRealization {
+    type Target = NoTarget;
+    fn project(
         &self,
+        world: &activity::World,
         actual: &Any,
         current: &activity::Model,
     ) -> Result<Projection<Action, umpire_dsl::Outcome, NoTarget>, Refusal> {
         let observed = crate::support::Observed::new(actual)?;
         if observed.method != START {
-            return self.inner.observe(actual, current);
+            return Realize::observe(&self.inner, world, actual, current);
         }
         let observation: Observation = actual.unpack()?;
         let raw_request = observation
@@ -94,6 +128,8 @@ impl Realize<activity::World> for LiveRealization {
         Ok(Projection::Current)
     }
 }
+
+impl Realize<activity::World> for LiveRealization {}
 
 fn fresh_model() -> ModelRuntime {
     Runtime::new(
@@ -147,7 +183,15 @@ impl LiveRuntime {
                 let configuration = request.configuration.or_else(|| self.configuration.clone());
                 if let Some(configuration) = configuration {
                     let start: StartActivityExecutionRequest = configuration.unpack()?;
-                    let program = Realization::worker_program(&start)?;
+                    let maximum =
+                        start.retry_policy.as_ref().map_or(0, |policy| policy.maximum_attempts);
+                    let maximum = u8::try_from(maximum).map_err(|_| {
+                        Refusal::unsupported(
+                            "retry_policy.maximum_attempts must be explicitly in 1..=3",
+                        )
+                    })?;
+                    let world = activity::World::new(maximum, None, None, None, None, false);
+                    let program = Realization::worker_program(&start, &world)?;
                     return Ok((
                         Outcome::Reset(protocol::ResetResponse { program: Some(program) }),
                         Some(LiveTransaction { change: Change::Configure(configuration) }),

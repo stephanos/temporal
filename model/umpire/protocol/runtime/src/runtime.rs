@@ -82,13 +82,28 @@ mod singleton {
 ///     fn matches(&self, _: &u8) -> bool { true }
 /// }
 /// struct Binding;
-/// impl Realize<World> for Binding {
+/// impl umpire_runtime::capability::Identity for Binding {
+///     type Id = ();
+///     fn identify(&self, _: &Any) -> Result<(), protocol::Refusal> { Ok(()) }
+/// }
+/// impl umpire_runtime::capability::Fill<u8> for Binding {
+///     type World = World;
+///     type Inputs = ();
+///     type Request = umpire_runtime::capability::NoRequest;
+/// }
+/// impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for Binding {
+///     type World = World;
+///     type View = umpire_runtime::capability::NoEvidence;
+/// }
+/// impl umpire_runtime::capability::ReplyPolicy<World> for Binding {}
+/// impl umpire_runtime::capability::Snapshot<World> for Binding {
 ///     type Target = Partial;
-///     fn observe(&self, _: &Any, _: &u8)
+///     fn project(&self, _: &World, _: &Any, _: &u8)
 ///         -> Result<Projection<u8, (), Partial>, protocol::Refusal> {
 ///         Ok(Projection::Reach(Partial))
 ///     }
 /// }
+/// impl Realize<World> for Binding {}
 /// let _ = Runtime::new(World, Binding);
 /// ```
 pub trait SingletonTarget<S>: ReachTarget<S> + singleton::Sealed {}
@@ -224,84 +239,85 @@ pub enum Proposal<A> {
     },
 }
 
-/// A system-owned payload registry and projection realization for one Model.
-pub trait Realize<M: Machine> {
-    /// Typed observation filter; old Current/Candidates consumers use `NoTarget`.
-    type Target: ReachTarget<M::State>;
-
-    /// Finite search and whole-prefix retention metadata.
+/// Assembly of the required typed capabilities for one declared World.
+pub trait Realize<M: Machine>:
+    crate::capability::Identity
+    + crate::capability::Snapshot<M>
+    + crate::capability::Evidence<crate::evidence::Rpc, World = M>
+    + crate::capability::Fill<M::Action, World = M>
+    + crate::capability::ReplyPolicy<M>
+{
+    /// Finite search and retained-prefix limits.
     fn scope(&self) -> Scope {
-        Scope::default()
+        crate::capability::ReplyPolicy::scope(self)
     }
-
-    /// Admits each complete candidate path using actual typed evidence.
-    /// Empty-path Match is positive zero-step evidence. A missing predicate admits nothing.
-    fn reach_evidence(&self, _observation: &Any, _path: &[&Evidence<M>]) -> EvidenceMatch {
-        EvidenceMatch::Reject
-    }
-
-    /// Whether this realization admits stateful operations.
+    /// Whether stateful operations are admitted.
     fn enabled(&self) -> bool {
-        true
+        crate::capability::ReplyPolicy::enabled(self)
     }
-
-    /// Whether a fresh run requires admission before callbacks and action proposals.
+    /// Whether a fresh run requires actual admission.
     fn needs_bootstrap(&self) -> bool {
-        false
+        crate::capability::ReplyPolicy::needs_bootstrap(self)
     }
-
-    /// Issues the worker program for this realization and its bound World.
+    /// Issue the bound worker program.
     fn program(&self) -> Result<Any, protocol::Refusal> {
-        Err(protocol::Refusal::unsupported("program unsupported"))
+        crate::capability::ReplyPolicy::program(self)
     }
-
-    /// Selects a deterministic external request for the current state and seed.
+    /// Select a request using the declared World.
     fn propose(
         &self,
-        _state: &M::State,
-        _seed: u64,
-    ) -> Result<Proposal<M::Action>, protocol::Refusal> {
-        Err(protocol::Refusal::unsupported("proposal unsupported"))
-    }
-
-    /// Supplies admission independently of the action proposal policy.
-    fn bootstrap(
-        &self,
+        world: &M,
         state: &M::State,
         seed: u64,
     ) -> Result<Proposal<M::Action>, protocol::Refusal> {
-        self.propose(state, seed)
+        crate::capability::ReplyPolicy::propose(self, world, state, seed)
     }
-
-    /// Verifies that an observation belongs to the pending request.
-    fn matches(&self, _request: &Any, _observation: &Any) -> Result<(), protocol::Refusal> {
-        Err(protocol::Refusal::unsupported("proposal correlation unsupported"))
-    }
-
-    /// Requests another observation after a positively explained intermediate read.
-    fn continue_polling(
+    /// Select fresh-run admission.
+    fn bootstrap(
         &self,
-        _observation: &Any,
-        _state: &M::State,
-        _action: Option<&M::Action>,
-    ) -> Result<bool, protocol::Refusal> {
-        Ok(false)
+        world: &M,
+        state: &M::State,
+        seed: u64,
+    ) -> Result<Proposal<M::Action>, protocol::Refusal> {
+        crate::capability::ReplyPolicy::bootstrap(self, world, state, seed)
     }
-
-    /// Validates and projects an observation without changing Model state.
-    fn observe(
+    /// Validate pending request correlation before publication.
+    fn matches(&self, request: &Any, observation: &Any) -> Result<(), protocol::Refusal> {
+        crate::capability::ReplyPolicy::matches(self, request, observation)
+    }
+    /// Determine whether an explained read remains pending.
+    fn continue_polling(
         &self,
         observation: &Any,
         state: &M::State,
-    ) -> Result<Projection<M::Action, M::Outcome, Self::Target>, protocol::Refusal>;
-
-    /// Validates the complete callback and selects its delivery path and response.
+        action: Option<&M::Action>,
+    ) -> Result<bool, protocol::Refusal> {
+        crate::capability::ReplyPolicy::continue_polling(self, observation, state, action)
+    }
+    /// Validate the actual observation before feature projection.
+    fn observe(
+        &self,
+        world: &M,
+        observation: &Any,
+        state: &M::State,
+    ) -> Result<Projection<M::Action, M::Outcome, Self::Target>, protocol::Refusal> {
+        crate::capability::Snapshot::project(self, world, observation, state)
+    }
+    /// Admit actual evidence before feature matching.
+    fn reach_evidence(&self, observation: &Any, path: &[&Evidence<M>]) -> EvidenceMatch {
+        match crate::capability::Evidence::admit_evidence(self, observation) {
+            Ok(view) => crate::capability::Evidence::check_evidence(self, &view, path),
+            Err(_) => EvidenceMatch::Reject,
+        }
+    }
+    /// Select a callback response using the declared World and shared filler.
     fn answer(
         &self,
-        _callback: &Any,
-        _state: &M::State,
+        world: &M,
+        callback: &Any,
+        state: &M::State,
     ) -> Result<AnswerPlan<M::Action>, protocol::Refusal> {
-        Err(protocol::Refusal::unsupported("answer unsupported"))
+        crate::capability::ReplyPolicy::answer(self, world, callback, state)
     }
 }
 
@@ -381,7 +397,7 @@ where
     /// Creates a private run. Stateful calls refuse zero or multiple declared starts.
     pub fn new(machine: M, realization: R) -> Self {
         let state = unique_start(&machine).ok();
-        let admitted = !realization.needs_bootstrap();
+        let admitted = !Realize::needs_bootstrap(&realization);
         Self {
             machine,
             realization,
@@ -409,7 +425,7 @@ where
                 "initial state is not a declared start",
             ));
         }
-        let admitted = !realization.needs_bootstrap();
+        let admitted = !Realize::needs_bootstrap(&realization);
         Ok(Self {
             machine,
             realization,
@@ -471,7 +487,7 @@ where
                         "stateful run requires exactly one start",
                     )
                 })?;
-                let program = match self.realization.program() {
+                let program = match Realize::program(&self.realization) {
                     Ok(program) => Some(program),
                     Err(refusal) if refusal.code() == protocol::RefusalCode::Unsupported => None,
                     Err(refusal) => return Err(refusal),
@@ -483,7 +499,7 @@ where
                             state,
                             frozen: None,
                             pending: None,
-                            admitted: !self.realization.needs_bootstrap(),
+                            admitted: !Realize::needs_bootstrap(&self.realization),
                             prefix: Prefix::default(),
                         },
                     }),
@@ -514,7 +530,7 @@ where
     }
 
     fn require_realization(&self) -> Result<(), protocol::Refusal> {
-        if self.realization.enabled() {
+        if Realize::enabled(&self.realization) {
             Ok(())
         } else {
             Err(protocol::Refusal::new(
@@ -547,7 +563,7 @@ where
                 "bootstrap proposal required",
             ));
         }
-        let projection = self.realization.observe(observation, current)?;
+        let projection = Realize::observe(&self.realization, &self.machine, observation, current)?;
         if !self.admitted && !matches!(projection, Projection::Current) {
             return Err(protocol::Refusal::new(
                 protocol::RefusalCode::State,
@@ -555,7 +571,7 @@ where
             ));
         }
         if let Some(request) = &self.pending {
-            self.realization.matches(&request.request, observation)?;
+            Realize::matches(&self.realization, &request.request, observation)?;
         }
         if let Some(frozen) = &self.frozen {
             return Ok((judgment(Judgment::Unexplained(frozen.clone())), None));
@@ -628,7 +644,8 @@ where
         cursors: Option<Vec<usize>>,
     ) -> Prepared<M> {
         let continues = self.pending.is_some()
-            && self.realization.continue_polling(
+            && Realize::continue_polling(
+                &self.realization,
                 observation,
                 &state,
                 self.pending.as_ref().and_then(|pending| pending.action.as_ref()),
@@ -680,9 +697,9 @@ where
             }
         }
         let proposal = if self.admitted {
-            self.realization.propose(current, seed)
+            Realize::propose(&self.realization, &self.machine, current, seed)
         } else {
-            self.realization.bootstrap(current, seed)
+            Realize::bootstrap(&self.realization, &self.machine, current, seed)
         };
         if self.admitted && !external && !matches!(proposal, Ok(Proposal::Read { .. })) {
             return Err(protocol::Refusal::new(
@@ -714,7 +731,7 @@ where
                 (request, String::new(), protocol::ProposalKind::Read, None)
             }
             Proposal::Bootstrap { request } => {
-                if self.admitted || !self.realization.needs_bootstrap() {
+                if self.admitted || !Realize::needs_bootstrap(&self.realization) {
                     return Err(protocol::Refusal::new(
                         protocol::RefusalCode::State,
                         "bootstrap unavailable",
@@ -770,7 +787,7 @@ where
             ));
         }
         self.validate_prefix()?;
-        let plan = self.realization.answer(callback, current)?;
+        let plan = Realize::answer(&self.realization, &self.machine, callback, current)?;
         let Replay { state, edges, .. } =
             self.replay(current, plan.delivery)?.ok_or_else(|| {
                 protocol::Refusal::new(
@@ -858,9 +875,9 @@ where
         current: &M::State,
         target: &R::Target,
     ) -> Result<Option<Replay<M>>, protocol::Refusal> {
-        let scope = self.realization.scope();
+        let scope = Realize::scope(&self.realization);
         let mut traversal = Traversal::new(scope.depth, scope.work);
-        let admission = self.realization.reach_evidence(observation, &[]);
+        let admission = Realize::reach_evidence(&self.realization, observation, &[]);
         let Some(root_cursor) = admission.cursor() else {
             return Ok(None);
         };
@@ -916,7 +933,7 @@ where
                     let mut refs = Vec::new();
                     reserve(&mut refs, edges.len())?;
                     refs.extend(edges.iter().map(Rc::as_ref));
-                    let admission = self.realization.reach_evidence(observation, &refs);
+                    let admission = Realize::reach_evidence(&self.realization, observation, &refs);
                     let cursor = match admission {
                         EvidenceMatch::Reject => continue,
                         EvidenceMatch::Stutter { .. } if edge.source != edge.target => continue,
@@ -948,7 +965,7 @@ where
     }
 
     fn copy_prefix(&self, additional: usize) -> Result<Prefix<M>, protocol::Refusal> {
-        let limit = self.realization.scope().prefix;
+        let limit = Realize::scope(&self.realization).prefix;
         if self
             .prefix
             .edges
@@ -1026,11 +1043,12 @@ where
             match &event.kind {
                 EventKind::Observation { actual, continues, cursors } => {
                     if let Some(request) = &pending {
-                        self.realization.matches(&request.request, actual)?;
+                        Realize::matches(&self.realization, &request.request, actual)?;
                     }
                     let valid = self.valid_observation(actual, event, edges, cursors.as_deref())?;
                     let expected = pending.is_some()
-                        && self.realization.continue_polling(
+                        && Realize::continue_polling(
+                            &self.realization,
                             actual,
                             &event.after,
                             pending.as_ref().and_then(|pending| pending.action.as_ref()),
@@ -1043,7 +1061,8 @@ where
                     }
                 }
                 EventKind::Callback { actual, reply, response } => {
-                    let plan = self.realization.answer(actual, &event.before)?;
+                    let plan =
+                        Realize::answer(&self.realization, &self.machine, actual, &event.before)?;
                     if plan.reply != *reply
                         || plan.response_action != *response
                         || plan.delivery.len() != edges.len()
@@ -1055,7 +1074,7 @@ where
                     }
                 }
                 EventKind::Unexplained(actual) => {
-                    self.realization.observe(actual, &event.before)?;
+                    Realize::observe(&self.realization, &self.machine, actual, &event.before)?;
                     return Err(prefix_error());
                 }
                 EventKind::Proposal { request, action } => {
@@ -1085,7 +1104,7 @@ where
         let mut refs = Vec::new();
         reserve(&mut refs, edges.len())?;
         refs.extend(edges.iter().map(Rc::as_ref));
-        Ok(match self.realization.observe(actual, &event.before)? {
+        Ok(match Realize::observe(&self.realization, &self.machine, actual, &event.before)? {
             Projection::Current => edges.is_empty(),
             Projection::Stutter(target) => edges.is_empty() && target.matches(&event.before),
             Projection::Candidates(candidates) => candidates.iter().any(|candidate| {
@@ -1101,11 +1120,12 @@ where
             Projection::Reach(target) => {
                 let mut valid = cursors.is_some_and(|cursors| {
                     cursors.len() == refs.len() + 1
-                        && self.realization.reach_evidence(actual, &[]).cursor()
+                        && Realize::reach_evidence(&self.realization, actual, &[]).cursor()
                             == cursors.first().copied()
                 });
                 for position in 0..refs.len() {
-                    let evidence = self.realization.reach_evidence(actual, &refs[..=position]);
+                    let evidence =
+                        Realize::reach_evidence(&self.realization, actual, &refs[..=position]);
                     valid &= cursors.and_then(|cursors| cursors.get(position + 1)).copied()
                         == evidence.cursor()
                         && evidence != EvidenceMatch::Reject
@@ -1115,7 +1135,7 @@ where
                 valid
                     && target.matches(&event.after)
                     && matches!(
-                        self.realization.reach_evidence(actual, &refs),
+                        Realize::reach_evidence(&self.realization, actual, &refs),
                         EvidenceMatch::Match { .. } | EvidenceMatch::Stutter { .. }
                     )
             }

@@ -52,22 +52,52 @@ impl Machine for World {
     }
 }
 
-impl Realize<World> for support::Realization {
+struct Selected;
+
+impl umpire_runtime::capability::Identity for Selected {
+    type Id = ();
+
+    fn identify(&self, _: &prost_types::Any) -> Result<(), protocol::Refusal> {
+        Ok(())
+    }
+}
+
+impl umpire_runtime::capability::Fill<<World as Machine>::Action> for Selected {
+    type World = World;
+    type Inputs = ();
+    type Request = umpire_runtime::capability::NoRequest;
+}
+
+impl umpire_runtime::capability::Snapshot<World> for Selected {
     type Target = umpire_runtime::NoTarget;
 
-    fn observe(
+    fn project(
         &self,
+        _world: &World,
         observation: &prost_types::Any,
         state: &State,
     ) -> Result<
         Projection<support::Action, support::Outcome, umpire_runtime::NoTarget>,
         protocol::Refusal,
     > {
-        <Self as Realize<support::World>>::observe(self, observation, &support::State(state.value))
+        <support::Realization as Realize<support::World>>::observe(
+            &support::Realization,
+            &support::World { starts: 1 },
+            observation,
+            &support::State(state.value),
+        )
     }
+}
 
+impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for Selected {
+    type World = World;
+    type View = umpire_runtime::capability::NoEvidence;
+}
+
+impl umpire_runtime::capability::ReplyPolicy<World> for Selected {
     fn answer(
         &self,
+        _world: &World,
         _: &prost_types::Any,
         _: &State,
     ) -> Result<AnswerPlan<support::Action>, protocol::Refusal> {
@@ -79,8 +109,10 @@ impl Realize<World> for support::Realization {
     }
 }
 
-fn selected() -> Runtime<World, support::Realization> {
-    Runtime::with_initial(World, support::Realization, State { value: 1, marker: false })
+impl Realize<World> for Selected {}
+
+fn selected() -> Runtime<World, Selected> {
+    Runtime::with_initial(World, Selected, State { value: 1, marker: false })
         .unwrap_or_else(|refusal| panic!("valid selected start refused: {refusal:?}"))
 }
 
@@ -91,7 +123,7 @@ fn observation(value: u8) -> Vec<u8> {
 #[test]
 fn selected_initial_requires_exact_membership_including_other_fields() {
     for state in [State { value: 2, marker: false }, State { value: 1, marker: true }] {
-        let Err(refusal) = Runtime::with_initial(World, support::Realization, state) else {
+        let Err(refusal) = Runtime::with_initial(World, Selected, state) else {
             panic!("invalid initial state accepted")
         };
         assert_eq!(refusal.code, RefusalCode::State as i32);

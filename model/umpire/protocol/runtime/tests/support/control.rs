@@ -4,39 +4,75 @@ use umpire_runtime::{AnswerPlan, Projection, Realize, Runtime, prost_types::Any,
 pub(crate) struct ControlRealization {
     pub(crate) bootstrap: bool,
 }
-impl Realize<World> for ControlRealization {
+impl umpire_runtime::capability::Identity for ControlRealization {
+    type Id = ();
+
+    fn identify(&self, _: &Any) -> Result<(), protocol::Refusal> {
+        Ok(())
+    }
+}
+
+impl umpire_runtime::capability::Fill<<World as umpire_dsl::Machine>::Action>
+    for ControlRealization
+{
+    type World = World;
+    type Inputs = ();
+    type Request = umpire_runtime::capability::NoRequest;
+}
+
+impl umpire_runtime::capability::Snapshot<World> for ControlRealization {
     type Target = umpire_runtime::NoTarget;
 
-    fn needs_bootstrap(&self) -> bool {
-        self.bootstrap
-    }
-    fn bootstrap(
+    fn project(
         &self,
-        _: &State,
-        _: u64,
-    ) -> Result<umpire_runtime::Proposal<Action>, protocol::Refusal> {
-        Ok(umpire_runtime::Proposal::Bootstrap { request: any(0) })
-    }
-    fn propose(
-        &self,
-        state: &State,
-        seed: u64,
-    ) -> Result<umpire_runtime::Proposal<Action>, protocol::Refusal> {
-        Realization.propose(state, seed)
-    }
-    fn observe(
-        &self,
+        world: &World,
         value: &Any,
         state: &State,
     ) -> Result<Projection<Action, Outcome, umpire_runtime::NoTarget>, protocol::Refusal> {
         if payload(value)? == 20 {
             return Ok(Projection::Current);
         }
-        Realization.observe(value, state)
+        Realize::observe(&Realization, world, value, state)
     }
-    fn answer(&self, value: &Any, state: &State) -> Result<AnswerPlan<Action>, protocol::Refusal> {
-        Realization.answer(value, state)
+}
+
+impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for ControlRealization {
+    type World = World;
+    type View = umpire_runtime::capability::NoEvidence;
+}
+
+impl umpire_runtime::capability::ReplyPolicy<World> for ControlRealization {
+    fn needs_bootstrap(&self) -> bool {
+        self.bootstrap
     }
+
+    fn bootstrap(
+        &self,
+        _world: &World,
+        _: &State,
+        _: u64,
+    ) -> Result<umpire_runtime::Proposal<Action>, protocol::Refusal> {
+        Ok(umpire_runtime::Proposal::Bootstrap { request: any(0) })
+    }
+
+    fn propose(
+        &self,
+        world: &World,
+        state: &State,
+        seed: u64,
+    ) -> Result<umpire_runtime::Proposal<Action>, protocol::Refusal> {
+        Realize::propose(&Realization, world, state, seed)
+    }
+
+    fn answer(
+        &self,
+        world: &World,
+        value: &Any,
+        state: &State,
+    ) -> Result<AnswerPlan<Action>, protocol::Refusal> {
+        Realize::answer(&Realization, world, value, state)
+    }
+
     fn matches(&self, request: &Any, value: &Any) -> Result<(), protocol::Refusal> {
         let requested = payload(request)?;
         let observed = payload(value)?;
@@ -49,6 +85,7 @@ impl Realize<World> for ControlRealization {
             Err(protocol::Refusal::new(protocol::RefusalCode::State, "crossed observation"))
         }
     }
+
     fn continue_polling(
         &self,
         value: &Any,
@@ -58,6 +95,8 @@ impl Realize<World> for ControlRealization {
         Ok(payload(value)? == 20)
     }
 }
+
+impl Realize<World> for ControlRealization {}
 
 pub(crate) struct Control {
     runtime: Runtime<World, ControlRealization>,

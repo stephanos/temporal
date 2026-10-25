@@ -230,8 +230,9 @@ fn heat_projects_reach_with_an_exact_target_and_method_owned_evidence() {
         &HeatResponse { state: Some(state(20, true, false)) },
         Some(Any::pack(&HeatRequest { kettle_id: "k".into(), enabled: true })),
     );
-    let Projection::Reach(target) =
-        Realization.observe(&observation, &initial).unwrap_or_else(|error| panic!("{error:?}"))
+    let Projection::Reach(target) = Realization
+        .observe(&world, &observation, &initial)
+        .unwrap_or_else(|error| panic!("{error:?}"))
     else {
         panic!("Heat must use Reach");
     };

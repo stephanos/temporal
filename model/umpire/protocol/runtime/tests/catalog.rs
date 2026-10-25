@@ -46,27 +46,65 @@ impl Machine for Limited {
     }
 }
 
-impl Realize<Limited> for support::Realization {
+struct LimitedBinding;
+
+impl umpire_runtime::capability::Identity for LimitedBinding {
+    type Id = ();
+
+    fn identify(&self, _: &Any) -> Result<(), protocol::Refusal> {
+        Ok(())
+    }
+}
+
+impl umpire_runtime::capability::Fill<<Limited as Machine>::Action> for LimitedBinding {
+    type World = Limited;
+    type Inputs = ();
+    type Request = umpire_runtime::capability::NoRequest;
+}
+
+impl umpire_runtime::capability::Snapshot<Limited> for LimitedBinding {
     type Target = umpire_runtime::NoTarget;
 
-    fn observe(
+    fn project(
         &self,
+        _world: &Limited,
         observation: &Any,
         state: &support::State,
     ) -> Result<
         Projection<support::Action, support::Outcome, umpire_runtime::NoTarget>,
         protocol::Refusal,
     > {
-        <Self as Realize<support::World>>::observe(self, observation, state)
+        <support::Realization as Realize<support::World>>::observe(
+            &support::Realization,
+            &support::World { starts: 1 },
+            observation,
+            state,
+        )
     }
+}
+
+impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for LimitedBinding {
+    type World = Limited;
+    type View = umpire_runtime::capability::NoEvidence;
+}
+
+impl umpire_runtime::capability::ReplyPolicy<Limited> for LimitedBinding {
     fn answer(
         &self,
+        _world: &Limited,
         callback: &Any,
         state: &support::State,
     ) -> Result<AnswerPlan<support::Action>, protocol::Refusal> {
-        <Self as Realize<support::World>>::answer(self, callback, state)
+        <support::Realization as Realize<support::World>>::answer(
+            &support::Realization,
+            &support::World { starts: 1 },
+            callback,
+            state,
+        )
     }
 }
+
+impl Realize<Limited> for LimitedBinding {}
 
 #[test]
 fn catalog_refusals_map_to_the_budget_code() {
@@ -93,7 +131,7 @@ fn explore_judge_answer_and_replay_refuse_without_publishing() {
     let budget = protocol::RefusalCode::Budget;
     let error = CatalogError::TooLarge { count: 4097, limit: 4096 };
     let message = "action catalog has 4097 actions, over limit 4096".to_owned();
-    let mut runtime = Runtime::new(Limited(error), support::Realization);
+    let mut runtime = Runtime::new(Limited(error), LimitedBinding);
     let explore = runtime.dispatch(1, &protocol::ExploreRequest { budget: 8 }.encode_to_vec());
     assert_eq!(explore.refusal(budget).message, message);
     let rows = runtime.dispatch(2, &protocol::RowsRequest { state_id: 0 }.encode_to_vec());
@@ -119,8 +157,7 @@ fn explore_judge_answer_and_replay_refuse_without_publishing() {
     let admitted =
         support::runtime().dispatch(1, &protocol::ExploreRequest { budget: 8 }.encode_to_vec());
     assert!(matches!(admitted.outcome, Some(Outcome::Explore(_))));
-    let overflow =
-        Runtime::new(Limited(CatalogError::Overflow { limit: 4096 }), support::Realization)
-            .dispatch(1, &protocol::ExploreRequest { budget: 8 }.encode_to_vec());
+    let overflow = Runtime::new(Limited(CatalogError::Overflow { limit: 4096 }), LimitedBinding)
+        .dispatch(1, &protocol::ExploreRequest { budget: 8 }.encode_to_vec());
     overflow.refusal(budget);
 }

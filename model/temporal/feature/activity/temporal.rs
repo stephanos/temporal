@@ -60,7 +60,10 @@ pub const SCENARIO_HEADER: &str = "umpire-scenario";
 pub(crate) const SCENARIOS: [&str; 3] = ["Complete", "RetryThenComplete", "Fail"];
 
 impl Realization {
-    pub(crate) fn worker_program(start: &StartActivityExecutionRequest) -> Result<Any, Refusal> {
+    pub(crate) fn worker_program(
+        start: &StartActivityExecutionRequest,
+        world: &activity::World,
+    ) -> Result<Any, Refusal> {
         use umpire_temporal_api::umpire::temporal::v1::{ActivityTaskKey, Rule, WorkerProgram};
         let maximum = start.retry_policy.as_ref().map_or(0, |policy| policy.maximum_attempts);
         if !(1..=3).contains(&maximum) {
@@ -84,7 +87,19 @@ impl Realization {
         let mut rules = Vec::new();
         for scenario in SCENARIOS {
             for attempt in 1..=maximum {
-                let (_, response) = Self::response(scenario, attempt)?;
+                let action = Action::from(Self::select_response(scenario, attempt)?);
+                let binding = Self::default();
+                let identity =
+                    umpire_runtime::capability::Identity::identify(&binding, &Any::pack(start))?;
+                let response = umpire_runtime::capability::Request::pack_request(
+                    &umpire_runtime::capability::Fill::fill(
+                        &binding,
+                        &action,
+                        world,
+                        &FillInputs::Worker,
+                        &identity,
+                    )?,
+                );
                 rules.push(Rule {
                     key: Some(Any::pack(&ActivityTaskKey {
                         scenario: scenario.into(),
@@ -106,7 +121,12 @@ impl Realization {
 #[realization(activity)]
 impl Realization {
     #[propose(matches = matches_proposal, continue_polling = polling)]
-    fn proposal(&self, state: &activity::Model, seed: u64) -> Result<Proposal<Action>, Refusal> {
+    fn proposal(
+        &self,
+        world: &activity::World,
+        state: &activity::Model,
+        seed: u64,
+    ) -> Result<Proposal<Action>, Refusal> {
         let context = self
             .context
             .as_ref()
@@ -134,18 +154,19 @@ impl Realization {
                 "unheld cancellation of an open activity is outside the atomic cancellation Model",
             ));
         }
+        let action = Action::from(Client::Cancel);
+        let identity =
+            umpire_runtime::capability::Identity::identify(self, &Any::pack(&context.start))?;
+        let request = umpire_runtime::capability::Fill::fill(
+            self,
+            &action,
+            world,
+            &FillInputs::Cancel { hold, read },
+            &identity,
+        )?;
         Ok(Proposal::Action {
-            action: Client::Cancel.into(),
-            request: Any::pack(&umpire_temporal_api::umpire::temporal::v1::TemporalInstruction {
-                request: Some(Any::pack(&RequestCancelActivityExecutionRequest {
-                    namespace: context.start.namespace.clone(),
-                    activity_id: context.start.activity_id.clone(),
-                    run_id: context.run_id.clone(),
-                    ..Default::default()
-                })),
-                hold_worker_polls: hold,
-                not_found_read: Some(read),
-            }),
+            action,
+            request: umpire_runtime::capability::Request::pack_request(&request),
         })
     }
 
@@ -315,6 +336,7 @@ impl Realization {
         &self,
         response: DescribeActivityExecutionResponse,
         state: &activity::Model,
+        world: &activity::World,
     ) -> Result<Projection<Action>, Refusal> {
         let info = response.info.ok_or_else(|| Refusal::malformed("activity info is missing"))?;
         let raw_attempt = info.attempt;
@@ -353,7 +375,7 @@ impl Realization {
                 return Ok(Projection::steps([]));
             }
             if attempt > 1 && phase != Phase::Failed {
-                let (action, expected) = Self::response(scenario, i32::from(attempt - 1))?;
+                let (action, expected) = self.response(world, scenario, i32::from(attempt - 1))?;
                 if !matches!(action, Worker::RespondFailed { retryable: true }) {
                     return Ok(Projection::steps([]));
                 }
@@ -363,12 +385,12 @@ impl Realization {
                 }
             }
             for skipped in state.attempt..attempt {
-                let (action, _) = Self::response(scenario, i32::from(skipped))?;
+                let (action, _) = self.response(world, scenario, i32::from(skipped))?;
                 if !matches!(action, Worker::RespondFailed { retryable: true }) {
                     return Ok(Projection::steps([]));
                 }
             }
-            let (action, expected) = Self::response(scenario, raw_attempt)?;
+            let (action, expected) = self.response(world, scenario, raw_attempt)?;
             match phase {
                 Phase::Completed => {
                     let Some(Value::Result(result)) =
@@ -519,18 +541,139 @@ impl Realization {
         }
     }
 
-    fn response(scenario: &str, attempt: i32) -> Result<(Worker, Any), Refusal> {
-        let response = match scenario {
-            "RetryThenComplete" if attempt == 1 => (
-                Worker::RespondFailed { retryable: true },
-                Any::pack(&RespondActivityTaskFailedRequest {
-                    failure: Some(Failure::application("MiniActivityFailure", "Retry", false)),
-                    ..Default::default()
-                }),
-            ),
-            "Complete" | "RetryThenComplete" => (
-                Worker::RespondCompleted,
-                Any::pack(&RespondActivityTaskCompletedRequest {
+    fn select_response(scenario: &str, attempt: i32) -> Result<Worker, Refusal> {
+        match scenario {
+            "RetryThenComplete" if attempt == 1 => Ok(Worker::RespondFailed { retryable: true }),
+            "Complete" | "RetryThenComplete" => Ok(Worker::RespondCompleted),
+            "Fail" => Ok(Worker::RespondFailed { retryable: false }),
+            _ => Err(Refusal::unsupported("unsupported worker scenario")),
+        }
+    }
+
+    fn response(
+        &self,
+        world: &activity::World,
+        scenario: &str,
+        attempt: i32,
+    ) -> Result<(Worker, Any), Refusal> {
+        let action = Self::select_response(scenario, attempt)?;
+        let context = self
+            .context
+            .as_ref()
+            .ok_or_else(|| Refusal::unsupported("proposal configuration required"))?;
+        let identity =
+            umpire_runtime::capability::Identity::identify(self, &Any::pack(&context.start))?;
+        let request = umpire_runtime::capability::Fill::fill(
+            self,
+            &Action::from(action),
+            world,
+            &FillInputs::Worker,
+            &identity,
+        )?;
+        Ok((action, umpire_runtime::capability::Request::pack_request(&request)))
+    }
+}
+
+/// Actual activity identity admitted from the captured Start request and run context.
+pub struct ActivityIdentity {
+    namespace: String,
+    activity_id: String,
+    run_id: String,
+}
+
+/// Explicit action-specific request inputs selected by policy.
+pub enum FillInputs {
+    /// Cancellation instruction and its actual reconciliation read.
+    Cancel {
+        /// Whether delivery polls are held for this instruction.
+        hold: bool,
+        /// Selected read instruction.
+        read: Any,
+    },
+    /// The declared programmed worker response.
+    Worker,
+}
+
+/// Typed requests produced by the activity filler.
+pub enum FilledRequest {
+    /// A client cancellation instruction.
+    Cancel(umpire_temporal_api::umpire::temporal::v1::TemporalInstruction),
+    /// Successful worker completion.
+    Completed(RespondActivityTaskCompletedRequest),
+    /// Retryable or terminal worker failure.
+    Failed(Box<RespondActivityTaskFailedRequest>),
+}
+
+impl umpire_runtime::capability::Request for FilledRequest {
+    fn pack_request(&self) -> Any {
+        match self {
+            Self::Cancel(request) => Any::pack(request),
+            Self::Completed(request) => Any::pack(request),
+            Self::Failed(request) => Any::pack(request.as_ref()),
+        }
+    }
+}
+
+impl umpire_runtime::capability::Identity for Realization {
+    type Id = ActivityIdentity;
+    fn identify(&self, value: &Any) -> Result<Self::Id, Refusal> {
+        let actual: StartActivityExecutionRequest = value.unpack()?;
+        if actual.namespace.is_empty() {
+            return Err(Refusal::malformed("program namespace is required"));
+        }
+        let run_id = if let Some(context) = &self.context {
+            if context.start != actual {
+                return Err(Refusal::new(
+                    umpire_runtime::protocol::RefusalCode::State,
+                    "filler crosses admitted Start identity",
+                ));
+            }
+            context.run_id.clone()
+        } else {
+            String::new()
+        };
+        Ok(ActivityIdentity {
+            namespace: actual.namespace,
+            activity_id: actual.activity_id,
+            run_id,
+        })
+    }
+}
+
+impl umpire_runtime::capability::Fill<Action> for Realization {
+    type World = activity::World;
+    type Inputs = FillInputs;
+    type Request = FilledRequest;
+    fn fill(
+        &self,
+        action: &Action,
+        _world: &activity::World,
+        inputs: &FillInputs,
+        identity: &ActivityIdentity,
+    ) -> Result<FilledRequest, Refusal> {
+        if identity.namespace.is_empty() {
+            return Err(Refusal::malformed("program namespace is required"));
+        }
+        match inputs {
+            FillInputs::Cancel { hold, read } if *action == Action::from(Client::Cancel) => {
+                if identity.activity_id.is_empty() || identity.run_id.is_empty() {
+                    return Err(Refusal::malformed("cancellation identity is missing"));
+                }
+                Ok(FilledRequest::Cancel(
+                    umpire_temporal_api::umpire::temporal::v1::TemporalInstruction {
+                        request: Some(Any::pack(&RequestCancelActivityExecutionRequest {
+                            namespace: identity.namespace.clone(),
+                            activity_id: identity.activity_id.clone(),
+                            run_id: identity.run_id.clone(),
+                            ..Default::default()
+                        })),
+                        hold_worker_polls: *hold,
+                        not_found_read: Some(read.clone()),
+                    },
+                ))
+            }
+            FillInputs::Worker if *action == Action::from(Worker::RespondCompleted) => {
+                Ok(FilledRequest::Completed(RespondActivityTaskCompletedRequest {
                     result: Some(Payloads {
                         payloads: vec![Payload {
                             metadata: std::collections::BTreeMap::from([(
@@ -542,17 +685,25 @@ impl Realization {
                         }],
                     }),
                     ..Default::default()
-                }),
-            ),
-            "Fail" => (
-                Worker::RespondFailed { retryable: false },
-                Any::pack(&RespondActivityTaskFailedRequest {
+                }))
+            }
+            FillInputs::Worker
+                if *action == Action::from(Worker::RespondFailed { retryable: true }) =>
+            {
+                Ok(FilledRequest::Failed(Box::new(RespondActivityTaskFailedRequest {
+                    failure: Some(Failure::application("MiniActivityFailure", "Retry", false)),
+                    ..Default::default()
+                })))
+            }
+            FillInputs::Worker
+                if *action == Action::from(Worker::RespondFailed { retryable: false }) =>
+            {
+                Ok(FilledRequest::Failed(Box::new(RespondActivityTaskFailedRequest {
                     failure: Some(Failure::application("MiniActivityFailure", "Fail", true)),
                     ..Default::default()
-                }),
-            ),
-            _ => return Err(Refusal::unsupported("unsupported worker scenario")),
-        };
-        Ok(response)
+                })))
+            }
+            _ => Err(Refusal::unsupported("action has no activity request for these inputs")),
+        }
     }
 }

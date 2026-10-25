@@ -18,8 +18,26 @@ use umpire_temporal_api::temporal::api::{
     common::v1::Payloads,
     workflowservice::v1::{
         DescribeActivityExecutionResponse, RequestCancelActivityExecutionResponse,
+        RespondActivityTaskCompletedRequest,
     },
 };
+
+macro_rules! observation_only {
+    ($($binding:ty),+ $(,)?) => { $(
+        impl umpire_runtime::capability::Identity for $binding {
+            type Id = ();
+            fn identify(&self, _: &Any) -> Result<(), Refusal> {
+                Err(Refusal::unsupported("identity unsupported"))
+            }
+        }
+        impl umpire_runtime::capability::Fill<<activity::World as Machine>::Action> for $binding {
+            type World = activity::World;
+            type Inputs = ();
+            type Request = umpire_runtime::capability::NoRequest;
+        }
+    )+};
+}
+observation_only!(StepBinding, PresenceBinding, OpaqueBinding);
 
 struct StepBinding;
 
@@ -35,7 +53,8 @@ impl StepBinding {
 
 #[test]
 fn generated_step_converts_actor_action_and_retains_expected_outcome() {
-    let state = activity::World::new(3, None, None, None, None, false).starts().remove(0);
+    let world = activity::World::new(3, None, None, None, None, false);
+    let state = world.starts().remove(0);
     let observation = Any::pack(&Observation {
         method: "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
             .into(),
@@ -44,8 +63,9 @@ fn generated_step_converts_actor_action_and_retains_expected_outcome() {
         ))),
         request: None,
     });
-    let Projection::Candidates(candidates) =
-        StepBinding.observe(&observation, &state).unwrap_or_else(|error| panic!("{error:?}"))
+    let Projection::Candidates(candidates) = StepBinding
+        .observe(&world, &observation, &state)
+        .unwrap_or_else(|error| panic!("{error:?}"))
     else {
         panic!("expected one candidate");
     };
@@ -84,7 +104,8 @@ impl PresenceBinding {
 
 #[test]
 fn unsupported_optional_and_oneof_fields_use_decoded_presence() {
-    let state = activity::World::new(3, None, None, None, None, false).starts().remove(0);
+    let world = activity::World::new(3, None, None, None, None, false);
+    let state = world.starts().remove(0);
     for (input, outcome, refused) in [
         (None, None, false),
         (Some(Payloads::default()), None, true),
@@ -106,7 +127,7 @@ fn unsupported_optional_and_oneof_fields_use_decoded_presence() {
             ))),
             request: None,
         });
-        let result = PresenceBinding.observe(&observation, &state);
+        let result = PresenceBinding.observe(&world, &observation, &state);
         if refused {
             assert_eq!(result.err().map(|error| error.code()), Some(RefusalCode::Unsupported));
         } else {
@@ -117,7 +138,8 @@ fn unsupported_optional_and_oneof_fields_use_decoded_presence() {
 
 #[test]
 fn opaque_ignored_catalog_fields_still_have_real_decoded_presence() {
-    let state = activity::World::new(3, None, None, None, None, false).starts().remove(0);
+    let world = activity::World::new(3, None, None, None, None, false);
+    let state = world.starts().remove(0);
     for present in [false, true] {
         let observation = Any::pack(&Observation {
             method: "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
@@ -135,7 +157,7 @@ fn opaque_ignored_catalog_fields_still_have_real_decoded_presence() {
             ))),
             request: None,
         });
-        let result = OpaqueBinding.observe(&observation, &state);
+        let result = OpaqueBinding.observe(&world, &observation, &state);
         if present {
             let error =
                 result.err().unwrap_or_else(|| panic!("opaque priority presence must refuse"));
@@ -144,5 +166,115 @@ fn opaque_ignored_catalog_fields_still_have_real_decoded_presence() {
         } else {
             assert!(matches!(result, Ok(Projection::Current)));
         }
+    }
+}
+
+struct CallbackBinding;
+
+impl umpire_runtime::capability::Identity for CallbackBinding {
+    type Id = Vec<u8>;
+    fn identify(&self, value: &Any) -> Result<Self::Id, Refusal> {
+        let task: umpire_temporal_api::temporal::api::workflowservice::v1::PollActivityTaskQueueResponse = umpire_runtime::callback(value)?;
+        if task.task_token.is_empty() {
+            return Err(Refusal::malformed("callback task identity is missing"));
+        }
+        Ok(task.task_token)
+    }
+}
+
+impl umpire_runtime::capability::Fill<<activity::World as Machine>::Action> for CallbackBinding {
+    type World = activity::World;
+    type Inputs = ();
+    type Request = RespondActivityTaskCompletedRequest;
+    fn fill(
+        &self,
+        _: &<activity::World as Machine>::Action,
+        _: &activity::World,
+        (): &(),
+        identity: &Vec<u8>,
+    ) -> Result<Self::Request, Refusal> {
+        Ok(Self::Request { task_token: identity.clone(), ..Default::default() })
+    }
+}
+
+#[realization(activity)]
+impl CallbackBinding {
+    #[answer(
+        PollActivityTaskQueueResponse,
+        reads(task_token),
+        produces(RespondActivityTaskCompletedRequest, fields(task_token))
+    )]
+    fn respond(
+        _: umpire_temporal_api::temporal::api::workflowservice::v1::PollActivityTaskQueueResponse,
+    ) -> Result<umpire_temporal::Reply<activity::Worker, ()>, Refusal> {
+        Ok(umpire_temporal::Reply {
+            delivery: vec![],
+            action: activity::Worker::RespondCompleted,
+            inputs: (),
+        })
+    }
+}
+
+#[test]
+fn generated_callback_fills_once_from_the_admitted_actual_identity() {
+    use umpire_temporal_api::temporal::api::workflowservice::v1::{
+        PollActivityTaskQueueResponse, RespondActivityTaskCompletedRequest,
+    };
+    let world = activity::World::new(3, None, None, None, None, false);
+    let state = world.starts().remove(0);
+    let callback = |task_token| {
+        Any::pack(&umpire_runtime::realization::Callback {
+            task: Some(Any::pack(&PollActivityTaskQueueResponse {
+                task_token,
+                ..Default::default()
+            })),
+        })
+    };
+    let plan = CallbackBinding
+        .answer(&world, &callback(vec![7, 8]), &state)
+        .unwrap_or_else(|error| panic!("{error:?}"));
+    let reply: umpire_runtime::realization::Reply =
+        plan.reply.unpack().unwrap_or_else(|error| panic!("{error:?}"));
+    let request: RespondActivityTaskCompletedRequest = reply
+        .request
+        .unwrap_or_else(|| panic!("filled request missing"))
+        .unpack()
+        .unwrap_or_else(|error| panic!("{error:?}"));
+    assert_eq!(request.task_token, [7, 8]);
+    assert!(plan.delivery.is_empty());
+    assert_eq!(plan.response_action.to_string(), "Worker::RespondCompleted");
+    assert_eq!(
+        CallbackBinding.answer(&world, &callback(vec![]), &state).err().map(|error| error.code()),
+        Some(RefusalCode::MalformedRequest)
+    );
+}
+
+#[test]
+fn generated_observation_validates_actual_request_before_feature_delegation() {
+    use umpire_temporal_api::temporal::api::workflowservice::v1::DescribeActivityExecutionRequest;
+    let world = activity::World::new(3, None, None, None, None, false);
+    let state = world.starts().remove(0);
+    let valid = Any::pack(&RequestCancelActivityExecutionResponse {});
+    let wrong = Any::pack(&DescribeActivityExecutionResponse::default());
+    for (response, request, expected) in [
+        (
+            valid.clone(),
+            Any::pack(&DescribeActivityExecutionRequest::default()),
+            RefusalCode::Unsupported,
+        ),
+        (valid, Any::default(), RefusalCode::MalformedRequest),
+        (wrong, Any::default(), RefusalCode::Unsupported),
+    ] {
+        let observation = Any::pack(&Observation {
+            method:
+                "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
+                    .into(),
+            result: Some(ObservationResult::Response(response)),
+            request: Some(request),
+        });
+        assert_eq!(
+            StepBinding.observe(&world, &observation, &state).err().map(|error| error.code()),
+            Some(expected),
+        );
     }
 }

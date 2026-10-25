@@ -11,39 +11,44 @@ use umpire_temporal_api::temporal::api::{
 
 /// A Temporal observation, optionally retaining the acknowledgment its current read reconciles.
 pub struct Observed {
-    inner: umpire_runtime::Observed,
-    current: umpire_runtime::realization::Observation,
-    acknowledged: Option<umpire_runtime::realization::Observation>,
+    current: umpire_runtime::evidence::RpcView,
+    acknowledged: Option<umpire_runtime::evidence::RpcView>,
 }
 
 impl Observed {
     /// Admit ordinary evidence or a pair of unchanged actual RPC observations.
     pub fn new(value: &umpire_runtime::prost_types::Any) -> Result<Self, Refusal> {
-        use umpire_runtime::prost_types::Any;
+        use umpire_runtime::{evidence::RpcView, prost_types::Any};
         use umpire_temporal_api::umpire::temporal::v1::ReconciledObservation;
         let (current, acknowledged) =
             if value.type_url == <ReconciledObservation as prost::Name>::type_url() {
                 let pair: ReconciledObservation = value.unpack()?;
-                let acknowledged = Any::required(pair.acknowledged)?;
-                let _ = umpire_runtime::Observed::new(&acknowledged)?;
-                (Any::required(pair.current)?, Some(acknowledged.unpack()?))
+                let acknowledged = RpcView::new(&Any::required(pair.acknowledged)?)?;
+                let current = RpcView::new(&Any::required(pair.current)?)?;
+                (current, Some(acknowledged))
             } else {
-                (value.clone(), None)
+                (RpcView::new(value)?, None)
             };
-        Ok(Self {
-            inner: umpire_runtime::Observed::new(&current)?,
-            current: current.unpack()?,
-            acknowledged,
-        })
+        Ok(Self { current, acknowledged })
     }
 
     /// The current actual RPC observation used for dispatch and projection.
     pub fn current(&self) -> &umpire_runtime::realization::Observation {
-        &self.current
+        self.current.raw()
     }
 
     /// The earlier actual acknowledgment retained by compound evidence.
     pub fn acknowledged(&self) -> Option<&umpire_runtime::realization::Observation> {
+        self.acknowledged.as_ref().map(umpire_runtime::evidence::RpcView::raw)
+    }
+
+    /// The typed actual invocation used for dispatch and projection.
+    pub fn rpc(&self) -> &umpire_runtime::evidence::RpcView {
+        &self.current
+    }
+
+    /// The typed earlier acknowledgment, when supplied by the transport.
+    pub fn acknowledged_rpc(&self) -> Option<&umpire_runtime::evidence::RpcView> {
         self.acknowledged.as_ref()
     }
 }
@@ -51,7 +56,7 @@ impl Observed {
 impl std::ops::Deref for Observed {
     type Target = umpire_runtime::Observed;
     fn deref(&self) -> &Self::Target {
-        &self.inner
+        &self.current
     }
 }
 

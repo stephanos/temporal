@@ -78,13 +78,26 @@ struct Binding {
     predicate: Predicate,
 }
 
-impl Realize<Graph> for Binding {
-    type Target = Exact<State>;
-    fn scope(&self) -> Scope {
-        self.scope
+impl umpire_runtime::capability::Identity for Binding {
+    type Id = ();
+
+    fn identify(&self, _: &Any) -> Result<(), protocol::Refusal> {
+        Ok(())
     }
-    fn observe(
+}
+
+impl umpire_runtime::capability::Fill<<Graph as Machine>::Action> for Binding {
+    type World = Graph;
+    type Inputs = ();
+    type Request = umpire_runtime::capability::NoRequest;
+}
+
+impl umpire_runtime::capability::Snapshot<Graph> for Binding {
+    type Target = Exact<State>;
+
+    fn project(
         &self,
+        _world: &Graph,
         _: &Any,
         _: &State,
     ) -> Result<Projection<Action, Outcome, Self::Target>, protocol::Refusal> {
@@ -95,7 +108,17 @@ impl Realize<Graph> for Binding {
             Projection::Reach(target)
         })
     }
-    fn reach_evidence(&self, _: &Any, path: &[&Evidence<Graph>]) -> EvidenceMatch {
+}
+
+impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for Binding {
+    type World = Graph;
+    type View = Any;
+
+    fn admit_evidence(&self, value: &Any) -> Result<Self::View, protocol::Refusal> {
+        Ok(value.clone())
+    }
+
+    fn check_evidence(&self, _: &Any, path: &[&Evidence<Graph>]) -> EvidenceMatch {
         if path.is_empty() {
             return if matches!(self.predicate, Predicate::Zero) {
                 EvidenceMatch::Match { cursor: 0 }
@@ -140,6 +163,14 @@ impl Realize<Graph> for Binding {
         }
     }
 }
+
+impl umpire_runtime::capability::ReplyPolicy<Graph> for Binding {
+    fn scope(&self) -> Scope {
+        self.scope
+    }
+}
+
+impl Realize<Graph> for Binding {}
 
 fn binding(target: u8, depth: usize, work: usize, predicate: Predicate) -> Binding {
     Binding { target: State(target, Some(3)), scope: Scope { depth, work, prefix: 128 }, predicate }
@@ -229,16 +260,41 @@ fn a_short_canonical_match_survives_a_longer_cycle_but_no_match_refuses_at_cut()
 }
 
 struct NoPredicate(u8);
-impl Realize<Graph> for NoPredicate {
+impl umpire_runtime::capability::Identity for NoPredicate {
+    type Id = ();
+
+    fn identify(&self, _: &Any) -> Result<(), protocol::Refusal> {
+        Ok(())
+    }
+}
+
+impl umpire_runtime::capability::Fill<<Graph as Machine>::Action> for NoPredicate {
+    type World = Graph;
+    type Inputs = ();
+    type Request = umpire_runtime::capability::NoRequest;
+}
+
+impl umpire_runtime::capability::Snapshot<Graph> for NoPredicate {
     type Target = Exact<State>;
-    fn observe(
+
+    fn project(
         &self,
+        _world: &Graph,
         _: &Any,
         state: &State,
     ) -> Result<Projection<Action, Outcome, Self::Target>, protocol::Refusal> {
         Ok(Projection::Reach(Exact(State(self.0, state.1))))
     }
 }
+
+impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for NoPredicate {
+    type World = Graph;
+    type View = umpire_runtime::capability::NoEvidence;
+}
+
+impl umpire_runtime::capability::ReplyPolicy<Graph> for NoPredicate {}
+
+impl Realize<Graph> for NoPredicate {}
 
 #[test]
 fn positive_zero_step_model_self_loop_and_declared_stutter_require_separate_evidence() {
@@ -394,19 +450,49 @@ impl Machine for Faulty {
     }
 }
 struct FaultBinding;
-impl Realize<Faulty> for FaultBinding {
+impl umpire_runtime::capability::Identity for FaultBinding {
+    type Id = ();
+
+    fn identify(&self, _: &Any) -> Result<(), protocol::Refusal> {
+        Ok(())
+    }
+}
+
+impl umpire_runtime::capability::Fill<<Faulty as Machine>::Action> for FaultBinding {
+    type World = Faulty;
+    type Inputs = ();
+    type Request = umpire_runtime::capability::NoRequest;
+}
+
+impl umpire_runtime::capability::Snapshot<Faulty> for FaultBinding {
     type Target = Exact<State>;
-    fn observe(
+
+    fn project(
         &self,
+        _world: &Faulty,
         _: &Any,
         state: &State,
     ) -> Result<Projection<Action, Outcome, Self::Target>, protocol::Refusal> {
         Ok(Projection::Reach(Exact(state.clone())))
     }
-    fn reach_evidence(&self, _: &Any, _: &[&Evidence<Faulty>]) -> EvidenceMatch {
+}
+
+impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for FaultBinding {
+    type World = Faulty;
+    type View = Any;
+
+    fn admit_evidence(&self, value: &Any) -> Result<Self::View, protocol::Refusal> {
+        Ok(value.clone())
+    }
+
+    fn check_evidence(&self, _: &Any, _: &[&Evidence<Faulty>]) -> EvidenceMatch {
         EvidenceMatch::Continue { cursor: 0 }
     }
 }
+
+impl umpire_runtime::capability::ReplyPolicy<Faulty> for FaultBinding {}
+
+impl Realize<Faulty> for FaultBinding {}
 #[test]
 fn reach_catalog_and_checked_step_failures_refuse_without_advancing_or_freezing() {
     for (fault, code, message) in [
@@ -441,10 +527,26 @@ enum RetainedEvidence {
     Cursor,
 }
 struct PrefixBinding(std::rc::Rc<std::cell::Cell<RetainedEvidence>>);
-impl Realize<Graph> for PrefixBinding {
+impl umpire_runtime::capability::Identity for PrefixBinding {
+    type Id = ();
+
+    fn identify(&self, _: &Any) -> Result<(), protocol::Refusal> {
+        Ok(())
+    }
+}
+
+impl umpire_runtime::capability::Fill<<Graph as Machine>::Action> for PrefixBinding {
+    type World = Graph;
+    type Inputs = ();
+    type Request = umpire_runtime::capability::NoRequest;
+}
+
+impl umpire_runtime::capability::Snapshot<Graph> for PrefixBinding {
     type Target = Exact<State>;
-    fn observe(
+
+    fn project(
         &self,
+        _world: &Graph,
         actual: &Any,
         state: &State,
     ) -> Result<Projection<Action, Outcome, Self::Target>, protocol::Refusal> {
@@ -454,7 +556,17 @@ impl Realize<Graph> for PrefixBinding {
             _ => Err(protocol::Refusal::malformed("unexpected observation")),
         }
     }
-    fn reach_evidence(&self, _: &Any, path: &[&Evidence<Graph>]) -> EvidenceMatch {
+}
+
+impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for PrefixBinding {
+    type World = Graph;
+    type View = Any;
+
+    fn admit_evidence(&self, value: &Any) -> Result<Self::View, protocol::Refusal> {
+        Ok(value.clone())
+    }
+
+    fn check_evidence(&self, _: &Any, path: &[&Evidence<Graph>]) -> EvidenceMatch {
         let [edge] = path else {
             return if path.is_empty() {
                 EvidenceMatch::Continue { cursor: 0 }
@@ -471,6 +583,10 @@ impl Realize<Graph> for PrefixBinding {
         EvidenceMatch::Match { cursor: if mode == RetainedEvidence::Cursor { 2 } else { 1 } }
     }
 }
+
+impl umpire_runtime::capability::ReplyPolicy<Graph> for PrefixBinding {}
+
+impl Realize<Graph> for PrefixBinding {}
 
 #[test]
 fn later_current_revalidates_retained_typed_outcome_fact_and_consumption_cursor() {

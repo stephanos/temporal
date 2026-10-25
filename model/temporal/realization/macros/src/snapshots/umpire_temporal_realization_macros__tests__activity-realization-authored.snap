@@ -5,6 +5,7 @@ expression: render(authored)
 impl Realization {
     fn proposal(
         &self,
+        world: &activity::World,
         state: &activity::Model,
         seed: u64,
     ) -> Result<Proposal<Action>, Refusal> {
@@ -41,24 +42,21 @@ impl Realization {
                 ),
             );
         }
+        let action = Action::from(Client::Cancel);
+        let identity = umpire_runtime::capability::Identity::identify(
+            self,
+            &Any::pack(&context.start),
+        )?;
+        let request = umpire_runtime::capability::Fill::fill(
+            self,
+            &action,
+            world,
+            &FillInputs::Cancel { hold, read },
+            &identity,
+        )?;
         Ok(Proposal::Action {
-            action: Client::Cancel.into(),
-            request: Any::pack(
-                &umpire_temporal_api::umpire::temporal::v1::TemporalInstruction {
-                    request: Some(
-                        Any::pack(
-                            &RequestCancelActivityExecutionRequest {
-                                namespace: context.start.namespace.clone(),
-                                activity_id: context.start.activity_id.clone(),
-                                run_id: context.run_id.clone(),
-                                ..Default::default()
-                            },
-                        ),
-                    ),
-                    hold_worker_polls: hold,
-                    not_found_read: Some(read),
-                },
-            ),
+            action,
+            request: umpire_runtime::capability::Request::pack_request(&request),
         })
     }
     fn matches_proposal(&self, request: &Any, observation: &Any) -> Result<(), Refusal> {
@@ -244,6 +242,7 @@ impl Realization {
         &self,
         response: DescribeActivityExecutionResponse,
         state: &activity::Model,
+        world: &activity::World,
     ) -> Result<Projection<Action>, Refusal> {
         let info = response
             .info
@@ -290,10 +289,8 @@ impl Realization {
                 return Ok(Projection::steps([]));
             }
             if attempt > 1 && phase != Phase::Failed {
-                let (action, expected) = Self::response(
-                    scenario,
-                    i32::from(attempt - 1),
-                )?;
+                let (action, expected) = self
+                    .response(world, scenario, i32::from(attempt - 1))?;
                 if !matches!(action, Worker::RespondFailed { retryable : true }) {
                     return Ok(Projection::steps([]));
                 }
@@ -306,12 +303,12 @@ impl Realization {
                 }
             }
             for skipped in state.attempt..attempt {
-                let (action, _) = Self::response(scenario, i32::from(skipped))?;
+                let (action, _) = self.response(world, scenario, i32::from(skipped))?;
                 if !matches!(action, Worker::RespondFailed { retryable : true }) {
                     return Ok(Projection::steps([]));
                 }
             }
-            let (action, expected) = Self::response(scenario, raw_attempt)?;
+            let (action, expected) = self.response(world, scenario, raw_attempt)?;
             match phase {
                 Phase::Completed => {
                     let Some(Value::Result(result)) = response
@@ -483,58 +480,44 @@ impl Realization {
             Projection::steps([path])
         }
     }
-    fn response(scenario: &str, attempt: i32) -> Result<(Worker, Any), Refusal> {
-        let response = match scenario {
+    fn select_response(scenario: &str, attempt: i32) -> Result<Worker, Refusal> {
+        match scenario {
             "RetryThenComplete" if attempt == 1 => {
-                (
-                    Worker::RespondFailed {
-                        retryable: true,
-                    },
-                    Any::pack(
-                        &RespondActivityTaskFailedRequest {
-                            failure: Some(
-                                Failure::application("MiniActivityFailure", "Retry", false),
-                            ),
-                            ..Default::default()
-                        },
-                    ),
-                )
+                Ok(Worker::RespondFailed {
+                    retryable: true,
+                })
             }
-            "Complete" | "RetryThenComplete" => {
-                (
-                    Worker::RespondCompleted,
-                    Any::pack(
-                        &RespondActivityTaskCompletedRequest {
-                            result: Some(Payloads {
-                                payloads: vec![
-                                    Payload { metadata :
-                                    std::collections::BTreeMap::from([("encoding".into(),
-                                    b"binary/plain".to_vec(),)]), data : b"Complete".to_vec(),
-                                    ..Default::default() }
-                                ],
-                            }),
-                            ..Default::default()
-                        },
-                    ),
-                )
-            }
+            "Complete" | "RetryThenComplete" => Ok(Worker::RespondCompleted),
             "Fail" => {
-                (
-                    Worker::RespondFailed {
-                        retryable: false,
-                    },
-                    Any::pack(
-                        &RespondActivityTaskFailedRequest {
-                            failure: Some(
-                                Failure::application("MiniActivityFailure", "Fail", true),
-                            ),
-                            ..Default::default()
-                        },
-                    ),
-                )
+                Ok(Worker::RespondFailed {
+                    retryable: false,
+                })
             }
-            _ => return Err(Refusal::unsupported("unsupported worker scenario")),
-        };
-        Ok(response)
+            _ => Err(Refusal::unsupported("unsupported worker scenario")),
+        }
+    }
+    fn response(
+        &self,
+        world: &activity::World,
+        scenario: &str,
+        attempt: i32,
+    ) -> Result<(Worker, Any), Refusal> {
+        let action = Self::select_response(scenario, attempt)?;
+        let context = self
+            .context
+            .as_ref()
+            .ok_or_else(|| Refusal::unsupported("proposal configuration required"))?;
+        let identity = umpire_runtime::capability::Identity::identify(
+            self,
+            &Any::pack(&context.start),
+        )?;
+        let request = umpire_runtime::capability::Fill::fill(
+            self,
+            &Action::from(action),
+            world,
+            &FillInputs::Worker,
+            &identity,
+        )?;
+        Ok((action, umpire_runtime::capability::Request::pack_request(&request)))
     }
 }

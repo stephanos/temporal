@@ -2,6 +2,8 @@
 
 #![forbid(unsafe_code)]
 
+mod roots;
+
 use std::path::Path;
 
 use quote::quote;
@@ -19,10 +21,14 @@ const RUNTIME_ROOT: &str = "::umpire_temporal";
 
 fn schema() -> Result<(Schema, Vec<std::path::PathBuf>), String> {
     let system = system::system(&Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../.."));
+    let api_root = roots::resolve(
+        system.rust_root.parse().map_err(|error: proc_macro2::LexError| error.to_string())?,
+    )
+    .to_string();
     Schema::load(
         &system.catalog_root,
         Path::new(concat!(env!("OUT_DIR"), "/realization-api.binpb")),
-        system.rust_root,
+        &api_root,
     )
 }
 
@@ -64,7 +70,7 @@ pub fn realization(
             Ok(quote!(#(#tracked)* #expanded))
         },
     );
-    result.unwrap_or_else(syn::Error::into_compile_error).into()
+    result.map_or_else(syn::Error::into_compile_error, roots::resolve).into()
 }
 
 fn misplaced(name: &str) -> proc_macro::TokenStream {
@@ -298,7 +304,10 @@ mod tests {
             syn::Item::Use(import),
             syn::Item::Impl(authored),
             syn::Item::Impl(metadata),
-            syn::Item::Impl(dispatch),
+            syn::Item::Impl(snapshot),
+            syn::Item::Impl(evidence),
+            syn::Item::Impl(policy),
+            syn::Item::Impl(assembly),
         ] = file.items.as_slice()
         else {
             return Err("unexpected realization expansion items".into());
@@ -319,7 +328,7 @@ mod tests {
             || file.shebang.is_some()
             || authored.trait_.is_some()
             || metadata.trait_.is_some()
-            || dispatch.trait_.is_none()
+            || [snapshot, evidence, policy, assembly].iter().any(|item| item.trait_.is_none())
             || contexts.ident != "REALIZATION"
         {
             return Err("unexpected realization expansion structure".into());
@@ -331,7 +340,12 @@ mod tests {
         };
         insta::assert_snapshot!("activity-realization-authored", render(authored));
         insta::assert_snapshot!("activity-realization-metadata", render(metadata));
-        insta::assert_snapshot!("activity-realization-dispatch", render(dispatch));
+        let mut dispatch = file.clone();
+        dispatch.items = [snapshot, evidence, policy, assembly]
+            .into_iter()
+            .map(|item| syn::Item::Impl(item.clone()))
+            .collect();
+        insta::assert_snapshot!("activity-realization-dispatch", prettyplease::unparse(&dispatch));
         Ok(())
     }
 }

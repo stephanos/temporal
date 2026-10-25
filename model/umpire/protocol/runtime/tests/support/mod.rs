@@ -79,6 +79,27 @@ impl Machine for World {
 
 pub(crate) struct Realization;
 
+pub(crate) enum ControlInputs {
+    Proposal,
+    Callback(u8),
+}
+
+pub(crate) enum ControlRequest {
+    Value(u8),
+    Oversized,
+    MissingType,
+}
+
+impl umpire_runtime::capability::Request for ControlRequest {
+    fn pack_request(&self) -> Any {
+        match self {
+            Self::Value(value) => any(*value),
+            Self::Oversized => Any { type_url: TYPE.into(), value: vec![0; 1 << 20] },
+            Self::MissingType => Any { type_url: String::new(), value: vec![42] },
+        }
+    }
+}
+
 pub(crate) fn payload(value: &Any) -> Result<u8, protocol::Refusal> {
     if value.type_url != TYPE {
         return Err(protocol::Refusal {
@@ -99,37 +120,45 @@ pub(crate) fn transition(action: Action) -> Transition<Action> {
     Transition { action, choice: 0 }
 }
 
-impl Realize<World> for Realization {
+impl umpire_runtime::capability::Identity for Realization {
+    type Id = ();
+
+    fn identify(&self, _: &Any) -> Result<(), protocol::Refusal> {
+        Ok(())
+    }
+}
+
+impl umpire_runtime::capability::Fill<<World as Machine>::Action> for Realization {
+    type World = World;
+    type Inputs = ControlInputs;
+    type Request = ControlRequest;
+
+    fn fill(
+        &self,
+        action: &Action,
+        _world: &World,
+        inputs: &ControlInputs,
+        (): &(),
+    ) -> Result<ControlRequest, protocol::Refusal> {
+        Ok(match inputs {
+            ControlInputs::Proposal => ControlRequest::Value(match action {
+                Action::Deliver => 1,
+                Action::Respond => 2,
+                Action::Finish => 3,
+            }),
+            ControlInputs::Callback(6) => ControlRequest::Oversized,
+            ControlInputs::Callback(7) => ControlRequest::MissingType,
+            ControlInputs::Callback(_) => ControlRequest::Value(42),
+        })
+    }
+}
+
+impl umpire_runtime::capability::Snapshot<World> for Realization {
     type Target = umpire_runtime::NoTarget;
 
-    fn propose(
+    fn project(
         &self,
-        state: &State,
-        _seed: u64,
-    ) -> Result<umpire_runtime::Proposal<Action>, protocol::Refusal> {
-        let action = match state.0 {
-            0 => Action::Deliver,
-            1 => Action::Respond,
-            2 => Action::Finish,
-            _ => {
-                return Err(protocol::Refusal::new(
-                    protocol::RefusalCode::Quiescent,
-                    "no external action",
-                ));
-            }
-        };
-        Ok(umpire_runtime::Proposal::Action { action, request: any(state.0 + 1) })
-    }
-    fn matches(&self, request: &Any, observation: &Any) -> Result<(), protocol::Refusal> {
-        if payload(request)? == payload(observation)? {
-            Ok(())
-        } else {
-            Err(protocol::Refusal::new(protocol::RefusalCode::State, "crossed observation"))
-        }
-    }
-
-    fn observe(
-        &self,
+        _world: &World,
         observation: &Any,
         state: &State,
     ) -> Result<Projection<Action, Outcome, umpire_runtime::NoTarget>, protocol::Refusal> {
@@ -157,22 +186,78 @@ impl Realize<World> for Realization {
             _ => Projection::Candidates(Vec::new()),
         })
     }
+}
 
-    fn answer(&self, callback: &Any, _: &State) -> Result<AnswerPlan<Action>, protocol::Refusal> {
+impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for Realization {
+    type World = World;
+    type View = umpire_runtime::capability::NoEvidence;
+}
+
+impl umpire_runtime::capability::ReplyPolicy<World> for Realization {
+    fn propose(
+        &self,
+        world: &World,
+        state: &State,
+        _seed: u64,
+    ) -> Result<umpire_runtime::Proposal<Action>, protocol::Refusal> {
+        let action = match state.0 {
+            0 => Action::Deliver,
+            1 => Action::Respond,
+            2 => Action::Finish,
+            _ => {
+                return Err(protocol::Refusal::new(
+                    protocol::RefusalCode::Quiescent,
+                    "no external action",
+                ));
+            }
+        };
+        let request = umpire_runtime::capability::Fill::fill(
+            self,
+            &action,
+            world,
+            &ControlInputs::Proposal,
+            &(),
+        )?;
+        Ok(umpire_runtime::Proposal::Action {
+            action,
+            request: umpire_runtime::capability::Request::pack_request(&request),
+        })
+    }
+
+    fn matches(&self, request: &Any, observation: &Any) -> Result<(), protocol::Refusal> {
+        if payload(request)? == payload(observation)? {
+            Ok(())
+        } else {
+            Err(protocol::Refusal::new(protocol::RefusalCode::State, "crossed observation"))
+        }
+    }
+
+    fn answer(
+        &self,
+        world: &World,
+        callback: &Any,
+        _: &State,
+    ) -> Result<AnswerPlan<Action>, protocol::Refusal> {
         let value = payload(callback)?;
         let response_action = if value == 5 { Action::Finish } else { Action::Respond };
         let mut delivery = transition(Action::Deliver);
         if value == 8 {
             delivery.choice = 1;
         }
-        let reply = match value {
-            6 => Any { type_url: TYPE.into(), value: vec![0; 1 << 20] },
-            7 => Any { type_url: String::new(), value: vec![42] },
-            _ => any(42),
-        };
+        umpire_runtime::capability::Identity::identify(self, callback)?;
+        let request = umpire_runtime::capability::Fill::fill(
+            self,
+            &response_action,
+            world,
+            &ControlInputs::Callback(value),
+            &(),
+        )?;
+        let reply = umpire_runtime::capability::Request::pack_request(&request);
         Ok(AnswerPlan { delivery: vec![delivery], response_action, reply })
     }
 }
+
+impl Realize<World> for Realization {}
 
 pub(crate) fn any(value: u8) -> Any {
     Any { type_url: TYPE.into(), value: vec![value] }
