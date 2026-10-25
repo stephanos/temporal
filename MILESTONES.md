@@ -44,7 +44,7 @@ mandatory live proofs. The final required gate remains open after an Apalache su
 | fn-246.13 | ⬜ todo | After committed .15: independent standalone-activity protocol Model and native/TLC invariants (R5) |
 | fn-246.14 | 🔄 in progress | Bounded history/codec and raw/SDK continuation integrated; joined validation and review remain (R6) |
 | fn-246.8 | ⬜ todo | Current default whole-prefix guest/Host contract; serialized with .14 (R1, R2) |
-| fn-246.11 | 🔄 in progress | Variant metadata and synthetic Temporal action/entity/read registry (R2, R3) |
+| fn-246.11 | 🔄 in progress | Variant metadata and synthetic typed registry integrated; joined validation and review remain (R2, R3) |
 | fn-246.9 | ⬜ todo | After .8: current-format whole-prefix Run recording, replay and presentation (R1, R5) |
 | fn-246.10 | ⬜ todo | After .9: bounded alternatives and coherent explanation publication (R1, R5) |
 | fn-246.2 | ⬜ todo | After .10, .11: shared entity lens and filler-driven probes with equivalence pins (R3) |
