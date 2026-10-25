@@ -22,7 +22,7 @@ skip = [
   { crate = "syn@2.0.119", reason = "serde_derive and wasmtime proc-macros are still on syn 2; thiserror/async-trait moved to syn 3" },
   { crate = "wasm-encoder@0.252.0", reason = "wasmtime-environ 47 pins 0.252; wast 261 (wat feature) pulls 0.261" },
 ]
-# Unmaintained or superseded: same list as umpire.
+# Unmaintained or superseded.
 deny = [
   { name = "im", reason = "unmaintained since 2022; use imbl" },
   { name = "derivative", reason = "unmaintained since 2021; use std derives or educe" },
