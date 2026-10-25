@@ -1,0 +1,128 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+    "headSha": "da01c38b579e357219e3ad9413c9b35c04a0b46c",
+    "items": [
+      {
+        "body": "The declared paths omit required implementation files. Task .13 must reanchor repository-root references in `backends/tlc/src/runner.rs`, `backends/tlc/tests/controls.rs`, and `backends/tla/tests/world.rs`, but none matches its Touches set. Those references currently resolve above the framework directory and would fail the standalone control if left unchanged. Tasks .5 and .6 likewise require framework xtask changes without declaring that tooling directory.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-f7734d32833ea7eb59bff0ae38d47245c5096666644c558f1d7e05c478554f06",
+        "id": "finding-851a3abb79fb8c87382df93d87745e75",
+        "lastSeenReceiptId": "review-654dc0094315273420e4c3bba0e7b25549c0cc9a0fa88ad4b6685e42d38221f7",
+        "ordinal": 1,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Expand the Touches declarations to cover the root-resolution repairs and selected framework/Temporal tooling locations.",
+        "title": "The declared paths omit required implementation files"
+      },
+      {
+        "body": "These pairs overlap and therefore require serial dispatch: .2/.4, .2/.13, .3/.4, .3/.5, .3/.6, .3/.7, .3/.11, .4/.5, .4/.10, .4/.11, .4/.13, .5/.6, .5/.7, .6/.7, .6/.11, .7/.10, .7/.12, and .7/.13. Concrete overlaps include TLC tests, process support, workspace manifests, framework development files, `Makefile`, and gate scripts. This limits parallel execution despite dependency independence; the epic\u2019s serialization instruction remains necessary.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-f7734d32833ea7eb59bff0ae38d47245c5096666644c558f1d7e05c478554f06",
+        "id": "finding-d2b8a094a5c3a3d9c1c7e6553756ab16",
+        "lastSeenReceiptId": "review-654dc0094315273420e4c3bba0e7b25549c0cc9a0fa88ad4b6685e42d38221f7",
+        "ordinal": 2,
+        "rIds": [
+          "R3",
+          "R4",
+          "R5",
+          "R7",
+          "R8"
+        ],
+        "severity": "P2",
+        "status": "not_fixed",
+        "suggestion": "Honor Touches-based serialization for these pairs. Narrow declarations only where the actual edits are demonstrably disjoint.",
+        "title": "These pairs overlap and therefore require serial dispatch:"
+      },
+      {
+        "body": "All 18 previously listed dependency-independent pairs still overlap. This remains advisory: the epic explicitly requires shared-file writers to serialize.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-423bc779554e63189d1452f8d81c62d8ec492864ded3aaba690f9b80cee2ca27",
+        "id": "finding-e427942c00308efc369da24ac14e168f",
+        "lastSeenReceiptId": "review-654dc0094315273420e4c3bba0e7b25549c0cc9a0fa88ad4b6685e42d38221f7",
+        "ordinal": 3,
+        "rIds": [
+          "R3",
+          "R4",
+          "R5",
+          "R7",
+          "R8"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Honor Touches-based serialization and the recorded integration boundaries.",
+        "title": "All 18 previously listed dependency-independent pairs still overlap"
+      },
+      {
+        "body": "The previously listed 18 dependency-independent pairs still overlap. This remains advisory because the epic explicitly requires shared-file writers to serialize.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-1d77c52a01891b86d21f7bac022176cc844599489036510c11ef8ba959ff7f90",
+        "id": "finding-c8a3972caf34e02929150e4c5082d143",
+        "lastSeenReceiptId": "review-654dc0094315273420e4c3bba0e7b25549c0cc9a0fa88ad4b6685e42d38221f7",
+        "ordinal": 4,
+        "rIds": [
+          "R3",
+          "R4",
+          "R5",
+          "R7",
+          "R8"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Honor Touches-based serialization and the recorded integration boundaries.",
+        "title": "The previously listed 18 dependency-independent pairs still overlap"
+      },
+      {
+        "anchor": {
+          "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+          "headSha": "da01c38b579e357219e3ad9413c9b35c04a0b46c",
+          "path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.3.md",
+          "side": "head",
+          "startLine": 12
+        },
+        "body": "All 18 previously listed pairs remain dependency-independent with overlapping Touches sets. This remains advisory; explicit serialization is already required.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-654dc0094315273420e4c3bba0e7b25549c0cc9a0fa88ad4b6685e42d38221f7",
+        "id": "finding-6fccdf2bef125ae5a8c07520f4995be7",
+        "lastSeenReceiptId": "review-654dc0094315273420e4c3bba0e7b25549c0cc9a0fa88ad4b6685e42d38221f7",
+        "ordinal": 5,
+        "rIds": [
+          "R3",
+          "R4",
+          "R5",
+          "R7",
+          "R8"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Honor Touches-based serialization and the recorded integration boundaries.",
+        "title": "All 18 previously listed pairs remain dependency-independent with overlapping Touches sets"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 4,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-654dc0094315273420e4c3bba0e7b25549c0cc9a0fa88ad4b6685e42d38221f7",
+    "supersedesReceiptId": "review-1d77c52a01891b86d21f7bac022176cc844599489036510c11ef8ba959ff7f90"
+  },
+  "id": "fn-254-fast-validation-gates-and-a-real-inner",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "Prior finding #1: fixed\nPrior finding #2: not-fixed\n\nThe required ownership paths remain covered. The selected framework layout preserves those fixes. Test strategy, async observability, task sizing/order, and performance/security constraints remain stated. No new blocking regression identified.\n\nSeverity: P2\nConfidence: 100\nClassification: introduced\nFile:Line: .flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.3.md:12\nR-IDs: [R3, R4, R5, R7, R8]\nLocation: Previously identified ownership overlaps\nProblem: All 18 previously listed pairs remain dependency-independent with overlapping Touches sets. This remains advisory; explicit serialization is already required.\nSuggestion: Honor Touches-based serialization and the recorded integration boundaries.\n\nmaintainability:\n  duplication: none identified\n  structure: none identified\n\n```json\n{\"classification_counts\":{\"introduced\":1,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "5541b3822f1b4f2bb759c67739f716ca",
+  "session_id": "01a17463-cc60-7a40-8cc2-d72fe9970e2a",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-25T19:46:02.534667Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}

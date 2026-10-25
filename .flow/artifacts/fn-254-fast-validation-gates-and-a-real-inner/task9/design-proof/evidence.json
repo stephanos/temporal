@@ -1,0 +1,15 @@
+{
+  "commits": [
+    "83bf067850244e10b9bc56765bcab794a4ca5c1a",
+    "f1b485d9967b1eec15b7ff99408de9929bfc7bd0"
+  ],
+  "base_commit": "3d54e19b1bfbce799ada92e4d5ffc7e8db636797",
+  "tests": [
+    "python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task9/verify-note.py",
+    "git diff --cached --check",
+    "FAILED: original scratch verify-note.py in main checkout exited 1; raw rglob included ignored legacy __pycache__/*.pyc (root-before-fix-failed.log)",
+    "PASS: corrected scratch verify-note.py in main checkout exited 0 (root-after-fix.log)",
+    "PASS: same corrected scratch verify-note.py in clean assigned worktree exited 0 (worktree-after-fix.log)"
+  ],
+  "prs": []
+}

@@ -1,0 +1,19 @@
+{
+  "script": "verify-note.py",
+  "sha256": "3edc316562fae3e1d3ff169e836a5c687789f9cc4441636ee8002d054db7c4aa",
+  "scope": "tracked plus nonignored current source files; tracked ignored files included",
+  "original_main": {
+    "exit_code": 1,
+    "log": "root-before-fix-failed.log",
+    "reason": "raw rglob included 10 ignored legacy Python cache files"
+  },
+  "corrected_main": {
+    "exit_code": 0,
+    "log": "root-after-fix.log"
+  },
+  "corrected_clean_worktree": {
+    "exit_code": 0,
+    "log": "worktree-after-fix.log"
+  },
+  "legacy_pyc_files_still_present": 10
+}

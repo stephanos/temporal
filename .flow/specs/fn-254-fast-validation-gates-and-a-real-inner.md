@@ -128,6 +128,25 @@ Placement: first in the current order (owner, 2026-10-25). fn-246's in-flight ta
 - Proposed R6 targets and R8's 25% tolerance are the execution defaults under delegated judgment; report misses honestly.
 - Owner amendment, 2026-10-25: skip fresh baseline measurements and proceed using historical evidence. Task .1 becomes a historical-reference report; prepared optional probes may support final measurement. This does not waive migration inventories, semantic equivalence, required in-flight validation, final measurements or stage budgets.
 
+### Framework layout selected by task .9
+
+2026-10-25, fn-254.9 delegated selection: adopt framework-owned Rust `cargo xtask gate`
+at `model/umpire/dev/xtask` and independent `model/umpire/Cargo.toml`/`Cargo.lock`;
+Temporal remains at `model/` with `exclude = ["umpire"]` and path dependencies inward.
+The complete stage/script/module/cache inventory and all 45 root joins are recorded in
+`model/design/framework-gate.md` at the inventory checkpoint named there. Copy tiny local
+policy/tool configs; framework pins/tools/caches/nextest/budgets have no parent dependency.
+Keep framework tool root distinct from caller guest workspace/lock/output; .13 owns remaps,
+locked closure, current-input reproduction and refreshed Temporal guest publication. .13's
+intermediate root gate checks both workspaces; .10 owns final orchestration and mixed-control
+splits. Preserve R7's standalone planted-name/dependency rejection using exactly
+`dev/gate/policy/framework-boundary.txt` as declarative gate-policy data exempted from its
+own name scan, with no directory/source-code exemption. The existing Temporal vocabulary
+policy stays Temporal-owned; generic libraries/scanners/compiler/runtime remain agnostic.
+Filesystem hygiene and the standalone copy need no Git; use declared current inputs and
+preserve path/symlink, raw-byte/status and dependency-containment checks. No Model or
+conformance policy changes are authorized by this design.
+
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |
