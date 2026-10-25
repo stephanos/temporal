@@ -7,13 +7,24 @@
 
 ## Rules
 
-- WASM: run guest code inside WASM.
-- Determinism: the same candidate and inputs produce the same guest behavior.
-- Evidence: verify provenance and contents before trusting artifacts.
-- Limits: make memory, fuel, time, and output bounds explicit.
-- Types and validators: use structs/enums and shared validation code.
-- Setup: keep preparation independently testable.
-- Delivery: get one end-to-end path working early.
-- Tests: exercise small, real boundaries before expensive runs.
-- Verification: reuse evidence when relevant inputs are unchanged.
-- Completion: claim only what the required acceptance checks actually prove.
+### Runtime
+
+- Run guest code inside WASM.
+- The same candidate and inputs produce the same guest behavior.
+- Make memory, fuel, time, and output bounds explicit.
+- Preserve typed failure kinds across boundaries.
+
+### Data and evidence
+
+- Verify provenance and contents before trusting artifacts.
+- Use structs/enums and shared validation code.
+- Use pinned handles at filesystem trust boundaries.
+- Treat missing, empty, and invalid data as distinct states.
+
+### Delivery
+
+- Keep preparation independently testable.
+- Get one end-to-end path working early.
+- Exercise small, real boundaries before expensive runs.
+- Reuse evidence when relevant inputs are unchanged.
+- Claim only what the required acceptance checks actually prove.
