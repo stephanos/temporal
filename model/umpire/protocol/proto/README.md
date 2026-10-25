@@ -52,11 +52,9 @@ The host copies response bytes before freeing either allocation, then frees both
 Access to one instance is serialized. An unexpected trap invalidates the host instance.
 
 Rust generates into Cargo's OUT_DIR with prost-build 0.14 and mise's protoc 29.5.
-`umpire_runtime::google::protobuf` owns the generated standard well-known types; realizations
-reuse this owner through prost-build's `extern_path` with default WKT mapping disabled.
-This owner compiles the standard schema inputs independently of any system descriptors.
-Upstream WKT comments contain examples in other languages, so their generated Rust
-comments are suppressed rather than compiled as Rust documentation examples.
+Standard well-known types are not generated: prost-build's default mapping uses `prost-types`,
+which `umpire_runtime::prost_types` re-exports for realizations and generated code. Strict
+`Any` admission stays in `umpire_runtime::AnyMessage`.
 Go uses the repository's pinned protoc-gen-go v1.36.6 and protobuf runtime v1.36.11.
 The separate Go host module and generated Go messages live at `../hosts/go/`;
 regenerate from the repository root with `bash model/scripts/proto-go.sh`.

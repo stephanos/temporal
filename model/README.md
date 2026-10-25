@@ -523,11 +523,9 @@ a response Any or error, and an optional actual-request Any at tag 4, Callback a
 and Reply a request Any. Error retains the same code/message fields. The enclosing Any
 type URLs migrate to the shared package; protobuf payload encodings and tags remain fixed.
 The real upstream API descriptor
-closure is compiled natively and for WASM, with generated well-known types owned once
-by `umpire_runtime::google::protobuf`. The closure's file count is not a schema invariant.
-No Testpilot schema is moved, imported or copied. Shared WKT ownership means checker
-rebuilds can trigger generated-API compilation; a separate owner is a possible later
-build optimization, not a new dependency admitted here.
+closure is compiled natively and for WASM; its well-known types are `prost-types`, re-exported
+once as `umpire_runtime::prost_types`. The closure's file count is not a schema invariant.
+No Testpilot schema is moved, imported or copied.
 
 Describe projects actual Info.Status, Info.RunState and Info.Attempt: Running/Scheduled or
 Running/Started, and terminal status/Unspecified. There is no Started execution-status

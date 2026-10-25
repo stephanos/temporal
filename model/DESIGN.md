@@ -1013,7 +1013,7 @@ Observation input is a response or `Result<Response, i32>` for raw gRPC status h
 A state-valued return requires `project(Self::mapping)`. Activity's mapping returns Current for equal phases, proposes only Completed or Failed, and leaves other changes unexplained.
 Answer returns `Reply<Actor> { delivery, action, request }`; the raw packed request is checked then wrapped once. SDK-filled fields remain partial. `#[propose]` is reserved.
 
-`feature/activity/expected/realization.snap.txt` names canonical RPCs/messages for each observed response, incoming callback and outgoing request.
+`feature/activity/expected/realization.txt.snap` names canonical RPCs/messages for each observed response, incoming callback and outgoing request.
 Descriptor-ordered paths are `mapped`, `ignored` with a reason, or `unsupported`; outgoing mapped paths mean produced fields.
 Classified parents cover subtrees; opaque parents stop traversal. The report lists Model-action RPCs missing observation handlers with their callback/request coverage,
 then RPCs missing every realization context. Its action universe is the admitted `RPC_BINDINGS`.
