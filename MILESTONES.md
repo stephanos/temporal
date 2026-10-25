@@ -553,7 +553,7 @@ Execute this spec through [16 owner-authorized batches](.flow/artifacts/fn242-ex
 | [fn-242.23](.flow/tasks/fn-242-gomad-shrink-the-qualification.23.md) | ⬜ Todo | Validate native command observations and role custody |
 | [fn-242.28](.flow/tasks/fn-242-gomad-shrink-the-qualification.28.md) | 🚧 Running | Execute static and broad adapters with raw publication |
 | [fn-242.31](.flow/tasks/fn-242-gomad-shrink-the-qualification.31.md) | ⬜ Todo | Execute installed lifecycle, interception and ringpop adapters |
-| [fn-242.29](.flow/tasks/fn-242-gomad-shrink-the-qualification.29.md) | ⬜ Todo | Build and authenticate CLI and broad harness producers |
+| [fn-242.29](.flow/tasks/fn-242-gomad-shrink-the-qualification.29.md) | 🚧 Running | Build and authenticate CLI and broad harness producers |
 | [fn-242.40](.flow/tasks/fn-242-gomad-shrink-the-qualification.40.md) | ⬜ Todo | Execute primary, runtime, cell and corpus adapters |
 | [fn-242.41](.flow/tasks/fn-242-gomad-shrink-the-qualification.41.md) | ⬜ Todo | Execute identity and divergence harnesses |
 | [fn-242.30](.flow/tasks/fn-242-gomad-shrink-the-qualification.30.md) | 🚧 Running | Execute workload, inspection, recovery and support adapters |
