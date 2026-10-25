@@ -1,0 +1,30 @@
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir)
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tla)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.21s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2483-target/debug/deps/umpire_ir-72323c53e106fb31)
+
+running 4 tests
+test bounded_controls::exact_optional_codes_preserve_absence_and_exhaustion ... ok
+test expr::tests::children_visit_every_variant_in_order_and_mutate_each_child_once ... ok
+test expr::tests::infallible_preserves_explicit_false_cases_and_propagates_child_failure ... ok
+test printing_controls::new_fields_and_variants_print_without_registration ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2483-target/debug/deps/umpire_tla-aa44fc3962ad1a6b)
+
+running 6 tests
+test emit::optional_tests::priming_visits_each_nominal_child_and_keeps_world_identity ... ok
+test names::traversal_tests::rename_override_stops_before_replacement_children ... ok
+test names::optional_tests::rename_visits_nominal_construction_projection_and_both_default_children ... ok
+test safety::value::optional_tests::present_optional_requires_fallback_validity_and_checks_some_encoding ... ok
+test emit::optional_tests::optional_default_forces_eager_checked_fallback_in_main_emission ... ok
+test emit::optional_tests::priming_recurses_through_nested_vectors_and_three_children_without_changing_other_leaves ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
