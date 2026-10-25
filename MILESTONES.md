@@ -113,7 +113,6 @@ the xtask and the guest regeneration.
 | --- | --- | --- |
 | fn-248.1 | 🔄 in progress | Goldens on insta: hand-rolled comparisons and fixture-runner text snapshots; independent source lane, joined snapshots accepted once (R4) |
 | fn-248.2 | 🔄 in progress | One copy each: panic message, SplitMix64, probe applicability, front error collector, test edit and hex helpers (R2) |
-| fn-248.3 | 🔄 in progress | IR `children`/`children_mut` and the recursion-only walks; before fn-245.1 (R3) |
 | fn-248.4 | 🔄 in progress | Parallel source lane: `heck`, `darling` and `quote` in the macro and build crates (R1) |
 | fn-248.5 | 🔄 in progress | Parallel source lane: `thiserror` and `prost-types`; remove `enum-iterator` (R1) |
 | fn-248.6 | 🔄 in progress | Parallel source lane: serde-derived ITF envelope (R1) |
