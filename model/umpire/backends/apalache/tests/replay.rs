@@ -62,7 +62,7 @@ fn initial(module: &Module, value: u8) -> Json {
     for (name, ty) in &module.metadata.observer_types {
         row.insert(name.clone(), default(ty));
     }
-    row.insert("__umpire_stutter".into(), json!(true));
+    row.insert(umpire_tla::observers::STUTTER.into(), json!(true));
     for p in &module.metadata.parameters {
         row.insert(p.symbol.clone(), json!({"#bigint":"2"}));
     }
@@ -71,13 +71,13 @@ fn initial(module: &Module, value: u8) -> Json {
 fn event(previous: &Json, value: u8, ordinal: usize, action: &str, outcome: &str) -> Json {
     let mut row = previous.clone();
     row["#meta"]["index"] = json!(previous["#meta"]["index"].as_u64().unwrap_or_default() + 1);
-    row["__umpire_before_value"] = previous["value"].clone();
+    row[umpire_tla::observers::before("value")] = previous["value"].clone();
     row["value"] = json!({"#bigint":value.to_string()});
-    row["__umpire_has_step"] = json!(true);
-    row["__umpire_stutter"] = json!(false);
-    row["__umpire_action"] = json!(action);
-    row["__umpire_input"] = json!({"#bigint":ordinal.to_string()});
-    row["__umpire_outcome"] = json!(outcome);
+    row[umpire_tla::observers::HAS_STEP] = json!(true);
+    row[umpire_tla::observers::STUTTER] = json!(false);
+    row[umpire_tla::observers::ACTION] = json!(action);
+    row[umpire_tla::observers::INPUT] = json!({"#bigint":ordinal.to_string()});
+    row[umpire_tla::observers::OUTCOME] = json!(outcome);
     row
 }
 fn witness(module: &Module, states: Vec<Json>) -> Json {
@@ -104,7 +104,7 @@ fn exact_payload_outcome_history_and_specific_claim_are_replayed()
     let rejected = event(&first, 1, 0, "User::Set", "Outcome::Rejected(NotFound)");
     let mut stutter = rejected.clone();
     stutter["#meta"]["index"] = json!(2);
-    stutter["__umpire_stutter"] = json!(true);
+    stutter[umpire_tla::observers::STUTTER] = json!(true);
     let final_state = event(&stutter, 2, 2, "User::Set", "Outcome::Accepted");
     let raw = witness(&module, vec![first, rejected, stutter, final_state]);
     let verified = replay.violation(&module, "Negative_never_two", 3, &raw.to_string())?;
@@ -117,31 +117,31 @@ fn exact_payload_outcome_history_and_specific_claim_are_replayed()
     assert_eq!(verified.steps[0].action.fields[0].1, Literal::Int(1));
     assert_eq!(verified.steps[1].action.fields[0].1, Literal::Int(2));
     let mut duplicate_ordinal = raw.clone();
-    duplicate_ordinal["states"][1]["__umpire_input"] = json!({"#bigint":"1"});
-    duplicate_ordinal["states"][2]["__umpire_input"] = json!({"#bigint":"1"});
+    duplicate_ordinal["states"][1][umpire_tla::observers::INPUT] = json!({"#bigint":"1"});
+    duplicate_ordinal["states"][2][umpire_tla::observers::INPUT] = json!({"#bigint":"1"});
     assert!(
         replay.violation(&module, "Negative_never_two", 3, &duplicate_ordinal.to_string()).is_err(),
         "accepted a noncanonical duplicate ordinal"
     );
     for (position, field, bad) in [
         (0, "value", json!({"#bigint":"9"})),
-        (0, "__umpire_before_value", json!({"#bigint":"1"})),
-        (0, "__umpire_has_step", json!(true)),
+        (0, &umpire_tla::observers::before("value"), json!({"#bigint":"1"})),
+        (0, umpire_tla::observers::HAS_STEP, json!(true)),
         (1, "__umpire_world_limit", json!({"#bigint":"3"})),
-        (1, "__umpire_action", json!("User::Reset")),
-        (1, "__umpire_input", json!({"#bigint":"2"})),
-        (1, "__umpire_choice", json!({"#bigint":"1"})),
-        (1, "__umpire_outcome", json!("Outcome::Accepted")),
-        (1, "__umpire_facts", json!([[]])),
-        (1, "__umpire_before_value", json!({"#bigint":"0"})),
-        (1, "__umpire_has_step", json!(false)),
-        (1, "__umpire_stutter", json!(true)),
-        (2, "__umpire_action", json!("User::Reset")),
-        (2, "__umpire_before_value", json!({"#bigint":"0"})),
+        (1, umpire_tla::observers::ACTION, json!("User::Reset")),
+        (1, umpire_tla::observers::INPUT, json!({"#bigint":"2"})),
+        (1, umpire_tla::observers::CHOICE, json!({"#bigint":"1"})),
+        (1, umpire_tla::observers::OUTCOME, json!("Outcome::Accepted")),
+        (1, umpire_tla::observers::FACTS, json!([[]])),
+        (1, &umpire_tla::observers::before("value"), json!({"#bigint":"0"})),
+        (1, umpire_tla::observers::HAS_STEP, json!(false)),
+        (1, umpire_tla::observers::STUTTER, json!(true)),
+        (2, umpire_tla::observers::ACTION, json!("User::Reset")),
+        (2, &umpire_tla::observers::before("value"), json!({"#bigint":"0"})),
         (2, "value", json!({"#bigint":"2"})),
         (3, "value", json!({"#bigint":"1"})),
-        (3, "__umpire_input", json!({"#bigint":"0"})),
-        (3, "__umpire_arithmetic_error", json!(true)),
+        (3, umpire_tla::observers::INPUT, json!({"#bigint":"0"})),
+        (3, umpire_tla::observers::ERROR, json!(true)),
     ] {
         let mut tampered = raw.clone();
         tampered["states"][position][field] = bad;
@@ -352,10 +352,10 @@ fn arithmetic_refusal_is_distinct_and_requires_the_exact_native_boundary()
     )?)?;
     let first = initial(&module, 254);
     let mut next = event(&first, 255, 0, "User::Advance", "");
-    next["__umpire_outcome"] = json!([]);
+    next[umpire_tla::observers::OUTCOME] = json!([]);
     let mut failure = event(&next, 255, 0, "User::Advance", "");
-    failure["__umpire_outcome"] = json!([]);
-    failure["__umpire_arithmetic_error"] = json!(true);
+    failure[umpire_tla::observers::OUTCOME] = json!([]);
+    failure[umpire_tla::observers::ERROR] = json!(true);
     let raw = witness(&module, vec![first, next, failure]);
     let replay = Replay { world: &world, starts: &starts, actions: &actions, negative: &[] };
     let confirmed = replay.violation(&module, "ArithmeticSafe", 2, &raw.to_string())?;
@@ -366,11 +366,11 @@ fn arithmetic_refusal_is_distinct_and_requires_the_exact_native_boundary()
     assert_eq!(confirmed.steps.len(), 1);
     assert_eq!(confirmed.steps[0].state["value"], umpire_tla::values::Value::Int(255));
     for (position, field, bad) in [
-        (1, "__umpire_arithmetic_error", json!(true)),
-        (2, "__umpire_arithmetic_error", json!(false)),
+        (1, umpire_tla::observers::ERROR, json!(true)),
+        (2, umpire_tla::observers::ERROR, json!(false)),
         (2, "value", json!({"#bigint":"0"})),
-        (2, "__umpire_action", json!("User::Other")),
-        (2, "__umpire_stutter", json!(true)),
+        (2, umpire_tla::observers::ACTION, json!("User::Other")),
+        (2, umpire_tla::observers::STUTTER, json!(true)),
     ] {
         let mut tampered = raw.clone();
         tampered["states"][position][field] = bad;

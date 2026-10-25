@@ -1,5 +1,6 @@
 //! Optional handler results are independently emitted from authored source.
 use umpire_front::expr::{ExprKind, Op, Unary};
+use umpire_tla::observers::{ERROR, FACTS};
 use umpire_tla::{Lift, Tla, Type};
 
 const SOURCE: &str = r"
@@ -39,16 +40,13 @@ fn source_only_constructor_swap_changes_both_emitters() -> Result {
     for emit in [Tla::emit, Tla::safety] {
         let before = emit(&original)?;
         let after = emit(&mutated)?;
-        assert_eq!(
-            before.metadata.observer_types["__umpire_facts"],
-            Type::Seq(Box::new(fact.clone()))
-        );
+        assert_eq!(before.metadata.observer_types[FACTS], Type::Seq(Box::new(fact.clone())));
         assert!(before.tla.contains("<<\"Fact::A\">>"), "{}", before.tla);
         assert!(!before.tla.contains("<<\"Fact::B\">>"));
         assert!(after.tla.contains("<<\"Fact::B\">>"));
         assert!(!after.tla.contains("<<\"Fact::A\">>"));
         assert_ne!(before.tla, after.tla);
-        assert!(before.tla.contains("__umpire_facts = <<>>"));
+        assert!(before.tla.contains(&format!("{FACTS} = <<>>")));
     }
     Ok(())
 }
@@ -176,8 +174,8 @@ fn disabled_handler_tail_arithmetic_is_checked_by_both_emitters() -> Result {
     let safety = Tla::safety(&lifted)?;
     assert!(main.tla.contains("__umpire_Div((1), (value))"), "{}", main.tla);
     assert!(safety.tla.contains("value # 0"), "{}", safety.tla);
-    assert!(safety.tla.contains("__umpire_arithmetic_error' = (~("));
-    assert!(safety.tla.contains("__umpire_facts' = IF "));
+    assert!(safety.tla.contains(&format!("{ERROR}' = (~(")));
+    assert!(safety.tla.contains(&format!("{FACTS}' = IF ")));
     Ok(())
 }
 
@@ -205,7 +203,7 @@ fn mixed_unit_handler_clears_the_previous_fact_on_every_real_edge() -> Result {
         .lines()
         .find(|line| line.starts_with("Ordinary_Reset =="))
         .ok_or("missing ordinary relation")?;
-    assert!(relation.contains("__umpire_facts' = <<>>"), "{relation}");
+    assert!(relation.contains(&format!("{FACTS}' = <<>>")), "{relation}");
     let safety = Tla::safety(&lifted)?;
     let relation = safety
         .tla
@@ -215,7 +213,7 @@ fn mixed_unit_handler_clears_the_previous_fact_on_every_real_edge() -> Result {
         .split("User_Set ==")
         .next()
         .ok_or("missing safety relation end")?;
-    assert!(relation.contains("__umpire_facts' = IF "), "{relation}");
+    assert!(relation.contains(&format!("{FACTS}' = IF ")), "{relation}");
     assert!(relation.contains("ELSE <<>>"));
     Ok(())
 }
@@ -233,10 +231,7 @@ fn legacy_unit_fact_metadata_remains_exact() -> Result {
     }
     for emit in [Tla::emit, Tla::safety] {
         let module = emit(&lifted)?;
-        assert_eq!(
-            module.metadata.observer_types["__umpire_facts"],
-            Type::Seq(Box::new(Type::Unit))
-        );
+        assert_eq!(module.metadata.observer_types[FACTS], Type::Seq(Box::new(Type::Unit)));
     }
     Ok(())
 }

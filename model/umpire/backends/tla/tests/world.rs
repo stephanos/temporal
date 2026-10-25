@@ -1,5 +1,6 @@
 //! Declared World source admission and complete-state binding controls.
 use std::{collections::BTreeMap, path::Path};
+use umpire_tla::observers::OUTCOME;
 use umpire_tla::{Binding, Concrete, Diagnostic, Lift, Literal, Tla, Type};
 use umpire_tlc::{Tlc, Value, Verdict};
 
@@ -88,11 +89,11 @@ fn declared_world_computed_starts_admit_before_value_binding()
     );
     assert_eq!(module.metadata.postconditions.len(), 6);
     assert!(!module.tla.contains("__umpire_world_limit'"));
-    assert!(module.tla.contains("__umpire_outcome'"));
+    assert!(module.tla.contains(&format!("{OUTCOME}'")));
     // `world: &Self` is the before-state: its `value` is unprimed state, never the World constant.
     for (operator, outcome) in [
         ("Post_before_world", ""),
-        ("Post_before_outcome_world", "((__umpire_outcome') = (<<>>)), "),
+        ("Post_before_outcome_world", &format!("(({OUTCOME}') = (<<>>)), ")),
     ] {
         let line = module
             .tla

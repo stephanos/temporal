@@ -8,18 +8,10 @@ use std::{
 use umpire_dsl::{__lifted::ConcreteOf, ActionValues, Claim, IntoValue, Machine, Values, Verdict};
 use umpire_tla::{
     Concrete, Literal, Module, Refusal, Type as SourceType,
+    observers::{ACTION, CHOICE, ERROR, FACTS, HAS_STEP, INPUT, INVALID, OUTCOME, STUTTER},
+    replay::{self, EdgeValues, ReplayError, admitted, fields as typed_native},
     values::{Schema, State, TraceState, Value, accepts},
 };
-
-const ERROR: &str = "__umpire_arithmetic_error";
-const INVALID: &str = "__umpire_invalid_step";
-const STUTTER: &str = "__umpire_stutter";
-const HAS_STEP: &str = "__umpire_has_step";
-const ACTION: &str = "__umpire_action";
-const INPUT: &str = "__umpire_input";
-const CHOICE: &str = "__umpire_choice";
-const OUTCOME: &str = "__umpire_outcome";
-const FACTS: &str = "__umpire_facts";
 
 /// Retained native inputs for the same World that emitted this module. No graph is consumed.
 pub struct Replay<'a, M: Machine> {
@@ -109,7 +101,6 @@ where
         let meta = &module.metadata;
         let (category, selected) = selected_property(module, property)?;
         let schema = module.safety_schema().map_err(|Refusal(error)| reject(error))?;
-        unit_facts(module)?;
         let parameters: BTreeMap<_, _> =
             meta.parameters.iter().map(|p| (p.symbol.clone(), p.ty.clone())).collect();
         if parameters.len() != meta.parameters.len()
@@ -262,15 +253,30 @@ where
             return Err(reject("event has no has_step history"));
         }
         before_history(before, after)?;
-        let (ordinal, action) = self.action(module, after)?;
-        let choice = integer(after, CHOICE)?;
-        let emitted = native(|| self.world.checked_step(native_before, action.clone()));
+        let replayed = replay::step(
+            module,
+            after,
+            self.actions,
+            |action| Some(Concrete::of::<M>(action)),
+            |action| {
+                native(|| self.world.checked_step(native_before, action.clone()))
+                    .map_err(NativeRefusal::Panic)?
+                    .map_err(NativeRefusal::Step)
+            },
+            |emitted| step_values::<M>(module, emitted),
+        );
         let mut refused = None;
         let mut event = None;
         let mut state = Some(native_before.clone());
         let mut last_post = None;
-        match emitted {
-            Err(reason) => {
+        match replayed {
+            Err(ReplayError::Divergence(error)) => {
+                return Err(reject(format!("transition {index}: {error}")));
+            }
+            Err(ReplayError::Native(NativeRefusal::Step(error))) => {
+                return Err(reject(format!("native checked_step refused: {error}")));
+            }
+            Err(ReplayError::Native(NativeRefusal::Panic(reason))) => {
                 if !boolean(after, ERROR)? || boolean(after, INVALID)? {
                     return Err(reject("native arithmetic refusal differs from witness"));
                 }
@@ -283,30 +289,9 @@ where
                 refused =
                     Some(Confirmation::Arithmetic { index, reason: arithmetic_reason(reason)? });
             }
-            Ok(Err(error)) => {
-                return Err(reject(format!("native checked_step refused: {error}")));
-            }
-            Ok(Ok(steps)) => {
-                let emitted =
-                    steps.get(choice).ok_or_else(|| reject("disabled action or unknown choice"))?;
-                if typed_native(
-                    emitted.2.values(),
-                    module.metadata.fields.iter().map(|f| (f.name.as_str(), &f.ty)),
-                )? != after.state
-                {
-                    return Err(reject("native successor differs"));
-                }
-                let outcome = admitted(emitted.0.value(), &module.metadata.outcome_type)?;
-                let facts = emitted
-                    .1
-                    .iter()
-                    .map(|f| admitted(f.value(), fact_type(module)?))
-                    .collect::<Result<Vec<_>, _>>()?;
-                if outcome != after.observers[OUTCOME]
-                    || Value::Seq(facts.clone()) != after.observers[FACTS]
-                {
-                    return Err(reject("native outcome/facts differ"));
-                }
+            Ok(replayed) => {
+                let emitted = &replayed.step;
+                let action = replayed.action;
                 if boolean(after, INVALID)? {
                     return Err(reject("successful native checked_step marked invalid"));
                 }
@@ -341,11 +326,11 @@ where
                 }
                 if refused.is_none() {
                     event = Some(ReplayedStep {
-                        action: Concrete::of::<M>(action),
-                        ordinal,
-                        choice,
-                        outcome,
-                        facts,
+                        action: replayed.identity,
+                        ordinal: replayed.ordinal,
+                        choice: replayed.choice,
+                        outcome: replayed.values.outcome,
+                        facts: replayed.values.facts,
                         state: after.state.clone(),
                     });
                 }
@@ -461,50 +446,30 @@ where
         }
         Ok(())
     }
-    fn action<'a>(
-        &'a self,
-        module: &Module,
-        state: &TraceState,
-    ) -> Result<(usize, &'a M::Action), Refusal> {
-        let ordinal = integer(state, INPUT)?;
-        let action = if module.metadata.binding.is_some() {
-            self.actions.get(ordinal)
-        } else {
-            // Legacy unit catalogs emit ordinal zero for every variant.
-            if ordinal != 0 {
-                return Err(reject("unit action ordinal is not zero"));
-            }
-            self.actions.iter().find(|a| {
-                ActionValues::<M>::action_value(*a).0 == text(state, ACTION).unwrap_or_default()
-            })
-        }
-        .ok_or_else(|| reject("action ordinal outside retained catalog"))?;
-        let identity = Concrete::of::<M>(action);
-        if let Some(binding) = &module.metadata.binding
-            && binding.actions.iter().position(|entry| entry == &identity) != Some(ordinal)
-        {
-            return Err(reject("input ordinal is not the emitted first concrete identity"));
-        }
-        if identity.action != text(state, ACTION)? {
-            return Err(reject("action variant differs from ordinal"));
-        }
-        let declaration = module
-            .metadata
-            .actions
-            .iter()
-            .find(|a| a.name == identity.action)
-            .ok_or_else(|| reject("undeclared action"))?;
-        let payload = literals(
-            &identity.fields,
-            declaration.fields.iter().map(|f| (f.name.as_str(), &f.ty)),
-        )?;
-        validate_fields(
-            &payload,
-            &declaration.fields.iter().map(|f| (f.name.clone(), f.ty.clone())).collect(),
-        )?;
-        Ok((ordinal, action))
-    }
 }
+enum NativeRefusal {
+    Panic(String),
+    Step(umpire_dsl::StepError),
+}
+
+fn step_values<M: Machine<State: Values, Outcome: IntoValue, Fact: IntoValue>>(
+    module: &Module,
+    emitted: &umpire_dsl::Step<M::State, M::Outcome, M::Fact>,
+) -> Result<EdgeValues, Refusal> {
+    Ok(EdgeValues {
+        state: typed_native(
+            emitted.2.values(),
+            module.metadata.fields.iter().map(|f| (f.name.as_str(), &f.ty)),
+        )?,
+        outcome: admitted(emitted.0.value(), &module.metadata.outcome_type)?,
+        facts: emitted
+            .1
+            .iter()
+            .map(|f| admitted(f.value(), fact_type(module)?))
+            .collect::<Result<_, _>>()?,
+    })
+}
+
 struct NativeStep<M: Machine> {
     state: Option<M::State>,
     confirmation: Option<Confirmation>,
@@ -579,21 +544,6 @@ fn arithmetic_reason(reason: String) -> Result<String, Refusal> {
         Ok(reason)
     }
 }
-/// Refuses a Model whose edges carry facts: their replay has no Apalache control yet.
-fn unit_facts(module: &Module) -> Result<(), Refusal> {
-    let fact = fact_type(module)?;
-    if *fact != SourceType::Unit {
-        return Err(reject(format!(
-            "Apalache replay does not yet confirm edge facts; the Model declares facts of {fact:?}"
-        )));
-    }
-    Ok(())
-}
-/// An exported native value as the wire value of its admitted type.
-fn admitted(value: umpire_dsl::Value, ty: &SourceType) -> Result<Value, Refusal> {
-    let admitted = Literal::from(value).admit(ty).map_err(|error| reject(error.to_string()))?;
-    Ok(Value::admitted(&admitted, ty))
-}
 /// The element type of the facts observer.
 fn fact_type(module: &Module) -> Result<&SourceType, Refusal> {
     match module.metadata.observer_types.get(FACTS) {
@@ -606,33 +556,7 @@ fn literals<'a>(
     values: &[(String, Literal)],
     types: impl Iterator<Item = (&'a str, &'a SourceType)>,
 ) -> Result<State, Refusal> {
-    let types: BTreeMap<_, _> = types.collect();
-    let mut fields = State::new();
-    for (name, value) in values {
-        let ty = types
-            .get(name.as_str())
-            .ok_or_else(|| reject(format!("undeclared binding field: {name}")))?;
-        let admitted =
-            value.admit(ty).map_err(|error| reject(format!("binding field {name}: {error}")))?;
-        if fields.insert(name.clone(), Value::admitted(&admitted, ty)).is_some() {
-            return Err(reject(format!("duplicate binding field: {name}")));
-        }
-    }
-    if let Some(name) = types.keys().find(|name| !fields.contains_key(**name)) {
-        return Err(reject(format!("missing binding field: {name}")));
-    }
-    Ok(fields)
-}
-/// Exactly the declared native fields, as wire values of their admitted types.
-fn typed_native<'a>(
-    values: Vec<(&'static str, umpire_dsl::Value)>,
-    types: impl Iterator<Item = (&'a str, &'a SourceType)>,
-) -> Result<State, Refusal> {
-    let types: BTreeMap<_, _> = types.collect();
-    if values.len() != types.len() {
-        return Err(reject("native field declarations differ"));
-    }
-    typed_fields(values, &types)
+    replay::fields(values.iter().cloned(), types)
 }
 /// Native fields, each declared, as wire values of their admitted types.
 fn typed_fields(
@@ -706,7 +630,7 @@ fn initial_observers(state: &TraceState, schema: &Schema) -> Result<(), Refusal>
 }
 fn before_history(before: &TraceState, after: &TraceState) -> Result<(), Refusal> {
     for (name, value) in &before.state {
-        if after.observers.get(&format!("__umpire_before_{name}")) != Some(value) {
+        if after.observers.get(&umpire_tla::observers::before(name)) != Some(value) {
             return Err(reject("before-state history differs"));
         }
     }
@@ -719,38 +643,4 @@ fn stutter(before: &TraceState, after: &TraceState) -> Result<(), Refusal> {
         return Err(reject("tagged stutter changes state or event/history"));
     }
     Ok(())
-}
-
-#[cfg(test)]
-mod fact_tests {
-    use super::{SourceType, unit_facts};
-
-    #[test]
-    fn models_with_edge_facts_are_refused_until_their_replay_is_controlled()
-    -> Result<(), Box<dyn std::error::Error>> {
-        let source = r"
-            use umpire_dsl::machine;
-            #[machine] mod plain {
-                use umpire_dsl::{State, Action};
-                #[derive(State)] struct Model { done: bool }
-                #[derive(Action)] enum User { Finish }
-                impl Model {
-                    #[on(User)] fn user(&mut self, action: User) {
-                        match action { User::Finish => self.done = true }
-                    }
-                }
-            }
-        ";
-        let mut module = umpire_tla::Tla::safety(&umpire_tla::Lift::parse("plain.rs", source)?)?;
-        unit_facts(&module)?;
-        module
-            .metadata
-            .observer_types
-            .insert("__umpire_facts".into(), SourceType::Seq(Box::new(SourceType::Bool)));
-        let error = unit_facts(&module).err().ok_or("non-unit facts were admitted")?;
-        assert!(error.0.contains("does not yet confirm edge facts"), "{error}");
-        module.metadata.observer_types.remove("__umpire_facts");
-        assert!(unit_facts(&module).is_err());
-        Ok(())
-    }
 }

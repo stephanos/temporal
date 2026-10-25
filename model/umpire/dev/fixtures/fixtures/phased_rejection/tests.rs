@@ -1,3 +1,4 @@
+use umpire_tla::observers::{ACTION, CHOICE, FACTS, INPUT, OUTCOME, PENDING};
 use crate::phased_rejection::job;
 use job::World;
 
@@ -46,9 +47,9 @@ fn closure_laws_keep_source_order_and_the_stock_outcome() -> umpire_testing::Tes
         module.tla.lines().find(|line| line.starts_with(&format!("Post_{name} =="))).unwrap_or("")
     };
     // closed_rejects judges the edge's outcome and whole state; terminal_remains only the phase.
-    assert!(law("closed_rejects").contains("(__umpire_outcome') = (\"Outcome::Rejected(NotFound)\")"));
+    assert!(law("closed_rejects").contains(format!("({OUTCOME}') = (\"Outcome::Rejected(NotFound)\")").as_str()));
     assert!(law("closed_rejects").contains("(attempt') = (attempt)"));
-    assert!(!law("terminal_remains").contains("__umpire_outcome") && !law("terminal_remains").contains("attempt"));
+    assert!(!law("terminal_remains").contains(OUTCOME) && !law("terminal_remains").contains("attempt"));
     Ok(())
 }
 
@@ -67,16 +68,16 @@ fn emitted_outcome_and_action_mutations_fail_agreement() -> umpire_testing::Test
         // The accepted closed step is relabelled as a rejection.
         (
             vec![(
-                "(__umpire_outcome' = \"Outcome::Accepted\") /\\ (__umpire_facts' = <<>>) /\\ (__umpire_input' = 5)) \\/",
-                "(__umpire_outcome' = \"Outcome::Rejected(NotFound)\") /\\ (__umpire_facts' = <<>>) /\\ (__umpire_input' = 5)) \\/",
+                format!("({OUTCOME}' = \"Outcome::Accepted\") /\\ ({FACTS}' = <<>>) /\\ ({INPUT}' = 5)) \\/").as_str(),
+                format!("({OUTCOME}' = \"Outcome::Rejected(NotFound)\") /\\ ({FACTS}' = <<>>) /\\ ({INPUT}' = 5)) \\/").as_str(),
             )],
             "verdict difference touch_rejects",
         ),
         // A rejecting Recheck edge is relabelled as the accepted Touch.
         (
             vec![(
-                "(__umpire_action' = \"Client::Recheck\") /\\ (__umpire_choice' = 0) /\\ (__umpire_outcome' = \"Outcome::Rejected(Unavailable)\")",
-                "(__umpire_action' = \"Client::Touch\") /\\ (__umpire_choice' = 0) /\\ (__umpire_outcome' = \"Outcome::Rejected(Unavailable)\")",
+                format!("({ACTION}' = \"Client::Recheck\") /\\ ({CHOICE}' = 0) /\\ ({OUTCOME}' = \"Outcome::Rejected(Unavailable)\")").as_str(),
+                format!("({ACTION}' = \"Client::Touch\") /\\ ({CHOICE}' = 0) /\\ ({OUTCOME}' = \"Outcome::Rejected(Unavailable)\")").as_str(),
             )],
             "verdict difference recheck_rejects",
         ),
@@ -105,7 +106,7 @@ fn a_stale_rejecting_claim_cannot_discharge_current_claim_fairness() -> umpire_t
         (
             vec![(
                 union,
-                " /\\ WF_vars((__umpire_pending = 1) /\\ Worker_Claim /\\ Monitor_queued_job_runs)",
+                format!(" /\\ WF_vars(({PENDING} = 1) /\\ Worker_Claim /\\ Monitor_queued_job_runs)").as_str(),
             )],
             Refuted,
         ),
@@ -189,10 +190,10 @@ fn the_steps_accept_counterexample_is_a_rejected_payload_edge() -> umpire_testin
     let result = umpire_tlc::Tlc::discover(&root)?.check_module(&module)?;
     let trace = result.properties["Post_steps_accept"].trace.as_ref().ok_or("no counterexample")?;
     let [_, edge] = &trace.states[..] else { return Err("expected one edge".into()) };
-    assert_eq!(edge.observers["__umpire_action"], Text("Worker::Claim".into()));
-    assert_eq!(edge.observers["__umpire_input"], Int(1));
+    assert_eq!(edge.observers[ACTION], Text("Worker::Claim".into()));
+    assert_eq!(edge.observers[INPUT], Int(1));
     assert_eq!(
-        edge.observers["__umpire_outcome"],
+        edge.observers[OUTCOME],
         Text("Outcome::Rejected(FailedPrecondition)".into())
     );
     Ok(())

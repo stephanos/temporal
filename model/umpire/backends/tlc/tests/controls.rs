@@ -1,6 +1,7 @@
 //! Real TLC controls for native maximal emitted-edge semantics.
 
 use std::{collections::BTreeMap, fs, path::Path};
+use umpire_tla::observers::{ACTION, CHOICE, EDGE_TICK, FACTS, OUTCOME, PENDING, STEPS};
 
 use umpire_tla::Type;
 use umpire_tlc::{Error, Refusal, Schema, Tlc, Value, Verdict};
@@ -9,13 +10,13 @@ fn schema() -> Schema {
     Schema {
         fields: BTreeMap::from([("x".into(), Type::Int { min: 0, max: 3 })]),
         observers: BTreeMap::from([
-            ("__umpire_edge_tick".into(), Type::Bool),
-            ("__umpire_pending".into(), Type::Int { min: 0, max: 2 }),
-            ("__umpire_steps".into(), Type::Int { min: 0, max: 4 }),
-            ("__umpire_action".into(), Type::Text),
-            ("__umpire_choice".into(), Type::Int { min: 0, max: 0 }),
-            ("__umpire_outcome".into(), Type::Bool),
-            ("__umpire_facts".into(), Type::Seq(Box::new(Type::Text))),
+            (EDGE_TICK.into(), Type::Bool),
+            (PENDING.into(), Type::Int { min: 0, max: 2 }),
+            (STEPS.into(), Type::Int { min: 0, max: 4 }),
+            (ACTION.into(), Type::Text),
+            (CHOICE.into(), Type::Int { min: 0, max: 0 }),
+            (OUTCOME.into(), Type::Bool),
+            (FACTS.into(), Type::Seq(Box::new(Type::Text))),
         ]),
     }
 }
@@ -29,9 +30,9 @@ fn module(
     allowed: Option<&str>,
 ) -> String {
     let actions: Vec<_> = edges.iter().enumerate().map(|(index, (from, to, action))| {
-        let distance = bound.map_or("__umpire_steps".into(), |bound| format!("IF __umpire_steps < {} THEN __umpire_steps + 1 ELSE __umpire_steps", bound + 1));
+        let distance = bound.map_or(STEPS.into(), |bound| format!("IF {STEPS} < {} THEN {STEPS} + 1 ELSE {STEPS}", bound + 1));
         let outcome = if *action == "Reject" { "FALSE" } else { "TRUE" };
-        format!("Edge{index} == /\\ x = {from} /\\ x' = {to}\n /\\ __umpire_pending # 2 /\\ __umpire_pending' = (IF __umpire_pending = 1 /\\ x' = {target} THEN 2 ELSE __umpire_pending)\n /\\ __umpire_edge_tick' = ~__umpire_edge_tick /\\ __umpire_steps' = (IF __umpire_pending = 1 THEN ({distance}) ELSE __umpire_steps)\n /\\ __umpire_action' = \"{action}\" /\\ __umpire_choice' = 0 /\\ __umpire_outcome' = {outcome} /\\ __umpire_facts' = <<\"{action}\">>\n")
+        format!("Edge{index} == /\\ x = {from} /\\ x' = {to}\n /\\ {PENDING} # 2 /\\ {PENDING}' = (IF {PENDING} = 1 /\\ x' = {target} THEN 2 ELSE {PENDING})\n /\\ {EDGE_TICK}' = ~{EDGE_TICK} /\\ {STEPS}' = (IF {PENDING} = 1 THEN ({distance}) ELSE {STEPS})\n /\\ {ACTION}' = \"{action}\" /\\ {CHOICE}' = 0 /\\ {OUTCOME}' = {outcome} /\\ {FACTS}' = <<\"{action}\">>\n")
     }).collect();
     let next =
         (0..edges.len()).map(|index| format!("Edge{index}")).collect::<Vec<_>>().join(" \\/ ");
@@ -50,29 +51,28 @@ fn module(
             .map(|(index, _)| format!("Edge{index}"))
             .collect::<Vec<_>>()
             .join(" \\/ ");
-        format!(" /\\ WF_vars((__umpire_pending = 1) /\\ ({relation}))")
+        format!(" /\\ WF_vars(({PENDING} = 1) /\\ ({relation}))")
     });
-    let bounded =
-        bound.map_or(String::new(), |bound| format!("Bound == [](__umpire_steps <= {bound})\n"));
+    let bounded = bound.map_or(String::new(), |bound| format!("Bound == []({STEPS} <= {bound})\n"));
     format!(
         r#"---- MODULE Control ----
 EXTENDS Integers
-VARIABLES x, __umpire_edge_tick, __umpire_pending, __umpire_steps, __umpire_action, __umpire_choice, __umpire_outcome, __umpire_facts
-vars == <<x, __umpire_edge_tick, __umpire_pending, __umpire_steps, __umpire_action, __umpire_choice, __umpire_outcome, __umpire_facts>>
-Init == x = 0 /\ __umpire_edge_tick = FALSE /\ __umpire_pending = 0 /\ __umpire_steps = 0 /\ __umpire_action = "" /\ __umpire_choice = 0 /\ __umpire_outcome = TRUE /\ __umpire_facts = <<>>
+VARIABLES x, {EDGE_TICK}, {PENDING}, {STEPS}, {ACTION}, {CHOICE}, {OUTCOME}, {FACTS}
+vars == <<x, {EDGE_TICK}, {PENDING}, {STEPS}, {ACTION}, {CHOICE}, {OUTCOME}, {FACTS}>>
+Init == x = 0 /\ {EDGE_TICK} = FALSE /\ {PENDING} = 0 /\ {STEPS} = 0 /\ {ACTION} = "" /\ {CHOICE} = 0 /\ {OUTCOME} = TRUE /\ {FACTS} = <<>>
 {actions}
 ModelNext == {next}
 ScopedNext == {scoped}
-RealNext == ((__umpire_pending = 0) /\ ModelNext) \/ ((__umpire_pending = 1) /\ ScopedNext)
-Activate == /\ x = {trigger} /\ __umpire_pending = 0 /\ __umpire_pending' = 1
- /\ UNCHANGED <<x, __umpire_edge_tick, __umpire_steps, __umpire_action, __umpire_choice, __umpire_outcome, __umpire_facts>>
-Complete == (__umpire_pending = 2 \/ ~ENABLED RealNext) /\ UNCHANGED vars
+RealNext == (({PENDING} = 0) /\ ModelNext) \/ (({PENDING} = 1) /\ ScopedNext)
+Activate == /\ x = {trigger} /\ {PENDING} = 0 /\ {PENDING}' = 1
+ /\ UNCHANGED <<x, {EDGE_TICK}, {STEPS}, {ACTION}, {CHOICE}, {OUTCOME}, {FACTS}>>
+Complete == ({PENDING} = 2 \/ ~ENABLED RealNext) /\ UNCHANGED vars
 Next == RealNext \/ Activate \/ Complete
 Spec == Init /\ [][Next]_vars{fairness}
-Maximal == ([]<>__umpire_edge_tick /\ []<>(~__umpire_edge_tick)) \/ <>[](__umpire_pending = 1 /\ ~ENABLED ScopedNext)
-Progress == Maximal => (__umpire_pending = 1 ~> __umpire_pending = 2)
-Naive == __umpire_pending = 1 ~> __umpire_pending = 2
-Post == [][~(__umpire_edge_tick' # __umpire_edge_tick /\ __umpire_action' = "A") \/ x' >= x]_vars
+Maximal == ([]<>{EDGE_TICK} /\ []<>(~{EDGE_TICK})) \/ <>[]({PENDING} = 1 /\ ~ENABLED ScopedNext)
+Progress == Maximal => ({PENDING} = 1 ~> {PENDING} = 2)
+Naive == {PENDING} = 1 ~> {PENDING} = 2
+Post == [][~({EDGE_TICK}' # {EDGE_TICK} /\ {ACTION}' = "A") \/ x' >= x]_vars
 InitialBad == x # 0
 {bounded}
 ====
@@ -201,9 +201,8 @@ fn real_tlc_maximality_fairness_bounds_and_action_properties() -> Result<(), Err
         if name == "rejecting_self_loop" {
             assert!(result.properties[property].trace.as_ref().is_some_and(|trace| {
                 trace.states.iter().any(|state| {
-                    state.observers["__umpire_outcome"] == Value::Bool(false)
-                        && state.observers["__umpire_facts"]
-                            == Value::Seq(vec![Value::Text("Reject".into())])
+                    state.observers[OUTCOME] == Value::Bool(false)
+                        && state.observers[FACTS] == Value::Seq(vec![Value::Text("Reject".into())])
                 })
             }));
         }

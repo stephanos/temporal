@@ -1,4 +1,7 @@
-use crate::{Diagnostic, Lifted};
+use crate::{
+    Diagnostic, Lifted,
+    observers::{INPUT, TLC},
+};
 use std::collections::{BTreeMap, BTreeSet};
 use umpire_front::{
     Source,
@@ -25,14 +28,14 @@ const RESERVED_NAMES: &[&str] = &[
     "__umpire_q",
     "__umpire_r",
     "__umpire_negative",
-    "__umpire_edge_tick",
-    "__umpire_pending",
-    "__umpire_steps",
-    "__umpire_action",
-    "__umpire_choice",
-    "__umpire_outcome",
-    "__umpire_facts",
-    "__umpire_input",
+    crate::observers::EDGE_TICK,
+    crate::observers::PENDING,
+    crate::observers::STEPS,
+    crate::observers::ACTION,
+    crate::observers::CHOICE,
+    crate::observers::OUTCOME,
+    crate::observers::FACTS,
+    INPUT,
     "TRUE",
     "FALSE",
     "BOOLEAN",
@@ -263,8 +266,7 @@ fn allocate(occupied: &BTreeSet<String>, base: &str, generated: &mut BTreeSet<St
 
 pub(crate) fn validate(file: &str, source: &Source, model: &Lifted) -> Result<(), Diagnostic> {
     for field in &model.fields {
-        if crate::emit::OBSERVERS.contains(&field.name.as_str()) || field.name == crate::emit::INPUT
-        {
+        if TLC.contains(&field.name.as_str()) || field.name == INPUT {
             return Err(Diagnostic::of(
                 file,
                 &field.location,

@@ -1,4 +1,5 @@
 //! Independent finite action-input admission, typed catalog binding and exact-payload emission.
+use umpire_tla::observers::INPUT;
 use umpire_tla::{Binding, Concrete, Diagnostic, Lift, Literal, Tla};
 
 const INPUTS: &str = r"
@@ -121,15 +122,12 @@ fn inputs_bind_in_declaration_product_order_keeping_duplicates_and_empty_variant
     );
     assert_eq!(line(tla, "User_Take_Inputs"), "User_Take_Inputs == <<<<8, 0>>, <<9, 1>>>>");
     assert_eq!(line(tla, "User_Never_Inputs"), "User_Never_Inputs == <<>>");
-    assert!(line(tla, "User_Hold").contains("(__umpire_input' = 10)"));
+    assert!(line(tla, "User_Hold").contains(&format!("({INPUT}' = 10)")));
     assert!(line(tla, "User_Set").starts_with(
         "User_Set == \\E __umpire_i \\in DOMAIN User_Set_Inputs : User_Set_At(__umpire_i)"
     ));
     assert_eq!(module.metadata.catalog, catalog(2));
-    assert_eq!(
-        module.metadata.observer_types["__umpire_input"],
-        umpire_tla::Type::Int { min: 0, max: 10 }
-    );
+    assert_eq!(module.metadata.observer_types[INPUT], umpire_tla::Type::Int { min: 0, max: 10 });
     let fields: Vec<_> = module.metadata.actions.iter().map(|action| action.fields.len()).collect();
     assert_eq!(fields, [2, 1, 1, 0, 1]);
     // The empty World domain keeps the variant declared, with zero catalog actions.

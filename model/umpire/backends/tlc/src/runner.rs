@@ -595,7 +595,7 @@ mod tests {
                 .is_some_and(|error| error.to_string().contains("observer declarations differ"))
         );
         let mut invalid = module.clone();
-        invalid.metadata.fields[0].name = "__umpire_edge_tick".into();
+        invalid.metadata.fields[0].name = umpire_tla::observers::EDGE_TICK.into();
         assert!(
             tlc.check_module(&invalid)
                 .err()

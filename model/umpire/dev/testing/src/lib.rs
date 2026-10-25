@@ -51,7 +51,13 @@ pub fn lift(
 ///
 /// # Errors
 /// Returns any lift, checker or backend failure, or a disagreement.
-pub fn check<M: umpire_dsl::Machine>(
+pub fn check<
+    M: umpire_dsl::Machine<
+            State: umpire_dsl::Values,
+            Outcome: umpire_dsl::IntoValue,
+            Fact: umpire_dsl::IntoValue,
+        >,
+>(
     world: &M,
     embedded: Option<&umpire_dsl::__lifted::Embedded>,
     folder: &std::path::Path,

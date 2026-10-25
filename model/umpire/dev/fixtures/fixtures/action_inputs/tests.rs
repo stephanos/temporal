@@ -1,3 +1,4 @@
+use umpire_tla::observers::PENDING;
 use crate::action_inputs::inputs;
 use inputs::World;
 use umpire::dsl::{CATALOG_LIMIT, Claim, Machine};
@@ -178,7 +179,7 @@ fn exact_payload_fairness_mutations_disagree_with_the_native_verdicts()
         return Ok(());
     }
     let module = lifted(std::path::Path::new("fixtures/action_inputs/model.rs"))?;
-    let fair = "Fair_current_poll_settles_Worker_Poll_2 == (__umpire_pending = 1) /\\ Worker_Poll_At(2)";
+    let fair = format!("Fair_current_poll_settles_Worker_Poll_2 == ({PENDING} = 1) /\\ Worker_Poll_At(2)");
     let readmitted = " /\\ WF_vars(Fair_excluded_poll_settles_Worker_Poll_2)";
     for (claim, edits, native, mutant) in [
         // One obligation over the existential union is discharged by stale self-loops.
@@ -187,7 +188,7 @@ fn exact_payload_fairness_mutations_disagree_with_the_native_verdicts()
             vec![
                 (
                     " /\\ WF_vars(Fair_current_poll_settles_Worker_Poll_1) /\\ WF_vars(Fair_current_poll_settles_Worker_Poll_2)",
-                    " /\\ WF_vars((__umpire_pending = 1) /\\ Worker_Poll /\\ Monitor_current_poll_settles)",
+                    format!(" /\\ WF_vars(({PENDING} = 1) /\\ Worker_Poll /\\ Monitor_current_poll_settles)").as_str(),
                 ),
             ],
             Verified,
@@ -196,7 +197,7 @@ fn exact_payload_fairness_mutations_disagree_with_the_native_verdicts()
         // Only the emitted fair payload changes: the second attempt's Poll is owed nothing.
         (
             "current_poll_settles",
-            vec![(fair, "Fair_current_poll_settles_Worker_Poll_2 == (__umpire_pending = 1) /\\ Worker_Poll_At(1)")],
+            vec![(fair.as_str(), format!("Fair_current_poll_settles_Worker_Poll_2 == ({PENDING} = 1) /\\ Worker_Poll_At(1)").as_str())],
             Verified,
             Refuted,
         ),
@@ -205,7 +206,7 @@ fn exact_payload_fairness_mutations_disagree_with_the_native_verdicts()
             "excluded_poll_settles",
             vec![(
                 readmitted,
-                " /\\ WF_vars(Fair_excluded_poll_settles_Worker_Poll_2) /\\ WF_vars((__umpire_pending = 1) /\\ Worker_Poll_At(1) /\\ Monitor_excluded_poll_settles)",
+                format!(" /\\ WF_vars(Fair_excluded_poll_settles_Worker_Poll_2) /\\ WF_vars(({PENDING} = 1) /\\ Worker_Poll_At(1) /\\ Monitor_excluded_poll_settles)").as_str(),
             )],
             Refuted,
             Verified,
@@ -220,7 +221,7 @@ fn exact_payload_fairness_mutations_disagree_with_the_native_verdicts()
                 ),
                 (
                     readmitted,
-                    " /\\ WF_vars(Fair_excluded_poll_settles_Worker_Poll_2) /\\ WF_vars((__umpire_pending = 1) /\\ Worker_Poll_At(1) /\\ Monitor_excluded_poll_settles)",
+                    format!(" /\\ WF_vars(Fair_excluded_poll_settles_Worker_Poll_2) /\\ WF_vars(({PENDING} = 1) /\\ Worker_Poll_At(1) /\\ Monitor_excluded_poll_settles)").as_str(),
                 ),
             ],
             Refuted,

@@ -1,3 +1,4 @@
+use umpire_tla::observers::PENDING;
 use umpire_testing::replace_once;
 use crate::world_fairness::retry::{Model, World};
 use umpire::dsl::{__lifted::Lifts, CATALOG_LIMIT, Claim, Machine};
@@ -80,7 +81,7 @@ fn world_fairness_exact_selected_values_ordinals_and_wf_obligations() -> umpire_
             let operator = format!("Fair_closes_Worker_Poll_{attempt}");
             assert!(spec.contains(&format!("WF_vars({operator})")), "{spec}");
             assert!(module.tla.contains(&format!(
-                "{operator} == (__umpire_pending = 1) /\\ Worker_Poll_At({attempt}) /\\ Monitor_closes"
+                "{operator} == ({PENDING} = 1) /\\ Worker_Poll_At({attempt}) /\\ Monitor_closes"
             )));
         }
         assert!(spec.contains("WF_vars(Fair_closes_Worker_Close)"), "{spec}");
@@ -254,14 +255,14 @@ fn world_fairness_required_tlc_mutants_replay_heartbeat_and_starvation()
     let mut stale_payload = module.clone();
     stale_payload.tla = replace_once(
         &module.tla,
-        "Fair_closes_Worker_Poll_3 == (__umpire_pending = 1) /\\ Worker_Poll_At(3)",
-        "Fair_closes_Worker_Poll_3 == (__umpire_pending = 1) /\\ Worker_Poll_At(1)",
+        format!("Fair_closes_Worker_Poll_3 == ({PENDING} = 1) /\\ Worker_Poll_At(3)").as_str(),
+        format!("Fair_closes_Worker_Poll_3 == ({PENDING} = 1) /\\ Worker_Poll_At(1)").as_str(),
     );
     let mut variant_union = module.clone();
     variant_union.tla = replace_once(
         &module.tla,
         &all_polls,
-        " /\\ WF_vars((__umpire_pending = 1) /\\ Worker_Poll /\\ Monitor_closes)",
+        format!(" /\\ WF_vars(({PENDING} = 1) /\\ Worker_Poll /\\ Monitor_closes)").as_str(),
     );
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
     let tlc = umpire_tlc::Tlc::discover(&root)?;
@@ -305,15 +306,15 @@ fn assert_cycle(trace: &umpire_tlc::Trace, action: &str) -> umpire_testing::Test
     }
     let edge = cycle
         .iter()
-        .find(|state| state.observers.get("__umpire_action") == Some(&Value::Text(action.into())))
+        .find(|state| state.observers.get(umpire_tla::observers::ACTION) == Some(&Value::Text(action.into())))
         .ok_or("cycle lacks the expected concrete action")?;
-    assert_eq!(edge.observers["__umpire_choice"], Value::Int(0));
-    assert_eq!(edge.observers["__umpire_outcome"], Value::Seq(Vec::new()));
-    assert_eq!(edge.observers["__umpire_facts"], Value::Seq(Vec::new()));
+    assert_eq!(edge.observers[umpire_tla::observers::CHOICE], Value::Int(0));
+    assert_eq!(edge.observers[umpire_tla::observers::OUTCOME], Value::Seq(Vec::new()));
+    assert_eq!(edge.observers[umpire_tla::observers::FACTS], Value::Seq(Vec::new()));
     if heartbeat {
-        assert_eq!(edge.observers["__umpire_input"], Value::Int(5));
+        assert_eq!(edge.observers[umpire_tla::observers::INPUT], Value::Int(5));
     } else {
-        assert!(matches!(edge.observers["__umpire_input"], Value::Int(0 | 1)));
+        assert!(matches!(edge.observers[umpire_tla::observers::INPUT], Value::Int(0 | 1)));
     }
     Ok(())
 }
