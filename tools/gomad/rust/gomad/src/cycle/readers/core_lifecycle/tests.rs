@@ -346,3 +346,17 @@ fn genuine_lifecycle_direct_predicate_mutations() {
     }
     assert!(caught >= catalog().len());
 }
+
+#[test]
+fn storage_root_attribution_refuses_single_root_alias() {
+    let required = BTreeSet::from([(STORAGE.join("|"), "crash-before".into())]);
+    let row = json!({"schema":SCHEMA,"original_roots":STORAGE,"variant":"crash-before","observed":{"accepted":true,"error":null}});
+    observations(row.to_string().as_bytes(), &required).unwrap();
+    let mut changed = row;
+    changed.as_object_mut().unwrap().remove("original_roots");
+    changed["original_root"] = json!(STORAGE.join("|"));
+    assert_eq!(
+        observations(changed.to_string().as_bytes(), &required).unwrap_err(),
+        "foreign lifecycle roots"
+    );
+}
