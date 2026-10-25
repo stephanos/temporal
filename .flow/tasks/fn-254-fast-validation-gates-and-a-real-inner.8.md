@@ -5,14 +5,14 @@ satisfies: [R6, R1]
 
 
 ## Description
-Re-measure under .1's conditions, compare with the baseline, and document the two tiers (spec R6).
+Measure the final gates warm, compare honestly with .1's historical references, and document the tiers (spec R6). The owner waived fresh baseline runs, not these final measurements.
 
 **Size:** S
 **Files:** `model/design/gate-speed.md`, `model/README.md` (verification commands), `model/scripts/time-gate.sh` (targets), `MILESTONES.md`.
 **Touches:** [model/design/gate-speed.md, model/README.md, model/GUEST_BUILDS.md, model/umpire/README.md, model/umpire/dev/**/README.md, model/scripts/time-gate.sh, AGENTS.md, .plans/UMPIRE_MODULES.md, MILESTONES.md]
 
 ### Approach
-- Re-run .1's probe on a quiet host. Table: before, after and saving per stage and for the largest binaries; TLC launches and TLC wall time.
+- Use the retained optional probe on a quiet host for final gate/inner-loop measurements. Table: current costs/counts beside historical references, with backend/source/workload differences explicit. Attribute savings only where inputs and coverage are comparable; otherwise report the comparison limit rather than inventing a matched before/after run.
 - Set `time-gate.sh` soft targets to the owner-confirmed values, defaulting to the proposals in spec R6.
 - README: when to use `model-quick`, `model-check`, `model-validate`; what the TLC cache does and does not prove.
 - Validation-cost review for spec close, reusing this measurement.

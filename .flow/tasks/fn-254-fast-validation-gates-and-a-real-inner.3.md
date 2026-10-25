@@ -15,7 +15,7 @@ Run tests across all binaries at once instead of one binary after another (spec 
 - Pin cargo-nextest through mise. Replace the `tests` stage with `cargo nextest run --workspace --locked`, plus `cargo test --doc --workspace` (nextest does not run doctests).
 - Test groups: TLC/Apalache/JVM-backed tests (filter by binary or name, e.g. `real_tlc_*`, `actual_tlc_*`, fixtures with `UMPIRE_BACKENDS=require`) get a bounded group so JVM heaps fit; everything else uses all cores.
 - Keep fail-fast semantics for the gate. Keep `--quiet`-equivalent output, and emit the slow-test report so the timings stay visible.
-- **Equivalence pin:** compare package/target/full-name/ignored identities against .1 under matching features/backend modes, using .4's checked migration mapping where applicable; include doctests separately. Reject missing, duplicated or unmatched identities. Bound the combined runner/test concurrency and demonstrate peak JVM count, including nested runner parallelism.
+- **Equivalence pin:** collect the pre-change Cargo package/target/full-name/ignored inventory and compare it to nextest under matching features/backend modes, using .4's checked migration mapping where applicable; include doctests separately. This correctness inventory is still required despite the owner's timing-baseline waiver. Reject missing, duplicated or unmatched identities. Bound the combined runner/test concurrency and demonstrate peak JVM count, including nested runner parallelism.
 
 ### Investigation targets
 **Required:**

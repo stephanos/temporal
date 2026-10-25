@@ -12,7 +12,7 @@ Make the fast-gate goal enforceable for every current and future stage (spec R8)
 **Touches:** [model/umpire/**, model/scripts/time-gate.sh, model/scripts/test-time-gate.sh, Makefile]
 
 ### Approach
-- Seed the table from .1's baseline: per stage, the wall-time budget (warm, baseline host) and, where the stage has them, work counts (test count from the nextest list, TLC launches per fixture once .2 lands).
+- Use .1's historical timing references as initial estimates, then calibrate against the optimized stages and actual counts produced by .2/.3/.4/.5/.6/.11. Historical host/workload differences remain explicit; no fresh pre-optimization timing campaign is required. Count budgets use actual discovered/executed inventories and launch counts, not historical estimates.
 - Enforcement: count overruns and unknown/omitted stage registrations fail immediately. Use a 25% warm-time tolerance by default. After an overrun, drain competing owned work and retry that stage once immediately with identical source/tool/budget/tier inputs. A second overrun fails; second-fast passes with the first overrun reported. Interrupted/incomparable retries are incomplete evidence. Include both attempts in tier totals; use invocation-local records so concurrent gates cannot reset one another's state.
 - Counts distinguish discovered/executed/ignored/skipped tests and actual TLC launches/configurations. Consume .2/.3/.4/.5/.6/.11's final framework stage/count inventory. Later .7 and fn-255 stage changes update these entries as part of their implementation; .12 does not wait for deferred Temporal consolidation.
 - Output: one line per stage with actual vs budget, plus tier totals against fn-254 R6's targets.

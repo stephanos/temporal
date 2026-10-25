@@ -9,6 +9,6 @@
   "spec": "fn-254-fast-validation-gates-and-a-real-inner",
   "spec_path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.1.md",
   "status": "todo",
-  "title": "Baseline: per-stage, per-binary, per-test and TLC-launch timings",
-  "updated_at": "2026-10-25T18:44:33.585754Z"
+  "title": "Consolidate historical validation timings and unknowns",
+  "updated_at": "2026-10-25T19:13:38.897927Z"
 }
