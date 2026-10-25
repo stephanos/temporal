@@ -6,6 +6,7 @@ pub mod descriptor;
 mod expand;
 pub mod naming;
 mod parse;
+pub mod proto;
 pub mod services;
 mod tree;
 pub use derive::*;

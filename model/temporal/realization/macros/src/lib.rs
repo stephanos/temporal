@@ -12,6 +12,7 @@ fn schema() -> Result<(Schema, Vec<std::path::PathBuf>), String> {
     Schema::load(
         &Path::new(env!("CARGO_MANIFEST_DIR")).join("../.."),
         Path::new(concat!(env!("OUT_DIR"), "/realization-api.binpb")),
+        env!("UMPIRE_REALIZATION_RUST_ROOT"),
     )
 }
 

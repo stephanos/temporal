@@ -14,7 +14,7 @@ use syn::{
     visit::Visit,
 };
 
-use crate::realization::{Classification, ClassifiedField, Schema};
+use crate::realization::{Classification, ClassifiedField, Message, Schema};
 
 mod patterns;
 mod source;
@@ -268,12 +268,11 @@ fn handler(function: &ImplItemFn, attribute: &Attribute, answer: bool) -> syn::R
     Ok(Handler { function: function.clone(), declaration, answer, output, input, fallible })
 }
 
-fn message<'a>(schema: &'a Schema, ty: &Type) -> syn::Result<&'a crate::realization::Message> {
+fn message<'a>(schema: &'a Schema, ty: &Type) -> syn::Result<&'a Message> {
     let name = type_name(ty)
         .ok_or_else(|| syn::Error::new(ty.span(), "expected protobuf message type"))?;
     let matches: Vec<_> = schema
-        .messages
-        .values()
+        .messages()
         .filter(|message| {
             message.rust_type.rsplit("::").next().map(str::trim) == Some(name.as_str())
         })
@@ -284,15 +283,14 @@ fn message<'a>(schema: &'a Schema, ty: &Type) -> syn::Result<&'a crate::realizat
     Err(syn::Error::new(ty.span(), "message type is absent or ambiguous in admitted catalog"))
 }
 
-fn rpc(target: &Path) -> syn::Result<(String, String)> {
+fn rpc(target: &Path, schema: &Schema) -> syn::Result<(String, String)> {
     let names: Vec<_> = target.segments.iter().map(|segment| segment.ident.to_string()).collect();
     if names.len() < 2 {
         return Err(syn::Error::new(target.span(), "observe requires Service::Method"));
     }
-    let service = if names.len() == 2 && names[0] == "WorkflowService" {
-        "temporal.api.workflowservice.v1.WorkflowService".to_owned()
-    } else {
-        names[..names.len() - 1].join(".")
+    let service = match schema.service_named(&names[0]) {
+        Some(service) if names.len() == 2 => service.to_owned(),
+        _ => names[..names.len() - 1].join("."),
     };
     Ok((service, names[names.len() - 1].clone()))
 }
@@ -351,7 +349,7 @@ fn observation(
     contexts: &mut Vec<TokenStream>,
 ) -> syn::Result<TokenStream> {
     let target = &handler.declaration.target;
-    let (service, method) = rpc(target)?;
+    let (service, method) = rpc(target, schema)?;
     let method_info =
         schema.method(&service, &method).map_err(|error| syn::Error::new(target.span(), error))?;
     let response = message(schema, &handler.input)?;
@@ -865,7 +863,10 @@ fn proposal_dispatch(model: &Path, handler: &ProposalHandler) -> TokenStream {
     }
 }
 
-fn admit_handlers(item: &mut ItemImpl) -> syn::Result<(Vec<Handler>, Option<ProposalHandler>)> {
+fn admit_handlers(
+    item: &mut ItemImpl,
+    schema: &Schema,
+) -> syn::Result<(Vec<Handler>, Option<ProposalHandler>)> {
     let mut handlers = Vec::new();
     let mut proposal = None;
     let mut seen = BTreeSet::new();
@@ -889,7 +890,7 @@ fn admit_handlers(item: &mut ItemImpl) -> syn::Result<(Vec<Handler>, Option<Prop
             let key = if is_answer {
                 (true, handler.declaration.target.to_token_stream().to_string().replace(' ', ""))
             } else {
-                let (service, method) = rpc(&handler.declaration.target)?;
+                let (service, method) = rpc(&handler.declaration.target, schema)?;
                 (false, format!("{service}/{method}"))
             };
             if !seen.insert(key) {
@@ -927,7 +928,7 @@ fn expand_scoped(
     if item.trait_.is_some() || !item.generics.params.is_empty() {
         return Err(syn::Error::new(item.span(), "realization requires a concrete inherent impl"));
     }
-    let (handlers, proposal) = admit_handlers(&mut item)?;
+    let (handlers, proposal) = admit_handlers(&mut item, schema)?;
     check_enums(&item, schema, scope, model)?;
     let mut task_types = BTreeSet::new();
     for handler in handlers.iter().filter(|handler| handler.answer) {

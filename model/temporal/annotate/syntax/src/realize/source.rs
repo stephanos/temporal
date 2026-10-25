@@ -307,11 +307,16 @@ impl Scope {
             let declared = syn::parse_str::<Path>(&enumeration.rust_type).ok().map(|parsed| {
                 path(&parsed).into_iter().filter(|part| part != "::").collect::<Vec<_>>()
             });
-            let mut canonical = vec!["umpire_temporal_api".to_owned()];
-            canonical.extend(proto.trim_start_matches('.').split('.').map(str::to_owned));
-            resolved == canonical
+            let generated = schema
+                .enum_type(proto)
+                .and_then(|ty| syn::parse_str::<Path>(ty).ok())
+                .map(|parsed| {
+                    path(&parsed).into_iter().filter(|part| part != "::").collect::<Vec<_>>()
+                });
+            generated.as_ref() == Some(&resolved)
                 || declared.as_ref() == Some(&resolved)
-                || (resolved.len() == 1 && canonical.last() == resolved.last())
+                || (resolved.len() == 1
+                    && resolved.last().map(String::as_str) == proto.rsplit('.').next())
         }) {
             return EnumKind::Generated;
         }
@@ -343,7 +348,7 @@ impl Scope {
         {
             return EnumKind::Other;
         }
-        if schema.messages.values().any(|message| {
+        if schema.messages().any(|message| {
             syn::parse_str::<Path>(&message.rust_type).is_ok_and(|parsed| {
                 path(&parsed).into_iter().filter(|part| part != "::").eq(resolved.iter().cloned())
             })

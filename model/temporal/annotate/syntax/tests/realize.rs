@@ -8,7 +8,7 @@ use umpire_temporal_annotate_syntax::{
 #[test]
 fn handler_admission_rejects_ambiguous_or_unclassified_handlers()
 -> Result<(), Box<dyn std::error::Error>> {
-    let schema = Schema::new(&[], &[])?;
+    let schema = Schema::new(&[], "", &[])?;
     for (body, expected) in [
         (
             "#[observe(WorkflowService::Describe)] fn first(response: Response) -> Result<Projection<Action>, Refusal> { todo!() } #[observe(WorkflowService::Describe)] fn second(response: Response) -> Result<Projection<Action>, Refusal> { todo!() }",
@@ -455,7 +455,7 @@ const ALIAS_CASES: &[(&str, usize, bool)] = &[
 #[test]
 fn proposal_dispatch_delegates_the_handler_and_optional_hooks()
 -> Result<(), Box<dyn std::error::Error>> {
-    let schema = Schema::new(&[], &[])?;
+    let schema = Schema::new(&[], "", &[])?;
     for (attribute, hooks) in [
         ("#[propose]", false),
         ("#[propose(matches = correlated, continue_polling = polling)]", true),
@@ -474,7 +474,7 @@ fn proposal_dispatch_delegates_the_handler_and_optional_hooks()
 #[test]
 fn observation_only_realizations_inherit_the_refusing_answer_default()
 -> Result<(), Box<dyn std::error::Error>> {
-    let schema = Schema::new(&[], &[])?;
+    let schema = Schema::new(&[], "", &[])?;
     let expanded =
         expand(&syn::parse_str("activity")?, syn::parse_str("impl Realization {}")?, &schema)?;
     assert!(!expanded.to_string().contains("fn answer"));
