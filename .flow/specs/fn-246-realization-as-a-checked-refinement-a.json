@@ -14,7 +14,8 @@
   "id": "fn-246-realization-as-a-checked-refinement-a",
   "impl_review_rounds": {
     "fn-246-realization-as-a-checked-refinement-a.1": 0,
-    "fn-246-realization-as-a-checked-refinement-a.12": 1
+    "fn-246-realization-as-a-checked-refinement-a.12": 0,
+    "fn-246-realization-as-a-checked-refinement-a.7": 1
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -256,10 +257,107 @@
       "task": "fn-246-realization-as-a-checked-refinement-a.12",
       "timestamp": "2026-10-25T11:54:33.604828Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "f54b5b6d352c87bbd4f744b8ed271e9b3adf555199bf3827527581933d09517a",
+      "backend": "codex",
+      "base_sha": "046922c29e1355824cc989575dfe24b42e622bca",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-47342e5fe6b84fc668f70ab976119c65",
+            "classification": "introduced",
+            "findingId": "finding-47342e5fe6b84fc668f70ab976119c65",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-0653ac602a4baccc77d47c15b2297551",
+            "classification": "introduced",
+            "findingId": "finding-0653ac602a4baccc77d47c15b2297551",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2e7d33cc63fa63c1f67bbd733170922017f020f6",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1223,
+      "output_sha256": "604ece5cae37b6fb6559cbbae82799deb4da7af692e9c13f32c04e40945f0a5e",
+      "reservation_id": "9b9f3b11104e4e87bc218e8809558a2f",
+      "round_consumed": true,
+      "scope": "impl:fn-246-realization-as-a-checked-refinement-a.12",
+      "superseded_by": null,
+      "task": "fn-246-realization-as-a-checked-refinement-a.12",
+      "timestamp": "2026-10-25T12:42:22.025934Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3256b44dea02ca42c064b2b74657138440b9741083a61ab4841ac835fda4844d",
+      "backend": "codex",
+      "base_sha": "ac984f912f7da7d0ded1c77a78029380aac95d34",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-419d7c635e572d36f83c7f5769ba5053",
+            "classification": "introduced",
+            "findingId": "finding-419d7c635e572d36f83c7f5769ba5053",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2e7d33cc63fa63c1f67bbd733170922017f020f6",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1123,
+      "output_sha256": "9906fd41cf228e3756ee68350c67528434a8f537f5ef04185513acd89af38800",
+      "reservation_id": "41430985bb674c348275bdd520a62cbd",
+      "round_consumed": true,
+      "scope": "impl:fn-246-realization-as-a-checked-refinement-a.7",
+      "superseded_by": null,
+      "task": "fn-246-realization-as-a-checked-refinement-a.7",
+      "timestamp": "2026-10-25T12:52:11.970367Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-246-realization-as-a-checked-refinement-a.1": 1,
+    "impl:fn-246-realization-as-a-checked-refinement-a.12": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -268,6 +366,7 @@
   "review_transport_failures": {
     "impl:fn-246-realization-as-a-checked-refinement-a.1": 0,
     "impl:fn-246-realization-as-a-checked-refinement-a.12": 0,
+    "impl:fn-246-realization-as-a-checked-refinement-a.7": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-246-realization-as-a-checked-refinement-a.md",
@@ -284,5 +383,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T11:54:33.609120Z"
+  "updated_at": "2026-10-25T12:52:11.973815Z"
 }

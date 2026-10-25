@@ -1,0 +1,7 @@
+{
+  "full_gate": "terminal exit2, source/model tree preserved",
+  "failure": "Macro field-declaration test expected old opacity error for an unclaimed mapped field.",
+  "correction": "Keep the read case expecting unclaimed-field refusal; add explicit-ignore nested path to retain opaque traversal refusal. All five macro library tests passed.",
+  "cache_observation": "Separate reused fn24612 target had a checker artifact without current search export; exact checker package clean rebuilt it. No checker source change.",
+  "runtime_review": "Separate accepted R2 admission-refusal defect is fixed on worker branch; join and full rerun required."
+}

@@ -146,6 +146,11 @@ mod tests {
             ),
             (
                 "reads(info.priority.name)",
+                "unclaimed field cannot be mapped",
+                "WorkflowService::DescribeActivityExecution",
+            ),
+            (
+                "ignores(info.priority.name = \"No priority schema\")",
                 "opaque field stops nested path",
                 "WorkflowService::DescribeActivityExecution",
             ),
