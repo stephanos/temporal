@@ -510,6 +510,7 @@ impl DeriveCatalog {
             let attrs = &field.attributes;
             let actual = marker(semantic_type(&field.ty)?)?.ident.to_string();
             let kind = match actual.as_str() {
+                "Map" if secret_map(&field.ty)? => "Secret",
                 "Ignored" | "Message" | "OneOf" | "Map" | "Vec" => "Bytes",
                 "RawDuration" => "Duration",
                 other => other,
@@ -615,16 +616,43 @@ impl DeriveCatalog {
         for field in &self.fields {
             if marker(&field.ty)?.ident == "Map" {
                 let entry = map_entry_proto(&self.proto, &field.name);
+                let syn::PathArguments::AngleBracketed(arguments) = &marker(&field.ty)?.arguments
+                else {
+                    return Err(syn::Error::new_spanned(
+                        &field.ty,
+                        "Map requires key and value kinds",
+                    ));
+                };
+                let kinds = arguments
+                    .args
+                    .iter()
+                    .filter_map(|argument| match argument {
+                        syn::GenericArgument::Type(ty) => Some(ty),
+                        _ => None,
+                    })
+                    .map(|ty| {
+                        let kind = marker(ty)?.ident.clone();
+                        Ok(if kind == "Message" { Ident::new("Bytes", kind.span()) } else { kind })
+                    })
+                    .collect::<syn::Result<Vec<_>>>()?;
+                if kinds.len() != 2 {
+                    return Err(syn::Error::new_spanned(
+                        &field.ty,
+                        "Map requires key and value kinds",
+                    ));
+                }
                 messages.push(Message {
                     request: false,
                     factory: format_ident!("{}_entry", field.name.unraw()),
                     ty: syn::parse_quote!(::umpire_catalog::views::MetadataEntry),
                     proto: LitStr::new(&entry, field.name.span()),
                     fields: ["key", "value"]
-                        .map(|name| Field {
+                        .into_iter()
+                        .zip(kinds)
+                        .map(|(name, kind)| Field {
                             opaque: false,
                             name: Ident::new(name, field.name.span()),
-                            kind: Ident::new("Bytes", field.name.span()),
+                            kind,
                             constraints: Vec::new(),
                             tags: Vec::new(),
                             enumeration: None,
@@ -632,7 +660,6 @@ impl DeriveCatalog {
                             variants: Vec::new(),
                             expected: None,
                         })
-                        .into_iter()
                         .collect(),
                     rules: Vec::new(),
                 });

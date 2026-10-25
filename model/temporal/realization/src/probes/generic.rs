@@ -69,7 +69,7 @@ impl ProbeSystem for Activity {
         }
         if ignored || secret_bound {
             if !matches!(case.applicability, umpire_catalog::MutationApplicability::Applicable) {
-                return Ok(!ignored);
+                return Ok(false);
             }
             let bytes = self.baseline(method, &self.canonical_context())?;
             let mutated = match self.mutate(method, case, &bytes) {

@@ -275,6 +275,23 @@ fn field_projection(
     }
     let (get, set) = if let Some(via) = &attrs.via {
         (quote!(#via::view(message)), quote!(#via::set(message, value)))
+    } else if marker(&field.ty)?.ident == "Map"
+        && generic_types(&field.ty)?
+            .get(1)
+            .is_some_and(|value| marker(value).is_ok_and(|kind| kind.ident == "Message"))
+    {
+        let args = generic_types(&field.ty)?;
+        let payloads = generic_types(
+            args.get(1)
+                .ok_or_else(|| syn::Error::new_spanned(&field.ty, "Map requires a value type"))?,
+        )?;
+        let payload = payloads.first().ok_or_else(|| {
+            syn::Error::new_spanned(&field.ty, "Message requires its actual payload type")
+        })?;
+        (
+            quote!(::umpire_catalog::views::message_entries::<#payload>(&message.#name).iter().map(::prost::Message::encode_to_vec).collect::<Vec<_>>()),
+            quote!({ message.#name = ::umpire_catalog::views::decode_message_entries::<#payload>(value)?; Ok(()) }),
+        )
     } else {
         (
             quote!(<_ as ::umpire_catalog::views::View<#marker_ty>>::view(&message.#name)),
@@ -365,6 +382,20 @@ fn map_factory(catalog: &DeriveCatalog, field: &DeriveField) -> syn::Result<Toke
     let value_path = format!("{proto}.value");
     let key_kind = kind_expansion(key, &ApiAttributes::default())?;
     let value_kind = kind_expansion(value, &ApiAttributes::default())?;
+    let (value_get, value_set) = if marker(value)?.ident == "Message" {
+        (
+            quote!(entry.value.clone()),
+            quote!({
+                entry.value = value;
+                Ok(())
+            }),
+        )
+    } else {
+        (
+            quote!(<_ as ::umpire_catalog::views::View<#value>>::view(&entry.value)),
+            quote!(<_ as ::umpire_catalog::views::View<#value>>::set(&mut entry.value, value)),
+        )
+    };
     Ok(quote! {
         /// Admits the generated protobuf map-entry catalog.
         pub fn #factory(limits: &#context) -> Result<::umpire_catalog::Catalog<#entry>, ::umpire_catalog::AdmissionErrors> {
@@ -377,8 +408,8 @@ fn map_factory(catalog: &DeriveCatalog, field: &DeriveField) -> syn::Result<Toke
                 ).tag(&::umpire_catalog::Consequence::Decided))
                 .field(::umpire_catalog::Field::try_projected(
                     #value_path, #value_kind,
-                    |entry: &#entry| <_ as ::umpire_catalog::views::View<#value>>::view(&entry.value),
-                    |entry: &mut #entry, value| <_ as ::umpire_catalog::views::View<#value>>::set(&mut entry.value, value),
+                    |entry: &#entry| #value_get,
+                    |entry: &mut #entry, value| #value_set,
                 ).tag(&::umpire_catalog::Consequence::Decided))
                 .build()
         }
@@ -411,24 +442,9 @@ fn inspect_expansion(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
             fill_nested.push(quote!(changed |= ::umpire_catalog::Inspect::<#context>::fill_ids(&mut self.#name, seed)?;));
         }
         if kind == "Map" {
-            let factory = format_ident!("__{}_entry_catalog", field.name.unraw());
-            let args = generic_types(&field.ty)?;
-            let entries = format_ident!(
-                "{}",
-                if args.get(1).is_some_and(|value| marker(value).is_ok_and(|kind| matches!(
-                    kind.ident.to_string().as_str(),
-                    "Text" | "Identifier" | "Uuid"
-                ))) {
-                    "text_entries"
-                } else {
-                    "metadata_entries"
-                }
-            );
-            nested.push(quote! {
-                for entry in ::umpire_catalog::views::#entries(&self.#name) {
-                    output.extend(::umpire_catalog::validate(&entry, &#mirror::#factory(context)?));
-                }
-            });
+            let (inspect, fill) = map_inspection(catalog, field)?;
+            nested.push(inspect);
+            fill_nested.push(fill);
         }
         if kind == "OneOf" {
             let args = generic_types(&field.ty)?;
@@ -480,4 +496,49 @@ fn inspect_expansion(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
             }
         }
     })
+}
+
+fn map_inspection(
+    catalog: &DeriveCatalog,
+    field: &DeriveField,
+) -> syn::Result<(TokenStream, TokenStream)> {
+    let name = &field.name;
+    let context = &catalog.context;
+    let mirror = &catalog.name;
+    let factory = format_ident!("__{}_entry_catalog", name.unraw());
+    let args = generic_types(&field.ty)?;
+    let value = args
+        .get(1)
+        .ok_or_else(|| syn::Error::new_spanned(&field.ty, "Map requires a value type"))?;
+    let kind = marker(value)?.ident.to_string();
+    let message = kind == "Message";
+    let entries = format_ident!(
+        "{}",
+        if matches!(kind.as_str(), "Text" | "Identifier" | "Uuid") {
+            "text_entries"
+        } else if message {
+            "message_entries"
+        } else {
+            "metadata_entries"
+        }
+    );
+    let nested = message.then(|| {
+        quote! { for value in self.#name.values() {
+            ::umpire_catalog::Inspect::inspect(value, context, response, output)?;
+        } }
+    });
+    let fill = message.then(|| {
+        quote! { for value in self.#name.values_mut() {
+            changed |= ::umpire_catalog::Inspect::<#context>::fill_ids(value, seed)?;
+        } }
+    });
+    Ok((
+        quote! {
+            for entry in ::umpire_catalog::views::#entries(&self.#name) {
+                output.extend(::umpire_catalog::validate(&entry, &#mirror::#factory(context)?));
+            }
+            #nested
+        },
+        quote!(#fill),
+    ))
 }

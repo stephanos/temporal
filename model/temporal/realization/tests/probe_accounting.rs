@@ -45,7 +45,10 @@ fn every_previous_case_is_reconciled_without_prediction_or_control_loss()
                     && claim.kind == "Secret"
                     && mutation.starts_with("limit_plus_one(")
                 {
-                    assert_eq!(old.applicability, ProbeApplicability::Applicable as i32);
+                    assert!(matches!(
+                        ProbeApplicability::try_from(old.applicability)?,
+                        ProbeApplicability::Applicable | ProbeApplicability::Refused
+                    ));
                     justified = true;
                 }
             }
@@ -53,7 +56,7 @@ fn every_previous_case_is_reconciled_without_prediction_or_control_loss()
         assert!(justified, "unexplained removal: {}", old.id);
         removed += 1;
     }
-    assert_eq!(removed, 1201);
+    assert_eq!(removed, 1190);
     assert_eq!(strengthened, 4);
     assert_eq!(retained.len(), 2);
     for (id, pattern) in [

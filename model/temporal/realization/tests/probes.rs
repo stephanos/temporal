@@ -236,7 +236,7 @@ fn every_generic_attempt_checks_actual_context_against_canonical_predictions()
 -> Result<(), Box<dyn std::error::Error>> {
     let inventory = probe(&ProbeRequest::default())?;
     let cases: Vec<_> = inventory.cases.iter().filter(|case| case.generic).collect();
-    assert_eq!(cases.len(), 1037);
+    assert_eq!(cases.len(), 1048);
     for context in [false, true] {
         let slots = ProbeRequest {
             operation: Operation::Prepare as i32,
@@ -659,7 +659,7 @@ fn temporal_opaque_admission_preserves_explicit_constraints()
 -> Result<(), Box<dyn std::error::Error>> {
     let inventory = probe(&ProbeRequest::default())?;
     for prefix in [
-        "StartActivityExecutionRequest.header:",
+        "StartActivityExecutionRequest.search_attributes.",
         "StartActivityExecutionRequest.links.",
         "StartActivityExecutionRequest.priority.",
         "PollActivityTaskQueueRequest.worker_version_capabilities.",
@@ -684,5 +684,43 @@ fn temporal_opaque_admission_preserves_explicit_constraints()
             "StartActivityExecutionRequest.input.payloads.data:mutation.limit_plus_one(2097152)"
         )
         && !case.predictions.is_empty()));
+    Ok(())
+}
+
+#[test]
+fn metadata_map_secrets_keep_explicit_input_size_findings() -> Result<(), Box<dyn std::error::Error>>
+{
+    let claim = umpire_temporal_api::workflow_field_claim(
+        "temporal.api.common.v1.Payload.MetadataEntry.value",
+    )
+    .ok_or("missing metadata value claim")?;
+    assert_eq!(claim.kind, "Secret");
+    assert_eq!(
+        umpire_temporal_api::workflow_field_claim(
+            "temporal.api.common.v1.Payload.MetadataEntry.key"
+        )
+        .ok_or("missing map key")?
+        .kind,
+        "Text"
+    );
+    assert_eq!(
+        umpire_temporal_api::workflow_field_claim("temporal.api.common.v1.Payload.metadata")
+            .ok_or("missing map claim")?
+            .kind,
+        "Secret"
+    );
+    let inventory = probe(&ProbeRequest::default())?;
+    let unsupported = "RespondActivityTaskCompletedRequest.result.payloads.metadata.value:mutation.limit_plus_one(2097152)";
+    assert!(inventory.cases.iter().all(|case| !case.id.ends_with(unsupported)));
+    let supported = "StartActivityExecutionRequest.input.payloads.metadata.value:mutation.limit_plus_one(2097152)";
+    let case = inventory
+        .cases
+        .iter()
+        .find(|case| case.id.ends_with(supported))
+        .ok_or("lost explicit input bound")?;
+    assert!(case.predictions.iter().any(|prediction| {
+        prediction.id.contains("StartActivityExecutionRequest.input:bytes.max_len:")
+            && prediction.message_pattern == "input exceeds length limit"
+    }));
     Ok(())
 }

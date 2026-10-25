@@ -1,18 +1,19 @@
 {
   "base_commit": "a8e4067edba5ba8b68380ea19840752f43920635",
   "before_count": 2317,
-  "after_count": 1118,
-  "removed_count": 1201,
+  "after_count": 1129,
+  "removed_count": 1190,
   "added_count": 2,
-  "retained_strict_count": 81,
+  "retained_strict_count": 79,
+  "after_strict_count": 81,
   "retained_metadata_changes": 4,
   "removed_rules": {
-    "unclaimed Ignored subtree": 1182,
-    "unsupported inferred Secret bound": 19
+    "unclaimed Ignored subtree": 1134,
+    "unsupported inferred Secret bound": 56
   },
   "source_proofs": {
     "old": "ecaf549eb7f7ef5277a320cf2d135b49af58520dfbe69a58555aa317a84c65d2",
-    "new": "66d0b20ff34839059cedc6b46063444b6ce5268a0030828187ba24b0dbb783a9"
+    "new": "97cde218283b55a2c977df046f1808c063b06ee41318bdb3fd70bb13e046c5fd"
   },
   "cases": [
     {
@@ -1398,7 +1399,7 @@
       "rule": "unsupported inferred Secret bound",
       "claim_path": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.long_poll_token",
       "claim_declaration": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.long_poll_token",
-      "reason": "Explicit Secret kind has no supported bound finding for this actual typed mutation; required presence and every explicit catalog finding remain admitted"
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::DescribeActivityExecution::temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.long_poll_token:mutation.limit_plus_one(2097152)",
@@ -1423,7 +1424,7 @@
       "rule": "unsupported inferred Secret bound",
       "claim_path": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.long_poll_token",
       "claim_declaration": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.long_poll_token",
-      "reason": "Explicit Secret kind has no supported bound finding for this actual typed mutation; required presence and every explicit catalog finding remain admitted"
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::DescribeActivityExecution::temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.long_poll_token:mutation.negative",
@@ -6755,7 +6756,7 @@
       "rule": "unsupported inferred Secret bound",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest.details.payloads.data",
       "claim_declaration": "temporal.api.common.v1.Payload.data",
-      "reason": "Explicit Secret kind has no supported bound finding for this actual typed mutation; required presence and every explicit catalog finding remain admitted"
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskCanceled::temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest.details.payloads.data:mutation.limit_plus_one(2097152)",
@@ -6777,7 +6778,7 @@
       "rule": "unsupported inferred Secret bound",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest.details.payloads.data",
       "claim_declaration": "temporal.api.common.v1.Payload.data",
-      "reason": "Explicit Secret kind has no supported bound finding for this actual typed mutation; required presence and every explicit catalog finding remain admitted"
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskCanceled::temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest.details.payloads.data:mutation.negative",
@@ -7259,9 +7260,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest.details.payloads.metadata.value",
+      "claim_declaration": "temporal.api.common.v1.Payload.MetadataEntry.value",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskCanceled::temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest.details.payloads.metadata.value:mutation.limit_plus_one(2097152)",
@@ -7279,9 +7282,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest.details.payloads.metadata.value",
+      "claim_declaration": "temporal.api.common.v1.Payload.MetadataEntry.value",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskCanceled::temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest.details.payloads.metadata.value:mutation.negative",
@@ -7379,9 +7384,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest.details.payloads.metadata",
+      "claim_declaration": "temporal.api.common.v1.Payload.metadata",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskCanceled::temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest.details.payloads.metadata:mutation.limit_plus_one(2097152)",
@@ -8154,7 +8161,7 @@
       "rule": "unsupported inferred Secret bound",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest.task_token",
       "claim_declaration": "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest.task_token",
-      "reason": "Explicit Secret kind has no supported bound finding for this actual typed mutation; required presence and every explicit catalog finding remain admitted"
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskCanceled::temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest.task_token:mutation.limit_plus_one(2097152)",
@@ -8179,7 +8186,7 @@
       "rule": "unsupported inferred Secret bound",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest.task_token",
       "claim_declaration": "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest.task_token",
-      "reason": "Explicit Secret kind has no supported bound finding for this actual typed mutation; required presence and every explicit catalog finding remain admitted"
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskCanceled::temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest.task_token:mutation.negative",
@@ -9993,7 +10000,7 @@
       "rule": "unsupported inferred Secret bound",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest.result.payloads.data",
       "claim_declaration": "temporal.api.common.v1.Payload.data",
-      "reason": "Explicit Secret kind has no supported bound finding for this actual typed mutation; required presence and every explicit catalog finding remain admitted"
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskCompleted::temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest.result.payloads.data:mutation.limit_plus_one(2097152)",
@@ -10015,7 +10022,7 @@
       "rule": "unsupported inferred Secret bound",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest.result.payloads.data",
       "claim_declaration": "temporal.api.common.v1.Payload.data",
-      "reason": "Explicit Secret kind has no supported bound finding for this actual typed mutation; required presence and every explicit catalog finding remain admitted"
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskCompleted::temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest.result.payloads.data:mutation.negative",
@@ -10497,9 +10504,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest.result.payloads.metadata.value",
+      "claim_declaration": "temporal.api.common.v1.Payload.MetadataEntry.value",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskCompleted::temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest.result.payloads.metadata.value:mutation.limit_plus_one(2097152)",
@@ -10517,9 +10526,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest.result.payloads.metadata.value",
+      "claim_declaration": "temporal.api.common.v1.Payload.MetadataEntry.value",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskCompleted::temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest.result.payloads.metadata.value:mutation.negative",
@@ -10617,9 +10628,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest.result.payloads.metadata",
+      "claim_declaration": "temporal.api.common.v1.Payload.metadata",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskCompleted::temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest.result.payloads.metadata:mutation.limit_plus_one(2097152)",
@@ -11000,7 +11013,7 @@
       "rule": "unsupported inferred Secret bound",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest.task_token",
       "claim_declaration": "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest.task_token",
-      "reason": "Explicit Secret kind has no supported bound finding for this actual typed mutation; required presence and every explicit catalog finding remain admitted"
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskCompleted::temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest.task_token:mutation.limit_plus_one(2097152)",
@@ -11025,7 +11038,7 @@
       "rule": "unsupported inferred Secret bound",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest.task_token",
       "claim_declaration": "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest.task_token",
-      "reason": "Explicit Secret kind has no supported bound finding for this actual typed mutation; required presence and every explicit catalog finding remain admitted"
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskCompleted::temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest.task_token:mutation.negative",
@@ -13810,9 +13823,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.application_failure_info.details.payloads.data",
+      "claim_declaration": "temporal.api.common.v1.Payload.data",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.application_failure_info.details.payloads.data:mutation.limit_plus_one(2097152)",
@@ -13830,9 +13845,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.application_failure_info.details.payloads.data",
+      "claim_declaration": "temporal.api.common.v1.Payload.data",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.application_failure_info.details.payloads.data:mutation.negative",
@@ -14062,9 +14079,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.application_failure_info.details.payloads.metadata",
+      "claim_declaration": "temporal.api.common.v1.Payload.metadata",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.application_failure_info.details.payloads.metadata:mutation.limit_plus_one(2097152)",
@@ -14082,9 +14101,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.application_failure_info.details.payloads.metadata",
+      "claim_declaration": "temporal.api.common.v1.Payload.metadata",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.application_failure_info.details.payloads.metadata:mutation.negative",
@@ -15150,9 +15171,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.canceled_failure_info.details.payloads.data",
+      "claim_declaration": "temporal.api.common.v1.Payload.data",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.canceled_failure_info.details.payloads.data:mutation.limit_plus_one(2097152)",
@@ -15170,9 +15193,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.canceled_failure_info.details.payloads.data",
+      "claim_declaration": "temporal.api.common.v1.Payload.data",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.canceled_failure_info.details.payloads.data:mutation.negative",
@@ -15402,9 +15427,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.canceled_failure_info.details.payloads.metadata",
+      "claim_declaration": "temporal.api.common.v1.Payload.metadata",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.canceled_failure_info.details.payloads.metadata:mutation.limit_plus_one(2097152)",
@@ -15422,9 +15449,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.canceled_failure_info.details.payloads.metadata",
+      "claim_declaration": "temporal.api.common.v1.Payload.metadata",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.canceled_failure_info.details.payloads.metadata:mutation.negative",
@@ -17516,9 +17545,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.cause.stack_trace",
+      "claim_declaration": "temporal.api.failure.v1.Failure.stack_trace",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.cause.stack_trace:mutation.limit_plus_one(2097152)",
@@ -17536,9 +17567,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.cause.stack_trace",
+      "claim_declaration": "temporal.api.failure.v1.Failure.stack_trace",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.cause.stack_trace:mutation.negative",
@@ -19383,7 +19416,7 @@
       "rule": "unsupported inferred Secret bound",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.encoded_attributes.data",
       "claim_declaration": "temporal.api.common.v1.Payload.data",
-      "reason": "Explicit Secret kind has no supported bound finding for this actual typed mutation; required presence and every explicit catalog finding remain admitted"
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.encoded_attributes.data:mutation.limit_plus_one(2097152)",
@@ -19405,7 +19438,7 @@
       "rule": "unsupported inferred Secret bound",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.encoded_attributes.data",
       "claim_declaration": "temporal.api.common.v1.Payload.data",
-      "reason": "Explicit Secret kind has no supported bound finding for this actual typed mutation; required presence and every explicit catalog finding remain admitted"
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.encoded_attributes.data:mutation.negative",
@@ -19887,9 +19920,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.encoded_attributes.metadata.value",
+      "claim_declaration": "temporal.api.common.v1.Payload.MetadataEntry.value",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.encoded_attributes.metadata.value:mutation.limit_plus_one(2097152)",
@@ -19907,9 +19942,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.encoded_attributes.metadata.value",
+      "claim_declaration": "temporal.api.common.v1.Payload.MetadataEntry.value",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.encoded_attributes.metadata.value:mutation.negative",
@@ -20007,9 +20044,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.encoded_attributes.metadata",
+      "claim_declaration": "temporal.api.common.v1.Payload.metadata",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.encoded_attributes.metadata:mutation.limit_plus_one(2097152)",
@@ -21766,9 +21805,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.reset_workflow_failure_info.last_heartbeat_details.payloads.data",
+      "claim_declaration": "temporal.api.common.v1.Payload.data",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.reset_workflow_failure_info.last_heartbeat_details.payloads.data:mutation.limit_plus_one(2097152)",
@@ -21786,9 +21827,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.reset_workflow_failure_info.last_heartbeat_details.payloads.data",
+      "claim_declaration": "temporal.api.common.v1.Payload.data",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.reset_workflow_failure_info.last_heartbeat_details.payloads.data:mutation.negative",
@@ -22018,9 +22061,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.reset_workflow_failure_info.last_heartbeat_details.payloads.metadata",
+      "claim_declaration": "temporal.api.common.v1.Payload.metadata",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.reset_workflow_failure_info.last_heartbeat_details.payloads.metadata:mutation.limit_plus_one(2097152)",
@@ -22038,9 +22083,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.reset_workflow_failure_info.last_heartbeat_details.payloads.metadata",
+      "claim_declaration": "temporal.api.common.v1.Payload.metadata",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.reset_workflow_failure_info.last_heartbeat_details.payloads.metadata:mutation.negative",
@@ -22914,7 +22961,7 @@
       "rule": "unsupported inferred Secret bound",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.stack_trace",
       "claim_declaration": "temporal.api.failure.v1.Failure.stack_trace",
-      "reason": "Explicit Secret kind has no supported bound finding for this actual typed mutation; required presence and every explicit catalog finding remain admitted"
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.stack_trace:mutation.limit_plus_one(2097152)",
@@ -22936,7 +22983,7 @@
       "rule": "unsupported inferred Secret bound",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.stack_trace",
       "claim_declaration": "temporal.api.failure.v1.Failure.stack_trace",
-      "reason": "Explicit Secret kind has no supported bound finding for this actual typed mutation; required presence and every explicit catalog finding remain admitted"
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.stack_trace:mutation.negative",
@@ -23312,9 +23359,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.timeout_failure_info.last_heartbeat_details.payloads.data",
+      "claim_declaration": "temporal.api.common.v1.Payload.data",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.timeout_failure_info.last_heartbeat_details.payloads.data:mutation.limit_plus_one(2097152)",
@@ -23332,9 +23381,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.timeout_failure_info.last_heartbeat_details.payloads.data",
+      "claim_declaration": "temporal.api.common.v1.Payload.data",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.timeout_failure_info.last_heartbeat_details.payloads.data:mutation.negative",
@@ -23564,9 +23615,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.timeout_failure_info.last_heartbeat_details.payloads.metadata",
+      "claim_declaration": "temporal.api.common.v1.Payload.metadata",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.timeout_failure_info.last_heartbeat_details.payloads.metadata:mutation.limit_plus_one(2097152)",
@@ -23584,9 +23637,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.timeout_failure_info.last_heartbeat_details.payloads.metadata",
+      "claim_declaration": "temporal.api.common.v1.Payload.metadata",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.timeout_failure_info.last_heartbeat_details.payloads.metadata:mutation.negative",
@@ -24479,7 +24534,7 @@
       "rule": "unsupported inferred Secret bound",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.last_heartbeat_details.payloads.data",
       "claim_declaration": "temporal.api.common.v1.Payload.data",
-      "reason": "Explicit Secret kind has no supported bound finding for this actual typed mutation; required presence and every explicit catalog finding remain admitted"
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.last_heartbeat_details.payloads.data:mutation.limit_plus_one(2097152)",
@@ -24501,7 +24556,7 @@
       "rule": "unsupported inferred Secret bound",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.last_heartbeat_details.payloads.data",
       "claim_declaration": "temporal.api.common.v1.Payload.data",
-      "reason": "Explicit Secret kind has no supported bound finding for this actual typed mutation; required presence and every explicit catalog finding remain admitted"
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.last_heartbeat_details.payloads.data:mutation.negative",
@@ -24983,9 +25038,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.last_heartbeat_details.payloads.metadata.value",
+      "claim_declaration": "temporal.api.common.v1.Payload.MetadataEntry.value",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.last_heartbeat_details.payloads.metadata.value:mutation.limit_plus_one(2097152)",
@@ -25003,9 +25060,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.last_heartbeat_details.payloads.metadata.value",
+      "claim_declaration": "temporal.api.common.v1.Payload.MetadataEntry.value",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.last_heartbeat_details.payloads.metadata.value:mutation.negative",
@@ -25103,9 +25162,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.last_heartbeat_details.payloads.metadata",
+      "claim_declaration": "temporal.api.common.v1.Payload.metadata",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.last_heartbeat_details.payloads.metadata:mutation.limit_plus_one(2097152)",
@@ -25742,7 +25803,7 @@
       "rule": "unsupported inferred Secret bound",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.task_token",
       "claim_declaration": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.task_token",
-      "reason": "Explicit Secret kind has no supported bound finding for this actual typed mutation; required presence and every explicit catalog finding remain admitted"
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.task_token:mutation.limit_plus_one(2097152)",
@@ -25767,7 +25828,7 @@
       "rule": "unsupported inferred Secret bound",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.task_token",
       "claim_declaration": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.task_token",
-      "reason": "Explicit Secret kind has no supported bound finding for this actual typed mutation; required presence and every explicit catalog finding remain admitted"
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.task_token:mutation.negative",
@@ -34086,11 +34147,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.key:mutation.empty",
@@ -34108,11 +34167,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.key:mutation.limit_plus_one(1000)",
@@ -34130,11 +34187,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.key:mutation.limit_plus_one(2097152)",
@@ -34152,11 +34207,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.key:mutation.negative",
@@ -34174,11 +34227,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.key:mutation.undefined_enum",
@@ -34196,11 +34247,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.data:mutation.absent",
@@ -34218,11 +34267,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.data:mutation.empty",
@@ -34240,11 +34287,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.data:mutation.limit_plus_one(1000)",
@@ -34263,10 +34308,10 @@
       },
       "old_accepted_gap": null,
       "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.data",
+      "claim_declaration": "temporal.api.common.v1.Payload.data",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.data:mutation.limit_plus_one(2097152)",
@@ -34285,10 +34330,10 @@
       },
       "old_accepted_gap": null,
       "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.data",
+      "claim_declaration": "temporal.api.common.v1.Payload.data",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.data:mutation.negative",
@@ -34306,11 +34351,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.data:mutation.undefined_enum",
@@ -34328,11 +34371,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads.size_bytes:mutation.absent",
@@ -34352,9 +34393,9 @@
       "old_accepted_gap": null,
       "disposition": "removed",
       "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads",
+      "claim_declaration": "temporal.api.common.v1.Payload.external_payloads",
+      "reason": "Unclaimed descriptor field temporal.api.common.v1.Payload.external_payloads; no semantic read or fill is declared"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads.size_bytes:mutation.empty",
@@ -34374,9 +34415,9 @@
       "old_accepted_gap": null,
       "disposition": "removed",
       "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads",
+      "claim_declaration": "temporal.api.common.v1.Payload.external_payloads",
+      "reason": "Unclaimed descriptor field temporal.api.common.v1.Payload.external_payloads; no semantic read or fill is declared"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads.size_bytes:mutation.limit_plus_one(1000)",
@@ -34396,9 +34437,9 @@
       "old_accepted_gap": null,
       "disposition": "removed",
       "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads",
+      "claim_declaration": "temporal.api.common.v1.Payload.external_payloads",
+      "reason": "Unclaimed descriptor field temporal.api.common.v1.Payload.external_payloads; no semantic read or fill is declared"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads.size_bytes:mutation.limit_plus_one(2097152)",
@@ -34418,9 +34459,9 @@
       "old_accepted_gap": null,
       "disposition": "removed",
       "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads",
+      "claim_declaration": "temporal.api.common.v1.Payload.external_payloads",
+      "reason": "Unclaimed descriptor field temporal.api.common.v1.Payload.external_payloads; no semantic read or fill is declared"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads.size_bytes:mutation.negative",
@@ -34440,9 +34481,9 @@
       "old_accepted_gap": null,
       "disposition": "removed",
       "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads",
+      "claim_declaration": "temporal.api.common.v1.Payload.external_payloads",
+      "reason": "Unclaimed descriptor field temporal.api.common.v1.Payload.external_payloads; no semantic read or fill is declared"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads.size_bytes:mutation.undefined_enum",
@@ -34462,9 +34503,9 @@
       "old_accepted_gap": null,
       "disposition": "removed",
       "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads",
+      "claim_declaration": "temporal.api.common.v1.Payload.external_payloads",
+      "reason": "Unclaimed descriptor field temporal.api.common.v1.Payload.external_payloads; no semantic read or fill is declared"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads:mutation.absent",
@@ -34484,9 +34525,9 @@
       "old_accepted_gap": null,
       "disposition": "removed",
       "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads",
+      "claim_declaration": "temporal.api.common.v1.Payload.external_payloads",
+      "reason": "Unclaimed descriptor field temporal.api.common.v1.Payload.external_payloads; no semantic read or fill is declared"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads:mutation.empty",
@@ -34506,9 +34547,9 @@
       "old_accepted_gap": null,
       "disposition": "removed",
       "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads",
+      "claim_declaration": "temporal.api.common.v1.Payload.external_payloads",
+      "reason": "Unclaimed descriptor field temporal.api.common.v1.Payload.external_payloads; no semantic read or fill is declared"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads:mutation.limit_plus_one(1000)",
@@ -34528,9 +34569,9 @@
       "old_accepted_gap": null,
       "disposition": "removed",
       "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads",
+      "claim_declaration": "temporal.api.common.v1.Payload.external_payloads",
+      "reason": "Unclaimed descriptor field temporal.api.common.v1.Payload.external_payloads; no semantic read or fill is declared"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads:mutation.limit_plus_one(2097152)",
@@ -34550,9 +34591,9 @@
       "old_accepted_gap": null,
       "disposition": "removed",
       "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads",
+      "claim_declaration": "temporal.api.common.v1.Payload.external_payloads",
+      "reason": "Unclaimed descriptor field temporal.api.common.v1.Payload.external_payloads; no semantic read or fill is declared"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads:mutation.negative",
@@ -34572,9 +34613,9 @@
       "old_accepted_gap": null,
       "disposition": "removed",
       "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads",
+      "claim_declaration": "temporal.api.common.v1.Payload.external_payloads",
+      "reason": "Unclaimed descriptor field temporal.api.common.v1.Payload.external_payloads; no semantic read or fill is declared"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads:mutation.undefined_enum",
@@ -34594,9 +34635,9 @@
       "old_accepted_gap": null,
       "disposition": "removed",
       "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.external_payloads",
+      "claim_declaration": "temporal.api.common.v1.Payload.external_payloads",
+      "reason": "Unclaimed descriptor field temporal.api.common.v1.Payload.external_payloads; no semantic read or fill is declared"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata.key:mutation.absent",
@@ -34614,11 +34655,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata.key:mutation.empty",
@@ -34636,11 +34675,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata.key:mutation.limit_plus_one(1000)",
@@ -34658,11 +34695,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata.key:mutation.limit_plus_one(2097152)",
@@ -34680,11 +34715,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata.key:mutation.negative",
@@ -34702,11 +34735,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata.key:mutation.undefined_enum",
@@ -34724,11 +34755,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata.value:mutation.absent",
@@ -34746,11 +34775,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata.value:mutation.empty",
@@ -34768,11 +34795,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata.value:mutation.limit_plus_one(1000)",
@@ -34791,10 +34816,10 @@
       },
       "old_accepted_gap": null,
       "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata.value",
+      "claim_declaration": "temporal.api.common.v1.Payload.MetadataEntry.value",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata.value:mutation.limit_plus_one(2097152)",
@@ -34813,10 +34838,10 @@
       },
       "old_accepted_gap": null,
       "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata.value",
+      "claim_declaration": "temporal.api.common.v1.Payload.MetadataEntry.value",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata.value:mutation.negative",
@@ -34834,11 +34859,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata.value:mutation.undefined_enum",
@@ -34856,11 +34879,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata:mutation.absent",
@@ -34878,11 +34899,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata:mutation.empty",
@@ -34900,11 +34919,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata:mutation.limit_plus_one(1000)",
@@ -34923,10 +34940,10 @@
       },
       "old_accepted_gap": null,
       "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata",
+      "claim_declaration": "temporal.api.common.v1.Payload.metadata",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata:mutation.limit_plus_one(2097152)",
@@ -34944,11 +34961,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata:mutation.negative",
@@ -34966,11 +34981,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value.metadata:mutation.undefined_enum",
@@ -34988,11 +35001,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value:mutation.absent",
@@ -35010,11 +35021,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value:mutation.empty",
@@ -35032,11 +35041,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value:mutation.limit_plus_one(1000)",
@@ -35054,11 +35061,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value:mutation.limit_plus_one(2097152)",
@@ -35076,11 +35081,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value:mutation.negative",
@@ -35098,11 +35101,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields.value:mutation.undefined_enum",
@@ -35120,11 +35121,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields:mutation.absent",
@@ -35142,11 +35141,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields:mutation.empty",
@@ -35164,11 +35161,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields:mutation.limit_plus_one(1000)",
@@ -35186,11 +35181,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields:mutation.limit_plus_one(2097152)",
@@ -35208,11 +35201,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields:mutation.negative",
@@ -35230,11 +35221,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header.fields:mutation.undefined_enum",
@@ -35252,11 +35241,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header:mutation.absent",
@@ -35274,11 +35261,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header:mutation.empty",
@@ -35296,11 +35281,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header:mutation.limit_plus_one(1000)",
@@ -35318,11 +35301,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header:mutation.limit_plus_one(2097152)",
@@ -35340,11 +35321,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header:mutation.negative",
@@ -35362,11 +35341,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.header:mutation.undefined_enum",
@@ -35384,11 +35361,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "claim_declaration": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.StartActivityExecutionRequest.header; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.heartbeat_timeout.nanos:mutation.absent",
@@ -36218,7 +36193,7 @@
       "rule": "unsupported inferred Secret bound",
       "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.input.payloads.data",
       "claim_declaration": "temporal.api.common.v1.Payload.data",
-      "reason": "Explicit Secret kind has no supported bound finding for this actual typed mutation; required presence and every explicit catalog finding remain admitted"
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.input.payloads.data:mutation.limit_plus_one(2097152)",
@@ -36736,9 +36711,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.input.payloads.metadata.value",
+      "claim_declaration": "temporal.api.common.v1.Payload.MetadataEntry.value",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.input.payloads.metadata.value:mutation.limit_plus_one(2097152)",
@@ -36864,9 +36841,11 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "retained",
-      "after": "identical",
-      "reason": "Exact method, prerequisite, applicability and every prediction retained"
+      "disposition": "removed",
+      "rule": "unsupported inferred Secret bound",
+      "claim_path": "temporal.api.workflowservice.v1.StartActivityExecutionRequest.input.payloads.metadata",
+      "claim_declaration": "temporal.api.common.v1.Payload.metadata",
+      "reason": "Explicit Secret kind declares no inferred length bound; this case has no explicit finding, or existing traversal/construction bounds refuse materialization. Required presence and supported explicit constraints remain admitted"
     },
     {
       "id": "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.input.payloads.metadata:mutation.limit_plus_one(2097152)",

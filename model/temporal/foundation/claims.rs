@@ -214,3 +214,11 @@ pub struct ProtoTimestamp {
     seconds: Counter,
     nanos: Counter,
 }
+
+/// Start correlation reads a payload from the actual header map.
+#[derive(Catalog)]
+#[mirror(response = "temporal.api.common.v1.Header")]
+pub struct Header {
+    #[mirror(decided)]
+    fields: Map<Text, Message<common::Payload>>,
+}

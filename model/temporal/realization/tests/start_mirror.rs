@@ -18,7 +18,7 @@ fn start_mirror_retains_fields_reasons_limits_and_expected_errors()
             field.tags.iter().any(|(_, tag)| matches!(tag, umpire_catalog::Consequence::Ignored(_)))
         })
         .collect();
-    assert_eq!(ignored.len(), 7);
+    assert_eq!(ignored.len(), 6);
     let request = StartActivityExecutionRequest {
         identity: "x".repeat(1001),
         activity_id: "valid-id".into(),
