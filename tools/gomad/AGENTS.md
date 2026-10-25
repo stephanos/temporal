@@ -12,5 +12,8 @@
 - Evidence: verify provenance and contents before trusting artifacts.
 - Limits: make memory, fuel, time, and output bounds explicit.
 - Types and validators: use structs/enums and shared validation code.
+- Setup: keep preparation independently testable.
+- Delivery: get one end-to-end path working early.
 - Tests: exercise small, real boundaries before expensive runs.
+- Verification: reuse evidence when relevant inputs are unchanged.
 - Completion: claim only what the required acceptance checks actually prove.
