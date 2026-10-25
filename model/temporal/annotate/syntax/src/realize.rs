@@ -1,5 +1,6 @@
 //! Declarative realization handler expansion over the shared protobuf graph.
 
+use darling::{FromMeta, ast::NestedMeta};
 use std::collections::{BTreeMap, BTreeSet};
 
 use proc_macro2::{LineColumn, Span, TokenStream};
@@ -809,37 +810,41 @@ struct ProposalHandler {
     polling: Option<Ident>,
 }
 
+#[derive(FromMeta, Default)]
+struct ProposalOptions {
+    matches: Option<Ident>,
+    #[darling(rename = "continue_polling")]
+    polling: Option<Ident>,
+}
+
 fn proposal_handler(name: &Ident, attribute: &Attribute) -> syn::Result<ProposalHandler> {
-    let mut handler = ProposalHandler { name: name.clone(), matches: None, polling: None };
-    if matches!(attribute.meta, syn::Meta::Path(_)) {
-        return Ok(handler);
-    }
-    let options = attribute.parse_args_with(
-        syn::punctuated::Punctuated::<syn::MetaNameValue, Token![,]>::parse_terminated,
-    )?;
-    for option in options {
-        let slot = if option.path.is_ident("matches") {
-            &mut handler.matches
-        } else if option.path.is_ident("continue_polling") {
-            &mut handler.polling
-        } else {
-            return Err(syn::Error::new(option.path.span(), "unknown proposal hook"));
-        };
-        let syn::Expr::Path(value) = option.value else {
-            return Err(syn::Error::new(
-                option.value.span(),
-                "proposal hook requires a method name",
-            ));
-        };
-        let name = value
-            .path
-            .get_ident()
-            .ok_or_else(|| syn::Error::new(value.span(), "proposal hook requires a method name"))?;
-        if slot.replace(name.clone()).is_some() {
-            return Err(syn::Error::new(option.path.span(), "duplicate proposal hook"));
+    let options = if matches!(attribute.meta, syn::Meta::Path(_)) {
+        ProposalOptions::default()
+    } else {
+        let options = attribute.parse_args_with(
+            syn::punctuated::Punctuated::<syn::MetaNameValue, Token![,]>::parse_terminated,
+        )?;
+        let mut items = Vec::new();
+        for option in options {
+            if option.path.is_ident("matches") || option.path.is_ident("continue_polling") {
+                let syn::Expr::Path(value) = &option.value else {
+                    return Err(syn::Error::new_spanned(
+                        &option.value,
+                        "proposal hook requires a method name",
+                    ));
+                };
+                if value.qself.is_some() || value.path.get_ident().is_none() {
+                    return Err(syn::Error::new_spanned(
+                        value,
+                        "proposal hook requires a method name",
+                    ));
+                }
+            }
+            items.push(NestedMeta::Meta(syn::Meta::NameValue(option)));
         }
-    }
-    Ok(handler)
+        ProposalOptions::from_list(&items)?
+    };
+    Ok(ProposalHandler { name: name.clone(), matches: options.matches, polling: options.polling })
 }
 
 fn proposal_dispatch(model: &Path, handler: &ProposalHandler) -> TokenStream {
@@ -977,4 +982,28 @@ fn expand_scoped(
             #answer_dispatch
         }
     })
+}
+
+#[cfg(test)]
+mod proposal_options_controls {
+    use super::*;
+
+    #[test]
+    fn proposal_options_refuse_malformed_values_and_locate_duplicates()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let name = syn::parse_str("propose")?;
+        for source in [
+            "#[propose(matches = first, matches = second)]",
+            "#[propose(continue_polling = first, continue_polling = second)]",
+            "#[propose(matches = \"method\")]",
+            "#[propose(matches = module::method)]",
+            "#[propose(matches = 42)]",
+            "#[propose(unknown = method)]",
+        ] {
+            let function: ImplItemFn = syn::parse_str(&format!("{source} fn method() {{}}"))?;
+            let error = proposal_handler(&name, &function.attrs[0]).err().ok_or(source)?;
+            assert!(error.span().start().column >= source.find('(').ok_or("options")?, "{error}");
+        }
+        Ok(())
+    }
 }

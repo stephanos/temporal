@@ -1,0 +1,7 @@
+{
+  "task": "fn-248-off-the-shelf-crates-and-consolidation.4",
+  "base": "0a1a733c72b91054ca0a4ee3d21378c56c26abef",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros",
+  "branch": "work/fn2484-macros",
+  "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target"
+}

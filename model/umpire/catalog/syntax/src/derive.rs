@@ -1,5 +1,7 @@
 //! The shared attribute grammar for compiler expansion and descriptor admission.
 
+use darling::{FromMeta, ast::NestedMeta, util::Flag};
+use heck::{ToSnakeCase, ToUpperCamelCase};
 use proc_macro2::Span;
 use quote::format_ident;
 use syn::{
@@ -102,11 +104,56 @@ pub struct ApiAttributes {
     pub also: Vec<ApiAttributes>,
     /// Supplemental kind name.
     pub also_kind: Option<Ident>,
+    options: Vec<NestedMeta>,
+    expected_span: Option<Span>,
 }
 
-fn set_once<T>(slot: &mut Option<T>, value: T, span: Span, label: &str) -> syn::Result<()> {
+#[derive(Debug, FromMeta)]
+struct ApiOptions {
+    context: Option<Path>,
+    api: Option<Path>,
+    response_checks: Option<Path>,
+    request: Option<LitStr>,
+    response: Option<LitStr>,
+    #[darling(rename = "type")]
+    proto_type: Option<Path>,
+    supplemental: Flag,
+    via: Option<Path>,
+}
+
+impl ApiAttributes {
+    fn apply_options(&mut self) -> syn::Result<()> {
+        let options = ApiOptions::from_list(&self.options)?;
+        self.context = options.context;
+        self.api = options.api;
+        self.response_checks = options.response_checks;
+        self.proto_type = options.proto_type;
+        self.supplemental = options.supplemental.is_present();
+        self.via = options.via;
+        self.direction = match (options.request, options.response) {
+            (Some(request), Some(response)) => {
+                let span = if request.span().start() > response.span().start() {
+                    request.span()
+                } else {
+                    response.span()
+                };
+                return Err(syn::Error::new(span, "duplicate message direction"));
+            }
+            (Some(name), None) => Some((true, name)),
+            (None, Some(name)) => Some((false, name)),
+            (None, None) => None,
+        };
+        Ok(())
+    }
+}
+
+fn set_expectation(
+    slot: &mut Option<ApiExpectation>,
+    value: ApiExpectation,
+    span: Span,
+) -> syn::Result<()> {
     if slot.is_some() {
-        return Err(syn::Error::new(span, format!("duplicate {label}")));
+        return Err(syn::Error::new(span, "duplicate expectation"));
     }
     *slot = Some(value);
     Ok(())
@@ -126,35 +173,34 @@ impl syn::parse::Parse for ApiAttributes {
             let span = key.span();
             match key.to_string().as_str() {
                 "request" | "response" => {
-                    input.parse::<Token![=]>()?;
-                    set_once(
-                        &mut result.direction,
-                        (key == "request", input.parse()?),
-                        span,
-                        "message direction",
-                    )?;
+                    let eq_token = input.parse::<Token![=]>()?;
+                    let value: LitStr = input.parse()?;
+                    result.options.push(NestedMeta::Meta(syn::Meta::NameValue(
+                        syn::MetaNameValue {
+                            path: key.into(),
+                            eq_token,
+                            value: syn::parse_quote!(#value),
+                        },
+                    )));
                 }
-                "context" | "api" => {
-                    input.parse::<Token![=]>()?;
-                    let slot = if key == "context" { &mut result.context } else { &mut result.api };
-                    set_once(slot, input.parse()?, span, &key.to_string())?;
+                "context" | "api" | "type" | "via" | "response_checks" => {
+                    let eq_token = input.parse::<Token![=]>()?;
+                    let value: Path = input.parse()?;
+                    result.options.push(NestedMeta::Meta(syn::Meta::NameValue(
+                        syn::MetaNameValue {
+                            path: key.into(),
+                            eq_token,
+                            value: syn::parse_quote!(#value),
+                        },
+                    )));
                 }
-                "type" => {
-                    input.parse::<Token![=]>()?;
-                    set_once(&mut result.proto_type, input.parse()?, span, "type")?;
-                }
-                "supplemental" => result.supplemental = true,
-                "via" => {
-                    input.parse::<Token![=]>()?;
-                    set_once(&mut result.via, input.parse()?, span, "via")?;
-                }
-                "response_checks" => {
-                    input.parse::<Token![=]>()?;
-                    set_once(&mut result.response_checks, input.parse()?, span, "response_checks")?;
+                "supplemental" => {
+                    result.options.push(NestedMeta::Meta(syn::Meta::Path(key.into())));
                 }
                 "rejects" => {
                     let expected = parse_rejection(input, span)?;
-                    set_once(&mut result.expected, expected, span, "expectation")?;
+                    set_expectation(&mut result.expected, expected, span)?;
+                    result.expected_span = Some(span);
                 }
                 "accepts" | "unobservable" => {
                     let expected = if key == "accepts" {
@@ -162,7 +208,8 @@ impl syn::parse::Parse for ApiAttributes {
                     } else {
                         ApiExpectation::Unobservable
                     };
-                    set_once(&mut result.expected, expected, span, "expectation")?;
+                    set_expectation(&mut result.expected, expected, span)?;
+                    result.expected_span = Some(span);
                 }
                 "required" | "requires" | "excludes" | "any_of" | "one_of" => {
                     result.rules.push((key, names(input)?));
@@ -213,6 +260,7 @@ impl syn::parse::Parse for ApiAttributes {
                 input.parse::<Token![,]>()?;
             }
         }
+        result.apply_options()?;
         Ok(result)
     }
 }
@@ -271,30 +319,19 @@ fn attributes(attrs: &[Attribute]) -> syn::Result<Vec<ApiAttributes>> {
 fn merge(mut lines: Vec<ApiAttributes>) -> syn::Result<ApiAttributes> {
     let mut result = ApiAttributes::default();
     for mut line in lines.drain(..) {
-        for (target, value, label) in [
-            (&mut result.context, line.context.take(), "context"),
-            (&mut result.api, line.api.take(), "api"),
-            (&mut result.response_checks, line.response_checks.take(), "response_checks"),
-            (&mut result.via, line.via.take(), "via"),
-            (&mut result.proto_type, line.proto_type.take(), "type"),
-        ] {
-            if let Some(value) = value {
-                set_once(target, value, Span::call_site(), label)?;
-            }
-        }
-        if let Some(value) = line.direction.take() {
-            set_once(&mut result.direction, value, Span::call_site(), "message direction")?;
-        }
+        result.options.append(&mut line.options);
+        let expected_span = line.expected_span.unwrap_or_else(Span::call_site);
         if let Some(value) = line.expected.take() {
-            set_once(&mut result.expected, value, Span::call_site(), "expectation")?;
+            set_expectation(&mut result.expected, value, expected_span)?;
+            result.expected_span = Some(expected_span);
         }
-        result.supplemental |= line.supplemental;
         result.constraints.extend(line.constraints);
         result.tags.extend(line.tags);
         result.rules.extend(line.rules);
         result.variants.extend(line.variants);
         result.also.extend(line.also);
     }
+    result.apply_options()?;
     Ok(result)
 }
 
@@ -629,30 +666,14 @@ fn admission_expected(expected: Option<&ApiExpectation>) -> syn::Result<Option<E
         .transpose()
 }
 
-fn snake(name: &str) -> String {
-    let chars: Vec<char> = name.chars().collect();
-    let mut result = String::new();
-    for (index, ch) in chars.iter().enumerate() {
-        if ch.is_uppercase()
-            && index > 0
-            && (chars[index - 1].is_lowercase()
-                || chars[index - 1].is_ascii_digit()
-                || chars.get(index + 1).is_some_and(|next| next.is_lowercase()))
-        {
-            result.push('_');
-        }
-        result.extend(ch.to_lowercase());
-    }
-    result
-}
-
 fn inferred_type(proto: &LitStr, api: &Path) -> syn::Result<Path> {
     let name = proto.value();
     let mut parts: Vec<_> = name.split('.').collect();
     let message = parts
         .pop()
         .ok_or_else(|| syn::Error::new(proto.span(), "missing protobuf message name"))?;
-    let package = parts.join("::");
+    let message = message.to_upper_camel_case();
+    let package = parts.iter().map(|part| part.to_snake_case()).collect::<Vec<_>>().join("::");
     let path = if package == "google::protobuf" {
         format!("::umpire_runtime::google::protobuf::{message}")
     } else {
@@ -666,19 +687,11 @@ fn inferred_type(proto: &LitStr, api: &Path) -> syn::Result<Path> {
 
 /// Stable snake-case name used for catalog factories.
 pub fn factory_name(name: &Ident) -> Ident {
-    format_ident!("{}", snake(&name.to_string()))
+    format_ident!("{}", name.unraw().to_string().to_snake_case())
 }
 
 pub(crate) fn map_entry_proto(parent: &LitStr, field: &Ident) -> String {
-    let camel = field
-        .unraw()
-        .to_string()
-        .split('_')
-        .map(|part| {
-            let mut chars = part.chars();
-            chars.next().map_or_else(String::new, |head| head.to_uppercase().chain(chars).collect())
-        })
-        .collect::<String>();
+    let camel = field.unraw().to_string().to_upper_camel_case();
     format!("{}.{camel}Entry", parent.value())
 }
 
@@ -855,4 +868,88 @@ fn validate_kind(ty: &Type, kind: &str) -> syn::Result<()> {
         return Err(syn::Error::new_spanned(ty, "expected exactly one supported semantic kind"));
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod attribute_controls {
+    use super::*;
+
+    #[test]
+    fn scalar_options_refuse_duplicates_at_the_second_occurrence()
+    -> Result<(), Box<dyn std::error::Error>> {
+        for source in [
+            "supplemental, supplemental",
+            "context = crate::First, context = crate::Second",
+            "request = \"first.Message\", response = \"second.Message\"",
+        ] {
+            let error = syn::parse_str::<ApiAttributes>(source).err().ok_or(source)?;
+            assert!(error.span().start().column > source.find(',').ok_or("comma")?, "{error}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn scalar_errors_accumulate_across_attribute_lines() -> Result<(), Box<dyn std::error::Error>> {
+        let input: DeriveInput = syn::parse_str(
+            "#[mirror(context = First, api = first)]\n#[mirror(context = Second, api = second)] struct Mirror {}",
+        )?;
+        let error = merge(attributes(&input.attrs)?).err().ok_or("duplicate options")?;
+        let errors: Vec<_> = error.into_iter().collect();
+        assert_eq!(errors.len(), 2);
+        assert!(errors.iter().all(|error| error.span().start().line == 2));
+        let input: DeriveInput =
+            syn::parse_str("#[rule(accepts)]\n#[rule(unobservable)] struct Mirror {}")?;
+        let error = merge(attributes(&input.attrs)?).err().ok_or("duplicate expectation")?;
+        assert_eq!(error.span().start().line, 2);
+        Ok(())
+    }
+
+    #[test]
+    fn manual_families_keep_source_order_and_strict_shapes() -> syn::Result<()> {
+        let parsed: ApiAttributes = syn::parse_str(
+            "observed, min_len = 1, decided, max_len = 9, also(uuid, observed), oneof(Second = \"second\", First = \"first\"), rejects(InvalidArgument, \"bad\")",
+        )?;
+        assert_eq!(
+            parsed.tags.iter().map(|tag| tag.name.to_string()).collect::<Vec<_>>(),
+            ["Observed", "Decided"]
+        );
+        assert_eq!(
+            parsed.constraints.iter().map(|(name, _)| name.to_string()).collect::<Vec<_>>(),
+            ["min_len", "max_len"]
+        );
+        assert_eq!(
+            parsed.variants.iter().map(|(name, _)| name.to_string()).collect::<Vec<_>>(),
+            ["Second", "First"]
+        );
+        assert_eq!(
+            parsed.also[0].also_kind.as_ref().map(ToString::to_string).as_deref(),
+            Some("Uuid")
+        );
+        assert!(matches!(parsed.expected, Some(ApiExpectation::Rejects(_, Some(_)))));
+        for source in [
+            "context = \"crate::Context\"",
+            "request = Message",
+            "supplemental = false",
+            "also(uuid = true)",
+            "oneof(A)",
+            "rejects(Code, \"bad\", extra)",
+            "unknown = true",
+        ] {
+            assert!(syn::parse_str::<ApiAttributes>(source).is_err(), "{source}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn names_follow_prost_case_conversion() -> syn::Result<()> {
+        for (source, expected) in [
+            ("HTTPInput", "http_input"),
+            ("foo__Bar", "foo_bar"),
+            ("_Foo_", "foo"),
+            ("URL42Value", "url42_value"),
+        ] {
+            assert_eq!(factory_name(&syn::parse_str::<Ident>(source)?).to_string(), expected);
+        }
+        Ok(())
+    }
 }

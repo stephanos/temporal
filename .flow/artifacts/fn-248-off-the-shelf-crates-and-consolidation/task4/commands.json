@@ -1,0 +1,182 @@
+[
+  {
+    "label": "baseline",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo test -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax --locked",
+    "exit": 0,
+    "log": "baseline-observed.log",
+    "final_source": false,
+    "source_hashes": null
+  },
+  {
+    "label": "baseline-ui",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo test -p umpire-catalog --test ui --locked",
+    "exit": 0,
+    "log": "baseline-ui.log",
+    "final_source": false,
+    "source_hashes": null
+  },
+  {
+    "label": "parser-red",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo test -p umpire-catalog-syntax attribute_controls --locked",
+    "exit": 101,
+    "log": "parser-red.log",
+    "final_source": false,
+    "source_hashes": null
+  },
+  {
+    "label": "parser-green",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo test -p umpire-catalog-syntax -p umpire-temporal-annotate-syntax --lib",
+    "exit": 0,
+    "log": "parser-green.log",
+    "final_source": false,
+    "source_hashes": null
+  },
+  {
+    "label": "parser-final",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo test -p umpire-catalog-syntax -p umpire-temporal-annotate-syntax --lib --locked",
+    "exit": 0,
+    "log": "parser-final.log",
+    "final_source": false,
+    "source_hashes": null
+  },
+  {
+    "label": "wire-red",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo test -p umpire-catalog-build --test wire_generated --locked",
+    "exit": 101,
+    "log": "wire-red.log",
+    "final_source": false,
+    "source_hashes": null
+  },
+  {
+    "label": "codegen-green",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo test -p umpire-catalog-build --locked",
+    "exit": 0,
+    "log": "codegen-green.log",
+    "final_source": false,
+    "source_hashes": null
+  },
+  {
+    "label": "codegen-clippy",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo clippy -p umpire-catalog-build --all-targets --locked -- -D warnings",
+    "exit": 101,
+    "log": "codegen-clippy.log",
+    "final_source": false,
+    "source_hashes": null
+  },
+  {
+    "label": "focused-final",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo test -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax --locked",
+    "exit": 0,
+    "log": "focused-final.log",
+    "final_source": false,
+    "source_hashes": null
+  },
+  {
+    "label": "ui-candidate",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo test -p umpire-catalog --test ui --locked",
+    "exit": 101,
+    "log": "ui-candidate.log",
+    "final_source": false,
+    "source_hashes": null
+  },
+  {
+    "label": "clippy-final",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo clippy -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax --all-targets --all-features --locked -- -D warnings",
+    "exit": 101,
+    "log": "clippy-final.log",
+    "final_source": false,
+    "source_hashes": null
+  },
+  {
+    "label": "clippy-verified",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo clippy -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax --all-targets --all-features --locked -- -D warnings",
+    "exit": 0,
+    "log": "clippy-verified.log",
+    "final_source": true,
+    "source_hashes": "source-sha256.json"
+  },
+  {
+    "label": "focused-verified",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo test -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax --locked",
+    "exit": 0,
+    "log": "focused-verified.log",
+    "final_source": true,
+    "source_hashes": "source-sha256.json"
+  },
+  {
+    "label": "ui-verified",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo test -p umpire-catalog --test ui --locked",
+    "exit": 0,
+    "log": "ui-verified.log",
+    "final_source": true,
+    "source_hashes": "source-sha256.json"
+  },
+  {
+    "label": "deny-bans",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo deny check bans",
+    "exit": 0,
+    "log": "deny-bans.log",
+    "final_source": false,
+    "source_hashes": null
+  },
+  {
+    "label": "fmt-verified",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo fmt --package umpire-catalog-syntax --package umpire-catalog-build --package umpire-temporal-annotate-syntax --check",
+    "exit": 0,
+    "log": "fmt-verified.log",
+    "final_source": true,
+    "source_hashes": "source-sha256.json"
+  },
+  {
+    "label": "initial-baseline",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo test -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax --locked",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "exit": null,
+    "observation": "inconclusive: terminal streaming handle was not retained; corrected captured pre-edit baseline subsequently exited0",
+    "log": "baseline.log",
+    "final_source": false
+  },
+  {
+    "label": "guest-normal-tree-retired-package",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo tree -p umpire-wasm --edges normal,no-proc-macro --target wasm32-wasip1 --locked",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "exit": 101,
+    "observation": "inconclusive closure inventory: retired package does not exist",
+    "log": "guest-normal-tree.txt",
+    "final_source": false
+  },
+  {
+    "label": "six-guest-normal-tree",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo tree -p umpire-temporal-guest -p umpire-kettle-guest -p umpire-stock-guest -p umpire-control-guest -p umpire-caught-panic-guest -p umpire-overflow-guest --edges normal,no-proc-macro --target wasm32-wasip1 --locked",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "exit": 0,
+    "log": "six-guest-normal-tree.txt",
+    "final_source": true,
+    "source_hashes": "source-sha256.json"
+  },
+  {
+    "label": "darling-inverse-tree",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target mise exec -- cargo tree -i darling --target wasm32-wasip1 --locked",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model",
+    "exit": 0,
+    "log": "darling-inverse-tree.txt",
+    "final_source": true,
+    "source_hashes": "source-sha256.json"
+  }
+]

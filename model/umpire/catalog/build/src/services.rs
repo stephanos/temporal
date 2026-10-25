@@ -1,9 +1,11 @@
 //! Descriptor-backed service method and annotation dispatch generation.
 
-use std::{collections::BTreeSet, fmt::Write};
+use std::collections::BTreeSet;
 
+use heck::ToUpperCamelCase;
+use proc_macro2::TokenStream;
 use prost::Message;
-use quote::ToTokens;
+use quote::quote;
 use umpire_catalog_syntax::{
     descriptor::{Coverage, Disposition},
     services::Classification,
@@ -71,43 +73,21 @@ pub fn generate(
             ));
         }
     }
-    let method_enum = config.method_enum;
-    let method_info = config.method_info;
-    let mut output = template(
-        config,
-        "/// Every RPC in descriptor source order.\n\
-         #[derive(Clone, Copy, Debug, Eq, PartialEq)]\n\
-         pub enum CatalogServiceMethod {\n",
-    );
+    let method_enum = identifier(config.method_enum)?;
+    let method_info = identifier(config.method_info)?;
+    let methods_const = identifier(config.methods_const)?;
+    let dispatch_macro = identifier(config.dispatch_macro)?;
+    let bindings = bindings(classifications, config)?;
+    let mut variants = Vec::new();
+    let mut names = Vec::new();
+    let mut infos = Vec::new();
+    let mut dispatch = Vec::new();
     for method in &service.method {
         let name = method.name.as_deref().ok_or("unnamed service method")?;
-        writeln!(output, "/// `{service_name}.{name}`.\n{name},")
-            .map_err(|error| error.to_string())?;
-    }
-    output.push_str(&template(config,"}\nimpl CatalogServiceMethod {\n/// Original protobuf method name.\npub const fn name(self) -> &'static str { match self {\n"));
-    for method in &service.method {
-        let name = method.name.as_deref().ok_or("unnamed service method")?;
-        writeln!(output, "Self::{name} => {name:?},").map_err(|error| error.to_string())?;
-    }
-    output.push_str("}}\n/// Parse an original protobuf method name.\npub fn parse(name: &str) -> Option<Self> { match name {\n");
-    for method in &service.method {
-        let name = method.name.as_deref().ok_or("unnamed service method")?;
-        writeln!(output, "{name:?} => Some(Self::{name}),").map_err(|error| error.to_string())?;
-    }
-    output.push_str(&template(
-        config,
-        "_ => None,\n}}\n}\n\
-        /// One upstream method and its generated Rust message types.\n\
-        #[derive(Clone, Copy, Debug, Eq, PartialEq)]\n\
-        pub struct CatalogServiceMethodInfo {\n\
-        /// The method identity.\npub method: CatalogServiceMethod,\n\
-        /// Fully qualified Rust request type path.\npub request_type: &'static str,\n\
-        /// Fully qualified Rust response type path.\npub response_type: &'static str,\n}\n\
-        /// Source-ordered request and response types.\n\
-        pub const CATALOG_SERVICE_METHODS: &[CatalogServiceMethodInfo] = &[\n",
-    ));
-    for method in &service.method {
-        let name = method.name.as_deref().ok_or("unnamed service method")?;
+        let variant = identifier(name)?;
+        let doc = format!("`{service_name}.{name}`.");
+        variants.push(quote! { #[doc = #doc] #variant });
+        names.push((variant.clone(), name));
         let request = public_type(
             method.input_type.as_deref().ok_or("missing request type")?,
             config.rust_type_root,
@@ -116,67 +96,115 @@ pub fn generate(
             method.output_type.as_deref().ok_or("missing response type")?,
             config.rust_type_root,
         );
-        writeln!(output, "{method_info} {{ method: {method_enum}::{name}, request_type: {request:?}, response_type: {response:?} }},").map_err(|error| error.to_string())?;
-    }
-    output.push_str("];");
-    emit_bindings(&mut output, classifications, config)?;
-    output.push_str(&template(config,"\n/// Dispatch only declared annotation message types.\n#[macro_export]\nmacro_rules! dispatch_catalog_annotations {\n($method:expr, $response:expr, $ty:ident, $body:block, $fallback:expr) => { match ($method, $response) {\n"));
-    for method in &service.method {
-        let name = method.name.as_deref().ok_or("unnamed service method")?;
+        infos.push(quote! {
+            #method_info { method: #method_enum::#variant, request_type: #request, response_type: #response }
+        });
         for (response, ty) in [(false, &method.input_type), (true, &method.output_type)] {
             let ty = ty.as_deref().ok_or("missing method message type")?;
             if annotated.contains(ty.trim_start_matches('.')) {
-                let path = public_type(ty, config.macro_type_root);
-                writeln!(
-                    output,
-                    "($crate::{method_enum}::{name}, {response}) => {{ type $ty = {path}; $body }},"
-                )
-                .map_err(|error| error.to_string())?;
+                let path: TokenStream = public_type(ty, config.macro_type_root)
+                    .parse()
+                    .map_err(|error: proc_macro2::LexError| error.to_string())?;
+                dispatch.push(quote! {
+                    ($crate::#method_enum::#variant, #response) => { type $ty = #path; $body }
+                });
             }
         }
     }
-    output.push_str("_ => $fallback,\n}};\n}\n");
-    Ok(output)
+    let name_arms = names.iter().map(|(variant, name)| quote! { Self::#variant => #name });
+    let parse_arms = names.iter().map(|(variant, name)| quote! { #name => Some(Self::#variant) });
+    let output = quote! {
+        /// Every RPC in descriptor source order.
+        #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+        pub enum #method_enum { #(#variants),* }
+        impl #method_enum {
+            /// Original protobuf method name.
+            pub const fn name(self) -> &'static str { match self { #(#name_arms),* } }
+            /// Parse an original protobuf method name.
+            pub fn parse(name: &str) -> Option<Self> { match name { #(#parse_arms,)* _ => None } }
+        }
+        /// One upstream method and its generated Rust message types.
+        #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+        pub struct #method_info {
+            /// The method identity.
+            pub method: #method_enum,
+            /// Fully qualified Rust request type path.
+            pub request_type: &'static str,
+            /// Fully qualified Rust response type path.
+            pub response_type: &'static str,
+        }
+        /// Source-ordered request and response types.
+        pub const #methods_const: &[#method_info] = &[#(#infos),*];
+        #bindings
+        /// Dispatch only declared annotation message types.
+        #[macro_export]
+        macro_rules! #dispatch_macro {
+            ($method:expr, $response:expr, $ty:ident, $body:block, $fallback:expr) => {
+                match ($method, $response) { #(#dispatch,)* _ => $fallback }
+            };
+        }
+    };
+    let file = syn::parse2(output).map_err(|error| error.to_string())?;
+    Ok(prettyplease::unparse(&file))
+}
+
+fn identifier(name: &str) -> Result<syn::Ident, String> {
+    syn::parse_str(name).map_err(|error| error.to_string())
 }
 
 fn public_type(proto: &str, root: &str) -> String {
-    format!("{root}::{}", proto.trim_start_matches('.').replace('.', "::"))
+    let proto = proto.trim_start_matches('.');
+    let (package, name) = proto.rsplit_once('.').unwrap_or(("", proto));
+    let package = prost_build::Module::from_protobuf_package_name(package);
+    let name = type_name(name);
+    if package.is_empty() {
+        format!("{root}::{name}")
+    } else {
+        format!("{root}::{package}::{name}")
+    }
 }
 
-fn emit_bindings(
-    output: &mut String,
+pub(super) fn type_name(proto: &str) -> String {
+    let name = proto.to_upper_camel_case();
+    if name == "Self" {
+        format!("{name}_")
+    } else if name.starts_with(char::is_numeric) {
+        format!("_{name}")
+    } else {
+        name
+    }
+}
+
+fn bindings(
     classifications: &[Classification],
     config: &Config<'_>,
-) -> Result<(), String> {
-    output.push_str("\n/// Source-reviewed RPC classifications.\npub const RPC_BINDINGS: &[(&str, &str, &str)] = &[\n");
-    for classification in classifications {
-        for (rpc, role, target) in &classification.bindings {
-            writeln!(output, "({rpc:?}, {role:?}, {target:?}),")
-                .map_err(|error| error.to_string())?;
-        }
-    }
-    output.push_str(&template(config,"];\n/// Bind every Model action to its classified RPC or declared environment.\n#[macro_export]\nmacro_rules! bind_catalog_action {\n($action:expr, $environmental_pattern:pat => $environmental_expression:expr) => { match $action {\n"));
+) -> Result<TokenStream, String> {
+    let bind_macro = identifier(config.bind_macro)?;
+    let mut inventory = Vec::new();
+    let mut arms = Vec::new();
     let mut actions = BTreeSet::new();
     for classification in classifications {
+        for (rpc, role, target) in &classification.bindings {
+            inventory.push(quote! { (#rpc, #role, #target) });
+        }
         for binding in &classification.actions {
-            let pattern = binding.pattern.to_token_stream().to_string();
+            let pattern = &binding.pattern;
             if !actions.insert(binding.identity.clone()) {
-                return Err(format!("duplicate Model action RPC binding: {pattern}"));
+                return Err(format!("duplicate Model action RPC binding: {}", quote! { #pattern }));
             }
             let rpc = format!("{}.{}", config.service, binding.method);
-            writeln!(output, "{pattern} => Binding::Rpc({rpc:?}),")
-                .map_err(|error| error.to_string())?;
+            arms.push(quote! { #pattern => Binding::Rpc(#rpc) });
         }
     }
-    output.push_str("$environmental_pattern => $environmental_expression,\n}};\n}\n");
-    Ok(())
-}
-
-fn template(config: &Config<'_>, source: &str) -> String {
-    source
-        .replace("CatalogServiceMethodInfo", config.method_info)
-        .replace("CatalogServiceMethod", config.method_enum)
-        .replace("CATALOG_SERVICE_METHODS", config.methods_const)
-        .replace("dispatch_catalog_annotations", config.dispatch_macro)
-        .replace("bind_catalog_action", config.bind_macro)
+    Ok(quote! {
+        /// Source-reviewed RPC classifications.
+        pub const RPC_BINDINGS: &[(&str, &str, &str)] = &[#(#inventory),*];
+        /// Bind every Model action to its classified RPC or declared environment.
+        #[macro_export]
+        macro_rules! #bind_macro {
+            ($action:expr, $environmental_pattern:pat => $environmental_expression:expr) => {
+                match $action { #(#arms,)* $environmental_pattern => $environmental_expression }
+            };
+        }
+    })
 }

@@ -1,0 +1,103 @@
+   Compiling unicode-ident v1.0.27
+   Compiling hashbrown v0.17.1
+   Compiling equivalent v1.0.3
+   Compiling foldhash v0.1.5
+   Compiling bytes v1.12.1
+    Checking bytemuck v1.25.2
+   Compiling rustix v1.1.5
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/author/dsl/macros)
+    Checking rand_core v0.9.5
+   Compiling proc-macro2 v1.0.107
+    Checking hashbrown v0.15.5
+    Checking safe_arch v0.7.4
+    Checking rand_xoshiro v0.7.0
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/author/dsl)
+    Checking wide v0.7.33
+   Compiling indexmap v2.14.2
+    Checking quote v1.0.47
+    Checking imbl-sized-chunks v0.2.0
+    Checking fixedbitset v0.5.7
+    Checking archery v1.2.3
+    Checking syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling proc-macro-utils v0.10.0
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling petgraph v0.8.3
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/backends/native)
+   Compiling tempfile v3.27.0
+   Compiling manyhow-macros v0.14.1
+   Compiling proc-macro-crate v3.5.0
+    Checking imbl v7.0.2
+   Compiling ident_case v1.0.1
+    Checking smallvec v1.16.3
+    Checking rustc-hash v2.1.3
+    Checking bitflags v2.13.2
+    Checking regex-syntax v0.8.11
+    Checking linux-raw-sys v0.12.1
+    Checking once_cell v1.21.4
+    Checking fastrand v2.5.0
+    Checking heck v0.5.0
+    Checking either v1.19.0
+    Checking log v0.4.34
+    Checking multimap v0.10.1
+    Checking itertools v0.14.0
+    Checking regex-automata v0.4.18
+    Checking darling_core v0.24.1
+    Checking prettyplease v0.3.0
+   Compiling manyhow v0.14.1
+   Compiling prettyplease v0.2.37
+    Checking regex v1.13.1
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/ir/derive)
+   Compiling thiserror-impl v2.0.21
+   Compiling prost-derive v0.14.4
+   Compiling enum-iterator-derive v1.5.0
+   Compiling darling_macro v0.24.1
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/ir)
+    Checking enum-iterator v2.3.0
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/front)
+    Checking thiserror v2.0.21
+   Compiling prost v0.14.4
+    Checking darling v0.24.1
+   Compiling prost-types v0.14.4
+    Checking prost-build v0.14.4
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/protocol/runtime)
+    Checking umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog/syntax)
+    Checking umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog/build)
+error: `to_string` applied to a type that implements `Display` in `format!` args
+   --> umpire/catalog/build/src/wire_schema.rs:173:77
+    |
+173 |                     prost_build::Module::from_protobuf_package_name(package).to_string()
+    |                                                                             ^^^^^^^^^^^^ help: remove this
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#to_string_in_format_args
+    = note: `-D clippy::to-string-in-format-args` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::to_string_in_format_args)]`
+
+error: boolean to int conversion using if
+   --> umpire/catalog/build/src/wire_schema.rs:341:25
+    |
+341 |             let index = if step.field.number == Some(1) { 0 } else { 1 };
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with from: `usize::from(step.field.number != Some(1))`
+    |
+    = note: `(step.field.number != Some(1)) as usize` or `(step.field.number != Some(1)).into()` can also be valid options
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#bool_to_int_with_if
+    = note: `-D clippy::bool-to-int-with-if` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::bool_to_int_with_if)]`
+
+error: this argument is passed by value, but not consumed in the function body
+   --> umpire/catalog/build/src/wire_schema.rs:536:28
+    |
+536 | fn absent_guard(condition: TokenStream, cleanups: &[TokenStream]) -> TokenStream {
+    |                            ^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#needless_pass_by_value
+    = note: `-D clippy::needless-pass-by-value` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::needless_pass_by_value)]`
+help: consider taking a reference instead
+    |
+536 | fn absent_guard(condition: &TokenStream, cleanups: &[TokenStream]) -> TokenStream {
+    |                            +
+
+error: could not compile `umpire-catalog-build` (lib test) due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `umpire-catalog-build` (lib) due to 3 previous errors

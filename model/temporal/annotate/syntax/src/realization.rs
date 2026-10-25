@@ -1,5 +1,6 @@
 //! Descriptor-backed field admission shared by realization expansion and coverage.
 
+use heck::{ToSnakeCase, ToUpperCamelCase};
 use std::{
     collections::BTreeMap,
     fs,
@@ -473,7 +474,7 @@ fn collect(
     for descriptor in descriptors {
         let name = descriptor.name.as_deref().ok_or("unnamed message")?;
         let proto = qualified(package, name);
-        let rust = format!("{module}::{name}");
+        let rust = format!("{module}::{}", name.to_upper_camel_case());
         let map_entry =
             descriptor.options.as_ref().is_some_and(|options| options.map_entry == Some(true));
         let mut fields = Vec::new();
@@ -516,12 +517,16 @@ fn collect(
                             .and_then(|oneof| oneof.name.as_deref())
                             .ok_or("missing oneof declaration")?;
                         Ok::<_, String>(Oneof {
-                            member: format!("r#{}", snake(oneof)),
+                            member: format!("r#{}", oneof.to_snake_case()),
                             variant: format!(
                                 "{module}::{}::{}::{}",
-                                snake(descriptor.name.as_deref().ok_or("unnamed message")?),
-                                camel(oneof),
-                                camel(&name)
+                                descriptor
+                                    .name
+                                    .as_deref()
+                                    .ok_or("unnamed message")?
+                                    .to_snake_case(),
+                                oneof.to_upper_camel_case(),
+                                name.to_upper_camel_case()
                             ),
                         })
                     })
@@ -532,7 +537,7 @@ fn collect(
                 member: if map_entry {
                     if field.number == Some(1) { "0" } else { "1" }.into()
                 } else {
-                    format!("r#{}", snake(&name))
+                    format!("r#{}", name.to_snake_case())
                 },
                 name,
                 kind,
@@ -550,36 +555,14 @@ fn collect(
             proto.clone(),
             Message { name: proto.clone(), rust_type: rust, map_entry, fields },
         );
-        collect(&proto, &format!("{module}::{}", snake(name)), &descriptor.nested_type, result)?;
+        collect(
+            &proto,
+            &format!("{module}::{}", name.to_snake_case()),
+            &descriptor.nested_type,
+            result,
+        )?;
     }
     Ok(())
-}
-
-fn snake(name: &str) -> String {
-    let chars: Vec<_> = name.chars().collect();
-    let mut result = String::new();
-    for (index, ch) in chars.iter().enumerate() {
-        if ch.is_uppercase()
-            && index > 0
-            && (chars[index - 1].is_lowercase()
-                || chars[index - 1].is_ascii_digit()
-                || chars.get(index + 1).is_some_and(|next| next.is_lowercase()))
-        {
-            result.push('_');
-        }
-        result.extend(ch.to_lowercase());
-    }
-    result
-}
-
-fn camel(name: &str) -> String {
-    snake(name)
-        .split('_')
-        .map(|part| {
-            let mut chars = part.chars();
-            chars.next().map_or_else(String::new, |head| head.to_uppercase().chain(chars).collect())
-        })
-        .collect()
 }
 
 #[cfg(test)]

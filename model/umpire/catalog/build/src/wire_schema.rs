@@ -1,6 +1,10 @@
 //! Generate raw descriptor inventories and typed protobuf mutation setters.
 
-use std::{collections::BTreeMap, fmt::Write};
+use std::collections::BTreeMap;
+
+use heck::ToSnakeCase;
+use proc_macro2::TokenStream;
+use quote::{format_ident, quote};
 
 use prost::Message;
 use umpire_runtime::google::protobuf::{
@@ -40,7 +44,7 @@ struct Step {
 struct Field {
     path: String,
     declaration: String,
-    kind: String,
+    kind: TokenStream,
     optional: bool,
     refusal: Option<String>,
     steps: Vec<Step>,
@@ -64,7 +68,12 @@ pub fn generate(bytes: &[u8], config: &Config<'_>) -> Result<String, String> {
         .flat_map(|file| &file.service)
         .find(|service| service.name.as_deref() == Some(name))
         .ok_or_else(|| format!("missing service descriptor: {}", config.service))?;
-    let method_enum = config.method_enum;
+    let method_enum: syn::Ident =
+        syn::parse_str(config.method_enum).map_err(|error| error.to_string())?;
+    let fields_function: syn::Ident =
+        syn::parse_str(config.fields_function).map_err(|error| error.to_string())?;
+    let mutate_function: syn::Ident =
+        syn::parse_str(config.mutate_function).map_err(|error| error.to_string())?;
     let mut roots = Vec::new();
     for method in config.request_roots {
         let proto = service
@@ -79,57 +88,74 @@ pub fn generate(bytes: &[u8], config: &Config<'_>) -> Result<String, String> {
         schema.walk(&proto, &proto, &[], &[], &mut fields)?;
         roots.push((*method, proto, fields));
     }
-    let mut out = template(
-        config,
-        "use ::umpire_catalog::{WireField,WireKind,WireMutation,WireValue,GenerationError};\n\
-         /// Raw request fields, including descriptor fields ignored by semantic catalogs.\n\
-         pub fn catalog_request_fields(method: CatalogServiceMethod) -> Vec<WireField> { match method {\n",
-    );
-    for (method, _, fields) in &roots {
-        writeln!(out, "{method_enum}::{method} => vec![").map_err(|error| error.to_string())?;
-        for field in fields {
-            let refusal = field
-                .refusal
-                .as_ref()
-                .map_or_else(|| "None".to_owned(), |reason| format!("Some({reason:?}.into())"));
-            writeln!(out,"WireField{{path:{:?}.into(),declaration:{:?}.into(),kind:{},optional:{},refusal:{refusal}}},",field.path,field.declaration,field.kind,field.optional).map_err(|error| error.to_string())?;
-        }
-        out.push_str("],\n");
-    }
-    if roots.len() < service.method.len() {
-        out.push_str("_ => vec![WireField{path:method.name().into(),declaration:method.name().into(),kind:WireKind::Message,optional:false,refusal:Some(\"request root is outside the live probe surface\".into())}],\n");
-    }
-    out.push_str("}}\n");
-    out.push_str(&template(config,"/// Apply one typed descriptor mutation to a decoded request.\npub fn mutate_catalog_request(method:CatalogServiceMethod,bytes:&[u8],path:&str,mutation:&WireMutation)->Result<Vec<u8>,GenerationError>{match method{\n"));
-    for (method, proto, _) in &roots {
-        let rust = &schema.node(proto)?.rust;
-        let factory = snake(method);
-        writeln!(out,"{method_enum}::{method}=>{{let mut message=<{rust} as ::prost::Message>::decode(bytes).map_err(|_|GenerationError::InvalidEncoding)?;mutate_{factory}(&mut message,path,mutation)?;Ok(::prost::Message::encode_to_vec(&message))}},").map_err(|error| error.to_string())?;
-    }
-    if roots.len() < service.method.len() {
-        out.push_str("_=>Err(GenerationError::UnsupportedType),\n");
-    }
-    out.push_str("}}\n");
+    let mut inventories = Vec::new();
+    let mut mutations = Vec::new();
+    let mut setters = Vec::new();
     for (method, proto, fields) in &roots {
-        let rust = &schema.node(proto)?.rust;
-        let factory = snake(method);
-        writeln!(out,"fn mutate_{factory}(message:&mut {rust},path:&str,mutation:&WireMutation)->Result<(),GenerationError>{{match path{{").map_err(|error| error.to_string())?;
-        for field in fields.iter().filter(|field| field.refusal.is_none()) {
-            write!(out, "{:?}=>{{let node0=message;", field.path)
-                .map_err(|error| error.to_string())?;
-            schema.setter(field, &mut out)?;
-            out.push_str("Ok(())},\n");
-        }
-        out.push_str("_=>Err(GenerationError::UnsupportedType),\n}}\n");
-    }
-    if roots.iter().any(|(_, _, fields)| {
-        fields
+        let variant: syn::Ident = syn::parse_str(method).map_err(|error| error.to_string())?;
+        let rust: syn::Type =
+            syn::parse_str(&schema.node(proto)?.rust).map_err(|error| error.to_string())?;
+        let factory = format_ident!("mutate_{}", method.to_snake_case());
+        let inventory = fields.iter().map(|field| {
+            let path = &field.path;
+            let declaration = &field.declaration;
+            let kind = &field.kind;
+            let optional = field.optional;
+            let refusal = field.refusal.as_ref().map_or_else(|| quote! { None }, |reason| quote! { Some(#reason.into()) });
+            quote! { WireField { path: #path.into(), declaration: #declaration.into(), kind: #kind, optional: #optional, refusal: #refusal } }
+        });
+        inventories.push(quote! { #method_enum::#variant => vec![#(#inventory),*] });
+        mutations.push(quote! {
+            #method_enum::#variant => {
+                let mut message = <#rust as ::prost::Message>::decode(bytes).map_err(|_| GenerationError::InvalidEncoding)?;
+                #factory(&mut message, path, mutation)?;
+                Ok(::prost::Message::encode_to_vec(&message))
+            }
+        });
+        let arms = fields
             .iter()
-            .any(|field| field.kind == "WireKind::Map" || field.kind == "WireKind::Repeated")
-    }) {
-        out.push_str("fn wire_collection_len(mutation:&WireMutation)->Result<usize,GenerationError>{let WireMutation::LimitPlusOne{limit}=mutation else{return Err(GenerationError::InapplicableMutation)};let length=limit.checked_add(1).ok_or(GenerationError::SizeLimit)?;if length>4096{return Err(GenerationError::SizeLimit)}usize::try_from(length).map_err(|_|GenerationError::SizeLimit)}\n");
+            .filter(|field| field.refusal.is_none())
+            .map(|field| {
+                let path = &field.path;
+                let setter = schema.setter(field)?;
+                Ok(quote! { #path => { let node0 = message; #setter Ok(()) } })
+            })
+            .collect::<Result<Vec<_>, String>>()?;
+        setters.push(quote! {
+            fn #factory(message: &mut #rust, path: &str, mutation: &WireMutation) -> Result<(), GenerationError> {
+                match path { #(#arms,)* _ => Err(GenerationError::UnsupportedType) }
+            }
+        });
     }
-    Ok(out)
+    if roots.len() < service.method.len() {
+        inventories.push(quote! {
+            _ => vec![WireField { path: method.name().into(), declaration: method.name().into(), kind: WireKind::Message, optional: false, refusal: Some("request root is outside the live probe surface".into()) }]
+        });
+        mutations.push(quote! { _ => Err(GenerationError::UnsupportedType) });
+    }
+    let collection = roots.iter().any(|(_, _, fields)| fields.iter().any(|field| {
+        field.steps.last().is_some_and(|step| step.field.label == Some(Label::Repeated as i32))
+    })).then(|| quote! {
+        fn wire_collection_len(mutation: &WireMutation) -> Result<usize, GenerationError> {
+            let WireMutation::LimitPlusOne { limit } = mutation else { return Err(GenerationError::InapplicableMutation) };
+            let length = limit.checked_add(1).ok_or(GenerationError::SizeLimit)?;
+            if length > 4096 { return Err(GenerationError::SizeLimit) }
+            usize::try_from(length).map_err(|_| GenerationError::SizeLimit)
+        }
+    });
+    let output = quote! {
+        use ::umpire_catalog::{WireField, WireKind, WireMutation, WireValue, GenerationError};
+        /// Raw request fields, including descriptor fields ignored by semantic catalogs.
+        pub fn #fields_function(method: #method_enum) -> Vec<WireField> { match method { #(#inventories),* } }
+        /// Apply one typed descriptor mutation to a decoded request.
+        pub fn #mutate_function(method: #method_enum, bytes: &[u8], path: &str, mutation: &WireMutation) -> Result<Vec<u8>, GenerationError> {
+            match method { #(#mutations),* }
+        }
+        #(#setters)*
+        #collection
+    };
+    let file = syn::parse2(output).map_err(|error| error.to_string())?;
+    Ok(prettyplease::unparse(&file))
 }
 
 impl<'a> Schema<'a> {
@@ -140,9 +166,12 @@ impl<'a> Schema<'a> {
             let rust = if package == "google.protobuf" {
                 "::umpire_runtime::google::protobuf".into()
             } else if rust_type_root.is_empty() {
-                package.replace('.', "::")
+                prost_build::Module::from_protobuf_package_name(package).to_string()
             } else {
-                format!("{rust_type_root}::{}", package.replace('.', "::"))
+                format!(
+                    "{rust_type_root}::{}",
+                    prost_build::Module::from_protobuf_package_name(package)
+                )
             };
             schema.collect(package, &rust, &file.message_type);
             for enumeration in &file.enum_type {
@@ -159,14 +188,21 @@ impl<'a> Schema<'a> {
         for descriptor in messages {
             let name = descriptor.name.as_deref().unwrap_or_default();
             let proto = format!("{proto}.{name}");
-            self.nodes.insert(proto.clone(), Node { descriptor, rust: format!("{rust}::{name}") });
+            self.nodes.insert(
+                proto.clone(),
+                Node { descriptor, rust: format!("{rust}::{}", super::services::type_name(name)) },
+            );
             for enumeration in &descriptor.enum_type {
                 self.enums.insert(
                     format!("{proto}.{}", enumeration.name.as_deref().unwrap_or_default()),
                     enumeration.value.iter().filter_map(|value| value.number).collect(),
                 );
             }
-            self.collect(&proto, &format!("{rust}::{}", snake(name)), &descriptor.nested_type);
+            self.collect(
+                &proto,
+                &format!("{rust}::{}", prost_build::Module::from_protobuf_package_name(name)),
+                &descriptor.nested_type,
+            );
         }
     }
 
@@ -259,28 +295,30 @@ impl<'a> Schema<'a> {
         }
     }
 
-    fn kind(&self, field: &FieldDescriptorProto) -> Result<String, String> {
+    fn kind(&self, field: &FieldDescriptorProto) -> Result<TokenStream, String> {
         if self.map(field)? {
-            return Ok("WireKind::Map".into());
+            return Ok(quote! { WireKind::Map });
         }
         if field.label == Some(Label::Repeated as i32) {
-            return Ok("WireKind::Repeated".into());
+            return Ok(quote! { WireKind::Repeated });
         }
         let kind = match Type::try_from(field.r#type.unwrap_or_default())
             .map_err(|_| "invalid field type")?
         {
-            Type::String => "String",
-            Type::Bytes => "Bytes",
-            Type::Bool => "Bool",
-            Type::Double | Type::Float => "Float",
-            Type::Uint32 | Type::Uint64 | Type::Fixed32 | Type::Fixed64 => "Unsigned",
+            Type::String => quote! { WireKind::String },
+            Type::Bytes => quote! { WireKind::Bytes },
+            Type::Bool => quote! { WireKind::Bool },
+            Type::Double | Type::Float => quote! { WireKind::Float },
+            Type::Uint32 | Type::Uint64 | Type::Fixed32 | Type::Fixed64 => {
+                quote! { WireKind::Unsigned }
+            }
             Type::Int32
             | Type::Int64
             | Type::Sint32
             | Type::Sint64
             | Type::Sfixed32
-            | Type::Sfixed64 => "Signed",
-            Type::Message => "Message",
+            | Type::Sfixed64 => quote! { WireKind::Signed },
+            Type::Message => quote! { WireKind::Message },
             Type::Enum => {
                 let name = field
                     .type_name
@@ -291,22 +329,26 @@ impl<'a> Schema<'a> {
                     .enums
                     .get(name)
                     .ok_or_else(|| format!("missing enum descriptor: {name}"))?;
-                return Ok(format!("WireKind::Enum{{defined:vec!{values:?}}}"));
+                quote! { WireKind::Enum { defined: vec![#(#values),*] } }
             }
             Type::Group => return Err("protobuf groups are unsupported".into()),
         };
-        Ok(format!("WireKind::{kind}"))
+        Ok(kind)
     }
 
-    fn member(&self, step: &Step) -> Result<String, String> {
+    fn member(&self, step: &Step) -> Result<syn::Member, String> {
         if self.is_map_entry(&step.parent)? {
-            return Ok(if step.field.number == Some(1) { "0" } else { "1" }.into());
+            let index = usize::from(step.field.number != Some(1));
+            return Ok(syn::Member::Unnamed(syn::Index::from(index)));
         }
-        let name = snake(step.field.name.as_deref().ok_or("unnamed field")?);
-        Ok(format!("r#{name}"))
+        let name = prost_build::Module::from_protobuf_package_name(
+            step.field.name.as_deref().ok_or("unnamed field")?,
+        )
+        .to_string();
+        syn::parse_str(&name).map(syn::Member::Named).map_err(|error| error.to_string())
     }
 
-    fn oneof(&self, step: &Step) -> Result<Option<(String, String, String)>, String> {
+    fn oneof(&self, step: &Step) -> Result<Option<(syn::Ident, syn::Path, syn::Ident)>, String> {
         if step.field.proto3_optional == Some(true) {
             return Ok(None);
         }
@@ -320,107 +362,148 @@ impl<'a> Schema<'a> {
             .get(usize::try_from(index).map_err(|_| "invalid oneof index")?)
             .and_then(|oneof| oneof.name.as_deref())
             .ok_or("missing oneof name")?;
-        let (module, owner) = node.rust.rsplit_once("::").ok_or("invalid message Rust path")?;
+        let (module, _) = node.rust.rsplit_once("::").ok_or("invalid message Rust path")?;
+        let owner = prost_build::Module::from_protobuf_package_name(
+            node.descriptor.name.as_deref().ok_or("unnamed message")?,
+        );
+        let member = prost_build::Module::from_protobuf_package_name(name).to_string();
+        let ty = format!("{module}::{owner}::{}", super::services::type_name(name));
+        let variant =
+            super::services::type_name(step.field.name.as_deref().ok_or("unnamed oneof field")?);
         Ok(Some((
-            format!("r#{}", snake(name)),
-            format!("{module}::{}::{}", snake(owner), camel(name)),
-            camel(step.field.name.as_deref().ok_or("unnamed oneof field")?),
+            syn::parse_str(&member).map_err(|error| error.to_string())?,
+            syn::parse_str(&ty).map_err(|error| error.to_string())?,
+            syn::parse_str(&variant).map_err(|error| error.to_string())?,
         )))
     }
 
-    fn setter(&self, field: &Field, out: &mut String) -> Result<(), String> {
+    fn setter(&self, field: &Field) -> Result<TokenStream, String> {
         let mut cleanups = Vec::new();
+        let mut output = TokenStream::new();
         for (index, step) in field.steps.iter().enumerate() {
-            let parent = format!("node{index}");
-            let child = format!("node{}", index + 1);
-            let leaf = index + 1 == field.steps.len();
-            if leaf {
-                self.leaf(step, &parent, &field.kind, out)?;
+            let parent = format_ident!("node{index}");
+            let child = format_ident!("node{}", index + 1);
+            if index + 1 == field.steps.len() {
+                output.extend(self.leaf(step, &parent, &field.kind)?);
                 break;
             }
             if let Some((member, ty, variant)) = self.oneof(step)? {
-                absent_guard(
-                    &format!("!matches!({parent}.{member},Some({ty}::{variant}(_)))"),
+                output.extend(absent_guard(
+                    &quote! { !matches!(#parent.#member, Some(#ty::#variant(_))) },
                     &cleanups,
-                    out,
-                )?;
-                write!(out,"if !matches!({parent}.{member},Some({ty}::{variant}(_))){{{parent}.{member}=Some({ty}::{variant}(Default::default()));}}let Some({ty}::{variant}({child}))={parent}.{member}.as_mut() else{{return Err(GenerationError::UnsupportedType)}};").map_err(|error| error.to_string())?;
+                ));
+                output.extend(quote! {
+                    if !matches!(#parent.#member, Some(#ty::#variant(_))) {
+                        #parent.#member = Some(#ty::#variant(Default::default()));
+                    }
+                    let Some(#ty::#variant(#child)) = #parent.#member.as_mut() else { return Err(GenerationError::UnsupportedType) };
+                });
             } else {
                 let member = self.member(step)?;
                 if self.map(&step.field)? {
-                    absent_guard(&format!("{parent}.{member}.is_empty()"), &cleanups, out)?;
-                    write!(out,"let key{index}={parent}.{member}.keys().next().cloned().unwrap_or_default();let mut entry{index}=(key{index}.clone(),{parent}.{member}.remove(&key{index}).unwrap_or_default());let {child}=&mut entry{index};").map_err(|error| error.to_string())?;
-                    cleanups
-                        .push(format!("{parent}.{member}.insert(entry{index}.0,entry{index}.1);"));
+                    output.extend(absent_guard(&quote! { #parent.#member.is_empty() }, &cleanups));
+                    let key = format_ident!("key{index}");
+                    let entry = format_ident!("entry{index}");
+                    output.extend(quote! {
+                        let #key = #parent.#member.keys().next().cloned().unwrap_or_default();
+                        let mut #entry = (#key.clone(), #parent.#member.remove(&#key).unwrap_or_default());
+                        let #child = &mut #entry;
+                    });
+                    cleanups.push(quote! { #parent.#member.insert(#entry.0, #entry.1); });
                 } else if step.field.label == Some(Label::Repeated as i32) {
-                    absent_guard(&format!("{parent}.{member}.is_empty()"), &cleanups, out)?;
-                    write!(out,"if {parent}.{member}.is_empty(){{{parent}.{member}.push(Default::default());}}let {child}={parent}.{member}.first_mut().ok_or(GenerationError::UnsupportedType)?;").map_err(|error| error.to_string())?;
+                    output.extend(absent_guard(&quote! { #parent.#member.is_empty() }, &cleanups));
+                    output.extend(quote! {
+                        if #parent.#member.is_empty() { #parent.#member.push(Default::default()); }
+                        let #child = #parent.#member.first_mut().ok_or(GenerationError::UnsupportedType)?;
+                    });
                 } else if self.optional(&step.parent, &step.field)? {
-                    absent_guard(&format!("{parent}.{member}.is_none()"), &cleanups, out)?;
-                    write!(
-                        out,
-                        "let {child}={parent}.{member}.get_or_insert_with(Default::default);"
-                    )
-                    .map_err(|error| error.to_string())?;
+                    output.extend(absent_guard(&quote! { #parent.#member.is_none() }, &cleanups));
+                    output.extend(quote! { let #child = #parent.#member.get_or_insert_with(Default::default); });
                 } else {
-                    write!(out, "let {child}=&mut {parent}.{member};")
-                        .map_err(|error| error.to_string())?;
+                    output.extend(quote! { let #child = &mut #parent.#member; });
                 }
             }
         }
-        for cleanup in cleanups.iter().rev() {
-            out.push_str(cleanup);
-        }
-        Ok(())
+        output.extend(cleanups.into_iter().rev().flatten());
+        Ok(output)
     }
 
-    fn leaf(&self, step: &Step, parent: &str, kind: &str, out: &mut String) -> Result<(), String> {
+    fn leaf(
+        &self,
+        step: &Step,
+        parent: &syn::Ident,
+        kind: &TokenStream,
+    ) -> Result<TokenStream, String> {
         if step.element {
-            write!(out, "WireValue::mutate({parent},&{kind},mutation)?;")
-                .map_err(|error| error.to_string())?;
-            return Ok(());
+            return Ok(quote! { WireValue::mutate(#parent, &#kind, mutation)?; });
         }
         if let Some((member, ty, variant)) = self.oneof(step)? {
-            write!(
-                out,
-                "if matches!(mutation,WireMutation::Absent){{if matches!({parent}.{member},Some({ty}::{variant}(_))){{{parent}.{member}=None;}}}}else{{"
-            )
-            .map_err(|error| error.to_string())?;
-            if step.field.r#type == Some(Type::Message as i32) {
-                write!(out,"if !matches!(mutation,WireMutation::Empty){{return Err(GenerationError::InapplicableMutation)}}{parent}.{member}=Some({ty}::{variant}(Default::default()));").map_err(|error| error.to_string())?;
+            let change = if step.field.r#type == Some(Type::Message as i32) {
+                quote! {
+                    if !matches!(mutation, WireMutation::Empty) { return Err(GenerationError::InapplicableMutation) }
+                    #parent.#member = Some(#ty::#variant(Default::default()));
+                }
             } else {
-                write!(out,"if !matches!({parent}.{member},Some({ty}::{variant}(_))){{{parent}.{member}=Some({ty}::{variant}(Default::default()));}}let Some({ty}::{variant}(value))={parent}.{member}.as_mut() else{{return Err(GenerationError::UnsupportedType)}};WireValue::mutate(value,&{kind},mutation)?;").map_err(|error| error.to_string())?;
-            }
-            out.push('}');
-            return Ok(());
+                quote! {
+                    if !matches!(#parent.#member, Some(#ty::#variant(_))) { #parent.#member = Some(#ty::#variant(Default::default())); }
+                    let Some(#ty::#variant(value)) = #parent.#member.as_mut() else { return Err(GenerationError::UnsupportedType) };
+                    WireValue::mutate(value, &#kind, mutation)?;
+                }
+            };
+            return Ok(quote! {
+                if matches!(mutation, WireMutation::Absent) {
+                    if matches!(#parent.#member, Some(#ty::#variant(_))) { #parent.#member = None; }
+                } else { #change }
+            });
         }
         let member = self.member(step)?;
-        let target = format!("{parent}.{member}");
+        let target = quote! { #parent.#member };
         if self.map(&step.field)? {
-            self.map_leaf(&step.field, &target, out)?;
-        } else if step.field.label == Some(Label::Repeated as i32) {
-            write!(out,"match mutation{{WireMutation::Absent|WireMutation::Empty=>{target}.clear(),WireMutation::LimitPlusOne{{..}}=>{{let length=wire_collection_len(mutation)?;{target}.clear();{target}.resize_with(length,Default::default);}},_=>return Err(GenerationError::InapplicableMutation)}}").map_err(|error| error.to_string())?;
+            return self.map_leaf(&step.field, &target);
+        }
+        Ok(if step.field.label == Some(Label::Repeated as i32) {
+            quote! {
+                match mutation {
+                    WireMutation::Absent | WireMutation::Empty => #target.clear(),
+                    WireMutation::LimitPlusOne { .. } => {
+                        let length = wire_collection_len(mutation)?;
+                        #target.clear(); #target.resize_with(length, Default::default);
+                    }
+                    _ => return Err(GenerationError::InapplicableMutation),
+                }
+            }
         } else if step.field.r#type == Some(Type::Message as i32) {
             if self.optional(&step.parent, &step.field)? {
-                write!(out,"match mutation{{WireMutation::Absent=>{target}=None,WireMutation::Empty=>{target}=Some(Default::default()),_=>return Err(GenerationError::InapplicableMutation)}}").map_err(|error| error.to_string())?;
+                quote! {
+                    match mutation {
+                        WireMutation::Absent => #target = None,
+                        WireMutation::Empty => #target = Some(Default::default()),
+                        _ => return Err(GenerationError::InapplicableMutation),
+                    }
+                }
             } else {
-                write!(out,"match mutation{{WireMutation::Absent|WireMutation::Empty=>{target}=Default::default(),_=>return Err(GenerationError::InapplicableMutation)}}").map_err(|error| error.to_string())?;
+                quote! {
+                    match mutation {
+                        WireMutation::Absent | WireMutation::Empty => #target = Default::default(),
+                        _ => return Err(GenerationError::InapplicableMutation),
+                    }
+                }
             }
         } else if self.optional(&step.parent, &step.field)? {
-            write!(out,"if matches!(mutation,WireMutation::Absent){{{target}=None;}}else{{WireValue::mutate({target}.get_or_insert_with(Default::default),&{kind},mutation)?;}}").map_err(|error| error.to_string())?;
+            quote! {
+                if matches!(mutation, WireMutation::Absent) { #target = None; }
+                else { WireValue::mutate(#target.get_or_insert_with(Default::default), &#kind, mutation)?; }
+            }
         } else {
-            write!(out, "WireValue::mutate(&mut {target},&{kind},mutation)?;")
-                .map_err(|error| error.to_string())?;
-        }
-        Ok(())
+            quote! { WireValue::mutate(&mut #target, &#kind, mutation)?; }
+        })
     }
 
     fn map_leaf(
         &self,
         field: &FieldDescriptorProto,
-        target: &str,
-        out: &mut String,
-    ) -> Result<(), String> {
+        target: &TokenStream,
+    ) -> Result<TokenStream, String> {
         let entry = self.node(field.type_name.as_deref().ok_or("missing map entry")?)?;
         let key = entry
             .descriptor
@@ -428,64 +511,37 @@ impl<'a> Schema<'a> {
             .iter()
             .find(|field| field.number == Some(1))
             .ok_or("missing map key")?;
-        let key =
-            match Type::try_from(key.r#type.unwrap_or_default()).map_err(|_| "invalid map key")? {
-                Type::String => "index.to_string()",
-                Type::Bool => "index!=0",
-                _ => "index.try_into().map_err(|_|GenerationError::SizeLimit)?",
-            };
-        write!(out,"match mutation{{WireMutation::Absent|WireMutation::Empty=>{target}.clear(),WireMutation::LimitPlusOne{{..}}=>{{let length=wire_collection_len(mutation)?;").map_err(|error| error.to_string())?;
-        if key == "index!=0" {
-            out.push_str("if length>2{return Err(GenerationError::SizeLimit)}");
-        }
-        write!(out,"{target}.clear();for index in 0..length{{{target}.insert({key},Default::default());}}}},_=>return Err(GenerationError::InapplicableMutation)}}").map_err(|error| error.to_string())?;
-        Ok(())
-    }
-}
-
-fn absent_guard(condition: &str, cleanups: &[String], out: &mut String) -> Result<(), String> {
-    write!(out, "if matches!(mutation,WireMutation::Absent)&&({condition}){{")
-        .map_err(|error| error.to_string())?;
-    for cleanup in cleanups.iter().rev() {
-        out.push_str(cleanup);
-    }
-    out.push_str("return Ok(());}");
-    Ok(())
-}
-
-fn snake(name: &str) -> String {
-    let chars: Vec<_> = name.chars().collect();
-    let mut result = String::new();
-    for (index, ch) in chars.iter().enumerate() {
-        if ch.is_uppercase()
-            && index > 0
-            && (chars[index - 1].is_lowercase()
-                || chars[index - 1].is_ascii_digit()
-                || chars.get(index + 1).is_some_and(|next| next.is_lowercase()))
+        let (key, guard) = match Type::try_from(key.r#type.unwrap_or_default())
+            .map_err(|_| "invalid map key")?
         {
-            result.push('_');
-        }
-        result.extend(ch.to_lowercase());
-    }
-    result
-}
-
-fn camel(name: &str) -> String {
-    snake(name)
-        .split('_')
-        .filter(|part| !part.is_empty())
-        .map(|part| {
-            let mut chars = part.chars();
-            chars
-                .next()
-                .map_or_else(String::new, |first| first.to_uppercase().chain(chars).collect())
+            Type::String => (quote! { index.to_string() }, quote! {}),
+            Type::Bool => (
+                quote! { index != 0 },
+                quote! { if length > 2 { return Err(GenerationError::SizeLimit) } },
+            ),
+            _ => (quote! { index.try_into().map_err(|_| GenerationError::SizeLimit)? }, quote! {}),
+        };
+        Ok(quote! {
+            match mutation {
+                WireMutation::Absent | WireMutation::Empty => #target.clear(),
+                WireMutation::LimitPlusOne { .. } => {
+                    let length = wire_collection_len(mutation)?;
+                    #guard
+                    #target.clear();
+                    for index in 0..length { #target.insert(#key, Default::default()); }
+                }
+                _ => return Err(GenerationError::InapplicableMutation),
+            }
         })
-        .collect()
+    }
 }
 
-fn template(config: &Config<'_>, source: &str) -> String {
-    source
-        .replace("CatalogServiceMethod", config.method_enum)
-        .replace("catalog_request_fields", config.fields_function)
-        .replace("mutate_catalog_request", config.mutate_function)
+fn absent_guard(condition: &TokenStream, cleanups: &[TokenStream]) -> TokenStream {
+    let cleanups = cleanups.iter().rev();
+    quote! {
+        if matches!(mutation, WireMutation::Absent) && (#condition) {
+            #(#cleanups)*
+            return Ok(());
+        }
+    }
 }

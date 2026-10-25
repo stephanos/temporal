@@ -1,0 +1,119 @@
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/annotate/syntax)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.88s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target/debug/deps/umpire_catalog_build-24022a047edefb2c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/neutral.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target/debug/deps/neutral-4e2b0d43aba7da0d)
+
+running 7 tests
+test omitted_field_enum_and_method_are_rejected ... ok
+test coverage_build_reads_the_explicit_catalog_root_and_descriptor_path ... ok
+test second_service_uses_configured_identity_and_roots ... ok
+test coverage_build_resolves_feature_claims_against_one_service_table ... ok
+test an_annotated_rpc_must_be_claimed ... ok
+test added_method_and_action_break_exhaustive_generated_matches ... ok
+test payload_classification_binds_every_value_and_rejects_duplicate_variants ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.52s
+
+     Running tests/wire_generated.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target/debug/deps/wire_generated-337a4378b5a07f5b)
+
+running 1 test
+test generated_wire_setters_compile_and_preserve_carrier_mutations ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target/debug/deps/umpire_catalog_syntax-6e40a6e1c223cdfe)
+
+running 13 tests
+test derive::attribute_controls::manual_families_keep_source_order_and_strict_shapes ... ok
+test services::tests::classification_accepts_single_expression_arm_blocks ... ok
+test derive::attribute_controls::scalar_errors_accumulate_across_attribute_lines ... ok
+test derive::attribute_controls::names_follow_prost_case_conversion ... ok
+test services::tests::ordinary_match_projects_source_order_and_model_action ... ok
+test services::tests::claims_resolve_against_the_service_table_in_table_order ... ok
+test services::tests::unrelated_matches_are_not_service_declarations ... ok
+test services::tests::tables_and_claim_fallbacks_are_declarative ... ok
+test derive::attribute_controls::scalar_options_refuse_duplicates_at_the_second_occurrence ... ok
+test services::tests::classification_rejects_non_declarative_or_unexplained_arms ... ok
+test services::tests::claims_bind_or_observe_and_name_their_wildcard_parameter ... ok
+test services::tests::duplicate_or_unclassified_claims_are_named ... ok
+test tests::context_and_api_parameters_require_the_catalog_item ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target/debug/deps/umpire_temporal_annotate_syntax-904a8d854b657d4f)
+
+running 4 tests
+test realization::tests::contexts_follow_rpc_input_output_edges_instead_of_message_admission ... ok
+test realize::proposal_options_controls::proposal_options_refuse_malformed_values_and_locate_duplicates ... ok
+test realization::tests::catalog_discovery_tracks_empty_directories_and_only_admitted_filenames ... ok
+test realization::tests::graph_retains_decoded_optional_presence_and_opaque_catalog_reason ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/admission.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target/debug/deps/admission-bcff85d59b41b931)
+
+running 13 tests
+test string_byte_constraints_require_typed_literals_and_request_expectations ... ok
+test stacked_presence_expectations_may_differ_from_field_constraints ... ok
+test request_constraints_need_expectations ... ok
+test derive_validates_supplemental_intents_and_nested_map_coverage ... ok
+test disabled_repeated_constraint_needs_no_request_expectation ... ok
+test catalog_expansion_accepts_a_caller_owned_context_and_api_root ... ok
+test oneof_rules_require_known_nonignored_source_aliases_and_projection ... ok
+test rpc_classification_names_the_bound_action_variant ... ok
+test item_presence_algebra_and_helper_boundaries_are_explicit ... ok
+test supplemental_mirrors_do_not_claim_descriptor_coverage ... ok
+test derive_catalog_uses_shared_admission_and_discovery ... ok
+test derive_attributes_preserve_admission_errors ... ok
+test disabled_derive_enum_constraint_needs_no_expectation ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/expansion.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target/debug/deps/expansion-cb699c52e6c42687)
+
+running 1 test
+test executable_expansion_and_source_coverage ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+     Running tests/realize.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target/debug/deps/realize-b4f3f1cb1360c5c3)
+
+running 10 tests
+test handler_admission_rejects_ambiguous_or_unclassified_handlers ... ok
+test proposal_dispatch_delegates_the_handler_and_optional_hooks ... ok
+test wrapper_alias_payloads_do_not_erase_enum_identity ... ok
+test rest_patterns_cover_actual_payload_positions ... ok
+test observation_only_realizations_inherit_the_refusing_answer_default ... ok
+test generated_enum_wildcards_are_refused_without_rejecting_byte_policy_fallbacks ... ok
+test dereferenced_enum_subjects_preserve_coverage ... ok
+test deferred_and_reassigned_bindings_require_proven_coverage ... ok
+test method_and_cast_results_require_proven_coverage ... ok
+test enum_aliases_follow_module_and_block_scopes_without_classifying_model_enums ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+   Doc-tests umpire_catalog_build
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_catalog_syntax
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_temporal_annotate_syntax
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
