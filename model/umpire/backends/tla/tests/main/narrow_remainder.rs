@@ -6,9 +6,9 @@ use umpire_dsl::Machine;
 use umpire_tla::{Lift, Tla};
 use umpire_tlc::Tlc;
 
-#[path = "fixtures/remainder_i16.rs"]
+#[path = "../fixtures/remainder_i16.rs"]
 mod signed_i16;
-#[path = "fixtures/remainder_i8.rs"]
+#[path = "../fixtures/remainder_i8.rs"]
 mod signed_i8;
 
 fn overflow<M: Machine>(
@@ -46,10 +46,10 @@ fn overflow<M: Machine>(
 
 #[test]
 fn i8_min_remainder_negative_one_refuses() -> Result<(), Box<dyn std::error::Error>> {
-    overflow(&signed_i8::remainder::world(), "i8", include_str!("fixtures/remainder_i8.rs"))
+    overflow(&signed_i8::remainder::world(), "i8", include_str!("../fixtures/remainder_i8.rs"))
 }
 
 #[test]
 fn i16_min_remainder_negative_one_refuses() -> Result<(), Box<dyn std::error::Error>> {
-    overflow(&signed_i16::remainder::world(), "i16", include_str!("fixtures/remainder_i16.rs"))
+    overflow(&signed_i16::remainder::world(), "i16", include_str!("../fixtures/remainder_i16.rs"))
 }

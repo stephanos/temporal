@@ -8,10 +8,10 @@ use std::{
 use umpire_apalache::{Apalache, Confirmation, Replay, native_bound};
 use umpire_dsl::Machine;
 #[allow(unreachable_pub, reason = "the canonical fixture is also included by public host crates")]
-#[path = "../../../dev/fixtures/fixtures/sample_kettle/model.rs"]
+#[path = "../../../../dev/fixtures/fixtures/sample_kettle/model.rs"]
 mod selected_kettle;
 use umpire_tla::{Lift, Tla};
-const KETTLE: &str = include_str!("../../../dev/fixtures/fixtures/sample_kettle/model.rs");
+const KETTLE: &str = include_str!("../../../../dev/fixtures/fixtures/sample_kettle/model.rs");
 // Apalache stays out of `UMPIRE_BACKENDS=require` until fn-211 resumes; opt in separately.
 fn required() -> bool {
     std::env::var("UMPIRE_APALACHE").as_deref() == Ok("require")
@@ -72,7 +72,7 @@ fn real_kettle_checks_source_safety_and_history() -> Result<(), Box<dyn std::err
     Ok(())
 }
 
-#[path = "fixtures/arithmetic.rs"]
+#[path = "../fixtures/arithmetic.rs"]
 mod authored;
 #[test]
 fn real_arithmetic_faults_are_reachable_and_guards_remain_total()
@@ -105,7 +105,7 @@ fn real_arithmetic_faults_are_reachable_and_guards_remain_total()
         assert_eq!(arithmetic, fails, "mode {mode}: {native}");
         let Some(tool) = &tool else { continue };
         let module = Tla::safety(
-            &Lift::parse("arithmetic.rs", include_str!("fixtures/arithmetic.rs"))?.bind(
+            &Lift::parse("arithmetic.rs", include_str!("../fixtures/arithmetic.rs"))?.bind(
                 &Binding {
                     world: vec![
                         ("mode".into(), Literal::Int(mode.into())),
@@ -230,7 +230,7 @@ fn real_typed_vector_projection_keeps_eager_fallback_errors()
     }
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
     let tool = Apalache::discover(&root)?;
-    let source = include_str!("../../tla/tests/fixtures/vector.rs");
+    let source = include_str!("../../../tla/tests/fixtures/vector.rs");
     let module = Tla::safety(&Lift::parse("vector.rs", source)?)?;
     for (property, violated) in
         [("Invariant_contents", false), ("Invariant_never_two", true), ("ArithmeticSafe", false)]
@@ -239,7 +239,7 @@ fn real_typed_vector_projection_keeps_eager_fallback_errors()
         retain(&format!("vector-{property}"), &module, &result)?;
         assert_eq!(result.violated()?, violated, "{}", result.output());
     }
-    let source = include_str!("../../tla/tests/fixtures/vector_fallback.rs");
+    let source = include_str!("../../../tla/tests/fixtures/vector_fallback.rs");
     let module = Tla::safety(&Lift::parse("fallback.rs", source)?)?;
     let result = tool.check(&module, "ArithmeticSafe", 1)?;
     retain("eager-vector-fallback", &module, &result)?;
@@ -249,7 +249,7 @@ fn real_typed_vector_projection_keeps_eager_fallback_errors()
 
 #[test]
 fn pinned_installer_and_runner_agree() {
-    let script = include_str!("../../../../dev/xtask/src/apalache_pins.rs");
+    let script = include_str!("../../../../../dev/xtask/src/apalache_pins.rs");
     for pin in
         [umpire_apalache::VERSION, umpire_apalache::ARCHIVE_SHA256, umpire_apalache::JAR_SHA256]
     {
@@ -310,11 +310,11 @@ fn real_payload_identity_and_outcome_history_are_typed() -> Result<(), Box<dyn s
     Ok(())
 }
 
-#[path = "fixtures/empty_condition.rs"]
+#[path = "../fixtures/empty_condition.rs"]
 mod empty_body_fixture;
-#[path = "fixtures/start_empty_first.rs"]
+#[path = "../fixtures/start_empty_first.rs"]
 mod start_empty_first;
-#[path = "fixtures/start_fault_first.rs"]
+#[path = "../fixtures/start_fault_first.rs"]
 mod start_fault_first;
 
 #[test]
@@ -331,8 +331,8 @@ fn real_start_evaluation_respects_field_order_before_empty_domains()
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
     let tool = Apalache::discover(&root)?;
     for (label, source, fails) in [
-        ("start-fault-first", include_str!("fixtures/start_fault_first.rs"), true),
-        ("start-empty-first", include_str!("fixtures/start_empty_first.rs"), false),
+        ("start-fault-first", include_str!("../fixtures/start_fault_first.rs"), true),
+        ("start-empty-first", include_str!("../fixtures/start_empty_first.rs"), false),
     ] {
         let module = Tla::safety(&Lift::parse(label, source)?)?;
         let result = tool.check(&module, "ArithmeticSafe", 0)?;
@@ -369,16 +369,15 @@ fn real_discarded_condition_keeps_its_evaluation_guard() -> Result<(), Box<dyn s
         assert_eq!(native.contains("divide by zero"), enabled, "{native}");
         let Some(tool) = &tool else { continue };
         let module = Tla::safety(
-            &Lift::parse("empty_condition.rs", include_str!("fixtures/empty_condition.rs"))?.bind(
-                &Binding {
+            &Lift::parse("empty_condition.rs", include_str!("../fixtures/empty_condition.rs"))?
+                .bind(&Binding {
                     world: vec![
                         ("divisor".into(), Literal::Int(0)),
                         ("enabled".into(), Literal::Bool(enabled)),
                     ],
                     starts: vec![vec![]],
                     actions: vec![Concrete { action: "User::Check".into(), fields: vec![] }],
-                },
-            )?,
+                })?,
         )?;
         let result = tool.check(&module, "ArithmeticSafe", 1)?;
         retain(&format!("discarded-condition-{enabled}"), &module, &result)?;
@@ -445,7 +444,7 @@ fn real_kettle_negative_is_replayed_and_tampering_fails() -> Result<(), Box<dyn 
         let confirmed = replay.violation(&module, "Negative_never_beeps", length, raw)?;
         assert_eq!(confirmed.confirmation, Confirmation::Violation);
         fs::write(evidence_root().join("kettle-negative/replay.txt"), confirmed.to_string())?;
-        assert_eq!(confirmed.to_string(), include_str!("expected/kettle-negative.txt"));
+        assert_eq!(confirmed.to_string(), include_str!("../expected/kettle-negative.txt"));
         let mut tampered: serde_json::Value = serde_json::from_str(raw)?;
         tampered["states"][1][umpire_tla::observers::ACTION] =
             serde_json::json!("User::DepressButton");
@@ -459,7 +458,7 @@ fn real_kettle_negative_is_replayed_and_tampering_fails() -> Result<(), Box<dyn 
     Ok(())
 }
 
-#[path = "fixtures/arithmetic_prefix.rs"]
+#[path = "../fixtures/arithmetic_prefix.rs"]
 mod prefix_fixture;
 #[test]
 fn real_arithmetic_refusal_follows_a_replayed_valid_prefix()
@@ -473,7 +472,7 @@ fn real_arithmetic_refusal_follows_a_replayed_valid_prefix()
     let starts = world.starts();
     let actions = world.actions();
     let module =
-        Tla::safety(&Lift::parse("prefix.rs", include_str!("fixtures/arithmetic_prefix.rs"))?)?;
+        Tla::safety(&Lift::parse("prefix.rs", include_str!("../fixtures/arithmetic_prefix.rs"))?)?;
     let result = tool.check(&module, "ArithmeticSafe", 2)?;
     retain("arithmetic-prefix", &module, &result)?;
     assert!(result.violated()?, "{}", result.output());
@@ -486,7 +485,7 @@ fn real_arithmetic_refusal_follows_a_replayed_valid_prefix()
     Ok(())
 }
 
-#[path = "fixtures/replay.rs"]
+#[path = "../fixtures/replay.rs"]
 mod replay_fixture;
 #[test]
 fn real_typed_payload_rejection_and_after_claims_replay() -> Result<(), Box<dyn std::error::Error>>
@@ -504,7 +503,7 @@ fn real_typed_payload_rejection_and_after_claims_replay() -> Result<(), Box<dyn 
         r#"{}
         umpire_testing::fixture!(inputs::World::new(2),100,Claim::new("never_two",|_,s:&inputs::Model|(s.value!=2).into()));
     "#,
-        include_str!("fixtures/replay.rs")
+        include_str!("../fixtures/replay.rs")
     );
     let binding = Binding {
         world: vec![("limit".into(), Literal::Int(2))],
@@ -546,7 +545,7 @@ fn real_typed_payload_rejection_and_after_claims_replay() -> Result<(), Box<dyn 
     Ok(())
 }
 
-#[path = "fixtures/start_later_fault.rs"]
+#[path = "../fixtures/start_later_fault.rs"]
 mod start_later_fault;
 #[test]
 fn real_later_start_fault_preserves_partial_binding() -> Result<(), Box<dyn std::error::Error>> {
@@ -558,7 +557,7 @@ fn real_later_start_fault_preserves_partial_binding() -> Result<(), Box<dyn std:
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
     let tool = Apalache::discover(&root)?;
     let module =
-        Tla::safety(&Lift::parse("later.rs", include_str!("fixtures/start_later_fault.rs"))?)?;
+        Tla::safety(&Lift::parse("later.rs", include_str!("../fixtures/start_later_fault.rs"))?)?;
     let result = tool.check(&module, "ArithmeticSafe", 0)?;
     retain("start-later-fault", &module, &result)?;
     assert!(result.violated()?, "{}", result.output());
@@ -581,7 +580,7 @@ fn real_later_start_fault_preserves_partial_binding() -> Result<(), Box<dyn std:
     Ok(())
 }
 
-#[path = "../../tla/tests/fixtures/vector.rs"]
+#[path = "../../../tla/tests/fixtures/vector.rs"]
 mod vector_fixture;
 #[test]
 fn real_vector_witness_replays_typed_sequence() -> Result<(), Box<dyn std::error::Error>> {
@@ -597,7 +596,7 @@ fn real_vector_witness_replays_typed_sequence() -> Result<(), Box<dyn std::error
     let tool = Apalache::discover(&root)?;
     let module = Tla::safety(&Lift::parse(
         "vector.rs",
-        include_str!("../../tla/tests/fixtures/vector.rs"),
+        include_str!("../../../tla/tests/fixtures/vector.rs"),
     )?)?;
     let result = tool.check(&module, "Invariant_never_two", 2)?;
     retain("vector-replay", &module, &result)?;
@@ -763,7 +762,7 @@ fn strict_envelope_resource_controls() -> Result<(), Box<dyn std::error::Error>>
 }
 
 #[allow(unreachable_pub, reason = "shared authoring fixture")]
-#[path = "../../../dev/fixtures/fixtures/optional_facts/model.rs"]
+#[path = "../../../../dev/fixtures/fixtures/optional_facts/model.rs"]
 mod fact_fixture;
 
 #[test]
@@ -780,7 +779,7 @@ fn real_fact_witnesses_replay_exact_vectors_and_stutters() -> Result<(), Box<dyn
     let starts = world.starts();
     let catalog = world.checked_catalog(umpire_dsl::CATALOG_LIMIT)?;
     let binding = Binding::of(&world, &starts, catalog.actions());
-    let source = include_str!("../../../dev/fixtures/fixtures/optional_facts/model.rs");
+    let source = include_str!("../../../../dev/fixtures/fixtures/optional_facts/model.rs");
     let module = Tla::safety(&Lift::parse("facts.rs", source)?.bind(&binding)?)?;
     let replay =
         Replay { world: &world, starts: &starts, actions: catalog.actions(), negative: &[] };

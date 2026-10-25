@@ -222,7 +222,7 @@ fn mixed_unit_handler_clears_the_previous_fact_on_every_real_edge() -> Result {
 
 #[test]
 fn legacy_unit_fact_metadata_remains_exact() -> Result {
-    let source = include_str!("../../../dev/fixtures/fixtures/sample_kettle/model.rs");
+    let source = include_str!("../../../../dev/fixtures/fixtures/sample_kettle/model.rs");
     let lifted = Lift::parse("kettle.rs", source)?;
     assert_eq!(lifted.fact_type, Type::Unit);
     for action in &lifted.actions {

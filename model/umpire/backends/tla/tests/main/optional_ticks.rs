@@ -205,7 +205,7 @@ fn exact_optional_decode_includes_before_observers_and_rejects_wrong_kinds()
 #[test]
 fn shared_countdown_keeps_selected_codes_in_all_cfgs_and_before_metadata()
 -> Result<(), Box<dyn std::error::Error>> {
-    let source = include_str!("../../../dev/fixtures/fixtures/optional_ticks/model.rs");
+    let source = include_str!("../../../../dev/fixtures/fixtures/optional_ticks/model.rs");
     let source = format!(
         "{source}\numpire_testing::fixture!(countdown::World::new(None, None, false, false, false), 100, Claim::new(\"still_unstarted\", |selected: &countdown::World, current: &countdown::Model| (!current.started).into()));"
     );
@@ -264,7 +264,7 @@ fn shared_countdown_keeps_selected_codes_in_all_cfgs_and_before_metadata()
     Ok(())
 }
 
-#[path = "fixtures/optional_eager.rs"]
+#[path = "../fixtures/optional_eager.rs"]
 mod eager;
 
 #[test]
@@ -300,7 +300,7 @@ fn present_optional_keeps_eager_errors_in_guard_assignment_and_claim()
             actions: vec![Concrete { action: "User::Read".into(), fields: Vec::new() }],
         };
         let lifted =
-            Lift::parse(&source.to_string_lossy(), include_str!("fixtures/optional_eager.rs"))?
+            Lift::parse(&source.to_string_lossy(), include_str!("../fixtures/optional_eager.rs"))?
                 .bind(&binding)?;
         let module = Tla::emit(&lifted)?;
         let tlc = umpire_tlc::Tlc::discover(&root)?;

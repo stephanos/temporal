@@ -7,7 +7,7 @@ use std::{collections::BTreeSet, fs, path::Path};
 use umpire_tla::{Lift, Tla};
 use umpire_tlc::{State, Tlc, Value, Verdict};
 
-#[path = "fixtures/scaling_model.rs"]
+#[path = "../fixtures/scaling_model.rs"]
 mod authored;
 
 #[test]
@@ -20,7 +20,7 @@ fn typed_module_completes_independently_of_a_cut_native_reference()
     assert!(reference.counts.cut);
     assert_eq!(reference.counts.reached, 1);
 
-    let lifted = Lift::parse("scaling_model.rs", include_str!("fixtures/scaling_model.rs"))?;
+    let lifted = Lift::parse("scaling_model.rs", include_str!("../fixtures/scaling_model.rs"))?;
     let module = Tla::emit(&lifted)?;
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
     let tlc = Tlc::discover(&root)?;

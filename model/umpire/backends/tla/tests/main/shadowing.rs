@@ -5,13 +5,14 @@ use std::{collections::BTreeSet, fs, path::Path};
 use umpire_tla::{Lift, Tla};
 use umpire_tlc::{State, Tlc, Value, Verdict};
 
-#[path = "fixtures/shadowing.rs"]
+#[path = "../fixtures/shadowing.rs"]
 mod authored;
 
 #[test]
 fn nested_blocks_and_effect_helpers_preserve_caller_locals()
 -> Result<(), Box<dyn std::error::Error>> {
-    let module = Tla::emit(&Lift::parse("shadowing.rs", include_str!("fixtures/shadowing.rs"))?)?;
+    let module =
+        Tla::emit(&Lift::parse("shadowing.rs", include_str!("../fixtures/shadowing.rs"))?)?;
     assert_eq!(
         module.tla.matches("n' = n").count(),
         4,

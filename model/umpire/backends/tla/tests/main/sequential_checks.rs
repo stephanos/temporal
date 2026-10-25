@@ -5,7 +5,7 @@ use std::{fs, path::Path};
 use umpire_tla::{Lift, Tla};
 use umpire_tlc::Tlc;
 
-#[path = "fixtures/sequential_checks.rs"]
+#[path = "../fixtures/sequential_checks.rs"]
 mod authored;
 
 #[test]
@@ -18,7 +18,7 @@ fn failed_check_does_not_hide_a_later_division_failure() -> Result<(), Box<dyn s
     }
     let module = Tla::emit(&Lift::parse(
         "sequential_checks.rs",
-        include_str!("fixtures/sequential_checks.rs"),
+        include_str!("../fixtures/sequential_checks.rs"),
     )?)?;
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
     let error = Tlc::discover(&root)?

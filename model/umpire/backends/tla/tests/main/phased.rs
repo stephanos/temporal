@@ -3,7 +3,7 @@
 
 use umpire_tla::Lift;
 
-const JOB: &str = include_str!("../../../dev/fixtures/fixtures/phased_rejection/model.rs");
+const JOB: &str = include_str!("../../../../dev/fixtures/fixtures/phased_rejection/model.rs");
 
 fn mutant(edits: &[(&str, &str)]) -> Result<String, String> {
     let mut source = JOB.to_owned();
@@ -73,7 +73,7 @@ fn unsupported_phase_rejection_and_law_forms_refuse_at_their_location()
             .ok_or_else(|| format!("unsupported source was admitted: {edits:?}"))?;
         refusals.push(format!("{error}\n"));
     }
-    assert_eq!(refusals.concat(), include_str!("expected/phased_refusals.txt"));
+    assert_eq!(refusals.concat(), include_str!("../expected/phased_refusals.txt"));
     Ok(())
 }
 
@@ -204,7 +204,7 @@ fn shared_definitions_never_take_an_authored_name() -> Result<(), Box<dyn std::e
     Ok(())
 }
 
-#[path = "fixtures/linear_returns.rs"]
+#[path = "../fixtures/linear_returns.rs"]
 mod compiled;
 
 #[test]

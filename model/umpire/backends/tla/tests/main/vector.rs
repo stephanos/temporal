@@ -3,16 +3,16 @@
 
 use umpire_tla::{Lift, Tla, Type};
 
-#[path = "fixtures/vector.rs"]
+#[path = "../fixtures/vector.rs"]
 mod authored;
 
-#[path = "fixtures/vector_fallback.rs"]
+#[path = "../fixtures/vector_fallback.rs"]
 mod fallback_authored;
 
 #[test]
 fn bounded_vector_operations_are_lifted_with_safe_defaulted_get()
 -> Result<(), Box<dyn std::error::Error>> {
-    let source = include_str!("fixtures/vector.rs");
+    let source = include_str!("../fixtures/vector.rs");
     let module = Tla::emit(&Lift::parse("vector.rs", source)?)?;
     assert_eq!(module.metadata.fields[0].ty, Type::Seq(Box::new(Type::Int { min: 0, max: 255 })));
     assert_eq!(module.metadata.invariants.len(), 2);
@@ -24,7 +24,7 @@ fn bounded_vector_operations_are_lifted_with_safe_defaulted_get()
 /// remainder is admitted.
 #[test]
 fn length_sums_and_products_refuse_at_their_span() -> Result<(), Box<dyn std::error::Error>> {
-    let source = include_str!("fixtures/vector.rs");
+    let source = include_str!("../fixtures/vector.rs");
     for (claim, refused) in [
         ("self.values.len() + 1 <= 3", true),
         ("1 + self.values.len() <= 3", true),
@@ -85,7 +85,7 @@ fn real_vector_native_and_tlc_states_and_properties_agree() -> Result<(), Box<dy
         eprintln!("Vector native checks passed; no TLC evidence (set UMPIRE_BACKENDS=require)");
         return Ok(());
     }
-    let source = include_str!("fixtures/vector.rs");
+    let source = include_str!("../fixtures/vector.rs");
     let saved = saved_length();
     let chained = saved.replace(
         "let length = self.values.len();",
@@ -120,7 +120,7 @@ fn real_vector_native_and_tlc_states_and_properties_agree() -> Result<(), Box<dy
 }
 
 fn saved_length() -> String {
-    include_str!("fixtures/vector.rs")
+    include_str!("../fixtures/vector.rs")
         .replace(
             "User::Push if self.values.len() < 2 => {",
             "User::Push => { let length = self.values.len(); if length < 2 {",
@@ -193,7 +193,7 @@ fn conditional_guards_preserve_common_bound_facts() -> Result<(), Box<dyn std::e
 #[test]
 fn unsupported_vector_operations_and_unbounded_growth_refuse()
 -> Result<(), Box<dyn std::error::Error>> {
-    let source = include_str!("fixtures/vector.rs");
+    let source = include_str!("../fixtures/vector.rs");
     for (source, reason) in [
         (conditional_length().replace("else { self.values.len() }", "else { 0 }"), "bounded"),
         (
@@ -264,7 +264,7 @@ fn vector_get_keeps_eager_default_failures_when_element_is_present()
     }
     let module = Tla::emit(&Lift::parse(
         "vector_fallback.rs",
-        include_str!("fixtures/vector_fallback.rs"),
+        include_str!("../fixtures/vector_fallback.rs"),
     )?)?;
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
     let error = umpire_tlc::Tlc::discover(&root)?
@@ -284,7 +284,7 @@ fn shared_boolean_guards_keep_vector_admission_linear() -> Result<(), Box<dyn st
     for index in 1..=40 {
         write!(bindings, "let a{index} = a{} && a{};", index - 1, index - 1)?;
     }
-    let source = include_str!("fixtures/vector.rs")
+    let source = include_str!("../fixtures/vector.rs")
         .replace("pub values: Vector<u8>,", "pub values: Vector<u8>, pub flag: bool,")
         .replace(
             "User::Push if self.values.len() < 2 => {",

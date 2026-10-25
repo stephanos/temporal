@@ -4,7 +4,7 @@
 use umpire_apalache::Replay;
 use umpire_dsl::{Claim, Machine};
 #[allow(unreachable_pub, reason = "shared public fixture")]
-#[path = "../../../dev/fixtures/fixtures/sample_kettle/model.rs"]
+#[path = "../../../../dev/fixtures/fixtures/sample_kettle/model.rs"]
 mod selected;
 #[test]
 fn replay_refuses_an_undeclared_property_before_reading_a_witness()
@@ -14,7 +14,7 @@ fn replay_refuses_an_undeclared_property_before_reading_a_witness()
     let catalog = world.checked_catalog(umpire_dsl::CATALOG_LIMIT)?;
     let module = umpire_tla::Tla::safety(&umpire_tla::Lift::parse(
         "kettle.rs",
-        include_str!("../../../dev/fixtures/fixtures/sample_kettle/model.rs"),
+        include_str!("../../../../dev/fixtures/fixtures/sample_kettle/model.rs"),
     )?)?;
     let negatives: Vec<Claim<_>> = Vec::new();
     let replay =
@@ -27,12 +27,12 @@ fn replay_refuses_an_undeclared_property_before_reading_a_witness()
     Ok(())
 }
 
-#[path = "fixtures/replay.rs"]
+#[path = "../fixtures/replay.rs"]
 mod authored;
 use serde_json::{Value as Json, json};
 use umpire_dsl::{__lifted::BindingOf, ActionValues, Value as NativeValue, Values};
 use umpire_tla::{Binding, Literal, Module};
-const SOURCE: &str = include_str!("fixtures/replay.rs");
+const SOURCE: &str = include_str!("../fixtures/replay.rs");
 const HOOK: &str = r#"
 umpire_testing::fixture!(inputs::World::new(2),100,Claim::new("never_two",|_,s:&inputs::Model|(s.value!=2).into()));
 "#;
@@ -200,7 +200,7 @@ fn retained_pinned_kettle_witness_replays_deterministically()
         r#"{}
         umpire_testing::fixture!(kettle::world(),1000,Claim::new("never_beeps",|_,s:&kettle::Model|(!s.beeping).into()));
     "#,
-        include_str!("../../../dev/fixtures/fixtures/sample_kettle/model.rs")
+        include_str!("../../../../dev/fixtures/fixtures/sample_kettle/model.rs")
     );
     let module = umpire_tla::Tla::safety(&umpire_tla::Lift::parse("kettle.rs", &source)?)?;
     let negatives =
@@ -210,9 +210,9 @@ fn retained_pinned_kettle_witness_replays_deterministically()
         &module,
         "Negative_never_beeps",
         63,
-        include_str!("fixtures/kettle-0.62.4.itf.json"),
+        include_str!("../fixtures/kettle-0.62.4.itf.json"),
     )?;
-    assert_eq!(result.to_string(), include_str!("expected/kettle-negative.txt"));
+    assert_eq!(result.to_string(), include_str!("../expected/kettle-negative.txt"));
     Ok(())
 }
 
@@ -340,7 +340,7 @@ fn colliding_renderings_cannot_replace_typed_replay_or_reenumerate_native_inputs
     Ok(())
 }
 
-#[path = "fixtures/arithmetic_prefix.rs"]
+#[path = "../fixtures/arithmetic_prefix.rs"]
 mod prefix_fixture;
 #[test]
 fn arithmetic_refusal_is_distinct_and_requires_the_exact_native_boundary()
@@ -350,7 +350,7 @@ fn arithmetic_refusal_is_distinct_and_requires_the_exact_native_boundary()
     let actions = world.actions();
     let module = umpire_tla::Tla::safety(&umpire_tla::Lift::parse(
         "prefix.rs",
-        include_str!("fixtures/arithmetic_prefix.rs"),
+        include_str!("../fixtures/arithmetic_prefix.rs"),
     )?)?;
     let first = initial(&module, 254);
     let mut next = event(&first, 255, 0, "User::Advance", "");
@@ -384,7 +384,7 @@ fn arithmetic_refusal_is_distinct_and_requires_the_exact_native_boundary()
     Ok(())
 }
 
-#[path = "fixtures/categories.rs"]
+#[path = "../fixtures/categories.rs"]
 mod category_fixture;
 #[test]
 fn selected_property_category_cannot_alias_authored_names() -> Result<(), Box<dyn std::error::Error>>
@@ -395,7 +395,7 @@ fn selected_property_category_cannot_alias_authored_names() -> Result<(), Box<dy
     let actions = world.actions();
     let source = format!(
         "{}\numpire_testing::fixture!(categories::world(),10,Claim::new(\"shared\",|_,s:&categories::Model|(s.value!=0).into()));",
-        include_str!("fixtures/categories.rs")
+        include_str!("../fixtures/categories.rs")
     );
     let module = umpire_tla::Tla::safety(&umpire_tla::Lift::parse("categories.rs", &source)?)?;
     let negative = [Claim::new("shared", |_, s: &categories::Model| (s.value != 0).into())];

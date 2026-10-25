@@ -3,7 +3,7 @@
 
 use umpire_tla::observers::{HAS_STEP, STUTTER};
 use umpire_tla::{Lift, Tla};
-const KETTLE: &str = include_str!("../../../dev/fixtures/fixtures/sample_kettle/model.rs");
+const KETTLE: &str = include_str!("../../../../dev/fixtures/fixtures/sample_kettle/model.rs");
 
 #[test]
 fn tlc_declarations_carry_snowcat_types() -> Result<(), Box<dyn std::error::Error>> {

@@ -4,7 +4,7 @@
 use umpire_tla::observers::EDGE_TICK;
 use umpire_tla::{Lift, Tla, Type};
 
-const KETTLE: &str = include_str!("../../../dev/fixtures/fixtures/sample_kettle/model.rs");
+const KETTLE: &str = include_str!("../../../../dev/fixtures/fixtures/sample_kettle/model.rs");
 
 #[test]
 fn kettle_source_lifts_registered_properties_and_explicit_assumptions()
@@ -50,7 +50,7 @@ fn unsupported_expression_refuses_with_source_location() -> Result<(), Box<dyn s
     assert!(error.to_string().contains("mystery"));
     assert!(error.to_string().contains("warning"));
     assert!(error.to_string().contains("refused"));
-    assert_eq!(format!("{error}\n"), include_str!("expected/unsupported.txt"));
+    assert_eq!(format!("{error}\n"), include_str!("../expected/unsupported.txt"));
     Ok(())
 }
 
@@ -268,7 +268,7 @@ fn path_claims_refuse_builders_chains_and_other_gaps() -> Result<(), Box<dyn std
             Lift::parse("path.rs", &source).err().ok_or("malformed path claim was admitted")?;
         refusals.push(format!("{error}\n"));
     }
-    assert_eq!(refusals.concat(), include_str!("expected/path_refusals.txt"));
+    assert_eq!(refusals.concat(), include_str!("../expected/path_refusals.txt"));
     Ok(())
 }
 
