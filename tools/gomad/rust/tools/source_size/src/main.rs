@@ -6,7 +6,10 @@ use std::io::{self, BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+mod error;
+use error::Error;
+
+type Result<T> = std::result::Result<T, Error>;
 const MAX_TREE_BYTES: u64 = 128 * 1024 * 1024;
 const MAX_BLOB_BYTES: u64 = 64 * 1024 * 1024;
 
@@ -75,7 +78,7 @@ fn git_output(repo: &Path, args: &[&str], limit: u64) -> Result<Vec<u8>> {
     let result = child
         .stdout
         .take()
-        .ok_or("missing git stdout")?
+        .ok_or(Error::GitProtocol("missing git stdout"))?
         .take(limit + 1)
         .read_to_end(&mut bytes);
     if result.is_err() || bytes.len() as u64 > limit {
@@ -84,10 +87,16 @@ fn git_output(repo: &Path, args: &[&str], limit: u64) -> Result<Vec<u8>> {
     let status = child.wait()?;
     result?;
     if bytes.len() as u64 > limit {
-        return Err("Git output exceeds byte limit".into());
+        return Err(Error::Limit {
+            kind: "Git output",
+            bytes: limit,
+        });
     }
     if !status.success() {
-        return Err(format!("git {} failed", args[0]).into());
+        return Err(Error::GitFailed {
+            operation: args[0].to_owned(),
+            status,
+        });
     }
     Ok(bytes)
 }
@@ -103,7 +112,7 @@ fn git_oid(repo: &Path, args: &[&str]) -> Result<String> {
     let output = git_output(repo, args, 128)?;
     let oid = std::str::from_utf8(&output)?.trim();
     if !valid_oid(oid) {
-        return Err("git returned an invalid object ID".into());
+        return Err(Error::GitProtocol("git returned an invalid object ID"));
     }
     Ok(oid.to_owned())
 }
@@ -113,7 +122,7 @@ fn validate_path(path: &str) -> Result<()> {
         || path.chars().any(char::is_control)
         || path.split('/').any(|part| matches!(part, "" | "." | ".."))
     {
-        return Err("invalid Git tree path".into());
+        return Err(Error::InvalidPath(path.to_owned()));
     }
     Ok(())
 }
@@ -124,7 +133,7 @@ fn inventory(repo: &Path, revision: &str) -> Result<Report> {
         || revision.chars().any(char::is_control)
         || revision.len() > 4096
     {
-        return Err("invalid revision".into());
+        return Err(Error::InvalidRevision);
     }
     let revision = git_oid(
         repo,
@@ -153,11 +162,11 @@ fn inventory(repo: &Path, revision: &str) -> Result<Report> {
             record
                 .iter()
                 .position(|byte| *byte == b'\t')
-                .ok_or("invalid Git tree entry")?,
+                .ok_or(Error::GitProtocol("invalid Git tree entry"))?,
         );
         let metadata: Vec<_> = std::str::from_utf8(metadata)?.split(' ').collect();
         if metadata.len() != 3 || !valid_oid(metadata[2]) {
-            return Err("invalid Git tree metadata".into());
+            return Err(Error::GitProtocol("invalid Git tree metadata"));
         }
         let path = std::str::from_utf8(&path[1..])?;
         validate_path(path)?;
@@ -165,7 +174,7 @@ fn inventory(repo: &Path, revision: &str) -> Result<Report> {
             continue;
         }
         if metadata[1] != "blob" || !matches!(metadata[0], "100644" | "100755" | "120000") {
-            return Err("unsupported Git tree entry".into());
+            return Err(Error::GitProtocol("unsupported Git tree entry"));
         }
         entries.push((
             path.to_owned(),
@@ -179,8 +188,16 @@ fn inventory(repo: &Path, revision: &str) -> Result<Report> {
         .stdin(Stdio::piped())
         .spawn()?;
     let result = (|| -> Result<Report> {
-        let mut input = process.stdin.take().ok_or("missing git stdin")?;
-        let mut output = BufReader::new(process.stdout.take().ok_or("missing git stdout")?);
+        let mut input = process
+            .stdin
+            .take()
+            .ok_or(Error::GitProtocol("missing git stdin"))?;
+        let mut output = BufReader::new(
+            process
+                .stdout
+                .take()
+                .ok_or(Error::GitProtocol("missing git stdout"))?,
+        );
         let mut files = Vec::new();
         let mut groups: BTreeMap<String, Metrics> = BTreeMap::new();
         let mut paths = Sha256::new();
@@ -250,7 +267,10 @@ fn inventory(repo: &Path, revision: &str) -> Result<Report> {
     }
     let status = process.wait()?;
     if !status.success() && result.is_ok() {
-        return Err("Git batch reader failed".into());
+        return Err(Error::GitFailed {
+            operation: "cat-file".to_owned(),
+            status,
+        });
     }
     result
 }
@@ -262,18 +282,21 @@ fn read_blob(output: &mut impl BufRead, oid: &str) -> Result<Vec<u8>> {
         .read_until(b'\n', &mut header)?;
     let fields: Vec<_> = std::str::from_utf8(&header)?.split_whitespace().collect();
     if !header.ends_with(b"\n") || fields.len() != 3 || fields[0] != oid || fields[1] != "blob" {
-        return Err("Git batch object header mismatch".into());
+        return Err(Error::GitProtocol("Git batch object header mismatch"));
     }
     let size: u64 = fields[2].parse()?;
     if size > MAX_BLOB_BYTES {
-        return Err(format!("blob exceeds {MAX_BLOB_BYTES} byte limit").into());
+        return Err(Error::Limit {
+            kind: "blob",
+            bytes: MAX_BLOB_BYTES,
+        });
     }
     let mut raw = vec![0; usize::try_from(size)?];
     output.read_exact(&mut raw)?;
     let mut newline = [0];
     output.read_exact(&mut newline)?;
     if newline != [b'\n'] {
-        return Err("invalid Git batch object terminator".into());
+        return Err(Error::GitProtocol("invalid Git batch object terminator"));
     }
     Ok(raw)
 }
@@ -508,30 +531,43 @@ fn rust_character(text: &str) -> bool {
     }
 }
 
-fn run() -> Result<()> {
-    let mut args = std::env::args_os().skip(1);
+struct Arguments {
+    repo: PathBuf,
+    revision: String,
+    output: Option<PathBuf>,
+}
+
+fn parse_arguments(mut args: impl Iterator<Item = std::ffi::OsString>) -> Result<Arguments> {
     let (mut repo, mut revision, mut output) = (None, None, None);
     while let Some(arg) = args.next() {
-        let slot =
-            match arg.to_str() {
-                Some("--repo") => &mut repo,
-                Some("--rev") => &mut revision,
-                Some("--output") => &mut output,
-                _ => return Err(
-                    "usage: gomad-source-size --repo REPOSITORY --rev REVISION [--output NEW_FILE]"
-                        .into(),
-                ),
-            };
+        let (name, slot) = match arg.to_str() {
+            Some("--repo") => ("--repo", &mut repo),
+            Some("--rev") => ("--rev", &mut revision),
+            Some("--output") => ("--output", &mut output),
+            _ => return Err(Error::UnknownArgument(arg)),
+        };
         if slot.is_some() {
-            return Err("duplicate argument".into());
+            return Err(Error::DuplicateArgument(name));
         }
-        *slot = Some(args.next().ok_or("missing argument value")?);
+        *slot = Some(args.next().ok_or(Error::MissingValue(name))?);
     }
-    let repo = PathBuf::from(repo.ok_or("--repo is required")?).canonicalize()?;
-    let revision = revision
-        .ok_or("--rev is required")?
-        .into_string()
-        .map_err(|_| "revision must be UTF-8")?;
+    Ok(Arguments {
+        repo: PathBuf::from(repo.ok_or(Error::MissingRequired("--repo"))?),
+        revision: revision
+            .ok_or(Error::MissingRequired("--rev"))?
+            .into_string()
+            .map_err(Error::RevisionEncoding)?,
+        output: output.map(PathBuf::from),
+    })
+}
+
+fn run() -> Result<()> {
+    let Arguments {
+        repo,
+        revision,
+        output,
+    } = parse_arguments(std::env::args_os().skip(1))?;
+    let repo = repo.canonicalize()?;
     let report = inventory(&repo, &revision)?;
     let mut writer: Box<dyn Write> = match output {
         Some(path) => Box::new(OpenOptions::new().write(true).create_new(true).open(path)?),

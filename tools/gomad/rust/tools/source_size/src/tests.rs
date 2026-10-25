@@ -161,8 +161,14 @@ fn inventory_reads_authenticated_commit_blobs_and_ignores_worktree_and_replaceme
         serde_json::to_value(&report).unwrap(),
         serde_json::to_value(inventory(&repo.0, &revision).unwrap()).unwrap()
     );
-    assert!(inventory(&repo.0, "--all").is_err());
-    assert!(inventory(&repo.0, "missing-revision").is_err());
+    assert!(matches!(
+        inventory(&repo.0, "--all"),
+        Err(Error::InvalidRevision)
+    ));
+    assert!(matches!(
+        inventory(&repo.0, "missing-revision"),
+        Err(Error::GitFailed { .. })
+    ));
 }
 
 #[test]
@@ -175,7 +181,10 @@ fn rejects_unsafe_tree_paths_and_invalid_object_ids() {
         "./x.rs",
         "a\nx.rs",
     ] {
-        assert!(validate_path(path).is_err(), "{path:?}");
+        assert!(
+            matches!(validate_path(path), Err(Error::InvalidPath(rejected)) if rejected == path),
+            "{path:?}"
+        );
     }
     assert!(validate_path("a space/é.rs").is_ok());
     assert!(valid_oid(&"a".repeat(40)));
@@ -209,4 +218,55 @@ fn batch_reader_refuses_wrong_object_type_size_and_incomplete_payload() {
         read_blob(&mut io::Cursor::new(format!("{oid} blob 0\n\n")), &oid).unwrap(),
         b""
     );
+}
+
+#[test]
+fn cli_reports_typed_argument_failures() {
+    let parse = |args: &[&str]| parse_arguments(args.iter().map(std::ffi::OsString::from));
+    assert!(matches!(parse(&[]), Err(Error::MissingRequired("--repo"))));
+    assert!(matches!(
+        parse(&["--repo", "."]),
+        Err(Error::MissingRequired("--rev"))
+    ));
+    assert!(matches!(
+        parse(&["--repo"]),
+        Err(Error::MissingValue("--repo"))
+    ));
+    assert!(matches!(
+        parse(&["--repo", ".", "--repo", "."]),
+        Err(Error::DuplicateArgument("--repo"))
+    ));
+    assert!(matches!(parse(&["--bogus"]), Err(Error::UnknownArgument(arg)) if arg == "--bogus"));
+    let args = parse(&["--repo", ".", "--rev", "HEAD", "--output", "report.json"]).unwrap();
+    assert_eq!(
+        (args.repo, args.revision, args.output),
+        (
+            PathBuf::from("."),
+            "HEAD".to_owned(),
+            Some(PathBuf::from("report.json"))
+        )
+    );
+    #[cfg(unix)]
+    {
+        use std::os::unix::ffi::OsStringExt;
+        let invalid = std::ffi::OsString::from_vec(vec![0xff]);
+        assert!(
+            matches!(parse_arguments(["--repo".into(), ".".into(), "--rev".into(), invalid.clone()].into_iter()), Err(Error::RevisionEncoding(value)) if value == invalid)
+        );
+    }
+}
+
+#[test]
+fn boundary_errors_preserve_sources() {
+    use std::error::Error as _;
+    let oid = "a".repeat(40);
+    let error = read_blob(&mut io::Cursor::new(format!("{oid} blob 5\nx")), &oid).unwrap_err();
+    assert!(matches!(&error, Error::Io(source) if source.kind() == io::ErrorKind::UnexpectedEof));
+    assert!(error.source().is_some());
+    let error = read_blob(&mut io::Cursor::new(format!("{oid} blob nope\n")), &oid).unwrap_err();
+    assert!(matches!(&error, Error::ParseSize(_)));
+    assert!(error.source().is_some());
+    let error = read_blob(&mut io::Cursor::new([0xff, b'\n']), &oid).unwrap_err();
+    assert!(matches!(&error, Error::Utf8(_)));
+    assert!(error.source().is_some());
 }
