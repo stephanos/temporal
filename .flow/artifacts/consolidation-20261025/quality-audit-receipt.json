@@ -1,0 +1,21 @@
+{
+  "base": "4c4e99ca7e89d87f6c64e7b30cdbbb764294d758",
+  "head": "02751bfef564e9fb08c84a8179e337ce51f336f0",
+  "model_tree": "abe4560501278986bc8ab74853d07b5b7128f30e",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "reviewer_family": "same family as implementers; independent fresh agents",
+  "axes": {
+    "correctness": {
+      "findings": 0,
+      "worst_tier": "none",
+      "report_sha256": "7b3fb732b95e0c9c3987f318691fec7190468d0fe2beeb707f151e5e68e0a14e"
+    },
+    "standards": {
+      "findings": 0,
+      "worst_tier": "none",
+      "report_sha256": "e36943f37f554250dbd57941bcce2ac2d1ca016928bc7b3e7dfe4f5f7915fd85"
+    }
+  },
+  "runtime_verification": "separate final required gate is active"
+}
