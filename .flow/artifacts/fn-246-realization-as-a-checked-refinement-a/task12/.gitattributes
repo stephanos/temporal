@@ -1,0 +1,2 @@
+# Raw claim inventory has an intentionally empty final TSV column.
+claims.tsv -whitespace
