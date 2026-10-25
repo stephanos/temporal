@@ -7,9 +7,9 @@
 - Make memory, fuel, time, and output bounds explicit.
 - Preserve typed failure kinds across boundaries.
 
-## Rust and crates
+## Rust 
 
-- Write all Gomad-owned code, tooling, and scripts in Rust; shell and Python are only for external host code.
+- Write all Gomad-owned code, tooling, and scripts in Rust.
 - Return typed errors for invalid input.
 - Keep crate APIs small and dependencies one-way.
 - Reuse existing crates before adding new ones.

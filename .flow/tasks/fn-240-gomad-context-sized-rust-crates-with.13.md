@@ -9,9 +9,12 @@ Move crates under rust/crates/, bins under rust/bins/ (gomad with its three bin 
 Crate amendment (owner, 2026-10-24): `bins/gomad` parses argv with `clap` (derive), replacing positional matching such as `arguments[0] == "--rerun" && arguments[2] == "--root"`. Flags, exit statuses and JSON outputs stay; usage/error text may change and its goldens are updated here. The `gomad -- <command>` wrapper and the go-flag classification in `shim` stay hand-written.
 
 Throughput amendment (owner, 2026-10-24): convert this crate's message-prefix dispatch (`runner_failure:`, `refused:`, `capacity:`) to the fn-240.5 kind enum in the same pass as R11's error enums.
+
+Umpire-parity amendment (owner, 2026-10-25): add `rust/.cargo/config.toml` aliases (`check-all`, `doc-all`) that are exactly the clippy and rustdoc commands `lint-rust` runs, so they work from inside `rust/`. The Makefile stays the source of truth; an alias that disagrees with the recipe is a finding. Skip it if the dispatch-only layout makes the aliases redundant, and record that decision in final.md.
 ## Acceptance
 tree matches Amendment 4; bins/gomad/src contains no verb logic; make -C tools/gomad test-harness test-rust-engine validate-wasm-determinism lint-rust green; clean build wall time within 20% of baseline or an explicit widening decision recorded; final report in .flow/artifacts/fn-240/final.md.
 - All verbs parse argv through `clap`; no hand-written verb flag matching remains outside the wrapper/shim go-flag classifier.
+- `.cargo/config.toml` aliases match the `lint-rust` commands exactly, or final.md records why they were dropped.
 ## Done summary
 TBD
 
