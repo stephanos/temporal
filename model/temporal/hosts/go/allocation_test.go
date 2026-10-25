@@ -161,9 +161,11 @@ func TestTemporalResponseExhaustionRollsBackState(t *testing.T) {
 			g := newRawGuest(t)
 			g.judge(t, startObservation(t, 3))
 			matching := scheduled(t)
+			var steps []string
 			if tc.delivered {
 				g.deliver(t)
 				matching = started(t)
+				steps = []string{"Worker::Poll(1)"}
 			}
 			var frozen *modelv1.JudgeResponse
 			if tc.frozen {
@@ -177,7 +179,7 @@ func TestTemporalResponseExhaustionRollsBackState(t *testing.T) {
 					t.Fatalf("failed reset changed frozen judgment: %v -> %v", frozen, after)
 				}
 			} else {
-				explained(t, after)
+				explained(t, after, steps...)
 			}
 		})
 	}
@@ -240,8 +242,8 @@ func TestTemporalWorldTransactionsSurviveActualResponseExhaustion(t *testing.T) 
 				explained(t, g.judge(t, start.Observation))
 				g.call(t, modelv1.Method_METHOD_ROWS, rows, false, modelv1.RefusalCode_REFUSAL_CODE_NOT_EXPLORED)
 				g.deliver(t)
-				explained(t, g.judge(t, start.Observation))
-				explained(t, g.judge(t, started(t)))
+				explained(t, g.judge(t, start.Observation), "Worker::Poll(1)")
+				explained(t, g.judge(t, started(t)), "Worker::Poll(1)")
 				exploration = g.call(t, modelv1.Method_METHOD_EXPLORE, &modelv1.ExploreRequest{Budget: 64}, false)
 				if exploration.GetExplore().GetReached() != 5 {
 					t.Fatal("admission did not select the one-attempt World")
@@ -255,7 +257,7 @@ func TestTemporalWorldTransactionsSurviveActualResponseExhaustion(t *testing.T) 
 				}
 				g.call(t, modelv1.Method_METHOD_JUDGE, &modelv1.JudgeRequest{Observation: startObservation(t, 1)}, false, modelv1.RefusalCode_REFUSAL_CODE_STATE)
 			case "reset live":
-				explained(t, g.judge(t, started(t)))
+				explained(t, g.judge(t, started(t)), "Worker::Poll(1)")
 				g.call(t, method, request, false)
 				explained(t, g.judge(t, start.Observation))
 				explained(t, g.judge(t, scheduled(t)))

@@ -12,17 +12,17 @@ Unexplained with expected actions. Answer accepts an opaque callback Any and ret
 opaque reply Any. `umpire.realization.v1` supplies Observation, Error, Callback and Reply envelopes.
 Observation retains optional request Any at tag 4 and unchanged absent-request bytes.
 System payload registries own type-URL admission; the old namespace
-is not an alias for the new one. The Kettle guest currently refuses these three operations
-with Unsupported (8). The export-free `umpire-runtime` library supplies the transactional
+is not an alias for the new one. The export-free `umpire-runtime` library supplies the transactional
 runtime and ABI; system guests supply a `Machine` and `Realize` realization. Reset restores
 the unique start and clears frozen evidence. Judge replays actual Model steps; the
-Explanation lists Debug-formatted outcomes in parallel with its steps, including `()`
-for unit outcomes. The realization matches the final replayed outcome; a zero-step current
-check has no outcome. The first Unexplained freezes advancement until Reset. Answer validates
+Explanation retains the complete witness from Reset, including callback delivery;
+a later positive Current observation returns that retained witness. Reports already
+published remain immutable. Outcomes are Debug-formatted in parallel with steps, including `()`
+for unit outcomes. The realization matches the final replayed outcome; an initial zero-step
+witness has no outcome. The first Unexplained freezes advancement until Reset. Answer validates
 delivery and its enabled response action before committing. Failed response publication commits nothing.
 `Any::pack`/`unpack` use generated `prost::Name` canonical URLs and typed Refusal
-constructors; the registry remains system-owned. Existing method IDs and old wire bytes
-remain pinned by host tests.
+constructors; the registry remains system-owned. Existing method IDs and current message encodings remain pinned by host tests.
 
 Annotate (7) carries an opaque input Any and returns an opaque output Any at
 Response tag 8. Shared `umpire.annotations.v1` messages carry annotation requests,

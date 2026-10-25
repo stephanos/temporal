@@ -39,7 +39,7 @@ fn successful_cancel_is_an_explained_step_and_reaches_canceled() {
         request: None,
     });
     explained(guest.judge(cancel), &["Client::Cancel"]);
-    explained(guest.judge(observation(4, 0)), &[]);
+    explained(guest.judge(observation(4, 0)), &["Client::Cancel"]);
 }
 
 fn any(name: &str, value: &impl Message) -> Any {
@@ -95,17 +95,21 @@ fn cancel_after_closure_is_a_rejected_step_and_success_contradicts_it() {
         (4, "Client::Cancel"),
     ] {
         let mut guest = Guest::new(runtime());
+        let mut steps = if terminal == 4 { vec![step] } else { vec!["Worker::Poll(1)", step] };
         if terminal == 4 {
-            explained(guest.judge(cancel(None)), &[step]);
+            explained(guest.judge(cancel(None)), &steps);
         } else {
             explained(guest.judge(observation(1, 2)), &["Worker::Poll(1)"]);
-            explained(guest.judge(observation(terminal, 0)), &[step]);
+            explained(guest.judge(observation(terminal, 0)), &steps);
         }
+        let mut outcomes = vec!["Accepted"; steps.len()];
         for _ in 0..2 {
+            steps.push("Client::Cancel");
+            outcomes.push("Rejected(NotFound)");
             let result = guest.judge(cancel(Some(5))).explanation();
-            assert_eq!(result.steps, ["Client::Cancel"]);
-            assert_eq!(result.outcomes, ["Rejected(NotFound)"]);
-            explained(guest.judge(observation(terminal, 0)), &[]);
+            assert_eq!(result.steps, steps);
+            assert_eq!(result.outcomes, outcomes);
+            assert_eq!(guest.judge(observation(terminal, 0)).explanation(), result);
         }
         assert_eq!(guest.judge(cancel(None)).unexplained(), ["Client::Cancel"]);
         assert_eq!(guest.judge(cancel(Some(5))).unexplained(), ["Client::Cancel"]);
@@ -241,8 +245,8 @@ fn cancel_publication_failure_preserves_state_and_freeze() {
     let request = protocol::JudgeRequest { observation: Some(cancel(Some(5))) }.encode_to_vec();
     assert!(!guest.dispatch_to(4, &request, |_| false));
     let result = guest.judge(cancel(Some(5))).explanation();
-    assert_eq!(result.steps, ["Client::Cancel"]);
-    assert_eq!(result.outcomes, ["Rejected(NotFound)"]);
+    assert_eq!(result.steps, ["Client::Cancel", "Client::Cancel"]);
+    assert_eq!(result.outcomes, ["Accepted", "Rejected(NotFound)"]);
 }
 
 #[test]
@@ -319,8 +323,8 @@ fn actual_requests_leave_current_judgments_unchanged() {
         judged.try_into().unwrap_or_else(|_| panic!("five judgments"));
     explained(scheduled, &[]);
     explained(canceled, &["Client::Cancel"]);
-    explained(closed, &[]);
-    assert_eq!(after.explanation().outcomes, ["Rejected(NotFound)"]);
+    explained(closed, &["Client::Cancel"]);
+    assert_eq!(after.explanation().outcomes, ["Accepted", "Rejected(NotFound)"]);
     assert_eq!(impossible.unexplained(), ["Client::Cancel"]);
 }
 
@@ -434,12 +438,12 @@ fn rejected_publication_rolls_back_delivery_terminal_freeze_and_reset() {
     explained(guest.judge(observation(1, 2)), &["Worker::Poll(1)"]);
     let close = protocol::JudgeRequest { observation: Some(observation(2, 0)) }.encode_to_vec();
     assert!(!guest.dispatch_to(4, &close, |_| false));
-    explained(guest.judge(observation(1, 2)), &[]);
+    explained(guest.judge(observation(1, 2)), &["Worker::Poll(1)"]);
     let stale = protocol::JudgeRequest { observation: Some(observation(1, 1)) }.encode_to_vec();
     assert!(!guest.dispatch_to(4, &stale, |_| false));
-    explained(guest.judge(observation(2, 0)), &["Worker::RespondCompleted"]);
+    explained(guest.judge(observation(2, 0)), &["Worker::Poll(1)", "Worker::RespondCompleted"]);
     assert!(!guest.dispatch_to(3, &[], |_| false));
-    explained(guest.judge(observation(2, 0)), &[]);
+    explained(guest.judge(observation(2, 0)), &["Worker::Poll(1)", "Worker::RespondCompleted"]);
 }
 
 #[test]
@@ -449,7 +453,7 @@ fn server_observations_evidence_delivery_and_fast_terminal_paths() {
     {
         let mut guest = Guest::new(runtime());
         explained(guest.judge(observation(terminal, 0)), &["Worker::Poll(1)", action]);
-        explained(guest.judge(observation(terminal, 0)), &[]);
+        explained(guest.judge(observation(terminal, 0)), &["Worker::Poll(1)", action]);
         assert_eq!(guest.judge(observation(5 - terminal, 0)).unexplained(), ["Client::Cancel"]);
         guest.reset(None);
         explained(guest.judge(observation(1, 1)), &[]);

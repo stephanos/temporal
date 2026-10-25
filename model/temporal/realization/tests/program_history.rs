@@ -369,7 +369,13 @@ fn cancel_not_found_reconciles_only_programmed_terminal_server_evidence() {
         else {
             panic!("fresh terminal evidence must be explained")
         };
-        assert_eq!(explanation.steps, [] as [String; 0]);
+        let terminal_action = if scenario == "Fail" {
+            "Worker::RespondFailed { retryable: false }"
+        } else {
+            "Worker::RespondCompleted"
+        };
+        assert_eq!(explanation.steps, ["Worker::Poll(1)", terminal_action]);
+        assert_eq!(explanation.outcomes, ["Accepted", "Accepted"]);
         let ack = cancel_ack(instruction.request);
         let Outcome::Judge(judgment) =
             invoke(&mut runtime, 4, &protocol::JudgeRequest { observation: Some(Any::pack(&ack)) })
@@ -380,8 +386,8 @@ fn cancel_not_found_reconciles_only_programmed_terminal_server_evidence() {
         else {
             panic!("explained")
         };
-        assert_eq!(explanation.steps, ["Client::Cancel"]);
-        assert_eq!(explanation.outcomes, ["Rejected(NotFound)"]);
+        assert_eq!(explanation.steps, ["Worker::Poll(1)", terminal_action, "Client::Cancel"]);
+        assert_eq!(explanation.outcomes, ["Accepted", "Accepted", "Rejected(NotFound)"]);
         assert!(!judgment.continue_polling);
         assert!(matches!(
             invoke(&mut runtime, 6, &protocol::ProposeRequest { seed: 0 }),

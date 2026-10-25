@@ -9,6 +9,8 @@ pub(crate) type Model = Runtime<kettle::KettleWorld, Unsupported>;
 pub(crate) struct Unsupported;
 
 impl Realize<kettle::KettleWorld> for Unsupported {
+    type Target = umpire_runtime::NoTarget;
+
     fn enabled(&self) -> bool {
         false
     }
@@ -17,7 +19,10 @@ impl Realize<kettle::KettleWorld> for Unsupported {
         &self,
         _: &Any,
         _: &kettle::Kettle,
-    ) -> Result<umpire_runtime::Projection<kettle::Act, ()>, protocol::Refusal> {
+    ) -> Result<
+        umpire_runtime::Projection<kettle::Act, (), umpire_runtime::NoTarget>,
+        protocol::Refusal,
+    > {
         Err(unsupported())
     }
 

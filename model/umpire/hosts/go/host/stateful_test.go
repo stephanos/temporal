@@ -105,8 +105,8 @@ func TestStatefulGuestReplayFreezeResetAndIsolation(t *testing.T) {
 	if err != nil || !proto.Equal(answer.GetReply(), controlAny(42)) {
 		t.Fatalf("Answer: %v %v", answer, err)
 	}
-	controlJudge(t, host, 1)
-	controlJudge(t, host, 2, "Respond")
+	controlJudge(t, host, 1, "Deliver")
+	controlJudge(t, host, 2, "Deliver", "Respond")
 	for _, value := range []byte{1, 3} {
 		response, err := host.Judge(ctx, &modelv1.JudgeRequest{Observation: controlAny(value)})
 		if err != nil || response.GetUnexplained() == nil || !slices.Equal(response.GetUnexplained().ExpectedActions, []string{"Finish"}) {
@@ -143,7 +143,7 @@ func TestStatefulGuestReplayFreezeResetAndIsolation(t *testing.T) {
 	controlJudge(t, other, 0)
 	controlJudge(t, other, 10, "Deliver", "Respond")
 	controlJudge(t, host, 0)
-	controlJudge(t, other, 3, "Finish")
+	controlJudge(t, other, 3, "Deliver", "Respond", "Finish")
 	closed, err := other.Judge(ctx, &modelv1.JudgeRequest{Observation: controlAny(0)})
 	if err != nil || closed.GetUnexplained() == nil || len(closed.GetUnexplained().ExpectedActions) != 0 {
 		t.Fatalf("closed state expected actions: %v %v", closed, err)
@@ -157,6 +157,7 @@ func TestStatefulResponseExhaustionPreservesRunAndOwnership(t *testing.T) {
 			host := statefulHost(t)
 			var request proto.Message
 			var current byte
+			var steps []string
 			switch method {
 			case modelv1.Method_METHOD_JUDGE:
 				request = &modelv1.JudgeRequest{Observation: controlAny(1)}
@@ -166,6 +167,7 @@ func TestStatefulResponseExhaustionPreservesRunAndOwnership(t *testing.T) {
 				request = &modelv1.ResetRequest{}
 				controlJudge(t, host, 1, "Deliver")
 				current = 1
+				steps = []string{"Deliver"}
 			}
 			data, err := proto.Marshal(request)
 			if err != nil {
@@ -201,7 +203,7 @@ func TestStatefulResponseExhaustionPreservesRunAndOwnership(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			controlJudge(t, host, current)
+			controlJudge(t, host, current, steps...)
 			allocations = nil
 			for range 16 {
 				allocate(maxBuffer)

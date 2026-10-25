@@ -77,12 +77,16 @@ fn runtime_formats_unit_outcomes_with_debug() {
         }
     }
     impl Realize<UnitWorld> for support::Realization {
+        type Target = umpire_runtime::NoTarget;
+
         fn observe(
             &self,
             observation: &prost_types::Any,
             state: &support::State,
-        ) -> Result<Projection<support::Action, ()>, protocol::Refusal> {
+        ) -> Result<Projection<support::Action, (), umpire_runtime::NoTarget>, protocol::Refusal>
+        {
             match <Self as Realize<support::World>>::observe(self, observation, state)? {
+                Projection::Reach(target) | Projection::Stutter(target) => match target {},
                 Projection::Current => Ok(Projection::Current),
                 Projection::Candidates(candidates) => {
                     Ok(Projection::steps(candidates.into_iter().map(|candidate| candidate.path)))
@@ -120,9 +124,9 @@ fn judge_replays_model_steps_and_repeated_current_observations_are_positive() {
     assert_eq!(judge(&mut runtime, 0).explanation().steps, [] as [String; 0]);
     assert_eq!(judge(&mut runtime, 0).explanation().steps, [] as [String; 0]);
     assert_eq!(judge(&mut runtime, 1).explanation().steps, ["Deliver"]);
-    assert_eq!(judge(&mut runtime, 1).explanation().steps, [] as [String; 0]);
+    assert_eq!(judge(&mut runtime, 1).explanation().steps, ["Deliver"]);
     let encoded = judge(&mut runtime, 1).encode_to_vec();
-    assert_eq!(encoded, vec![0x2a, 0x02, 0x0a, 0x00]);
+    assert_eq!(encoded, b"\x2a\x17\x0a\x15\x0a\x07Deliver\x12\x0aOutcome(1)");
 }
 
 #[test]
@@ -197,7 +201,7 @@ fn explanations_replay_whole_candidate_sequences_and_isolate_instances() {
     let mut advanced = runtime();
     let mut untouched = runtime();
     assert_eq!(judge(&mut advanced, 10).explanation().steps, ["Deliver", "Respond"]);
-    assert_eq!(judge(&mut advanced, 2).explanation().steps, [] as [String; 0]);
+    assert_eq!(judge(&mut advanced, 2).explanation().steps, ["Deliver", "Respond"]);
     assert_eq!(judge(&mut untouched, 0).explanation().steps, [] as [String; 0]);
     assert_eq!(judge(&mut advanced, 1).unexplained(), ["Finish"]);
     assert_eq!(judge(&mut untouched, 1).explanation().steps, ["Deliver"]);
@@ -206,7 +210,7 @@ fn explanations_replay_whole_candidate_sequences_and_isolate_instances() {
         Some(Outcome::Reset(_))
     ));
     assert_eq!(judge(&mut advanced, 0).explanation().steps, [] as [String; 0]);
-    assert_eq!(judge(&mut untouched, 1).explanation().steps, [] as [String; 0]);
+    assert_eq!(judge(&mut untouched, 1).explanation().steps, ["Deliver"]);
 }
 
 #[test]
@@ -225,11 +229,11 @@ fn answer_validates_the_response_before_committing_delivery_and_awaits_response_
         panic!("expected answer")
     };
     assert_eq!(response.reply, Some(any(42)));
-    assert_eq!(judge(&mut runtime, 1).explanation().steps, [] as [String; 0]);
+    assert_eq!(judge(&mut runtime, 1).explanation().steps, ["Deliver"]);
     answer(&mut runtime, 4).refusal(protocol::RefusalCode::State);
-    assert_eq!(judge(&mut runtime, 1).explanation().steps, [] as [String; 0]);
-    assert_eq!(judge(&mut runtime, 2).explanation().steps, ["Respond"]);
-    assert_eq!(judge(&mut runtime, 3).explanation().steps, ["Finish"]);
+    assert_eq!(judge(&mut runtime, 1).explanation().steps, ["Deliver"]);
+    assert_eq!(judge(&mut runtime, 2).explanation().steps, ["Deliver", "Respond"]);
+    assert_eq!(judge(&mut runtime, 3).explanation().steps, ["Deliver", "Respond", "Finish"]);
     assert_eq!(judge(&mut runtime, 0).unexplained(), [] as [String; 0]);
     assert_eq!(judge(&mut runtime, 1).unexplained(), [] as [String; 0]);
 }
@@ -280,7 +284,8 @@ fn failed_response_publication_preserves_judge_answer_reset_and_exploration() {
                     .refusal(protocol::RefusalCode::NotExplored);
             }
             let current = u8::from(method == 3);
-            assert_eq!(guest.judge(any(current)).explanation().steps, [] as [String; 0]);
+            let expected = if method == 3 { vec!["Deliver"] } else { vec![] };
+            assert_eq!(guest.judge(any(current)).explanation().steps, expected);
         }
     }
 }

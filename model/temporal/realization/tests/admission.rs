@@ -40,15 +40,15 @@ fn start_selects_world_and_original_replay_never_resets_progress() {
     };
     assert_eq!(explore.reached, 5);
     advanced(guest.judge(Any::pack(&describe(1, 1, 2))), &["Worker::Poll(1)"]);
-    explained(guest.judge(Any::pack(&captured)));
-    explained(guest.judge(Any::pack(&describe(1, 1, 2))));
+    advanced(guest.judge(Any::pack(&captured)), &["Worker::Poll(1)"]);
+    advanced(guest.judge(Any::pack(&describe(1, 1, 2))), &["Worker::Poll(1)"]);
     let mut replay = captured.clone();
     replay.result = Some(ResultValue::Response(Any::pack(&StartActivityExecutionResponse {
         run_id: RUN.into(),
         started: false,
         ..Default::default()
     })));
-    explained(guest.judge(Any::pack(&replay)));
+    advanced(guest.judge(Any::pack(&replay)), &["Worker::Poll(1)"]);
     guest.reset(None);
     explained(guest.judge(Any::pack(&replay)));
     explained(guest.judge(Any::pack(&describe(1, 1, 1))));
@@ -313,7 +313,10 @@ fn actual_retry_describe_advances_attempt_without_worker_callbacks() {
         guest.judge(Any::pack(&describe(2, 1, 1))),
         &["Worker::Poll(1)", "Worker::RespondFailed { retryable: true }"],
     );
-    advanced(guest.judge(Any::pack(&describe(2, 1, 2))), &["Worker::Poll(2)"]);
+    advanced(
+        guest.judge(Any::pack(&describe(2, 1, 2))),
+        &["Worker::Poll(1)", "Worker::RespondFailed { retryable: true }", "Worker::Poll(2)"],
+    );
 }
 
 #[path = "admission/publication.rs"]
@@ -406,7 +409,7 @@ fn selected_world_cap_rejects_describe_attempts_without_freezing_or_advancing() 
     advanced(guest.judge(Any::pack(&describe(1, 1, 2))), &["Worker::Poll(1)"]);
     for attempt in [2, 3] {
         guest.judge(Any::pack(&describe(attempt, 1, 1))).refusal(RefusalCode::State);
-        explained(guest.judge(Any::pack(&describe(1, 1, 2))));
+        advanced(guest.judge(Any::pack(&describe(1, 1, 2))), &["Worker::Poll(1)"]);
     }
 }
 

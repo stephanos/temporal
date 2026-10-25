@@ -3,7 +3,7 @@ use umpire_catalog::{Catalog, validate};
 use umpire_dsl::Machine;
 use umpire_runtime::AnyMessage as _;
 use umpire_runtime::{
-    Dispatch, Runtime, Transaction,
+    Dispatch, NoTarget, Projection, Proposal, Realize, Runtime, Transaction,
     prost_types::Any,
     protocol::{self, Refusal, RefusalCode, response::Outcome},
     realization::{Observation, observation::Result as ResultValue},
@@ -17,15 +17,17 @@ use umpire_temporal_api::temporal::api::{
     },
 };
 
-use crate::{Realization, activity, activity_api::catalog, foundation::dc::Limits, runtime};
+use crate::{Realization, activity, activity_api::catalog, foundation::dc::Limits};
 
 const START: &str = "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution";
 const DESCRIBE: &str = "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution";
 const CANCEL: &str =
     "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution";
-type ModelRuntime = Runtime<activity::World, Realization>;
+type ModelRuntime = Runtime<activity::World, LiveRealization>;
+type Action = <activity::World as Machine>::Action;
 type Prepared = Result<(Outcome, Option<LiveTransaction>), Refusal>;
 
+#[derive(Clone)]
 struct Receipt {
     request: Any,
     response: Any,
@@ -34,6 +36,70 @@ struct Receipt {
     request_id: String,
     run_id: String,
     maximum_attempts: Option<u8>,
+}
+
+struct LiveRealization {
+    inner: Realization,
+    receipt: Option<Receipt>,
+}
+
+impl Realize<activity::World> for LiveRealization {
+    type Target = NoTarget;
+
+    fn program(&self) -> Result<Any, Refusal> {
+        self.inner.program()
+    }
+
+    fn propose(&self, current: &activity::Model, seed: u64) -> Result<Proposal<Action>, Refusal> {
+        self.inner.propose(current, seed)
+    }
+
+    fn matches(&self, request: &Any, observation: &Any) -> Result<(), Refusal> {
+        self.inner.matches(request, observation)
+    }
+
+    fn continue_polling(
+        &self,
+        observation: &Any,
+        current: &activity::Model,
+        action: Option<&Action>,
+    ) -> Result<bool, Refusal> {
+        self.inner.continue_polling(observation, current, action)
+    }
+
+    fn observe(
+        &self,
+        actual: &Any,
+        current: &activity::Model,
+    ) -> Result<Projection<Action, umpire_dsl::Outcome, NoTarget>, Refusal> {
+        let observed = crate::support::Observed::new(actual)?;
+        if observed.method != START {
+            return self.inner.observe(actual, current);
+        }
+        let observation: Observation = actual.unpack()?;
+        let raw_request = observation
+            .request
+            .as_ref()
+            .ok_or_else(|| Refusal::malformed("Start actual request is missing"))?;
+        let request: StartActivityExecutionRequest = raw_request.unpack()?;
+        let Some(ResultValue::Response(raw_response)) = &observation.result else {
+            return Err(Refusal::malformed("successful Start response is required"));
+        };
+        let response: StartActivityExecutionResponse = raw_response.unpack()?;
+        validate_start(&request, &response)?;
+        self.receipt
+            .as_ref()
+            .ok_or_else(|| state("live Start admission is required"))?
+            .validate_replay(&request, &response, raw_request, raw_response)?;
+        Ok(Projection::Current)
+    }
+}
+
+fn fresh_model() -> ModelRuntime {
+    Runtime::new(
+        activity::World::new(3, None, None, None, None, false),
+        LiveRealization { inner: Realization::default(), receipt: None },
+    )
 }
 
 /// Temporal-owned live realization around an independently owned Model runtime.
@@ -64,7 +130,7 @@ enum Change {
 impl LiveRuntime {
     pub(super) fn new() -> Self {
         Self {
-            model: runtime(),
+            model: fresh_model(),
             receipt: None,
             frozen: None,
             configuration: None,
@@ -252,23 +318,17 @@ impl LiveRuntime {
         let response: StartActivityExecutionResponse = raw_response.unpack()?;
         validate_start(&request, &response)?;
         if let Some(receipt) = &self.receipt {
-            receipt.matches(&request.namespace, &request.activity_id, &response.run_id)?;
-            if receipt.request_id != request.request_id || receipt.request != *raw_request {
-                return Err(state("Start request contradicts the original receipt"));
-            }
-            if response.started && receipt.response != *raw_response {
-                return Err(state("Start response contradicts the original receipt"));
-            }
-            if !response.started && receipt.maximum_attempts.is_none() {
-                return Err(state("Start replay has no original admitted provenance"));
-            }
+            receipt.validate_replay(&request, &response, raw_request, raw_response)?;
             if let Some(frozen) = &self.frozen {
                 return Err(frozen.clone());
             }
             if receipt.maximum_attempts.is_none() {
                 return Err(state("rejected Start requires a fresh guest"));
             }
-            return Ok((explained(), None));
+            return self.delegate(
+                protocol::Method::Judge as u32,
+                &protocol::JudgeRequest { observation: Some(value.clone()) }.encode_to_vec(),
+            );
         }
         if !response.started {
             return Err(state("initial Start must create a new run"));
@@ -299,9 +359,24 @@ impl LiveRuntime {
         let [initial] = starts.as_slice() else {
             return Err(state("admitted World requires exactly one start"));
         };
-        let model = Runtime::with_initial(world, Realization::default(), initial.clone())?;
+        let mut model = Runtime::with_initial(
+            world,
+            LiveRealization { inner: Realization::default(), receipt: Some(receipt.clone()) },
+            initial.clone(),
+        )?;
+        let (response, transaction) = model.prepare(
+            protocol::Method::Judge as u32,
+            &protocol::JudgeRequest { observation: Some(value.clone()) }.encode_to_vec(),
+        );
+        let outcome = response.outcome.ok_or_else(|| state("Start judgment is missing"))?;
+        if let Outcome::Refusal(refusal) = outcome {
+            return Err(refusal);
+        }
+        if let Some(transaction) = transaction {
+            model.commit(transaction);
+        }
         Ok((
-            explained(),
+            outcome,
             Some(LiveTransaction { change: Change::Admit { model: Box::new(model), receipt } }),
         ))
     }
@@ -316,17 +391,38 @@ impl LiveRuntime {
                 .request
                 .unpack()
                 .unwrap_or_else(|_| unreachable!("validated Start receipt"));
-            self.model.replace_realization(Realization::configured(
-                crate::activity_realization::ProposalContext {
+            self.model.replace_realization(LiveRealization {
+                inner: Realization::configured(crate::activity_realization::ProposalContext {
                     start: request,
                     run_id: receipt.run_id.clone(),
-                },
-            ));
+                }),
+                receipt: Some(receipt.clone()),
+            });
         }
     }
 }
 
 impl Receipt {
+    fn validate_replay(
+        &self,
+        request: &StartActivityExecutionRequest,
+        response: &StartActivityExecutionResponse,
+        raw_request: &Any,
+        raw_response: &Any,
+    ) -> Result<(), Refusal> {
+        self.matches(&request.namespace, &request.activity_id, &response.run_id)?;
+        if self.request_id != request.request_id || self.request != *raw_request {
+            return Err(state("Start request contradicts the original receipt"));
+        }
+        if response.started && self.response != *raw_response {
+            return Err(state("Start response contradicts the original receipt"));
+        }
+        if !response.started && self.maximum_attempts.is_none() {
+            return Err(state("Start replay has no original admitted provenance"));
+        }
+        Ok(())
+    }
+
     fn matches(&self, namespace: &str, activity: &str, run: &str) -> Result<(), Refusal> {
         for (matches, component) in [
             (!namespace.is_empty() && namespace == self.namespace, "namespace"),
@@ -371,7 +467,7 @@ impl Dispatch for LiveRuntime {
                 self.frozen = Some(refusal);
             }
             Change::Configure(configuration) => {
-                self.model = runtime();
+                self.model = fresh_model();
                 self.configuration = Some(configuration);
                 self.receipt = None;
                 self.bootstrap = None;
@@ -397,14 +493,6 @@ fn required_request<T: prost::Name + Default>(observation: &Observation) -> Resu
 }
 fn state(message: impl Into<String>) -> Refusal {
     Refusal::new(RefusalCode::State, message)
-}
-fn explained() -> Outcome {
-    Outcome::Judge(protocol::JudgeResponse {
-        continue_polling: false,
-        judgment: Some(protocol::judge_response::Judgment::Explained(
-            protocol::Explanation::default(),
-        )),
-    })
 }
 fn checked<T: 'static>(
     value: &T,

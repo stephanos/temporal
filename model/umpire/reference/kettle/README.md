@@ -5,12 +5,16 @@ starts and exploration report remain canonical. `runtime()` selects the declared
 20 °C, off, quiet start for a live instance; Reset restores that selected start.
 The Go server is implemented independently from the protobuf service.
 
-Heat requires its actual request and an exact resulting state. Fill, Pour and
-Describe only match the current state. PollHeating callbacks must match the full
+Heat uses bounded Reach with its actual request and an `Exact<Model>` target.
+Only the request-authorized action can explain that exact resulting state. Fill,
+Pour and Describe only match the current state. PollHeating callbacks must match the full
 current state and carry a nonempty kettle identity and the enabled heater action.
 Answer returns a RespondHeating request without committing the action. Only an
 exact RespondHeating receipt advances the run; a captured request must agree
-with the receipt's action and include the kettle identity.
+with the receipt's action and include the kettle identity. Each successful report
+retains the complete witness from Reset, including earlier callback delivery;
+a later Current observation repeats that witness. Reports already returned remain
+claims about their own observation prefixes.
 
 From `model/`, run `mise exec -- cargo test -p umpire-reference-kettle`.
 The guest uses the common pinned builder via `make model-check` at repository root.

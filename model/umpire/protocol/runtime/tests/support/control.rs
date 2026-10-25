@@ -5,6 +5,8 @@ pub(crate) struct ControlRealization {
     pub(crate) bootstrap: bool,
 }
 impl Realize<World> for ControlRealization {
+    type Target = umpire_runtime::NoTarget;
+
     fn needs_bootstrap(&self) -> bool {
         self.bootstrap
     }
@@ -26,7 +28,7 @@ impl Realize<World> for ControlRealization {
         &self,
         value: &Any,
         state: &State,
-    ) -> Result<Projection<Action, Outcome>, protocol::Refusal> {
+    ) -> Result<Projection<Action, Outcome, umpire_runtime::NoTarget>, protocol::Refusal> {
         if payload(value)? == 20 {
             return Ok(Projection::Current);
         }

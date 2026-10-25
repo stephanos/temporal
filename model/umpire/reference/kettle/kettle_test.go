@@ -32,6 +32,7 @@ type kettleRun struct {
 	connection *grpc.ClientConn
 	annotated  map[string][2]int
 	transcript strings.Builder
+	witness    []string
 }
 
 func newKettleRun(t *testing.T) *kettleRun {
@@ -146,6 +147,7 @@ func (r *kettleRun) judge(method string, request, response proto.Message, state 
 		Result:  &realizationv1.Observation_Response{Response: kettlePack(r.t, response)},
 	}
 	judgment, err := r.host.Judge(r.ctx, &modelv1.JudgeRequest{Observation: kettlePack(r.t, observation)})
+	steps = append(slices.Clone(r.witness), steps...)
 	if err != nil || judgment.GetExplained() == nil || !slices.Equal(judgment.GetExplained().Steps, steps) {
 		r.t.Fatalf("%s Judge: %v %v, want steps %v", method, judgment, err, steps)
 	}
@@ -156,6 +158,7 @@ func (r *kettleRun) judge(method string, request, response proto.Message, state 
 	if !slices.Equal(judgment.GetExplained().Outcomes, outcomes) {
 		r.t.Fatalf("%s outcomes: %v", method, judgment.GetExplained().Outcomes)
 	}
+	r.witness = steps
 	fmt.Fprintf(&r.transcript, "%s: temperature=%d heating_on=%t beeping=%t Explained steps=%v outcomes=%v\n", method, state.GetTemperature(), state.GetHeatingOn(), state.GetBeeping(), steps, outcomes)
 }
 

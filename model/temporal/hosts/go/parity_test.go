@@ -52,18 +52,33 @@ func TestCancelSuccessAndRejectedSelfLoop(t *testing.T) {
 	} {
 		t.Run(tc.status.String(), func(t *testing.T) {
 			h := guest(t)
+			steps := []string{"Client::Cancel"}
 			if tc.policy == "" {
-				explained(t, judge(t, h, cancelObservation(t, 0)), "Client::Cancel")
+				explained(t, judge(t, h, cancelObservation(t, 0)), steps...)
 			} else {
+				terminal := "Worker::RespondCompleted"
+				if tc.policy == "Fail" {
+					terminal = "Worker::RespondFailed { retryable: false }"
+				}
+				steps = []string{"Worker::Poll(1)", terminal}
 				deliver(t, h)
-				judge(t, h, observation(t, tc.status, 0))
+				explained(t, judge(t, h, observation(t, tc.status, 0)), steps...)
+			}
+			outcomes := make([]string, len(steps))
+			for i := range outcomes {
+				outcomes[i] = "Accepted"
 			}
 			for range 2 {
+				steps = append(steps, "Client::Cancel")
+				outcomes = append(outcomes, "Rejected(NotFound)")
 				result := judge(t, h, cancelObservation(t, 5)).GetExplained()
-				if result == nil || !slices.Equal(result.Steps, []string{"Client::Cancel"}) || !slices.Equal(result.Outcomes, []string{"Rejected(NotFound)"}) {
-					t.Fatalf("rejected cancel = %v", result)
+				if result == nil || !slices.Equal(result.Steps, steps) || !slices.Equal(result.Outcomes, outcomes) {
+					t.Fatalf("rejected cancel = %v, want steps %v outcomes %v", result, steps, outcomes)
 				}
-				explained(t, judge(t, h, observation(t, tc.status, 0)))
+				current := judge(t, h, observation(t, tc.status, 0)).GetExplained()
+				if !proto.Equal(current, result) {
+					t.Fatalf("current explanation = %v, want retained prefix %v", current, result)
+				}
 			}
 			unexplained(t, judge(t, h, cancelObservation(t, 0)), "Client::Cancel")
 			unexplained(t, judge(t, h, cancelObservation(t, 5)), "Client::Cancel")
@@ -284,15 +299,13 @@ func TestObservedDeliveryAndTerminal(t *testing.T) {
 				h := guest(t)
 				explained(t, judge(t, h, scheduled(t)))
 				explained(t, judge(t, h, scheduled(t)))
-				want := []string{tc.step}
-				if skipStarted {
-					want = append([]string{"Worker::Poll(1)"}, want...)
-				} else {
+				want := []string{"Worker::Poll(1)", tc.step}
+				if !skipStarted {
 					deliver(t, h)
-					explained(t, judge(t, h, started(t)))
+					explained(t, judge(t, h, started(t)), "Worker::Poll(1)")
 				}
 				explained(t, judge(t, h, observation(t, tc.status, 0)), want...)
-				explained(t, judge(t, h, observation(t, tc.status, 0)))
+				explained(t, judge(t, h, observation(t, tc.status, 0)), want...)
 			}
 		})
 	}
@@ -308,7 +321,7 @@ func TestImpossibleObservationFreezesUntilReset(t *testing.T) {
 		{"stale scheduled after delivery", func(t *testing.T, h *model.Host) { deliver(t, h) }, scheduled, []string{"Client::Cancel", "Worker::Poll(2)", "Worker::Poll(3)", "Worker::RespondCompleted", "Worker::RespondFailed { retryable: false }", "Worker::RespondFailed { retryable: true }", "Worker::Heartbeat", "Worker::RespondCanceled(2)", "Worker::RespondCanceled(3)"}},
 		{"opposite terminal after closure", func(t *testing.T, h *model.Host) {
 			deliver(t, h)
-			explained(t, judge(t, h, observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0)), "Worker::RespondCompleted")
+			explained(t, judge(t, h, observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0)), "Worker::Poll(1)", "Worker::RespondCompleted")
 		}, func(t *testing.T) *anypb.Any { return observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_FAILED, 0) }, []string{"Client::Cancel"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -326,7 +339,7 @@ func TestImpossibleObservationFreezesUntilReset(t *testing.T) {
 			reset(t, h)
 			explained(t, judge(t, h, scheduled(t)))
 			deliver(t, h)
-			explained(t, judge(t, h, started(t)))
+			explained(t, judge(t, h, started(t)), "Worker::Poll(1)")
 		})
 	}
 }
@@ -383,7 +396,7 @@ func TestObservationRefusalPreservesScheduled(t *testing.T) {
 			refusal(t, err, tc.code)
 			explained(t, judge(t, h, scheduled(t)))
 			deliver(t, h)
-			explained(t, judge(t, h, started(t)))
+			explained(t, judge(t, h, started(t)), "Worker::Poll(1)")
 		})
 	}
 }
@@ -420,13 +433,13 @@ func TestRepeatedDeliveryAndInstanceIsolation(t *testing.T) {
 	deliver(t, first)
 	_, err := first.Answer(context.Background(), &modelv1.AnswerRequest{Callback: callback(t, "Fail")})
 	refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED)
-	explained(t, judge(t, first, started(t)))
+	explained(t, judge(t, first, started(t)), "Worker::Poll(1)")
 	explained(t, judge(t, second, scheduled(t)))
 	deliver(t, second)
-	explained(t, judge(t, second, observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_FAILED, 0)), "Worker::RespondFailed { retryable: false }")
+	explained(t, judge(t, second, observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_FAILED, 0)), "Worker::Poll(1)", "Worker::RespondFailed { retryable: false }")
 	reset(t, second)
 	explained(t, judge(t, second, scheduled(t)))
-	explained(t, judge(t, first, started(t)))
+	explained(t, judge(t, first, started(t)), "Worker::Poll(1)")
 	reset(t, first)
 	explained(t, judge(t, first, scheduled(t)))
 }
@@ -450,7 +463,7 @@ func TestStartReceiptBindsExactCapturedBytesAndRunInWasm(t *testing.T) {
 	refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_STATE)
 	explained(t, judge(t, h, captured))
 	deliver(t, h)
-	explained(t, judge(t, h, replay))
+	explained(t, judge(t, h, replay), "Worker::Poll(1)")
 	for _, kind := range []string{"unknown wire field", "private changed input", "different execution", "crossed run"} {
 		t.Run(kind, func(t *testing.T) {
 			value := new(realizationv1.Observation)
@@ -482,7 +495,7 @@ func TestStartReceiptBindsExactCapturedBytesAndRunInWasm(t *testing.T) {
 			if err != nil && bytes.Contains([]byte(err.Error()), []byte("private-admission-payload")) {
 				t.Fatal("private bytes appeared in refusal")
 			}
-			explained(t, judge(t, h, started(t)))
+			explained(t, judge(t, h, started(t)), "Worker::Poll(1)")
 		})
 	}
 	reset(t, h)

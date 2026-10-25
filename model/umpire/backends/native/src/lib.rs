@@ -9,6 +9,7 @@ mod progress;
 mod refusal;
 mod report;
 mod rng;
+pub mod search;
 mod visited;
 
 pub use explore::{Checker, Counts, Result, Transition, panic_message};

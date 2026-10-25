@@ -36,20 +36,23 @@ fn steps(response: protocol::Response, expected: &[&str]) {
     let value = response.explanation();
     assert_eq!(value.steps, expected);
 }
-fn heat(runtime: &mut Guest<umpire_reference_kettle::KettleRuntime>) {
-    steps(
-        runtime.judge(observe(
+fn heat(runtime: &mut Guest<umpire_reference_kettle::KettleRuntime>) -> protocol::Explanation {
+    let explanation = runtime
+        .judge(observe(
             "Heat",
             &HeatResponse { state: Some(state(20, true, false)) },
             Some(Any::pack(&HeatRequest { kettle_id: "k".into(), enabled: true })),
-        )),
-        &["User::PressButton"],
-    );
+        ))
+        .explanation();
+    assert_eq!(explanation.steps, ["User::PressButton"]);
+    explanation
 }
 #[test]
 fn healthy_trace_answer_does_not_commit_and_receipt_commits_once() {
     let mut runtime = Guest::new(kettle_runtime());
-    heat(&mut runtime);
+    let first = heat(&mut runtime);
+    let original = first.clone();
+    let mut witness = vec!["User::PressButton"];
     for temperature in 20..=100 {
         let action = if temperature < 100 { HeatingAction::Heat } else { HeatingAction::Failover };
         let task = PollHeatingResponse {
@@ -67,13 +70,14 @@ fn healthy_trace_answer_does_not_commit_and_receipt_commits_once() {
         assert!(matches!(response.outcome, Some(Outcome::Answer(_))));
         steps(
             runtime.judge(observe("Describe", &DescribeResponse { state: task.state }, None)),
-            &[],
+            &witness,
         );
         let next = if temperature < 100 {
             state(temperature + 1, true, false)
         } else {
             state(100, false, true)
         };
+        witness.push(if temperature < 100 { "Heater::Heat" } else { "Heater::Failover" });
         steps(
             runtime.judge(observe(
                 "RespondHeating",
@@ -83,9 +87,11 @@ fn healthy_trace_answer_does_not_commit_and_receipt_commits_once() {
                     action: action as i32,
                 })),
             )),
-            &[if temperature < 100 { "Heater::Heat" } else { "Heater::Failover" }],
+            &witness,
         );
     }
+    assert_eq!(first, original);
+    assert_eq!(first.steps, ["User::PressButton"]);
 }
 #[test]
 fn describe_never_infers_a_transition() {
@@ -165,7 +171,7 @@ fn malformed_evidence_refuses_without_advancing() {
                 &DescribeResponse { state: Some(state(20, true, false)) },
                 None,
             )),
-            &[],
+            &["User::PressButton"],
         );
     }
 }
@@ -206,7 +212,48 @@ fn callback_requires_exact_state_identity_and_enabled_action() {
                 &DescribeResponse { state: Some(state(20, true, false)) },
                 None,
             )),
-            &[],
+            &["User::PressButton"],
         );
     }
+}
+
+#[test]
+fn heat_projects_reach_with_an_exact_target_and_method_owned_evidence() {
+    use umpire_dsl::Machine as _;
+    use umpire_reference_kettle::{Realization, kettle};
+    use umpire_runtime::{Evidence, EvidenceMatch, Projection, ReachTarget as _, Realize as _};
+
+    let world = kettle::world();
+    let initial = kettle::Model { temperature: 20, heating_on: false, beeping: false };
+    let observation = observe(
+        "Heat",
+        &HeatResponse { state: Some(state(20, true, false)) },
+        Some(Any::pack(&HeatRequest { kettle_id: "k".into(), enabled: true })),
+    );
+    let Projection::Reach(target) =
+        Realization.observe(&observation, &initial).unwrap_or_else(|error| panic!("{error:?}"))
+    else {
+        panic!("Heat must use Reach");
+    };
+    let action = kettle::User::PressButton.into();
+    let (outcome, facts, next) =
+        world.checked_step(&initial, action).unwrap_or_else(|error| panic!("{error:?}")).remove(0);
+    assert!(target.matches(&next));
+    assert!(!target.matches(&initial));
+    assert!(!target.matches(&kettle::Model { beeping: true, ..next.clone() }));
+    let edge = Evidence {
+        source: initial,
+        action: kettle::User::PressButton.into(),
+        choice: 0,
+        outcome,
+        facts,
+        target: next,
+    };
+    assert!(matches!(
+        Realization.reach_evidence(&observation, &[&edge]),
+        EvidenceMatch::Match { cursor: 1 },
+    ));
+    let describe =
+        observe("Describe", &DescribeResponse { state: Some(state(20, true, false)) }, None);
+    assert!(matches!(Realization.reach_evidence(&describe, &[&edge]), EvidenceMatch::Reject));
 }
