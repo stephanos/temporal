@@ -758,3 +758,61 @@ fn strict_envelope_resource_controls() -> Result<(), Box<dyn std::error::Error>>
     );
     Ok(())
 }
+
+#[allow(unreachable_pub, reason = "shared authoring fixture")]
+#[path = "../../../dev/fixtures/fixtures/optional_facts/model.rs"]
+mod fact_fixture;
+
+#[test]
+fn real_fact_witnesses_replay_exact_vectors_and_stutters() -> Result<(), Box<dyn std::error::Error>> {
+    use umpire_dsl::__lifted::BindingOf;
+    use umpire_tla::{Binding, values::Value};
+    if !required() { return Ok(()); }
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let tool = Apalache::discover(&root)?;
+    let world = fact_fixture::facts::World::new(false);
+    let starts = world.starts();
+    let catalog = world.checked_catalog(umpire_dsl::CATALOG_LIMIT)?;
+    let binding = Binding::of(&world, &starts, catalog.actions());
+    let source = include_str!("../../../dev/fixtures/fixtures/optional_facts/model.rs");
+    let module = Tla::safety(&Lift::parse("facts.rs", source)?.bind(&binding)?)?;
+    let replay = Replay { world: &world, starts: &starts, actions: catalog.actions(), negative: &[] };
+    for (property, fact) in [("never_a", "A"), ("never_b", "B"), ("never_c", "C"), ("never_d", "D"), ("never_clear", "")] {
+        let property = format!("Invariant_{property}");
+        let length = if fact.is_empty() { 2 } else { 1 };
+        let result = tool.check(&module, &property, length)?;
+        retain(&format!("facts-{property}"), &module, &result)?;
+        assert!(result.violated()?, "{}", result.output());
+        assert!(!result.traces().is_empty());
+        for raw in result.traces() {
+            let confirmed = replay.violation(&module, &property, length, raw)?;
+            let expected = if fact.is_empty() { vec![] } else { vec![Value::Text(format!("Fact::{fact}"))] };
+            assert_eq!(confirmed.steps.last().ok_or("no replayed edge")?.facts, expected);
+            let mut stutter: serde_json::Value = serde_json::from_str(raw)?;
+            let rows = stutter["states"].as_array_mut().ok_or("no states")?;
+            let mut last = rows.last().ok_or("no final state")?.clone();
+            last["#meta"]["index"] = serde_json::json!(rows.len());
+            last["__umpire_stutter"] = serde_json::json!(true);
+            rows.push(last);
+            assert_eq!(replay.violation(&module, &property, length + 1, &stutter.to_string())?.steps, confirmed.steps);
+            for replacement in [serde_json::json!(["Fact::A", "Fact::A"]), serde_json::json!(["Fact::B"]), serde_json::json!([]), serde_json::json!([true])] {
+                if replacement == serde_json::from_str::<serde_json::Value>(raw)?["states"][length]["__umpire_facts"] { continue; }
+                let mut forged: serde_json::Value = serde_json::from_str(raw)?;
+                forged["states"][length]["__umpire_facts"] = replacement;
+                assert!(replay.violation(&module, &property, length, &forged.to_string()).is_err());
+            }
+            let mut missing: serde_json::Value = serde_json::from_str(raw)?;
+            missing["states"][length].as_object_mut().ok_or("not an object")?.remove("__umpire_facts");
+            assert!(replay.violation(&module, &property, length, &missing.to_string()).is_err());
+        }
+    }
+    let mutant = Tla::safety(&Lift::parse("facts-mutant.rs", &source.replacen("Some(Fact::A)", "Some(Fact::B)", 1))?.bind(&binding)?)?;
+    let result = tool.check(&mutant, "Invariant_never_a", 1)?;
+    assert!(result.violated()?);
+    assert!(!result.traces().is_empty());
+    for raw in result.traces() {
+        let error = replay.violation(&mutant, "Invariant_never_a", 1, raw).err().ok_or("source fact mutant replayed")?;
+        assert!(error.to_string().contains("facts"), "{error}");
+    }
+    Ok(())
+}
