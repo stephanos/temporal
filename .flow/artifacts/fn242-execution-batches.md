@@ -405,3 +405,9 @@ Current source allocation: B03 one, B05 one, B14 three including its two delegat
 B05 may extend that pure boundary with independently selected fixed family preparation/runtime-overlay trees observed before receipts through existing safe custody APIs and Inventory. Canonical paths, non-symlink/type/file limits and actual compiler/admission PID, argv, raw overlay identity and current runtime authentication remain required; observing bytes alone grants no producer authority. Execute changed, omitted and foreign overlay refusals at the intended projector. No new registry or post-freeze Configured hash injection.
 
 Current writer update: B03 is frozen, B14 reconciled its two delegates at37c96c2e2c and released them. B05 and B14 leader each retain one writer; other lanes are available. Normal build slots retain their assigned targets until explicitly released.
+
+## B03 bounded fixture operational reserve
+
+The owner requested finishing B03 after audited cleanup. For its existing frozen3065 v5 bindings freeze owner only, use a fresh30GiB HOST/20GiB overlay operational reserve, one assigned normal slot and the existing600second timeout. Source inspection confirms this control uses existing authenticated role/native binaries, real release installation and fixed SQLite oracle builds before independent freeze/reopen and direct mutations. Historical persistent fixture outputs total about5.7MiB; no Cargo, role/native rebuild, stage DAG, campaign or qualification dispatch occurs. Preserve the old external runner bytes/hash and record the actual new admission/runner provenance.
+
+The production scheduler and qualification45GiB HOST/20GiB overlay/12GiB inner reservation contract, its tests and all journal/attempt semantics remain unchanged. Other build/diagnostic thresholds remain unchanged. Resource failures still refuse; this narrow operational fixture decision grants no qualification or timing acceptance.
