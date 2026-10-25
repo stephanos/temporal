@@ -140,7 +140,7 @@ Both tasks completed locally with focused checks and scoped SHIP reviews: .3 rem
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-252.6 | 🔄 in progress | Shared typed Activity replay integrated; 33 real-TLC policy tests passed; review/final gate pending (R6) |
+| fn-252.6 | 🔄 in progress | Shared typed Activity replay integrated; 33 real-TLC policy tests and three-draw SHIP review passed; final gate pending (R6) |
 | fn-252.7 | 🔄 in progress | One proto script/wasm environment setting; shared guest lints with compiler forbids on all previously safe target roots (R7) |
 
 ### fn-246: Realization as a checked refinement: shared Temporal layer, action registry, Reach, derived strategies (model, temporal)
