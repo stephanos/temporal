@@ -60,6 +60,8 @@ message: temporal.api.workflowservice.v1.DescribeActivityExecutionResponse
 Model-action RPCs without an observation handler:
   /temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue -> Worker::Poll
     no realization context
+  /temporal.api.workflowservice.v1.WorkflowService/RecordActivityTaskHeartbeat -> Worker::Heartbeat
+    no realization context
   /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCompleted -> Worker::RespondCompleted
     no realization context
   /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskFailed -> Worker::RespondFailed
@@ -67,5 +69,6 @@ Model-action RPCs without an observation handler:
 
 Model-action RPCs without any realization context:
   /temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue -> Worker::Poll
+  /temporal.api.workflowservice.v1.WorkflowService/RecordActivityTaskHeartbeat -> Worker::Heartbeat
   /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCompleted -> Worker::RespondCompleted
   /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskFailed -> Worker::RespondFailed

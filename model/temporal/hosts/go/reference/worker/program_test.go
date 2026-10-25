@@ -22,11 +22,12 @@ func programBytes(t *testing.T, p *temporalv1.WorkerProgram) []byte {
 	}
 	return b
 }
-func TestProgramValidationAndOrderedMatch(t *testing.T) {
+func TestProgramValidationAndExactMatch(t *testing.T) {
 	key, _ := anypb.New(&temporalv1.ActivityTaskKey{Scenario: "Complete", Attempt: 1, ActivityType: "test"})
 	response, _ := anypb.New(&workflowservice.RespondActivityTaskCompletedRequest{Result: &commonpb.Payloads{Payloads: []*commonpb.Payload{{Data: []byte("first")}}}})
 	second, _ := anypb.New(&workflowservice.RespondActivityTaskFailedRequest{})
-	p := &temporalv1.WorkerProgram{Namespace: "ns", TaskQueue: "q", Rules: []*temporalv1.Rule{{Key: key, Respond: []*anypb.Any{response}}, {Key: key, Respond: []*anypb.Any{second}}}}
+	secondKey, _ := anypb.New(&temporalv1.ActivityTaskKey{Scenario: "Fail", Attempt: 1, ActivityType: "test"})
+	p := &temporalv1.WorkerProgram{Namespace: "ns", TaskQueue: "q", Rules: []*temporalv1.Rule{{Key: key, Respond: []*anypb.Any{response}}, {Key: secondKey, Respond: []*anypb.Any{second}}}}
 	table, err := Decode(programBytes(t, p))
 	if err != nil {
 		t.Fatal(err)
@@ -45,5 +46,20 @@ func TestProgramValidationAndOrderedMatch(t *testing.T) {
 	p.Rules = nil
 	if _, err := Decode(programBytes(t, p)); err != nil {
 		t.Fatalf("empty program: %v", err)
+	}
+}
+
+func TestProgramRejectsDuplicateExactKey(t *testing.T) {
+	key, err := anypb.New(&temporalv1.ActivityTaskKey{Scenario: "Complete", Attempt: 1, ActivityType: "test"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	response, err := anypb.New(&workflowservice.RespondActivityTaskCompletedRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := &temporalv1.WorkerProgram{Namespace: "ns", TaskQueue: "q", Rules: []*temporalv1.Rule{{Key: key, Respond: []*anypb.Any{response}}, {Key: key, Respond: []*anypb.Any{response}}}}
+	if _, err := Decode(programBytes(t, p)); err == nil {
+		t.Fatal("duplicate exact key accepted")
 	}
 }

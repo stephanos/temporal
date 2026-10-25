@@ -66,16 +66,15 @@ pub struct PollActivityTaskQueueRequest {
 }
 /// Polled tasks carry opaque tokens and externally supplied activity payloads.
 #[derive(Catalog)]
-#[allow(
-    clippy::duplicated_attributes,
-    reason = "Presence rules may share dependency operands"
-)]
+#[allow(clippy::duplicated_attributes, reason = "Presence rules may share dependency operands")]
 #[rule(requires(activity_id, task_token))]
 #[rule(requires(input, task_token))]
 #[mirror(response = "temporal.api.workflowservice.v1.PollActivityTaskQueueResponse")]
 pub struct PollActivityTaskQueueResponse {
     task_token: Secret,
     workflow_namespace: Text,
+    #[mirror(decided)]
+    workflow_execution: Message<c::WorkflowExecution>,
     #[mirror(decided)]
     activity_type: Message<c::ActivityType>,
     #[mirror(decided)]
@@ -97,12 +96,28 @@ pub struct PollActivityTaskQueueResponse {
     retry_policy: Message<c::RetryPolicy>,
     activity_run_id: Uuid,
 }
+/// Heartbeats carry the assigned token and opaque progress payloads.
+#[derive(Catalog)]
+#[mirror(request = "temporal.api.workflowservice.v1.RecordActivityTaskHeartbeatRequest")]
+pub struct RecordActivityTaskHeartbeatRequest {
+    task_token: Secret,
+    details: Message<c::Payloads>,
+    identity: Text,
+    namespace: Text,
+    resource_id: Text,
+}
+/// Each successful heartbeat reports cancellation and separate pause/reset controls.
+#[derive(Catalog)]
+#[mirror(response = "temporal.api.workflowservice.v1.RecordActivityTaskHeartbeatResponse")]
+pub struct RecordActivityTaskHeartbeatResponse {
+    cancel_requested: Flag,
+    activity_paused: Flag,
+    activity_reset: Flag,
+}
 /// Completion transports worker results under the frontend identity limit.
 #[derive(Catalog)]
 #[rule(required(task_token), rejects = "Task token not set")]
-#[mirror(
-    request = "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest"
-)]
+#[mirror(request = "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest")]
 pub struct RespondActivityTaskCompletedRequest {
     task_token: Secret,
     result: Message<c::Payloads>,
@@ -114,9 +129,7 @@ pub struct RespondActivityTaskCompletedRequest {
 }
 /// Completion acknowledgement carries no additional lifecycle evidence.
 #[derive(Catalog)]
-#[mirror(
-    response = "temporal.api.workflowservice.v1.RespondActivityTaskCompletedResponse"
-)]
+#[mirror(response = "temporal.api.workflowservice.v1.RespondActivityTaskCompletedResponse")]
 pub struct RespondActivityTaskCompletedResponse {}
 /// Worker failures require root application-failure information, unlike nested server failures.
 #[derive(Catalog)]
@@ -156,16 +169,11 @@ pub struct RespondActivityTaskCanceledRequest {
 }
 /// Cancellation acknowledgement carries no additional lifecycle evidence.
 #[derive(Catalog)]
-#[mirror(
-    response = "temporal.api.workflowservice.v1.RespondActivityTaskCanceledResponse"
-)]
+#[mirror(response = "temporal.api.workflowservice.v1.RespondActivityTaskCanceledResponse")]
 pub struct RespondActivityTaskCanceledResponse {}
 /// Timeout and payload limits apply before the standalone activity is scheduled.
 #[derive(Catalog)]
-#[rule(
-    required(activity_type, task_queue),
-    rejects = "activityType|taskQueue|task queue"
-)]
+#[rule(required(activity_type, task_queue), rejects = "activityType|taskQueue|task queue")]
 #[rule(required(namespace), rejects = "Namespace is empty")]
 #[mirror(request = "temporal.api.workflowservice.v1.StartActivityExecutionRequest")]
 #[rule(
@@ -270,9 +278,7 @@ pub struct PollActivityExecutionResponse {
 /// Cancellation intent is separate from the worker's eventual cancellation acknowledgement.
 #[derive(Catalog)]
 #[rule(required(namespace), rejects = "Namespace is empty")]
-#[mirror(
-    request = "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest"
-)]
+#[mirror(request = "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest")]
 pub struct RequestCancelActivityExecutionRequest {
     #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "Namespace length exceeds limit")]
     namespace: Text,
@@ -290,7 +296,5 @@ pub struct RequestCancelActivityExecutionRequest {
 }
 /// Cancellation intent acknowledgement carries no additional lifecycle evidence.
 #[derive(Catalog)]
-#[mirror(
-    response = "temporal.api.workflowservice.v1.RequestCancelActivityExecutionResponse"
-)]
+#[mirror(response = "temporal.api.workflowservice.v1.RequestCancelActivityExecutionResponse")]
 pub struct RequestCancelActivityExecutionResponse {}

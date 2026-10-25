@@ -16,7 +16,8 @@ use umpire_temporal_api::temporal::api::{
     failure::v1::Failure,
     workflowservice::v1::{
         DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
-        RequestCancelActivityExecutionRequest, RequestCancelActivityExecutionResponse,
+        RecordActivityTaskHeartbeatRequest, RequestCancelActivityExecutionRequest,
+        RequestCancelActivityExecutionResponse, RespondActivityTaskCanceledRequest,
         RespondActivityTaskCompletedRequest, RespondActivityTaskFailedRequest,
         StartActivityExecutionRequest,
     },
@@ -96,7 +97,12 @@ impl Realization {
                         &binding,
                         &action,
                         world,
-                        &FillInputs::Worker,
+                        &FillInputs::Worker {
+                            attempt: u8::try_from(attempt).map_err(|_| {
+                                Refusal::unsupported("worker attempt is out of range")
+                            })?,
+                            details: None,
+                        },
                         &identity,
                     )?,
                 );
@@ -105,6 +111,7 @@ impl Realization {
                         scenario: scenario.into(),
                         attempt,
                         activity_type: activity_type.name.clone(),
+                        heartbeat_history: Vec::new(),
                     })),
                     respond: vec![response],
                 });
@@ -114,6 +121,7 @@ impl Realization {
             namespace: start.namespace.clone(),
             task_queue: task_queue.name.clone(),
             rules,
+            continuation_domains: Vec::new(),
         }))
     }
 }
@@ -567,7 +575,11 @@ impl Realization {
             self,
             &Action::from(action),
             world,
-            &FillInputs::Worker,
+            &FillInputs::Worker {
+                attempt: u8::try_from(attempt)
+                    .map_err(|_| Refusal::unsupported("worker attempt is out of range"))?,
+                details: None,
+            },
             &identity,
         )?;
         Ok((action, umpire_runtime::capability::Request::pack_request(&request)))
@@ -590,8 +602,13 @@ pub enum FillInputs {
         /// Selected read instruction.
         read: Any,
     },
-    /// The declared programmed worker response.
-    Worker,
+    /// The declared programmed worker operation.
+    Worker {
+        /// Actual admitted attempt used by cancellation acknowledgment.
+        attempt: u8,
+        /// Opaque heartbeat or cancellation details selected by policy.
+        details: Option<Payloads>,
+    },
 }
 
 /// Typed requests produced by the activity filler.
@@ -602,6 +619,10 @@ pub enum FilledRequest {
     Completed(RespondActivityTaskCompletedRequest),
     /// Retryable or terminal worker failure.
     Failed(Box<RespondActivityTaskFailedRequest>),
+    /// One native heartbeat request.
+    Heartbeat(RecordActivityTaskHeartbeatRequest),
+    /// An explicit cancellation acknowledgment for the admitted attempt.
+    Canceled(RespondActivityTaskCanceledRequest),
 }
 
 impl umpire_runtime::capability::Request for FilledRequest {
@@ -610,6 +631,8 @@ impl umpire_runtime::capability::Request for FilledRequest {
             Self::Cancel(request) => Any::pack(request),
             Self::Completed(request) => Any::pack(request),
             Self::Failed(request) => Any::pack(request.as_ref()),
+            Self::Heartbeat(request) => Any::pack(request),
+            Self::Canceled(request) => Any::pack(request),
         }
     }
 }
@@ -647,12 +670,24 @@ impl umpire_runtime::capability::Fill<Action> for Realization {
     fn fill(
         &self,
         action: &Action,
-        _world: &activity::World,
+        world: &activity::World,
         inputs: &FillInputs,
         identity: &ActivityIdentity,
     ) -> Result<FilledRequest, Refusal> {
         if identity.namespace.is_empty() {
             return Err(Refusal::malformed("program namespace is required"));
+        }
+        if let FillInputs::Worker { attempt, details } = inputs {
+            if !(1..=world.maximum_attempts).contains(attempt) {
+                return Err(Refusal::unsupported("worker attempt exceeds World.maximum_attempts"));
+            }
+            if details.is_some()
+                && !matches!(action, Action::Worker(Worker::Heartbeat | Worker::RespondCanceled(_)))
+            {
+                return Err(Refusal::unsupported(
+                    "worker details require heartbeat or cancellation",
+                ));
+            }
         }
         match inputs {
             FillInputs::Cancel { hold, read } if *action == Action::from(Client::Cancel) => {
@@ -672,7 +707,7 @@ impl umpire_runtime::capability::Fill<Action> for Realization {
                     },
                 ))
             }
-            FillInputs::Worker if *action == Action::from(Worker::RespondCompleted) => {
+            FillInputs::Worker { .. } if *action == Action::from(Worker::RespondCompleted) => {
                 Ok(FilledRequest::Completed(RespondActivityTaskCompletedRequest {
                     result: Some(Payloads {
                         payloads: vec![Payload {
@@ -687,7 +722,7 @@ impl umpire_runtime::capability::Fill<Action> for Realization {
                     ..Default::default()
                 }))
             }
-            FillInputs::Worker
+            FillInputs::Worker { .. }
                 if *action == Action::from(Worker::RespondFailed { retryable: true }) =>
             {
                 Ok(FilledRequest::Failed(Box::new(RespondActivityTaskFailedRequest {
@@ -695,7 +730,7 @@ impl umpire_runtime::capability::Fill<Action> for Realization {
                     ..Default::default()
                 })))
             }
-            FillInputs::Worker
+            FillInputs::Worker { .. }
                 if *action == Action::from(Worker::RespondFailed { retryable: false }) =>
             {
                 Ok(FilledRequest::Failed(Box::new(RespondActivityTaskFailedRequest {
@@ -703,7 +738,186 @@ impl umpire_runtime::capability::Fill<Action> for Realization {
                     ..Default::default()
                 })))
             }
+            FillInputs::Worker { details, .. } if *action == Action::from(Worker::Heartbeat) => {
+                Ok(FilledRequest::Heartbeat(RecordActivityTaskHeartbeatRequest {
+                    details: details.clone(),
+                    ..Default::default()
+                }))
+            }
+            FillInputs::Worker { attempt, details }
+                if *action == Action::from(Worker::RespondCanceled(*attempt)) =>
+            {
+                Ok(FilledRequest::Canceled(RespondActivityTaskCanceledRequest {
+                    details: details.clone(),
+                    ..Default::default()
+                }))
+            }
             _ => Err(Refusal::unsupported("action has no activity request for these inputs")),
         }
+    }
+}
+
+impl Realization {
+    /// Derives successful next heartbeat bits from complete compatible Model histories.
+    ///
+    /// # Errors
+    /// Refuses invalid attempts, impossible histories, Model errors or exhausted search bounds.
+    pub fn heartbeat_successors(
+        world: &activity::World,
+        attempt: u8,
+        history: &[bool],
+        max_depth: usize,
+        max_work: usize,
+    ) -> Result<Vec<bool>, Refusal> {
+        use std::{
+            collections::{HashSet, hash_map::DefaultHasher},
+            hash::BuildHasherDefault,
+        };
+        use umpire_checker::search::Traversal;
+        Self::heartbeat_world(world, attempt)?;
+        let catalog = world
+            .checked_catalog(umpire_dsl::CATALOG_LIMIT)
+            .map_err(|error| Refusal::unsupported(format!("heartbeat Model catalog: {error}")))?;
+        let mut search = Traversal::<_, ()>::new(max_depth, max_work);
+        let mut visited = HashSet::<_, BuildHasherDefault<DefaultHasher>>::default();
+        for state in world.starts() {
+            let position = (state, 0_usize, false);
+            visited
+                .try_reserve(1)
+                .map_err(|_| Refusal::unsupported("heartbeat successor allocation bound"))?;
+            if visited.insert(position.clone()) {
+                search.root(position).map_err(Self::heartbeat_search_limit)?;
+            }
+        }
+        let mut bits = [false; 2];
+        while let Some(parent) = search.next() {
+            let (state, cursor, assigned) = search.label(parent).position.clone();
+            if assigned && cursor > history.len() {
+                bits[usize::from(state.cancel_requested)] = true;
+                continue;
+            }
+            if state.attempt > attempt || umpire_dsl::Phase::closed(&state.phase) {
+                continue;
+            }
+            for action in catalog.actions() {
+                let heartbeat = *action == Action::from(Worker::Heartbeat);
+                if assigned && matches!(action, Action::Worker(_)) && !heartbeat {
+                    continue;
+                }
+                search.charge().map_err(Self::heartbeat_search_limit)?;
+                let choices = world.checked_step(&state, action.clone()).map_err(|error| {
+                    Refusal::unsupported(format!("heartbeat Model step: {error}"))
+                })?;
+                for (outcome, _, next) in choices {
+                    if outcome != Outcome::Accepted {
+                        continue;
+                    }
+                    if assigned && (next.phase != Phase::Started || next.attempt != attempt) {
+                        continue;
+                    }
+                    let mut next_cursor = cursor;
+                    if assigned && heartbeat {
+                        if cursor < history.len() && history[cursor] != next.cancel_requested {
+                            continue;
+                        }
+                        next_cursor += 1;
+                    }
+                    let next_assigned = assigned
+                        || (*action == Action::from(Worker::Poll(attempt))
+                            && next.phase == Phase::Started
+                            && next.attempt == attempt);
+                    let position = (next, next_cursor, next_assigned);
+                    if visited.contains(&position) {
+                        continue;
+                    }
+                    visited.try_reserve(1).map_err(|_| {
+                        Refusal::unsupported("heartbeat successor allocation bound")
+                    })?;
+                    visited.insert(position.clone());
+                    search
+                        .push(parent, position, Some(()))
+                        .map_err(Self::heartbeat_search_limit)?;
+                }
+            }
+        }
+        let successors: Vec<_> =
+            [false, true].into_iter().filter(|bit| bits[usize::from(*bit)]).collect();
+        if successors.is_empty() {
+            return Err(Refusal::unsupported(
+                "heartbeat_history has no successful Model continuation",
+            ));
+        }
+        Ok(successors)
+    }
+
+    /// Checks a supplied observable successor declaration independently of its response rows.
+    ///
+    /// # Errors
+    /// Refuses malformed keys, missing/duplicate/impossible bits, or incomplete Model search.
+    pub fn validate_heartbeat_successors(
+        world: &activity::World,
+        declaration: &Any,
+        max_depth: usize,
+        max_work: usize,
+    ) -> Result<(), Refusal> {
+        let declaration: umpire_temporal_api::umpire::temporal::v1::ActivityTaskSuccessors =
+            declaration.unpack()?;
+        let key = declaration
+            .key
+            .as_ref()
+            .ok_or_else(|| Refusal::malformed("heartbeat successor key is missing"))?;
+        if key.scenario.is_empty() || key.activity_type.is_empty() {
+            return Err(Refusal::malformed("heartbeat successor key identity is missing"));
+        }
+        let bits = &declaration.cancel_requested;
+        if bits.is_empty() || bits.len() > 2 || (bits.len() == 2 && bits[0] == bits[1]) {
+            return Err(Refusal::malformed(
+                "heartbeat successor domain requires unique observable bits",
+            ));
+        }
+        let attempt = u8::try_from(key.attempt)
+            .map_err(|_| Refusal::unsupported("heartbeat attempt is outside World"))?;
+        let expected = Self::heartbeat_successors(
+            world,
+            attempt,
+            &key.heartbeat_history,
+            max_depth,
+            max_work,
+        )?;
+        let mut actual = declaration.cancel_requested.clone();
+        actual.sort_unstable();
+        if actual != expected {
+            return Err(Refusal::unsupported(
+                "observable successor domain differs from checked Model histories",
+            ));
+        }
+        Ok(())
+    }
+
+    fn heartbeat_world(world: &activity::World, attempt: u8) -> Result<(), Refusal> {
+        if !(1..=3).contains(&world.maximum_attempts)
+            || !(1..=world.maximum_attempts).contains(&attempt)
+        {
+            return Err(Refusal::unsupported(
+                "heartbeat attempt is outside World.maximum_attempts",
+            ));
+        }
+        for (field, value) in [
+            ("schedule_to_start", world.schedule_to_start),
+            ("start_to_close", world.start_to_close),
+            ("schedule_to_close", world.schedule_to_close),
+            ("heartbeat_timeout", world.heartbeat_timeout),
+        ] {
+            if value.is_some_and(|ticks| !(1..=3).contains(&ticks.0)) {
+                return Err(Refusal::unsupported(format!(
+                    "heartbeat World.{field} is outside 1..=3"
+                )));
+            }
+        }
+        Ok(())
+    }
+
+    fn heartbeat_search_limit(error: umpire_checker::search::SearchLimit) -> Refusal {
+        Refusal::unsupported(format!("heartbeat successor {error}"))
     }
 }

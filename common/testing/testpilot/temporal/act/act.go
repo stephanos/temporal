@@ -42,11 +42,13 @@ const (
 // Options configure the Driver. Namespace and TaskQueue must be the ones the Model's World names;
 // the Driver never reads the World.
 type Options struct {
-	ExecutorKind    string
-	Program         []byte
-	ExecutorVersion string
-	ValidateProgram func([]byte) error
-	Follow          func(context.Context, client.Client, []byte) error
+	ExecutorKind       string
+	Program            []byte
+	ExecutorVersion    string
+	ValidateProgram    func([]byte) error
+	BindWorker         func(context.Context) (WorkerBinding, error)
+	WorkerRPCBudget    uint64
+	WorkerCaptureBytes uint64
 
 	// Address is the frontend's host:port.
 	Address string
@@ -149,6 +151,12 @@ func (o Options) validate() error {
 }
 
 func (o Options) withDefaults() Options {
+	if o.WorkerRPCBudget == 0 {
+		o.WorkerRPCBudget = DefaultWorkerRPCBudget
+	}
+	if o.WorkerCaptureBytes == 0 {
+		o.WorkerCaptureBytes = DefaultWorkerCaptureBytes
+	}
 	if o.ExecutorKind == "" {
 		o.ExecutorKind = "raw"
 	}
@@ -183,7 +191,14 @@ type Factory struct {
 
 // NewFactory checks the Options.
 func NewFactory(opts Options) (*Factory, error) {
+	opts.Program = slices.Clone(opts.Program)
+	opts.Redact = slices.Clone(opts.Redact)
+	opts.Transport.DialOptions = slices.Clone(opts.Transport.DialOptions)
+	opts.Transport.ClientTLS = opts.Transport.clientTLS()
 	if err := opts.validate(); err != nil {
+		return nil, err
+	}
+	if err := opts.validateWorker(); err != nil {
 		return nil, err
 	}
 	return &Factory{opts: opts.withDefaults()}, nil
@@ -194,7 +209,7 @@ func (f *Factory) New(ctx context.Context) (runner.Driver, error) {
 	if err := f.provision(ctx); err != nil {
 		return nil, err
 	}
-	return newDriver(f.opts)
+	return newDriver(ctx, f.opts)
 }
 
 func (f *Factory) provision(ctx context.Context) error {
@@ -239,29 +254,27 @@ func dial(opts Options) (*grpc.ClientConn, error) {
 
 // Driver acts on one Temporal deployment for one Run.
 type Driver struct {
-	opts         Options
-	conn         *grpc.ClientConn
-	polls        *pollHold
-	sdk          client.Client
-	workerCancel context.CancelFunc
-	workerDone   chan struct{}
-	workerErr    error
-	workerMu     sync.Mutex
-	closeOnce    sync.Once
-	closeErr     error
-	mu           sync.Mutex
-	exchanges    map[*exchange]bool
-	activities   []*workflowservice.TerminateActivityExecutionRequest
+	opts          Options
+	conn          *grpc.ClientConn
+	polls         *pollHold
+	sdk           client.Client
+	workerCancel  context.CancelFunc
+	workerContext context.Context
+	workerDone    chan struct{}
+	workerErr     error
+	workerBinding WorkerBinding
+	workerCapture *workerCapture
+	workerMu      sync.Mutex
+	closeOnce     sync.Once
+	closeErr      error
+	mu            sync.Mutex
+	exchanges     map[*exchange]bool
+	activities    []*workflowservice.TerminateActivityExecutionRequest
 }
 
-func newDriver(opts Options) (*Driver, error) {
-	if opts.Program != nil {
-		if opts.ValidateProgram == nil || opts.Follow == nil {
-			return nil, errors.New("programmed executor is not configured")
-		}
-		if err := opts.ValidateProgram(opts.Program); err != nil {
-			return nil, err
-		}
+func newDriver(ctx context.Context, opts Options) (*Driver, error) {
+	if err := opts.validateWorker(); err != nil {
+		return nil, err
 	}
 
 	conn, err := dial(opts)
@@ -272,37 +285,56 @@ func newDriver(opts Options) (*Driver, error) {
 	if opts.Program != nil {
 		d.polls = newPollHold()
 		d.polls.timeout = opts.WorkerPollTimeout
-		if err := d.startWorker(); err != nil {
+		if err := d.startWorker(ctx); err != nil {
 			return nil, errors.Join(err, conn.Close())
 		}
 	}
 	return d, nil
 }
 
-func (d *Driver) startWorker() error {
-	ctx, cancel := context.WithCancel(context.Background())
+func (d *Driver) startWorker(parent context.Context) error {
+	ctx, cancel := context.WithCancel(parent)
 	d.workerCancel = cancel
+	d.workerContext = ctx
 	d.workerDone = make(chan struct{})
-	sdk, err := client.NewLazyClient(client.Options{
-		HostPort: d.opts.Address, Namespace: d.opts.Namespace, Credentials: d.opts.Transport.ClientCredentials,
-		Logger:            sdklog.NewStructuredLogger(slog.New(slog.DiscardHandler)),
-		ConnectionOptions: client.ConnectionOptions{TLS: d.opts.Transport.clientTLS(), DialOptions: append(slices.Clone(d.opts.Transport.DialOptions), grpc.WithChainUnaryInterceptor(d.polls.intercept))},
-	})
+	binding, err := d.opts.BindWorker(ctx)
 	if err != nil {
 		cancel()
 		return err
 	}
+	if binding.Follow == nil || binding.Observe == nil || binding.Close == nil {
+		cancel()
+		if binding.Close != nil {
+			return errors.Join(errors.New("worker binding requires Follow, Observe and Close"), binding.Close())
+		}
+		return errors.New("worker binding requires Follow, Observe and Close")
+	}
+	d.workerBinding = binding
+	d.workerCapture, err = newWorkerCapture(d.opts, binding.Observe)
+	if err != nil {
+		cancel()
+		return errors.Join(err, binding.Close())
+	}
+	sdk, err := client.NewLazyClient(client.Options{
+		HostPort: d.opts.Address, Namespace: d.opts.Namespace, Credentials: d.opts.Transport.ClientCredentials,
+		Logger:            sdklog.NewStructuredLogger(slog.New(slog.DiscardHandler)),
+		ConnectionOptions: client.ConnectionOptions{TLS: d.opts.Transport.clientTLS(), DialOptions: append(slices.Clone(d.opts.Transport.DialOptions), grpc.WithChainUnaryInterceptor(d.polls.intercept, d.captureWorker), grpc.WithStatsHandler(completion{}))},
+	})
+	if err != nil {
+		cancel()
+		return errors.Join(err, binding.Close())
+	}
 	d.sdk = sdk
 	go func() {
 		defer close(d.workerDone)
-		err := d.opts.Follow(ctx, sdk, d.opts.Program)
+		err := binding.Follow(ctx, sdk, d.opts.Program)
 		if ctx.Err() == nil {
-			d.workerMu.Lock()
 			if err == nil {
 				err = errors.New("executor stopped before the Run ended")
 			}
-			d.workerErr = err
-			d.workerMu.Unlock()
+			d.workerFault(err)
+		} else if err != nil && d.executionError() != nil {
+			d.workerFault(err)
 		}
 	}()
 	return nil
@@ -391,7 +423,16 @@ func (d *Driver) close() error {
 		d.workerCancel()
 		<-d.workerDone
 	}
+	if d.workerCapture != nil {
+		d.workerCapture.join()
+	}
 	var errs []error
+	if d.workerBinding.Close != nil {
+		errs = append(errs, d.workerBinding.Close())
+	}
+	if workerErr := d.executionError(); workerErr != nil {
+		errs = append(errs, workerErr)
+	}
 	if d.sdk != nil {
 		d.sdk.Close()
 	}
@@ -413,7 +454,20 @@ func (d *Driver) close() error {
 			errs = append(errs, fmt.Errorf("terminate activity %s: %w", activity.GetActivityId(), err))
 		}
 	}
-	return errors.Join(append(errs, d.conn.Close())...)
+	err := errors.Join(append(errs, d.conn.Close())...)
+	if err != nil {
+		var previous *anypb.Any
+		var carrier interface{ Evidence() *anypb.Any }
+		if errors.As(err, &carrier) {
+			previous = carrier.Evidence()
+		}
+		evidence, packErr := d.workerFaultEvidence(previous)
+		if packErr != nil {
+			evidence = previous
+		}
+		return &workerEvidenceError{cause: errors.Join(err, packErr), evidence: evidence}
+	}
+	return nil
 }
 
 // Redact removes the configured fields from an event's evidence.

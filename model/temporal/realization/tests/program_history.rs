@@ -794,3 +794,101 @@ fn unheld_open_cancellation_is_refused_before_a_proposal_becomes_pending() {
         assert_eq!(cancel.action, "Client::Cancel");
     }
 }
+
+#[test]
+fn heartbeat_domains_follow_checked_model_histories() -> Result<(), Box<dyn std::error::Error>> {
+    use umpire_temporal::{Realization, activity};
+    let cooperative = activity::World::new(3, None, None, None, None, true);
+    let atomic = activity::World::new(3, None, None, None, None, false);
+    for attempt in 1..=3 {
+        for (world, history, expected) in [
+            (&cooperative, &[][..], &[false, true][..]),
+            (&cooperative, &[false][..], &[false, true][..]),
+            (&cooperative, &[false, false][..], &[false, true][..]),
+            (&cooperative, &[true][..], &[true][..]),
+            (&cooperative, &[false, true][..], &[true][..]),
+            (&cooperative, &[true, true][..], &[true][..]),
+            (&atomic, &[][..], &[false][..]),
+            (&atomic, &[false][..], &[false][..]),
+        ] {
+            let actual = Realization::heartbeat_successors(world, attempt, history, 64, 200_000)
+                .map_err(|error| error.message)?;
+            assert_eq!(actual, expected, "attempt {attempt}, history {history:?}");
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn successor_manifest_is_checked_independently_of_policy_rows()
+-> Result<(), Box<dyn std::error::Error>> {
+    use umpire_temporal::{Realization, activity};
+    use umpire_temporal_api::umpire::temporal::v1::{ActivityTaskKey, ActivityTaskSuccessors};
+    let world = activity::World::new(1, None, None, None, None, true);
+    for (history, domain, valid) in [
+        (vec![], vec![false, true], true),
+        (vec![], vec![true, false], true),
+        (vec![], vec![false], false),
+        (vec![], vec![true], false),
+        (vec![], vec![], false),
+        (vec![], vec![false, false, true], false),
+        (vec![true], vec![true], true),
+        (vec![true], vec![false, true], false),
+        (vec![false, false], vec![false, true], true),
+    ] {
+        let declaration = ActivityTaskSuccessors {
+            key: Some(ActivityTaskKey {
+                scenario: "policy".into(),
+                attempt: 1,
+                activity_type: "activity".into(),
+                heartbeat_history: history,
+            }),
+            cancel_requested: domain,
+        };
+        let checked = Realization::validate_heartbeat_successors(
+            &world,
+            &Any::pack(&declaration),
+            64,
+            200_000,
+        );
+        assert_eq!(checked.is_ok(), valid, "{declaration:?}");
+    }
+    let unknown = Any {
+        type_url: "type.googleapis.com/unknown.ContinuationDomain".into(),
+        value: Vec::new(),
+    };
+    assert!(Realization::validate_heartbeat_successors(&world, &unknown, 64, 200_000).is_err());
+    let missing_key =
+        Any::pack(&ActivityTaskSuccessors { key: None, cancel_requested: vec![true] });
+    assert!(Realization::validate_heartbeat_successors(&world, &missing_key, 64, 200_000).is_err());
+    let bounded = activity::World::new(
+        3,
+        Some(activity::Ticks(3)),
+        Some(activity::Ticks(3)),
+        Some(activity::Ticks(3)),
+        Some(activity::Ticks(3)),
+        true,
+    );
+    assert_eq!(
+        Realization::heartbeat_successors(&bounded, 2, &[false], 64, 200_000)
+            .map_err(|e| e.message)?,
+        [false, true]
+    );
+    assert_eq!(
+        Realization::heartbeat_successors(&bounded, 2, &[false, true], 64, 200_000)
+            .map_err(|e| e.message)?,
+        [true]
+    );
+    for (world, attempt, history, depth, work, field) in [
+        (&world, 1, &[][..], 0, 200_000, "depth"),
+        (&world, 1, &[][..], 64, 0, "work"),
+        (&world, 1, &[true, false][..], 64, 200_000, "heartbeat_history"),
+        (&world, 2, &[][..], 64, 200_000, "maximum_attempts"),
+    ] {
+        let error = Realization::heartbeat_successors(world, attempt, history, depth, work)
+            .err()
+            .ok_or("expected refusal")?;
+        assert!(error.message.contains(field), "{}", error.message);
+    }
+    Ok(())
+}

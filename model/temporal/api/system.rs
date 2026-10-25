@@ -17,6 +17,7 @@ pub(crate) fn system(repository: &Path) -> System<'static> {
             "PollActivityExecution",
             "RequestCancelActivityExecution",
             "PollActivityTaskQueue",
+            "RecordActivityTaskHeartbeat",
             "RespondActivityTaskCompleted",
             "RespondActivityTaskFailed",
             "RespondActivityTaskCanceled",

@@ -17,6 +17,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"umpire.local/temporal/reference/worker"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
@@ -32,9 +33,9 @@ func (s *namespaceServer) GetSystemInfo(context.Context, *workflowservice.GetSys
 func (s *namespaceServer) DescribeNamespace(context.Context, *workflowservice.DescribeNamespaceRequest) (*workflowservice.DescribeNamespaceResponse, error) {
 	return &workflowservice.DescribeNamespaceResponse{NamespaceInfo: &namespacepb.NamespaceInfo{State: enumspb.NAMESPACE_STATE_REGISTERED}}, nil
 }
-func (s *namespaceServer) PollActivityTaskQueue(ctx context.Context, _ *workflowservice.PollActivityTaskQueueRequest) (*workflowservice.PollActivityTaskQueueResponse, error) {
+func (s *namespaceServer) PollActivityTaskQueue(ctx context.Context, request *workflowservice.PollActivityTaskQueueRequest) (*workflowservice.PollActivityTaskQueueResponse, error) {
 	if !s.delivered.Swap(true) {
-		return &workflowservice.PollActivityTaskQueueResponse{TaskToken: []byte("token"), ScheduledTime: timestamppb.Now(), StartedTime: timestamppb.Now(), StartToCloseTimeout: durationpb.New(time.Hour), ScheduleToCloseTimeout: durationpb.New(time.Hour), ActivityType: &commonpb.ActivityType{Name: "activity"}, Attempt: 1, Header: &commonpb.Header{Fields: map[string]*commonpb.Payload{"umpire-scenario": {Metadata: map[string][]byte{"encoding": []byte("binary/plain")}, Data: []byte("Complete")}}}}, nil
+		return &workflowservice.PollActivityTaskQueueResponse{TaskToken: []byte("token"), WorkflowNamespace: request.GetNamespace(), ScheduledTime: timestamppb.Now(), StartedTime: timestamppb.Now(), StartToCloseTimeout: durationpb.New(time.Hour), ScheduleToCloseTimeout: durationpb.New(time.Hour), ActivityType: &commonpb.ActivityType{Name: "activity"}, Attempt: 1, Header: &commonpb.Header{Fields: map[string]*commonpb.Payload{"umpire-scenario": {Metadata: map[string][]byte{"encoding": []byte("binary/plain")}, Data: []byte("Complete")}}}}, nil
 	}
 	<-ctx.Done()
 	return nil, ctx.Err()
@@ -47,6 +48,13 @@ func (s *namespaceServer) RespondActivityTaskCompleted(_ context.Context, r *wor
 func TestFollowBindsProgramNamespaceAndKeepsTransportHold(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	bridge := worker.NewBridge(ctx)
+	defer func() {
+		if err := bridge.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
+	capture := &sdkCapture{bridge: bridge, completed: make(chan worker.RPC, 128)}
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
@@ -73,7 +81,7 @@ func TestFollowBindsProgramNamespaceAndKeepsTransportHold(t *testing.T) {
 			}
 		}
 		return invoke(ctx, method, request, response, cc, opts...)
-	})}}})
+	}, capture.intercept), grpc.WithStatsHandler(sdkProgressStats{})}}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,7 +104,7 @@ func TestFollowBindsProgramNamespaceAndKeepsTransportHold(t *testing.T) {
 		t.Fatal(err)
 	}
 	done := make(chan error, 1)
-	go func() { done <- Follow(ctx, conn, program) }()
+	go func() { done <- Follow(ctx, conn, program, bridge) }()
 	defer func() {
 		cancel()
 		if err := <-done; err != nil {

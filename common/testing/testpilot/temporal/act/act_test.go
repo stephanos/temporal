@@ -2,6 +2,7 @@ package act
 
 import (
 	"context"
+	"errors"
 	"maps"
 	"net"
 	"sync"
@@ -32,7 +33,6 @@ import (
 // bytes it received.
 type fakeServer struct {
 	address string
-	respond func(method string) ([]byte, error)
 
 	mu       sync.Mutex
 	received map[string][][]byte
@@ -41,9 +41,14 @@ type fakeServer struct {
 
 func newFakeServer(t *testing.T, respond func(method string) ([]byte, error)) *fakeServer {
 	t.Helper()
+	return newFakeServerContext(t, func(_ context.Context, method string) ([]byte, error) { return respond(method) })
+}
+
+func newFakeServerContext(t *testing.T, respond func(context.Context, string) ([]byte, error)) *fakeServer {
+	t.Helper()
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
-	f := &fakeServer{address: listener.Addr().String(), respond: respond, received: map[string][][]byte{}}
+	f := &fakeServer{address: listener.Addr().String(), received: map[string][][]byte{}}
 	server := grpc.NewServer(grpc.ForceServerCodecV2(rawCodec{}), grpc.UnknownServiceHandler(func(_ any, stream grpc.ServerStream) error {
 		method, _ := grpc.MethodFromServerStream(stream)
 		in := new(raw)
@@ -55,14 +60,19 @@ func newFakeServer(t *testing.T, respond func(method string) ([]byte, error)) *f
 		f.received[method] = append(f.received[method], in.data)
 		f.metadata = append(f.metadata, incoming)
 		f.mu.Unlock()
-		data, err := f.respond(method)
+		data, err := respond(stream.Context(), method)
 		if err != nil {
 			return err
 		}
 		return stream.SendMsg(&raw{data: data})
 	}))
-	go func() { _ = server.Serve(listener) }()
-	t.Cleanup(server.Stop)
+	served := make(chan error, 1)
+	go func() { served <- server.Serve(listener) }()
+	t.Cleanup(func() {
+		server.Stop()
+		err := <-served
+		require.True(t, err == nil || errors.Is(err, grpc.ErrServerStopped), "loopback Serve: %v", err)
+	})
 	return f
 }
 
@@ -99,7 +109,7 @@ func packed(t *testing.T, m proto.Message) *anypb.Any {
 func testDriver(t *testing.T, address string, opts Options) *Driver {
 	t.Helper()
 	opts.Address, opts.Namespace, opts.TaskQueue = address, "namespace", "queue"
-	d, err := newDriver(opts.withDefaults())
+	d, err := newDriver(t.Context(), opts.withDefaults())
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = d.Close() })
 	return d
@@ -191,7 +201,7 @@ func TestATransportReplacesThePlaintextDefault(t *testing.T) {
 	server.mu.Unlock()
 	require.NoError(t, x.Respond(t.Context(), event.ID, explained(false)))
 
-	_, err := newDriver(Options{Address: server.address, Namespace: "namespace", TaskQueue: "queue",
+	_, err := newDriver(t.Context(), Options{Address: server.address, Namespace: "namespace", TaskQueue: "queue",
 		Transport: Transport{DialOptions: []grpc.DialOption{grpc.WithChainUnaryInterceptor(probe)}}}.withDefaults())
 	require.Error(t, err, "the Transport's options are used alone, never beside the plaintext default")
 }

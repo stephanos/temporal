@@ -17,14 +17,31 @@ func NewFactory(opts act.Options) (*act.Factory, error) {
 	if opts.ExecutorKind == sdkworker.Kind {
 		opts.ExecutorVersion = sdkworker.Version
 		opts.ValidateProgram = sdkworker.Validate
-		opts.Follow = sdkworker.Follow
 	} else {
 		opts.ExecutorVersion = rawworker.Version
 		opts.ValidateProgram = rawworker.Validate
-		opts.Follow = func(ctx context.Context, conn client.Client, program []byte) error {
-			return rawworker.Follow(ctx, conn.WorkflowService(), program)
-		}
 	}
+	executor := opts.ExecutorKind
+	opts.BindWorker = func(ctx context.Context) (act.WorkerBinding, error) {
+		bridge := worker.NewBridge(ctx)
+		return act.WorkerBinding{
+			Follow: func(ctx context.Context, conn client.Client, program []byte) error {
+				if executor == sdkworker.Kind {
+					return sdkworker.Follow(ctx, conn, program, bridge)
+				}
+				return rawworker.Follow(ctx, conn.WorkflowService(), program, bridge)
+			},
+			Observe: func(ctx context.Context, rpc act.WorkerRPC) error {
+				return bridge.Observe(ctx, worker.RPC{
+					Invocation: rpc.Invocation, Sequence: rpc.Sequence, Stage: worker.RPCStage(rpc.Stage), Method: rpc.Method,
+					Request: rpc.Request, Response: rpc.Response, ServerError: rpc.ServerError, CallError: rpc.CallError,
+					TransportError: rpc.TransportError, Sent: rpc.Sent, Answered: rpc.Answered,
+				})
+			},
+			Close: bridge.Close,
+		}, nil
+	}
+
 	validate := opts.ValidateProgram
 	opts.ValidateProgram = func(data []byte) error {
 		program, err := worker.Decode(data)

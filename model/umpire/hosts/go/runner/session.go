@@ -324,7 +324,7 @@ func (r *Runner) execute(ctx context.Context, mode Mode, iteration int, opts Opt
 	err = s.drive(ctx, runCtx, driver, seed, budget)
 	if closer, ok := driver.(io.Closer); ok {
 		if closeErr := closer.Close(); closeErr != nil && err == nil {
-			s.fault(0, "driver close: "+closeErr.Error())
+			s.faultEvidence(0, "driver close: "+closeErr.Error(), errorEvidence(closeErr))
 		}
 	}
 	if err != nil {
