@@ -1,0 +1,12 @@
+import json,os,pathlib,subprocess,time,sys
+p=pathlib.Path(__file__).parent
+packages=json.loads((p/'affected-packages.json').read_text());selection=[v for name in packages for v in ['-p',name]]
+checks=[('apalache-shared', ['cargo', 'test', '--locked', '-p', 'umpire-apalache', '--test', 'main']), ('runtime-shared', ['cargo', 'test', '--locked', '-p', 'umpire-runtime', '--test', 'main']), ('dsl-final', ['cargo', 'test', '--locked', '-p', 'umpire-dsl', '--test', 'main']), ('interpreted-shared', ['cargo', 'test', '--locked', '-p', 'umpire-fixtures', '--test', 'fixtures', 'interpreted::']), ('affected-fmt-final', ['cargo', 'fmt', '--check', '-p', 'umpire-checker', '-p', 'umpire-tla', '-p', 'umpire-tlc', '-p', 'umpire-apalache', '-p', 'umpire-catalog', '-p', 'umpire-catalog-syntax', '-p', 'umpire-catalog-build', '-p', 'umpire-dsl', '-p', 'umpire-dsl-macros', '-p', 'umpire-suite', '-p', 'umpire-runtime', '-p', 'umpire-reference-kettle', '-p', 'umpire-fixtures', '-p', 'umpire-testing']), ('temporal-mirror-fmt', ['rustfmt', '--check', '--edition', '2024', 'temporal/testing/snapshot_ownership.rs']), ('strategy-compile-final', ['cargo', 'test', '--locked', '-p', 'umpire-tlc', '--features', 'strategy-equivalence', '--no-run', '--message-format=json']), ('final-compile', ['cargo', 'test', '--locked', '--no-run', '-p', 'umpire-checker', '-p', 'umpire-tla', '-p', 'umpire-tlc', '-p', 'umpire-apalache', '-p', 'umpire-catalog', '-p', 'umpire-catalog-syntax', '-p', 'umpire-catalog-build', '-p', 'umpire-dsl', '-p', 'umpire-dsl-macros', '-p', 'umpire-suite', '-p', 'umpire-runtime', '-p', 'umpire-reference-kettle', '-p', 'umpire-fixtures', '-p', 'umpire-testing', '--message-format=json'])]
+results=[]
+for name,cmd in checks:
+ print('RUNNING '+name+' '+str(cmd),flush=True);start=time.monotonic()
+ with (p/(name+'.log')).open('w') as out:
+  rc=subprocess.run(['mise','exec','--',*cmd],stdout=out,stderr=subprocess.STDOUT).returncode
+ row={'name':name,'command':['mise','exec','--',*cmd],'exit':rc,'seconds':round(time.monotonic()-start,3),'log':name+'.log','env':{k:os.environ.get(k) for k in ['CARGO_TARGET_DIR','CARGO_BUILD_JOBS','CARGO_INCREMENTAL','CARGO_PROFILE_TEST_DEBUG','CARGO_PROFILE_DEV_DEBUG','RUSTFLAGS','CARGO_ENCODED_RUSTFLAGS','RUST_TEST_THREADS','UMPIRE_BACKENDS','UMPIRE_APALACHE','INSTA_UPDATE']}}
+ results.append(row);(p/'final-check-results2.json').write_text(json.dumps(results,indent=2)+'\n');print('FINISHED '+json.dumps(row),flush=True)
+ if rc:sys.exit(rc)

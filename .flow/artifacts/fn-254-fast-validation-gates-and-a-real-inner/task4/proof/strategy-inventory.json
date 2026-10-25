@@ -1,0 +1,213 @@
+{
+  "binaries": [
+    {
+      "package": "umpire-tlc",
+      "target_kind": "lib",
+      "target": "umpire_tlc",
+      "count": 15,
+      "ignored": 0,
+      "executable": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2544-tests/debug/deps/umpire_tlc-8f0d0eaff2fc89c3",
+      "sha256": "da9f969cfa76bfe7e57278c253b7ebe63b9ab27a342ed7304b202cbb20f22123",
+      "features": [
+        "strategy-equivalence"
+      ],
+      "profile": {
+        "opt_level": "0",
+        "debuginfo": "line-tables-only",
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": true
+      }
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "test",
+      "target": "main",
+      "count": 8,
+      "ignored": 0,
+      "executable": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2544-tests/debug/deps/main-ec530ce1cca0b9ef",
+      "sha256": "dce7d3b97b516e4af98c5fd3a9dd4557f1a1cd3e987426414ac89663a1613711",
+      "features": [
+        "strategy-equivalence"
+      ],
+      "profile": {
+        "opt_level": "0",
+        "debuginfo": "line-tables-only",
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": true
+      }
+    }
+  ],
+  "cases": [
+    {
+      "package": "umpire-tlc",
+      "target_kind": "lib",
+      "target": "umpire_tlc",
+      "test": "decode::tests::observer_only_safety_assignment_keeps_empty_state_refusal",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "lib",
+      "target": "umpire_tlc",
+      "test": "decode::tests::string_and_collection_values_preserve_authored_contents",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "lib",
+      "target": "umpire_tlc",
+      "test": "decode::tests::typed_dump_rejects_missing_extra_wrong_type_and_truncation",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "lib",
+      "target": "umpire_tlc",
+      "test": "runner::batch_tests::batch_protocol_requires_complete_selected_evidence",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "lib",
+      "target": "umpire_tlc",
+      "test": "runner::batch_tests::batch_resource_refusal_does_not_launch_singleton_recovery",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "lib",
+      "target": "umpire_tlc",
+      "test": "runner::batch_tests::singleton_evaluation_stops_recovery_after_current_wave",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "lib",
+      "target": "umpire_tlc",
+      "test": "runner::batch_tests::singleton_output_budget_precedes_later_evaluation_and_stops_new_waves",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "lib",
+      "target": "umpire_tlc",
+      "test": "runner::batch_tests::singleton_recovery_measures_worker_peak_and_owns_each_scratch",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "lib",
+      "target": "umpire_tlc",
+      "test": "runner::tests::counterexample_requires_consecutive_states_and_a_valid_lasso",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "lib",
+      "target": "umpire_tlc",
+      "test": "runner::tests::escaping_cache_symlinks_are_refused_before_creating_files",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "lib",
+      "target": "umpire_tlc",
+      "test": "runner::tests::evaluation_errors_name_the_property_and_state",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "lib",
+      "target": "umpire_tlc",
+      "test": "runner::tests::incomplete_messages_and_exploration_are_refused",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "lib",
+      "target": "umpire_tlc",
+      "test": "runner::tests::located_property_invariants_name_only_the_selected_operator",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "lib",
+      "target": "umpire_tlc",
+      "test": "runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "lib",
+      "target": "umpire_tlc",
+      "test": "runner::tests::typed_module_refuses_inconsistent_declarations_before_spawning",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "test",
+      "target": "main",
+      "test": "controls::real_tlc_batch_evaluation_recovers_original_property_order",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "test",
+      "target": "main",
+      "test": "controls::real_tlc_evaluation_errors_are_typed_and_located",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "test",
+      "target": "main",
+      "test": "controls::real_tlc_failed_batches_preserve_independent_traces",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "test",
+      "target": "main",
+      "test": "controls::real_tlc_healthy_batches_use_at_most_two_model_launches",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "test",
+      "target": "main",
+      "test": "controls::real_tlc_initial_invariant_has_a_typed_counterexample",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "test",
+      "target": "main",
+      "test": "controls::real_tlc_keeps_deadlock_checks_and_refuses_tool_errors",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "test",
+      "target": "main",
+      "test": "controls::real_tlc_maximality_fairness_bounds_and_action_properties",
+      "ignored": false
+    },
+    {
+      "package": "umpire-tlc",
+      "target_kind": "test",
+      "target": "main",
+      "test": "scaling::typed_module_completes_independently_of_a_cut_native_reference",
+      "ignored": false
+    }
+  ],
+  "missing": [],
+  "extra": [],
+  "logical_count": 23,
+  "ignored": 0,
+  "packages": [
+    "umpire-tlc"
+  ],
+  "pass_exact": true
+}

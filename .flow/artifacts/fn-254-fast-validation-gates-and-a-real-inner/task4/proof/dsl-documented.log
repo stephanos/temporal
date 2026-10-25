@@ -1,0 +1,103 @@
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/dev/testing)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/author/dsl)
+warning: unreachable `pub` item
+  --> umpire/author/dsl/tests/main/path_expression_semantics.rs:22:1
+   |
+22 | pub mod world {
+   | ---^^^^^^^^^^
+   | |
+   | help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+   = note: requested on the command line with `-W unreachable-pub`
+
+warning: unreachable `pub` item
+  --> umpire/author/dsl/tests/main/path_expression_semantics.rs:25:5
+   |
+25 |     pub struct Model {
+   |     ---^^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+warning: unreachable `pub` item
+  --> umpire/author/dsl/tests/main/path_expression_semantics.rs:29:5
+   |
+29 |     pub enum User {
+   |     ---^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+warning: unreachable `pub` item
+  --> umpire/author/dsl/tests/main/path_language_patterns.rs:10:1
+   |
+10 | pub mod world {
+   | ---^^^^^^^^^^
+   | |
+   | help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+warning: unreachable `pub` item
+  --> umpire/author/dsl/tests/main/path_language_patterns.rs:13:5
+   |
+13 |     pub struct Model {
+   |     ---^^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+warning: unreachable `pub` item
+  --> umpire/author/dsl/tests/main/path_language_patterns.rs:17:5
+   |
+17 |     pub enum User {
+   |     ---^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+warning: unreachable `pub` item
+ --> umpire/author/dsl/tests/main/path_leading_patterns.rs:8:1
+  |
+8 | pub mod world {
+  | ---^^^^^^^^^^
+  | |
+  | help: consider restricting its visibility: `pub(crate)`
+  |
+  = help: or consider exporting it for use by other crates
+
+warning: unreachable `pub` item
+  --> umpire/author/dsl/tests/main/path_leading_patterns.rs:11:5
+   |
+11 |     pub struct Model {
+   |     ---^^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+warning: unreachable `pub` item
+  --> umpire/author/dsl/tests/main/path_leading_patterns.rs:15:5
+   |
+15 |     pub enum User {
+   |     ---^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+warning: `umpire-dsl` (test "main") generated 9 warnings (run `cargo fix --test "main" -p umpire-dsl` to apply 9 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.59s
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2544-tests/debug/deps/main-b2aa29d86a0b8236)
+
+running 2 tests
+test readme::readme_matches_compiled_parameterized_example ... ok
+test readme::parameterized::selected_world ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 56 filtered out; finished in 0.00s
+

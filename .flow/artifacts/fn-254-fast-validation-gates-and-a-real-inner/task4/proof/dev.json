@@ -1,0 +1,43 @@
+{
+  "migrations": [
+    {
+      "package": "umpire-testing",
+      "old_target": "declared_values",
+      "new_target": "main",
+      "prefix": "declared_values::"
+    },
+    {
+      "package": "umpire-testing",
+      "old_target": "discovery",
+      "new_target": "main",
+      "prefix": "discovery::"
+    },
+    {
+      "package": "umpire-testing",
+      "old_target": "empty_control",
+      "new_target": "main",
+      "prefix": "empty_control::"
+    },
+    {
+      "package": "umpire-testing",
+      "old_target": "orphan_control",
+      "new_target": "main",
+      "prefix": "orphan_control::"
+    },
+    {
+      "package": "umpire-fixtures",
+      "old_target": "interpreted",
+      "new_target": "fixtures",
+      "prefix": "interpreted::"
+    }
+  ],
+  "exceptions": {
+    "umpire-testing/consumers": "child --exact runner_child and per-process environment identity",
+    "umpire-testing/external_consumers": "child --exact external_runner_child and process environment identity",
+    "umpire-testing/native_backend": "child --exact lifted_values_select_typed_backend_hook and environment identity",
+    "umpire-testing/suite_consumers": "static CALLS plus child --exact runner_child",
+    "umpire-testing/fixture_composition": "process-global static CALLS",
+    "umpire-fixtures/fixtures": "explicit autotests=false root harness retained as combined target; generated crate-root fixture modules and all existing fixture test names stay unchanged"
+  },
+  "linker": "No lld or mold on PATH and no pinned alternative available; no configuration change or dependency campaign. Historical link-only attribution unknown."
+}

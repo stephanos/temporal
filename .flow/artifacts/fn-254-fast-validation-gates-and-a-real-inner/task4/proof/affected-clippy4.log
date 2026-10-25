@@ -1,0 +1,51 @@
+   Compiling umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/reference/kettle)
+    Checking umpire-fixtures v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/dev/fixtures)
+    Checking umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/author/dsl)
+    Checking umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/catalog)
+    Checking umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/backends/tlc)
+    Checking umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/dev/testing)
+    Checking umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/backends/tla)
+    Checking umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/protocol/runtime)
+error: unused import: `crate::support`
+ --> umpire/protocol/runtime/tests/main/annotations.rs:3:5
+  |
+3 | use crate::support;
+  |     ^^^^^^^^^^^^^^
+  |
+  = note: `-D unused-imports` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(unused_imports)]`
+
+error: unreachable `pub` item
+  --> umpire/protocol/runtime/tests/main/rejecting.rs:10:1
+   |
+10 | pub mod invalid {
+   | ---^^^^^^^^^^^^
+   | |
+   | help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+   = note: `-D unreachable-pub` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unreachable_pub)]`
+
+error: unreachable `pub` item
+  --> umpire/protocol/runtime/tests/main/rejecting.rs:15:5
+   |
+15 |     pub struct Model {
+   |     ---^^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+error: unreachable `pub` item
+  --> umpire/protocol/runtime/tests/main/rejecting.rs:23:5
+   |
+23 |     pub enum User {
+   |     ---^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+error: could not compile `umpire-runtime` (test "main") due to 4 previous errors
+warning: build failed, waiting for other jobs to finish...

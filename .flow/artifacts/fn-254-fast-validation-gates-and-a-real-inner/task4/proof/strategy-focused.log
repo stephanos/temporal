@@ -1,0 +1,22 @@
+warning: missing documentation for the crate
+ --> umpire/backends/tlc/tests/main.rs:1:1
+  |
+1 | / #![forbid(unsafe_code)]
+2 | |
+3 | | #[path = "main/controls.rs"]
+4 | | mod controls;
+5 | | #[path = "main/scaling.rs"]
+6 | | mod scaling;
+  | |____________^
+  |
+  = note: requested on the command line with `-W missing-docs`
+
+warning: `umpire-tlc` (test "main") generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2544-tests/debug/deps/main-ec530ce1cca0b9ef)
+
+running 1 test
+test controls::real_tlc_failed_batches_preserve_independent_traces ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 57.44s
+

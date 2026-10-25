@@ -1,0 +1,66 @@
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/author/dsl)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.19s
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2544-tests/debug/deps/main-b2aa29d86a0b8236)
+
+running 58 tests
+test action_inputs_builders::const_generic_actor_builders_enumerate_the_declared_variant ... ok
+test action_inputs_builders::finish_payload_field_can_be_selected_or_left_at_its_declared_domain ... ok
+test catalog_tests::borrowed_outcome_classification_needs_no_value_traits_and_missing_is_unknown ... ok
+test catalog_tests::fault_catalog_and_actor_projection_are_typed_and_independent_of_internal ... ok
+test catalog_tests::stock_catalog_declares_every_outcome_even_when_never_emitted ... ok
+test catalog_tests::one_typed_consumer_accepts_state_and_world_paths_for_each_outcome_type ... ok
+test closable::closure_checks_separate_phase_state_and_entity_specific_rejection ... ok
+test declared_world::selected_world_reaches_handlers_claims_scopes_and_computed_starts ... ok
+test finite_domains::admission_counts_every_domain_before_materializing ... ok
+test finite_domains::checked_catalog_records_declared_variant_counts_including_empty ... ok
+test finite_domains::concrete_world_dependent_values_infer_typed_paths ... ok
+test finite_domains::finite_domains_enumerate_in_declaration_order ... ok
+test finite_domains::finite_fields_mix_with_explicit_domains_last_field_fastest ... ok
+test finite_domains::generic_finite_fields_keep_authored_bounds ... ok
+test finite_domains::one_range_declaration_supplies_checked_construction ... ok
+test optional_values::local_newtypes_export_once_for_world_state_and_repeated_fields ... ok
+test finite_domains::two_worlds_of_one_type_select_their_own_domains ... ok
+test optional_values::nominal_export_preserves_wider_native_only_declarations ... ok
+test optional_values::scalar_accessors_reconstruct_both_shapes_and_leave_bounds_to_authored_claims ... ok
+test outcome::a_field_comparison_named_reject_keeps_unit_outcomes ... ok
+test outcome::a_literal_rejection_inside_a_helper_macro_selects_step_outcomes ... ok
+test outcome::frames_do_not_leak_between_threads ... ok
+test outcome::inactive_nested_and_unwinding_frames_restore_the_enclosing_outcome ... ok
+test outcome::rejecting_returns_only_from_the_helper_and_keeps_the_first_rejection ... ok
+test outcome::the_lifted_stock_outcome_spells_every_native_outcome ... ok
+test path_domains::empty_alternatives_still_require_storage_admission ... ok
+test path_domains::repeated_domain_choices_do_not_describe_every_occurrence_as_its_first_value ... ok
+test path_domains::state_path_case_budget_is_checked_before_cloning_waypoints ... ok
+test path_domains::wide_ranges_keep_boundary_values_and_refuse_unrepresentable_counts ... ok
+test path_expression_semantics::exact_repetition_evaluates_its_count_once ... ok
+test path_expression_semantics::outcome_alternatives_share_one_owned_action_expression ... ok
+test path_expression_semantics::qualified_state_struct_expressions_and_nested_closures_keep_rust_inference ... ok
+test path_expression_semantics::waypoint_expressions_are_evaluated_in_authored_order ... ok
+test path_language_patterns::borrowed_outcome_alternatives_need_neither_clone_nor_equality ... ok
+test path_language_patterns::empty_and_reversed_domains_keep_zero_cases_and_zero_repetition_keeps_one ... ok
+test path_language_patterns::empty_products_and_empty_repetitions_do_not_expand_unreachable_prefixes ... ok
+test path_language_patterns::enumerates_fresh_choices_in_repetitions_and_positional_permutations ... ok
+test path_language_patterns::exclusion_predicates_are_typed_and_do_not_change_explicit_endpoint ... ok
+test path_language_patterns::manual_world_predicates_keep_lexically_shadowed_state_bindings ... ok
+test path_language_patterns::manual_world_selection_keeps_authored_predicate_and_waypoint_constraints ... ok
+test path_language_patterns::exact_singleton_repetition_expands_linearly_and_storage_has_its_own_limit ... ok
+test path_language_patterns::state_budget_and_structured_append_preserve_constraints ... ok
+test path_language_patterns::state_paths_infer_closures_and_take_their_types_from_use ... ok
+test path_language_patterns::structured_inputs_and_actor_wildcards_keep_full_declared_domains ... ok
+test path_language_patterns::zero_products_and_zero_repetitions_annihilate_overflowing_subpatterns ... ok
+test path_leading_patterns::leading_structures_infer_nested_and_trailing_state_predicates ... ok
+test path_leading_patterns::outer_state_members_in_shadowing_initializers_still_infer_the_owner ... ok
+test path_leading_patterns::structural_seeding_preserves_source_order_and_evaluates_values_once ... ok
+test readme::parameterized::selected_world ... ok
+test readme::readme_matches_compiled_parameterized_example ... ok
+test replay_values::implicit_world_exports_state_payload_and_outcome ... ok
+test replay_values::start_failure_checks_only_the_selected_prefix ... ok
+test replay_values::start_projection_preserves_the_field_integer_width ... ok
+test replay_values::unsupported_projection_keeps_native_model_usable ... ok
+test replay_values::vector_projection_preserves_order ... ok
+test world::constructor_and_value_traits_do_not_require_copy_or_default ... ok
+test world_dispatch::world_access_keeps_all_step_and_rejection_branches ... ok
+test path_language_patterns::refuses_counts_before_constructing_alternatives ... ok
+
+test result: ok. 58 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+

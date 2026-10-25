@@ -1,0 +1,169 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling serde_core v1.0.229
+   Compiling libc v0.2.191
+   Compiling getrandom v0.4.3
+   Compiling rustix v1.1.5
+   Compiling prettyplease v0.3.0
+   Compiling equivalent v1.0.3
+   Compiling hashbrown v0.17.1
+   Compiling syn v3.0.9
+   Compiling indexmap v2.14.2
+   Compiling thiserror v2.0.21
+   Compiling smallvec v1.16.3
+   Compiling proc-macro-utils v0.10.0
+   Compiling heck v0.5.0
+   Compiling manyhow-macros v0.14.1
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/author/dsl/macros)
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/ir/derive)
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/ir)
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/front)
+   Compiling proc-macro-crate v3.5.0
+   Compiling manyhow v0.14.1
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/backends/native)
+    Checking bytemuck v1.25.2
+    Checking safe_arch v0.7.4
+    Checking foldhash v0.1.5
+    Checking rand_core v0.9.5
+    Checking rand_xoshiro v0.7.0
+    Checking hashbrown v0.15.5
+    Checking wide v0.7.33
+    Checking fixedbitset v0.5.7
+    Checking rand_core v0.10.1
+    Checking cfg-if v1.0.5
+    Checking archery v1.2.3
+    Checking imbl-sized-chunks v0.2.0
+    Checking imbl v7.0.2
+    Checking petgraph v0.8.3
+    Checking rustc-hash v2.1.3
+    Checking linux-raw-sys v0.12.1
+    Checking bitflags v2.13.2
+    Checking fastrand v2.5.0
+    Checking once_cell v1.21.4
+    Checking tempfile v3.27.0
+   Compiling syn v2.0.119
+   Compiling prettyplease v0.2.37
+   Compiling regex-syntax v0.8.11
+   Compiling prost-derive v0.14.4
+   Compiling bytes v1.12.1
+   Compiling prost v0.14.4
+   Compiling regex-automata v0.4.18
+   Compiling regex v1.13.1
+   Compiling prost-types v0.14.4
+    Checking typenum v1.20.1
+   Compiling prost-build v0.14.4
+    Checking hybrid-array v0.4.15
+    Checking console v0.16.6
+    Checking similar v2.7.0
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/protocol/runtime)
+    Checking insta v1.49.0
+    Checking crypto-common v0.2.2
+    Checking block-buffer v0.12.1
+    Checking const-oid v0.10.2
+    Checking cpufeatures v0.3.1
+    Checking digest v0.11.3
+    Checking sha2 v0.11.1
+   Compiling darling_core v0.24.1
+    Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/backends/process)
+    Checking umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/backends/tla)
+   Compiling darling_macro v0.24.1
+   Compiling zmij v1.0.23
+    Checking winnow v1.0.4
+    Checking toml_parser v1.1.5+spec-1.1.0
+   Compiling serde_json v1.0.154
+   Compiling serde_derive v1.0.229
+    Checking memchr v2.8.3
+    Checking itoa v1.0.18
+   Compiling serde v1.0.229
+   Compiling target-tuple v1.0.2
+   Compiling darling v0.24.1
+    Checking umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/backends/tlc)
+    Checking serde_spanned v1.1.2
+    Checking toml_writer v1.1.3+spec-1.1.0
+    Checking toml v1.1.8+spec-1.1.0
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/catalog/syntax)
+    Checking glob v0.3.4
+    Checking termcolor v1.4.1
+    Checking trybuild v1.0.122
+    Checking umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/dev/testing)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/author/suite)
+    Checking ident_case v1.0.1
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/catalog/macros)
+    Checking umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/catalog)
+    Checking umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/author/umpire)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/catalog/build)
+   Compiling num-traits v0.2.19
+    Checking wait-timeout v0.2.1
+    Checking fnv v1.0.7
+    Checking bit-vec v0.10.1
+    Checking quick-error v1.2.3
+   Compiling umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/reference/kettle)
+    Checking rusty-fork v0.3.1
+    Checking bit-set v0.11.1
+    Checking rand v0.10.3
+    Checking chacha20 v0.10.2
+    Checking rand_xorshift v0.5.0
+    Checking unarray v0.1.4
+    Checking core_detect v1.0.0
+    Checking either v1.19.0
+    Checking itertools v0.14.0
+    Checking proptest v1.12.0
+    Checking multimap v0.10.1
+    Checking log v0.4.34
+   Compiling umpire-fixtures v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/dev/fixtures)
+    Checking umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/backends/apalache)
+error: missing documentation for the crate
+ --> umpire/catalog/build/tests/main.rs:1:1
+  |
+1 | / #![forbid(unsafe_code)]
+2 | |
+3 | | #[path = "main/mirrors.rs"]
+4 | | mod mirrors;
+... |
+7 | | #[path = "main/wire_generated.rs"]
+8 | | mod wire_generated;
+  | |___________________^
+  |
+  = note: `-D missing-docs` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(missing_docs)]`
+
+error: could not compile `umpire-catalog-build` (test "main") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: file is loaded as a module multiple times: `umpire/backends/apalache/tests/main/../fixtures/arithmetic_prefix.rs`
+  |
+  = help: replace all but one `mod` item with `use` items
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#duplicate_mod
+  = note: `-D clippy::duplicate-mod` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(clippy::duplicate_mod)]`
+
+error: file is loaded as a module multiple times: `umpire/backends/apalache/tests/main/../fixtures/replay.rs`
+  |
+  = help: replace all but one `mod` item with `use` items
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#duplicate_mod
+
+error: file is loaded as a module multiple times: `umpire/backends/apalache/tests/main/../../../../dev/fixtures/fixtures/sample_kettle/model.rs`
+  |
+  = help: replace all but one `mod` item with `use` items
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#duplicate_mod
+
+error: missing documentation for the crate
+ --> umpire/backends/apalache/tests/main.rs:1:1
+  |
+1 | / #![forbid(unsafe_code)]
+2 | |
+3 | | #[path = "main/controls.rs"]
+4 | | mod controls;
+... |
+7 | | #[path = "main/replay.rs"]
+8 | | mod replay;
+  | |___________^
+  |
+  = note: `-D missing-docs` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(missing_docs)]`
+
+error: could not compile `umpire-apalache` (test "main") due to 4 previous errors

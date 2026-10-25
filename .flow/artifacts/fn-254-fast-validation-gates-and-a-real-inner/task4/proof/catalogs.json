@@ -1,0 +1,436 @@
+{
+  "base_commit": "76408c558588eec6e226335c54f42f8bf2e5f496",
+  "baseline": "not run: parent owns integrated inventory/build/test gates; this lane prohibited from Cargo builds/tests",
+  "targets": [
+    {
+      "package": "umpire-catalog",
+      "old_target": "admission",
+      "old_path": "model/umpire/catalog/tests/admission.rs",
+      "old_sha256": "4df70f0d1501d3cc45cd210aff29798896af20570a7a16ecf2adc2b79d0f3a53",
+      "identity_rule": "admission:<test> => admission:<test>",
+      "test_functions": [
+        "declarations_reject_unclassified_or_incompatible_shapes"
+      ],
+      "new_target": "admission",
+      "new_path": "model/umpire/catalog/tests/admission.rs",
+      "module": null,
+      "exception": "trybuild admission cases must retain dedicated target and unchanged case paths"
+    },
+    {
+      "package": "umpire-catalog",
+      "old_target": "black_box",
+      "old_path": "model/umpire/catalog/tests/black_box.rs",
+      "old_sha256": "dd61129d64a5ff29fcd99526435505555d41604eb28d2413e3b1bdb736bf5d7f",
+      "identity_rule": "black_box:<test> => main:black_box::<test>",
+      "test_functions": [
+        "generic_cases_need_any_rejection_explanation_but_keep_unexplained_failures",
+        "crossed_actual_status_cannot_confirm_a_predicted_rejection",
+        "independent_mutations_include_unannotated_fields_and_explicit_refusals",
+        "typed_scalar_mutations_are_independent_of_catalog_constraints",
+        "mutation_admission_preserves_distinct_diagnostic_matches_and_refusals",
+        "only_actual_unpredicted_rejections_are_unannotated_failures"
+      ],
+      "new_target": "main",
+      "new_path": "model/umpire/catalog/tests/main/black_box.rs",
+      "module": "black_box"
+    },
+    {
+      "package": "umpire-catalog",
+      "old_target": "catalog",
+      "old_path": "model/umpire/catalog/tests/catalog.rs",
+      "old_sha256": "388e5474a408869b7ad4f2ffceb45d11a17d52ab1054dfc69be7ece0ee517f2d",
+      "identity_rule": "catalog:<test> => main:catalog::<test>",
+      "test_functions": [
+        "typed_catalog_validates_the_actual_field",
+        "string_byte_limits_are_distinct_from_unicode_scalar_limits",
+        "kind_constraints_have_positive_and_negative_controls",
+        "presence_operators_validate_and_guide_fill",
+        "presence_admission_rejects_aliases_of_the_same_field",
+        "distinct_presence_fields_accept_relative_and_qualified_paths",
+        "presence_fill_preserves_unrelated_generated_fields",
+        "presence_fill_ignores_unrelated_optional_fields",
+        "impossible_presence_rules_refuse_without_mutating_message_or_rng",
+        "request_admission_retains_typed_diagnostics",
+        "tags_admit_only_compatible_consequences",
+        "repeated_constraints_and_seeded_filling",
+        "fills_every_generative_kind_and_refuses_impossible_constraints",
+        "fill_preserves_roles_and_is_atomic_on_missing_external_secrets",
+        "gap_goldens_are_derived_from_validation_and_redact_secret_values"
+      ],
+      "new_target": "main",
+      "new_path": "model/umpire/catalog/tests/main/catalog.rs",
+      "module": "catalog"
+    },
+    {
+      "package": "umpire-catalog",
+      "old_target": "controls",
+      "old_path": "model/umpire/catalog/tests/controls.rs",
+      "old_sha256": "0dd4485e651eb3a6d80ee67f76f80d4673c8d7c45801dd951c1032d830455236",
+      "identity_rule": "controls:<test> => main:controls::<test>",
+      "test_functions": [
+        "unknown_enum_numbers_are_refused",
+        "typed_projection_fills_and_validates_actual_wrapper_fields",
+        "ignored_rust_shapes_preserve_their_values",
+        "generated_catalogs_retain_executable_declaration_metadata"
+      ],
+      "new_target": "main",
+      "new_path": "model/umpire/catalog/tests/main/controls.rs",
+      "module": "controls"
+    },
+    {
+      "package": "umpire-catalog",
+      "old_target": "derive_catalog",
+      "old_path": "model/umpire/catalog/tests/derive_catalog.rs",
+      "old_sha256": "43b00bff790a9c8333b1ae30a72e861c55b3c22d7a5309777ef8217feebc2e18",
+      "identity_rule": "derive_catalog:<test> => derive_catalog:<test>",
+      "test_functions": [
+        "repeated_constraints_retain_request_and_response_expectations",
+        "factories_validate_typed_attributes_and_keep_supplemental_intents",
+        "generated_identifier_fill_is_stable_and_preserves_supplied_values",
+        "nested_inspection_visits_repeated_and_oneof_messages",
+        "enum_raw_duration_and_scalar_repeated_views_keep_their_semantics",
+        "disabled_enum_constraint_accepts_unknown_values_and_needs_no_request_expectation"
+      ],
+      "new_target": "derive_catalog",
+      "new_path": "model/umpire/catalog/tests/derive_catalog.rs",
+      "module": null,
+      "exception": "Default derive context resolves through crate::CatalogContext. Dedicated target preserves coverage of default resolution with a crate-root alias incompatible with the other targets; conductor approved retention."
+    },
+    {
+      "package": "umpire-catalog",
+      "old_target": "generation",
+      "old_path": "model/umpire/catalog/tests/generation.rs",
+      "old_sha256": "607cb72352056ebf0d96d988b845a62dc52167a9ea0e520e081d125e6f5b21d3",
+      "identity_rule": "generation:<test> => main:generation::<test>",
+      "test_functions": [
+        "presence_filling_uses_present_scalar_candidates",
+        "generated_text_satisfies_byte_and_scalar_bounds_together",
+        "required_substring_can_be_supplied_by_the_suffix",
+        "exact_length_anchors_preserve_partial_overlap",
+        "anchored_generation_matches_small_exhaustive_string_domains",
+        "unique_repeated_times_sample_the_allowed_domain",
+        "unique_strings_use_the_permitted_scalar_and_byte_domains",
+        "bounded_unique_sampling_refuses_without_claiming_unsatisfiability",
+        "zero_maximum_repeated_length_is_fillable",
+        "numeric_range_semantics_match_protovalidate_endpoint_combinations"
+      ],
+      "new_target": "main",
+      "new_path": "model/umpire/catalog/tests/main/generation.rs",
+      "module": "generation"
+    },
+    {
+      "package": "umpire-catalog",
+      "old_target": "generic_probe",
+      "old_path": "model/umpire/catalog/tests/generic_probe.rs",
+      "old_sha256": "d11d37c483ffe5379c2aefd7b68595eed0b446b847c2c874b5a3bae5c232bafc",
+      "identity_rule": "generic_probe:<test> => main:generic_probe::<test>",
+      "test_functions": [
+        "lazy_canonical_metadata_never_replaces_current_request_validation",
+        "failed_canonical_initialization_is_not_published"
+      ],
+      "new_target": "main",
+      "new_path": "model/umpire/catalog/tests/main/generic_probe.rs",
+      "module": "generic_probe"
+    },
+    {
+      "package": "umpire-catalog",
+      "old_target": "ignored",
+      "old_path": "model/umpire/catalog/tests/ignored.rs",
+      "old_sha256": "d484e63793ec4f83de2a0047383f89cf1ee739aa3603b654997167a24f1d8b77",
+      "identity_rule": "ignored:<test> => main:ignored::<test>",
+      "test_functions": [
+        "ignored_projection_retains_payload_type_and_redacts_oneof",
+        "ignored_opaque_fields_preserve_types_and_redact_secrets",
+        "ignored_opaque_fields_require_reasons_and_refuse_presence_dependencies",
+        "ignored_opaque_fields_refuse_semantic_kinds_and_byte_constraints"
+      ],
+      "new_target": "main",
+      "new_path": "model/umpire/catalog/tests/main/ignored.rs",
+      "module": "ignored"
+    },
+    {
+      "package": "umpire-catalog",
+      "old_target": "kettle",
+      "old_path": "model/umpire/catalog/tests/kettle.rs",
+      "old_sha256": "0d91fd6ea887c80802aed1e780e2b7d1296a3784ad5076805f1730426811ee09",
+      "identity_rule": "kettle:<test> => main:kettle::<test>",
+      "test_functions": [
+        "independent_context_controls_inspection_and_identifier_fill",
+        "shared_message_transport_keeps_response_bytes_and_fills_only_requests",
+        "probe_recipe_retains_literal_runs_integrity_and_bound"
+      ],
+      "new_target": "main",
+      "new_path": "model/umpire/catalog/tests/main/kettle.rs",
+      "module": "kettle"
+    },
+    {
+      "package": "umpire-catalog",
+      "old_target": "message_map",
+      "old_path": "model/umpire/catalog/tests/message_map.rs",
+      "old_sha256": "5e4dcf62ada919ecb2f6ebbb72e10ff99f306d845d1a6c98826aa3224438096a",
+      "identity_rule": "message_map:<test> => message_map:<test>",
+      "test_functions": [
+        "message_maps_round_trip_and_validate_actual_nested_values"
+      ],
+      "new_target": "message_map",
+      "new_path": "model/umpire/catalog/tests/message_map.rs",
+      "module": null,
+      "exception": "Default derive context resolves through crate::CatalogContext. Dedicated target preserves coverage of default resolution with a crate-root alias incompatible with the other targets; conductor approved retention."
+    },
+    {
+      "package": "umpire-catalog",
+      "old_target": "probe",
+      "old_path": "model/umpire/catalog/tests/probe.rs",
+      "old_sha256": "b3e9b279ac1078255be43a24300b71a4cfc5c985c9fc53c9ca622dac5292f6c4",
+      "identity_rule": "probe:<test> => main:probe::<test>",
+      "test_functions": [
+        "any_of_attributes_each_field_but_every_probe_omits_all_alternatives",
+        "enumerates_each_omission_and_verifies_real_negative_witnesses",
+        "refuses_invalid_baselines_forged_cases_and_ineffective_mutation",
+        "coverage_requires_each_unique_identity_and_observable_results",
+        "live_result_checks_each_expected_diagnostic_independently",
+        "witnesses_cover_typed_kinds_and_repeated_constraints",
+        "witnesses_cover_presence_algebra_and_required_variant"
+      ],
+      "new_target": "main",
+      "new_path": "model/umpire/catalog/tests/main/probe.rs",
+      "module": "probe"
+    },
+    {
+      "package": "umpire-catalog",
+      "old_target": "projected_oneof",
+      "old_path": "model/umpire/catalog/tests/projected_oneof.rs",
+      "old_sha256": "97745e154c82102e849f68b8ac3b766b4cb9712edc2895eb9c9247843dec47b4",
+      "identity_rule": "projected_oneof:<test> => main:projected_oneof::<test>",
+      "test_functions": [
+        "projected_oneof_tracks_source_paths_and_selected_empty_payloads"
+      ],
+      "new_target": "main",
+      "new_path": "model/umpire/catalog/tests/main/projected_oneof.rs",
+      "module": "projected_oneof"
+    },
+    {
+      "package": "umpire-catalog",
+      "old_target": "raw_field",
+      "old_path": "model/umpire/catalog/tests/raw_field.rs",
+      "old_sha256": "81b04f41a209155dc28e0b2f1085da1517f99fe12552dc0c08267a35a302fb79",
+      "identity_rule": "raw_field:<test> => main:raw_field::<test>",
+      "test_functions": [
+        "keyword_field_uses_the_source_path"
+      ],
+      "new_target": "main",
+      "new_path": "model/umpire/catalog/tests/main/raw_field.rs",
+      "module": "raw_field"
+    },
+    {
+      "package": "umpire-catalog",
+      "old_target": "response_checks",
+      "old_path": "model/umpire/catalog/tests/response_checks.rs",
+      "old_sha256": "58a1b235b2120e2cdfe002e6b5261e5a465d60a293408342f53f83dba0618f8d",
+      "identity_rule": "response_checks:<test> => response_checks:<test>",
+      "test_functions": [
+        "raw_checks_run_for_responses_after_request_normalization"
+      ],
+      "new_target": "response_checks",
+      "new_path": "model/umpire/catalog/tests/response_checks.rs",
+      "module": null,
+      "exception": "Default derive context resolves through crate::CatalogContext. Dedicated target preserves coverage of default resolution with a crate-root alias incompatible with the other targets; conductor approved retention."
+    },
+    {
+      "package": "umpire-catalog",
+      "old_target": "runtime",
+      "old_path": "model/umpire/catalog/tests/runtime.rs",
+      "old_sha256": "033f70ffe085f257b888cdf3defeeb1edcaa7b405fa18acf93f01413429aac76",
+      "identity_rule": "runtime:<test> => main:runtime::<test>",
+      "test_functions": [
+        "loose_rejections_match_only_the_declared_status_scope",
+        "flag_and_number_have_typed_presence_and_constraints",
+        "floating_generation_can_fill_a_fractional_interval",
+        "required_number_generation_excludes_absent_zero",
+        "author_metadata_reaches_gap_reports_without_request_values"
+      ],
+      "new_target": "main",
+      "new_path": "model/umpire/catalog/tests/main/runtime.rs",
+      "module": "runtime"
+    },
+    {
+      "package": "umpire-catalog",
+      "old_target": "scalar_carriers",
+      "old_path": "model/umpire/catalog/tests/scalar_carriers.rs",
+      "old_sha256": "7cee3161f2d3d0080c1f5bff28352907e1d605e1f358e0ca75c4b488c42a554e",
+      "identity_rule": "scalar_carriers:<test> => main:scalar_carriers::<test>",
+      "test_functions": [
+        "selected_empty_scalars_are_present_and_map_entries_are_text"
+      ],
+      "new_target": "main",
+      "new_path": "model/umpire/catalog/tests/main/scalar_carriers.rs",
+      "module": "scalar_carriers"
+    },
+    {
+      "package": "umpire-catalog",
+      "old_target": "string_bytes",
+      "old_path": "model/umpire/catalog/tests/string_bytes.rs",
+      "old_sha256": "9b28b54353175bd511885b3f15f7d0eaee2730aac56796b343427d81b4aedfc8",
+      "identity_rule": "string_bytes:<test> => main:string_bytes::<test>",
+      "test_functions": [
+        "string_byte_rules_expand_into_executable_request_metadata"
+      ],
+      "new_target": "main",
+      "new_path": "model/umpire/catalog/tests/main/string_bytes.rs",
+      "module": "string_bytes"
+    },
+    {
+      "package": "umpire-catalog",
+      "old_target": "ui",
+      "old_path": "model/umpire/catalog/tests/ui.rs",
+      "old_sha256": "562db66f99adefb0ff602e9c0ae42860814de23abe859d134e1838e0a4cb5a17",
+      "identity_rule": "ui:<test> => ui:<test>",
+      "test_functions": [
+        "catalog_requires_every_field_and_enum_variant"
+      ],
+      "new_target": "ui",
+      "new_path": "model/umpire/catalog/tests/ui.rs",
+      "module": null,
+      "exception": "trybuild UI cases must retain dedicated target and unchanged case paths"
+    },
+    {
+      "package": "umpire-catalog",
+      "old_target": "views",
+      "old_path": "model/umpire/catalog/tests/views.rs",
+      "old_sha256": "1cb1d48fbc99c49fc5746dbd487d9d440da22f3b85130c6852764bbc85bf3333",
+      "identity_rule": "views:<test> => main:views::<test>",
+      "test_functions": [
+        "malformed_message_projection_is_a_value_free_refusal_without_mutation",
+        "malformed_generated_message_bytes_propagate_through_catalog_fill",
+        "message_setters_decode_projected_bytes",
+        "time_views_preserve_raw_values_and_write_back",
+        "map_setters_decode_entries_and_projection_is_order_independent",
+        "payload_map_round_trips_through_its_actual_carrier"
+      ],
+      "new_target": "main",
+      "new_path": "model/umpire/catalog/tests/main/views.rs",
+      "module": "views"
+    },
+    {
+      "package": "umpire-catalog-build",
+      "old_target": "mirrors",
+      "old_path": "model/umpire/catalog/build/tests/mirrors.rs",
+      "old_sha256": "b678ad2fcf1ee30f9f42da0105871031bf3cdfbf8c77b8444d045cc5c8ec3416",
+      "identity_rule": "mirrors:<test> => main:mirrors::<test>",
+      "test_functions": [
+        "descriptors_own_structure_and_every_unclaimed_field_has_a_reason",
+        "claimed_variants_and_invalid_claims_fail_admission"
+      ],
+      "new_target": "main",
+      "new_path": "model/umpire/catalog/build/tests/main/mirrors.rs",
+      "module": "mirrors"
+    },
+    {
+      "package": "umpire-catalog-build",
+      "old_target": "neutral",
+      "old_path": "model/umpire/catalog/build/tests/neutral.rs",
+      "old_sha256": "b4f69d21824560aae2e27b6aa5dff90a1fceb8c16ae4c18efaf6237e1a0fb857",
+      "identity_rule": "neutral:<test> => main:neutral::<test>",
+      "test_functions": [
+        "second_service_uses_configured_identity_and_roots",
+        "omitted_field_enum_and_method_are_rejected",
+        "added_method_and_action_break_exhaustive_generated_matches",
+        "an_annotated_rpc_must_be_claimed",
+        "coverage_build_reads_the_explicit_catalog_root_and_descriptor_path",
+        "coverage_build_resolves_feature_claims_against_one_service_table",
+        "payload_classification_binds_every_value_and_rejects_duplicate_variants"
+      ],
+      "new_target": "main",
+      "new_path": "model/umpire/catalog/build/tests/main/neutral.rs",
+      "module": "neutral"
+    },
+    {
+      "package": "umpire-catalog-build",
+      "old_target": "wire_generated",
+      "old_path": "model/umpire/catalog/build/tests/wire_generated.rs",
+      "old_sha256": "e519fbe02295995ca30421b282debd719727c249b4c88cb00df039ce40fd2093",
+      "identity_rule": "wire_generated:<test> => main:wire_generated::<test>",
+      "test_functions": [
+        "generated_wire_setters_compile_and_preserve_carrier_mutations",
+        "shared_names_match_prost_identifier_sanitization"
+      ],
+      "new_target": "main",
+      "new_path": "model/umpire/catalog/build/tests/main/wire_generated.rs",
+      "module": "wire_generated"
+    },
+    {
+      "package": "umpire-catalog-syntax",
+      "old_target": "admission",
+      "old_path": "model/umpire/catalog/syntax/tests/admission.rs",
+      "old_sha256": "18d7f0a4c921489f37e5899fa29eba2b2191070833faf43a91c20fe5c73d6f86",
+      "identity_rule": "admission:<test> => main:admission::<test>",
+      "test_functions": [
+        "derive_catalog_uses_shared_admission_and_discovery",
+        "derive_attributes_preserve_admission_errors",
+        "supplemental_mirrors_do_not_claim_descriptor_coverage",
+        "derive_validates_supplemental_intents_and_nested_map_coverage",
+        "stacked_presence_expectations_may_differ_from_field_constraints",
+        "disabled_derive_enum_constraint_needs_no_expectation",
+        "item_presence_algebra_and_helper_boundaries_are_explicit",
+        "request_constraints_need_expectations",
+        "rpc_classification_names_the_bound_action_variant",
+        "disabled_repeated_constraint_needs_no_request_expectation",
+        "string_byte_constraints_require_typed_literals_and_request_expectations",
+        "oneof_rules_require_known_nonignored_source_aliases_and_projection",
+        "catalog_expansion_accepts_a_caller_owned_context_and_api_root",
+        "native_primitive_wkt_mirrors_refuse_named_field_access",
+        "migrated_ui_refusals_name_the_offending_token"
+      ],
+      "new_target": "main",
+      "new_path": "model/umpire/catalog/syntax/tests/main/admission.rs",
+      "module": "admission"
+    },
+    {
+      "package": "umpire-catalog-syntax",
+      "old_target": "expansion",
+      "old_path": "model/umpire/catalog/syntax/tests/expansion.rs",
+      "old_sha256": "3aa4a31946fbc56f0bc68640bbf665da4ad3af97d23f820ab5debfaa4514fbf7",
+      "identity_rule": "expansion:<test> => main:expansion::<test>",
+      "test_functions": [
+        "executable_expansion_and_source_coverage"
+      ],
+      "new_target": "main",
+      "new_path": "model/umpire/catalog/syntax/tests/main/expansion.rs",
+      "module": "expansion"
+    }
+  ],
+  "snapshots": {
+    "model/umpire/catalog/tests/snapshots/catalog__kind-violations.snap": "859e37327e216d2822c206797ed8225477d59c929ff9e82eb9c06532cb3e81a4",
+    "model/umpire/catalog/tests/snapshots/catalog__presence-violations.snap": "1d996511765cb22ec93b4fc6476ecb420c334cc75d2b92a3de225c3bf569fcdf",
+    "model/umpire/catalog/tests/snapshots/catalog__gaps.snap": "03723d183899094f8e8d927971035493a01867573d471ed260653cdcd17e1c39",
+    "model/umpire/catalog/tests/snapshots/controls__generated-catalog.snap": "eb1b8914525f61da59ea6919c48847166f564ea9f625bcff87fcb9012a36c020",
+    "model/umpire/catalog/tests/snapshots/catalog__admission.snap": "6af9d60fd0457ceb6b9a6a76e2325570ac59f7d25587e88932bbb4b918722336",
+    "model/umpire/catalog/syntax/tests/snapshots/expansion__typed-catalog.snap": "109309b5cc299ae92c25d8345879f324172661afd3b3f833cd1a25cc30dc8b0e"
+  },
+  "tests": "pending integrated parent checks",
+  "manifest_changes": [],
+  "static_validation": {
+    "test_function_names_preserved": true,
+    "unchanged_snapshot_hashes": true,
+    "unchanged_exception_hashes": true,
+    "relative_includes_and_path_modules_resolve": true,
+    "rustfmt": "rustfmt --edition 2024 --config-path model/rustfmt.toml model/umpire/catalog/tests/main.rs model/umpire/catalog/build/tests/main.rs model/umpire/catalog/syntax/tests/main.rs (exit 0)",
+    "diff_check": "git diff --check (exit 0)"
+  },
+  "target_count_before": 24,
+  "target_count_after": 8,
+  "snapshot_note": "All six snapshot files, including source metadata, remain byte-for-byte unchanged. Assertions pin original filenames with prepend_module_to_snapshot=false and ../snapshots relative to relocated assertion files. No snapshot update mode was run.",
+  "external_followups": [
+    {
+      "path": "model/temporal/testing/snapshot_ownership.rs",
+      "line": 28,
+      "old": "cargo test -p umpire-catalog-syntax --test expansion executable_expansion_and_source_coverage",
+      "new": "cargo test -p umpire-catalog-syntax --test main expansion::executable_expansion_and_source_coverage",
+      "owner": "conductor; outside assigned catalog test scope; messaged"
+    }
+  ],
+  "commit": "845eba5065e7a24cdd5d06a15a0736736d85925d",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-catalogs",
+  "status": "in_progress; integrated checks/review/lifecycle owned by conductor",
+  "working_tree_clean": true
+}

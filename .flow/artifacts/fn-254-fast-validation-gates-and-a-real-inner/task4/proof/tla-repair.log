@@ -1,0 +1,130 @@
+   Compiling smallvec v1.16.3
+   Compiling once_cell v1.21.4
+   Compiling proc-macro-utils v0.10.0
+   Compiling tempfile v3.27.0
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/author/dsl/macros)
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/backends/process)
+   Compiling manyhow-macros v0.14.1
+   Compiling manyhow v0.14.1
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/backends/tla)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/backends/tlc)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/backends/native)
+warning: missing documentation for the crate
+  --> umpire/backends/tla/tests/main.rs:1:1
+   |
+ 1 | / #![forbid(unsafe_code)]
+ 2 | |
+ 3 | | #[path = "main/emission.rs"]
+ 4 | | mod emission;
+...  |
+29 | | #[path = "main/world_fairness_binding.rs"]
+30 | | mod world_fairness_binding;
+   | |___________________________^
+   |
+   = note: requested on the command line with `-W missing-docs`
+
+warning: `umpire-tla` (test "main") generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.29s
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2544-tests/debug/deps/main-9d25e90107bd6d25)
+
+running 96 tests
+test emission::real_tlc_empty_half_open_starts_have_no_checked_underflow ... ok
+test emission::real_tlc_preserves_ordered_mutations_and_reports_checked_overflow ... ok
+test inputs::a_fair_unit_variant_named_like_a_fair_position_refuses ... ok
+test inputs::assumptions_naming_values_outside_the_selected_catalog_refuse_as_natively ... ok
+test inputs::catalog_values_outside_their_admitted_types_refuse_at_the_source_declaration ... ok
+test inputs::exact_payload_scopes_and_fairness_specialize_the_variant_relation ... ok
+test inputs::inputs_bind_in_declaration_product_order_keeping_duplicates_and_empty_variants ... ok
+test inputs::inputs_without_a_declared_world_refuse_at_the_variant ... ok
+test inputs::internal_payload_actors_keep_their_classification ... ok
+test inputs::native_domain_forms_lift_from_the_bound_catalog ... ok
+test inputs::payload_patterns_resolve_lexically_through_their_typed_identities ... ok
+test inputs::the_catalog_limit_boundary_binds_and_emits ... ok
+test inputs::the_source_limit_is_the_native_catalog_limit ... ok
+test inputs::unsupported_input_sources_refuse_by_location ... ok
+test narrow_remainder::i16_min_remainder_negative_one_refuses ... ok
+test narrow_remainder::i8_min_remainder_negative_one_refuses ... ok
+test optional_facts::canonical_option_constructor_paths_are_admitted ... ok
+test optional_facts::canonical_optional_imports_preserve_the_existing_fact_carrier ... ok
+test optional_facts::disabled_handler_tail_arithmetic_is_checked_by_both_emitters ... ok
+test optional_facts::fact_tail_world_and_input_references_receive_emitted_names ... ok
+test optional_facts::legacy_unit_fact_metadata_remains_exact ... ok
+test optional_facts::mixed_unit_handler_clears_the_previous_fact_on_every_real_edge ... ok
+test optional_facts::overlapping_action_guards_keep_the_first_matching_fact ... ok
+test optional_facts::prefix_effects_and_locals_feed_the_tail_in_ssa_order ... ok
+test optional_facts::source_only_constructor_swap_changes_both_emitters ... ok
+test optional_facts::unsupported_tail_results_refuse_at_the_source ... ok
+test optional_source::canonical_optional_imports_preserve_builtin_identity ... ok
+test optional_source::canonical_optional_paths_and_nominal_operations ... ok
+test optional_source::option_remains_an_ordinary_fieldless_enum_without_bounded_types ... ok
+test optional_source::optional_spellings_remain_ordinary_scalar_names_without_bounded_types ... ok
+test optional_source::unsupported_optional_sources_refuse_at_source_locations ... ok
+test optional_ticks::binding_preserves_nominal_identity_and_refuses_malformed_fields ... ok
+test optional_ticks::exact_optional_decode_includes_before_observers_and_rejects_wrong_kinds ... ok
+test optional_ticks::optional_complete_starts_keep_whole_row_correlation_and_empty_selection ... ok
+test emission::real_tlc_signed_division_and_remainder_use_rust_rounding ... ok
+test optional_ticks::shared_countdown_keeps_selected_codes_in_all_cfgs_and_before_metadata ... ok
+test optional_ticks::source_local_optional_ticks_are_admitted ... ok
+test phased::admitted_tree_and_constructor_data_grow_linearly ... ok
+test phased::emitted_size_is_linear_in_sequential_conditional_returns ... ok
+test phased::large_handlers_compile_with_their_admitted_data ... ok
+test phased::rejections_lower_to_typed_outcomes_and_kept_self_loops ... ok
+test phased::shared_definitions_never_take_an_authored_name ... ok
+test phased::unsupported_phase_rejection_and_law_forms_refuse_at_their_location ... ok
+test safety::initialization_growth_stays_linear_in_declared_fields ... ok
+test safety::safety_definition_growth_stays_linear ... ok
+test safety::safety_has_typed_history_and_preserving_stutter ... ok
+test safety::safety_history_names_refuse_collisions_and_temporaries_are_hygienic ... ok
+test safety::tlc_declarations_carry_snowcat_types ... ok
+test safety::unsupported_source_type_refuses_at_its_declaration ... ok
+test sequential_checks::failed_check_does_not_hide_a_later_division_failure ... ok
+test shadowing::nested_blocks_and_effect_helpers_preserve_caller_locals ... ok
+test source::a_hook_claim_name_collision_refuses_in_tests_rs ... ok
+test source::a_world_of_another_machine_refuses_at_this_source ... ok
+test source::admission_refuses_type_cfg_resolution_and_observer_collisions ... ok
+test source::enum_helper_and_terminal_postcondition_are_admitted ... ok
+test source::generated_tla_names_refuse_authored_namespace_collisions ... ok
+test source::hand_written_machine_refusal_prints_the_type_as_written ... ok
+test source::hook_refusal_in_tests_rs_names_tests_rs ... ok
+test source::imports_that_can_rebind_a_macro_read_by_name_refuse ... ok
+test source::inherent_enum_into_is_resolved_before_primitive_conversion ... ok
+test source::integer_literal_types_follow_field_context_on_either_side ... ok
+test source::kettle_source_lifts_registered_properties_and_explicit_assumptions ... ok
+test source::path_claims_refuse_builders_chains_and_other_gaps ... ok
+test source::progress_bounds_are_fail_closed ... ok
+test source::pure_same_impl_helper_is_typed_and_lifted ... ok
+test source::repeated_progress_builders_refuse_instead_of_reversing_rust_order ... ok
+test source::the_state_struct_keeps_its_authored_name ... ok
+test source::unsupported_control_characters_refuse_at_the_authored_literal ... ok
+test source::unsupported_expression_refuses_with_source_location ... ok
+test vector::bounded_vector_operations_are_lifted_with_safe_defaulted_get ... ok
+test vector::conditional_guards_preserve_common_bound_facts ... ok
+test vector::length_sums_and_products_refuse_at_their_span ... ok
+test optional_ticks::present_optional_keeps_eager_errors_in_guard_assignment_and_claim ... ok
+test vector::shared_boolean_guards_keep_vector_admission_linear ... ok
+test vector::unrelated_conditionals_preserve_vector_length_identity ... ok
+test vector::unsupported_vector_operations_and_unbounded_growth_refuse ... ok
+test vector::vector_get_keeps_eager_default_failures_when_element_is_present ... ok
+test world::bare_world_and_before_parameters_do_not_resolve_as_source_constants ... ok
+test world::binding_refuses_malformed_world_and_complete_state_values ... ok
+test world::complete_starts_preserve_correlation_deduplicate_and_keep_empty ... ok
+test world::declared_world_computed_starts_admit_before_value_binding ... ok
+test world::generated_world_constants_avoid_synthesized_action_names ... ok
+test vector::real_vector_native_and_tlc_states_and_properties_agree ... ok
+test world::scalar_enum_world_and_sequence_starts_use_the_admitted_types ... ok
+test world::typed_world_signatures_and_outcome_fields_refuse_by_source_location ... ok
+test world::world_free_starts_of_any_name_admit_and_bind ... ok
+test world_fairness_binding::empty_selected_restrictions_keep_existing_refusal_and_empty_fair_lists ... ok
+test world_fairness_binding::every_selected_registration_and_progress_leaf_is_catalog_checked ... ok
+test world_fairness_binding::native_interpretation_selects_before_converting_exact_actions ... ok
+test world_fairness_binding::possible_leaf_names_and_post_selection_aliases_are_reserved ... ok
+test world_fairness_binding::rebinding_reselects_original_conditional_branches_and_preserves_flat_scopes ... ok
+test world_fairness_binding::selected_leaves_keep_authored_world_identity_and_exact_fairness ... ok
+test world_fairness_binding::source_plans_resolve_before_any_action_conversion ... ok
+test world_fairness_binding::unresolved_embedded_plan_cannot_emit_as_an_empty_scope ... ok
+test world_fairness_binding::world_shape_validation_precedes_selection ... ok
+test world::real_tlc_executes_each_cfg_family_with_both_world_bindings ... ok
+
+test result: ok. 96 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 27.45s
+

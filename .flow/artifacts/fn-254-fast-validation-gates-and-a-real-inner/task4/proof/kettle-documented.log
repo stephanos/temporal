@@ -1,0 +1,55 @@
+   Compiling rustix v1.1.5
+   Compiling linux-raw-sys v0.12.1
+   Compiling prettyplease v0.3.0
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/front)
+   Compiling tempfile v3.27.0
+   Compiling prost-build v0.14.4
+   Compiling darling_core v0.24.1
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/author/dsl/macros)
+   Compiling darling_macro v0.24.1
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/author/dsl)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/protocol/runtime)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/backends/native)
+   Compiling darling v0.24.1
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/catalog/build)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/catalog/macros)
+   Compiling winnow v1.0.4
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling serde v1.0.229
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/catalog)
+   Compiling umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/reference/kettle)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/author/suite)
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/author/umpire)
+   Compiling serde_derive v1.0.229
+   Compiling insta v1.49.0
+   Compiling trybuild v1.0.122
+warning: missing documentation for the crate
+  --> umpire/reference/kettle/tests/main.rs:1:1
+   |
+ 1 | / #![forbid(unsafe_code)]
+ 2 | |
+ 3 | | #[path = "main/annotations.rs"]
+ 4 | | mod annotations;
+...  |
+ 9 | | #[path = "main/realization.rs"]
+10 | | mod realization;
+   | |________________^
+   |
+   = note: requested on the command line with `-W missing-docs`
+
+warning: `umpire-reference-kettle` (test "main") generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.50s
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2544-tests/debug/deps/main-b39f7f1423517770)
+
+running 5 tests
+test probes::classification_requires_live_evidence_and_correlated_predictions ... ok
+test probes::inventory_and_preparation_are_deterministic ... ok
+test probes::observations_require_exact_inventory ... ok
+test probes::stateful_prerequisites_and_inapplicable_mutations_never_dispatch ... ok
+test probes::coverage_matches_catalog_golden ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.03s
+

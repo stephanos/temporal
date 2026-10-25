@@ -1,0 +1,31 @@
+Makefile:726:	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library --test $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS) -f -o $(MODEL_BUILD)/model-conventions.jar
+Makefile:727:	@$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --test --print-classpath $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS) > $(MODEL_BUILD)/model-conventions.classpath
+Makefile:728:	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library --test $(MODEL_EXPORT) -f -o $(MODEL_BUILD)/irgen-conventions.jar
+Makefile:729:	@$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --test --print-classpath $(MODEL_EXPORT) > $(MODEL_BUILD)/irgen-conventions.classpath
+Makefile:730:	@$(MODEL_CLI) --power package --suppress-outdated-dependency-warning --library --test $(MODEL_CHECK) -f -o $(MODEL_BUILD)/check-conventions.jar
+Makefile:731:	@$(MODEL_CLI) compile --suppress-outdated-dependency-warning --test --print-classpath $(MODEL_CHECK) > $(MODEL_BUILD)/check-conventions.classpath
+Makefile:757:	@$(MODEL_CLI) compile --server=false --test $(MODEL_ROOT)/framework/dsl $(MODEL_ROOT)/framework/realize
+Makefile:758:	@$(MODEL_CLI) compile --server=false --test $(MODEL_ROOT)/framework/export
+Makefile:759:	@$(MODEL_CLI) compile --server=false --test $(MODEL_ROOT)/framework/check
+Makefile:1284:	@cd model && $(call RUST_MODEL_STEP,source-boundary) mise exec -- cargo test -p umpire-temporal-tests --test boundary --quiet
+model/README.md:367:checked against the README by `mise exec -- cargo test -p umpire-dsl --test readme` from
+model/README.md:533:`mise exec -- cargo test -p umpire-temporal-tests --test fixtures added_catalog_field_fails_the_real_coverage_golden -- --ignored`.
+model/README.md:869:UMPIRE_GAP_CANDIDATE=../.flow/tmp/fn2174-live-gap-report.txt INSTA_UPDATE=new mise exec -- cargo test -p umpire-temporal-tests --test fixtures import_live_gap_candidate -- --ignored
+model/README.md:1003:`mise exec -- cargo test -p umpire-testing --test consumers accepts_generic_pending_snapshots_with_cli -- --ignored`.
+model/temporal/testing/snapshot_ownership.rs:28:        "cargo test -p umpire-catalog-syntax --test main expansion::executable_expansion_and_source_coverage",
+model/umpire/reference/kettle/snapshots_test.go:32:		t.Logf("Live candidate exported. From model/: UMPIRE_SNAPSHOT_CANDIDATES=%q INSTA_UPDATE=new mise exec -- cargo test -p umpire-reference-kettle --test live_snapshots --locked -- --ignored", *snapshotCandidates)
+model/umpire/reference/kettle/README.md:42:produce candidates with `INSTA_UPDATE=new mise exec -- cargo test -p umpire-reference-kettle --test main probes::`.
+model/umpire/reference/kettle/README.md:53:UMPIRE_SNAPSHOT_CANDIDATES=/tmp/kettle-candidates INSTA_UPDATE=new mise exec -- cargo test -p umpire-reference-kettle --test live_snapshots -- --ignored
+model/temporal/feature/activity/README.md:110:mise exec -- cargo test -p umpire-temporal-tests --test fixtures
+model/temporal/feature/activity/README.md:111:UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-temporal-tests --test fixtures -- --nocapture --test-threads=2
+model/temporal/feature/activity/README.md:112:mise exec -- cargo test -p umpire-temporal --test realization named_guest_adapter_preserves_the_independent_report_and_ordered_rows
+model/umpire/dev/fixtures/interpreted.rs:544:/// `cargo test --release -p umpire-fixtures --test fixtures -- --ignored --nocapture interpreted::timing`.
+model/archived/temporal/check/MakeFeatures.test.scala.disabled:564:      commands.exists(_.contains("--test model/framework/dsl")),
+model/archived/temporal/check/MakeFeatures.test.scala.disabled:606:          "--test model/framework/check"
+model/archived/temporal/check/Gate.test.scala.disabled:1430:            _.contains("compile --test model/framework/export")
+model/archived/temporal/check/table-pins/README.md:23:mise exec -- scala-cli run --server=false --test model/framework/check \
+model/dev/xtask/README.md:48:isolated caller controls. `cargo test -p xtask --test retired_names --locked` covers
+model/archived/framework/check/ChangeCheck.scala:337:          s"scala-cli run --test <${module.name}> --main-class org.junit.runner.JUnitCore -- " +
+model/archived/framework/design/modelsuite-discovery.md:226:`scala-cli compile --test --server=false model/framework/export --print-class-path
+model/archived/framework/design/plain-composition-prototype/run.sh:24:scala compile --test "${inputs[@]}" >"$logs/compile.log" 2>&1
+model/archived/framework/design/plain-composition-prototype/run.sh:33:scala run --test "${inputs[@]}" --main-class framework.dsl.compose.report >"$logs/report.log" 2>&1

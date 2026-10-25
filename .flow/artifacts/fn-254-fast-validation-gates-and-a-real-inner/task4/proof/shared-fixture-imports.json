@@ -1,0 +1,134 @@
+{
+  "reason": "clippy duplicate_mod rejects loading the same stateless fixture file under several modules of the consolidated binary; compile once at crate root and preserve each former local alias",
+  "changes": [
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "local_name": "selected_kettle",
+      "shared_module": "selected_kettle"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "local_name": "prefix_fixture",
+      "shared_module": "prefix_fixture"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "local_name": "replay_fixture",
+      "shared_module": "replay_fixture"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/replay.rs",
+      "local_name": "selected",
+      "shared_module": "selected_kettle"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/replay.rs",
+      "local_name": "prefix_fixture",
+      "shared_module": "prefix_fixture"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/replay.rs",
+      "local_name": "authored",
+      "shared_module": "replay_fixture"
+    },
+    {
+      "file": "model/umpire/protocol/runtime/tests/main/core_protocol.rs",
+      "local_name": "support",
+      "shared_module": "support"
+    },
+    {
+      "file": "model/umpire/protocol/runtime/tests/main/core_protocol.rs",
+      "local_name": "stock",
+      "shared_module": "stock"
+    },
+    {
+      "file": "model/umpire/protocol/runtime/tests/main/selected_start.rs",
+      "local_name": "support",
+      "shared_module": "support"
+    },
+    {
+      "file": "model/umpire/protocol/runtime/tests/main/annotations.rs",
+      "local_name": "support",
+      "shared_module": "support"
+    },
+    {
+      "file": "model/umpire/protocol/runtime/tests/main/annotations.rs",
+      "local_name": "control",
+      "shared_module": "control"
+    },
+    {
+      "file": "model/umpire/protocol/runtime/tests/main/proposal_wire.rs",
+      "local_name": "support",
+      "shared_module": "support"
+    },
+    {
+      "file": "model/umpire/protocol/runtime/tests/main/catalog.rs",
+      "local_name": "support",
+      "shared_module": "support"
+    },
+    {
+      "file": "model/umpire/protocol/runtime/tests/main/catalog.rs",
+      "local_name": "refusal_mapping",
+      "shared_module": "refusal_mapping"
+    },
+    {
+      "file": "model/umpire/protocol/runtime/tests/main/abi_staging.rs",
+      "local_name": "stock",
+      "shared_module": "stock"
+    },
+    {
+      "file": "model/umpire/protocol/runtime/tests/main/dispatch.rs",
+      "local_name": "stock",
+      "shared_module": "stock"
+    },
+    {
+      "file": "model/umpire/protocol/runtime/tests/main/dispatch.rs",
+      "local_name": "refusal_mapping",
+      "shared_module": "refusal_mapping"
+    },
+    {
+      "file": "model/umpire/protocol/runtime/tests/main/wire.rs",
+      "local_name": "support",
+      "shared_module": "support"
+    },
+    {
+      "file": "model/umpire/protocol/runtime/tests/main/stateful.rs",
+      "local_name": "support",
+      "shared_module": "support"
+    },
+    {
+      "file": "model/umpire/protocol/runtime/tests/main/prefix.rs",
+      "local_name": "support",
+      "shared_module": "support"
+    },
+    {
+      "file": "model/umpire/protocol/runtime/tests/main/proposal.rs",
+      "local_name": "support",
+      "shared_module": "support"
+    },
+    {
+      "file": "model/umpire/protocol/runtime/tests/main/proposal.rs",
+      "local_name": "control",
+      "shared_module": "control"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/interpreted.rs",
+      "local_name": "sample_kettle",
+      "shared_module": "sample_kettle"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/interpreted.rs",
+      "local_name": "optional_facts",
+      "shared_module": "optional_facts"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/interpreted.rs",
+      "local_name": "shared_returns",
+      "shared_module": "shared_returns"
+    }
+  ],
+  "test_declarations": "unchanged",
+  "assertions": "unchanged",
+  "fixture_source_files": "unchanged",
+  "lint_suppressions_added": []
+}

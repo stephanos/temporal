@@ -1,0 +1,33 @@
+   Compiling prost v0.14.4
+   Compiling fixedbitset v0.5.7
+   Compiling petgraph v0.8.3
+   Compiling prost-types v0.14.4
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/front)
+   Compiling prost-build v0.14.4
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/protocol/runtime)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/author/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/backends/native)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/catalog/syntax)
+warning: missing documentation for the crate
+ --> umpire/catalog/syntax/tests/main.rs:1:1
+  |
+1 | / #![forbid(unsafe_code)]
+2 | |
+3 | | #[path = "main/admission.rs"]
+4 | | mod admission;
+5 | | #[path = "main/expansion.rs"]
+6 | | mod expansion;
+  | |______________^
+  |
+  = note: requested on the command line with `-W missing-docs`
+
+warning: `umpire-catalog-syntax` (test "main") generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.56s
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2544-tests/debug/deps/main-aa4517047014ca70)
+
+running 1 test
+test expansion::executable_expansion_and_source_coverage ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 15 filtered out; finished in 0.04s
+

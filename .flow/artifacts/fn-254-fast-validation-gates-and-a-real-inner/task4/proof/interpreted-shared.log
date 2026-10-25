@@ -1,0 +1,23 @@
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/author/umpire)
+   Compiling umpire-fixtures v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/dev/fixtures)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 15.71s
+     Running fixtures.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2544-tests/debug/deps/fixtures-bb8051e7324eac52)
+
+running 14 tests
+test interpreted::backend_controls_agree ... ok
+test interpreted::every_claim_has_its_own_callback ... ok
+test interpreted::fact_only_tree_mutant_disagrees ... ok
+test interpreted::interpreted_fact_decoder_checks_admitted_values ... ok
+test interpreted::interpreted_facts_evaluate_disabled_tail ... ok
+test interpreted::interpreted_facts_fail_closed ... ok
+test interpreted::checked_arithmetic_fails_as_compiled ... ok
+test interpreted::length_sums_and_products_are_refused ... ok
+test interpreted::lifter_controls_agree ... ok
+test interpreted::rewrite_visits_replacement_children_in_preorder ... ok
+test interpreted::seeded_mutant_trees_disagree ... ok
+test interpreted::start_domains_evaluate_lazily ... ok
+test interpreted::timing ... ignored, timing; run alone in release
+test interpreted::length_differences_agree_on_every_back_end ... ok
+
+test result: ok. 13 passed; 0 failed; 1 ignored; 0 measured; 47 filtered out; finished in 3.41s
+

@@ -1,0 +1,759 @@
+{
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.4",
+  "base_commit": "76408c558588eec6e226335c54f42f8bf2e5f496",
+  "baseline": "not run: integrated production checks owned by conductor",
+  "mappings": [
+    {
+      "package": "umpire-apalache",
+      "old_target": "controls",
+      "old_path": "model/umpire/backends/apalache/tests/controls.rs",
+      "new_target": "main",
+      "new_module": "controls",
+      "new_path": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "test_name_mapping": "<old_name> => controls::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [
+        {
+          "old": "../../../dev/fixtures/fixtures/sample_kettle/model.rs",
+          "new": "../../../../dev/fixtures/fixtures/sample_kettle/model.rs",
+          "self_include": false
+        },
+        {
+          "old": "../../../dev/fixtures/fixtures/sample_kettle/model.rs",
+          "new": "../../../../dev/fixtures/fixtures/sample_kettle/model.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/arithmetic.rs",
+          "new": "../fixtures/arithmetic.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/arithmetic.rs",
+          "new": "../fixtures/arithmetic.rs",
+          "self_include": false
+        },
+        {
+          "old": "../../tla/tests/fixtures/vector.rs",
+          "new": "../../../tla/tests/fixtures/vector.rs",
+          "self_include": false
+        },
+        {
+          "old": "../../tla/tests/fixtures/vector_fallback.rs",
+          "new": "../../../tla/tests/fixtures/vector_fallback.rs",
+          "self_include": false
+        },
+        {
+          "old": "../../../../dev/xtask/src/apalache_pins.rs",
+          "new": "../../../../../dev/xtask/src/apalache_pins.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/empty_condition.rs",
+          "new": "../fixtures/empty_condition.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/start_empty_first.rs",
+          "new": "../fixtures/start_empty_first.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/start_fault_first.rs",
+          "new": "../fixtures/start_fault_first.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/start_fault_first.rs",
+          "new": "../fixtures/start_fault_first.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/start_empty_first.rs",
+          "new": "../fixtures/start_empty_first.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/empty_condition.rs",
+          "new": "../fixtures/empty_condition.rs",
+          "self_include": false
+        },
+        {
+          "old": "expected/kettle-negative.txt",
+          "new": "../expected/kettle-negative.txt",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/arithmetic_prefix.rs",
+          "new": "../fixtures/arithmetic_prefix.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/arithmetic_prefix.rs",
+          "new": "../fixtures/arithmetic_prefix.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/replay.rs",
+          "new": "../fixtures/replay.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/replay.rs",
+          "new": "../fixtures/replay.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/start_later_fault.rs",
+          "new": "../fixtures/start_later_fault.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/start_later_fault.rs",
+          "new": "../fixtures/start_later_fault.rs",
+          "self_include": false
+        },
+        {
+          "old": "../../tla/tests/fixtures/vector.rs",
+          "new": "../../../tla/tests/fixtures/vector.rs",
+          "self_include": false
+        },
+        {
+          "old": "../../tla/tests/fixtures/vector.rs",
+          "new": "../../../tla/tests/fixtures/vector.rs",
+          "self_include": false
+        },
+        {
+          "old": "../../../dev/fixtures/fixtures/optional_facts/model.rs",
+          "new": "../../../../dev/fixtures/fixtures/optional_facts/model.rs",
+          "self_include": false
+        },
+        {
+          "old": "../../../dev/fixtures/fixtures/optional_facts/model.rs",
+          "new": "../../../../dev/fixtures/fixtures/optional_facts/model.rs",
+          "self_include": false
+        }
+      ],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-apalache",
+      "old_target": "decode",
+      "old_path": "model/umpire/backends/apalache/tests/decode.rs",
+      "new_target": "main",
+      "new_module": "decode",
+      "new_path": "model/umpire/backends/apalache/tests/main/decode.rs",
+      "test_name_mapping": "<old_name> => decode::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-apalache",
+      "old_target": "replay",
+      "old_path": "model/umpire/backends/apalache/tests/replay.rs",
+      "new_target": "main",
+      "new_module": "replay",
+      "new_path": "model/umpire/backends/apalache/tests/main/replay.rs",
+      "test_name_mapping": "<old_name> => replay::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [
+        {
+          "old": "../../../dev/fixtures/fixtures/sample_kettle/model.rs",
+          "new": "../../../../dev/fixtures/fixtures/sample_kettle/model.rs",
+          "self_include": false
+        },
+        {
+          "old": "../../../dev/fixtures/fixtures/sample_kettle/model.rs",
+          "new": "../../../../dev/fixtures/fixtures/sample_kettle/model.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/replay.rs",
+          "new": "../fixtures/replay.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/replay.rs",
+          "new": "../fixtures/replay.rs",
+          "self_include": false
+        },
+        {
+          "old": "../../../dev/fixtures/fixtures/sample_kettle/model.rs",
+          "new": "../../../../dev/fixtures/fixtures/sample_kettle/model.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/kettle-0.62.4.itf.json",
+          "new": "../fixtures/kettle-0.62.4.itf.json",
+          "self_include": false
+        },
+        {
+          "old": "expected/kettle-negative.txt",
+          "new": "../expected/kettle-negative.txt",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/arithmetic_prefix.rs",
+          "new": "../fixtures/arithmetic_prefix.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/arithmetic_prefix.rs",
+          "new": "../fixtures/arithmetic_prefix.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/categories.rs",
+          "new": "../fixtures/categories.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/categories.rs",
+          "new": "../fixtures/categories.rs",
+          "self_include": false
+        }
+      ],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-checker",
+      "old_target": "oracle",
+      "old_path": "model/umpire/backends/native/tests/oracle.rs",
+      "new_target": "main",
+      "new_module": "oracle",
+      "new_path": "model/umpire/backends/native/tests/main/oracle.rs",
+      "test_name_mapping": "<old_name> => oracle::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-checker",
+      "old_target": "search",
+      "old_path": "model/umpire/backends/native/tests/search.rs",
+      "new_target": "main",
+      "new_module": "search",
+      "new_path": "model/umpire/backends/native/tests/main/search.rs",
+      "test_name_mapping": "<old_name> => search::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-tla",
+      "old_target": "emission",
+      "old_path": "model/umpire/backends/tla/tests/emission.rs",
+      "new_target": "main",
+      "new_module": "emission",
+      "new_path": "model/umpire/backends/tla/tests/main/emission.rs",
+      "test_name_mapping": "<old_name> => emission::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-tla",
+      "old_target": "inputs",
+      "old_path": "model/umpire/backends/tla/tests/inputs.rs",
+      "new_target": "main",
+      "new_module": "inputs",
+      "new_path": "model/umpire/backends/tla/tests/main/inputs.rs",
+      "test_name_mapping": "<old_name> => inputs::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-tla",
+      "old_target": "narrow_remainder",
+      "old_path": "model/umpire/backends/tla/tests/narrow_remainder.rs",
+      "new_target": "main",
+      "new_module": "narrow_remainder",
+      "new_path": "model/umpire/backends/tla/tests/main/narrow_remainder.rs",
+      "test_name_mapping": "<old_name> => narrow_remainder::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [
+        {
+          "old": "fixtures/remainder_i16.rs",
+          "new": "../fixtures/remainder_i16.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/remainder_i8.rs",
+          "new": "../fixtures/remainder_i8.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/remainder_i8.rs",
+          "new": "../fixtures/remainder_i8.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/remainder_i16.rs",
+          "new": "../fixtures/remainder_i16.rs",
+          "self_include": false
+        }
+      ],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-tla",
+      "old_target": "optional_facts",
+      "old_path": "model/umpire/backends/tla/tests/optional_facts.rs",
+      "new_target": "main",
+      "new_module": "optional_facts",
+      "new_path": "model/umpire/backends/tla/tests/main/optional_facts.rs",
+      "test_name_mapping": "<old_name> => optional_facts::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [
+        {
+          "old": "../../../dev/fixtures/fixtures/sample_kettle/model.rs",
+          "new": "../../../../dev/fixtures/fixtures/sample_kettle/model.rs",
+          "self_include": false
+        }
+      ],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-tla",
+      "old_target": "optional_source",
+      "old_path": "model/umpire/backends/tla/tests/optional_source.rs",
+      "new_target": "main",
+      "new_module": "optional_source",
+      "new_path": "model/umpire/backends/tla/tests/main/optional_source.rs",
+      "test_name_mapping": "<old_name> => optional_source::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-tla",
+      "old_target": "optional_ticks",
+      "old_path": "model/umpire/backends/tla/tests/optional_ticks.rs",
+      "new_target": "main",
+      "new_module": "optional_ticks",
+      "new_path": "model/umpire/backends/tla/tests/main/optional_ticks.rs",
+      "test_name_mapping": "<old_name> => optional_ticks::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [
+        {
+          "old": "../../../dev/fixtures/fixtures/optional_ticks/model.rs",
+          "new": "../../../../dev/fixtures/fixtures/optional_ticks/model.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/optional_eager.rs",
+          "new": "../fixtures/optional_eager.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/optional_eager.rs",
+          "new": "../fixtures/optional_eager.rs",
+          "self_include": false
+        }
+      ],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-tla",
+      "old_target": "phased",
+      "old_path": "model/umpire/backends/tla/tests/phased.rs",
+      "new_target": "main",
+      "new_module": "phased",
+      "new_path": "model/umpire/backends/tla/tests/main/phased.rs",
+      "test_name_mapping": "<old_name> => phased::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [
+        {
+          "old": "../../../dev/fixtures/fixtures/phased_rejection/model.rs",
+          "new": "../../../../dev/fixtures/fixtures/phased_rejection/model.rs",
+          "self_include": false
+        },
+        {
+          "old": "expected/phased_refusals.txt",
+          "new": "../expected/phased_refusals.txt",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/linear_returns.rs",
+          "new": "../fixtures/linear_returns.rs",
+          "self_include": false
+        }
+      ],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-tla",
+      "old_target": "safety",
+      "old_path": "model/umpire/backends/tla/tests/safety.rs",
+      "new_target": "main",
+      "new_module": "safety",
+      "new_path": "model/umpire/backends/tla/tests/main/safety.rs",
+      "test_name_mapping": "<old_name> => safety::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [
+        {
+          "old": "../../../dev/fixtures/fixtures/sample_kettle/model.rs",
+          "new": "../../../../dev/fixtures/fixtures/sample_kettle/model.rs",
+          "self_include": false
+        }
+      ],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-tla",
+      "old_target": "sequential_checks",
+      "old_path": "model/umpire/backends/tla/tests/sequential_checks.rs",
+      "new_target": "main",
+      "new_module": "sequential_checks",
+      "new_path": "model/umpire/backends/tla/tests/main/sequential_checks.rs",
+      "test_name_mapping": "<old_name> => sequential_checks::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [
+        {
+          "old": "fixtures/sequential_checks.rs",
+          "new": "../fixtures/sequential_checks.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/sequential_checks.rs",
+          "new": "../fixtures/sequential_checks.rs",
+          "self_include": false
+        }
+      ],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-tla",
+      "old_target": "shadowing",
+      "old_path": "model/umpire/backends/tla/tests/shadowing.rs",
+      "new_target": "main",
+      "new_module": "shadowing",
+      "new_path": "model/umpire/backends/tla/tests/main/shadowing.rs",
+      "test_name_mapping": "<old_name> => shadowing::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [
+        {
+          "old": "fixtures/shadowing.rs",
+          "new": "../fixtures/shadowing.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/shadowing.rs",
+          "new": "../fixtures/shadowing.rs",
+          "self_include": false
+        }
+      ],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-tla",
+      "old_target": "source",
+      "old_path": "model/umpire/backends/tla/tests/source.rs",
+      "new_target": "main",
+      "new_module": "source",
+      "new_path": "model/umpire/backends/tla/tests/main/source.rs",
+      "test_name_mapping": "<old_name> => source::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [
+        {
+          "old": "../../../dev/fixtures/fixtures/sample_kettle/model.rs",
+          "new": "../../../../dev/fixtures/fixtures/sample_kettle/model.rs",
+          "self_include": false
+        },
+        {
+          "old": "expected/unsupported.txt",
+          "new": "../expected/unsupported.txt",
+          "self_include": false
+        },
+        {
+          "old": "expected/path_refusals.txt",
+          "new": "../expected/path_refusals.txt",
+          "self_include": false
+        }
+      ],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-tla",
+      "old_target": "vector",
+      "old_path": "model/umpire/backends/tla/tests/vector.rs",
+      "new_target": "main",
+      "new_module": "vector",
+      "new_path": "model/umpire/backends/tla/tests/main/vector.rs",
+      "test_name_mapping": "<old_name> => vector::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [
+        {
+          "old": "fixtures/vector.rs",
+          "new": "../fixtures/vector.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/vector_fallback.rs",
+          "new": "../fixtures/vector_fallback.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/vector.rs",
+          "new": "../fixtures/vector.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/vector.rs",
+          "new": "../fixtures/vector.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/vector.rs",
+          "new": "../fixtures/vector.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/vector.rs",
+          "new": "../fixtures/vector.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/vector.rs",
+          "new": "../fixtures/vector.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/vector_fallback.rs",
+          "new": "../fixtures/vector_fallback.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/vector.rs",
+          "new": "../fixtures/vector.rs",
+          "self_include": false
+        }
+      ],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-tla",
+      "old_target": "world",
+      "old_path": "model/umpire/backends/tla/tests/world.rs",
+      "new_target": "main",
+      "new_module": "world",
+      "new_path": "model/umpire/backends/tla/tests/main/world.rs",
+      "test_name_mapping": "<old_name> => world::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-tla",
+      "old_target": "world_fairness_binding",
+      "old_path": "model/umpire/backends/tla/tests/world_fairness_binding.rs",
+      "new_target": "main",
+      "new_module": "world_fairness_binding",
+      "new_path": "model/umpire/backends/tla/tests/main/world_fairness_binding.rs",
+      "test_name_mapping": "<old_name> => world_fairness_binding::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [
+        {
+          "old": "world_fairness_binding.rs",
+          "new": "world_fairness_binding.rs",
+          "self_include": true
+        }
+      ],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-tlc",
+      "old_target": "controls",
+      "old_path": "model/umpire/backends/tlc/tests/controls.rs",
+      "new_target": "main",
+      "new_module": "controls",
+      "new_path": "model/umpire/backends/tlc/tests/main/controls.rs",
+      "test_name_mapping": "<old_name> => controls::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    },
+    {
+      "package": "umpire-tlc",
+      "old_target": "scaling",
+      "old_path": "model/umpire/backends/tlc/tests/scaling.rs",
+      "new_target": "main",
+      "new_module": "scaling",
+      "new_path": "model/umpire/backends/tlc/tests/main/scaling.rs",
+      "test_name_mapping": "<old_name> => scaling::<old_name>",
+      "ignored": "unchanged",
+      "literal_path_changes": [
+        {
+          "old": "fixtures/scaling_model.rs",
+          "new": "../fixtures/scaling_model.rs",
+          "self_include": false
+        },
+        {
+          "old": "fixtures/scaling_model.rs",
+          "new": "../fixtures/scaling_model.rs",
+          "self_include": false
+        }
+      ],
+      "static_equivalence": "Exactly equals rustfmt(original source with only recorded filesystem literal edits); test names, attributes and assertions preserved."
+    }
+  ],
+  "exceptions": [
+    {
+      "path": "model/umpire/backends/native/tests/catalog_admission.rs",
+      "package": "umpire-checker",
+      "target": "catalog_admission",
+      "reason": "Process-global STEPS AtomicUsize admission counter; preserve binary isolation."
+    },
+    {
+      "path": "model/umpire/backends/native/tests/fixtures.rs",
+      "package": "umpire-checker",
+      "target": "fixtures",
+      "reason": "Generated OUT_DIR registry uses crate-root fixture_* and support paths; preserve dedicated native report runner."
+    },
+    {
+      "path": "model/umpire/backends/process/tests/process.rs",
+      "package": "umpire-backend-process",
+      "target": "process",
+      "reason": "Only integration target in crate; no binary reduction available. Explicit process fixture helper binary remains unchanged."
+    }
+  ],
+  "snapshots": {
+    "model/umpire/backends/native/tests/fixtures/choices/expected/report.txt.snap": "b63cd30178dbf30158ef65f820a62fcdb723ca1f9585e9fb6198f58772dc140e",
+    "model/umpire/backends/native/tests/fixtures/choices/expected/rows.txt.snap": "d7911b85166bb3991b4a221f3e445bf1747467055601708c6349f09a04051e48",
+    "model/umpire/backends/native/tests/fixtures/choices/expected/states.txt.snap": "d3d797a7cfc2f853b03398ddc2c5367520564b44bd795673fced607abd5a14fc",
+    "model/umpire/backends/native/tests/fixtures/claim_order/expected/report.txt.snap": "d748618fc753a32af09160250a5dfe9f772f4bfde41a5de96d76a08bd74221e2",
+    "model/umpire/backends/native/tests/fixtures/deep_chain/expected/report.txt.snap": "17ec1f71594bb3f12e06e4120e8a762499698daa81f9df25b84ac7151122069b",
+    "model/umpire/backends/native/tests/fixtures/edge_checks/expected/paths/idle_changes.txt.snap": "4bd274b6ebd4bc95c582824c6e63e6d3fc8b8c5c8b800c2812c6e8aa9b1d4955",
+    "model/umpire/backends/native/tests/fixtures/edge_checks/expected/paths/never_decreases.txt.snap": "5664ca5ddaec51fe947f8d2268cfde95a50fb5c6e24f1d862fa877531bffb88f",
+    "model/umpire/backends/native/tests/fixtures/edge_checks/expected/report.txt.snap": "559558cd7544caa8b96d12018ab6b38ac1b6cd99c2605c19bbd802637c88deeb",
+    "model/umpire/backends/native/tests/fixtures/edge_checks/expected/rows.txt.snap": "06f8a029b0fb1e453a972c40b78deec86dfd3da0a651bdb18be6e3c1b6d382c4",
+    "model/umpire/backends/native/tests/fixtures/edge_checks/expected/states.txt.snap": "6021175e2e00eec252660e17ca115571d22a94042f8b48e35190f72dca4c6545",
+    "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/paths/step_0_0.txt.snap": "b0cf74f82a82e94a34968a5876a8e46d5e04bfa60f0c6ed5836a7a3d135a258f",
+    "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/report.txt.snap": "3028bef4aa45442fdde390bfef98b22484ac54b84b1fefddb8e29bbb5c1ec15d",
+    "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/rows.txt.snap": "54690d0b8b8ac52a5e082f1b64fc116662365b6f9c4ff87833756398cfeed950",
+    "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/states.txt.snap": "d8ca34295d8d538d6768aac98a2213af918e2906273cc364785927ba535473d3",
+    "model/umpire/backends/native/tests/fixtures/effect_panic/expected/paths/step_0_0.txt.snap": "0509ad4842c694ee441ce74dc63be247710a00441f3ccc8320f92fb96013fd59",
+    "model/umpire/backends/native/tests/fixtures/effect_panic/expected/report.txt.snap": "1e303c76cb7dcb55eedb0d0ddeb55f06b1a3d5b99acb5afad5369bf78d8fbc83",
+    "model/umpire/backends/native/tests/fixtures/effect_panic/expected/rows.txt.snap": "54690d0b8b8ac52a5e082f1b64fc116662365b6f9c4ff87833756398cfeed950",
+    "model/umpire/backends/native/tests/fixtures/effect_panic/expected/states.txt.snap": "d8ca34295d8d538d6768aac98a2213af918e2906273cc364785927ba535473d3",
+    "model/umpire/backends/native/tests/fixtures/format_values/expected/paths/unchanged.txt.snap": "a514ed98c9e31fbe395a68afeaa2eed448681662c7608ac798095c6bba88f752",
+    "model/umpire/backends/native/tests/fixtures/format_values/expected/report.txt.snap": "0012afa6873136a499749292cd5928525ba871d3e8a913b0f7872860883b8797",
+    "model/umpire/backends/native/tests/fixtures/format_values/expected/rows.txt.snap": "7bc96600f96abd52434e3a1e0b89f73f5ec3df52992d499ca4f882d7d2194419",
+    "model/umpire/backends/native/tests/fixtures/format_values/expected/states.txt.snap": "3603b49270762f537ed0f4080a73810bdbe309cd541b781fd48b201d3779854f",
+    "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/paths/safe.txt.snap": "19f21ad9d484b8cf1b8315ec7edd504d5579f15aadef73cf27a5992f338d7581",
+    "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/report.txt.snap": "59bd047f9a5a4c4d2d0189dde21621484a73d0cf677ea32bc43b8efacfd0da1f",
+    "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/rows.txt.snap": "06f8a029b0fb1e453a972c40b78deec86dfd3da0a651bdb18be6e3c1b6d382c4",
+    "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/states.txt.snap": "6021175e2e00eec252660e17ca115571d22a94042f8b48e35190f72dca4c6545",
+    "model/umpire/backends/native/tests/fixtures/holes/expected/report.txt.snap": "53d8e9f407566da0fc5b68df784f9295cf278aa8151af4c245885daf6dd4731d",
+    "model/umpire/backends/native/tests/fixtures/holes/expected/rows.txt.snap": "06f8a029b0fb1e453a972c40b78deec86dfd3da0a651bdb18be6e3c1b6d382c4",
+    "model/umpire/backends/native/tests/fixtures/holes/expected/states.txt.snap": "6021175e2e00eec252660e17ca115571d22a94042f8b48e35190f72dca4c6545",
+    "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/negative_report.txt.snap": "af5f9106ce1934821ee1a40a0e5e790e0635a35d515dc700264b1b9d903099b7",
+    "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/paths/starts_zero.txt.snap": "d19e7813119ad5eec7d0aa6d40ec30e41df699a64e63d6eac13a81f3a1c4939e",
+    "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/paths/stays_zero.txt.snap": "d19e7813119ad5eec7d0aa6d40ec30e41df699a64e63d6eac13a81f3a1c4939e",
+    "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/report.txt.snap": "37c0768d3b40e26c9ff8bacd54184fa689b25888169c2784d80ba2ca6ba1ce95",
+    "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/rows.txt.snap": "5eedae4632135eb759ab1535ec232b828ca6f2d5058df3de34d520e3e9063e28",
+    "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/states.txt.snap": "dae74e42507132fdd05a5bb43e8b01736b91ead9c9093b87ec9f57ff0e91ce94",
+    "model/umpire/backends/native/tests/fixtures/invalid_state/expected/report.txt.snap": "74e8af3a08d0c668d73a972b697763906f237f6805b1f112134daf07ae6db067",
+    "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/paths/safe.txt.snap": "f736d343c47587a484fe786748f6c2ae326c8af2c4cccd7b83efb9851f951e7e",
+    "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/report.txt.snap": "a1df158d909b7521688a5d9c6068ae7e1adbe7e0b78ab2814b1dd569461251dd",
+    "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/rows.txt.snap": "06f8a029b0fb1e453a972c40b78deec86dfd3da0a651bdb18be6e3c1b6d382c4",
+    "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/states.txt.snap": "6021175e2e00eec252660e17ca115571d22a94042f8b48e35190f72dca4c6545",
+    "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/paths/unchanged.txt.snap": "19f21ad9d484b8cf1b8315ec7edd504d5579f15aadef73cf27a5992f338d7581",
+    "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/report.txt.snap": "bc25562bdae146f2e6630c453e4549d28648f6aa81e4b8a3b19fe7250c0bd818",
+    "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/rows.txt.snap": "5da229062ffe9c6f205105b1ad2619a1dc14ccb6d45a3a21a203f32c6da40fde",
+    "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/states.txt.snap": "d8ca34295d8d538d6768aac98a2213af918e2906273cc364785927ba535473d3",
+    "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/paths/panicking_edge.txt.snap": "e62cc8c60de739312cdbbce15e46f0d8c619d186b0ef8d8483285ff63c9c8dc6",
+    "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/report.txt.snap": "95f19c1fe395d56877525a771d75c9b691da606d4d2b00ce64075b19d10a7600",
+    "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/rows.txt.snap": "06f8a029b0fb1e453a972c40b78deec86dfd3da0a651bdb18be6e3c1b6d382c4",
+    "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/states.txt.snap": "6021175e2e00eec252660e17ca115571d22a94042f8b48e35190f72dca4c6545",
+    "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/paths/reaches_target.txt.snap": "749f8a7528e86167a626fa6f90f120375806f9a128f12087941fb1cd8628eef2",
+    "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/report.txt.snap": "e34089ba097a3690072a2241e45c7e0ab905b1e2658682b7640b9c966afd5a91",
+    "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/rows.txt.snap": "7f94200bd9677c5b7309f627e852f981f65a1501f8c211ae6ad82d3183fbb1d0",
+    "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/states.txt.snap": "2bcb3625a9b45a41d0a0f89303a6423f0316cd0dd68d104796aebc2d418bbe4f",
+    "model/umpire/backends/native/tests/fixtures/progress_admission_cut/expected/report.txt.snap": "622de645a9614d8e247632249259bbe2f728db347da767b8bb52493ee123a2fa",
+    "model/umpire/backends/native/tests/fixtures/progress_admission_cut/expected/rows.txt.snap": "8c67e8763cc079c7be3923a1415405fa389e071bb2f6c5ee65aa45787f27817f",
+    "model/umpire/backends/native/tests/fixtures/progress_admission_cut/expected/states.txt.snap": "122950a322bc946d4b7b3e38d5fedf6574e1e7558be99a513a096d91e4d0afb3",
+    "model/umpire/backends/native/tests/fixtures/progress_assumption_validation/expected/report.txt.snap": "e8c80dc95066d5655ca40ee3bb4112a1fde3fbf612f7cf2e9236d0d0041ff90c",
+    "model/umpire/backends/native/tests/fixtures/progress_bounds/expected/report.txt.snap": "83bb6ae0690c219d88c79eb978dd7735361bc50d25f2f3a02ee3485a6b4ef8d1",
+    "model/umpire/backends/native/tests/fixtures/progress_chain_path/expected/report.txt.snap": "e0f16800fc095489bf57af832b33731f4413d5e1d6554a34dc3e32799b4b410d",
+    "model/umpire/backends/native/tests/fixtures/progress_choices_cut/expected/report.txt.snap": "c38051c138d3f9a4280fff5a289186a6ea20df2e9fade538f3b0ad755ec9b8d1",
+    "model/umpire/backends/native/tests/fixtures/progress_choices_cut/expected/rows.txt.snap": "294e57781ad1e59ca5f1630db07f76f3a900005bdeeeae3cad62143619f48171",
+    "model/umpire/backends/native/tests/fixtures/progress_choices_cut/expected/states.txt.snap": "663cde03214cfaa3be63c49fbf2d1713017c6c82347c7e1f46eeee9f8a3a2a68",
+    "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/paths/step_0_0.txt.snap": "2159eb0d03b9485ca84a46fd4f83848b0c110bb63a55627ea4394d4f2e695c71",
+    "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/report.txt.snap": "e9f2d43983b403258f3fd5eaf75332410c3f777450961e72be8ae609b6aeefc4",
+    "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/rows.txt.snap": "54690d0b8b8ac52a5e082f1b64fc116662365b6f9c4ff87833756398cfeed950",
+    "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/states.txt.snap": "122950a322bc946d4b7b3e38d5fedf6574e1e7558be99a513a096d91e4d0afb3",
+    "model/umpire/backends/native/tests/fixtures/progress_explicit_fairness/expected/report.txt.snap": "2f7cf122cceaa07e94ee89f36b5696dd7d92d4aadf7323066fcd5180fe388295",
+    "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/paths/reaches_target.txt.snap": "d1712b88d38cacc0f857f5a1b1c5f44893b7c445d60e36c7a198d68e74a74721",
+    "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/report.txt.snap": "25f811b192b1346b666e2a70c10cb9d7d94434492918962d0a7ea489bfdd91df",
+    "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/rows.txt.snap": "7c98eecadabe737ed4b90c0c31783f7123656f7a74a9d426c166a6fc951b060a",
+    "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/states.txt.snap": "122950a322bc946d4b7b3e38d5fedf6574e1e7558be99a513a096d91e4d0afb3",
+    "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/paths/independent_failure.txt.snap": "a620faa61a1174f02f621a9215492eca8ef09a67ecd86fc0af8267715bc659b9",
+    "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/paths/target_panic.txt.snap": "9f9aead5d879bcc500b7f84f170704d642a6ae8ddd1ed985ad0c6e81cba02208",
+    "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/paths/trigger_panic.txt.snap": "6a1fc5aa394cc8cd572cc384fc9d663e333aa78c76e25fb67867057f168ebe6a",
+    "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/report.txt.snap": "7dbe264c8f275c6a1037d1aba6f939e8629e36fb800999cf6f40c264d4eda5c9",
+    "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/rows.txt.snap": "d5efe371d7d68e283dafa39079c7d7423d44bc7d66fde98ee8d7560fafbcb6f9",
+    "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/states.txt.snap": "663cde03214cfaa3be63c49fbf2d1713017c6c82347c7e1f46eeee9f8a3a2a68",
+    "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/paths/reaches_target.txt.snap": "d1712b88d38cacc0f857f5a1b1c5f44893b7c445d60e36c7a198d68e74a74721",
+    "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/report.txt.snap": "25f811b192b1346b666e2a70c10cb9d7d94434492918962d0a7ea489bfdd91df",
+    "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/rows.txt.snap": "7c98eecadabe737ed4b90c0c31783f7123656f7a74a9d426c166a6fc951b060a",
+    "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/states.txt.snap": "122950a322bc946d4b7b3e38d5fedf6574e1e7558be99a513a096d91e4d0afb3",
+    "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/paths/reaches_target.txt.snap": "6d5bb193c55ceb524277980f4ee7dad6e511ca1620ce086eae289d3f5807e506",
+    "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/report.txt.snap": "a19c4a74d52c9e33888b06bb15d6a091034627132237b8fc661c3dc9f6c00fe2",
+    "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/rows.txt.snap": "b0a90fc29f35da9fef19abf11878d3ef7499af06e8d0b5a2371ead659fd2186d",
+    "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/states.txt.snap": "d6b5325223b0e9e2fd55edb8322e6c6f8a30ea205dbcce8ecbcc1bbacc73f9f3",
+    "model/umpire/backends/native/tests/fixtures/progress_queued_cut/expected/report.txt.snap": "f3fe6c81f3e93865c04d82b585f361a2e3332f89ebd151ec2fed1dae9d42339f",
+    "model/umpire/backends/native/tests/fixtures/progress_queued_cut/expected/rows.txt.snap": "529038afc4e44f4d054c7827587e3be037b2dbee0b6c752379a6a691bdb5aff1",
+    "model/umpire/backends/native/tests/fixtures/progress_queued_cut/expected/states.txt.snap": "663cde03214cfaa3be63c49fbf2d1713017c6c82347c7e1f46eeee9f8a3a2a68",
+    "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/paths/reaches_target.txt.snap": "ffa8253eb977d082605836defb183a4ae5675c23d51c51d257e77d5ec8861205",
+    "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/report.txt.snap": "fda473a66bee28d40ee57813d75a3c493f79cb02aa8d2704623d457b874bd33f",
+    "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/rows.txt.snap": "e7ff5c3b24773b90da1d46f33823161ddde22b809b87e0a32f063d4b2aa6c9b0",
+    "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/states.txt.snap": "57c5b26d028809d253475ff3ec6cdeba4b9aa0981d211fbc387adb5addbdb5d3",
+    "model/umpire/backends/native/tests/fixtures/progress_scope_refusal/expected/report.txt.snap": "cc8f83fd9b3e1afdd1c9b091aa7431173d6134f4116de9d47dc8383a2acd57f9",
+    "model/umpire/backends/native/tests/fixtures/progress_starts_cut/expected/report.txt.snap": "3a689d60763a31443e164d88cb888e19a91277ab326fc6fa59506dc710b3bf6b",
+    "model/umpire/backends/native/tests/fixtures/progress_starts_cut/expected/rows.txt.snap": "54690d0b8b8ac52a5e082f1b64fc116662365b6f9c4ff87833756398cfeed950",
+    "model/umpire/backends/native/tests/fixtures/progress_starts_cut/expected/states.txt.snap": "122950a322bc946d4b7b3e38d5fedf6574e1e7558be99a513a096d91e4d0afb3",
+    "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/paths/target_panic.txt.snap": "9f9aead5d879bcc500b7f84f170704d642a6ae8ddd1ed985ad0c6e81cba02208",
+    "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/paths/trigger_panic.txt.snap": "6a1fc5aa394cc8cd572cc384fc9d663e333aa78c76e25fb67867057f168ebe6a",
+    "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/report.txt.snap": "b47766a14f04a351aa7d47987e9c00503ec773d51deb6e9d9e5bd21eb2c5fdc3",
+    "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/rows.txt.snap": "d5efe371d7d68e283dafa39079c7d7423d44bc7d66fde98ee8d7560fafbcb6f9",
+    "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/states.txt.snap": "663cde03214cfaa3be63c49fbf2d1713017c6c82347c7e1f46eeee9f8a3a2a68",
+    "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/paths/safe.txt.snap": "5fb2694d6ee35fcc11254bf9b46a904c4a0592997fd09a8aaac9ddbb394c4fda",
+    "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/report.txt.snap": "0a1714cc86623a6e44c605da35df66ab78b2047f85f5cd8b52a9f1517fbccfad",
+    "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/rows.txt.snap": "5da229062ffe9c6f205105b1ad2619a1dc14ccb6d45a3a21a203f32c6da40fde",
+    "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/states.txt.snap": "d8ca34295d8d538d6768aac98a2213af918e2906273cc364785927ba535473d3",
+    "model/umpire/backends/native/tests/fixtures/rejecting_mutation/expected/report.txt.snap": "948595662d62cb14fec92b79e89aeba2e0c6ebe498914f3316a2796cb51fd8e7",
+    "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/report.txt.snap": "f5c9f16c9763ea208dc1b6c8083e28fe36f4dbc70e6ff4cc0b8173bb206cbfed",
+    "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/rows.txt.snap": "3a5137cbec8c020681f5aa1e817a0eaf6a0382c1d064cf868888120fb27887aa",
+    "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/states.txt.snap": "5bdf45792ec69e3f3207a4ceaef5352a505250d738e11f3cac72db197f70d470",
+    "model/umpire/backends/native/tests/fixtures/shared_starts/expected/report.txt.snap": "28a76ab761f55fb9e856fe4fb56882ec7965c61fdc0d16f5769c176d6234c0f8",
+    "model/umpire/backends/native/tests/fixtures/shared_starts/expected/rows.txt.snap": "06f8a029b0fb1e453a972c40b78deec86dfd3da0a651bdb18be6e3c1b6d382c4",
+    "model/umpire/backends/native/tests/fixtures/shared_starts/expected/states.txt.snap": "6021175e2e00eec252660e17ca115571d22a94042f8b48e35190f72dca4c6545",
+    "model/umpire/backends/native/tests/fixtures/starts_cut/expected/report.txt.snap": "906516e80c3ec7b6141df15d4d0dde7b6b60d6cf4df3db839c580f4ab6ea3bca",
+    "model/umpire/backends/native/tests/fixtures/starts_cut/expected/rows.txt.snap": "54690d0b8b8ac52a5e082f1b64fc116662365b6f9c4ff87833756398cfeed950",
+    "model/umpire/backends/native/tests/fixtures/starts_cut/expected/states.txt.snap": "d8ca34295d8d538d6768aac98a2213af918e2906273cc364785927ba535473d3",
+    "model/umpire/backends/native/tests/fixtures/vacuity/expected/report.txt.snap": "87d30d61cc5010546f6dc6b9cd072cd91bff30bac0046ffedc42f212d53cef5f",
+    "model/umpire/backends/native/tests/fixtures/vacuity/expected/rows.txt.snap": "06f8a029b0fb1e453a972c40b78deec86dfd3da0a651bdb18be6e3c1b6d382c4",
+    "model/umpire/backends/native/tests/fixtures/vacuity/expected/states.txt.snap": "6021175e2e00eec252660e17ca115571d22a94042f8b48e35190f72dca4c6545",
+    "model/umpire/backends/native/tests/fixtures/zero_budget/expected/report.txt.snap": "93d65e61ddd221305f81db17bb62bb8196aa7e3095caadc41b7151bcec7be761"
+  },
+  "manifest_changes": [],
+  "snapshot_handling": "All 118 native fixture snapshots remain unchanged at original paths. Native fixture runner and CARGO_MANIFEST_DIR roots unchanged; explicit expected-text includes rebased. Self include in world_fairness_binding follows moved file.",
+  "binary_counts": {
+    "integration_before": 24,
+    "integration_after": 7
+  },
+  "validation": {
+    "rustfmt_check": "exit 0 after formatting path-length wraps; initial check reported two formatting diffs",
+    "static_equivalence": "21 migrations match rustfmt of original plus exact path edits; 66 path references resolve; 3 exception sources and 118 snapshots byte-identical",
+    "runtime_test_identity": "pending conductor integrated cargo list comparison; static equivalence is not executed inventory",
+    "production_tests": "not run: delegated to conductor",
+    "compile_link_timing": "unknown; not measured in delegated lane",
+    "checker_correction": "Initial non-whitespace-token comparison rejected rustfmt trailing-comma normalization; replaced with exact formatter-normalized source comparison, which passes."
+  },
+  "commits": [
+    "ad1d8f884706304dca2b952835c2cc07b708593e"
+  ]
+}

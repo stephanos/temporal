@@ -1,0 +1,47 @@
+   Compiling tempfile v3.27.0
+   Compiling serde_core v1.0.229
+   Compiling prost-build v0.14.4
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/protocol/runtime)
+   Compiling serde_json v1.0.154
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/catalog/syntax)
+   Compiling serde v1.0.229
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/backends/apalache)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/catalog)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/author/umpire)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.80s
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2544-tests/debug/deps/main-7c83396d631b72ba)
+
+running 29 tests
+test controls::pinned_installer_and_runner_agree ... ok
+test controls::real_arithmetic_refusal_follows_a_replayed_valid_prefix ... ok
+test controls::real_discarded_condition_keeps_its_evaluation_guard ... ok
+test controls::real_evaluated_start_failure_cannot_disappear_into_an_empty_range ... ok
+test controls::real_arithmetic_faults_are_reachable_and_guards_remain_total ... ok
+test controls::real_fact_witnesses_replay_exact_vectors_and_stutters ... ok
+test controls::real_kettle_checks_source_safety_and_history ... ok
+test controls::real_kettle_negative_is_replayed_and_tampering_fails ... ok
+test controls::real_later_start_fault_preserves_partial_binding ... ok
+test controls::real_payload_identity_and_outcome_history_are_typed ... ok
+test controls::real_postcondition_filter_excludes_unrelated_actions ... ok
+test controls::real_start_evaluation_respects_field_order_before_empty_domains ... ok
+test controls::real_typed_payload_rejection_and_after_claims_replay ... ok
+test controls::real_typed_vector_projection_keeps_eager_fallback_errors ... ok
+test controls::real_vector_witness_replays_typed_sequence ... ok
+test controls::strict_envelope_presence_and_object_controls ... ok
+test controls::strict_envelope_world_and_state_bounds ... ok
+test decode::declared_wire_types_must_match_the_source_schema ... ok
+test decode::observer_only_safety_assignment_keeps_strict_schema_empty_state_refusal ... ok
+test decode::optional_integer_itf_uses_the_exact_declared_code_set ... ok
+test decode::typed_itf_checks_declarations_shapes_and_limits ... ok
+test decode::typed_itf_preserves_composites_and_refuses_retired_set_shapes ... ok
+test replay::arithmetic_refusal_is_distinct_and_requires_the_exact_native_boundary ... ok
+test replay::colliding_renderings_cannot_replace_typed_replay_or_reenumerate_native_inputs ... ok
+test replay::exact_payload_outcome_history_and_specific_claim_are_replayed ... ok
+test replay::replay_refuses_an_undeclared_property_before_reading_a_witness ... ok
+test replay::retained_pinned_kettle_witness_replays_deterministically ... ok
+test replay::selected_property_category_cannot_alias_authored_names ... ok
+test controls::strict_envelope_resource_controls ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+

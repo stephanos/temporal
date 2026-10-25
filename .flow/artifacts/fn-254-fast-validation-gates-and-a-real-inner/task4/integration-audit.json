@@ -1,0 +1,531 @@
+{
+  "integration_head": "7fbd52fa0e6bf1108ce7ef357bdd42ecf5e79c12",
+  "review_base": "0312b9217e",
+  "worker_source": "7a9edd4a7a6fa5c93e8adb526460f675ad532d6c",
+  "source_exact_worker_bytes": [
+    {
+      "path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task4/consolidation-identities.json",
+      "sha256": "ade0940ebeed8121d209993c4a9c19107620459b0b0a1a7ca18f9a00a49a5dea"
+    },
+    {
+      "path": "model/Cargo.toml",
+      "sha256": "58ac653d909aea11562786926ba242102f6866a1620b7bfcb1eda87ea3216a17"
+    },
+    {
+      "path": "model/README.md",
+      "sha256": "9bbe2ed224620541e7994b0b7d9b4ea3888eb11500c98665f1ecd5654a45c9fb"
+    },
+    {
+      "path": "model/design/second-opinion.md",
+      "sha256": "aa21b96112f3e1bba6ce129c581c21065e38f819767f326794ad1a6905141db3"
+    },
+    {
+      "path": "model/temporal/testing/snapshot_ownership.rs",
+      "sha256": "72cf9b4b21863c37f9bd646ace35dcc28c748b9e731f4f1aaa4fc67abd5d17ea"
+    },
+    {
+      "path": "model/umpire/author/dsl/macros/tests/fixtures/declared_world/model.rs",
+      "sha256": "99e875a5c656860191ea5edd2e3e6d56ec09074321a1b2bf676f4b4eba7641a6"
+    },
+    {
+      "path": "model/umpire/author/dsl/macros/tests/main.rs",
+      "sha256": "59ff062c86ed9e0afd423070aaa39b62aa764cdcd87febb8da7c794810c1c45c"
+    },
+    {
+      "path": "model/umpire/author/dsl/macros/tests/main/metadata_semantics.rs",
+      "sha256": "c06141e2246404e0c2a234d5c11b61deb5d50572dde327a36006c0359ac0fe4f"
+    },
+    {
+      "path": "model/umpire/author/dsl/tests/main.rs",
+      "sha256": "78549e46de86dd0613017b0b6cb7b7e84d04c76ad682b51559038b381b9a4ed9"
+    },
+    {
+      "path": "model/umpire/author/dsl/tests/main/action_inputs_builders.rs",
+      "sha256": "7da6efd48496caad9de8a254e6c10b0a841758bb6866e6d65f1123db4929520e"
+    },
+    {
+      "path": "model/umpire/author/dsl/tests/main/catalog.rs",
+      "sha256": "b14fc57c43025a2354eb9e9cf3e8e2cfb1c5bc4244459feca5b250153095cb76"
+    },
+    {
+      "path": "model/umpire/author/dsl/tests/main/closable.rs",
+      "sha256": "4fbb1173d3ad2b2e9fb1ee3b5025cf50d97564eb4576fc6f3a56dc8f5d53d78c"
+    },
+    {
+      "path": "model/umpire/author/dsl/tests/main/declared_world.rs",
+      "sha256": "d7532e4e3d421248b2ee82936477e9fcdf52cb1b5d4e4f2123fbb5d4e048ffdd"
+    },
+    {
+      "path": "model/umpire/author/dsl/tests/main/finite_domains.rs",
+      "sha256": "fa5720c9e8a1b5ab85a9871f7c2e2016fb42f9bf08d41a2782ac7b0ee451ab03"
+    },
+    {
+      "path": "model/umpire/author/dsl/tests/main/optional_values.rs",
+      "sha256": "b9433559c02e3162404ba57513486f98d1709d31a66075cc59ba02ad3467da55"
+    },
+    {
+      "path": "model/umpire/author/dsl/tests/main/outcome.rs",
+      "sha256": "68b01a9f4f1a5b386f44013263aab5d8ac4eb70ca86916850c37d305ae81966b"
+    },
+    {
+      "path": "model/umpire/author/dsl/tests/main/path_domains.rs",
+      "sha256": "7459591f372d2aac3b26f5ff44dd214ef9d55c1e6fbb4daa0260900c7fdc9db0"
+    },
+    {
+      "path": "model/umpire/author/dsl/tests/main/path_expression_semantics.rs",
+      "sha256": "b9b78b4e6f5817467e330ad6d5ac8d096bc740f841326f1b5a6eb05845a53a39"
+    },
+    {
+      "path": "model/umpire/author/dsl/tests/main/path_language_patterns.rs",
+      "sha256": "af6fc3e796d6b97a984a0a676a09b715043b9a0c86c42ad94508783ce02b563c"
+    },
+    {
+      "path": "model/umpire/author/dsl/tests/main/path_leading_patterns.rs",
+      "sha256": "d70b344bc3b6a5c8ae19bf1e389ca6af5ee3b00b8aa631d2ed7d21e057fffcad"
+    },
+    {
+      "path": "model/umpire/author/dsl/tests/main/readme.rs",
+      "sha256": "674d632fae0e7b65050683c4f1819869bd1fc1d2f9bbd42d3816ef12bf9ad3cb"
+    },
+    {
+      "path": "model/umpire/author/dsl/tests/main/replay_values.rs",
+      "sha256": "e64a8ccb09be8d038a361d9707466d464ed11f6d34a7a1f3da79088983d94252"
+    },
+    {
+      "path": "model/umpire/author/dsl/tests/main/world.rs",
+      "sha256": "7692b0af12abfafac8593b7ac40daf07e2dd200b936852590fc23941276196be"
+    },
+    {
+      "path": "model/umpire/author/dsl/tests/main/world_dispatch.rs",
+      "sha256": "0cd4a14a0d5a93d86eb026902b8162a9a0c690351e706adc461dc16ca7657830"
+    },
+    {
+      "path": "model/umpire/author/suite/tests/main.rs",
+      "sha256": "2a002d5a17fba38692b125491e5935be9321c73ce14844d942e7b293d01a6fb6"
+    },
+    {
+      "path": "model/umpire/author/suite/tests/main/alternative_search.rs",
+      "sha256": "d646316f2d975de0b21ff0a5efa4e05d1da1d3497a066a06b76ffb51f5662ffb"
+    },
+    {
+      "path": "model/umpire/author/suite/tests/main/declared_world.rs",
+      "sha256": "65c22261b9b2b3b0dc1d01ba80480e0de2a585b1cd9d3293808c90561551c93f"
+    },
+    {
+      "path": "model/umpire/author/suite/tests/main/explicit_world.rs",
+      "sha256": "b296e38ca5d2ef36f59504560e50f73e761d9b67c68baf275121cd68b8c22a79"
+    },
+    {
+      "path": "model/umpire/author/suite/tests/main/fixtures.rs",
+      "sha256": "d53f9fe71c9d06e899ebbe9752632c98ae69c7468b2f3e6073bc3ad0bf23ccd2"
+    },
+    {
+      "path": "model/umpire/author/suite/tests/main/full_patterns.rs",
+      "sha256": "f3ccb854cf948ea701d359e200e1b8b3122786d523902f6266fdb64c1f76133f"
+    },
+    {
+      "path": "model/umpire/author/suite/tests/main/large_space.rs",
+      "sha256": "d52c1d8e90d4ec867c91798319f56fee655436beee7093cd0653ffb359b28d76"
+    },
+    {
+      "path": "model/umpire/author/suite/tests/main/world_domains.rs",
+      "sha256": "5f73fb736d480148be6e0cbbdcb2af76463afc65ba4bc8856ae0577f416eb749"
+    },
+    {
+      "path": "model/umpire/backends/apalache/tests/main.rs",
+      "sha256": "d83fa3e7d666285da3c46fa18a0cde19c0c2c1c6d58d442c2b787f075f9c0833"
+    },
+    {
+      "path": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "sha256": "6dc938f3eafd96a0a4430315cbdf09e2e137e89d486c15f378b8c5717bdf2291"
+    },
+    {
+      "path": "model/umpire/backends/apalache/tests/main/decode.rs",
+      "sha256": "a5e727663183bea732ec302089f0169ff39129c3c530327d4f6a1e277ba41d3e"
+    },
+    {
+      "path": "model/umpire/backends/apalache/tests/main/replay.rs",
+      "sha256": "50168bb02f61560fee06ff8e4f553f3802e9c3321ea72c33aa234ff1c32282c6"
+    },
+    {
+      "path": "model/umpire/backends/native/tests/main.rs",
+      "sha256": "187daa300998f8fecdb492e3d6d264a59bacf1af95b3d10b3b906f01441aec41"
+    },
+    {
+      "path": "model/umpire/backends/native/tests/main/oracle.rs",
+      "sha256": "605b95827b0fa5d16c220790fccc1f4ea20f164777b10d7fa3a2aa6873f9fe37"
+    },
+    {
+      "path": "model/umpire/backends/native/tests/main/search.rs",
+      "sha256": "ea2102d82751e71740240af451ebf2e5dd5ac20b9513d067193021509b0fbb45"
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/main.rs",
+      "sha256": "c4430926fcb82d2d02ac98485a14326f03b7487aa7a001cb5a6c37158e2f3795"
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/main/emission.rs",
+      "sha256": "9c3be5df4f4facf92392d5d040821eeef12e873e6945549b9e05370fa76bf63b"
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/main/inputs.rs",
+      "sha256": "c78c1c288c5088b88363c7829d9485bb5fd3d760ca124dac4fb01a2fdc0aad98"
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/main/narrow_remainder.rs",
+      "sha256": "8e39da1ceeadac3ddd0f5af0dadbdb45cacc7cea3ce120a8884087cd5be2c56a"
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/main/optional_facts.rs",
+      "sha256": "90ed639626e6f69e0c40983d0e06059d772ec921fcbe0be3193446dd6ff8ea63"
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/main/optional_source.rs",
+      "sha256": "716986073b54f11af778a0be6da0d51ba3fb3635818ce6f766a8c8c2fc6d4354"
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/main/optional_ticks.rs",
+      "sha256": "d826bd463ceb119bab87cfb2bd198ffe713dd0498adc882b4635f1a1fe089dca"
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/main/phased.rs",
+      "sha256": "b08045f43efdb8dfaafde0e79d77d32c933816f897ea329392d4936bea29844d"
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/main/safety.rs",
+      "sha256": "b8a1f579b9d763a7f8a93a07272cead436fe7294e020cb5372ce1269281de829"
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/main/sequential_checks.rs",
+      "sha256": "1ddb8ae4340a82311e943f4ba97cf3c0f5b75d8d8b4c067bae383917de8357cd"
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/main/shadowing.rs",
+      "sha256": "c985831e80bc50994a3a8e480cb5518ff8fee9a184a4063c806949c2d0ae3355"
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/main/source.rs",
+      "sha256": "5226418d4d229ba79aa239eee6f7ef93f9b7de137c8f7a33bab39e4cc29e76bf"
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/main/vector.rs",
+      "sha256": "11f29dbd66ba8cea6c658f89b9af59ea409c2ef0cf4db3ac842bc8d1297778fc"
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/main/world.rs",
+      "sha256": "fde4c239c1763813c320c3eaebaa526d78dc2e428c4ace70f208e44e3adfeb98"
+    },
+    {
+      "path": "model/umpire/backends/tla/tests/main/world_fairness_binding.rs",
+      "sha256": "43b7f81f4831a837fb4f298659aa07f04f2e4469bc4171cdd26a820e90057521"
+    },
+    {
+      "path": "model/umpire/backends/tlc/tests/main.rs",
+      "sha256": "e7d75f2087ace807be0aad85a81e010fcbd52e75eb2532bc3f1e363a0ffa06a1"
+    },
+    {
+      "path": "model/umpire/backends/tlc/tests/main/controls.rs",
+      "sha256": "7a1aa9be2a08f13a9c7bf543de51048a32aaf935af8eccd610bc73db65fc27cb"
+    },
+    {
+      "path": "model/umpire/backends/tlc/tests/main/scaling.rs",
+      "sha256": "1ffed354b093ada91c07a54b8209d9386def729cbe4bd0e558dc64fa57ae3bd3"
+    },
+    {
+      "path": "model/umpire/catalog/build/tests/main.rs",
+      "sha256": "e2f3aac4f37eaafad5c9b2cb231e2684a5e3b7d78f8da11b52d977ad1c0ecac7"
+    },
+    {
+      "path": "model/umpire/catalog/build/tests/main/mirrors.rs",
+      "sha256": "b678ad2fcf1ee30f9f42da0105871031bf3cdfbf8c77b8444d045cc5c8ec3416"
+    },
+    {
+      "path": "model/umpire/catalog/build/tests/main/neutral.rs",
+      "sha256": "9b1110f37a25c93d44a7c621afd84bd0ded319e7ff54e8d75e73ac76aa9415b1"
+    },
+    {
+      "path": "model/umpire/catalog/build/tests/main/wire_generated.rs",
+      "sha256": "e519fbe02295995ca30421b282debd719727c249b4c88cb00df039ce40fd2093"
+    },
+    {
+      "path": "model/umpire/catalog/syntax/tests/main.rs",
+      "sha256": "98e9f1cccf63ff8e6a9bc59b01aba386a1a19c3f20452870b841f59af1cd027e"
+    },
+    {
+      "path": "model/umpire/catalog/syntax/tests/main/admission.rs",
+      "sha256": "18d7f0a4c921489f37e5899fa29eba2b2191070833faf43a91c20fe5c73d6f86"
+    },
+    {
+      "path": "model/umpire/catalog/syntax/tests/main/expansion.rs",
+      "sha256": "d2c497c0634faa57f04f7f110bd4fad388625cd32b8fd23a02aa12973fc1be4f"
+    },
+    {
+      "path": "model/umpire/catalog/tests/main.rs",
+      "sha256": "71d582bf30723af45947482ddd6afa9627e479cc5f1b99a1952630824fab1e29"
+    },
+    {
+      "path": "model/umpire/catalog/tests/main/black_box.rs",
+      "sha256": "dd61129d64a5ff29fcd99526435505555d41604eb28d2413e3b1bdb736bf5d7f"
+    },
+    {
+      "path": "model/umpire/catalog/tests/main/catalog.rs",
+      "sha256": "7438303f53f2d5fcb70f73d8657773b9c97b307660d2a20ee4b0b9689cc7cd31"
+    },
+    {
+      "path": "model/umpire/catalog/tests/main/controls.rs",
+      "sha256": "e5d81dc4739c41c743f1b9ac527d43b598e15127e10270a95df63ddee7d8e6d3"
+    },
+    {
+      "path": "model/umpire/catalog/tests/main/generation.rs",
+      "sha256": "607cb72352056ebf0d96d988b845a62dc52167a9ea0e520e081d125e6f5b21d3"
+    },
+    {
+      "path": "model/umpire/catalog/tests/main/generic_probe.rs",
+      "sha256": "d11d37c483ffe5379c2aefd7b68595eed0b446b847c2c874b5a3bae5c232bafc"
+    },
+    {
+      "path": "model/umpire/catalog/tests/main/ignored.rs",
+      "sha256": "d484e63793ec4f83de2a0047383f89cf1ee739aa3603b654997167a24f1d8b77"
+    },
+    {
+      "path": "model/umpire/catalog/tests/main/kettle.rs",
+      "sha256": "b94977c4884de08f1b4f3df14495ccb3722a71ff25ffb13c891aaa100667048b"
+    },
+    {
+      "path": "model/umpire/catalog/tests/main/probe.rs",
+      "sha256": "b3e9b279ac1078255be43a24300b71a4cfc5c985c9fc53c9ca622dac5292f6c4"
+    },
+    {
+      "path": "model/umpire/catalog/tests/main/projected_oneof.rs",
+      "sha256": "97745e154c82102e849f68b8ac3b766b4cb9712edc2895eb9c9247843dec47b4"
+    },
+    {
+      "path": "model/umpire/catalog/tests/main/raw_field.rs",
+      "sha256": "81b04f41a209155dc28e0b2f1085da1517f99fe12552dc0c08267a35a302fb79"
+    },
+    {
+      "path": "model/umpire/catalog/tests/main/runtime.rs",
+      "sha256": "033f70ffe085f257b888cdf3defeeb1edcaa7b405fa18acf93f01413429aac76"
+    },
+    {
+      "path": "model/umpire/catalog/tests/main/scalar_carriers.rs",
+      "sha256": "7cee3161f2d3d0080c1f5bff28352907e1d605e1f358e0ca75c4b488c42a554e"
+    },
+    {
+      "path": "model/umpire/catalog/tests/main/string_bytes.rs",
+      "sha256": "9b28b54353175bd511885b3f15f7d0eaee2730aac56796b343427d81b4aedfc8"
+    },
+    {
+      "path": "model/umpire/catalog/tests/main/views.rs",
+      "sha256": "1cb1d48fbc99c49fc5746dbd487d9d440da22f3b85130c6852764bbc85bf3333"
+    },
+    {
+      "path": "model/umpire/dev/fixtures/Cargo.toml",
+      "sha256": "23a0f41e2f479140c8d40268c5e53c20d7d0b3f058d44a681b6f2dc6b825bb05"
+    },
+    {
+      "path": "model/umpire/dev/fixtures/fixtures.rs",
+      "sha256": "75e6d94126cb876895d419b5c37e3c7f7de5ddb0333bdbfea3cb52aa9af762ef"
+    },
+    {
+      "path": "model/umpire/dev/fixtures/interpreted.rs",
+      "sha256": "ef4c9a4165aedad4d2e012185541221928d94c5f7ba87d94297454639f900b47"
+    },
+    {
+      "path": "model/umpire/dev/testing/tests/main.rs",
+      "sha256": "cff52a94aa6938f33512da54d3d00467e49cafb8fa53f11dcd79945b84894741"
+    },
+    {
+      "path": "model/umpire/dev/testing/tests/main/declared_values.rs",
+      "sha256": "590f72ffc4a71d3605079692220dcdb2a547b3fd73a510e7b016fb219988884e"
+    },
+    {
+      "path": "model/umpire/dev/testing/tests/main/discovery.rs",
+      "sha256": "e7983cceada3a4e2aa3c22e14ab4d7815a28800c10f6181db8cacc77ac34997d"
+    },
+    {
+      "path": "model/umpire/dev/testing/tests/main/empty_control.rs",
+      "sha256": "f8ed9c0ac65657bb1c78bdd60928bb1edf092c6d5b6ee4ef2ffc1810ca19447f"
+    },
+    {
+      "path": "model/umpire/dev/testing/tests/main/orphan_control.rs",
+      "sha256": "c98523cb8fbfc1959b88c0eb270f2958beca9d823f0f974ee7f541985fd1a754"
+    },
+    {
+      "path": "model/umpire/protocol/runtime/tests/main.rs",
+      "sha256": "2c89d7f3539cacbc13ff6dd9dd9d0d532b104498f76ebc081a48af6549137fcb"
+    },
+    {
+      "path": "model/umpire/protocol/runtime/tests/main/abi_staging.rs",
+      "sha256": "39599fa4e7a8358eafa6a94d263410c71a4df7fd597f6a7bbbcd884769c25bfb"
+    },
+    {
+      "path": "model/umpire/protocol/runtime/tests/main/annotations.rs",
+      "sha256": "e703c62de1947be6ab04f919f7ce60d90e4ebeafcb76cd3433333a7322e45536"
+    },
+    {
+      "path": "model/umpire/protocol/runtime/tests/main/catalog.rs",
+      "sha256": "f3cf92d64acb9052018f8569dfaf1e9aa3cc55082afa165d8ec32be41c0da9d1"
+    },
+    {
+      "path": "model/umpire/protocol/runtime/tests/main/constructors.rs",
+      "sha256": "1acc1a285313754a602440a51af07e1a518a97924abfd515cf4b1da68c999cd7"
+    },
+    {
+      "path": "model/umpire/protocol/runtime/tests/main/core_protocol.rs",
+      "sha256": "59f2ed3397332d253618992a8b10f4dc5b463c89249e85382b7e6b658212a053"
+    },
+    {
+      "path": "model/umpire/protocol/runtime/tests/main/dispatch.rs",
+      "sha256": "1d75befcf615dc6c748cc23f7eb9bc72ca49457ff520b3aa95d39f672d8d4873"
+    },
+    {
+      "path": "model/umpire/protocol/runtime/tests/main/prefix.rs",
+      "sha256": "be1d8ca662dbe39c1059d421813e1f928a7858d26b606ef6ab189c76547abee4"
+    },
+    {
+      "path": "model/umpire/protocol/runtime/tests/main/proposal.rs",
+      "sha256": "f195bf4e2f830cd3991454f934bd49539667562788c9a2f2e2ce0d7fdcc2d6bc"
+    },
+    {
+      "path": "model/umpire/protocol/runtime/tests/main/proposal_wire.rs",
+      "sha256": "f0839f7db3c57e1dedf0fadaa5b923ee8aa772cc64837b7d717c0fb5490a5a50"
+    },
+    {
+      "path": "model/umpire/protocol/runtime/tests/main/rejecting.rs",
+      "sha256": "76b85f3e1e34af7aa1ee900ff25c9397011d5b825bea4e18413d8db660f0a701"
+    },
+    {
+      "path": "model/umpire/protocol/runtime/tests/main/selected_start.rs",
+      "sha256": "310d7fe39496494f4049fa7a8aeab26167ac84cd8072847d278184b2ec624f27"
+    },
+    {
+      "path": "model/umpire/protocol/runtime/tests/main/stateful.rs",
+      "sha256": "b33b0b48fed71c24f6424ef78430dad2ef253b60de7bebfb54187cc0b3ee882e"
+    },
+    {
+      "path": "model/umpire/protocol/runtime/tests/main/wire.rs",
+      "sha256": "3cfef98264531ea214837231fd076ea40275c4ec079b252735de66f74a72b890"
+    },
+    {
+      "path": "model/umpire/protocol/runtime/tests/support/control.rs",
+      "sha256": "d9c779d60cbab1bad7c8d6e4548bb198784f10393bdf131556af0b3d2b2e3ef1"
+    },
+    {
+      "path": "model/umpire/reference/kettle/README.md",
+      "sha256": "bddc119fb67d49c4e917fa5ba7002dd8800a03a98ec7d104e647cd67adba8b9f"
+    },
+    {
+      "path": "model/umpire/reference/kettle/tests/main.rs",
+      "sha256": "38bfc08657df2ba7238b4de46ca8bf87400dc28f632e378abfdd7283ab510e18"
+    },
+    {
+      "path": "model/umpire/reference/kettle/tests/main/annotations.rs",
+      "sha256": "9035ad61abec7b92a6d907b9e3bdae3d156253c10a05debd41f45ab4bb1e5bc2"
+    },
+    {
+      "path": "model/umpire/reference/kettle/tests/main/descriptor.rs",
+      "sha256": "3b38c2f3140a83c6dc72c5bba461f353dd2eb683470d526730294144c6786a97"
+    },
+    {
+      "path": "model/umpire/reference/kettle/tests/main/probes.rs",
+      "sha256": "ff2cfbfc33a5e67e0152cfc09d82f02873ad3290cba0d99e453ed055703b9b1d"
+    },
+    {
+      "path": "model/umpire/reference/kettle/tests/main/realization.rs",
+      "sha256": "8f5d5f3d6c27d55db1e50d09de72e280be817d50bda2d9ff973207373dbb1a87"
+    }
+  ],
+  "removed_paths_absent": [
+    "model/umpire/author/dsl/macros/tests/metadata_semantics.rs",
+    "model/umpire/author/dsl/tests/action_inputs_builders.rs",
+    "model/umpire/author/dsl/tests/catalog.rs",
+    "model/umpire/author/dsl/tests/closable.rs",
+    "model/umpire/author/dsl/tests/declared_world.rs",
+    "model/umpire/author/dsl/tests/finite_domains.rs",
+    "model/umpire/author/dsl/tests/optional_values.rs",
+    "model/umpire/author/dsl/tests/outcome.rs",
+    "model/umpire/author/dsl/tests/path_domains.rs",
+    "model/umpire/author/dsl/tests/path_expression_semantics.rs",
+    "model/umpire/author/dsl/tests/path_language_patterns.rs",
+    "model/umpire/author/dsl/tests/path_leading_patterns.rs",
+    "model/umpire/author/dsl/tests/readme.rs",
+    "model/umpire/author/dsl/tests/replay_values.rs",
+    "model/umpire/author/dsl/tests/world.rs",
+    "model/umpire/author/dsl/tests/world_dispatch.rs",
+    "model/umpire/author/suite/tests/alternative_search.rs",
+    "model/umpire/author/suite/tests/declared_world.rs",
+    "model/umpire/author/suite/tests/explicit_world.rs",
+    "model/umpire/author/suite/tests/fixtures.rs",
+    "model/umpire/author/suite/tests/full_patterns.rs",
+    "model/umpire/author/suite/tests/large_space.rs",
+    "model/umpire/author/suite/tests/world_domains.rs",
+    "model/umpire/backends/apalache/tests/controls.rs",
+    "model/umpire/backends/apalache/tests/decode.rs",
+    "model/umpire/backends/apalache/tests/replay.rs",
+    "model/umpire/backends/native/tests/oracle.rs",
+    "model/umpire/backends/native/tests/search.rs",
+    "model/umpire/backends/tla/tests/emission.rs",
+    "model/umpire/backends/tla/tests/inputs.rs",
+    "model/umpire/backends/tla/tests/narrow_remainder.rs",
+    "model/umpire/backends/tla/tests/optional_facts.rs",
+    "model/umpire/backends/tla/tests/optional_source.rs",
+    "model/umpire/backends/tla/tests/optional_ticks.rs",
+    "model/umpire/backends/tla/tests/phased.rs",
+    "model/umpire/backends/tla/tests/safety.rs",
+    "model/umpire/backends/tla/tests/sequential_checks.rs",
+    "model/umpire/backends/tla/tests/shadowing.rs",
+    "model/umpire/backends/tla/tests/source.rs",
+    "model/umpire/backends/tla/tests/vector.rs",
+    "model/umpire/backends/tla/tests/world.rs",
+    "model/umpire/backends/tla/tests/world_fairness_binding.rs",
+    "model/umpire/backends/tlc/tests/controls.rs",
+    "model/umpire/backends/tlc/tests/scaling.rs",
+    "model/umpire/catalog/build/tests/mirrors.rs",
+    "model/umpire/catalog/build/tests/neutral.rs",
+    "model/umpire/catalog/build/tests/wire_generated.rs",
+    "model/umpire/catalog/syntax/tests/admission.rs",
+    "model/umpire/catalog/syntax/tests/expansion.rs",
+    "model/umpire/catalog/tests/black_box.rs",
+    "model/umpire/catalog/tests/catalog.rs",
+    "model/umpire/catalog/tests/controls.rs",
+    "model/umpire/catalog/tests/generation.rs",
+    "model/umpire/catalog/tests/generic_probe.rs",
+    "model/umpire/catalog/tests/ignored.rs",
+    "model/umpire/catalog/tests/kettle.rs",
+    "model/umpire/catalog/tests/probe.rs",
+    "model/umpire/catalog/tests/projected_oneof.rs",
+    "model/umpire/catalog/tests/raw_field.rs",
+    "model/umpire/catalog/tests/runtime.rs",
+    "model/umpire/catalog/tests/scalar_carriers.rs",
+    "model/umpire/catalog/tests/string_bytes.rs",
+    "model/umpire/catalog/tests/views.rs",
+    "model/umpire/dev/testing/tests/declared_values.rs",
+    "model/umpire/dev/testing/tests/discovery.rs",
+    "model/umpire/dev/testing/tests/empty_control.rs",
+    "model/umpire/dev/testing/tests/orphan_control.rs",
+    "model/umpire/protocol/runtime/tests/abi_staging.rs",
+    "model/umpire/protocol/runtime/tests/annotations.rs",
+    "model/umpire/protocol/runtime/tests/catalog.rs",
+    "model/umpire/protocol/runtime/tests/constructors.rs",
+    "model/umpire/protocol/runtime/tests/core_protocol.rs",
+    "model/umpire/protocol/runtime/tests/dispatch.rs",
+    "model/umpire/protocol/runtime/tests/prefix.rs",
+    "model/umpire/protocol/runtime/tests/proposal.rs",
+    "model/umpire/protocol/runtime/tests/proposal_wire.rs",
+    "model/umpire/protocol/runtime/tests/rejecting.rs",
+    "model/umpire/protocol/runtime/tests/selected_start.rs",
+    "model/umpire/protocol/runtime/tests/stateful.rs",
+    "model/umpire/protocol/runtime/tests/wire.rs",
+    "model/umpire/reference/kettle/tests/annotations.rs",
+    "model/umpire/reference/kettle/tests/descriptor.rs",
+    "model/umpire/reference/kettle/tests/probes.rs",
+    "model/umpire/reference/kettle/tests/realization.rs"
+  ],
+  "snapshot_ui_hashes_verified": 563,
+  "libtest_original_bijection": 925,
+  "affected_observed": 605,
+  "passed": 603,
+  "ignored": 2,
+  "broad_validation": "deferred to .8, not claimed passing"
+}

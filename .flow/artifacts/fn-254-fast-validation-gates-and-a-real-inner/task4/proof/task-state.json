@@ -1,0 +1,22 @@
+{
+  "success": true,
+  "assignee": "stephanos@users.noreply.github.com",
+  "claim_note": "",
+  "claimed_at": "2026-10-25T20:59:46.437841Z",
+  "created_at": "2026-10-25T17:55:26.992135Z",
+  "depends_on": [
+    "fn-254-fast-validation-gates-and-a-real-inner.1",
+    "fn-254-fast-validation-gates-and-a-real-inner.9"
+  ],
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.4",
+  "priority": null,
+  "spec": "fn-254-fast-validation-gates-and-a-real-inner",
+  "spec_path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.4.md",
+  "status": "in_progress",
+  "title": "One test binary per crate and a cheaper test build profile (umpire crates)",
+  "updated_at": "2026-10-25T20:59:46.437788Z",
+  "impl": null,
+  "review": null,
+  "sync": null,
+  "status_source": "flow-state"
+}

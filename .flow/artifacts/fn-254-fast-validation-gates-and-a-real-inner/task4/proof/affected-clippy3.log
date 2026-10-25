@@ -1,0 +1,208 @@
+   Compiling umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/reference/kettle)
+    Checking umpire-fixtures v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/dev/fixtures)
+    Checking umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/author/suite)
+    Checking umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/backends/apalache)
+    Checking umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/dev/testing)
+    Checking umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/catalog)
+error[E0277]: the trait bound `impl Machine<State = Model, Outcome = (), Fact = ()> + From<User> + ActorProjection<User>: Interprets` is not satisfied
+   --> umpire/dev/fixtures/interpreted.rs:272:59
+    |
+272 |     interpreted(arithmetic::world, None, Checker::BUDGET, None)?;
+    |     -----------                                           ^^^^ unsatisfied trait bound
+    |     |
+    |     required by a bound introduced by this call
+    |
+    = help: the trait `umpire_dsl::__lifted::Interprets` is not implemented for `impl Machine<State = Model, Outcome = (), Fact = ()> + From<User> + ActorProjection<User>`
+    = help: the following other types implement trait `umpire_dsl::__lifted::Interprets`:
+              action_inputs::inputs::World
+              changed_state::changed_state::World
+              interpreted::apalache_arithmetic::arithmetic::World
+              interpreted::apalache_categories::categories::World
+              interpreted::apalache_empty_condition::empty_condition::World
+              interpreted::arithmetic::World
+              interpreted::arithmetic_prefix::prefix::World
+              interpreted::linear_returns::linear::World
+            and 31 others
+note: required by a bound in `umpire_testing::interpreted`
+   --> umpire/dev/testing/src/interpreted.rs:36:8
+    |
+ 29 | pub fn interpreted<M>(
+    |        ----------- required by a bound in this function
+...
+ 36 |     M: Interprets + Values,
+    |        ^^^^^^^^^^ required by this bound in `interpreted`
+    = note: the full name for the type has been written to '/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2544-tests/debug/deps/fixtures-402ea0747c468739.long-type-3222143470220379798.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0277]: the trait bound `impl Machine<State = Model, Outcome = (), Fact = ()> + From<User> + ActorProjection<User>: Values` is not satisfied
+   --> umpire/dev/fixtures/interpreted.rs:272:59
+    |
+272 |     interpreted(arithmetic::world, None, Checker::BUDGET, None)?;
+    |     -----------                                           ^^^^ unsatisfied trait bound
+    |     |
+    |     required by a bound introduced by this call
+    |
+    = help: the trait `umpire_dsl::Values` is not implemented for `impl Machine<State = Model, Outcome = (), Fact = ()> + From<User> + ActorProjection<User>`
+    = help: the following other types implement trait `umpire_dsl::Values`:
+              accepted_self_loops::counter::Model
+              accepted_self_loops::counter::World
+              action_inputs::inputs::Model
+              action_inputs::inputs::World
+              changed_state::changed_state::Model
+              changed_state::changed_state::World
+              interpreted::apalache_arithmetic::arithmetic::Model
+              interpreted::apalache_arithmetic::arithmetic::World
+            and 76 others
+note: required by a bound in `umpire_testing::interpreted`
+   --> umpire/dev/testing/src/interpreted.rs:36:21
+    |
+ 29 | pub fn interpreted<M>(
+    |        ----------- required by a bound in this function
+...
+ 36 |     M: Interprets + Values,
+    |                     ^^^^^^ required by this bound in `interpreted`
+    = note: the full name for the type has been written to '/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2544-tests/debug/deps/fixtures-402ea0747c468739.long-type-3222143470220379798.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0277]: the trait bound `<_ as Machine>::Action: ActionValues<_>` is not satisfied
+   --> umpire/dev/fixtures/interpreted.rs:272:59
+    |
+272 |     interpreted(arithmetic::world, None, Checker::BUDGET, None)?;
+    |     -----------                                           ^^^^ unsatisfied trait bound
+    |     |
+    |     required by a bound introduced by this call
+    |
+    = help: the trait `umpire_dsl::ActionValues<impl umpire_dsl::Machine<State = interpreted::arithmetic::Model, Outcome = (), Fact = ()> + std::convert::From<interpreted::arithmetic::User> + umpire_dsl::ActorProjection<interpreted::arithmetic::User>>` is not implemented for `<_ as Machine>::Action`
+    = help: the following other types implement trait `umpire_dsl::ActionValues<W>`:
+              `accepted_self_loops::counter::Action` implements `umpire_dsl::ActionValues<accepted_self_loops::counter::World>`
+              `accepted_self_loops::counter::User` implements `umpire_dsl::ActionValues<accepted_self_loops::counter::World>`
+              `action_inputs::inputs::Action` implements `umpire_dsl::ActionValues<action_inputs::inputs::World>`
+              `action_inputs::inputs::Worker` implements `umpire_dsl::ActionValues<action_inputs::inputs::World>`
+              `changed_state::changed_state::Action` implements `umpire_dsl::ActionValues<changed_state::changed_state::World>`
+              `changed_state::changed_state::User` implements `umpire_dsl::ActionValues<changed_state::changed_state::World>`
+              `interpreted::apalache_arithmetic::arithmetic::Action` implements `umpire_dsl::ActionValues<interpreted::apalache_arithmetic::arithmetic::World>`
+              `interpreted::apalache_arithmetic::arithmetic::User` implements `umpire_dsl::ActionValues<interpreted::apalache_arithmetic::arithmetic::World>`
+            and 83 others
+note: required by a bound in `umpire_testing::interpreted`
+   --> umpire/dev/testing/src/interpreted.rs:37:16
+    |
+ 29 | pub fn interpreted<M>(
+    |        ----------- required by a bound in this function
+...
+ 37 |     M::Action: ActionValues<M>,
+    |                ^^^^^^^^^^^^^^^ required by this bound in `interpreted`
+    = note: the full name for the type has been written to '/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2544-tests/debug/deps/fixtures-402ea0747c468739.long-type-15736720189920441212.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+    Checking umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-tests/model/umpire/author/dsl)
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `umpire-fixtures` (test "fixtures") due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: module has the same name as its containing module
+  --> umpire/author/dsl/tests/main/catalog.rs:8:1
+   |
+ 8 | / mod catalog {
+ 9 | |     use umpire_dsl::{Action, State};
+10 | |
+11 | |     #[derive(State)]
+...  |
+49 | | }
+   | |_^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#module_inception
+   = note: `-D clippy::module-inception` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::module_inception)]`
+
+error: unreachable `pub` item
+  --> umpire/author/dsl/tests/main/path_expression_semantics.rs:22:1
+   |
+22 | pub mod world {
+   | ---^^^^^^^^^^
+   | |
+   | help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+   = note: `-D unreachable-pub` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unreachable_pub)]`
+
+error: unreachable `pub` item
+  --> umpire/author/dsl/tests/main/path_expression_semantics.rs:25:5
+   |
+25 |     pub struct Model {
+   |     ---^^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+error: unreachable `pub` item
+  --> umpire/author/dsl/tests/main/path_expression_semantics.rs:29:5
+   |
+29 |     pub enum User {
+   |     ---^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+error: unreachable `pub` item
+  --> umpire/author/dsl/tests/main/path_language_patterns.rs:10:1
+   |
+10 | pub mod world {
+   | ---^^^^^^^^^^
+   | |
+   | help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+error: unreachable `pub` item
+  --> umpire/author/dsl/tests/main/path_language_patterns.rs:13:5
+   |
+13 |     pub struct Model {
+   |     ---^^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+error: unreachable `pub` item
+  --> umpire/author/dsl/tests/main/path_language_patterns.rs:17:5
+   |
+17 |     pub enum User {
+   |     ---^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+error: unreachable `pub` item
+ --> umpire/author/dsl/tests/main/path_leading_patterns.rs:8:1
+  |
+8 | pub mod world {
+  | ---^^^^^^^^^^
+  | |
+  | help: consider restricting its visibility: `pub(crate)`
+  |
+  = help: or consider exporting it for use by other crates
+
+error: unreachable `pub` item
+  --> umpire/author/dsl/tests/main/path_leading_patterns.rs:11:5
+   |
+11 |     pub struct Model {
+   |     ---^^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+error: unreachable `pub` item
+  --> umpire/author/dsl/tests/main/path_leading_patterns.rs:15:5
+   |
+15 |     pub enum User {
+   |     ---^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+error: could not compile `umpire-dsl` (test "main") due to 10 previous errors

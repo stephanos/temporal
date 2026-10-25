@@ -1,0 +1,136 @@
+{
+  "before": 108,
+  "after": 36,
+  "packages": [
+    {
+      "package": "umpire",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "package": "umpire-catalog",
+      "before": 19,
+      "after": 6
+    },
+    {
+      "package": "umpire-catalog-macros",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "package": "umpire-catalog-syntax",
+      "before": 2,
+      "after": 1
+    },
+    {
+      "package": "umpire-runtime",
+      "before": 15,
+      "after": 3
+    },
+    {
+      "package": "umpire-checker",
+      "before": 4,
+      "after": 3
+    },
+    {
+      "package": "umpire-dsl",
+      "before": 17,
+      "after": 3
+    },
+    {
+      "package": "umpire-dsl-macros",
+      "before": 2,
+      "after": 2
+    },
+    {
+      "package": "umpire-front",
+      "before": 1,
+      "after": 1
+    },
+    {
+      "package": "umpire-ir",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "package": "umpire-ir-derive",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "package": "umpire-testing",
+      "before": 9,
+      "after": 6
+    },
+    {
+      "package": "umpire-tla",
+      "before": 14,
+      "after": 1
+    },
+    {
+      "package": "umpire-backend-process",
+      "before": 1,
+      "after": 1
+    },
+    {
+      "package": "umpire-tlc",
+      "before": 2,
+      "after": 1
+    },
+    {
+      "package": "umpire-suite",
+      "before": 8,
+      "after": 2
+    },
+    {
+      "package": "umpire-author-consumer",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "package": "umpire-apalache",
+      "before": 3,
+      "after": 1
+    },
+    {
+      "package": "umpire-stock-guest",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "package": "umpire-control-guest",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "package": "umpire-caught-panic-guest",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "package": "umpire-overflow-guest",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "package": "umpire-catalog-build",
+      "before": 3,
+      "after": 1
+    },
+    {
+      "package": "umpire-reference-kettle",
+      "before": 6,
+      "after": 3
+    },
+    {
+      "package": "umpire-kettle-guest",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "package": "umpire-fixtures",
+      "before": 2,
+      "after": 1
+    }
+  ]
+}

@@ -1,0 +1,683 @@
+{
+  "baseline": "not run: delegated integrated checks; dispatch forbids Cargo builds/tests",
+  "manifest_changes": false,
+  "packages": [
+    {
+      "package": "umpire-runtime",
+      "before_targets": [
+        "abi_staging",
+        "annotations",
+        "capabilities",
+        "catalog",
+        "constructors",
+        "core_protocol",
+        "dispatch",
+        "prefix",
+        "proposal",
+        "proposal_wire",
+        "reach",
+        "rejecting",
+        "selected_start",
+        "stateful",
+        "wire"
+      ],
+      "after_targets": [
+        "main",
+        "capabilities",
+        "reach"
+      ],
+      "mappings": [
+        {
+          "old_target": "abi_staging",
+          "new_target": "main",
+          "old_module_prefix": "",
+          "new_module_prefix": "abi_staging::",
+          "old_source": "model/umpire/protocol/runtime/tests/abi_staging.rs",
+          "new_source": "model/umpire/protocol/runtime/tests/main/abi_staging.rs",
+          "before_sha256": "2a54bd830a3d50a167f8870353e8094345aadbaa2b7e0f7621272806dde66f25",
+          "after_sha256": "d0993fe7531b2d9f5eaef780debf37941314d4118f78383ddc0df1831655b8be",
+          "source_test_names": [
+            {
+              "old": "unpublished_exploration_leaves_stock_guest_unexplored",
+              "new": "abi_staging::unpublished_exploration_leaves_stock_guest_unexplored",
+              "ignored": false
+            },
+            {
+              "old": "oversized_response_never_publishes_or_commits",
+              "new": "abi_staging::oversized_response_never_publishes_or_commits",
+              "ignored": false
+            },
+            {
+              "old": "panicking_publisher_leaves_transaction_uncommitted",
+              "new": "abi_staging::panicking_publisher_leaves_transaction_uncommitted",
+              "ignored": false
+            }
+          ]
+        },
+        {
+          "old_target": "annotations",
+          "new_target": "main",
+          "old_module_prefix": "",
+          "new_module_prefix": "annotations::",
+          "old_source": "model/umpire/protocol/runtime/tests/annotations.rs",
+          "new_source": "model/umpire/protocol/runtime/tests/main/annotations.rs",
+          "before_sha256": "4e2e415ee5e5d9c4c2d737253728fac471e86219400b1df7c5843ebd02832c83",
+          "after_sha256": "a8ff6ce3ba6ef34c47134d1cda86b702c044221a2af1644af6d782feb133c8e0",
+          "source_test_names": [
+            {
+              "old": "typed_probes_and_annotations_share_stateless_routing",
+              "new": "annotations::typed_probes_and_annotations_share_stateless_routing",
+              "ignored": false
+            }
+          ]
+        },
+        {
+          "old_target": "capabilities",
+          "new_target": "capabilities",
+          "old_module_prefix": "",
+          "new_module_prefix": "",
+          "source": "model/umpire/protocol/runtime/tests/capabilities.rs",
+          "sha256": "eeb3989a3fbb602f97533165afa7e6fcfc47a37b3043a4d18efc1fad3e6a924a",
+          "unchanged": true
+        },
+        {
+          "old_target": "catalog",
+          "new_target": "main",
+          "old_module_prefix": "",
+          "new_module_prefix": "catalog::",
+          "old_source": "model/umpire/protocol/runtime/tests/catalog.rs",
+          "new_source": "model/umpire/protocol/runtime/tests/main/catalog.rs",
+          "before_sha256": "8e97cd36b8506bd4e9248e84962465ed015f1bbe7a446a481658b8ff9607f7dc",
+          "after_sha256": "a50aad33eed7eaf164432a34306113b8e7577d26e0fbe533a27900dac6b8313a",
+          "source_test_names": [
+            {
+              "old": "catalog_refusals_map_to_the_budget_code",
+              "new": "catalog::catalog_refusals_map_to_the_budget_code",
+              "ignored": false
+            },
+            {
+              "old": "explore_judge_answer_and_replay_refuse_without_publishing",
+              "new": "catalog::explore_judge_answer_and_replay_refuse_without_publishing",
+              "ignored": false
+            }
+          ]
+        },
+        {
+          "old_target": "constructors",
+          "new_target": "main",
+          "old_module_prefix": "",
+          "new_module_prefix": "constructors::",
+          "old_source": "model/umpire/protocol/runtime/tests/constructors.rs",
+          "new_source": "model/umpire/protocol/runtime/tests/main/constructors.rs",
+          "before_sha256": "1acc1a285313754a602440a51af07e1a518a97924abfd515cf4b1da68c999cd7",
+          "after_sha256": "1acc1a285313754a602440a51af07e1a518a97924abfd515cf4b1da68c999cd7",
+          "source_test_names": [
+            {
+              "old": "constructors_preserve_actions_choices_paths_and_reply",
+              "new": "constructors::constructors_preserve_actions_choices_paths_and_reply",
+              "ignored": false
+            }
+          ]
+        },
+        {
+          "old_target": "core_protocol",
+          "new_target": "main",
+          "old_module_prefix": "",
+          "new_module_prefix": "core_protocol::",
+          "old_source": "model/umpire/protocol/runtime/tests/core_protocol.rs",
+          "new_source": "model/umpire/protocol/runtime/tests/main/core_protocol.rs",
+          "before_sha256": "063b751cc9416e5c933a14ec0acad328e3c86fd19cd2f39e86f4706af18c3cc7",
+          "after_sha256": "68cba3079dfe1e95a9625f1d3f0a1c895f55d39e383b2834656ae077e635eb1c",
+          "source_test_names": [
+            {
+              "old": "explanation_outcomes_are_additive_at_tag_two",
+              "new": "core_protocol::explanation_outcomes_are_additive_at_tag_two",
+              "ignored": false
+            },
+            {
+              "old": "new_core_messages_match_shared_literal_bytes",
+              "new": "core_protocol::new_core_messages_match_shared_literal_bytes",
+              "ignored": false
+            },
+            {
+              "old": "explained_zero_steps_is_present_and_distinct_from_unexplained",
+              "new": "core_protocol::explained_zero_steps_is_present_and_distinct_from_unexplained",
+              "ignored": false
+            },
+            {
+              "old": "new_requests_round_trip_opaque_payloads_and_dispatch_honest_refusals",
+              "new": "core_protocol::new_requests_round_trip_opaque_payloads_and_dispatch_honest_refusals",
+              "ignored": false
+            },
+            {
+              "old": "any_admits_only_canonical_urls_and_distinguishes_refusals",
+              "new": "core_protocol::any_admits_only_canonical_urls_and_distinguishes_refusals",
+              "ignored": false
+            }
+          ]
+        },
+        {
+          "old_target": "dispatch",
+          "new_target": "main",
+          "old_module_prefix": "",
+          "new_module_prefix": "dispatch::",
+          "old_source": "model/umpire/protocol/runtime/tests/dispatch.rs",
+          "new_source": "model/umpire/protocol/runtime/tests/main/dispatch.rs",
+          "before_sha256": "6bac437385a76bac53e17fbab3f0d1e1bdb523d27539bb9e66f30315fa73a04e",
+          "after_sha256": "69150f72f07395952603aef39c81323d96d24f686afc28aff3c2f5a595033aa4",
+          "source_test_names": [
+            {
+              "old": "progress_query_refusals_survive_generated_protocol",
+              "new": "dispatch::progress_query_refusals_survive_generated_protocol",
+              "ignored": false
+            },
+            {
+              "old": "progress_bound_refusal_survives_generated_protocol",
+              "new": "dispatch::progress_bound_refusal_survives_generated_protocol",
+              "ignored": false
+            },
+            {
+              "old": "scope_action_refusal_survives_generated_protocol",
+              "new": "dispatch::scope_action_refusal_survives_generated_protocol",
+              "ignored": false
+            },
+            {
+              "old": "empty_assumption_refusal_survives_generated_protocol",
+              "new": "dispatch::empty_assumption_refusal_survives_generated_protocol",
+              "ignored": false
+            },
+            {
+              "old": "generated_dispatch_matches_trait_kettle_goldens",
+              "new": "dispatch::generated_dispatch_matches_trait_kettle_goldens",
+              "ignored": false
+            },
+            {
+              "old": "invalid_requests_have_typed_refusals",
+              "new": "dispatch::invalid_requests_have_typed_refusals",
+              "ignored": false
+            },
+            {
+              "old": "successful_explore_replaces_graph_and_refusal_preserves_it",
+              "new": "dispatch::successful_explore_replaces_graph_and_refusal_preserves_it",
+              "ignored": false
+            }
+          ]
+        },
+        {
+          "old_target": "prefix",
+          "new_target": "main",
+          "old_module_prefix": "",
+          "new_module_prefix": "prefix::",
+          "old_source": "model/umpire/protocol/runtime/tests/prefix.rs",
+          "new_source": "model/umpire/protocol/runtime/tests/main/prefix.rs",
+          "before_sha256": "7a76ff2f9f475a23f86635be2ad8396c1f064b98b3d59ada65e27cba183f0558",
+          "after_sha256": "b6544e769dca7edf53f6146a82f38dc726f66700c749b209e4c85d4b03f6394a",
+          "source_test_names": [
+            {
+              "old": "publication_and_prefix_bound_keep_witness_pending_and_prior_reports_for_retry",
+              "new": "prefix::publication_and_prefix_bound_keep_witness_pending_and_prior_reports_for_retry",
+              "ignored": false
+            },
+            {
+              "old": "positive_current_revalidates_every_earlier_actual_observation",
+              "new": "prefix::positive_current_revalidates_every_earlier_actual_observation",
+              "ignored": false
+            }
+          ]
+        },
+        {
+          "old_target": "proposal",
+          "new_target": "main",
+          "old_module_prefix": "",
+          "new_module_prefix": "proposal::",
+          "old_source": "model/umpire/protocol/runtime/tests/proposal.rs",
+          "new_source": "model/umpire/protocol/runtime/tests/main/proposal.rs",
+          "before_sha256": "87b6515006d3bfa1730ef4dcc4fc769297b5e5e03b95d0e45cb1ad9082c3f62d",
+          "after_sha256": "a26f557029b1f4143c8c0c4847746b58a894cc1e621b725d5dbbe4ed91b034a6",
+          "source_test_names": [
+            {
+              "old": "proposal_is_transactional_and_pending_until_final_observation",
+              "new": "proposal::proposal_is_transactional_and_pending_until_final_observation",
+              "ignored": false
+            },
+            {
+              "old": "bootstrap_configuration_admission_and_polling_publish_atomically",
+              "new": "proposal::bootstrap_configuration_admission_and_polling_publish_atomically",
+              "ignored": false
+            },
+            {
+              "old": "disabled_proposal_refuses_without_committing_and_quiescent_is_distinct",
+              "new": "proposal::disabled_proposal_refuses_without_committing_and_quiescent_is_distinct",
+              "ignored": false
+            },
+            {
+              "old": "selected_initial_state_still_requires_declared_bootstrap",
+              "new": "proposal::selected_initial_state_still_requires_declared_bootstrap",
+              "ignored": false
+            },
+            {
+              "old": "unpublished_bootstrap_and_unexplained_pending_effects_roll_back",
+              "new": "proposal::unpublished_bootstrap_and_unexplained_pending_effects_roll_back",
+              "ignored": false
+            },
+            {
+              "old": "enabled_internal_action_is_never_a_proposal",
+              "new": "proposal::enabled_internal_action_is_never_a_proposal",
+              "ignored": false
+            },
+            {
+              "old": "runtime_owns_quiescence_before_default_proposal_policy",
+              "new": "proposal::runtime_owns_quiescence_before_default_proposal_policy",
+              "ignored": false
+            },
+            {
+              "old": "read_remains_pending_until_correlated_final_explanation_publishes",
+              "new": "proposal::read_remains_pending_until_correlated_final_explanation_publishes",
+              "ignored": false
+            },
+            {
+              "old": "read_commits_intermediate_progress_without_consuming_the_pending_request",
+              "new": "proposal::read_commits_intermediate_progress_without_consuming_the_pending_request",
+              "ignored": false
+            },
+            {
+              "old": "read_does_not_require_enabled_external_model_action",
+              "new": "proposal::read_does_not_require_enabled_external_model_action",
+              "ignored": false
+            },
+            {
+              "old": "reset_program_and_refusing_defaults_preserve_run_transactions",
+              "new": "proposal::reset_program_and_refusing_defaults_preserve_run_transactions",
+              "ignored": false
+            }
+          ]
+        },
+        {
+          "old_target": "proposal_wire",
+          "new_target": "main",
+          "old_module_prefix": "",
+          "new_module_prefix": "proposal_wire::",
+          "old_source": "model/umpire/protocol/runtime/tests/proposal_wire.rs",
+          "new_source": "model/umpire/protocol/runtime/tests/main/proposal_wire.rs",
+          "before_sha256": "43bd6c1e3e4b3cf8a062eea8b4c4dff4aba4fe9c21630f717e670ab67e8e4441",
+          "after_sha256": "3e59397de099611b757bcea5cad491ad16759a6329eff2c35163d6a0cd0ca1bc",
+          "source_test_names": [
+            {
+              "old": "proposal_method_kind_and_poll_wire_contract",
+              "new": "proposal_wire::proposal_method_kind_and_poll_wire_contract",
+              "ignored": false
+            }
+          ]
+        },
+        {
+          "old_target": "reach",
+          "new_target": "reach",
+          "old_module_prefix": "",
+          "new_module_prefix": "",
+          "source": "model/umpire/protocol/runtime/tests/reach.rs",
+          "sha256": "5cf7a17d8ff7f9e952a4e9fac527612cc34f8d175794b6d2725df737a7bd4e70",
+          "unchanged": true
+        },
+        {
+          "old_target": "rejecting",
+          "new_target": "main",
+          "old_module_prefix": "",
+          "new_module_prefix": "rejecting::",
+          "old_source": "model/umpire/protocol/runtime/tests/rejecting.rs",
+          "new_source": "model/umpire/protocol/runtime/tests/main/rejecting.rs",
+          "before_sha256": "76b85f3e1e34af7aa1ee900ff25c9397011d5b825bea4e18413d8db660f0a701",
+          "after_sha256": "76b85f3e1e34af7aa1ee900ff25c9397011d5b825bea4e18413d8db660f0a701",
+          "source_test_names": [
+            {
+              "old": "invalid_rejections_refuse_explore_replay_expected_actions_and_answer_without_advancing",
+              "new": "rejecting::invalid_rejections_refuse_explore_replay_expected_actions_and_answer_without_advancing",
+              "ignored": false
+            }
+          ]
+        },
+        {
+          "old_target": "selected_start",
+          "new_target": "main",
+          "old_module_prefix": "",
+          "new_module_prefix": "selected_start::",
+          "old_source": "model/umpire/protocol/runtime/tests/selected_start.rs",
+          "new_source": "model/umpire/protocol/runtime/tests/main/selected_start.rs",
+          "before_sha256": "f731e274b406aedcaac1638b35840f22f95cc6fad67e1af2fee9752debd6330f",
+          "after_sha256": "47adb98b4a02e82325e5c19f594eb39d535032e4e36a05a4f1c909d52b77f4dc",
+          "source_test_names": [
+            {
+              "old": "selected_initial_requires_exact_membership_including_other_fields",
+              "new": "selected_start::selected_initial_requires_exact_membership_including_other_fields",
+              "ignored": false
+            },
+            {
+              "old": "selected_reset_after_freeze_restores_initial_without_restricting_exploration",
+              "new": "selected_start::selected_reset_after_freeze_restores_initial_without_restricting_exploration",
+              "ignored": false
+            },
+            {
+              "old": "selected_publication_failures_preserve_advancement_freeze_and_reset",
+              "new": "selected_start::selected_publication_failures_preserve_advancement_freeze_and_reset",
+              "ignored": false
+            }
+          ]
+        },
+        {
+          "old_target": "stateful",
+          "new_target": "main",
+          "old_module_prefix": "",
+          "new_module_prefix": "stateful::",
+          "old_source": "model/umpire/protocol/runtime/tests/stateful.rs",
+          "new_source": "model/umpire/protocol/runtime/tests/main/stateful.rs",
+          "before_sha256": "6f961d4f76670b220aa7e26a53c9312997f2afa3473a05f2004759dc5c39a88d",
+          "after_sha256": "fe55317af3ee591765724b45d2ed3661ddd8dee685c0cadad31295630ec7247f",
+          "source_test_names": [
+            {
+              "old": "explanations_carry_all_replayed_non_clone_outcomes",
+              "new": "stateful::explanations_carry_all_replayed_non_clone_outcomes",
+              "ignored": false
+            },
+            {
+              "old": "runtime_formats_unit_outcomes_with_debug",
+              "new": "stateful::runtime_formats_unit_outcomes_with_debug",
+              "ignored": false
+            },
+            {
+              "old": "judge_replays_model_steps_and_repeated_current_observations_are_positive",
+              "new": "stateful::judge_replays_model_steps_and_repeated_current_observations_are_positive",
+              "ignored": false
+            },
+            {
+              "old": "malformed_and_unknown_requests_preserve_the_current_run",
+              "new": "stateful::malformed_and_unknown_requests_preserve_the_current_run",
+              "ignored": false
+            },
+            {
+              "old": "invalid_candidates_freeze_the_first_enabled_actions_until_reset",
+              "new": "stateful::invalid_candidates_freeze_the_first_enabled_actions_until_reset",
+              "ignored": false
+            },
+            {
+              "old": "explanations_replay_whole_candidate_sequences_and_isolate_instances",
+              "new": "stateful::explanations_replay_whole_candidate_sequences_and_isolate_instances",
+              "ignored": false
+            },
+            {
+              "old": "answer_validates_the_response_before_committing_delivery_and_awaits_response_evidence",
+              "new": "stateful::answer_validates_the_response_before_committing_delivery_and_awaits_response_evidence",
+              "ignored": false
+            },
+            {
+              "old": "stateful_operations_require_a_unique_initial_state",
+              "new": "stateful::stateful_operations_require_a_unique_initial_state",
+              "ignored": false
+            },
+            {
+              "old": "failed_response_publication_preserves_judge_answer_reset_and_exploration",
+              "new": "stateful::failed_response_publication_preserves_judge_answer_reset_and_exploration",
+              "ignored": false
+            },
+            {
+              "old": "failed_unexplained_publication_does_not_freeze_the_run",
+              "new": "stateful::failed_unexplained_publication_does_not_freeze_the_run",
+              "ignored": false
+            }
+          ]
+        },
+        {
+          "old_target": "wire",
+          "new_target": "main",
+          "old_module_prefix": "",
+          "new_module_prefix": "wire::",
+          "old_source": "model/umpire/protocol/runtime/tests/wire.rs",
+          "new_source": "model/umpire/protocol/runtime/tests/main/wire.rs",
+          "before_sha256": "5d736fa8138e824d736511b4e9cc23cacac1c8afc8d65eed181d33de728b1b81",
+          "after_sha256": "1787f4e4705be60f5429ef519124d247471aa5206a667c591533f55041ea918b",
+          "source_test_names": [
+            {
+              "old": "original_wire_bytes_and_values_are_stable",
+              "new": "wire::original_wire_bytes_and_values_are_stable",
+              "ignored": false
+            },
+            {
+              "old": "shared_hex_decoder_preserves_literal_bytes_and_refuses_malformed_vectors",
+              "new": "wire::shared_hex_decoder_preserves_literal_bytes_and_refuses_malformed_vectors",
+              "ignored": false
+            }
+          ]
+        }
+      ],
+      "exceptions": [
+        {
+          "target": "capabilities",
+          "reason": "Reads CARGO_TARGET_DIR and uses process-id fixture/cache paths for nested Cargo assembly controls."
+        },
+        {
+          "target": "reach",
+          "reason": "Contains static graph fixtures; retained as a dedicated binary per the assigned static-case exception."
+        }
+      ],
+      "before_binary_count": 15,
+      "after_binary_count": 3
+    },
+    {
+      "package": "umpire-reference-kettle",
+      "before_targets": [
+        "annotations",
+        "descriptor",
+        "exhaustiveness",
+        "live_snapshots",
+        "probes",
+        "realization"
+      ],
+      "after_targets": [
+        "main",
+        "exhaustiveness",
+        "live_snapshots"
+      ],
+      "mappings": [
+        {
+          "old_target": "annotations",
+          "new_target": "main",
+          "old_module_prefix": "",
+          "new_module_prefix": "annotations::",
+          "old_source": "model/umpire/reference/kettle/tests/annotations.rs",
+          "new_source": "model/umpire/reference/kettle/tests/main/annotations.rs",
+          "before_sha256": "9035ad61abec7b92a6d907b9e3bdae3d156253c10a05debd41f45ab4bb1e5bc2",
+          "after_sha256": "9035ad61abec7b92a6d907b9e3bdae3d156253c10a05debd41f45ab4bb1e5bc2",
+          "source_test_names": [
+            {
+              "old": "generated_dispatch_refuses_unknown_routes_and_preserves_out_of_scope_bytes",
+              "new": "annotations::generated_dispatch_refuses_unknown_routes_and_preserves_out_of_scope_bytes",
+              "ignored": false
+            },
+            {
+              "old": "generic_fill_preserves_supplied_keys_and_response_wire_bytes",
+              "new": "annotations::generic_fill_preserves_supplied_keys_and_response_wire_bytes",
+              "ignored": false
+            },
+            {
+              "old": "scoped_limits_and_nested_predicates_inspect_actual_wire_values",
+              "new": "annotations::scoped_limits_and_nested_predicates_inspect_actual_wire_values",
+              "ignored": false
+            }
+          ]
+        },
+        {
+          "old_target": "descriptor",
+          "new_target": "main",
+          "old_module_prefix": "",
+          "new_module_prefix": "descriptor::",
+          "old_source": "model/umpire/reference/kettle/tests/descriptor.rs",
+          "new_source": "model/umpire/reference/kettle/tests/main/descriptor.rs",
+          "before_sha256": "2ba1000f53e95d4af5e40edb5b784f0c9cf528f601e22ca43f580055b811a16f",
+          "after_sha256": "3b38c2f3140a83c6dc72c5bba461f353dd2eb683470d526730294144c6786a97",
+          "source_test_names": [
+            {
+              "old": "descriptor_additions_name_the_unreviewed_field_enum_and_method",
+              "new": "descriptor::descriptor_additions_name_the_unreviewed_field_enum_and_method",
+              "ignored": false
+            }
+          ]
+        },
+        {
+          "old_target": "exhaustiveness",
+          "new_target": "exhaustiveness",
+          "old_module_prefix": "",
+          "new_module_prefix": "",
+          "source": "model/umpire/reference/kettle/tests/exhaustiveness.rs",
+          "sha256": "7dda1d6315cc9a8594b4025fa888f7ed0ab0e5792ad5d37815b22954b5e3ba00",
+          "unchanged": true
+        },
+        {
+          "old_target": "live_snapshots",
+          "new_target": "live_snapshots",
+          "old_module_prefix": "",
+          "new_module_prefix": "",
+          "source": "model/umpire/reference/kettle/tests/live_snapshots.rs",
+          "sha256": "18729d2a7d85f5771893d409a6438db8dc02ec3665eca4321f61f4da911c58b0",
+          "unchanged": true
+        },
+        {
+          "old_target": "probes",
+          "new_target": "main",
+          "old_module_prefix": "",
+          "new_module_prefix": "probes::",
+          "old_source": "model/umpire/reference/kettle/tests/probes.rs",
+          "new_source": "model/umpire/reference/kettle/tests/main/probes.rs",
+          "before_sha256": "b05366fe84c64652f341f4f95b8a71ce92b0f4cedf89f7aca28c321f21de125e",
+          "after_sha256": "ff2cfbfc33a5e67e0152cfc09d82f02873ad3290cba0d99e453ed055703b9b1d",
+          "source_test_names": [
+            {
+              "old": "inventory_and_preparation_are_deterministic",
+              "new": "probes::inventory_and_preparation_are_deterministic",
+              "ignored": false
+            },
+            {
+              "old": "observations_require_exact_inventory",
+              "new": "probes::observations_require_exact_inventory",
+              "ignored": false
+            },
+            {
+              "old": "classification_requires_live_evidence_and_correlated_predictions",
+              "new": "probes::classification_requires_live_evidence_and_correlated_predictions",
+              "ignored": false
+            },
+            {
+              "old": "coverage_matches_catalog_golden",
+              "new": "probes::coverage_matches_catalog_golden",
+              "ignored": false
+            },
+            {
+              "old": "stateful_prerequisites_and_inapplicable_mutations_never_dispatch",
+              "new": "probes::stateful_prerequisites_and_inapplicable_mutations_never_dispatch",
+              "ignored": false
+            }
+          ]
+        },
+        {
+          "old_target": "realization",
+          "new_target": "main",
+          "old_module_prefix": "",
+          "new_module_prefix": "realization::",
+          "old_source": "model/umpire/reference/kettle/tests/realization.rs",
+          "new_source": "model/umpire/reference/kettle/tests/main/realization.rs",
+          "before_sha256": "c7b8eb649830408d4e848ba7f5e3f8e2a2cdf4393bc00f0c9e762aafc90c2297",
+          "after_sha256": "8f5d5f3d6c27d55db1e50d09de72e280be817d50bda2d9ff973207373dbb1a87",
+          "source_test_names": [
+            {
+              "old": "healthy_trace_answer_does_not_commit_and_receipt_commits_once",
+              "new": "realization::healthy_trace_answer_does_not_commit_and_receipt_commits_once",
+              "ignored": false
+            },
+            {
+              "old": "describe_never_infers_a_transition",
+              "new": "realization::describe_never_infers_a_transition",
+              "ignored": false
+            },
+            {
+              "old": "exact_receipts_reject_wrong_state_or_action",
+              "new": "realization::exact_receipts_reject_wrong_state_or_action",
+              "ignored": false
+            },
+            {
+              "old": "explore_retains_canonical_report",
+              "new": "realization::explore_retains_canonical_report",
+              "ignored": false
+            },
+            {
+              "old": "malformed_evidence_refuses_without_advancing",
+              "new": "realization::malformed_evidence_refuses_without_advancing",
+              "ignored": false
+            },
+            {
+              "old": "callback_requires_exact_state_identity_and_enabled_action",
+              "new": "realization::callback_requires_exact_state_identity_and_enabled_action",
+              "ignored": false
+            },
+            {
+              "old": "heat_projects_reach_with_an_exact_target_and_method_owned_evidence",
+              "new": "realization::heat_projects_reach_with_an_exact_target_and_method_owned_evidence",
+              "ignored": false
+            }
+          ]
+        }
+      ],
+      "exceptions": [
+        {
+          "target": "exhaustiveness",
+          "reason": "trybuild compile-fail harness retains its dedicated binary and unchanged tests/ui case paths."
+        },
+        {
+          "target": "live_snapshots",
+          "reason": "Reads UMPIRE_SNAPSHOT_CANDIDATES and exposes the documented dedicated ignored-test import command."
+        }
+      ],
+      "before_binary_count": 6,
+      "after_binary_count": 3
+    }
+  ],
+  "validation": [
+    "rustfmt --edition 2024 --check model/umpire/protocol/runtime/tests/main.rs model/umpire/reference/kettle/tests/main.rs: exit 0",
+    "git diff --cached --check: exit 0",
+    "Mechanical normalization equals original source for all 17 moved files; existing UI inputs/diagnostics unchanged; relative path identity controls passed."
+  ],
+  "validation_attempts": [
+    "First scratch path check incorrectly assumed Kettle descriptor support was runtime support and failed; corrected checker condition to runtime package only. No code change.",
+    "Second mechanical/path/UI check passed."
+  ],
+  "resolved_path_checks": [
+    "model/umpire/protocol/runtime/guests/stock/src/model.rs",
+    "model/umpire/protocol/runtime/tests/support/control.rs",
+    "model/umpire/protocol/runtime/src/refusal.rs",
+    "model/umpire/protocol/runtime/guests/stock/src/model.rs",
+    "model/umpire/protocol/proto/tests/protocol-core-wire.txt",
+    "model/umpire/dev/testing/src/snapshot_payload.rs",
+    "model/umpire/protocol/runtime/guests/stock/src/model.rs",
+    "model/umpire/protocol/runtime/src/refusal.rs",
+    "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/report.txt.snap",
+    "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/rows.txt.snap",
+    "model/umpire/protocol/runtime/tests/support/control.rs",
+    "model/umpire/protocol/proto/tests/proposal-wire.txt",
+    "model/umpire/protocol/proto/tests/protocol-wire.txt",
+    "model/umpire/catalog/syntax/tests/support/mod.rs",
+    "model/umpire/reference/kettle/api.rs"
+  ],
+  "test_inventory_limit": "Source test names complement conductor-owned executed inventory; included fixture/helper tests gain same module prefix; no Cargo inventory/test result claimed.",
+  "compile_link_measurement": "unknown: delegated integrated measurements; no Cargo builds/tests run by this worker",
+  "command_updates": [
+    {
+      "path": "model/umpire/reference/kettle/README.md",
+      "old": "cargo test -p umpire-reference-kettle --test probes",
+      "new": "cargo test -p umpire-reference-kettle --test main probes::",
+      "authorization": "parent dispatch follow-up root authorization 7ddeab838c"
+    }
+  ],
+  "commits": [
+    "92d515cb42da58cdd332d25e2dece1f0af1a4b45",
+    "02f4279a6151c4ae5cfbd99bef75b9d03328576c"
+  ],
+  "base_commit": "76408c558588eec6e226335c54f42f8bf2e5f496",
+  "status": "in_progress",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2544-runtime"
+}
