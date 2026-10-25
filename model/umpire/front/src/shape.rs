@@ -5,6 +5,7 @@ use crate::{
     syntax::{has, path_name},
     tree::{ActionDef, ClaimDef, FieldDef, Lifted, PostDef, Shape, Start, WorldField},
 };
+use heck::ToUpperCamelCase;
 use quote::ToTokens;
 use std::collections::{BTreeMap, BTreeSet};
 use syn::{ImplItem, Item};
@@ -364,7 +365,7 @@ pub(crate) fn parse(
             Kind::Starts | Kind::Effect => {}
         }
     }
-    let name = pascal(&module.ident.to_string());
+    let name = module.ident.to_string().to_upper_camel_case();
     let lifted = Lifted {
         name,
         state_name,
@@ -452,17 +453,6 @@ impl<'ast> syn::visit::Visit<'ast> for Conditional<'ast> {
 /// The module's declarations already read, so a malformed derive refuses there first.
 fn derives(attrs: &[syn::Attribute], name: &str) -> bool {
     declare::derives(attrs, name).unwrap_or(false)
-}
-fn pascal(name: &str) -> String {
-    name.split('_')
-        .filter(|s| !s.is_empty())
-        .map(|part| {
-            let mut chars = part.chars();
-            chars
-                .next()
-                .map_or(String::new(), |c| c.to_uppercase().collect::<String>() + chars.as_str())
-        })
-        .collect()
 }
 fn attrs(attrs: &[syn::Attribute], allowed: &[&str]) -> Result<()> {
     for attr in attrs {

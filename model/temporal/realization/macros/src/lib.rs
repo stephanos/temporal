@@ -165,7 +165,12 @@ mod tests {
             return Err("unexpected realization expansion items".into());
         };
         let import = quote::ToTokens::to_token_stream(import).to_string();
-        if import != quote::quote!(use ::umpire_runtime::AnyMessage as _;).to_string() {
+        if import
+            != quote::quote!(
+                use ::umpire_runtime::AnyMessage as _;
+            )
+            .to_string()
+        {
             return Err(format!("unexpected realization import: {import}").into());
         }
         let [syn::ImplItem::Const(contexts)] = metadata.items.as_slice() else {
