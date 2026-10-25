@@ -1,0 +1,107 @@
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-driver/model/umpire/dev/guest-driver)
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-driver/model/umpire/dev/xtask)
+warning: unused import: `io::Write`
+ --> dev/guest-driver/tests/pipeline/support.rs:6:5
+  |
+6 |     io::Write,
+  |     ^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unreachable `pub` item
+  --> dev/guest-driver/tests/pipeline/support.rs:18:5
+   |
+18 |     pub fn new() -> Self {
+   |     ---^^^^^^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = note: requested on the command line with `-W unreachable-pub`
+
+warning: unreachable `pub` item
+   --> dev/guest-driver/tests/pipeline/support.rs:120:5
+    |
+120 |     pub fn command(&self, freshness: bool, shell: bool) -> Command {
+    |     ---^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |     |
+    |     help: consider restricting its visibility: `pub(crate)`
+
+warning: `umpire-guest-driver` (test "guest_pipeline") generated 3 warnings (run `cargo fix --test "guest_pipeline" -p umpire-guest-driver` to apply 3 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.24s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/driver-lane/debug/deps/umpire_guest_driver-41554de85e03b3f5)
+
+running 3 tests
+test context::tests::driver_lock_and_compiler_invalidate_without_general_cli_input ... ok
+test context::tests::raw_context_roundtrips_and_longest_root_drives_flags_and_identity ... ok
+test context::tests::local_tool_admission_refuses_missing_configuration_and_escaping_links ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/driver-lane/debug/deps/umpire_guest_driver-4760462f4ca4b2cf)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/guest_identity.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/driver-lane/debug/deps/guest_identity-87d59a214e3af5a1)
+
+running 25 tests
+test compiler::build_std_requires_wasm_marker_and_trusted_source_or_rust_src_coordinate ... ok
+test compiler::dependency_identity_and_transitive_variants_propagate ... ok
+test compiler::inherited_jobserver_descriptor_reaches_direct_compiler_child ... ok
+test compiler::invalid_or_missing_dependency_sidecars_and_macro_collisions_refuse ... ok
+test compiler::missing_ambiguous_and_malformed_lock_maps_refuse ... ok
+test compiler::missing_required_inputs_and_option_values_refuse ... ok
+test compiler::native_macro_identity_ignores_host_configuration_but_retains_argv_and_collisions ... ok
+test compiler::os_bytes_and_lexical_root_boundaries_are_preserved ... ok
+test compiler::package_features_profile_compiler_and_closure_remain_distinct ... ok
+test compiler::portable_identity_replaces_guest_metadata_and_remaps_generated_paths ... ok
+test compiler::previous_wrapper_and_loader_environment_keep_raw_os_bytes ... ok
+test compiler::probes_pass_through_without_guest_environment ... ok
+test compiler::sidecar_precedes_child_and_cleanup_preserves_exit_launch_and_signal_outcomes ... ok
+test current_inputs::native_toml_accepts_current_documents_and_rejects_malformed_input ... ok
+test lock::ambiguous_name_version_coordinates_are_marked_unavailable ... ok
+test lock::checksum_changes_propagate_through_normal_and_all_platform_build_edges ... ok
+test lock::content_addressed_publication_is_repeatable_and_portable ... ok
+test lock::malformed_native_documents_and_graphs_are_rejected ... ok
+test lock::sourced_entries_are_required_but_git_checksums_are_optional ... ok
+test lock::unified_edges_and_edge_topology_change_ancestor_identity ... ok
+test lock::unrelated_and_dev_only_dependencies_do_not_change_guest_closures ... ok
+test support::canonical_hash_uses_sorted_json_and_known_sha256 ... ok
+test support::publication_is_complete_under_concurrent_writers_and_cleans_rename_failure ... ok
+test support::sidecar_lease_serializes_failure_cleanup_and_refuses_symlink ... ok
+test compiler::actual_rustc_compiles_portable_native_macro_sidecars ... ok
+
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+
+     Running tests/guest_pipeline.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/driver-lane/debug/deps/guest_pipeline-c1892564607e9b00)
+
+running 7 tests
+test cold_bootstrap_failures_never_build_or_publish ... ok
+test cold_shell_bootstrap_and_cached_native_validation ... ok
+test loader_inheritance_survives_orchestration_environment_purge ... ok
+test native_prerequisite_failures_stop_before_guest_build ... ok
+test rust_toolchain_metadata_and_rustup_failures_refuse ... ok
+test shell_caller_relative_paths_and_changed_inputs_select_new_cache ... FAILED
+test guest_build_check_and_artifact_refusals ... ok
+
+failures:
+
+---- shell_caller_relative_paths_and_changed_inputs_select_new_cache stdout ----
+
+thread 'shell_caller_relative_paths_and_changed_inputs_select_new_cache' (70056) panicked at dev/guest-driver/tests/pipeline/support.rs:165:5:
+assertion `left == right` failed: stdout=
+stderr={"reason":"compiler-artifact","target":{"name":"xtask","kind":["bin"],"crate_types":["bin"]},"executable":"/home/agent/.cache/codex-build/tmp/native guest controls 69679 19/relative target/debug/xtask","filenames":[]}
+umpire-guest-driver: No such file or directory (os error 2)
+
+  left: Some(1)
+ right: Some(0)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    shell_caller_relative_paths_and_changed_inputs_select_new_cache
+
+test result: FAILED. 6 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.01s
+
+error: test failed, to rerun pass `-p umpire-guest-driver --test guest_pipeline`

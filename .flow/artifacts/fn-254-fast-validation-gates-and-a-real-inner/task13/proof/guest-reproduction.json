@@ -1,0 +1,39 @@
+{
+  "guests": [
+    {
+      "name": "caught_panic_control.wasm",
+      "bytes": 228653,
+      "sha256": "16bdf703328273c57741940a4ec420150576a5a02e84fcc5d279afba14429a12"
+    },
+    {
+      "name": "overflow_control.wasm",
+      "bytes": 228653,
+      "sha256": "7815ea7d693a5cb9f3d6a326c0adcc948b38585d726d751c4cb64e3a2259205e"
+    },
+    {
+      "name": "stateful_control.wasm",
+      "bytes": 165966,
+      "sha256": "0ce0f654b66cc01a6b52670af9175f1047fa79c51fd5039e7c9742bc205e6b87"
+    },
+    {
+      "name": "umpire_kettle_guest.wasm",
+      "bytes": 1235811,
+      "sha256": "f47eeca8991182ce5d2160a8794ae3e83007de4a0db2a2c5a095c2a0439f2228"
+    },
+    {
+      "name": "umpire_stock_guest.wasm",
+      "bytes": 198992,
+      "sha256": "4979d134ba8ae6afc4ba79dadc046251afbbf4ca34397ed61af184205a371222"
+    },
+    {
+      "name": "umpire_temporal_guest.wasm",
+      "bytes": 3988334,
+      "sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc"
+    }
+  ],
+  "all_six_identical": true,
+  "native_reports_identical": true,
+  "first_source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace",
+  "second_source": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/reproduction/source-b",
+  "targets_initially_absent": true
+}

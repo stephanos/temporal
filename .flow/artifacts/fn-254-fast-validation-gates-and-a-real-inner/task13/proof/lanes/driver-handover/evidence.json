@@ -1,0 +1,18 @@
+{
+  "base_commit": "abd5107b8ecfcb30cb4289524c1fd01f66f8f7f4",
+  "commits": [
+    "ae69659146351d07b2943abb5f7e60fe163b925d",
+    "15c30e1e40903bbfed4b1530069ddeb576129d40",
+    "5a00addabb1efa8b1dcf60f84bd11ecc4b7b828a",
+    "86f812692797a0e3451133f0d59f382818584312"
+  ],
+  "tests": [
+    "CARGO_BUILD_JOBS=2 CARGO_INCREMENTAL=0 RUST_TEST_THREADS=2 CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/driver-lane mise exec -- cargo test --offline -p umpire-guest-driver -p xtask (framework cwd; consolidated log: driver32+lib3 and CLI12 passed)",
+    "CARGO_BUILD_JOBS=2 CARGO_INCREMENTAL=0 RUST_TEST_THREADS=2 CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/driver-lane mise exec -- cargo clippy --offline -p umpire-guest-driver -p xtask --all-targets -- -D warnings (framework cwd; passed)",
+    "CARGO_BUILD_JOBS=2 CARGO_INCREMENTAL=0 RUST_TEST_THREADS=2 CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/driver-lane GOMAXPROCS=2 GOFLAGS=-p=2 mise exec -- cargo test --offline -p temporal-xtask (model cwd;5 passed)",
+    "CARGO_BUILD_JOBS=2 CARGO_INCREMENTAL=0 RUST_TEST_THREADS=2 CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/driver-lane mise exec -- cargo clippy --offline -p temporal-xtask --all-targets -- -D warnings (model cwd; passed)",
+    "CARGO_BUILD_JOBS=2 CARGO_INCREMENTAL=0 RUST_TEST_THREADS=2 CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/driver-lane mise exec -- cargo test --offline --locked -p umpire-guest-driver --lib (final helper followup;4 passed)",
+    "git diff --check (both source commits; passed)"
+  ],
+  "prs": []
+}

@@ -1,0 +1,37 @@
+{
+  "stage_names": [
+    "temporal-guest-freshness",
+    "retired-names",
+    "timing-controls",
+    "capability-controls",
+    "source-boundary",
+    "protobuf-controls",
+    "protobuf-freshness",
+    "kettle-protobuf-freshness",
+    "temporal-protobuf-freshness",
+    "fmt",
+    "fmt-framework",
+    "clippy",
+    "clippy-framework",
+    "docs",
+    "docs-framework",
+    "tests",
+    "tests-framework",
+    "wasm32-wasip1",
+    "core-wasm-clippy",
+    "wasm-guest",
+    "go-host",
+    "kettle-go-host",
+    "temporal-go-host"
+  ],
+  "count": 23,
+  "expected_original": 19,
+  "additional_framework_workspace_stages": 4,
+  "both_workspace_coverage": [
+    "fmt",
+    "clippy",
+    "docs",
+    "tests"
+  ],
+  "scope": "intermediate source wiring, not real full-stage execution"
+}

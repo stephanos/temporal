@@ -1,0 +1,12 @@
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-driver/model/umpire/dev/guest-driver)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.53s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/driver-lane/debug/deps/umpire_guest_driver-41554de85e03b3f5)
+
+running 4 tests
+test context::tests::caller_paths_preserve_relative_and_absolute_os_bytes ... ok
+test context::tests::driver_lock_and_compiler_each_invalidate_cache ... ok
+test context::tests::raw_context_roundtrips_and_longest_root_drives_flags_and_identity ... ok
+test context::tests::local_tool_admission_refuses_missing_configuration_and_escaping_links ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

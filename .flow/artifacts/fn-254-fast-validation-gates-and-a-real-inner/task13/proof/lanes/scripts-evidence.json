@@ -1,0 +1,20 @@
+{
+  "base_commit": "abd5107b8ecfcb30cb4289524c1fd01f66f8f7f4",
+  "commits": [
+    "750e924217717c815e11f8da47a916bb86662345",
+    "75f901aee22344558877d3a88f8d8b7d39a98402",
+    "5cb60a683ff8922318221cc9f2f3f0f31febe273"
+  ],
+  "tests": [
+    "bash model/scripts/tests/proto-go.sh",
+    "bash model/umpire/scripts/tests/proto-go.sh",
+    "bash model/umpire/scripts/tests/bootstrap.sh",
+    "bash model/umpire/scripts/tests/proto-tools.sh",
+    "bash model/umpire/scripts/test-time-gate.sh",
+    "bash model/scripts/test-time-gate.sh",
+    "find model/scripts model/umpire/scripts -name '*.sh' -exec bash -n {} +",
+    "git diff --check",
+    "bash model/umpire/scripts/tests/bootstrap.sh (inherited CARGO_BUILD_TARGET red=1 then green=0; logs bootstrap-inherited-target-{red,green}.log)"
+  ],
+  "prs": []
+}

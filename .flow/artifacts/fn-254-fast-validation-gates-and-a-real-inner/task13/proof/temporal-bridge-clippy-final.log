@@ -1,0 +1,18 @@
+    Checking once_cell v1.21.4
+    Checking toml v1.1.8+spec-1.1.0
+    Checking tempfile v3.27.0
+    Checking serde v1.0.229
+    Checking thiserror v2.0.21
+    Checking temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/dev/xtask)
+error: assigning the result of `Clone::clone()` may be inefficient
+  --> dev/xtask/src/main.rs:23:9
+   |
+23 |         workspace = root.clone();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^ help: use `clone_from()`: `workspace.clone_from(&root)`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#assigning_clones
+   = note: `-D clippy::assigning-clones` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::assigning_clones)]`
+
+error: could not compile `temporal-xtask` (bin "temporal-xtask") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...

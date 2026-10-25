@@ -1,0 +1,148 @@
+   Compiling libc v0.2.191
+   Compiling proc-macro2 v1.0.107
+   Compiling cfg-if v1.0.5
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.229
+   Compiling unicode-ident v1.0.27
+   Compiling typenum v1.20.1
+   Compiling hybrid-array v0.4.15
+   Compiling syn v3.0.9
+   Compiling getrandom v0.4.3
+   Compiling rustix v1.1.5
+   Compiling zmij v1.0.23
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling const-oid v0.10.2
+   Compiling serde v1.0.229
+   Compiling thiserror v2.0.21
+   Compiling serde_json v1.0.154
+   Compiling winnow v1.0.4
+   Compiling linux-raw-sys v0.12.1
+   Compiling bitflags v2.13.2
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling digest v0.11.3
+   Compiling thiserror-impl v2.0.21
+   Compiling serde_derive v1.0.229
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling serde_spanned v1.1.2
+   Compiling cpufeatures v0.3.1
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling fastrand v2.5.0
+   Compiling once_cell v1.21.4
+   Compiling tempfile v3.27.0
+   Compiling sha2 v0.11.1
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling crc32fast v1.5.3
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-driver/model/umpire/dev/guest-driver)
+   Compiling simd-adler32 v0.3.10
+warning: unreachable `pub` item
+  --> dev/guest-driver/src/context.rs:59:5
+   |
+59 |     pub fn encode(&self, command: &mut Command) { command.envs(self.entries()); }
+   |     ---^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = note: requested on the command line with `-W unreachable-pub`
+
+warning: unreachable `pub` item
+  --> dev/guest-driver/src/context.rs:60:5
+   |
+60 |     pub fn decode(environment: &Environment) -> Result<Self> {
+   |     ---^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+
+warning: unreachable `pub` item
+  --> dev/guest-driver/src/context.rs:63:5
+   |
+63 |     pub fn remaps(&self) -> Result<Remaps> {
+   |     ---^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+
+warning: unreachable `pub` item
+  --> dev/guest-driver/src/context.rs:74:5
+   |
+74 |     pub fn new(environment: &Environment) -> Result<Self> { Context::decode(environment)?.remaps() }
+   |     ---^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+
+warning: unreachable `pub` item
+  --> dev/guest-driver/src/context.rs:75:5
+   |
+75 |     pub fn path(&self, path: &Path) -> Result<Vec<u8>> {
+   |     ---^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+
+warning: unreachable `pub` item
+  --> dev/guest-driver/src/context.rs:86:5
+   |
+86 |     pub fn token(&self, token: &[u8]) -> Vec<u8> {
+   |     ---^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+
+warning: unreachable `pub` item
+  --> dev/guest-driver/src/context.rs:94:5
+   |
+94 |     pub fn flags(&self) -> impl Iterator<Item=OsString> + '_ {
+   |     ---^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+
+   Compiling adler2 v2.0.1
+   Compiling miniz_oxide v0.9.1
+   Compiling filetime v0.2.29
+   Compiling tar v0.4.46
+   Compiling flate2 v1.1.10
+warning: `umpire-guest-driver` (lib) generated 7 warnings (run `cargo fix --lib -p umpire-guest-driver` to apply 7 suggestions)
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-driver/model/umpire/dev/xtask)
+warning: missing documentation for a module
+ --> dev/xtask/src/lib.rs:5:1
+  |
+5 | pub mod fetch_apalache;
+  | ^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `-W missing-docs`
+
+warning: `xtask` (lib) generated 1 warning
+warning: `xtask` (lib test) generated 1 warning (1 duplicate)
+error: couldn't read `dev/xtask/tests/../../../scripts/retired-names.sh`: No such file or directory (os error 2)
+  --> dev/xtask/tests/retired_names.rs:98:9
+   |
+98 |         include_bytes!("../../../scripts/retired-names.sh"),
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: there is a file with the same name in a different directory
+   |
+98 |         include_bytes!("../../../../scripts/retired-names.sh"),
+   |                                  +++
+
+error: couldn't read `dev/xtask/tests/../../../scripts/retired-names.sh`: No such file or directory (os error 2)
+   --> dev/xtask/tests/retired_names.rs:194:9
+    |
+194 |         include_bytes!("../../../scripts/retired-names.sh"),
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: there is a file with the same name in a different directory
+    |
+194 |         include_bytes!("../../../../scripts/retired-names.sh"),
+    |                                  +++
+
+error: couldn't read `dev/xtask/tests/../../../scripts/retired-names.sh`: No such file or directory (os error 2)
+   --> dev/xtask/tests/retired_names.rs:276:9
+    |
+276 |         include_bytes!("../../../scripts/retired-names.sh"),
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: there is a file with the same name in a different directory
+    |
+276 |         include_bytes!("../../../../scripts/retired-names.sh"),
+    |                                  +++
+
+error: could not compile `xtask` (test "retired_names") due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...

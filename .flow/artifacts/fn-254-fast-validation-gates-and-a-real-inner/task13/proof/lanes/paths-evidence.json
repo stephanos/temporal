@@ -1,0 +1,15 @@
+{
+  "base_commit": "abd5107b8ecfcb30cb4289524c1fd01f66f8f7f4",
+  "commits": [
+    "94bc3df84f7e1ce1b8dbb99d18479006a8f443cd",
+    "23c3d4881995feffa8f4711e477bfe26323d2a71"
+  ],
+  "tests": [
+    "mise exec -- rustfmt --check --edition 2024 --config-path model/rustfmt.toml --config skip_children=true <26 changed Rust files> (exit 0)",
+    "git diff --check (exit 0)",
+    "Python static parity: 50 repository joins removed, 154 unchanged test declarations and attributes, README block exact fixture match (exit 0)",
+    "mise exec -- rustfmt --check --edition 2024 --config-path model/rustfmt.toml --config skip_children=true <three Temporal activity test files> (baseline and post-change exit 0)",
+    "Python exact replacement-only parity for seven Temporal TLC root arguments and shared accessor, 36 unchanged tests (exit 0)"
+  ],
+  "prs": []
+}

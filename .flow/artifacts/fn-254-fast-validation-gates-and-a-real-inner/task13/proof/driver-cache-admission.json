@@ -1,0 +1,22 @@
+{
+  "driver_sha256": "c2e2435bab3081f69e128d7d5bdaba8e98fc9b068848acb776d20cf88c8306ff",
+  "cli_sha256": "49fbd9e7bd01222403625f3a80da036f67350a2b12accd691f530f0b13c36d45",
+  "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "admitted_cache_keys": [
+    {
+      "lock": "model/Cargo.lock",
+      "lock_sha256": "4bb759c6c87d06785e3af74b199369768a92bf99323ee70771130ed60531c0e0",
+      "cache_key": "f43e83aeb96240d5eadf99bfbe58f70b8fd77b12a8b6718cad355e2721e3b2db",
+      "wrapper_matches_driver": true
+    },
+    {
+      "lock": "model/umpire/Cargo.lock",
+      "lock_sha256": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5",
+      "cache_key": "f2d7f9482cee00d9ab64827cfbe1d0e7e1cd7a765a41fa61fede7f0ac3be2586",
+      "wrapper_matches_driver": true
+    }
+  ],
+  "driver_resolved_graph_excludes_cli": true,
+  "frozen_driver_and_lock_inputs_unchanged": true,
+  "compiled_cli_mutation_control": "deferred to .10, not claimed here"
+}

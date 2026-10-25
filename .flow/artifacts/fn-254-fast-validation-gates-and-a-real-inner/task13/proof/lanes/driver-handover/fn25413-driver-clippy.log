@@ -1,0 +1,54 @@
+   Compiling libc v0.2.191
+    Checking cfg-if v1.0.5
+   Compiling serde_core v1.0.229
+    Checking typenum v1.20.1
+    Checking hybrid-array v0.4.15
+   Compiling zmij v1.0.23
+   Compiling rustix v1.1.5
+   Compiling getrandom v0.4.3
+    Checking winnow v1.0.4
+    Checking linux-raw-sys v0.12.1
+    Checking block-buffer v0.12.1
+    Checking crypto-common v0.2.2
+    Checking bitflags v2.13.2
+    Checking const-oid v0.10.2
+   Compiling thiserror v2.0.21
+   Compiling serde_json v1.0.154
+   Compiling serde v1.0.229
+    Checking digest v0.11.3
+    Checking toml_parser v1.1.5+spec-1.1.0
+    Checking toml_datetime v1.1.2+spec-1.1.0
+    Checking serde_spanned v1.1.2
+    Checking cpufeatures v0.3.1
+    Checking memchr v2.8.3
+    Checking once_cell v1.21.4
+    Checking fastrand v2.5.0
+    Checking itoa v1.0.18
+    Checking tempfile v3.27.0
+    Checking sha2 v0.11.1
+    Checking toml v1.1.8+spec-1.1.0
+   Compiling crc32fast v1.5.3
+    Checking adler2 v2.0.1
+    Checking umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-driver/model/umpire/dev/guest-driver)
+    Checking simd-adler32 v0.3.10
+    Checking miniz_oxide v0.9.1
+    Checking filetime v0.2.29
+    Checking flate2 v1.1.10
+    Checking tar v0.4.46
+    Checking xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-driver/model/umpire/dev/xtask)
+error: used `assert!` to check that a value is not empty
+   --> dev/guest-driver/src/context.rs:145:9
+    |
+145 |         assert!(!unrelated_cli.is_empty());
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#assert_is_empty
+    = note: `-D clippy::assert-is-empty` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::assert_is_empty)]`
+help: use `assert_ne!` to show the value on failure
+    |
+145 -         assert!(!unrelated_cli.is_empty());
+145 +         assert_ne!(unrelated_cli.as_slice(), []);
+    |
+
+error: could not compile `umpire-guest-driver` (lib test) due to 1 previous error

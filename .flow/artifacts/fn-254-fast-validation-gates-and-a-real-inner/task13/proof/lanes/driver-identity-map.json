@@ -1,0 +1,722 @@
+{
+  "baseline": "abd5107b8ecfcb30cb4289524c1fd01f66f8f7f4",
+  "preserved": [
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "compiler::probes_pass_through_without_guest_environment",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::compiler::probes_pass_through_without_guest_environment",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "compiler::portable_identity_replaces_guest_metadata_and_remaps_generated_paths",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::compiler::portable_identity_replaces_guest_metadata_and_remaps_generated_paths",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "compiler::package_features_profile_compiler_and_closure_remain_distinct",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::compiler::package_features_profile_compiler_and_closure_remain_distinct",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "compiler::dependency_identity_and_transitive_variants_propagate",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::compiler::dependency_identity_and_transitive_variants_propagate",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "compiler::missing_ambiguous_and_malformed_lock_maps_refuse",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::compiler::missing_ambiguous_and_malformed_lock_maps_refuse",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "compiler::build_std_requires_wasm_marker_and_trusted_source_or_rust_src_coordinate",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::compiler::build_std_requires_wasm_marker_and_trusted_source_or_rust_src_coordinate",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "compiler::invalid_or_missing_dependency_sidecars_and_macro_collisions_refuse",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::compiler::invalid_or_missing_dependency_sidecars_and_macro_collisions_refuse",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "compiler::native_macro_identity_ignores_host_configuration_but_retains_argv_and_collisions",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::compiler::native_macro_identity_ignores_host_configuration_but_retains_argv_and_collisions",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "compiler::os_bytes_and_lexical_root_boundaries_are_preserved",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::compiler::os_bytes_and_lexical_root_boundaries_are_preserved",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "compiler::missing_required_inputs_and_option_values_refuse",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::compiler::missing_required_inputs_and_option_values_refuse",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "compiler::sidecar_precedes_child_and_cleanup_preserves_exit_launch_and_signal_outcomes",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::compiler::sidecar_precedes_child_and_cleanup_preserves_exit_launch_and_signal_outcomes",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "compiler::previous_wrapper_and_loader_environment_keep_raw_os_bytes",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::compiler::previous_wrapper_and_loader_environment_keep_raw_os_bytes",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "compiler::inherited_jobserver_descriptor_reaches_direct_compiler_child",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::compiler::inherited_jobserver_descriptor_reaches_direct_compiler_child",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "compiler::actual_rustc_compiles_portable_native_macro_sidecars",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::compiler::actual_rustc_compiles_portable_native_macro_sidecars",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "current_inputs::native_toml_accepts_current_documents_and_rejects_malformed_input",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::current_inputs::native_toml_accepts_current_documents_and_rejects_malformed_input",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "lock::content_addressed_publication_is_repeatable_and_portable",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::lock::content_addressed_publication_is_repeatable_and_portable",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "lock::unrelated_and_dev_only_dependencies_do_not_change_guest_closures",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::lock::unrelated_and_dev_only_dependencies_do_not_change_guest_closures",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "lock::checksum_changes_propagate_through_normal_and_all_platform_build_edges",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::lock::checksum_changes_propagate_through_normal_and_all_platform_build_edges",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "lock::unified_edges_and_edge_topology_change_ancestor_identity",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::lock::unified_edges_and_edge_topology_change_ancestor_identity",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "lock::ambiguous_name_version_coordinates_are_marked_unavailable",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::lock::ambiguous_name_version_coordinates_are_marked_unavailable",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "lock::sourced_entries_are_required_but_git_checksums_are_optional",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::lock::sourced_entries_are_required_but_git_checksums_are_optional",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "lock::malformed_native_documents_and_graphs_are_rejected",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::lock::malformed_native_documents_and_graphs_are_rejected",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "support::canonical_hash_uses_sorted_json_and_known_sha256",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::support::canonical_hash_uses_sorted_json_and_known_sha256",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "support::publication_is_complete_under_concurrent_writers_and_cleans_rename_failure",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::support::publication_is_complete_under_concurrent_writers_and_cleans_rename_failure",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_identity",
+        "name": "support::sidecar_lease_serializes_failure_cleanup_and_refuses_symlink",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_identity::support::sidecar_lease_serializes_failure_cleanup_and_refuses_symlink",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_pipeline",
+        "name": "guest_build_check_and_artifact_refusals",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_pipeline::guest_build_check_and_artifact_refusals",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_pipeline",
+        "name": "cold_shell_bootstrap_and_cached_native_validation",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_pipeline::cold_shell_bootstrap_and_cached_native_validation",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_pipeline",
+        "name": "cold_bootstrap_failures_never_build_or_publish",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_pipeline::cold_bootstrap_failures_never_build_or_publish",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_pipeline",
+        "name": "native_prerequisite_failures_stop_before_guest_build",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_pipeline::native_prerequisite_failures_stop_before_guest_build",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_pipeline",
+        "name": "actual_make_freshness_recipe_propagates_stale_failure",
+        "ignored": false
+      },
+      "after": {
+        "package": "temporal-xtask",
+        "target": "main",
+        "name": "actual_make_freshness_recipe_propagates_stale_failure",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_pipeline",
+        "name": "shell_caller_relative_paths_and_changed_inputs_select_new_cache",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_pipeline::shell_caller_relative_paths_and_changed_inputs_select_new_cache",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_pipeline",
+        "name": "rust_toolchain_metadata_and_rustup_failures_refuse",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_pipeline::rust_toolchain_metadata_and_rustup_failures_refuse",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_pipeline",
+        "name": "absent_embedded_guest_fails_go_compilation",
+        "ignored": false
+      },
+      "after": {
+        "package": "temporal-xtask",
+        "target": "main",
+        "name": "absent_embedded_guest_fails_go_compilation",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "guest_pipeline",
+        "name": "loader_inheritance_survives_orchestration_environment_purge",
+        "ignored": false
+      },
+      "after": {
+        "package": "umpire-guest-driver",
+        "target": "main",
+        "name": "guest_pipeline::loader_inheritance_survives_orchestration_environment_purge",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "apalache_install",
+        "name": "installer::tests::hash_before_parse_and_exact_regular_member_before_publication",
+        "ignored": false
+      },
+      "after": {
+        "package": "xtask",
+        "target": "main",
+        "name": "apalache_install::installer::tests::hash_before_parse_and_exact_regular_member_before_publication",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "apalache_install",
+        "name": "installer::tests::symlinks_in_every_component_including_dangling_are_refused",
+        "ignored": false
+      },
+      "after": {
+        "package": "xtask",
+        "target": "main",
+        "name": "apalache_install::installer::tests::symlinks_in_every_component_including_dangling_are_refused",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "apalache_install",
+        "name": "installer::tests::partial_wrong_and_nonregular_installations_never_download",
+        "ignored": false
+      },
+      "after": {
+        "package": "xtask",
+        "target": "main",
+        "name": "apalache_install::installer::tests::partial_wrong_and_nonregular_installations_never_download",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "apalache_install",
+        "name": "installer::tests::malicious_lock_types_refuse_without_following_or_blocking",
+        "ignored": false
+      },
+      "after": {
+        "package": "xtask",
+        "target": "main",
+        "name": "apalache_install::installer::tests::malicious_lock_types_refuse_without_following_or_blocking",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "apalache_install",
+        "name": "installer::tests::download_failure_cleans_private_staging_and_never_publishes",
+        "ignored": false
+      },
+      "after": {
+        "package": "xtask",
+        "target": "main",
+        "name": "apalache_install::installer::tests::download_failure_cleans_private_staging_and_never_publishes",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "apalache_install",
+        "name": "installer::tests::concurrent_installers_publish_once_and_return_same_path",
+        "ignored": false
+      },
+      "after": {
+        "package": "xtask",
+        "target": "main",
+        "name": "apalache_install::installer::tests::concurrent_installers_publish_once_and_return_same_path",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "apalache_install",
+        "name": "installer::tests::native_curl_contract_and_download_failure_cleanup",
+        "ignored": false
+      },
+      "after": {
+        "package": "xtask",
+        "target": "main",
+        "name": "apalache_install::installer::tests::native_curl_contract_and_download_failure_cleanup",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "apalache_install",
+        "name": "installer::tests::native_dispatch_usage_failure_is_nonzero_and_structured",
+        "ignored": false
+      },
+      "after": {
+        "package": "xtask",
+        "target": "main",
+        "name": "apalache_install::installer::tests::native_dispatch_usage_failure_is_nonzero_and_structured",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "retired_names",
+        "name": "raw_records_exempt_only_author_facade_tokens",
+        "ignored": false
+      },
+      "after": {
+        "package": "xtask",
+        "target": "main",
+        "name": "retired_names::raw_records_exempt_only_author_facade_tokens",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "retired_names",
+        "name": "malformed_records_fail_closed",
+        "ignored": false
+      },
+      "after": {
+        "package": "xtask",
+        "target": "main",
+        "name": "retired_names::malformed_records_fail_closed",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "retired_names",
+        "name": "posix_ere_recheck_and_grep_failure_propagate",
+        "ignored": false
+      },
+      "after": {
+        "package": "xtask",
+        "target": "main",
+        "name": "retired_names::posix_ere_recheck_and_grep_failure_propagate",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "retired_names",
+        "name": "active_spellings_and_historical_exclusions",
+        "ignored": false
+      },
+      "after": {
+        "package": "temporal-xtask",
+        "target": "main",
+        "name": "retired_names::active_spellings_and_historical_exclusions",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "retired_names",
+        "name": "tool_failures_never_report_clean",
+        "ignored": false
+      },
+      "after": {
+        "package": "temporal-xtask",
+        "target": "main",
+        "name": "retired_names::tool_failures_never_report_clean",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "retired_names",
+        "name": "io_and_missing_grep_errors_fail_closed",
+        "ignored": false
+      },
+      "after": {
+        "package": "xtask",
+        "target": "main",
+        "name": "retired_names::io_and_missing_grep_errors_fail_closed",
+        "ignored": false
+      }
+    },
+    {
+      "before": {
+        "package": "xtask",
+        "target": "retired_names",
+        "name": "shell_preserves_filter_failure_when_git_grep_gets_sigpipe",
+        "ignored": false
+      },
+      "after": {
+        "package": "temporal-xtask",
+        "target": "main",
+        "name": "retired_names::shell_preserves_filter_failure_when_git_grep_gets_sigpipe",
+        "ignored": false
+      }
+    }
+  ],
+  "added": [
+    {
+      "package": "umpire-guest-driver",
+      "target": "lib",
+      "name": "context::tests::raw_context_roundtrips_and_longest_root_drives_flags_and_identity",
+      "ignored": false
+    },
+    {
+      "package": "umpire-guest-driver",
+      "target": "lib",
+      "name": "context::tests::local_tool_admission_refuses_missing_configuration_and_escaping_links",
+      "ignored": false
+    },
+    {
+      "package": "umpire-guest-driver",
+      "target": "lib",
+      "name": "context::tests::driver_lock_and_compiler_each_invalidate_cache",
+      "ignored": false
+    },
+    {
+      "package": "umpire-guest-driver",
+      "target": "lib",
+      "name": "context::tests::caller_paths_preserve_relative_and_absolute_os_bytes",
+      "ignored": false
+    }
+  ],
+  "counts": {
+    "preserved": 49,
+    "added": 4
+  },
+  "isolation_exceptions": []
+}

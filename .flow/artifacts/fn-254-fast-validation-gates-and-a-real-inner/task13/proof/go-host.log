@@ -1,0 +1,7 @@
+?   	umpire.local/model/gen/umpire/annotations/v1	[no test files]
+?   	umpire.local/model/gen/umpire/model/v1	[no test files]
+?   	umpire.local/model/gen/umpire/realization/v1	[no test files]
+?   	umpire.local/model/gen/umpire/run/v1	[no test files]
+ok  	umpire.local/model/host	0.333s
+ok  	umpire.local/model/runner	1.986s
+ok  	umpire.local/model/snapshot	0.002s
