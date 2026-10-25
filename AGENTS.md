@@ -240,7 +240,7 @@ reviewer: claude-opus-5-5 at high
 
 implementer: claude-opus-5-5 at medium
 
-fast scout: claude-opus-5-5 at low
+fast scout: claude-haiku-5-5 at low
 
 thinking scout: claude-opus-5-5 at high
 
@@ -256,7 +256,7 @@ fast scout: gpt-6-luna at low
 
 thinking scout: gpt-6.1-sol at high
 
-research: gpt-6-astra at medium
+research: gpt-6.1-sol at medium
 
 `research` is investigation that ends in a report rather than a change or a decision: surveys of
 the codebase, audits, tool and literature evaluations, web research. It always uses the research
