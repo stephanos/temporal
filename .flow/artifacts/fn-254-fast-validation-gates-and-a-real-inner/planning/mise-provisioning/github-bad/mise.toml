@@ -1,0 +1,6 @@
+[tools."github:tlaplus/tlaplus"]
+version = "1.7.4"
+asset_pattern = "tla2tools.jar"
+format = "raw"
+bin = "tla2tools.jar"
+checksum = "sha256:0000000000000000000000000000000000000000000000000000000000000000"

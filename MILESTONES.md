@@ -26,6 +26,7 @@ The owner waived fresh baseline measurements; final measurements remain. fn-254.
 integration boundary. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; activity changes
 retain their listed dependencies and follow the current priority/source-ownership order.
 fn-255.1, .3 and .4 (generator spike, fuzz targets, cargo-mutants) touch no gate files and may run as lanes before fn-254 closes.
+fn-256 (Scala-era tooling removal) is independent and may run as a lane; its root `Makefile` edits land serially with fn-254's.
 Consolidation and build prerequisites for fn-246 are satisfied. Priority does not create dependencies;
 clear cross-spec blockers only after prerequisite closures are committed in `umpire`.
 Parallel work requires disjoint source and code-generation ownership.
@@ -58,10 +59,27 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.6 | ⬜ todo | After .10: `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
-| fn-254.10 | ⬜ todo | After .13: framework gate and root delegation; prove CLI changes preserve guest caches (R7) |
+| fn-254.10 | ⬜ todo | After .13/.16: framework gate and root delegation; prove CLI changes preserve guest caches (R7) |
 | fn-254.11 | ⬜ todo | After .10: framework gate passes on `model/umpire` alone; planted Temporal coupling fails (R7) |
 | fn-254.12 | ⬜ todo | After framework optimizations and controls: committed stage budgets; hard work counts, bounded timing retry, unbudgeted stages fail (R8) |
 | fn-254.13 | 🔄 in progress | Separate framework workspace, dedicated guest driver, shared root/context/remap handling (R7) |
+| fn-254.14 | ⬜ todo | After .13: assume mise and pinned tools are installed; drop presence/pin probes and their controls, fail hard (R7) |
+| fn-254.15 | ⬜ todo | After .13, .10, .14: port remaining model shell scripts to xtask/guest-driver/Makefile; only the xtask bootstrap stays shell (R7) |
+| fn-254.16 | ⬜ todo | After .13/.14, before .10: mise provisions pinned TLC and opt-in Apalache; keep runtime JAR hash/path admission (R7) |
+
+### fn-256: Retire the Scala-era build and Go tooling
+
+`model/archived` stays as read-only reference (owner). Its tooling goes: the Scala-era Go IR reader in `tools/umpire`
+(about 43k lines that nothing else imports, still run in CI), the Quint export and backends targets, about 290 lines of
+Scala Make targets and the `scala-cli` pin. Independent of fn-254's lanes; its root `Makefile` edits avoid fn-254's model
+section, so it may run as a lane, landing serially.
+
+[Spec](.flow/specs/fn-256-retire-the-scala-era-build-and-go.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-256.1 | ⬜ todo | Delete the Go IR reader packages, Quint export, backends targets and their CI step (R1, R3) |
+| fn-256.2 | ⬜ todo | Delete the archived Scala Make targets and `scala-cli` pin; mark `model/archived` read-only (R2–R4) |
 
 ### fn-255: Thorough framework testing
 

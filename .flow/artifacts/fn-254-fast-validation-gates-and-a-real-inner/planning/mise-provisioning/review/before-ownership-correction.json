@@ -1,0 +1,191 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+    "headSha": "e00dc1b89b14fe33fb292450381d7449a762d4ed",
+    "items": [
+      {
+        "body": "The declared paths omit required implementation files. Task .13 must reanchor repository-root references in `backends/tlc/src/runner.rs`, `backends/tlc/tests/controls.rs`, and `backends/tla/tests/world.rs`, but none matches its Touches set. Those references currently resolve above the framework directory and would fail the standalone control if left unchanged. Tasks .5 and .6 likewise require framework xtask changes without declaring that tooling directory.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-f7734d32833ea7eb59bff0ae38d47245c5096666644c558f1d7e05c478554f06",
+        "id": "finding-851a3abb79fb8c87382df93d87745e75",
+        "lastSeenReceiptId": "review-806d0a351f709838c7a6503212486483ec465a51be5d6d4daf02d169e83dd3d4",
+        "ordinal": 1,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Expand the Touches declarations to cover the root-resolution repairs and selected framework/Temporal tooling locations.",
+        "title": "The declared paths omit required implementation files"
+      },
+      {
+        "body": "These pairs overlap and therefore require serial dispatch: .2/.4, .2/.13, .3/.4, .3/.5, .3/.6, .3/.7, .3/.11, .4/.5, .4/.10, .4/.11, .4/.13, .5/.6, .5/.7, .6/.7, .6/.11, .7/.10, .7/.12, and .7/.13. Concrete overlaps include TLC tests, process support, workspace manifests, framework development files, `Makefile`, and gate scripts. This limits parallel execution despite dependency independence; the epic\u2019s serialization instruction remains necessary.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-f7734d32833ea7eb59bff0ae38d47245c5096666644c558f1d7e05c478554f06",
+        "id": "finding-d2b8a094a5c3a3d9c1c7e6553756ab16",
+        "lastSeenReceiptId": "review-806d0a351f709838c7a6503212486483ec465a51be5d6d4daf02d169e83dd3d4",
+        "ordinal": 2,
+        "rIds": [
+          "R3",
+          "R4",
+          "R5",
+          "R7",
+          "R8"
+        ],
+        "severity": "P2",
+        "status": "not_fixed",
+        "suggestion": "Honor Touches-based serialization for these pairs. Narrow declarations only where the actual edits are demonstrably disjoint.",
+        "title": "These pairs overlap and therefore require serial dispatch:"
+      },
+      {
+        "body": "All 18 previously listed dependency-independent pairs still overlap. This remains advisory: the epic explicitly requires shared-file writers to serialize.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-423bc779554e63189d1452f8d81c62d8ec492864ded3aaba690f9b80cee2ca27",
+        "id": "finding-e427942c00308efc369da24ac14e168f",
+        "lastSeenReceiptId": "review-806d0a351f709838c7a6503212486483ec465a51be5d6d4daf02d169e83dd3d4",
+        "ordinal": 3,
+        "rIds": [
+          "R3",
+          "R4",
+          "R5",
+          "R7",
+          "R8"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Honor Touches-based serialization and the recorded integration boundaries.",
+        "title": "All 18 previously listed dependency-independent pairs still overlap"
+      },
+      {
+        "body": "The previously listed 18 dependency-independent pairs still overlap. This remains advisory because the epic explicitly requires shared-file writers to serialize.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-1d77c52a01891b86d21f7bac022176cc844599489036510c11ef8ba959ff7f90",
+        "id": "finding-c8a3972caf34e02929150e4c5082d143",
+        "lastSeenReceiptId": "review-806d0a351f709838c7a6503212486483ec465a51be5d6d4daf02d169e83dd3d4",
+        "ordinal": 4,
+        "rIds": [
+          "R3",
+          "R4",
+          "R5",
+          "R7",
+          "R8"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Honor Touches-based serialization and the recorded integration boundaries.",
+        "title": "The previously listed 18 dependency-independent pairs still overlap"
+      },
+      {
+        "body": "All 18 previously listed pairs remain dependency-independent with overlapping Touches sets. This remains advisory; explicit serialization is already required.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-654dc0094315273420e4c3bba0e7b25549c0cc9a0fa88ad4b6685e42d38221f7",
+        "id": "finding-6fccdf2bef125ae5a8c07520f4995be7",
+        "lastSeenReceiptId": "review-806d0a351f709838c7a6503212486483ec465a51be5d6d4daf02d169e83dd3d4",
+        "ordinal": 5,
+        "rIds": [
+          "R3",
+          "R4",
+          "R5",
+          "R7",
+          "R8"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Honor Touches-based serialization and the recorded integration boundaries.",
+        "title": "All 18 previously listed pairs remain dependency-independent with overlapping Touches sets"
+      },
+      {
+        "body": "All 18 previously listed pairs remain dependency-independent with overlapping Touches sets. This remains advisory because shared-file serialization is explicitly required.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-753eda7607c2dff531e3ebda092cfa9e602b1b501848b87f6563db205b1a4621",
+        "id": "finding-59df9d80c747b8de6238cfccdf8aabbb",
+        "lastSeenReceiptId": "review-806d0a351f709838c7a6503212486483ec465a51be5d6d4daf02d169e83dd3d4",
+        "ordinal": 6,
+        "rIds": [
+          "R3",
+          "R4",
+          "R5",
+          "R7",
+          "R8"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Honor Touches-based serialization and the recorded integration boundaries.",
+        "title": "All 18 previously listed pairs remain dependency-independent with overlapping Touches sets"
+      },
+      {
+        "anchor": {
+          "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+          "headSha": "e00dc1b89b14fe33fb292450381d7449a762d4ed",
+          "path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.3.md",
+          "side": "head",
+          "startLine": 12
+        },
+        "body": "All 18 previously listed pairs remain dependency-independent with overlapping Touches sets. This remains advisory because shared-file serialization is explicitly required.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-806d0a351f709838c7a6503212486483ec465a51be5d6d4daf02d169e83dd3d4",
+        "id": "finding-6c2f854a74e58e9958a06118a377d0d9",
+        "lastSeenReceiptId": "review-806d0a351f709838c7a6503212486483ec465a51be5d6d4daf02d169e83dd3d4",
+        "ordinal": 7,
+        "rIds": [
+          "R3",
+          "R4",
+          "R5",
+          "R7",
+          "R8"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Honor Touches-based serialization and the recorded integration boundaries.",
+        "title": "All 18 previously listed pairs remain dependency-independent with overlapping Touches sets"
+      },
+      {
+        "anchor": {
+          "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+          "headSha": "e00dc1b89b14fe33fb292450381d7449a762d4ed",
+          "path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.14.md",
+          "side": "head",
+          "startLine": 12
+        },
+        "body": "Tasks .14, .15 and .16 omit `Touches:` declarations despite having dependency-independent peers, forcing conservative serial dispatch. Task .10 also requires editing `.github/workflows/umpire.yml` without including that path in its declaration.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-806d0a351f709838c7a6503212486483ec465a51be5d6d4daf02d169e83dd3d4",
+        "id": "finding-04f9e93212765ba458e6d00f47099a7d",
+        "lastSeenReceiptId": "review-806d0a351f709838c7a6503212486483ec465a51be5d6d4daf02d169e83dd3d4",
+        "ordinal": 8,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Declare the new tasks\u2019 ownership paths and add the workflow path to .10.",
+        "title": "Tasks"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 6,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-806d0a351f709838c7a6503212486483ec465a51be5d6d4daf02d169e83dd3d4",
+    "supersedesReceiptId": "review-753eda7607c2dff531e3ebda092cfa9e602b1b501848b87f6563db205b1a4621"
+  },
+  "id": "fn-254-fast-validation-gates-and-a-real-inner",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "Prior finding #1: fixed\nPrior finding #2: not-fixed\n\nThe ownership-path fixes remain covered. Provisioning dependencies are correctly ordered, and the new tasks retain focused failure, integrity and cleanup controls. Test strategy, observability and non-functional requirements remain stated. No new P0/P1 blocker identified.\n\nSeverity: P2\nConfidence: 100\nClassification: introduced\nFile:Line: .flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.3.md:12\nR-IDs: [R3, R4, R5, R7, R8]\nLocation: Prior finding #2\nProblem: All 18 previously listed pairs remain dependency-independent with overlapping Touches sets. This remains advisory because shared-file serialization is explicitly required.\nSuggestion: Honor Touches-based serialization and the recorded integration boundaries.\n\nSeverity: P2\nConfidence: 100\nClassification: introduced\nFile:Line: .flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.14.md:12\nR-IDs: [R7]\nLocation: New FYI finding #3 \u2014 ownership declarations\nProblem: Tasks .14, .15 and .16 omit `**Touches:**` declarations despite having dependency-independent peers, forcing conservative serial dispatch. Task .10 also requires editing `.github/workflows/umpire.yml` without including that path in its declaration.\nSuggestion: Declare the new tasks\u2019 ownership paths and add the workflow path to .10.\n\nmaintainability:\n  duplication: Task .10 repeats its Owner validation cadence paragraph at lines 34 and 39.\n  structure: none identified\n\n```json\n{\"classification_counts\":{\"introduced\":2,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "bb70c7d5f6164ea6ab406349aa8af9e9",
+  "session_id": "01a17463-cc60-7a40-8cc2-d72fe9970e2a",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-25T22:41:07.098479Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}

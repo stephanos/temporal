@@ -1,0 +1,15 @@
+{
+  "http:apalache": [
+    {
+      "version": "0.62.4",
+      "requested_version": "0.62.4",
+      "install_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/opt-in/data/installs/http-apalache/0.62.4",
+      "source": {
+        "type": "mise.toml",
+        "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/opt-in/mise.apalache.toml"
+      },
+      "installed": false,
+      "active": false
+    }
+  ]
+}

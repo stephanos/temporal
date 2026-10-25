@@ -1,0 +1,6 @@
+→ Targeting 1 platform(s) for /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/http-good/mise.lock: linux-arm64
+→ Processing 1 tool(s): http:tlc@1.7.4
+mise lock            http:tlc@1.7.4 linux-arm64
+mise lock          ✓ 1 platform entries
+✓ Updated 1 platform entries (0 skipped)
+✓ Lockfile written to /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/http-good/mise.lock

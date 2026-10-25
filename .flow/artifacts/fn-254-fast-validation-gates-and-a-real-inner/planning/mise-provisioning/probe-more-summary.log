@@ -1,0 +1,39 @@
+github-good config 0 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/github-good/empty.toml  (none)
+/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/github-good/mise.toml   github:tlaplus/tlaplus
+
+github-good install 0 mise by @jdx – installing 1 tool
+mise ✓ github:tlaplus/tlaplus@1.7.4  1.4s  tla2tools.jar
+mise ████████████████ 1/1 · installed 1 tool in 1.8s
+
+github-bad config 0 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/github-bad/empty.toml  (none)
+/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/github-bad/mise.toml   github:tlaplus/tlaplus
+
+github-bad install 1 mise by @jdx – installing 1 tool
+mise ✗ github:tlaplus/tlaplus@1.7.4  666ms · failed: Checksum mismatch for file /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/github-bad/data/downloads/github-tlaplus-tlaplus/1.7.4/tla2tools.jar:
+mise ████████████████ 1/1 · installed 0 tools · 1 failed in 773ms
+mise ERROR Failed to install github:tlaplus/tlaplus@1.7.4: Checksum mismatch for file /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/github-bad/data/downloads/github-tlaplus-tlaplus/1.7.4/tla2tools.jar:
+Expected: sha256:0000000000000000000000000000000000000000000000000000000000000000
+Actual:   sha256:936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88
+mise ERROR Version: 2026.10.11 linux-arm64 (2026-10-15)
+mise ERROR Run with --verbose or MISE_VERBOSE=1 for more information
+
+archive-layout install 0 mise by @jdx – installing 1 tool
+mise ✓ http:apalache-fixture@0.62.4  91ms
+mise ████████████████ 1/1 · installed 1 tool in 94ms
+
+archive-layout where 0 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/archive-layout/data/installs/http-apalache-fixture/0.62.4
+
+archive JAR b'fixture-jar'
+http-good lock 0 → Targeting 1 platform(s) for /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/http-good/mise.lock: linux-arm64
+→ Processing 1 tool(s): http:tlc@1.7.4
+mise lock            http:tlc@1.7.4 linux-arm64
+mise lock          ✓ 1 platform entries
+✓ Updated 1 platform entries (0 skipped)
+✓ Lockfile written to /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/http-good/mise.lock
+
+http-good locked-corrupt 0 mise by @jdx – installing 1 tool
+mise ⇢ http:tlc@1.7.4  0ms · already installed
+mise ████████████████ 1/1 · installed 0 tools · 1 already installed in 0ms
+mise all tools are installed
+
+corrupt remains True

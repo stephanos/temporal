@@ -11,7 +11,7 @@ Compose the framework gate and Temporal delegation on .13's independently builda
 
 **Size:** M
 **Files:** framework entry point and moved tooling controls, core/Kettle protobuf and guest orchestration, root Makefile's Temporal stages, host parity controls and current generated assets.
-**Touches:** [model/umpire/dev/**, model/umpire/protocol/**, model/umpire/hosts/go/**, model/umpire/reference/kettle/**, model/dev/xtask/**, model/scripts/**, model/temporal/hosts/go/**, model/temporal/guest/**, Makefile, model/README.md, model/umpire/README.md, model/GUEST_BUILDS.md]
+**Touches:** [.github/workflows/umpire.yml, model/umpire/scripts/**, model/umpire/dev/**, model/umpire/protocol/**, model/umpire/hosts/go/**, model/umpire/reference/kettle/**, model/dev/xtask/**, model/scripts/**, model/temporal/hosts/go/**, model/temporal/guest/**, Makefile, model/README.md, model/umpire/README.md, model/GUEST_BUILDS.md]
 
 ### Approach
 - Consume .13's dedicated guest driver and admitted context for root resolution, tool/pin/cache ownership and guest identity; do not repeat that migration. Keep gate orchestration in the general xtask package, with no reverse dependency from the guest driver. Guest commands cross the dedicated executable interface rather than invoking guest orchestration inside the general CLI process.
@@ -29,9 +29,16 @@ Compose the framework gate and Temporal delegation on .13's independently builda
 - `model/scripts/proto-go.sh` — core/kettle/temporal modes
 - `Makefile:1270-1315`
 
+#
+- Owner request (2026-10-25): add the framework gate and the root `model-check` to `.github/workflows/umpire.yml`. fn-256.1 removes the dead `tools/umpire` reader tests that the CI job runs now. While rewriting the `model-check` recipe, factor out the repeated `cd model && target=… case …` prelude (now Makefile lines 1296–1297).
 ## Owner validation cadence (2026-10-25)
 
 Keep changed framework/root entry-point wiring, both-workspace coverage accounting, modes, cache bypass and named failure controls now; unrelated unfiltered combined gates wait for .8. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
+
+
+### Mise provider prerequisite
+
+Task .16 supplies the TLC and optional Apalache provisioning entry points before gate composition. Consume those entry points and preserve routine Apalache exclusion; do not reimplement downloads in the gate.
 
 ## Acceptance
 - [ ] A real compiled CLI/gate-only change preserves guest-driver bytes and guest cache/artifact reuse; actual driver/lock/compiler changes still invalidate. Gate/installer/guest callers consume .13's shared context without duplicated root or remap policy.

@@ -1,0 +1,4 @@
+[tools."http:apalache"]
+version = "0.62.4"
+url = "file:///definitely-absent-apalache.tgz"
+checksum = "sha256:0000000000000000000000000000000000000000000000000000000000000000"

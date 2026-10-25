@@ -1,0 +1,29 @@
+opt-in default-ls 0 {}
+
+opt-in default-exec 0 
+opt-in opt-in-ls 0 {
+  "http:apalache": [
+    {
+      "version": "0.62.4",
+      "requested_version": "0.62.4",
+      "install_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/opt-in/data/installs/http-apalache/0.62.4",
+      "source": {
+        "type": "mise.toml",
+        "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/opt-in/mise.apalache.toml"
+      },
+      "installed": false,
+      "active": false
+    }
+  ]
+}
+
+opt-in opt-in-exec 0 
+install-root /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/http-good/data/installs/http-tlc/1.7.4 symlink False
+install-root /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/http-good/data/installs/http-tlc/1.7 symlink True
+install-root /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/http-good/data/installs/http-tlc/1 symlink True
+install-root /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/github-good/data/installs/github-tlaplus-tlaplus/1.7.4 symlink False
+install-root /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/github-good/data/installs/github-tlaplus-tlaplus/1.7 symlink True
+install-root /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/github-good/data/installs/github-tlaplus-tlaplus/1 symlink True
+install-root /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/archive-layout/data/installs/http-apalache-fixture/0.62.4 symlink False
+install-root /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/archive-layout/data/installs/http-apalache-fixture/0 symlink True
+install-root /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/archive-layout/data/installs/http-apalache-fixture/0.62 symlink True

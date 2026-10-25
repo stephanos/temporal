@@ -162,6 +162,14 @@ Filesystem hygiene and the standalone copy need no Git; use declared current inp
 preserve path/symlink, raw-byte/status and dependency-containment checks. No Model or
 conformance policy changes are authorized by this design.
 
+2026-10-25, owner: "we don't need to check for mise everywhere all the time, we can assume its installed - or fail hard". Tooling assumes mise and its pinned tools are installed and runs them through `mise exec`. Presence and pin probes and their negative controls are removed (task .14, after .13). Auto-install stays disabled so a missing tool fails hard. This replaces fn-247 R2's missing-tool and probe-failed-tool admission.
+
+2026-10-25, owner: file a task after .13 and .10 to port the remaining model shell scripts. Task .15 (after .13, .10 and .14; before .8) moves script logic into xtask or guest-driver subcommands, thin wrappers into the Makefile and the shell controls into Rust tests. Only the xtask bootstrap stays shell. Retired-name patterns move to Rust `regex`, reversing fn-247's keep-`grep -E` decision.
+
+2026-10-25, owner: file the mise download work in fn-254. Task .16 follows .13/.14 and precedes .10: framework-owned mise declarations provision pinned TLC and opt-in Apalache assets; bespoke download/extraction plumbing is removed. Runtime JAR checksum/path admission remains, since an installed mise artifact can be corrupted without a locked reinstall detecting it. This does not restore .14's removed tool-presence/version probes. Task .15 ports the resulting entry points without recreating native downloaders. Focused provider checks run in .16; broad gates remain in .8.
+
+Maintainability (plan review): duplication - task .10 repeated its validation-cadence paragraph; consolidated to one paragraph. structure - none identified. Ownership advisories are addressed with explicit .14/.15/.16 paths and .10 workflow/script ownership; existing shared-file pairs still serialize.
+
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |

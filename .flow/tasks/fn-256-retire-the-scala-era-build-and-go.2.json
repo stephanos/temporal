@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-25T22:31:50.527620Z",
+  "depends_on": [
+    "fn-256-retire-the-scala-era-build-and-go.1"
+  ],
+  "id": "fn-256-retire-the-scala-era-build-and-go.2",
+  "priority": null,
+  "spec": "fn-256-retire-the-scala-era-build-and-go",
+  "spec_path": ".flow/tasks/fn-256-retire-the-scala-era-build-and-go.2.md",
+  "status": "todo",
+  "title": "Delete the archived Scala Make targets and the scala-cli pin; mark model/archived read-only",
+  "updated_at": "2026-10-25T22:43:30.084422Z"
+}

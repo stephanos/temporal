@@ -1,0 +1,8 @@
+mise by @jdx – installing 1 tool
+mise ✗ github:tlaplus/tlaplus@1.7.4  666ms · failed: Checksum mismatch for file /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/github-bad/data/downloads/github-tlaplus-tlaplus/1.7.4/tla2tools.jar:
+mise ████████████████ 1/1 · installed 0 tools · 1 failed in 773ms
+mise ERROR Failed to install github:tlaplus/tlaplus@1.7.4: Checksum mismatch for file /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/github-bad/data/downloads/github-tlaplus-tlaplus/1.7.4/tla2tools.jar:
+Expected: sha256:0000000000000000000000000000000000000000000000000000000000000000
+Actual:   sha256:936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88
+mise ERROR Version: 2026.10.11 linux-arm64 (2026-10-15)
+mise ERROR Run with --verbose or MISE_VERBOSE=1 for more information

@@ -1,0 +1,24 @@
+http-good config 0 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/http-good/empty.toml  (none)
+/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/http-good/mise.toml   http:tlc
+
+http-good version 0 2026.10.11 linux-arm64 (2026-10-15)
+mise WARN  mise version 2026.10.19 available
+mise WARN  To update, run mise self-update
+
+http-good install 0 mise by @jdx – installing 1 tool
+mise ✓ http:tlc@1.7.4  2.0s  tla2tools.jar
+mise ████████████████ 1/1 · installed 1 tool in 2.0s
+
+http-good where 0 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/http-good/data/installs/http-tlc/1.7.4
+
+jar http-good/data/shims/tla2tools.jar 143972184 370b4b4cfd740402e9a55aa1a8a01fbb1ac95c50af1207b2db2c5489dd4da0cd
+jar http-good/data/installs/http-tlc/1.7.4/tla2tools.jar 2274532 936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88
+http-bad install 1 mise by @jdx – installing 1 tool
+mise ✗ http:tlc@1.7.4  1.1s · failed: Checksum mismatch for file /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/http-bad/data/downloads/http-tlc/1.7.4/tla2tools.jar:
+mise ████████████████ 1/1 · installed 0 tools · 1 failed in 1.1s
+mise ERROR Failed to install http:tlc@1.7.4: Checksum mismatch for file /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/http-bad/data/downloads/http-tlc/1.7.4/tla2tools.jar:
+Expected: sha256:0000000000000000000000000000000000000000000000000000000000000000
+Actual:   sha256:936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88
+mise ERROR Version: 2026.10.11 linux-arm64 (2026-10-15)
+mise ERROR Run with --verbose or MISE_VERBOSE=1 for more information
+

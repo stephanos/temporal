@@ -1,0 +1,7 @@
+[tools."http:apalache-fixture"]
+version = "0.62.4"
+url = "file:///Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-mise-research/apalache-layout-fixture.tgz"
+format = "tar.gz"
+strip_components = 1
+bin_path = "bin"
+checksum = "sha256:5d8bedd570017c02b7af63412b88f3dc298491867b9eb45b4844f67fc3099542"
