@@ -358,3 +358,27 @@ policy stays Temporal-owned; generic libraries/scanners/compiler/runtime remain 
 Filesystem hygiene and the standalone copy need no Git; use declared current inputs and
 preserve path/symlink, raw-byte/status and dependency-containment checks. No Model or
 conformance policy changes are authorized by this design.
+
+## Task .13 source checkpoint
+
+The framework now owns its independent 28-member Cargo workspace, lockfile, tool
+pins and native tools. The seven-member outer workspace retains Temporal inputs
+and a thin `temporal-xtask` command bridge. Root guest scripts and `cargo xtask`
+select the framework workspace for its five declared guests and the outer workspace
+for extension guests, resolving caller-relative output and target paths first.
+The dedicated guest driver owns compiler wrapping and admitted context; the general
+CLI can use its context library but cannot enter a guest runtime closure.
+
+The durable task13 proof index is
+[task13/index.json](../../.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task13/index.json).
+It records the source identities, 925 preserved logical tests plus four new context
+controls, all 563 preserved snapshot/UI hashes, unchanged registry resolutions,
+both locked build/test-compilation closures, an isolated framework build, and
+current-input guest reproduction/freshness and Go host results. Earlier failed or
+inconclusive attempts remain identified in the same evidence.
+
+This checkpoint does not execute the combined full gate. Task .10 still owns final
+gate composition, protobuf/host orchestration and renewal of driver independence
+with a compiled general-CLI mutation after gate code is added. Task .11 owns the
+real standalone full-gate control; .8 retains unrelated workspace execution and
+combined validation. Their deferred checks are not task .13 results.

@@ -42,7 +42,7 @@ fn batch_protocol_requires_complete_selected_evidence() -> Result<(), Error> {
         let properties = vec![("INVARIANT".into(), "A".into()), ("PROPERTY".into(), "B".into())];
         let selected = message(2110, true, "Invariant A is violated.");
         let unknown = message(2110, true, "Invariant Unknown is violated.");
-        let liveness = message(2116, true, "Temporal properties were violated.");
+        let liveness = message(2116, true, "Liveness properties were violated.");
         let located = message(
             2110,
             true,

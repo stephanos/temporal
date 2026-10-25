@@ -69,8 +69,8 @@ The host-only `umpire/dev/xtask` command front door owns pinned Apalache install
 and retired-name filtering. Guest commands execute the independent
 `umpire/dev/guest-driver` executable, which owns guest builds, compiler wrapping,
 lock admission and the shared admitted tool/caller context. `model/dev/xtask`
-retains only the system-specific entry-point controls. Existing root scripts and
-`cargo xtask` delegate to the framework tools.
+retains the thin system workspace command bridge and its entry-point controls.
+Existing root scripts and `cargo xtask` delegate to the framework tools.
 See [GUEST_BUILDS.md](GUEST_BUILDS.md) and
 [native tool contracts](umpire/dev/xtask/README.md).
 

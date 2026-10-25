@@ -1,4 +1,4 @@
 [alias]
 check-all = "clippy --workspace --all-targets --all-features -- -D warnings"
 doc-all = "doc --workspace --no-deps --document-private-items"
-xtask = "run --manifest-path umpire/Cargo.toml --package xtask --bin xtask --profile dev --"
+xtask = "run --package temporal-xtask --bin temporal-xtask --profile dev --"

@@ -50,6 +50,9 @@ name normal domain dependencies; test-only dependencies do not reverse the produ
 | `xtask`, `dev/xtask` | Host-only command front door, pinned Apalache installation and retired-name filtering; executes the dedicated driver for guest commands. | Guest-driver context utilities; no Model-domain dependencies. |
 | `umpire-guest-driver`, `dev/guest-driver` | Guest build/closure/compiler/freshness admission, shared tool/caller context and portable remaps. | No CLI/gate or Model-domain dependencies; never part of a guest runtime closure. |
 
+The outer `model/dev/xtask` package is a thin system-workspace command bridge and owns
+only its repository-specific controls; it delegates reusable commands inward.
+
 Workspace Rust tests own process/xtask controls once; no active Model helper requires Python.
 Process support preserves Linux adopted-descendant cleanup and Darwin descendant prevention;
 other platforms refuse. Native macOS execution is not inferred from Linux/source controls.
