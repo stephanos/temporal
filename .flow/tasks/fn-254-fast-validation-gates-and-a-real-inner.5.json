@@ -13,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.5.md",
   "status": "todo",
   "title": "Gate composition: Apalache out, overlapping stages, trybuild trim, remove dead target",
-  "updated_at": "2026-10-25T18:54:52.364111Z"
+  "updated_at": "2026-10-25T20:12:03.525228Z"
 }

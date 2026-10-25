@@ -17,9 +17,13 @@ Apply .4's consolidation to `model/temporal/**`.
 - Same rules and exceptions as .4. Inventory explicit targets in `temporal/testing/Cargo.toml` (`fixtures`, `snapshot_ownership`, `boundary`) and realization crate tests; preserve root-level sources and the dedicated boundary filter. Do not assume a stale `realization` target in the testing crate.
 - **Equivalence pin:** a checked package/target/full-name/ignored bijection retains every case and snapshot. Update the already-installed budget entries for changed counts/stages. Flow keeps this task explicitly blocked on the external prerequisite; root verifies fn-246's committed spec closure before releasing it. Source merge alone is insufficient, and Flow does not support cross-spec task dependency edges.
 
+## Owner validation cadence (2026-10-25)
+
+After its existing committed fn-246 closure prerequisite, keep affected Temporal test execution and exact identity mapping now; unrelated full model gates wait for .8. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
+
 ## Acceptance
 - [ ] Binary count and compile/link time recorded before and after.
-- [ ] Test list identical modulo mapping; snapshots unchanged; `make model-check` passes.
+- [ ] Test list identical modulo mapping, snapshots unchanged and affected Temporal tests pass; unrelated full `model-check` execution is deferred to .8 under the owner cadence amendment.
 
 ## Done summary
 Blocked:

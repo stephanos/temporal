@@ -26,6 +26,10 @@ Remove waste from the gate's structure without dropping a check (spec R5).
 - `model/scripts/test-model-validate.sh`, `test-time-gate.sh` — gate controls
 - `.flow/specs/fn-252-quick-consolidation-wins-in-model-code.md` (B5) — UI-case conversion rules
 
+## Owner validation cadence (2026-10-25)
+
+Keep real changed orchestration wiring, stage-presence and mode/failure/cleanup controls now. Unrelated real full-stage execution waits for .8; synthetic controls never claim a production suite pass. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
+
 ## Acceptance
 - [ ] Every previous stage still runs in `model-validate`; a planted failure in each stage fails the gate with its name.
 - [ ] Apalache is not required by routine gates; the opt-in still works.

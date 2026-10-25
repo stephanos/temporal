@@ -26,10 +26,14 @@ Cut compile and link time (spec R4): fewer integration-test binaries, less debug
 - `model/Cargo.toml:133-148` — profiles
 - `model/umpire/backends/native/tests/` — many small binaries plus shared `support/`
 
+## Owner validation cadence (2026-10-25)
+
+Keep affected crate execution, exact identity mapping, snapshots and scoped fmt/clippy now; unrelated unfiltered model gates wait for .8. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
+
 ## Acceptance
 - [ ] Binary count and compile/link time recorded before and after.
 - [ ] Test list identical modulo the recorded path mapping; snapshots unchanged.
-- [ ] `make model-check` passes.
+- [ ] Affected crate tests and relevant fmt/clippy checks pass with the checked identity mapping; unrelated full `model-check` execution is deferred to .8 under the owner cadence amendment.
 
 ## Done summary
 TBD

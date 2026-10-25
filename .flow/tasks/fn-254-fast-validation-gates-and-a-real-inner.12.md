@@ -25,6 +25,10 @@ Make the fast-gate goal enforceable for every current and future stage (spec R8)
 - `model/design/gate-speed.md` (.1 baseline)
 - `model/design/framework-gate.md` (.9 layout)
 
+## Owner validation cadence (2026-10-25)
+
+Keep stage registration/count/timing/retry controls now. Derive actual count bounds and preserve deferred full-gate/final timing obligations for .8. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
+
 ## Acceptance
 - [ ] A committed budget table covers every current stage, framework and Temporal.
 - [ ] Work-count overruns and unbudgeted stages fail; wall-time overruns fail only on repeat; all four controls pass.

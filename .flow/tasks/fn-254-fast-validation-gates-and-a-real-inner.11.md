@@ -23,6 +23,10 @@ Prove the framework stands alone and stays Temporal-agnostic (spec R7 errors), a
 - `model/dev/xtask/src/retired_names.rs` (or its moved successor)
 - `model/scripts/test-capabilities.sh` — existing control pattern
 
+## Owner validation cadence (2026-10-25)
+
+The real directory-only framework entry-point run is the isolation gate being changed and remains required, alongside planted violation controls. Reuse equivalent evidence at .8 only if all relevant inputs remain unchanged. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
+
 ## Acceptance
 - [ ] The framework gate passes on an isolated copy of `model/umpire`.
 - [ ] All three planted violations fail with a named reason.

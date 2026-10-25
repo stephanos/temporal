@@ -1,0 +1,28 @@
+{
+  "owner_instruction": "can we postpone most of the validation gates to the end of fn-254? except for the ones we're changing in that task?",
+  "date": "2026-10-25",
+  "spec": "fn-254-fast-validation-gates-and-a-real-inner",
+  "per_task": {
+    "2": "Keep changed TLC controls plus exact independent-strategy comparison over every TLC fixture/mutant now. Record unrelated original workspace identities as deferred to .8; no whole-workspace pass is required or claimed here.",
+    "3": "Keep exact Cargo/nextest/ignored/doctest inventory parity, representative affected execution and combined JVM-limit controls now; unrelated full workspace execution waits for .8.",
+    "4": "Keep affected crate execution, exact identity mapping, snapshots and scoped fmt/clippy now; unrelated unfiltered model gates wait for .8.",
+    "5": "Keep real changed orchestration wiring, stage-presence and mode/failure/cleanup controls now. Unrelated real full-stage execution waits for .8; synthetic controls never claim a production suite pass.",
+    "6": "Keep actual activity quick checks, native/interpreter selection, hit/miss/invalidation/corruption/concurrency controls and authoritative full-gate cache bypass now. Unrelated full model gates wait for .8.",
+    "7": "After its existing committed fn-246 closure prerequisite, keep affected Temporal test execution and exact identity mapping now; unrelated full model gates wait for .8.",
+    "10": "Keep changed framework/root entry-point wiring, both-workspace coverage accounting, modes, cache bypass and named failure controls now; unrelated unfiltered combined gates wait for .8.",
+    "11": "The real directory-only framework entry-point run is the isolation gate being changed and remains required, alongside planted violation controls. Reuse equivalent evidence at .8 only if all relevant inputs remain unchanged.",
+    "12": "Keep stage registration/count/timing/retry controls now. Derive actual count bounds and preserve deferred full-gate/final timing obligations for .8.",
+    "13": "Keep both locked metadata/build closures, test compilation and affected root/tool/generator/guest identity/freshness/parity controls now. Unrelated full workspace execution and combined model gates wait for .8; the intermediate root gate must still account for both workspaces."
+  },
+  "final_checkpoint": "fn-254-fast-validation-gates-and-a-real-inner.8",
+  "coverage_removed": false,
+  "full_validation_uses_quick_cache": false,
+  "current_fn246_full_gate": {
+    "source": "3d54e19b1bfbce799ada92e4d5ffc7e8db636797",
+    "exit": 0,
+    "seconds": 1607.932,
+    "purpose": "existing required validation, not a new timing baseline",
+    "rerun_planned": false
+  },
+  "implementation_review": "per-task on green affected scope; this owner cadence amendment is not a skip of code review"
+}

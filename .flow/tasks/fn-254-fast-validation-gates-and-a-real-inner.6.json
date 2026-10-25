@@ -13,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.6.md",
   "status": "todo",
   "title": "make model-quick: affected crates, native always, cached TLC for unchanged modules",
-  "updated_at": "2026-10-25T18:54:52.670543Z"
+  "updated_at": "2026-10-25T20:12:03.834866Z"
 }

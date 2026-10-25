@@ -25,6 +25,10 @@ The author's inner loop (spec R2): edit a Model, get native, interpreter and (wh
 - `model/umpire/dev/testing/src/backend.rs` — where fixtures call TLC
 - `model/umpire/backends/tlc/src/runner.rs` — result types to cache
 
+## Owner validation cadence (2026-10-25)
+
+Keep actual activity quick checks, native/interpreter selection, hit/miss/invalidation/corruption/concurrency controls and authoritative full-gate cache bypass now. Unrelated full model gates wait for .8. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
+
 ## Acceptance
 - [ ] An activity `model.rs` edit re-runs the activity natively and through the interpreter; TLC runs only if its emitted module changed.
 - [ ] Cache controls exercise every effective input, corruption/interruption/concurrent publication and failure exclusion; inherited enablement cannot make `model-validate` read a cache. Selection controls cover rename/delete/global inputs and cross-workspace reverse dependencies.

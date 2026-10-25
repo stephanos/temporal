@@ -8,6 +8,7 @@
 > assistant: fixed start-up cost (about 1.3–2.6 s per run, measured on a 3-state model) paid once per property; native Kettle exploration 88 µs; TLC added about 520 s to fn-237.3's required gate (441 s default vs 961 s required). TLC stays as the independent checker.
 > user (2026-10-25): "yes file new speec"
 > user (2026-10-25): "can we ignore baseline measurement? we already have historic data"
+> user (2026-10-25): "can we postpone most of the validation gates to the end of fn-254? except for the ones we're changing in that task?"
 
 ## Goal & Context
 
@@ -97,6 +98,16 @@ Findings this spec acts on (verified 2026-10-25):
 - No change to Model semantics, snapshot meaning or checker verdicts.
 - No remote CI or build cache service.
 - The live Temporal gates (`umpire-check-live-tests`) are out of scope.
+
+## Verification cadence
+
+Owner amendment, 2026-10-25: run focused checks for each implementation and defer unrelated broad validation to .8. This supersedes per-task instructions to run an unrelated whole-workspace suite, `make model-check` or `make model-validate`. Their full coverage remains required at the final checkpoint; no deferred command is reported green.
+
+- Keep discriminating regressions, relevant native/backend tests and affected fmt/clippy checks with the change. Gate changes also retain their real wiring, mode/cache propagation, failure/cleanup and coverage-preservation controls.
+- .2 retains exact independent-strategy agreement over every TLC fixture/mutant and its safety/liveness/fairness/error controls. Other workspace targets are deferred, with exact identities recorded. No repeated complete workspace run is required for this task.
+- .3/.4/.7 retain exact pre/post logical inventories, ignored status, mapping and affected test execution. .5/.6 retain changed gate/cache controls. .13 retains both locked workspace/build closures and affected tool/root/guest identity checks. .10 retains orchestration/mode/failure controls. .11's real isolated framework entry-point proof is itself the gate being changed, so it remains required. .12 retains budget controls.
+- .8 runs the full current `model-check` and TLC-required `model-validate`, final quick-cache-hit/fresh-TLC measurements, standalone proof and stage budgets. Reuse already-passing evidence only when its actual inputs and scope remain equivalent; changed inputs need renewed checks. Full validation never uses the quick TLC result cache.
+- Preserve completed or active proof work; do not restart a running command merely to change its observation window. Let an active relevant test finish before stopping an unrelated orchestration queue. Record deferred, incomplete and failed work honestly.
 
 ## Decision Context
 

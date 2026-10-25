@@ -24,6 +24,10 @@ Implement .9's standalone build boundary before .10 composes the gates. This is 
 - `model/dev/xtask/src/guest.rs:79-81,243-255,353-357` and `apalache_pins.rs`.
 - `model/umpire/backends/process/src/support.rs:40-60`, path-sensitive framework test helpers and explicit test manifests.
 
+## Owner validation cadence (2026-10-25)
+
+Keep both locked metadata/build closures, test compilation and affected root/tool/generator/guest identity/freshness/parity controls now. Unrelated full workspace execution and combined model gates wait for .8; the intermediate root gate must still account for both workspaces. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
+
 ## Acceptance
 - [ ] Framework and Temporal workspace metadata/build/test closures resolve with their own lockfiles; the framework build needs no absent parent workspace/configuration. Policies, versions and exact logical tests remain accounted for.
 - [ ] Reusable tools/pins/cache/root resolution live under the framework and no framework source input reaches above it. Pinned generator and jar SHA admission remain enforced; missing tools fail explicitly.

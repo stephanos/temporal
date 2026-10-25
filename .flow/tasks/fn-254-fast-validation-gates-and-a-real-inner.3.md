@@ -23,6 +23,10 @@ Run tests across all binaries at once instead of one binary after another (spec 
 - `model/design/gate-speed.md` — baseline per-binary times
 - `mise.toml` — current tool pins; .9/.13 establish the framework-local successor
 
+## Owner validation cadence (2026-10-25)
+
+Keep exact Cargo/nextest/ignored/doctest inventory parity, representative affected execution and combined JVM-limit controls now; unrelated full workspace execution waits for .8. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
+
 ## Acceptance
 - [ ] The test list (with ignored) is identical before and after; doctests still run.
 - [ ] The `tests` stage wall time is recorded against the baseline; JVM tests never exceed their group limit.

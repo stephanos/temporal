@@ -28,10 +28,14 @@ Compose the framework gate and Temporal delegation on .13's independently builda
 - `model/scripts/proto-go.sh` — core/kettle/temporal modes
 - `Makefile:1270-1315`
 
+## Owner validation cadence (2026-10-25)
+
+Keep changed framework/root entry-point wiring, both-workspace coverage accounting, modes, cache bypass and named failure controls now; unrelated unfiltered combined gates wait for .8. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
+
 ## Acceptance
 - [ ] The framework entry point runs every framework stage from `model/umpire`; the root `Makefile` contains no framework stage.
 - [ ] .13's standalone path/tool contract remains intact; every split mixed control and generated producer/consumer has one owner. All affected guests reproduce, are fresh and pass Host/native-Wasm parity.
-- [ ] Stage list and test list unchanged in sum; `make model-check` and TLC-required `make model-validate` pass.
+- [ ] Stage/test coverage is preserved in sum, and changed entry-point/mode/cache/failure controls pass. Unrelated unfiltered `model-check`/TLC-required `model-validate` execution is deferred to .8 under the owner cadence amendment.
 
 ## Done summary
 TBD

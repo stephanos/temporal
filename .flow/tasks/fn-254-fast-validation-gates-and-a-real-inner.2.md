@@ -28,10 +28,14 @@ Admission refinement: the TLC crate manifest may declare the task's test-only in
 - `model/umpire/backends/tlc/tests/controls.rs` — real TLC controls
 - `model/umpire/dev/testing/src/backend.rs:78-120` — fixture callers
 
+## Owner validation cadence (2026-10-25)
+
+Keep changed TLC controls plus exact independent-strategy comparison over every TLC fixture/mutant now. Record unrelated original workspace identities as deferred to .8; no whole-workspace pass is required or claimed here. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
+
 ## Acceptance
 - [ ] Healthy modules take at most two TLC launches per check (exploration plus one batch); launch counts recorded against the baseline.
 - [ ] Equivalence control passes over every fixture and mutant, including multi-violation and liveness cases.
-- [ ] `UMPIRE_BACKENDS=require` workspace tests pass; TLC wall time recorded against the baseline.
+- [ ] Changed TLC controls and exact independent-strategy agreement across every existing TLC fixture/mutant pass with required real TLC. Record commands, feature/source/binary identity and observed costs against historical references; unrelated workspace targets are explicitly deferred to .8, not claimed passing.
 
 ## Done summary
 TBD

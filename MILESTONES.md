@@ -30,6 +30,10 @@ Consolidation and build prerequisites for fn-246 are satisfied. Priority does no
 clear cross-spec blockers only after prerequisite closures are committed in `umpire`.
 Parallel work requires disjoint source and code-generation ownership.
 
+During fn-254, run focused checks for each change and its changed gates. Defer unrelated broad suites and full
+`model-check`/`model-validate` runs to fn-254.8. Exact TLC agreement, migration inventories, gate failure controls
+and the changed standalone gate keep their task-specific checks. Deferred checks remain final requirements.
+
 Current formats migrate together; goldens may be re-accepted after review. Go size targets remain
 5,000 generic-runtime and 11,000 total non-test Testpilot lines. Each spec closure requires its
 reviewed validation evidence and a committed validation-cost assessment.
