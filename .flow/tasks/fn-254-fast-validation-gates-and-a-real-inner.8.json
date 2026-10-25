@@ -10,7 +10,8 @@
     "fn-254-fast-validation-gates-and-a-real-inner.5",
     "fn-254-fast-validation-gates-and-a-real-inner.6",
     "fn-254-fast-validation-gates-and-a-real-inner.7",
-    "fn-254-fast-validation-gates-and-a-real-inner.11"
+    "fn-254-fast-validation-gates-and-a-real-inner.11",
+    "fn-254-fast-validation-gates-and-a-real-inner.12"
   ],
   "id": "fn-254-fast-validation-gates-and-a-real-inner.8",
   "priority": null,
@@ -18,5 +19,5 @@
   "spec_path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.8.md",
   "status": "todo",
   "title": "Final measurement, targets and docs",
-  "updated_at": "2026-10-25T18:10:07.407776Z"
+  "updated_at": "2026-10-25T18:25:18.401658Z"
 }

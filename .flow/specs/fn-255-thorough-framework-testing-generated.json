@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-255-thorough-framework-testing-generated",
+  "created_at": "2026-10-25T18:21:17.897398Z",
+  "depends_on_epics": [],
+  "id": "fn-255-thorough-framework-testing-generated",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-255-thorough-framework-testing-generated.md",
+  "status": "open",
+  "title": "Thorough framework testing: generated differential checks, fuzzing, mutants, Miri, coverage",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-25T18:25:37.288489Z"
+}

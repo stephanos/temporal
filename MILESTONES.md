@@ -17,12 +17,13 @@ Umpire uses the Rust workspace described in [model/README.md](model/README.md).
 Its guest runs as stock WASM in a pure Go host.
 The Scala tree under `model/archived/` is frozen reference material.
 
-Current order: **fn-254 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
+Current order: **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
 ranks a fast feedback loop among the most important properties. fn-246's in-flight tasks (.8, .11, .15) continue to their
 boundaries. fn-254.1 needs a quiet host; fn-254.7 waits for fn-246, and fn-254.10's workspace move lands at an
 integration boundary. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; fn-253.1, .7, .9
 and .10 edit the activity Model and wait for committed fn-246.15.
+fn-255.1, .3 and .4 (generator spike, fuzz targets, cargo-mutants) touch no gate files and may run as lanes before fn-254 closes.
 Consolidation and build prerequisites for fn-246 are satisfied. Priority does not create dependencies;
 clear cross-spec blockers only after prerequisite closures are committed in `umpire`.
 Parallel work requires disjoint source and code-generation ownership.
@@ -53,10 +54,38 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.5 | ⬜ todo | After .10: Apalache out of routine gates, overlapping stages, trybuild trim, dead `model-check-changed` removed (R5) |
 | fn-254.6 | ⬜ todo | After .2, .10: `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
 | fn-254.7 | ⬜ todo | After .4 and committed fn-246: one test binary per `temporal` crate (R4) |
-| fn-254.8 | ⬜ todo | After .2–.7, .11: final measurement against the baseline, targets, docs (R6, R1) |
+| fn-254.8 | ⬜ todo | After .2–.7, .11, .12: final measurement against the baseline, targets, docs (R6, R1) |
 | fn-254.9 | ⬜ todo | After .1: classify gate steps, scripts and caches as framework or Temporal; owner picks entry point and workspace (R7) |
 | fn-254.10 | ⬜ todo | After .9: framework gate, paths, pins and caches move into `model/umpire`; root Makefile keeps Temporal steps (R7) |
 | fn-254.11 | ⬜ todo | After .10: framework gate passes on `model/umpire` alone; planted Temporal coupling fails (R7) |
+| fn-254.12 | ⬜ todo | After .1, .10: committed per-stage budgets; hard work counts, wall time with tolerance and repeat, unbudgeted stages fail (R8) |
+
+### fn-255: Thorough framework testing
+
+Owner-approved techniques beyond today's fixtures and hand-seeded mutants:
+- generated Models whose compiled, interpreted and TLC results must agree;
+- cargo-fuzz on the guest-dispatch and TLC decoders;
+- cargo-mutants on the framework crates;
+- Miri on the WASM ABI's `unsafe` code;
+- cargo-llvm-cov to aim the generator and corpora.
+
+All of it lives in `model/umpire`, stays out of `model-quick`, and pins every finding as a fixture or corpus regression.
+Bounded so it cannot undo fn-254 (R7). Work counts are capped hard: Model sizes, cases, TLC launches, corpus size.
+Its share is at most 30 s in `model-check` and 120 s in `model-validate`. Mutants, coverage and long runs are
+scheduled-tier only. If the gates miss fn-254's targets, fn-255's counts are cut, never the targets.
+Not adopted: Kani, bolero, Loom, Shuttle (a candidate once checking goes parallel), deterministic simulation.
+
+[Spec](.flow/specs/fn-255-thorough-framework-testing-generated.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-255.1 | ⬜ todo | Spike: generate admitted Models at tree and/or source level, measured, seeded bug caught (R1) |
+| fn-255.2 | ⬜ todo | After .1: differential harness with shrinking and fixture pinning (R1) |
+| fn-255.3 | ⬜ todo | Pinned nightly; cargo-fuzz targets for guest dispatch and TLC decoders, seeded corpora (R2) |
+| fn-255.4 | ⬜ todo | cargo-mutants per core crate; triage every missed mutant (R3) |
+| fn-255.5 | ⬜ todo | After .3: Miri on ABI buffer logic; syscall exclusion recorded (R4) |
+| fn-255.6 | ⬜ todo | After .2, .3: coverage per crate; aim generator and corpora (R5) |
+| fn-255.7 | ⬜ todo | After .2–.6 and committed fn-254.6/.10/.12: tier wiring within budget, re-measured gates, docs (R6, R7) |
 
 ### fn-246: Realization as a checked refinement
 
