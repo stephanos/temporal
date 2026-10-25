@@ -46,8 +46,14 @@ From model/: `mise exec -- cargo test -p umpire-temporal-tests --test fixtures`;
 
 
 ## Done summary
-TBD
+Blocked:
+Owner Model-policy decision required for fn-246.13/R5.
 
+An existing selected World has maximum_attempts=3, schedule_to_start=Some(1), start_to_close=Some(1), schedule_to_close=None, heartbeat=None and asynchronous_cancel=false. The feature path Start -> Poll(1) -> Tick ends TimedOut(attempt1) with StartToClose fact. The pinned public standalone API makes this attempt timeout retryable. Exact R5 cannot preserve both API continuation and unchanged feature policy; substituting retryable Worker failure loses the expiry fact.
+
+Independent analysis: .flow/tmp/milestones-resume-20261024/fn24613-contract-analysis.txt. User decision requested asynchronously: recommended align nonpending start-to-close/heartbeat retries with pinned API and update independent contract/proofs; alternative explicitly revise R5. No answer/approval has been received. Do not infer approval from elapsed time or the preselected UI choice. No Model policy change is authorized yet.
+
+Transactional Reach and the separate earliest SDK transport proof continue independently. This task is not admitted for Model authoring until the policy conflict is resolved.
 ## Evidence
 - Commits:
 - Tests:

@@ -127,10 +127,10 @@ The obsolete whole-fn-243 dependency is removed; the whole-fn-247 dependency rem
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-246.1 | ⬜ todo | After committed prerequisites: transactional bounded Reach and Kettle proof point (R1) |
+| fn-246.1 | 🔄 in progress | After committed prerequisites: transactional bounded Reach and Kettle proof point (R1) |
 | fn-246.12 | ⬜ todo | After committed prerequisites: shared descriptor catalog, claims and exact probe accounting (R3, R4) |
-| fn-246.13 | ⬜ todo | After committed prerequisites: independent activity protocol Model and native/TLC invariants (R5) |
-| fn-246.14 | ⬜ todo | After committed prerequisites: current heartbeat key and actual raw/SDK continuation capability (R6) |
+| fn-246.13 | ⛔ blocked | Owner Model-policy decision: selected retry World conflicts with pinned API; exact R5 cannot preserve both |
+| fn-246.14 | 🔄 in progress | Earliest actual SDK transport proof; schema/executor continuation waits for coordinated integration (R6) |
 | fn-246.7 | ⬜ todo | After .1: typed capabilities, fillers and internal evidence adapters (R2) |
 | fn-246.8 | ⬜ todo | After .7: current default whole-prefix guest/Host contract (R1, R2) |
 | fn-246.11 | ⬜ todo | After .7: variant metadata and Temporal action/entity/read registry (R2, R3) |
