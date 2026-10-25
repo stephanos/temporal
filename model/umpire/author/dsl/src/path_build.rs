@@ -1,6 +1,6 @@
 //! Trait-directed construction preserving state and actor inference in path macros.
 
-use std::{cell::RefCell, rc::Rc};
+use std::cell::RefCell;
 
 use crate::{
     ActionDomain, Actor, ActorValue, Associated as Registered, Gap, IntoWaypoint, Machine, Path,
@@ -26,7 +26,7 @@ pub struct StateBuilder<S, A = (), O = ()> {
 }
 impl<S, A, O> StateBuilder<S, A, O> {
     fn new(first: Waypoint<S>) -> Self {
-        Self { parts: vec![Pattern::State(Rc::new(first))], gap: Gap::AtMost(0) }
+        Self { parts: vec![Pattern::state(first)], gap: Gap::AtMost(0) }
     }
     pub fn gap(mut self, gap: Gap) -> Self {
         self.gap = gap;
@@ -34,7 +34,7 @@ impl<S, A, O> StateBuilder<S, A, O> {
     }
     fn append(mut self, waypoint: Waypoint<S>) -> Self {
         self.parts.push(Pattern::Gap(self.gap, None));
-        self.parts.push(Pattern::State(Rc::new(waypoint)));
+        self.parts.push(Pattern::state(waypoint));
         self.gap = Gap::AtMost(0);
         self
     }

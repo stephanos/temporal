@@ -299,12 +299,14 @@ fn product<S, A, O>(
         .collect()
 }
 
-impl<S, A: 'static, O> Pattern<S, A, O> {
+impl<S, A, O> Pattern<S, A, O> {
     /// Wraps one state waypoint.
     pub fn state(waypoint: Waypoint<S>) -> Self {
         Self::State(Rc::new(waypoint))
     }
+}
 
+impl<S, A: 'static, O> Pattern<S, A, O> {
     /// Builds a typed action pattern.
     pub fn action(
         domain: ActionDomain<A>,
@@ -570,9 +572,9 @@ impl<S> Waypoint<S> {
     /// The path from this waypoint, over `gap`, to `next`.
     pub fn then<A, O>(self, gap: Gap, next: Self) -> Path<S, A, O> {
         Path::pattern(Pattern::Sequence(vec![
-            Pattern::State(Rc::new(self)),
+            Pattern::state(self),
             Pattern::Gap(gap, None),
-            Pattern::State(Rc::new(next)),
+            Pattern::state(next),
         ]))
     }
 
@@ -685,7 +687,7 @@ impl<S, A, O> Path<S, A, O> {
             pattern => vec![pattern],
         };
         parts.push(Pattern::Gap(gap, None));
-        parts.push(Pattern::State(Rc::new(waypoint)));
+        parts.push(Pattern::state(waypoint));
         Self { pattern: Pattern::Sequence(parts), permutation_limit }
     }
 
@@ -742,11 +744,6 @@ impl<S, A: 'static, O> Path<S, A, O> {
             return Err(PatternError::ExpansionTooLarge { nodes, limit });
         }
         Ok(self.pattern.expand())
-    }
-
-    /// Converts an owned path to its typed expression tree.
-    pub fn into_pattern(self) -> Pattern<S, A, O> {
-        self.pattern
     }
 }
 

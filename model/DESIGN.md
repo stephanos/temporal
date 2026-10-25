@@ -472,7 +472,8 @@ fn boils(&self) -> LeadsTo {
 
 `path!` builds a `Path<S>`, a pattern of two or more waypoints (`bool`s, closures over the
 state, or states) with a gap between each pair: `..` for any number of steps, `..=n` for at
-most `n`. The pattern says nothing about whether it holds on every path or on some path; the
+most `n`. Its action and outcome types come from where it is used (a claim, `find`,
+`Run::along`, an annotated binding), so a state-only path needs no conversion. The pattern says nothing about whether it holds on every path or on some path; the
 question asked with it does (see the reading rules in [README.md](README.md)). A claim takes
 exactly two waypoints: `#[machine]` refuses a literal `path!` chain at compile time and
 `Path::claim` panics on one built elsewhere when the claim is evaluated, which the checker

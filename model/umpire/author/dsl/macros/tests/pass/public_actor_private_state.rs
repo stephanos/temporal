@@ -2,7 +2,7 @@
 
 #[umpire_dsl::machine]
 mod private_model {
-    use umpire_dsl::{Action, State, path};
+    use umpire_dsl::{Action, Path, State, path};
 
     #[derive(State)]
     struct Model {
@@ -22,8 +22,8 @@ mod private_model {
     }
 
     pub fn check() {
-        let legacy = path![Model { done: false }, .., |state| state.done];
-        assert_eq!(legacy.len(), 2);
+        let states: Path<Model> = path![Model { done: false }, .., |state| state.done];
+        assert_eq!(states.alternative_count(), Ok(1));
         let actions = path![User::Toggle, |state| state.done];
         assert_eq!(actions.alternative_count(), Ok(1));
     }
