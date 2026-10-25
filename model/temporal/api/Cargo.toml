@@ -16,7 +16,6 @@ prost.workspace = true
 [build-dependencies]
 umpire-catalog-build.workspace = true
 prost-build.workspace = true
-umpire-temporal-annotate-syntax.workspace = true
 
 [dev-dependencies]
 proc-macro2.workspace = true

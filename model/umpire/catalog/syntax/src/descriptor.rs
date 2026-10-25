@@ -1,9 +1,8 @@
 //! Independent coverage checks against the upstream protobuf descriptor set.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 
-use prost::Message;
-use umpire_runtime::prost_types::{DescriptorProto, FileDescriptorSet};
+use crate::proto::{self, Graph, Kind};
 
 /// Descriptor obligations projected from the executable annotation declarations.
 #[derive(Clone, Debug, Default)]
@@ -67,54 +66,39 @@ pub enum Disposition {
 
 /// Refuse omitted, duplicate, stale or unexplained declarations.
 pub fn check(bytes: &[u8], coverage: &Coverage) -> Result<(), String> {
-    let descriptors = FileDescriptorSet::decode(bytes)
+    let graph = Graph::new(bytes, "")
         .map_err(|error| format!("invalid protobuf descriptor set: {error}"))?;
-    let mut messages = BTreeMap::new();
-    let mut enums = BTreeMap::new();
-    let mut services = BTreeMap::new();
-    for file in &descriptors.file {
-        let package = file.package.as_deref().unwrap_or_default();
-        collect_messages(package, &file.message_type, &mut messages, &mut enums);
-        for enumeration in &file.enum_type {
-            enums.insert(qualified(package, enumeration.name.as_deref()), enumeration);
-        }
-        for service in &file.service {
-            services.insert(qualified(package, service.name.as_deref()), service);
-        }
-    }
+    admit(&graph, coverage)
+}
+
+/// [`check`] against an already decoded descriptor graph.
+pub fn admit(graph: &Graph, coverage: &Coverage) -> Result<(), String> {
     let mut seen = BTreeSet::new();
     for message in &coverage.messages {
         let name = unique(&mut seen, "message", &message.name)?;
         let descriptor =
-            messages.get(name).ok_or_else(|| format!("stale message annotation: {name}"))?;
-        exact(
-            name,
-            &message.fields,
-            descriptor.field.iter().map(|field| field.name.as_deref().unwrap_or_default()),
-        )?;
+            graph.messages.get(name).ok_or_else(|| format!("stale message annotation: {name}"))?;
+        exact(name, &message.fields, descriptor.fields.iter().map(|field| field.name.as_str()))?;
         check_nested(message, descriptor, coverage)?;
     }
     seen.clear();
     for enumeration in &coverage.enums {
         let name = unique(&mut seen, "enum", &enumeration.name)?;
-        let descriptor = enums.get(name).ok_or_else(|| format!("stale enum annotation: {name}"))?;
+        let descriptor =
+            graph.enums.get(name).ok_or_else(|| format!("stale enum annotation: {name}"))?;
         exact(
             name,
             &enumeration.values,
-            descriptor.value.iter().map(|value| value.name.as_deref().unwrap_or_default()),
+            descriptor.values.iter().map(|value| value.name.as_str()),
         )?;
     }
     seen.clear();
     for service in &coverage.services {
         let name = unique(&mut seen, "service", &service.name)?;
         let descriptor =
-            services.get(name).ok_or_else(|| format!("stale service annotation: {name}"))?;
+            graph.services.get(name).ok_or_else(|| format!("stale service annotation: {name}"))?;
         let methods: Vec<_> = service.methods.iter().map(|method| method.name.clone()).collect();
-        exact(
-            name,
-            &methods,
-            descriptor.method.iter().map(|method| method.name.as_deref().unwrap_or_default()),
-        )?;
+        exact(name, &methods, descriptor.iter().map(|method| method.name.as_str()))?;
         for method in &service.methods {
             match &method.disposition {
                 Disposition::Action(action) if action.trim().is_empty() => {
@@ -132,7 +116,7 @@ pub fn check(bytes: &[u8], coverage: &Coverage) -> Result<(), String> {
 
 fn check_nested(
     message: &MessageCoverage,
-    descriptor: &DescriptorProto,
+    descriptor: &proto::Message,
     coverage: &Coverage,
 ) -> Result<(), String> {
     let mut opaque = BTreeSet::new();
@@ -144,51 +128,30 @@ fn check_nested(
             return Err(format!("stale opaque field annotation: {}.{field}", message.name));
         }
     }
-    for field in &descriptor.field {
-        let name = field.name.as_deref().unwrap_or_default();
+    for field in &descriptor.fields {
+        let name = field.name.as_str();
         if opaque.contains(name) {
             continue;
         }
-        if let Some(target) = &field.type_name {
-            let target = target.trim_start_matches('.');
-            let covered = coverage
-                .messages
+        let (Kind::Message { target } | Kind::Enum { target }) = &field.kind else {
+            continue;
+        };
+        let covered = coverage
+            .messages
+            .iter()
+            .any(|candidate| candidate.name.trim_start_matches('.') == target)
+            || coverage
+                .enums
                 .iter()
-                .any(|candidate| candidate.name.trim_start_matches('.') == target)
-                || coverage
-                    .enums
-                    .iter()
-                    .any(|candidate| candidate.name.trim_start_matches('.') == target);
-            if !covered {
-                return Err(format!(
-                    "uncovered nested protobuf type: {}.{name} -> {target}",
-                    message.name
-                ));
-            }
+                .any(|candidate| candidate.name.trim_start_matches('.') == target);
+        if !covered {
+            return Err(format!(
+                "uncovered nested protobuf type: {}.{name} -> {target}",
+                message.name
+            ));
         }
     }
     Ok(())
-}
-
-fn qualified(parent: &str, name: Option<&str>) -> String {
-    let name = name.unwrap_or_default();
-    if parent.is_empty() { name.to_owned() } else { format!("{parent}.{name}") }
-}
-
-fn collect_messages<'a>(
-    parent: &str,
-    descriptors: &'a [DescriptorProto],
-    messages: &mut BTreeMap<String, &'a DescriptorProto>,
-    enums: &mut BTreeMap<String, &'a umpire_runtime::prost_types::EnumDescriptorProto>,
-) {
-    for message in descriptors {
-        let name = qualified(parent, message.name.as_deref());
-        messages.insert(name.clone(), message);
-        for enumeration in &message.enum_type {
-            enums.insert(qualified(&name, enumeration.name.as_deref()), enumeration);
-        }
-        collect_messages(&name, &message.nested_type, messages, enums);
-    }
 }
 
 fn unique<'a>(seen: &mut BTreeSet<String>, kind: &str, name: &'a str) -> Result<&'a str, String> {

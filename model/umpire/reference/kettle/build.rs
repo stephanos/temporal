@@ -1,5 +1,5 @@
 //! Generate the reference service and enforce the shared catalog descriptor closure.
-use std::{env, fs, io, path::PathBuf};
+use std::{env, io, path::PathBuf};
 
 fn main() -> io::Result<()> {
     let out =
@@ -18,56 +18,15 @@ fn main() -> io::Result<()> {
             &["proto/kettle/v1/kettle.proto", "proto/kettle/v1/probe.proto"],
             &["proto", "../../protocol/proto"],
         )?;
-    let root = PathBuf::from(
-        env::var_os("CARGO_MANIFEST_DIR").ok_or_else(|| io::Error::other("manifest missing"))?,
-    );
-    let (coverage, classifications) = umpire_catalog_build::coverage::check(
-        &root,
-        &descriptor,
-        "umpire.reference.kettle.v1.KettleService",
-        "KettleServiceMethod",
-    )?;
-    let bytes = fs::read(&descriptor)?;
-    fs::write(
-        out.join("services.rs"),
-        umpire_catalog_build::services::generate(
-            &bytes,
-            &coverage,
-            &classifications,
-            &umpire_catalog_build::services::Config {
-                service: "umpire.reference.kettle.v1.KettleService",
-                rust_type_root: "crate::wire",
-                macro_type_root: "$crate::wire",
-                method_enum: "KettleServiceMethod",
-                method_info: "KettleServiceMethodInfo",
-                methods_const: "KETTLE_SERVICE_METHODS",
-                dispatch_macro: "dispatch_kettle_annotations",
-                bind_macro: "bind_kettle_action",
-            },
-        )
-        .map_err(io::Error::other)?,
-    )?;
-    fs::write(
-        out.join("wire_schema.rs"),
-        umpire_catalog_build::wire_schema::generate(
-            &bytes,
-            &umpire_catalog_build::wire_schema::Config {
-                service: "umpire.reference.kettle.v1.KettleService",
-                rust_type_root: "crate::wire",
-                method_enum: "KettleServiceMethod",
-                fields_function: "kettle_request_fields",
-                mutate_function: "mutate_kettle_request",
-                request_roots: &[
-                    "Fill",
-                    "Heat",
-                    "Pour",
-                    "Describe",
-                    "PollHeating",
-                    "RespondHeating",
-                ],
-            },
-        )
-        .map_err(io::Error::other)?,
-    )?;
-    Ok(())
+    umpire_catalog_build::System {
+        service: "umpire.reference.kettle.v1.KettleService",
+        prefix: "kettle",
+        rust_root: "crate::wire",
+        request_roots: &["Fill", "Heat", "Pour", "Describe", "PollHeating", "RespondHeating"],
+        catalog_root: PathBuf::from(
+            env::var_os("CARGO_MANIFEST_DIR")
+                .ok_or_else(|| io::Error::other("manifest missing"))?,
+        ),
+    }
+    .generate(&descriptor, &out)
 }

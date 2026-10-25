@@ -71,8 +71,10 @@ impl Schema {
             coverage.messages.extend(projected.messages);
             coverage.enums.extend(projected.enums);
         }
-        crate::descriptor::check(bytes, &coverage)?;
-        let mut result = Self { graph: Graph::new(bytes, rust_root)?, ..Self::default() };
+        let graph = Graph::new(bytes, rust_root)
+            .map_err(|error| format!("invalid protobuf descriptor set: {error}"))?;
+        crate::descriptor::admit(&graph, &coverage)?;
+        let mut result = Self { graph, ..Self::default() };
         for catalog in catalogs {
             for message in &catalog.messages {
                 let name = clean(&message.proto.value());

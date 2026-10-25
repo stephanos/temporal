@@ -7,8 +7,25 @@ use umpire_temporal_api::{
     WorkflowServiceMethod, mutate_workflow_request, workflow_request_fields,
 };
 
-#[path = "../wire_schema.rs"]
-mod generator;
+#[path = "../system.rs"]
+#[allow(dead_code, reason = "tests read only the system identity")]
+mod system;
+
+fn workflow() -> umpire_catalog_build::System<'static> {
+    system::system(&std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.."))
+}
+
+mod generator {
+    use umpire_temporal_annotate_syntax::proto::Graph;
+
+    pub(crate) fn generate(bytes: &[u8]) -> Result<String, String> {
+        let system = super::workflow();
+        umpire_catalog_build::wire_schema::generate(
+            &Graph::new(bytes, &system.local_root())?,
+            &system,
+        )
+    }
+}
 
 #[test]
 fn ignored_fields_and_descriptor_shapes_remain_mutable() -> Result<(), Box<dyn std::error::Error>> {

@@ -8,16 +8,19 @@ use umpire_temporal_annotate_syntax::{realization::Schema, realize::expand_in_so
 #[cfg(test)]
 use umpire_temporal_annotate_syntax::realize::expand;
 
-/// Generated Temporal API packages, the root of every admitted protobuf Rust type.
-const RUST_ROOT: &str = "::umpire_temporal_api";
+#[path = "../../../api/system.rs"]
+#[allow(dead_code, reason = "descriptor linking runs in the build script")]
+mod system;
+
 /// The realization crate providing `Context`, `Field` and `support::Observed`.
 const RUNTIME_ROOT: &str = "::umpire_temporal";
 
 fn schema() -> Result<(Schema, Vec<std::path::PathBuf>), String> {
+    let system = system::system(&Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../.."));
     Schema::load(
-        &Path::new(env!("CARGO_MANIFEST_DIR")).join("../.."),
+        &system.catalog_root,
         Path::new(concat!(env!("OUT_DIR"), "/realization-api.binpb")),
-        RUST_ROOT,
+        system.rust_root,
     )
 }
 

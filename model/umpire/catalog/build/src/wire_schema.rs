@@ -1,5 +1,6 @@
 //! Generate raw descriptor inventories and typed protobuf mutation setters.
 
+use crate::System;
 use heck::ToSnakeCase;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -8,21 +9,6 @@ use umpire_catalog_syntax::{
     proto::{self, Graph, Kind, Scalar},
 };
 
-/// Request generation identities and explicitly admitted roots.
-pub struct Config<'a> {
-    /// Fully qualified protobuf service name.
-    pub service: &'a str,
-    /// Rust module containing generated packages; empty for the current module.
-    pub rust_type_root: &'a str,
-    /// Generated method enum name.
-    pub method_enum: &'a str,
-    /// Public request field inventory function name.
-    pub fields_function: &'a str,
-    /// Public request mutation function name.
-    pub mutate_function: &'a str,
-    /// Source method names whose request closures are admitted for mutation.
-    pub request_roots: &'a [&'a str],
-}
 const MAX_DEPTH: usize = 4;
 
 #[derive(Clone)]
@@ -41,25 +27,23 @@ struct Field {
     steps: Vec<Step>,
 }
 
-/// Generate descriptor field inventories and typed request mutation setters.
-pub fn generate(bytes: &[u8], config: &Config<'_>) -> Result<String, String> {
-    let graph = Graph::new(bytes, config.rust_type_root)?;
-    let service = graph.service(config.service)?;
+/// Generate descriptor field inventories and typed request mutation setters for
+/// `system.request_roots`; `graph` names generated types under [`System::local_root`].
+pub fn generate(graph: &Graph, system: &System<'_>) -> Result<String, String> {
+    let service = graph.service(system.service)?;
     let method_enum: syn::Ident =
-        syn::parse_str(config.method_enum).map_err(|error| error.to_string())?;
-    let fields_function: syn::Ident =
-        syn::parse_str(config.fields_function).map_err(|error| error.to_string())?;
-    let mutate_function: syn::Ident =
-        syn::parse_str(config.mutate_function).map_err(|error| error.to_string())?;
+        syn::parse_str(&system.method_enum()).map_err(|error| error.to_string())?;
+    let fields_function = format_ident!("{}_request_fields", system.prefix);
+    let mutate_function = format_ident!("mutate_{}_request", system.prefix);
     let mut roots = Vec::new();
-    for method in config.request_roots {
-        let proto = service
-            .get(*method)
-            .ok_or_else(|| format!("missing request descriptor: {}.{method}", config.service))?
+    for method in system.request_roots {
+        let proto = graph
+            .method(system.service, method)
+            .map_err(|_| format!("missing request descriptor: {}.{method}", system.service))?
             .input
             .clone();
         let mut fields = Vec::new();
-        walk(&graph, &proto, &proto, &[], &[], &mut fields)?;
+        walk(graph, &proto, &proto, &[], &[], &mut fields)?;
         roots.push((*method, proto, fields));
     }
     let mut inventories = Vec::new();
@@ -91,7 +75,7 @@ pub fn generate(bytes: &[u8], config: &Config<'_>) -> Result<String, String> {
             .filter(|field| field.refusal.is_none())
             .map(|field| {
                 let path = &field.path;
-                let setter = setter(&graph, field)?;
+                let setter = setter(graph, field)?;
                 Ok(quote! { #path => { let node0 = message; #setter Ok(()) } })
             })
             .collect::<Result<Vec<_>, String>>()?;
@@ -199,11 +183,13 @@ fn kind(graph: &Graph, field: &proto::Field, element: bool) -> Result<TokenStrea
         Kind::Scalar(Scalar::Signed) => quote! { WireKind::Signed },
         Kind::Message { .. } => quote! { WireKind::Message },
         Kind::Enum { target } => {
-            let values = &graph
+            let values = graph
                 .enums
                 .get(target)
                 .ok_or_else(|| format!("missing enum descriptor: {target}"))?
-                .values;
+                .values
+                .iter()
+                .map(|value| value.number);
             quote! { WireKind::Enum { defined: vec![#(#values),*] } }
         }
     })

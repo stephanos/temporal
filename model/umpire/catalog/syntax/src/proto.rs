@@ -17,8 +17,8 @@ pub struct Graph {
     pub messages: BTreeMap<String, Message>,
     /// Enums keyed by protobuf identity, nested enums included.
     pub enums: BTreeMap<String, Enum>,
-    /// Methods keyed by fully qualified service, then method name.
-    pub services: BTreeMap<String, BTreeMap<String, Method>>,
+    /// Methods in descriptor source order, keyed by fully qualified service.
+    pub services: BTreeMap<String, Vec<Method>>,
 }
 
 /// A protobuf message and its generated Rust representation.
@@ -39,8 +39,17 @@ pub struct Message {
 pub struct Enum {
     /// Fully qualified generated Rust type.
     pub rust_type: String,
-    /// Defined numbers in descriptor order.
-    pub values: Vec<i32>,
+    /// Defined values in descriptor order.
+    pub values: Vec<EnumValue>,
+}
+
+/// One defined protobuf enum value.
+#[derive(Clone, Debug)]
+pub struct EnumValue {
+    /// Original protobuf value name.
+    pub name: String,
+    /// Wire number.
+    pub number: i32,
 }
 
 /// A generated protobuf field, retaining actual decoding presence.
@@ -111,6 +120,8 @@ pub struct Oneof {
 /// An RPC's protobuf request and response edges.
 #[derive(Clone, Debug)]
 pub struct Method {
+    /// Original protobuf method name.
+    pub name: String,
     /// Fully qualified input message identity.
     pub input: String,
     /// Fully qualified output message identity.
@@ -136,22 +147,21 @@ impl Graph {
             graph.collect(package, &module, &file.message_type)?;
             graph.collect_enums(package, &module, &file.enum_type)?;
             for service in &file.service {
-                let methods = graph
-                    .services
-                    .entry(qualified(package, service.name.as_deref().ok_or("unnamed service")?))
-                    .or_default();
+                let service_name =
+                    qualified(package, service.name.as_deref().ok_or("unnamed service")?);
+                let methods = graph.services.entry(service_name.clone()).or_default();
                 for method in &service.method {
-                    methods.insert(
-                        method.name.clone().ok_or("unnamed method")?,
-                        Method {
-                            input: clean(
-                                method.input_type.as_deref().ok_or("missing method input")?,
-                            ),
-                            output: clean(
-                                method.output_type.as_deref().ok_or("missing method output")?,
-                            ),
-                        },
-                    );
+                    let name = method.name.clone().ok_or("unnamed method")?;
+                    let edge = |edge: &Option<String>, side: &str| {
+                        edge.as_deref()
+                            .map(clean)
+                            .ok_or_else(|| format!("missing method {side}: {service_name}.{name}"))
+                    };
+                    methods.push(Method {
+                        input: edge(&method.input_type, "input")?,
+                        output: edge(&method.output_type, "output")?,
+                        name,
+                    });
                 }
             }
         }
@@ -172,10 +182,11 @@ impl Graph {
         self.messages.get(&clean(name)).ok_or_else(|| format!("missing descriptor message: {name}"))
     }
 
-    /// A service's methods, keyed by method name.
-    pub fn service(&self, service: &str) -> Result<&BTreeMap<String, Method>, String> {
+    /// A service's methods in descriptor source order.
+    pub fn service(&self, service: &str) -> Result<&[Method], String> {
         self.services
             .get(&clean(service))
+            .map(Vec::as_slice)
             .ok_or_else(|| format!("missing service descriptor: {service}"))
     }
 
@@ -199,7 +210,7 @@ impl Graph {
     pub fn method(&self, service: &str, method: &str) -> Result<&Method, String> {
         self.services
             .get(&clean(service))
-            .and_then(|methods| methods.get(method))
+            .and_then(|methods| methods.iter().find(|edge| edge.name == method))
             .ok_or_else(|| format!("unknown RPC: {service}::{method}"))
     }
 
@@ -219,8 +230,8 @@ impl Graph {
             .flat_map(|(service, methods)| {
                 methods
                     .iter()
-                    .filter(|(_, edge)| matches(edge))
-                    .map(move |(method, _)| format!("/{service}/{method}"))
+                    .filter(|edge| matches(edge))
+                    .map(move |edge| format!("/{service}/{}", edge.name))
             })
             .collect()
     }
@@ -243,7 +254,7 @@ impl Graph {
             for field in &descriptor.field {
                 let field_name = field.name.clone().ok_or("unnamed field")?;
                 let kind = match Type::try_from(field.r#type.unwrap_or_default())
-                    .map_err(|error| error.to_string())?
+                    .map_err(|error| format!("invalid field type: {proto}.{field_name}: {error}"))?
                 {
                     Type::String => Kind::Scalar(Scalar::String),
                     Type::Bytes => Kind::Scalar(Scalar::Bytes),
@@ -327,7 +338,16 @@ impl Graph {
                 qualified(parent, name),
                 Enum {
                     rust_type: format!("{module}::{}", naming::upper_camel(name)),
-                    values: enumeration.value.iter().filter_map(|value| value.number).collect(),
+                    values: enumeration
+                        .value
+                        .iter()
+                        .map(|value| {
+                            Ok(EnumValue {
+                                name: value.name.clone().ok_or("unnamed enum value")?,
+                                number: value.number.unwrap_or_default(),
+                            })
+                        })
+                        .collect::<Result<_, String>>()?,
                 },
             );
         }
@@ -454,8 +474,8 @@ mod tests {
         assert_eq!(graph.message("self.v1.Self_")?.fields[0].member, "self_");
         let state = graph.enums.get("self.v1.Self_.state").ok_or("missing nested enum")?;
         assert_eq!(
-            (state.rust_type.as_str(), state.values.as_slice()),
-            ("::api::self_::v1::self_::State", &[3][..])
+            (state.rust_type.as_str(), state.values[0].name.as_str(), state.values[0].number),
+            ("::api::self_::v1::self_::State", "STATE_READY", 3)
         );
         let local = Graph::new(&bytes(), "")?;
         assert_eq!(

@@ -6,6 +6,7 @@ use std::{
 use umpire_catalog_syntax::{
     catalogs,
     descriptor::{self, Coverage},
+    proto::Graph,
     services::{Classification, Declarations, declarations},
 };
 
@@ -47,15 +48,15 @@ fn collect(root: &Path, inputs: &mut Inputs) -> io::Result<()> {
     Ok(())
 }
 
-/// Check explicitly supplied descriptors against all declarations in a catalog root.
+/// Check a descriptor graph against all declarations in a catalog root, emitting the
+/// catalog sources and directories as Cargo inputs.
 #[allow(clippy::print_stdout, reason = "Cargo consumes build input directives on stdout")]
 pub fn check(
     root: &Path,
-    descriptor_path: &Path,
+    graph: &Graph,
     service: &str,
     method_enum: &str,
 ) -> io::Result<(Coverage, Vec<Classification>)> {
-    println!("cargo:rerun-if-changed={}", descriptor_path.display());
     let mut coverage = Coverage::default();
     let mut services = Declarations::default();
     let inputs = inputs(root)?;
@@ -78,6 +79,6 @@ pub fn check(
     coverage.services.extend(
         service_classifications.iter().map(|classification| classification.coverage.clone()),
     );
-    descriptor::check(&fs::read(descriptor_path)?, &coverage).map_err(io::Error::other)?;
+    descriptor::admit(graph, &coverage).map_err(io::Error::other)?;
     Ok((coverage, service_classifications))
 }
