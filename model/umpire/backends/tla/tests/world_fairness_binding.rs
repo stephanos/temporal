@@ -1,7 +1,7 @@
 //! World selection precedes exact-action membership and emitted name reservation.
 use std::path::Path;
-use umpire_dsl::{ActionValues, Machine, Values, machine};
-use umpire_tla::{Binding, Concrete, Embedded, Lift, Literal, Tla};
+use umpire_dsl::{__lifted::BindingOf, ActionValues, Machine, machine};
+use umpire_tla::{Binding, Embedded, Lift, Literal, Tla};
 
 #[machine]
 mod selected {
@@ -66,30 +66,9 @@ fn source() -> &'static str {
     SOURCE.split("const SOURCE:").next().unwrap_or_default()
 }
 
-fn literal(value: &umpire_dsl::Value) -> Literal {
-    match value {
-        umpire_dsl::Value::Bool(value) => Literal::Bool(*value),
-        umpire_dsl::Value::Int(value) => Literal::Int(*value),
-        _ => panic!("fixture exports only primitive values"),
-    }
-}
-fn fields(values: Vec<(&'static str, umpire_dsl::Value)>) -> Vec<(String, Literal)> {
-    values.into_iter().map(|(name, value)| (name.into(), literal(&value))).collect()
-}
 fn binding(maximum: u8) -> Binding {
     let world = selected::World::new(maximum, true);
-    Binding {
-        world: fields(world.values()),
-        starts: world.starts().into_iter().map(|state| fields(state.values())).collect(),
-        actions: world
-            .actions()
-            .into_iter()
-            .map(|action| {
-                let (action, values) = ActionValues::<selected::World>::action_value(&action);
-                Concrete { action: action.into(), fields: fields(values) }
-            })
-            .collect(),
-    }
+    Binding::of(&world, &world.starts(), &world.actions())
 }
 fn parsed(source: &str) -> Result<umpire_front::Lifted, Box<dyn std::error::Error>> {
     umpire_front::read(&syn::parse_file(source)?, &[])

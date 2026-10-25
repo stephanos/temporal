@@ -5,7 +5,7 @@ use std::{
     fmt::Write,
 };
 use umpire_dsl::Machine;
-use umpire_tla::{Concrete, Literal, Module, Type};
+use umpire_tla::{Concrete, Module, Type};
 use umpire_tlc::{State, Value};
 
 fn debug_value(ty: &Type, value: &Value) -> Result<String, Box<dyn std::error::Error>> {
@@ -256,7 +256,7 @@ fn typed_action<A>(
             .fields
             .iter()
             .zip(&declared.fields)
-            .all(|((name, value), field)| *name == field.name && admits(&field.ty, value))
+            .all(|((name, value), field)| *name == field.name && value.admit(&field.ty).is_ok())
     {
         return Err(
             format!("TLC input ordinal {ordinal} does not match its declared fields").into()
@@ -271,21 +271,6 @@ fn typed_action<A>(
         return Err(format!("native catalog ordinal {ordinal} differs from the TLC input").into());
     }
     Ok(action)
-}
-
-fn admits(ty: &Type, value: &Literal) -> bool {
-    match (ty, value) {
-        (Type::Bool, Literal::Bool(_)) => true,
-        (Type::Int { min, max }, Literal::Int(value)) => (*min..=*max).contains(value),
-        (Type::Enum { variants, .. }, Literal::Enum(value)) => variants.contains(value),
-        (Type::Bounded(bounded), Literal::Bounded { name, raw }) => {
-            *name == bounded.name && bounded.contains(*raw)
-        }
-        (Type::Optional(bounded), Literal::Optional(value)) if bounded.optional_valid() => {
-            value.as_ref().is_none_or(|value| admits(&Type::Bounded(bounded.clone()), value))
-        }
-        _ => false,
-    }
 }
 
 const INPUT: &str = "__umpire_input";

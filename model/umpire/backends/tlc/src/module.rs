@@ -104,29 +104,10 @@ fn variant(name: &str) -> Result<(), Refusal> {
 }
 
 fn binding_value(ty: &LiftType, literal: &Literal) -> Result<Value, Refusal> {
-    let value = match (ty, literal) {
-        (LiftType::Bool, Literal::Bool(value)) => Value::Bool(*value),
-        (LiftType::Int { .. }, Literal::Int(value)) => Value::Int(*value),
-        (LiftType::Enum { .. }, Literal::Enum(value)) => Value::Text(value.clone()),
-        (LiftType::Bounded(bound), Literal::Bounded { name, raw }) if name == &bound.name => {
-            Value::Int(*raw)
-        }
-        (LiftType::Optional(_), Literal::Optional(None)) => Value::Int(0),
-        (LiftType::Optional(bound), Literal::Optional(Some(payload))) => {
-            let Literal::Bounded { name, raw } = payload.as_ref() else {
-                return Err(Refusal("invalid selected nominal payload".into()));
-            };
-            if name != &bound.name {
-                return Err(Refusal("selected nominal identity differs".into()));
-            }
-            Value::Int(
-                bound
-                    .encode(*raw)
-                    .ok_or_else(|| Refusal("invalid selected optional payload".into()))?,
-            )
-        }
-        _ => return Err(Refusal("selected World literal differs from its declared type".into())),
-    };
+    let admitted = literal.admit(ty).map_err(|error| {
+        Refusal(format!("selected World literal differs from its declared type: {error}"))
+    })?;
+    let value = Value::admitted(&admitted, ty);
     if !backend_type(ty, 0)?.accepts(&value)
         || matches!(&value, Value::Int(raw) if !(0..=i128::from(i32::MAX)).contains(raw))
     {

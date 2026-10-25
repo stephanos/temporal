@@ -1,5 +1,6 @@
 use super::*;
 use crate::Files;
+use umpire_tla::Literal;
 
 fn bounded(name: &str, field: Option<&str>, low: i128) -> umpire_dsl::__lifted::Bounded {
     umpire_dsl::__lifted::Bounded {
@@ -44,26 +45,6 @@ fn nominal_debug_preserves_authored_shapes_and_exact_optional_codes() -> crate::
     let field = module.metadata.fields[0].name.clone();
     assert!(state_text(&module, &State::from([(field, Value::Int(1))])).is_err());
     Ok(())
-}
-
-#[test]
-fn nominal_action_literals_require_exact_typed_identity() {
-    let ticks = bounded("Ticks", None, 1);
-    let ty = Type::Optional(ticks.clone());
-    assert!(admits(&ty, &Literal::Optional(None)));
-    assert!(admits(
-        &ty,
-        &Literal::Optional(Some(Box::new(Literal::Bounded { name: "Ticks".into(), raw: 1 })))
-    ));
-    for value in [
-        Literal::Int(2),
-        Literal::Optional(Some(Box::new(Literal::Int(1)))),
-        Literal::Optional(Some(Box::new(Literal::Bounded { name: "Remaining".into(), raw: 1 }))),
-        Literal::Optional(Some(Box::new(Literal::Bounded { name: "Ticks".into(), raw: 0 }))),
-        Literal::Optional(Some(Box::new(Literal::Optional(None)))),
-    ] {
-        assert!(!admits(&ty, &value), "{value:?}");
-    }
 }
 
 struct Invalid;

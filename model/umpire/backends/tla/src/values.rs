@@ -56,6 +56,34 @@ pub enum Value {
     Record(State),
 }
 
+impl Value {
+    /// An admitted value of `ty` on the wire: enum variants by their qualified name, unit and
+    /// tuples as sequences.
+    #[must_use]
+    pub fn admitted(value: &umpire_front::value::Value, ty: &crate::Type) -> Self {
+        use crate::Type as Source;
+        use umpire_front::value::Value as Admitted;
+        match (value, ty) {
+            (Admitted::Bool(value), _) => Self::Bool(*value),
+            (Admitted::Int(value), _) => Self::Int(*value),
+            (Admitted::Text(value), _) => Self::Text(value.clone()),
+            (Admitted::Enum(index), Source::Enum { variants, .. }) if *index < variants.len() => {
+                Self::Text(variants[*index].clone())
+            }
+            (Admitted::Unit, _) => Self::Seq(Vec::new()),
+            (Admitted::Tuple(values), Source::Tuple(types)) if values.len() == types.len() => {
+                Self::Seq(
+                    types.iter().zip(values).map(|(ty, value)| Self::admitted(value, ty)).collect(),
+                )
+            }
+            (Admitted::Seq(values), Source::Seq(inner)) => {
+                Self::Seq(values.iter().map(|value| Self::admitted(value, inner)).collect())
+            }
+            _ => panic!("{value:?} is not a value of {ty:?}"),
+        }
+    }
+}
+
 /// The exact model and private observer fields. Prefix-based projection is forbidden.
 #[derive(Clone, Debug, Default)]
 pub struct Schema {

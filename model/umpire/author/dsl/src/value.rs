@@ -22,6 +22,20 @@ pub enum Value {
     Sequence(Vec<Value>),
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+impl From<Value> for umpire_ir::Literal {
+    fn from(value: Value) -> Self {
+        match value {
+            Value::Bool(value) => Self::Bool(value),
+            Value::Int(value) => Self::Int(value),
+            Value::Bounded { name, raw } => Self::Bounded { name: name.into(), raw },
+            Value::Optional(value) => Self::Optional(value.map(|value| Box::new((*value).into()))),
+            Value::Enum(value) => Self::Enum(value.into()),
+            Value::Sequence(values) => Self::Sequence(values.into_iter().map(Into::into).collect()),
+        }
+    }
+}
+
 /// Converts one field value into a [`Value`].
 #[diagnostic::on_unimplemented(
     message = "`{Self}` has no exported Model value",
@@ -118,5 +132,35 @@ pub struct StartFailure {
 impl<T: IntoValue> IntoValue for Option<T> {
     fn value(&self) -> Value {
         Value::Optional(self.as_ref().map(|value| Box::new(value.value())))
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use super::Value;
+    use umpire_ir::Literal;
+
+    #[test]
+    fn nominal_exports_preserve_identity_and_optional_structure() {
+        for (value, expected) in [
+            (
+                Value::Bounded { name: "Ticks", raw: 1 },
+                Literal::Bounded { name: "Ticks".into(), raw: 1 },
+            ),
+            (Value::Optional(None), Literal::Optional(None)),
+            (
+                Value::Optional(Some(Box::new(Value::Bounded { name: "Remaining", raw: 0 }))),
+                Literal::Optional(Some(Box::new(Literal::Bounded {
+                    name: "Remaining".into(),
+                    raw: 0,
+                }))),
+            ),
+            (
+                Value::Sequence(vec![Value::Enum("Phase::Open"), Value::Int(-1)]),
+                Literal::Sequence(vec![Literal::Enum("Phase::Open".into()), Literal::Int(-1)]),
+            ),
+        ] {
+            assert_eq!(Literal::from(value), expected);
+        }
     }
 }

@@ -16,7 +16,7 @@ mod names;
 mod safety;
 mod snowcat;
 use umpire_front::Source;
-pub use umpire_front::{CATALOG_LIMIT, Embedded, Type};
+pub use umpire_front::{Binding, CATALOG_LIMIT, Concrete, Embedded, Literal, Mismatch, Type};
 
 /// Admit one plain TLA+ identifier, the only name form either checker is handed.
 pub fn identifier(name: &str) -> Result<(), Refusal> {
@@ -41,6 +41,8 @@ pub struct Lifted {
     complete_starts: Option<Vec<Vec<umpire_front::expr::Expr>>>,
     /// The bound concrete catalog, in native catalog order.
     catalog: Option<Vec<bind::Entry>>,
+    /// The admitted binding: World fields and starts in schema order, duplicate starts removed.
+    binding: Option<Binding>,
     /// The file the negative claims are written in, and where each claim's name is.
     claims: (String, Vec<umpire_front::Diagnostic>),
 }
@@ -103,45 +105,6 @@ pub struct Field {
     pub name: String,
     /// Declared type.
     pub ty: Type,
-}
-/// A literal projected from compiler-checked authored fields.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Literal {
-    /// Boolean value.
-    Bool(bool),
-    /// Integer checked against the independently admitted field type.
-    Int(i128),
-    /// Nominal integer with its authored wrapper identity.
-    Bounded {
-        /// Authored wrapper name.
-        name: String,
-        /// Raw backing integer.
-        raw: i128,
-    },
-    /// Absent or present nominal payload.
-    Optional(Option<Box<Literal>>),
-    /// Qualified variant of an independently admitted fieldless enum.
-    Enum(String),
-    /// Ordered elements of an admitted state sequence.
-    Sequence(Vec<Literal>),
-}
-/// One concrete catalog action: its qualified variant and ordered named payload values.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Concrete {
-    /// Qualified authored variant name.
-    pub action: String,
-    /// Payload fields in declaration order; tuple fields are named by position.
-    pub fields: Vec<(String, Literal)>,
-}
-/// One selected World and its complete authored start states.
-#[derive(Clone, Debug)]
-pub struct Binding {
-    /// Named World fields.
-    pub world: Vec<(String, Literal)>,
-    /// Complete named state fields for each authored start, in enumeration order.
-    pub starts: Vec<Vec<(String, Literal)>>,
-    /// The checked native catalog of the same World, in catalog order.
-    pub actions: Vec<Concrete>,
 }
 /// An authored action.
 #[derive(Clone, Debug)]
@@ -303,6 +266,7 @@ impl Lift {
             world_values: None,
             complete_starts: None,
             catalog: None,
+            binding: None,
             claims,
         };
         names::validate(file, source, &lifted)?;

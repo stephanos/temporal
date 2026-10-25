@@ -5,6 +5,9 @@ use umpire_front::{
     tree::ActionRef,
 };
 
+/// Named values in schema order, as typed constants and as the literals they were admitted from.
+type Typed = (Vec<Expr>, Vec<(String, Literal)>);
+
 impl Lifted {
     /// A refusal at a front-end location in this Model's file.
     fn refuse(&self, location: &FrontDiagnostic, text: impl Into<String>) -> Diagnostic {
@@ -21,7 +24,7 @@ impl Lifted {
         if !self.requires_binding() {
             return Err(self.refuse(&self.location, "this source has no declared World to bind"));
         }
-        let world = typed(
+        let (world, world_literals) = typed(
             &self.file,
             self.world_fields.iter().map(|field| (&field.name, &field.ty, &field.location)),
             &binding.world,
@@ -58,8 +61,9 @@ impl Lifted {
                 .map_err(|error| self.refuse(&error, error.message.clone()))?;
         }
         let mut starts = Vec::new();
+        let mut start_literals = Vec::new();
         for row in &binding.starts {
-            let state = typed(
+            let (state, literals) = typed(
                 &self.file,
                 self.fields.iter().map(|field| (&field.name, &field.ty, &field.location)),
                 row,
@@ -67,18 +71,22 @@ impl Lifted {
             )?;
             if !starts.contains(&state) {
                 starts.push(state);
+                start_literals.push(literals);
             }
         }
-        let catalog = bound.bind_catalog(binding)?;
+        let (catalog, actions) = bound.bind_catalog(binding)?;
         bound.world_values = Some(world);
         bound.complete_starts = Some(starts);
         bound.catalog = Some(catalog);
+        bound.binding = Some(Binding { world: world_literals, starts: start_literals, actions });
         Ok(bound)
     }
 
-    /// The native catalog as typed entries; positional duplicates share their first ordinal.
-    fn bind_catalog(&self, binding: &Binding) -> Result<Vec<Entry>, Diagnostic> {
+    /// The native catalog as typed entries, whose positional duplicates share their first
+    /// ordinal, and as admitted concrete identities in catalog order.
+    fn bind_catalog(&self, binding: &Binding) -> Result<(Vec<Entry>, Vec<Concrete>), Diagnostic> {
         let mut catalog: Vec<Entry> = Vec::new();
+        let mut actions = Vec::new();
         for native in &binding.actions {
             let Some(index) = self.actions.iter().position(|action| action.name == native.action)
             else {
@@ -87,7 +95,7 @@ impl Lifted {
                     format!("native catalog action `{}` is not declared", native.action),
                 ));
             };
-            let values = typed(
+            let (values, fields) = typed(
                 &self.file,
                 self.actions[index]
                     .fields
@@ -101,9 +109,10 @@ impl Lifted {
                 .find(|entry| entry.action == index && entry.values == values)
                 .map_or(catalog.len(), |entry| entry.ordinal);
             catalog.push(Entry { action: index, values, ordinal });
+            actions.push(Concrete { action: native.action.clone(), fields });
         }
         self.scoped_catalog(&catalog)?;
-        Ok(catalog)
+        Ok((catalog, actions))
     }
 
     /// As native progress admission: every listed action is in the selected catalog, and an
@@ -153,50 +162,7 @@ impl Lifted {
 
     /// The bound catalog as typed concrete identities.
     pub(crate) fn concrete(&self) -> Vec<Concrete> {
-        self.catalog
-            .iter()
-            .flatten()
-            .map(|entry| {
-                let action = &self.actions[entry.action];
-                Concrete {
-                    action: action.name.clone(),
-                    fields: action
-                        .fields
-                        .iter()
-                        .zip(&entry.values)
-                        .map(|(field, value)| (field.name.clone(), to_literal(value)))
-                        .collect(),
-                }
-            })
-            .collect()
-    }
-}
-
-pub(crate) fn to_literal(value: &Expr) -> Literal {
-    if let ExprKind::Int(raw) = &value.kind {
-        match &value.ty {
-            Type::Bounded(bound) => {
-                return Literal::Bounded { name: bound.name.clone(), raw: *raw };
-            }
-            Type::Optional(bound) => {
-                return match bound.decode(*raw) {
-                    Some(value) => {
-                        Literal::Optional(value.map(|raw| {
-                            Box::new(Literal::Bounded { name: bound.name.clone(), raw })
-                        }))
-                    }
-                    None => Literal::Int(*raw),
-                };
-            }
-            _ => {}
-        }
-    }
-    match &value.kind {
-        ExprKind::Bool(value) => Literal::Bool(*value),
-        ExprKind::Int(value) => Literal::Int(*value),
-        ExprKind::Sequence(values) => Literal::Sequence(values.iter().map(to_literal).collect()),
-        ExprKind::Enum(value) | ExprKind::Text(value) => Literal::Enum(value.clone()),
-        _ => Literal::Sequence(Vec::new()),
+        self.binding.iter().flat_map(|binding| binding.actions.clone()).collect()
     }
 }
 
@@ -210,7 +176,7 @@ fn typed<'a>(
     schema: impl Iterator<Item = (&'a String, &'a Type, &'a FrontDiagnostic)>,
     values: &[(String, Literal)],
     kind: &str,
-) -> Result<Vec<Expr>, Diagnostic> {
+) -> Result<Typed, Diagnostic> {
     let schema: Vec<_> = schema.collect();
     if let Some((_, _, location)) = schema.first() {
         let mut seen = std::collections::BTreeSet::new();
@@ -236,15 +202,17 @@ fn typed<'a>(
                 .iter()
                 .find(|(field, _)| field == name)
                 .ok_or_else(|| message(file, location, format!("missing {kind} field `{name}`")))?;
-            literal(&value.1, ty).ok_or_else(|| {
+            let admitted = value.1.admit(ty).map_err(|_| {
                 message(
                     file,
                     location,
                     format!("{kind} field `{name}` value does not match admitted type {ty:?}"),
                 )
-            })
+            })?;
+            Ok((Expr::constant(ty, &admitted), value.clone()))
         })
-        .collect()
+        .collect::<Result<Vec<_>, _>>()
+        .map(|typed| typed.into_iter().unzip())
 }
 
 fn cfg_representable(value: &Expr) -> bool {
@@ -253,40 +221,6 @@ fn cfg_representable(value: &Expr) -> bool {
         ExprKind::Sequence(values) => values.iter().all(cfg_representable),
         _ => true,
     }
-}
-
-fn literal(value: &Literal, ty: &Type) -> Option<Expr> {
-    let kind = match (value, ty) {
-        (Literal::Bool(value), Type::Bool) => ExprKind::Bool(*value),
-        (Literal::Int(value), Type::Int { min, max }) if value >= min && value <= max => {
-            ExprKind::Int(*value)
-        }
-        (Literal::Bounded { name, raw }, Type::Bounded(bound))
-            if name == &bound.name && bound.contains(*raw) =>
-        {
-            ExprKind::Int(*raw)
-        }
-        (Literal::Optional(None), Type::Optional(bound)) if bound.optional_valid() => {
-            ExprKind::Int(0)
-        }
-        (Literal::Optional(Some(value)), Type::Optional(bound)) => {
-            let Literal::Bounded { name, raw } = value.as_ref() else {
-                return None;
-            };
-            if name != &bound.name {
-                return None;
-            }
-            ExprKind::Int(bound.encode(*raw)?)
-        }
-        (Literal::Enum(value), Type::Enum { variants, .. }) if variants.contains(value) => {
-            ExprKind::Enum(value.clone())
-        }
-        (Literal::Sequence(values), Type::Seq(inner)) => ExprKind::Sequence(
-            values.iter().map(|value| literal(value, inner)).collect::<Option<_>>()?,
-        ),
-        _ => return None,
-    };
-    Some(Expr { kind, ty: ty.clone() })
 }
 
 /// One concrete catalog action: an index into `Lifted::actions` and its payload values.

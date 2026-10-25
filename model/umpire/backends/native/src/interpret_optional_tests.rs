@@ -13,38 +13,6 @@ fn bounded(low: i128) -> Bounded {
     }
 }
 
-#[test]
-fn imports_exact_nominal_optional_values() {
-    let descriptor = bounded(1);
-    let raw = |name, raw| Exported::Bounded { name, raw };
-    let some = |value| Exported::Optional(Some(Box::new(value)));
-    let ty = Type::Bounded(descriptor.clone());
-    assert_eq!(import(&ty, &raw("Ticks", 1)), Ok(Value::Int(1)));
-    for value in [raw("Other", 1), raw("Ticks", 0), raw("Ticks", 4), Exported::Int(1)] {
-        assert!(import(&ty, &value).is_err(), "{value:?}");
-    }
-    let ty = Type::Optional(descriptor.clone());
-    for (value, code) in
-        [(Exported::Optional(None), 0), (some(raw("Ticks", 1)), 2), (some(raw("Ticks", 3)), 4)]
-    {
-        assert_eq!(import(&ty, &value), Ok(Value::Int(code)));
-    }
-    for value in [
-        some(raw("Other", 1)),
-        some(raw("Ticks", 0)),
-        some(Exported::Int(1)),
-        some(Exported::Optional(None)),
-        raw("Ticks", 1),
-    ] {
-        assert!(import(&ty, &value).is_err(), "{value:?}");
-    }
-    assert_eq!(import(&Type::Optional(bounded(0)), &some(raw("Ticks", 0))), Ok(Value::Int(1)));
-    let mut invalid = descriptor;
-    invalid.max = 256;
-    assert!(import(&Type::Bounded(invalid.clone()), &raw("Ticks", 1)).is_err());
-    assert!(import(&Type::Optional(invalid), &Exported::Optional(None)).is_err());
-}
-
 fn evaluate(node: &Node) -> Value {
     Frame::new(|(): &(), _| unreachable!(), None, None, &[], None, &[]).eval(node)
 }

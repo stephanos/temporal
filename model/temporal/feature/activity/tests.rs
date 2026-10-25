@@ -1,7 +1,7 @@
 use crate::activity::activity::{
     Client, Deadline, ExpiredDeadline, Model, Phase, Ticks, Worker, World,
 };
-use umpire_dsl::{Machine, Outcome, Phase as _, Rejection, Verdict};
+use umpire_dsl::{Machine, Outcome, Phase as _, Rejection, Verdict, __lifted::ConcreteOf};
 
 fn checked_world(
     maximum: u8,
@@ -464,21 +464,9 @@ fn actual_tlc_rejected_outcome_counterexample_replays_in_the_activity_model()
         };
         let action =
             world.actions().get(usize::try_from(ordinal)?).ok_or("invalid action ordinal")?.clone();
-        let (name, fields) = umpire_dsl::ActionValues::<World>::action_value(&action);
-        assert_eq!(after.observers["__umpire_action"], Value::Text(name.into()));
-        assert_eq!(module.metadata.catalog[usize::try_from(ordinal)?].action, name);
-        let native_fields: Vec<_> = fields
-            .into_iter()
-            .map(|(name, value)| {
-                let literal = match value {
-                    umpire_dsl::Value::Int(value) => umpire_tla::Literal::Int(value),
-                    umpire_dsl::Value::Bool(value) => umpire_tla::Literal::Bool(value),
-                    other => panic!("unexpected activity action field: {other:?}"),
-                };
-                (name.into(), literal)
-            })
-            .collect();
-        assert_eq!(module.metadata.catalog[usize::try_from(ordinal)?].fields, native_fields);
+        let identity = umpire_tla::Concrete::of::<World>(&action);
+        assert_eq!(after.observers["__umpire_action"], Value::Text(identity.action.clone()));
+        assert_eq!(module.metadata.catalog[usize::try_from(ordinal)?], identity);
         let Value::Int(choice) = after.observers["__umpire_choice"] else {
             return Err("missing choice".into());
         };

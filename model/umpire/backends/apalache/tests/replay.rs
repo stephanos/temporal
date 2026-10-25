@@ -28,40 +28,20 @@ fn replay_refuses_an_undeclared_property_before_reading_a_witness()
 #[path = "fixtures/replay.rs"]
 mod authored;
 use serde_json::{Value as Json, json};
-use umpire_dsl::{ActionValues, Value as NativeValue, Values};
-use umpire_tla::{Binding, Concrete, Literal, Module};
+use umpire_dsl::{__lifted::BindingOf, ActionValues, Value as NativeValue, Values};
+use umpire_tla::{Binding, Literal, Module};
 const SOURCE: &str = include_str!("fixtures/replay.rs");
 const HOOK: &str = r#"
 umpire_testing::fixture!(inputs::World::new(2),100,Claim::new("never_two",|_,s:&inputs::Model|(s.value!=2).into()));
 "#;
-fn literal(v: NativeValue) -> Literal {
-    match v {
-        NativeValue::Bool(v) => Literal::Bool(v),
-        NativeValue::Int(v) => Literal::Int(v),
-        NativeValue::Bounded { name, raw } => Literal::Bounded { name: name.into(), raw },
-        NativeValue::Optional(v) => Literal::Optional(v.map(|v| Box::new(literal(*v)))),
-        NativeValue::Enum(v) => Literal::Enum(v.into()),
-        NativeValue::Sequence(v) => Literal::Sequence(v.into_iter().map(literal).collect()),
-    }
-}
-fn exported(v: Vec<(&'static str, NativeValue)>) -> Vec<(String, Literal)> {
-    v.into_iter().map(|(n, v)| (n.into(), literal(v))).collect()
-}
-fn concrete<M: Machine>(a: &M::Action) -> Concrete
-where
-    M::Action: ActionValues<M>,
-{
-    let (action, fields) = ActionValues::<M>::action_value(a);
-    Concrete { action: action.into(), fields: exported(fields) }
-}
 fn module() -> Result<Module, Box<dyn std::error::Error>> {
     let w = authored::inputs::World::new(2);
     Ok(umpire_tla::Tla::safety(
-        &umpire_tla::Lift::parse("inputs.rs", &format!("{SOURCE}{HOOK}"))?.bind(&Binding {
-            world: exported(w.values()),
-            starts: w.starts().iter().map(|s| exported(s.values())).collect(),
-            actions: w.actions().iter().map(concrete::<authored::inputs::World>).collect(),
-        })?,
+        &umpire_tla::Lift::parse("inputs.rs", &format!("{SOURCE}{HOOK}"))?.bind(&Binding::of(
+            &w,
+            &w.starts(),
+            &w.actions(),
+        ))?,
     )?)
 }
 fn default(ty: &umpire_tla::Type) -> Json {

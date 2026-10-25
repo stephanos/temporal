@@ -35,7 +35,7 @@ name normal domain dependencies; test-only dependencies do not reverse the produ
 | `umpire-dsl`, `author/dsl` | Model, World, state, action, outcome, claim and path contracts; native Models embed the admitted tree. | DSL macros; IR on native targets. |
 | `umpire-dsl-macros`, `author/dsl/macros` | Generate author declarations and preserve existing direct-crate macro expansion. | Front and IR; no backend. |
 | `umpire-front`, `front` | Read declarations once and admit bodies into the typed tree, with located diagnostics. | IR; no backend or system Model. |
-| `umpire-ir`, `ir` and `umpire-ir-derive`, `ir/derive` | Represent the admitted tree, expressions and embedded typed values; derive constructor tokens. | IR depends on its derive support; no front or backend import. |
+| `umpire-ir`, `ir` and `umpire-ir-derive`, `ir/derive` | Represent the admitted tree, expressions and embedded typed values; admit exported literals into typed values (`Literal::admit`); derive constructor tokens. | IR depends on its derive support; no front or backend import. |
 | `umpire-checker`, `backends/native` | Explore a `Machine`, evaluate claims and retain exact rows and witnesses; interpreted checking uses the same admitted tree. | DSL, including its embedded IR contract; no symbolic adapter or system Model. |
 | `umpire-suite`, `author/suite` | Authored `Run`, `Space`, path search, coverage and verification questions. | DSL and native checker. |
 | `umpire-backend-process`, `backends/process` | Own native bounded supervision, Java admission, capture and scratch cleanup; parent-side rustix/tempfile support and an audited allocation-free raw-libc child path. | No domain dependencies. |
