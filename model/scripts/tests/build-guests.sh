@@ -16,5 +16,4 @@ workspace=$(pwd -P)
 target=${CARGO_TARGET_DIR:-$PWD/target}
 mkdir -p "$target"
 export CARGO_TARGET_DIR=$(cd "$target" && pwd -P)
-(cd umpire && bash scripts/tests/build-guests.sh)
 bash "$workspace/scripts/guest.sh" umpire-temporal-guest "$CARGO_TARGET_DIR/wasm32-wasip1/guest/umpire_temporal_guest.wasm"

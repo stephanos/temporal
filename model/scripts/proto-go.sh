@@ -2,21 +2,18 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 if [ "$#" -lt 1 ] || [ "$#" -gt 2 ] || { [ "$#" -eq 2 ] && [ "$2" != --check ]; }; then
-  printf 'usage: proto-go.sh <core|kettle|temporal> [--check]\n' >&2
+  printf 'usage: proto-go.sh <temporal> [--check]\n' >&2
   exit 1
 fi
 module=$1
 includes=(--proto_path=umpire/protocol/proto)
 case "$module" in
-  core|kettle)
-    exec /bin/bash "$PWD/umpire/scripts/proto-go.sh" "$@"
-    ;;
   temporal)
     destination=temporal/hosts/go
     includes=(--proto_path=temporal/proto "${includes[@]}")
     inputs=(temporal/proto/umpire/temporal/v1/{temporal,probe,activity}.proto)
     ;;
-  *) printf 'usage: proto-go.sh <core|kettle|temporal> [--check]\n' >&2; exit 1 ;;
+  *) printf 'usage: proto-go.sh <temporal> [--check]\n' >&2; exit 1 ;;
 esac
 repo=$(cd .. && pwd -P)
 plugin="$repo/.bin/protoc-gen-go-v1.36.6"
@@ -29,18 +26,6 @@ case "$("$plugin" --version)" in
   'protoc-gen-go v1.36.6'|'protoc-gen-go-v1.36.6 v1.36.6') ;;
   *) printf 'wrong protoc-gen-go version: %s\n' "$plugin" >&2; exit 1 ;;
 esac
-if [ "$module" = kettle ]; then
-  grpc_plugin="$repo/.bin/protoc-gen-go-grpc-v1.3.0"
-  if [ ! -x "$grpc_plugin" ]; then
-    printf 'missing pinned generator; run make .bin/protoc-gen-go-grpc-v1.3.0 from temporal\n' >&2
-    exit 1
-  fi
-  if [ "$("$grpc_plugin" --version)" != 'protoc-gen-go-grpc 1.3.0' ]; then
-    printf 'wrong protoc-gen-go-grpc version\n' >&2
-    exit 1
-  fi
-  plugins+=(--plugin="protoc-gen-go-grpc=$grpc_plugin")
-fi
 if [ "$(mise exec -- protoc --version)" != 'libprotoc 29.5' ]; then
   printf 'wrong protoc version; expected mise-pinned libprotoc 29.5\n' >&2
   exit 1
@@ -52,15 +37,10 @@ if [ "${2:-}" = --check ]; then
   trap 'rm -rf "${temporary:?}"' EXIT
 fi
 options=(--go_out="$output" --go_opt=paths=source_relative)
-if [ "$module" = kettle ]; then
-  options+=(--go-grpc_out="$output" --go-grpc_opt=paths=source_relative)
-fi
 mise exec -- protoc "${plugins[@]}" "${includes[@]}" "${options[@]}" "${inputs[@]}"
 if [ "${2:-}" = --check ]; then
-  if [ "$module" = temporal ]; then
-    destination+=/umpire
-    output+=/umpire
-  fi
+  destination+=/umpire
+  output+=/umpire
   linked=$(find "$destination" -type l -print -quit)
   if [ -L "$destination" ] || [ -n "$linked" ]; then
     printf 'not generated: %s\n' "${linked:-$destination}" >&2
