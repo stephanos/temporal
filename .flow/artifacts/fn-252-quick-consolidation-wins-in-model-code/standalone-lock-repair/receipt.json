@@ -1,0 +1,13 @@
+{
+  "commit": "549daf6313",
+  "change": "Only local umpire-front dependency list gains already present heck package; no package/version/checksum change",
+  "red_command": "cargo test --locked --offline --manifest-path design/native-symbolic/Cargo.toml",
+  "red_exit": 101,
+  "green_commands": [
+    "cargo check --locked --offline --manifest-path design/native-symbolic/Cargo.toml",
+    "cargo test --locked --offline --manifest-path design/native-symbolic/Cargo.toml",
+    "cargo fmt --manifest-path design/native-symbolic/Cargo.toml --check"
+  ],
+  "green_test_count": 6,
+  "scope": "Independent retained symbolic probe remains runnable, with shared baseline/scaled Model semantics intact"
+}
