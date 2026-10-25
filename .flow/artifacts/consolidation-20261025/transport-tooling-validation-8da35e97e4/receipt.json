@@ -1,0 +1,15 @@
+{
+  "head": "8da35e97e4353859e8df8fb38d594a4e4f3e29e1",
+  "model_tree": "ef13709ae5017da99d321bf74cc63a3f13fdc64e",
+  "command": "UMPIRE_APALACHE=require make model-validate",
+  "backend_modes": {
+    "UMPIRE_BACKENDS": "require",
+    "UMPIRE_APALACHE": "require"
+  },
+  "exit_code": 0,
+  "full_gate_seconds": 1201.646,
+  "inner_loop_seconds": 6.37,
+  "log_sha256": "23c7b5b86ba2d64763594ca360f5b6285fba853d83a4d6306c027e4e0da7995a",
+  "prior_failure": "Missing pinned TLC jar in isolated checkout, repaired with fetch-tlc.sh; exact real-TLC regression passed before retry. Failed run and tool provisioning logs retained in conductor scratch.",
+  "notes": "Concurrent independent lanes active; soft full-gate target60s exceeded, inner10s target met. Current tree also contains later activity replay/probe engine changes requiring a separate final combined gate."
+}
