@@ -1,0 +1,6 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/temporal/api)
+   Compiling umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/umpire/reference/kettle)
+    Checking umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/umpire/protocol/runtime)
+    Checking umpire-control-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/umpire/protocol/runtime/guests/control)
+    Checking umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/temporal/realization)
+    Finished `dev` profile [unoptimized] target(s) in 6.85s

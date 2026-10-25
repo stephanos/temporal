@@ -1,0 +1,35 @@
+{
+  "task": "fn-246-realization-as-a-checked-refinement-a.8",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract",
+  "base_commit": "295d6d03da6dba59b12b28cf83090352b6f344cf",
+  "source_state": "uncommitted owned changes; parent commits coherent shared-worktree unit",
+  "source_sha256": {
+    "model/umpire/hosts/go/host/host.go": "ae2e5d8cec831685fd10a77f8a192048f03f18d400a8e873f30a368f881ee480",
+    "model/umpire/hosts/go/host/protocol_test.go": "e3dbf2641f6952c8610d07842c2bf7a8e2894184e7609dfcbfabb45b065677f1",
+    "model/umpire/hosts/go/host/protocol_wire_test.go": "a90c5f5e3693a0f8b5644c066030dbff68ea4cba1ab4cc0159e7079c2a1c6845",
+    "model/umpire/hosts/go/host/proposal_test.go": "4c929ffd067ba5b38ea3579fba1f822afb3ad5cc18467f2a27dbc5434fad4474",
+    "model/umpire/hosts/go/runner/runner.go": "0e27cedc600a86f379f34a2a293e9ccd68625c4a6ed1f38bbd98706e143b4aff",
+    "model/umpire/hosts/go/runner/admission_test.go": "ac17289493702ea9d17b535a0734443bfad882dde73fd496ca4099dc0f35db55",
+    "model/temporal/hosts/go/program_test.go": "9dab00692e8bc17a065813a0720d439e52e9dcbab934b96efb65a582ac2a2acd",
+    "model/temporal/hosts/go/parity_test.go": "c50415f93ea24baebf7a04636aef9a337f4ad2b5e38bfba0aec4395e319ea23b",
+    "model/umpire/reference/kettle/kettle_test.go": "57ce9a3dd1e2d01a0fd30889c6f4a5430bd23722a0f9f22efd4a2c0e86816b66"
+  },
+  "tests": [
+    {
+      "command": "CGO_ENABLED=0 mise exec -- go test -tags test_dep ./runner -run 'TestResetContractAdmissionPrecedesDriver|TestRunnerOwnsLoadedGuestBytes' -count=1",
+      "exit": 1,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn2468-go-contract-red.log",
+      "observation": "Missing/unknown actual Reset reached Driver; caller mutation changed loaded wasm while cached hash remained."
+    },
+    {
+      "command": "GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2468-current-contract-go GOMAXPROCS=2 GOFLAGS=-p=2 CGO_ENABLED=0 mise exec -- go test -tags test_dep ./runner ./host -run 'TestResetContractAdmissionPrecedesDriver|TestRunnerOwnsLoadedGuestBytes|TestProtocolResponseValidation|TestProtocolWrappers|TestResetProofContractRefusesMissingAndUnknown|TestCoreProtocolWireCompatibility|TestProposalWireContract' -count=1",
+      "exit": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn2468-go-contract-green.log"
+    }
+  ],
+  "log_sha256": {
+    "fn2468-go-contract-red.log": "f051a74e310edd52a17a3d8b8ccdc1743dfce3a1f89da95e47f22faaff147251",
+    "fn2468-go-contract-green.log": "395aa32053c579bcc79991e7143ba2a1af99449d799d80eab7d998cb7feab92f"
+  },
+  "commands_running": false
+}

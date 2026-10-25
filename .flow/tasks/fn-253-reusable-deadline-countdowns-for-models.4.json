@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-25T17:30:34.323808Z",
+  "depends_on": [
+    "fn-253-reusable-deadline-countdowns-for-models.3"
+  ],
+  "id": "fn-253-reusable-deadline-countdowns-for-models.4",
+  "priority": null,
+  "spec": "fn-253-reusable-deadline-countdowns-for-models",
+  "spec_path": ".flow/tasks/fn-253-reusable-deadline-countdowns-for-models.4.md",
+  "status": "todo",
+  "title": "Front end: lower countdown calls in handlers, effects and claims",
+  "updated_at": "2026-10-25T17:30:34.323808Z"
+}

@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-25T17:30:34.323955Z",
+  "depends_on": [
+    "fn-253-reusable-deadline-countdowns-for-models.1",
+    "fn-253-reusable-deadline-countdowns-for-models.6"
+  ],
+  "id": "fn-253-reusable-deadline-countdowns-for-models.7",
+  "priority": null,
+  "spec": "fn-253-reusable-deadline-countdowns-for-models",
+  "spec_path": ".flow/tasks/fn-253-reusable-deadline-countdowns-for-models.7.md",
+  "status": "todo",
+  "title": "Activity Model uses countdowns and the deadline pattern",
+  "updated_at": "2026-10-25T17:30:34.323955Z"
+}

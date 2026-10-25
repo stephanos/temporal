@@ -1,0 +1,77 @@
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/umpire/author/dsl/macros)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/umpire/protocol/runtime)
+   Compiling serde_core v1.0.229
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/umpire/backends/native)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/umpire/catalog/syntax)
+   Compiling libc v0.2.191
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/umpire/catalog/build)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/umpire/catalog/macros)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/temporal/annotate/syntax)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/umpire/catalog)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/umpire/author/suite)
+   Compiling cfg-if v1.0.5
+   Compiling winnow v1.0.4
+   Compiling getrandom v0.4.3
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/temporal/realization/macros)
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling zmij v1.0.23
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/temporal/api)
+   Compiling serde_spanned v1.1.2
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling syn v3.0.9
+   Compiling toml_writer v1.1.3+spec-1.1.0
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling once_cell v1.21.4
+   Compiling tempfile v3.27.0
+   Compiling serde_json v1.0.154
+   Compiling darling_core v0.24.1
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling target-tuple v1.0.2
+   Compiling serde v1.0.229
+   Compiling umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/umpire/reference/kettle)
+   Compiling console v0.16.6
+   Compiling glob v0.3.4
+   Compiling similar v2.7.0
+   Compiling termcolor v1.4.1
+   Compiling trybuild v1.0.122
+   Compiling insta v1.49.0
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/umpire/author/umpire)
+   Compiling darling v0.24.1
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/temporal/realization)
+    Finished `test` profile [unoptimized] target(s) in 16.97s
+     Running tests/realization.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2468-current-contract/debug/deps/realization-65e06a32b78efdbb)
+
+running 7 tests
+test heat_projects_reach_with_an_exact_target_and_method_owned_evidence ... ok
+test describe_never_infers_a_transition ... ok
+test callback_requires_exact_state_identity_and_enabled_action ... ok
+test exact_receipts_reject_wrong_state_or_action ... ok
+test malformed_evidence_refuses_without_advancing ... ok
+test explore_retains_canonical_report ... ok
+test healthy_trace_answer_does_not_commit_and_receipt_commits_once ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+     Running tests/realization.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2468-current-contract/debug/deps/realization-85c144106f142e09)
+
+running 15 tests
+test cancel_projection_checks_the_actual_outcome_in_every_phase ... ok
+test cancel_envelope_refusals_preserve_state_and_frozen_evidence ... ok
+test actual_requests_leave_current_judgments_unchanged ... ok
+test observation_request_uses_tag_four_after_the_unchanged_result ... ok
+test successful_cancel_is_an_explained_step_and_reaches_canceled ... ok
+test cancel_publication_failure_preserves_state_and_freeze ... ok
+test cancel_after_closure_is_a_rejected_step_and_success_contradicts_it ... ok
+test rejected_publication_rolls_back_delivery_terminal_freeze_and_reset ... ok
+test contradictory_and_unknown_cancel_statuses_freeze_the_current_expected_actions ... ok
+test observation_response_tag_stays_pinned_and_error_uses_tag_three ... ok
+test temporal_has_no_live_answer_policy ... ok
+test skipped_retry_projection_never_accepts_a_path_that_stops_before_the_observed_phase ... ok
+test server_observations_evidence_delivery_and_fast_terminal_paths ... ok
+test malformed_and_unsupported_observations_preserve_run_and_frozen_evidence ... ok
+test named_guest_adapter_preserves_the_independent_report_and_ordered_rows ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+

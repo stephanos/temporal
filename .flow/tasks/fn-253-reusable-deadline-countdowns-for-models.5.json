@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-25T17:30:34.323853Z",
+  "depends_on": [
+    "fn-253-reusable-deadline-countdowns-for-models.4"
+  ],
+  "id": "fn-253-reusable-deadline-countdowns-for-models.5",
+  "priority": null,
+  "spec": "fn-253-reusable-deadline-countdowns-for-models",
+  "spec_path": ".flow/tasks/fn-253-reusable-deadline-countdowns-for-models.5.md",
+  "status": "todo",
+  "title": "Shared countdowns fixture with refuting mutants",
+  "updated_at": "2026-10-25T17:30:34.323853Z"
+}

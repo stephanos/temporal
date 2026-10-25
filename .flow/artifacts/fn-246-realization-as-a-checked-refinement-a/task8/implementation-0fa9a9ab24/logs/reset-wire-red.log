@@ -1,0 +1,24 @@
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/umpire/protocol/runtime)
+    Finished `test` profile [unoptimized] target(s) in 0.35s
+     Running tests/core_protocol.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2468-current-contract/debug/deps/core_protocol-1db28f45130278f4)
+
+running 1 test
+test new_core_messages_match_shared_literal_bytes ... FAILED
+
+failures:
+
+---- new_core_messages_match_shared_literal_bytes stdout ----
+
+thread 'new_core_messages_match_shared_literal_bytes' (3485392) panicked at umpire/protocol/runtime/tests/core_protocol.rs:63:9:
+assertion `left == right` failed: reset_response
+  left: [34, 0]
+ right: [34, 2, 16, 1]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    new_core_messages_match_shared_literal_bytes
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-runtime --test core_protocol`

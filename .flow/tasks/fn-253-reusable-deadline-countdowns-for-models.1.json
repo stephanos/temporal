@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-25T17:30:34.323554Z",
+  "depends_on": [],
+  "id": "fn-253-reusable-deadline-countdowns-for-models.1",
+  "priority": null,
+  "spec": "fn-253-reusable-deadline-countdowns-for-models",
+  "spec_path": ".flow/tasks/fn-253-reusable-deadline-countdowns-for-models.1.md",
+  "status": "todo",
+  "title": "Activity deadline clarity: Option equality, named expiry effects, split state_bounds",
+  "updated_at": "2026-10-25T17:33:03.131135Z"
+}

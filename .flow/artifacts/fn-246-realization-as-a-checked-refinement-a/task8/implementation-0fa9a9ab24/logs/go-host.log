@@ -1,0 +1,14 @@
+?   	umpire.local/model/gen/umpire/annotations/v1	[no test files]
+?   	umpire.local/model/gen/umpire/model/v1	[no test files]
+?   	umpire.local/model/gen/umpire/realization/v1	[no test files]
+?   	umpire.local/model/gen/umpire/run/v1	[no test files]
+--- FAIL: TestGuestProfileCaughtPanicParity (0.00s)
+    --- FAIL: TestGuestProfileCaughtPanicParity/effect_panic (0.00s)
+        guest_profile_test.go:24: open effect_panic.pb: no such file or directory
+    --- FAIL: TestGuestProfileCaughtPanicParity/effect_overflow (0.00s)
+        guest_profile_test.go:24: open effect_overflow.pb: no such file or directory
+FAIL
+FAIL	umpire.local/model/host	0.319s
+ok  	umpire.local/model/runner	2.064s
+ok  	umpire.local/model/snapshot	0.002s
+FAIL

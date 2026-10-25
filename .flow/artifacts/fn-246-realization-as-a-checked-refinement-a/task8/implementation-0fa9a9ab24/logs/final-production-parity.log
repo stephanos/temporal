@@ -1,0 +1,10 @@
+=== RUN   TestCurrentContractNativeWasmPublishedResponsesAgree
+=== RUN   TestCurrentContractNativeWasmPublishedResponsesAgree/ordinary
+=== RUN   TestCurrentContractNativeWasmPublishedResponsesAgree/callback
+=== RUN   TestCurrentContractNativeWasmPublishedResponsesAgree/configured
+--- PASS: TestCurrentContractNativeWasmPublishedResponsesAgree (0.03s)
+    --- PASS: TestCurrentContractNativeWasmPublishedResponsesAgree/ordinary (0.01s)
+    --- PASS: TestCurrentContractNativeWasmPublishedResponsesAgree/callback (0.01s)
+    --- PASS: TestCurrentContractNativeWasmPublishedResponsesAgree/configured (0.01s)
+PASS
+ok  	umpire.local/model/host	0.033s

@@ -96,6 +96,28 @@ outstanding performance comparison of the interpreter and compiled checker.
 | fn-245.3 | ⬜ todo | After .1: TLA+ emission (subsets, functions with `Absent`, quantifiers, Head/Tail) and typed TLC decoding (R4) |
 | fn-245.4 | ⬜ todo | After .2, .3: the three fixtures with goldens, differential and TLC agreement, sets performance measurement, DESIGN and README (R3 to R6) |
 
+### fn-253: Reusable deadline countdowns for Models
+
+A generic countdown (`umpire_dsl::countdown`: pure arm/tick/expired functions and within/descends laws,
+lowered from source like `closable`) plus Temporal deadline semantics in `model/temporal`, so the
+activity and later workflow, Nexus and timer Models stop hand-writing each countdown. A spike on the
+activity settles the surface and the lifter gaps first. Not yet in the current order: the spike and
+`umpire-dsl` work are independent of fn-246; the activity migration waits for committed fn-246.15.
+Whether fn-246.13's protocol Model may share the Temporal layer is an open owner question.
+
+[Spec](.flow/specs/fn-253-reusable-deadline-countdowns-for-models.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-253.1 | ⛔ blocked | After committed fn-246.15: deadline handler via Option equality and named expiry effects; split `state_bounds` (R4) |
+| fn-253.2 | ⬜ todo | Spike: activity against the proposed `countdown` surface; verdict in `model/design/deadline-countdowns.md` (R1) |
+| fn-253.3 | ⬜ todo | After .2: `umpire_dsl::countdown` functions and laws in plain Rust (R2) |
+| fn-253.4 | ⬜ todo | After .3: front end lowers countdown calls in handlers, effects and claims (R2) |
+| fn-253.5 | ⬜ todo | After .4: shared `countdowns` fixture with refuting mutants (R2) |
+| fn-253.6 | ⬜ todo | After .2, .5: Temporal deadline semantics as a named pattern (R3) |
+| fn-253.7 | ⬜ todo | After .1, .6: activity uses countdowns and the deadline pattern, behaviour pinned (R4) |
+| fn-253.8 | ⬜ todo | After .7: docs and full gates (R5) |
+
 ### fn-240: Symbolic back end (deferred)
 
 BTOR2/rIC3 safety checking follows finite collections and uses shared replay. Witnesses must replay
