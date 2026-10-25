@@ -131,9 +131,10 @@ Case tests and their seven inherited legacy failures. No Testpilot Case remains.
 The Temporal host module's `go test -tags test_dep ./...` needs only Go, with no
 guest environment variable or Cargo target lookup. Model authors refresh the embedded
 artifact with `make umpire-guest`. The generic builder's `--check` compares bytes during
-`make model-check`, reporting stale sizes and the first differing offset. Missing pinned
-build prerequisites warn and skip only this freshness step when `CI` is unset; set `CI`
-(including an empty value) fails. Actual compile failures and stale bytes always fail.
+`make model-check`, reporting stale sizes and the first differing offset. The shell entrypoint bootstraps native xtask before guest compiler settings, with
+auto-install disabled before the first probe. Rust validates pinned tools, metadata,
+Rust sources and target readiness on cold and cached paths. Missing tools, compile
+failures and stale bytes fail regardless of `CI`.
 The full Rust authoring gate still requires Rust.
 Umpire ships no prebuilt stock/control guests. See [GUEST_BUILDS.md](GUEST_BUILDS.md).
 

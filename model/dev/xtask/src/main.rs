@@ -7,8 +7,20 @@ use std::{
 };
 
 fn run() -> xtask::Result<i32> {
-    let mut arguments = env::args_os().skip(1);
+    let mut argv = env::args_os();
+    if argv.next().as_deref().and_then(|p| Path::new(p).file_name())
+        == Some(OsStr::new("guest-rustc"))
+    {
+        return xtask::compiler::run(argv.collect());
+    }
+    let mut arguments = argv;
     match arguments.next().as_deref() {
+        Some(command) if command == OsStr::new("guest") => {
+            xtask::guest::run(&arguments.collect::<Vec<_>>(), false)
+        }
+        Some(command) if command == OsStr::new("guest-freshness") => {
+            xtask::guest::run(&arguments.collect::<Vec<_>>(), true)
+        }
         Some(command) if command == OsStr::new("guest-lock") => {
             let paths: Vec<_> = arguments.collect();
             if paths.len() != 2 {
@@ -24,7 +36,9 @@ fn run() -> xtask::Result<i32> {
         Some(command) if command == OsStr::new("guest-rustc") => {
             xtask::compiler::run(arguments.collect())
         }
-        _ => Err(xtask::Error::Invalid("commands: guest-lock, guest-rustc".into())),
+        _ => Err(xtask::Error::Invalid(
+            "commands: guest, guest-freshness, guest-lock, guest-rustc".into(),
+        )),
     }
 }
 

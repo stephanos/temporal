@@ -1,6 +1,7 @@
 //! Host-only native development tools.
 
 pub mod compiler;
+pub mod guest;
 pub mod lock;
 pub mod support;
 

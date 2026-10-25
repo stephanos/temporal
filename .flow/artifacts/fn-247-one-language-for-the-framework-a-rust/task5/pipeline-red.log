@@ -1,0 +1,39 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2475-port/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.59s
+     Running tests/guest_pipeline.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-target/debug/deps/guest_pipeline-46a01e440aa29de8)
+
+running 4 tests
+test guest_build_check_and_artifact_refusals ... FAILED
+test cold_shell_bootstrap_and_cached_native_validation ... FAILED
+test cold_bootstrap_failures_never_build_or_publish ... ok
+test native_prerequisite_failures_stop_before_guest_build ... ok
+
+failures:
+
+---- guest_build_check_and_artifact_refusals stdout ----
+
+thread 'guest_build_check_and_artifact_refusals' (686436) panicked at dev/xtask/tests/guest_pipeline.rs:111:42:
+assertion `left == right` failed: stdout=
+stderr=xtask: commands: guest-lock, guest-rustc
+
+  left: Some(1)
+ right: Some(0)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- cold_shell_bootstrap_and_cached_native_validation stdout ----
+
+thread 'cold_shell_bootstrap_and_cached_native_validation' (686435) panicked at dev/xtask/tests/guest_pipeline.rs:111:42:
+assertion `left == right` failed: stdout=
+stderr=/bin/bash: /home/agent/.cache/codex-build/tmp/native guest controls 686433 0/checkout with spaces/model/scripts/guest-freshness.sh: No such file or directory
+
+  left: Some(127)
+ right: Some(0)
+
+
+failures:
+    cold_shell_bootstrap_and_cached_native_validation
+    guest_build_check_and_artifact_refusals
+
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p xtask --test guest_pipeline`
