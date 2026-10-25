@@ -10,5 +10,5 @@
   "spec_path": ".flow/tasks/fn-256-retire-the-scala-era-build-and-go.1.md",
   "status": "todo",
   "title": "Delete the Scala-era Go IR reader, Quint export and their CI/Make hooks",
-  "updated_at": "2026-10-25T22:48:01.156176Z"
+  "updated_at": "2026-10-25T22:53:26.087880Z"
 }

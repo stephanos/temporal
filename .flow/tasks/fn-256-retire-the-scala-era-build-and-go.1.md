@@ -8,11 +8,15 @@ Delete the Scala-era Go reader: `tools/umpire/{ir,interp,check,realization,expor
 
 **Size:** M (deletion plus retained-consumer verification)
 **Files:** `tools/umpire/**`, `Makefile` (backends targets, `.PHONY` line 440), `.github/workflows/umpire.yml`, `AGENTS.md`, `tools/umpire/README.md`, `.plans/UMPIRE_MODULES.md`, `model/README.md`
-**Touches:** [tools/umpire/**, Makefile, .github/workflows/umpire.yml, AGENTS.md, tools/umpire/README.md, .plans/UMPIRE_MODULES.md, model/README.md]
+**Touches:** [tools/tdbg/dlq_v2_service.go, tools/umpire/**, Makefile, .github/workflows/umpire.yml, AGENTS.md, tools/umpire/README.md, .plans/UMPIRE_MODULES.md, model/README.md]
 
 ### Dependency-survey evidence
 
 The bounded pre-implementation survey found no removed package in the retained command/driver/Testpilot/canary production or test closure. CI currently has a broad tools package test, with no separate Quint CI step; narrow that test while preserving live and canary jobs. Do not delete or weaken the Testpilot synthetic forbidden-import control to satisfy a textual search.
+
+### Required vet gate repair
+
+The required broad vet command exposes pre-existing QueueInfo protobuf mutex copies in `tools/tdbg/dlq_v2_service.go`. Repair that small retained-tool issue in this lane using pointer-preserving collection/iteration; preserve sorted JSON/table behavior. Run existing DLQ list controls and broad vet in the declared modes, retaining the original failure as baseline evidence. This exact file is admitted so the required gate can pass without suppressing copylocks or excluding unrelated packages.
 
 ## Acceptance
 - [ ] The six packages and the backends targets are gone; A source-only tracked-file search finds no live imports/build hooks/current documentation referring to removed packages or backend targets. Preserve references in `model/archived`, historical `.flow`/`.plans` records and the Testpilot dependency-boundary negative fixture; record these explicit exemptions. Confirm the retained production and test dependency closures with `go list -mod=readonly -deps -test -tags 'test_dep integration canary_harness'` rather than treating text matches as imports.

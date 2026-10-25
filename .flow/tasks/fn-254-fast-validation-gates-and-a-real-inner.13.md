@@ -8,7 +8,7 @@ Implement .9's standalone build boundary before .10 composes the gates. This is 
 
 **Size:** M
 **Files:** Cargo workspaces/lockfiles, framework-local configuration and pins, xtask location/root resolver, backend cache roots and path-sensitive tests/guest identity primitives.
-**Touches:** [model/temporal/feature/activity/proof_checks.rs, model/temporal/feature/activity/tests.rs, model/temporal/feature/activity/policy_checks.rs, model/.cargo/config.toml, model/umpire/README.md, model/umpire/.gitignore, model/design/framework-gate.md, model/umpire/scripts/**, model/scripts/**, model/umpire/author/dsl/tests/main/readme.rs, model/umpire/hosts/go/**, model/umpire/reference/kettle/**, model/umpire/**/README.md, AGENTS.md, .plans/UMPIRE_MODULES.md, Makefile, model/Cargo.toml, model/Cargo.lock, model/umpire/**/Cargo.toml, model/umpire/Cargo.lock, model/umpire/.cargo/**, model/umpire/mise.toml, model/umpire/rust-toolchain.toml, model/umpire/rustfmt.toml, model/umpire/clippy.toml, model/umpire/deny.toml, model/umpire/dev/**, model/umpire/backends/process/**, model/umpire/backends/apalache/**, model/umpire/backends/tlc/**, model/umpire/backends/tla/tests/**, model/umpire/protocol/**, model/dev/xtask/**, model/scripts/xtask.sh, model/scripts/guest*.sh, model/scripts/proto-go.sh, model/temporal/**/Cargo.toml, model/temporal/hosts/go/umpire_temporal_guest.wasm, mise.toml, model/README.md, model/GUEST_BUILDS.md]
+**Touches:** [tools/canary/policy/production-canary.json, model/temporal/feature/activity/proof_checks.rs, model/temporal/feature/activity/tests.rs, model/temporal/feature/activity/policy_checks.rs, model/.cargo/config.toml, model/umpire/README.md, model/umpire/.gitignore, model/design/framework-gate.md, model/umpire/scripts/**, model/scripts/**, model/umpire/author/dsl/tests/main/readme.rs, model/umpire/hosts/go/**, model/umpire/reference/kettle/**, model/umpire/**/README.md, AGENTS.md, .plans/UMPIRE_MODULES.md, Makefile, model/Cargo.toml, model/Cargo.lock, model/umpire/**/Cargo.toml, model/umpire/Cargo.lock, model/umpire/.cargo/**, model/umpire/mise.toml, model/umpire/rust-toolchain.toml, model/umpire/rustfmt.toml, model/umpire/clippy.toml, model/umpire/deny.toml, model/umpire/dev/**, model/umpire/backends/process/**, model/umpire/backends/apalache/**, model/umpire/backends/tlc/**, model/umpire/backends/tla/tests/**, model/umpire/protocol/**, model/dev/xtask/**, model/scripts/xtask.sh, model/scripts/guest*.sh, model/scripts/proto-go.sh, model/temporal/**/Cargo.toml, model/temporal/hosts/go/umpire_temporal_guest.wasm, mise.toml, model/README.md, model/GUEST_BUILDS.md]
 
 ### Approach
 - Establish the selected independent framework Cargo workspace and lockfile; explicitly exclude it from the Temporal workspace, whose crates use framework path dependencies. Preserve resolved dependency versions, lints, checked arithmetic and build/test/guest profiles. Record any unavoidable lockfile resolution change explicitly.
@@ -27,6 +27,10 @@ Implement .9's standalone build boundary before .10 composes the gates. This is 
 - `model/Cargo.toml:5-149` and root `mise.toml`.
 - `model/dev/xtask/src/guest.rs:79-81,243-255,353-357` and `apalache_pins.rs`.
 - `model/umpire/backends/process/src/support.rs:40-60`, path-sensitive framework test helpers and explicit test manifests.
+
+### Current guest consumer pin
+
+The canary production policy still pins an older guest hash (the divergence predates this task). When publishing the final reproduced current Temporal guest, update only its `modelHash` field in `tools/canary/policy/production-canary.json` to the actual artifact SHA. Preserve all other policy fields and fail-closed admission; verify canary policy/preflight controls against those exact bytes. This is current producer/consumer consistency, not a waiver of independent Model proofs.
 
 ## Owner validation cadence (2026-10-25)
 
