@@ -42,3 +42,34 @@ fn optional_default_forces_eager_checked_fallback_in_main_emission() {
     assert_eq!(shared.nodes.len(), 5);
     assert!(text.contains("1..2147483647"), "{text}");
 }
+
+#[test]
+fn priming_recurses_through_nested_vectors_and_three_children_without_changing_other_leaves() {
+    let tree = |primed| Expr {
+        kind: ExprKind::GetOr(
+            Box::new(Expr {
+                kind: ExprKind::Sequence(vec![
+                    Expr::var("state", Type::Bool, primed),
+                    Expr::var("already_primed", Type::Bool, true),
+                ]),
+                ty: Type::Seq(Box::new(Type::Bool)),
+            }),
+            Box::new(Expr::int(0, Type::Int { min: 0, max: 1 })),
+            Box::new(Expr {
+                kind: ExprKind::Tuple(vec![
+                    Expr { kind: ExprKind::World("world".into()), ty: Type::Bool },
+                    Expr { kind: ExprKind::Input("input".into()), ty: Type::Bool },
+                    Expr { kind: ExprKind::Outcome, ty: Type::Bool },
+                    Expr { kind: ExprKind::Local("local".into()), ty: Type::Bool },
+                    Expr::var("fallback", Type::Bool, primed),
+                ]),
+                ty: Type::Unit,
+            }),
+        ),
+        ty: Type::Bool,
+    };
+    let original = tree(false);
+    assert_eq!(prime(&original), tree(true));
+    assert_eq!(original, tree(false));
+    assert_eq!(prime(&prime(&original)), tree(true));
+}

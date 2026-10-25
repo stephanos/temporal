@@ -217,41 +217,8 @@ fn rename(expr: &mut Expr, renamed: &dyn Fn(&ExprKind) -> Option<ExprKind>) {
         expr.kind = kind;
         return;
     }
-    match &mut expr.kind {
-        ExprKind::Unary(_, value)
-        | ExprKind::Length(value)
-        | ExprKind::Check(_, value)
-        | ExprKind::Bounded(value)
-        | ExprKind::Payload(value)
-        | ExprKind::Some(value) => {
-            rename(value, renamed);
-        }
-        ExprKind::Binary(_, left, right)
-        | ExprKind::Append(left, right)
-        | ExprKind::OptionalOr(left, right) => {
-            rename(left, renamed);
-            rename(right, renamed);
-        }
-        ExprKind::If(first, second, third) | ExprKind::GetOr(first, second, third) => {
-            rename(first, renamed);
-            rename(second, renamed);
-            rename(third, renamed);
-        }
-        ExprKind::Tuple(values) | ExprKind::Sequence(values) | ExprKind::Checks(values) => {
-            for value in values {
-                rename(value, renamed);
-            }
-        }
-        ExprKind::Bool(_)
-        | ExprKind::Int(_)
-        | ExprKind::Text(_)
-        | ExprKind::Unit
-        | ExprKind::Var(..)
-        | ExprKind::World(_)
-        | ExprKind::Input(_)
-        | ExprKind::Outcome
-        | ExprKind::Local(_)
-        | ExprKind::Enum(_) => {}
+    for child in expr.kind.children_mut() {
+        rename(child, renamed);
     }
 }
 
@@ -510,5 +477,38 @@ mod optional_tests {
         let text = crate::emit::rendered(&expression);
         assert!(text.contains("selected_timeout"), "{text}");
         assert!(text.contains("chosen_fallback"), "{text}");
+    }
+}
+
+#[cfg(test)]
+mod traversal_tests {
+    use super::*;
+
+    #[test]
+    fn rename_override_stops_before_replacement_children() {
+        let mut expr = Expr {
+            kind: ExprKind::Tuple(vec![Expr::bool(true), Expr::bool(false)]),
+            ty: umpire_front::Type::Unit,
+        };
+        rename(&mut expr, &|kind| match kind {
+            ExprKind::Bool(true) => {
+                Some(ExprKind::Unary(umpire_front::expr::Unary::Not, Box::new(Expr::bool(false))))
+            }
+            ExprKind::Bool(false) => Some(ExprKind::Int(9)),
+            _ => None,
+        });
+        assert_eq!(
+            expr.kind,
+            ExprKind::Tuple(vec![
+                Expr {
+                    kind: ExprKind::Unary(
+                        umpire_front::expr::Unary::Not,
+                        Box::new(Expr::bool(false))
+                    ),
+                    ty: umpire_front::Type::Bool,
+                },
+                Expr { kind: ExprKind::Int(9), ty: umpire_front::Type::Bool },
+            ])
+        );
     }
 }

@@ -716,37 +716,17 @@ pub(super) fn default(ty: &Type) -> String {
     }
 }
 fn prime(value: &Expr) -> Expr {
-    let kind = match &value.kind {
-        ExprKind::Var(name, _) => ExprKind::Var(name.clone(), true),
-        ExprKind::Unary(op, value) => ExprKind::Unary(*op, Box::new(prime(value))),
-        ExprKind::Binary(op, left, right) => {
-            ExprKind::Binary(*op, Box::new(prime(left)), Box::new(prime(right)))
-        }
-        ExprKind::If(cond, yes, no) => {
-            ExprKind::If(Box::new(prime(cond)), Box::new(prime(yes)), Box::new(prime(no)))
-        }
-        ExprKind::Sequence(values) => ExprKind::Sequence(values.iter().map(prime).collect()),
-        ExprKind::Checks(values) => ExprKind::Checks(values.iter().map(prime).collect()),
-        ExprKind::Check(index, value) => ExprKind::Check(*index, Box::new(prime(value))),
-        ExprKind::Length(value) => ExprKind::Length(Box::new(prime(value))),
-        ExprKind::Bounded(value) => ExprKind::Bounded(Box::new(prime(value))),
-        ExprKind::Payload(value) => ExprKind::Payload(Box::new(prime(value))),
-        ExprKind::Some(value) => ExprKind::Some(Box::new(prime(value))),
-        ExprKind::OptionalOr(option, fallback) => {
-            ExprKind::OptionalOr(Box::new(prime(option)), Box::new(prime(fallback)))
-        }
-        ExprKind::Tuple(values) => ExprKind::Tuple(values.iter().map(prime).collect()),
-        ExprKind::Append(sequence, value) => {
-            ExprKind::Append(Box::new(prime(sequence)), Box::new(prime(value)))
-        }
-        ExprKind::GetOr(sequence, index, fallback) => ExprKind::GetOr(
-            Box::new(prime(sequence)),
-            Box::new(prime(index)),
-            Box::new(prime(fallback)),
-        ),
-        other => other.clone(),
-    };
-    Expr { kind, ty: value.ty.clone() }
+    let mut value = value.clone();
+    prime_in_place(&mut value);
+    value
+}
+fn prime_in_place(value: &mut Expr) {
+    if let ExprKind::Var(_, primed) = &mut value.kind {
+        *primed = true;
+    }
+    for child in value.kind.children_mut() {
+        prime_in_place(child);
+    }
 }
 fn checked(raw: String, ty: &Type) -> String {
     if let Type::Int { min, max } = ty {

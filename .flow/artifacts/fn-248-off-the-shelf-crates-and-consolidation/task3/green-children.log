@@ -1,0 +1,12 @@
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2483-traversal/model/umpire/ir)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.07s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2483-target/debug/deps/umpire_ir-bedfccb629fa104f)
+
+running 4 tests
+test expr::tests::children_visit_every_variant_in_order_and_mutate_each_child_once ... ok
+test expr::tests::infallible_preserves_explicit_false_cases_and_propagates_child_failure ... ok
+test bounded_controls::exact_optional_codes_preserve_absence_and_exhaustion ... ok
+test printing_controls::new_fields_and_variants_print_without_registration ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

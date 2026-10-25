@@ -1,0 +1,63 @@
+   Compiling anyhow v1.0.104
+   Compiling either v1.19.0
+   Compiling rustix v1.1.5
+   Compiling prettyplease v0.2.37
+   Compiling syn v2.0.119
+   Compiling proc-macro-utils v0.10.0
+   Compiling regex-syntax v0.8.11
+   Compiling linux-raw-sys v0.12.1
+   Compiling bytes v1.12.1
+   Compiling petgraph v0.8.3
+   Compiling once_cell v1.21.4
+   Compiling log v0.4.34
+   Compiling heck v0.5.0
+   Compiling multimap v0.10.1
+   Compiling itertools v0.14.0
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2483-traversal/model/umpire/author/suite)
+   Compiling console v0.16.6
+   Compiling tempfile v3.27.0
+   Compiling similar v2.7.0
+   Compiling manyhow-macros v0.14.1
+   Compiling umpire-fixtures v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2483-traversal/model/umpire/dev/fixtures)
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2483-traversal/model/umpire/backends/process)
+   Compiling insta v1.49.0
+   Compiling regex-automata v0.4.18
+   Compiling manyhow v0.14.1
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2483-traversal/model/umpire/backends/tla)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2483-traversal/model/umpire/author/dsl/macros)
+   Compiling regex v1.13.1
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2483-traversal/model/umpire/backends/tlc)
+   Compiling enum-iterator-derive v1.5.0
+   Compiling prost-derive v0.14.4
+   Compiling enum-iterator v2.3.0
+   Compiling prost v0.14.4
+   Compiling prost-types v0.14.4
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2483-traversal/model/umpire/author/dsl)
+   Compiling prost-build v0.14.4
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2483-traversal/model/umpire/backends/native)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2483-traversal/model/umpire/protocol/runtime)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2483-traversal/model/umpire/dev/testing)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2483-traversal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2483-traversal/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2483-traversal/model/umpire/catalog)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2483-traversal/model/umpire/author/umpire)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3m 53s
+     Running interpreted.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2483-target/debug/deps/interpreted-9b05b435b31bfb54)
+
+running 13 tests
+test interpreted_facts_evaluate_disabled_tail ... ok
+test timing ... ignored, timing; run alone in release
+test length_sums_and_products_are_refused ... ok
+test start_domains_evaluate_lazily ... ok
+test interpreted_fact_decoder_checks_admitted_values ... ok
+test interpreted_facts_fail_closed ... ok
+test fact_only_tree_mutant_disagrees ... ok
+test lifter_controls_agree ... ok
+test every_claim_has_its_own_callback ... ok
+test length_differences_agree_on_every_back_end ... ok
+test seeded_mutant_trees_disagree ... ok
+test backend_controls_agree ... ok
+test checked_arithmetic_fails_as_compiled ... ok
+
+test result: ok. 12 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 12.26s
+
