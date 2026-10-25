@@ -4,8 +4,7 @@ Before starting the implementation or review of any request, you MUST REVIEW the
 # Core Mandates
 
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
-- **Gomad:** Before any task involving Gomad code (`tools/gomad`, `tests/gomadfunctional`), read `tools/gomad/README.md` and follow the delivery order in [Gomad Milestones](MILESTONES.md).
-- **Gomad WASM:** `tools/gomad/internal/backends/wasm` shares the Gomad module. Read its README, `tools/gomad/README.md`, and the fn-156 ladder in [MILESTONES.md](MILESTONES.md) before changes. Use this repository's Flow records; `temporal_wasm` is retired.
+- **Gomad:** Before work in `tools/gomad` or `tests/gomadfunctional`, load and follow [tools/gomad/AGENTS.md](tools/gomad/AGENTS.md).
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, and 'go.mod') before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
 - **Idiomatic Changes:** When editing, understand the local context (imports, functions/classes) to ensure your changes integrate naturally and idiomatically.
@@ -88,58 +87,6 @@ Before starting the implementation or review of any request, you MUST REVIEW the
 - Prefer `require` over `assert`, avoid testify suites in unit tests (functional tests require suites for test cluster setup), use `require.Eventually` instead of `time.Sleep` (forbidden by linter)
 - For float comparisons in tests, use `InDelta` or `InEpsilon` instead of `Equal` (enforced by `testifylint`)
 - For error assertions in testify suites, use `s.Require().NoError(err)` instead of `s.NoError(err)` (enforced by `testifylint`)
-
-## Gomad
-
-- `tools/gomad` is a nested Go module pinned to go1.27.1. Its execution backend is WASM.
-  The native backend, patched host toolchain, adapters and native qualification commands were
-  removed by fn-223. Native qualification owners
-  [fn-128](.flow/specs/fn-128-gomad-deferred-linux-qualification-and.md) and
-  [fn-149](.flow/specs/fn-149-gomad-deferred-darwin-qualification.md) closed as won't-do on
-  2026-10-19; historical transfers and results remain in Flow and Git history.
-  Final changed-candidate runtime, mandatory workload and retained-replay qualification,
-  including the complete behavioral reach of `make -C tools/gomad test-wasm`, remain pending
-  under fn-232's original acceptance, with final execution and receiving in fn-246
-  after fn-242 and fn-240. Deletion source checks supply no final qualification pass.
-- `MILESTONES.md` is the operative delivery order; `.plans/GOMAD_NEXT.md` is the
-  capability roadmap it draws from. For task state and acceptance criteria, use `flowctl brief`
-  and the open specs under `.flow/specs/`. Current contracts belong to `tools/gomad/SPEC.md`
-  and `tools/gomad/ARCHITECTURE.md`; `.plans/README.md` indexes plans and dated research.
-- Determinism contracts and enforcement tests are documented in the WASM README's
-  determinism inventory and the qualification contract. Quote a determinism bound only
-  from retained evidence for its exact candidate, host, profile and workload. Native soak
-  reports are historical and do not qualify the current WASM backend.
-
-### Legacy compatibility
-
-For open Gomad work, apply the owner's [legacy compatibility retirement policy](.flow/artifacts/legacy-compatibility-policy-2026-10-24.md)
-before interpreting older spec, task or proof requirements. Retire legacy-only comparisons;
-retain current behavior, authentication and same-candidate deterministic replay.
-
-### fn-242 execution policy
-
-Owner decision, 2026-10-24: prioritize throughput with coherent implementation batches,
-shared genuine fixtures and one independent review per batch. Accept larger changesets and
-resolve integration issues at batch boundaries. A directly catching test **or** mutation
-proves a retained guarantee; source binding does not require recompiling a source mutant
-for every predicate. Use representative high-risk source mutants and focused changed-scope
-checks, preserving direct failure attribution and valid controls.
-
-Owner throughput amendment, 2026-10-24: fill idle lanes with dependent source work against named provisional interfaces; formal admission, integration, final validation, review and completion still require actual dependency receipts. Accept larger coherent changes and fix interface mismatches at batch boundaries. Do not preserve legacy-only behavior or add compatibility layers merely to keep provisional code building. The execution manifest records this policy.
-
-The six source-writing lanes include nested implementation delegates. The conductor
-allocates those lanes across batches; a batch leader must reconcile all delegated work
-and remain its sole committer. Read-only support does not consume a writing lane.
-The conductor assigns two normal heavy build slots and may admit one additional short diagnostic under the resource conditions in the execution manifest; each target has one owner.
-
-For batch verification, reuse meaningful existing Rust tests by guarantee and verify new delegation/wiring. Fixture-only edits rerun their owner case; unchanged reader/lint gates run once at final freeze. Same-worktree diagnostic leases permit focused compile-fix retries without repeated cleanup or approval. The execution manifest defines evidence reuse and remaining production-profile gates.
-
-Before fn-242 admission, implementation, review or resume, read the
-[execution batches](.flow/artifacts/fn242-execution-batches.md) and its machine-readable
-[manifest](.flow/artifacts/fn242-execution-batches.json). This owner-authorized policy
-supersedes separate-worker/separate-review scheduling for each original task in a batch.
-Retain all original acceptance and proof ownership; complete each member only from the
-actual reviewed batch implementation and its own evidence.
 
 ## Spec completion hook: validation cost
 
