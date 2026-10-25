@@ -39,7 +39,7 @@ per-kettle tag limit through the shared resolved-limit context. The live guest u
 `annotation_runtime()` so every healthy RPC request and response is inspected.
 
 The native `tests/probes.rs` checks `expected/coverage.txt.snap`. From `model/`,
-produce candidates with `INSTA_UPDATE=new mise exec -- cargo test -p umpire-reference-kettle --test probes`.
+produce candidates with `INSTA_UPDATE=new mise exec -- cargo test -p umpire-reference-kettle --test main probes::`.
 Go remains the live producer/comparator of `expected/{coverage,gaps,mutants,transcript}.txt.snap`.
 To export live candidates, from `model/umpire/reference/kettle` run:
 
