@@ -6101,7 +6101,8 @@
         "tools/gomad/rust/Cargo.toml",
         "tools/gomad/rust/gomad/Cargo.toml",
         "tools/gomad/rust/Cargo.lock",
-        "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs"
+        "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs",
+        "tools/gomad/rust/gomad/src/cycle/custody/mod.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.17": "**Touches:** tools/gomad/rust/gomad/src/cycle/preparation/bindings/**",
@@ -6252,7 +6253,14 @@
         "file": "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs",
         "purpose": "Add bindings family to existing exclusive-owner fixture; preserve all existing families/initializer/Cargo targets."
       },
-      "current_public_and_native_contract": "The public binding contract uses authenticated current release and diagnostic roles where their current behavior/noninterference is required; the historical seven-role public inventory/cardinality is not an acceptance requirement. Additional current roles may be supplied, but every supplied or actually referenced role must be authenticated/sealed, and missing roles consumed by selected cases/stages must refuse. This does not make complete StageBindings optional or earn unexecuted qualification credit. Use representative genuine public controls rather than compile unrelated roles solely for legacy labels. Existing native measurement BuildReceipt isolation remains unchanged: B03 slot1 may transfer serially from its shared target to fresh native-helper targets under HOST .build-cache/fn242-b03-native-controls, with the shared target idle; preserve original executable/log/receipt inputs, explicit leases and resource floors. Do not refactor measurement/build.rs merely to share a mutable target."
+      "current_public_and_native_contract": "The public binding contract uses authenticated current release and diagnostic roles where their current behavior/noninterference is required; the historical seven-role public inventory/cardinality is not an acceptance requirement. Additional current roles may be supplied, but every supplied or actually referenced role must be authenticated/sealed, and missing roles consumed by selected cases/stages must refuse. This does not make complete StageBindings optional or earn unexecuted qualification credit. Use representative genuine public controls rather than compile unrelated roles solely for legacy labels. Existing native measurement BuildReceipt isolation remains unchanged: B03 slot1 may transfer serially from its shared target to fresh native-helper targets under HOST .build-cache/fn242-b03-native-controls, with the shared target idle; preserve original executable/log/receipt inputs, explicit leases and resource floors. Do not refactor measurement/build.rs merely to share a mutable target.",
+      "aggregate_admission_correction": {
+        "scope": "Exact check_files whole-input aggregate comparison only; retain checked sum, 50000 count, per-file128MiB, descriptor/hash checks and separate source-inventory512MiB bound.",
+        "finding": "Original driver.py72 check_files never had an aggregate byte cap. B01 introduced whole-candidate512MiB refusal. Measured deduplicated closure lower bound522870371 before diagnostic binary/Go sources, at least548283163 with native release binary size proxy: exceeds536870912 by11412251. Preserve actual final diagnostic/freeze evidence separately.",
+        "proof": "Genuine full closure pre-fix refusal then corrected acceptance plus retained-bound catchers; no source identity normalization, unsupported input omission or splitting public selection to mask regression. Current final source controls must authenticate actual rebuilt identities.",
+        "not_a_waiver": "Correct erroneous port restriction, not workload budget/resource or legacy compatibility waiver.",
+        "cache": "Safe copy/reflink completed idle native dependency caches into fresh isolated targets permitted; no mutable hardlink aliases, genuine pinned Cargo and embedded source validation still required."
+      }
     },
     {
       "id": "B04",
@@ -9010,7 +9018,8 @@
       "sizing": "Roughly 100k tokens per implementation iteration remains a guardrail. Counts measure work shape, not a hard cap. Reuse same-boundary validators and fixture builders; retain direct catching evidence per guarantee.",
       "earliest_review_wave": 3,
       "provisional_scope_extension": "B10 additionally owns exact cycle/build/mod.rs solely to extend the existing authenticated Role/Cargo target selection for real helper/host allocation_receiving, implementation_identity and broad-host-test (--lib determinism-fixture) roles. Preserve original roles, feature authentication and immutable role publication. B04's crate-visible helper_identity re-export is an explicit additive overlap integrated by conductor. No second builder, unrelated source identity change or shared Cargo edit.",
-      "explicit_build_environment_extension": "Existing DryRun::build takes explicit environment map; actual effective sealed tools/cache/offline settings pass through owned Runner, fixed target/toolchain/jobs/incremental remain enforced and unsafe Git/SANDBOX/GOROOT overrides refuse. Exact build/tests.rs and bindings/owner_cases.rs/custody fixture changes are signature/environment plumbing and directly catching tests only. No compatibility wrapper or second builder. B10 sole shared build writer; conductor merges additive B03/B04 arms and visibility."
+      "explicit_build_environment_extension": "Existing DryRun::build takes explicit environment map; actual effective sealed tools/cache/offline settings pass through owned Runner, fixed target/toolchain/jobs/incremental remain enforced and unsafe Git/SANDBOX/GOROOT overrides refuse. Exact build/tests.rs and bindings/owner_cases.rs/custody fixture changes are signature/environment plumbing and directly catching tests only. No compatibility wrapper or second builder. B10 sole shared build writer; conductor merges additive B03/B04 arms and visibility.",
+      "owner_fixture_family": "Exact existing custody/owner_fixture.rs adds producer-build-primary-identity dispatch to owned build::run_cases using current exclusive initializer; preserve other B03/B04/B09/B11 arms and Cargo target. Conductor merges additive arms."
     },
     {
       "id": "B11",
@@ -9055,7 +9064,9 @@
         "tools/gomad/rust/gomad/src/qualify/support.rs",
         "tools/gomad/rust/gomad/src/qualify/support/inspection/recording.rs",
         "tools/gomad/rust/gomad/src/qualify/support/inspection_driver.rs",
-        "tools/gomad/rust/gomad/src/qualify/support/inspection_driver_tests.rs"
+        "tools/gomad/rust/gomad/src/qualify/support/inspection_driver_tests.rs",
+        "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs",
+        "tools/gomad/rust/gomad/src/qualify/support/tests.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.30": "**Touches:** tools/gomad/rust/gomad/src/cycle/producers/workload/**",
@@ -9314,7 +9325,8 @@
         "proof": "Actual Rust producer argv catcher replaces old Python test; genuine standalone success/canary warm-cache/budget evidence still required, no completion from source alone."
       },
       "terminal_reuse": "Use existing three genuine terminal_controls test functions through authenticated counterfactual-harness; actual selected count/pass and command lineage required. No warm.rs visibility edit needed; preserve current timing/teardown guarantees.",
-      "support_receipt_extension": "Exact qualify/support/inspection.rs migrates current receipt consumption to real B11 inspection/Runner schema; preserve owner/gate coverage, source/compiler/preparation authentication, actual detach and integrity controls. Legacy schema/measurement-command topology may retire, not current guarantees. No synthetic old receipt; B05/B14 reader proof remains separate. Related exact inspection recording/driver/tests and support.rs Request/Gate, stage_commands/validate_stage/measured_stage/admit plus validate-inspection arm migrate coherently to common Runner/B04 admission. Preserve ordered actual eight-gate dispatch and source/compiler/preparation/detach/status/bounds/prefix/snapshot/heap/inventory guarantees; no dual dialect or publication-only support pass."
+      "support_receipt_extension": "Exact qualify/support/inspection.rs migrates current receipt consumption to real B11 inspection/Runner schema; preserve owner/gate coverage, source/compiler/preparation authentication, actual detach and integrity controls. Legacy schema/measurement-command topology may retire, not current guarantees. No synthetic old receipt; B05/B14 reader proof remains separate. Related exact inspection recording/driver/tests and support.rs Request/Gate, stage_commands/validate_stage/measured_stage/admit plus validate-inspection arm migrate coherently to common Runner/B04 admission. Preserve ordered actual eight-gate dispatch and source/compiler/preparation/detach/status/bounds/prefix/snapshot/heap/inventory guarantees; no dual dialect or publication-only support pass. Exact qualify/support/tests.rs fixtures/assertions migrate to common Runner metadata while preserving independently authored source/compiler/result/budget/gate/refusal expectations.",
+      "owner_fixture_family": "Existing exclusive owner fixture adds producer-workload-reference dispatch only; preserve all families/initializer/target. Current B03 role inputs required for genuine controls."
     },
     {
       "id": "B12",
