@@ -225,63 +225,76 @@ fn current_and_stale_worker_tokens_preserve_exact_availability() -> TestResult {
     Ok(())
 }
 
+fn expired(world: &World, before: &Model, fact: ExpiredDeadline) -> Model {
+    if matches!(fact, ExpiredDeadline::StartToClose | ExpiredDeadline::Heartbeat) {
+        if before.cancel_requested {
+            return cleared(before, Phase::Canceled);
+        }
+        if before.attempt < world.maximum_attempts {
+            return Model {
+                phase: Phase::Scheduled,
+                attempt: before.attempt + 1,
+                cancel_requested: false,
+                schedule_to_start_remaining: world
+                    .schedule_to_start
+                    .map(|ticks| Remaining { ticks: ticks.0 }),
+                start_to_close_remaining: None,
+                heartbeat_remaining: None,
+                schedule_to_close_remaining: before
+                    .schedule_to_close_remaining
+                    .map(|remaining| Remaining { ticks: remaining.ticks - 1 }),
+            };
+        }
+    }
+    cleared(before, Phase::TimedOut)
+}
+
 #[test]
 fn each_deadline_expires_once_with_its_exact_fact() -> TestResult {
-    for ticks in [1, 3] {
-        for (index, fact) in [
-            ExpiredDeadline::ScheduleToStart,
-            ExpiredDeadline::StartToClose,
-            ExpiredDeadline::ScheduleToClose,
-            ExpiredDeadline::Heartbeat,
-        ]
-        .into_iter()
-        .enumerate()
-        {
-            for pending in [false, true] {
-                if index == 0 && pending {
-                    continue;
-                }
-                let mut timeouts = [None; 4];
-                timeouts[index] = Some(ticks);
-                let world = configured(3, true, timeouts);
-                let mut state = attempt(&world, 1, index != 0, pending);
-                for remaining in (0..ticks).rev() {
-                    let steps = world.checked_step(&state, Deadline::Tick.into())?;
-                    assert_eq!(steps.len(), 1);
-                    assert_eq!(steps[0].0, Outcome::Accepted);
-                    if remaining == 0 {
-                        let phase = if pending && matches!(index, 1 | 3) {
-                            Phase::Canceled
-                        } else {
-                            Phase::TimedOut
-                        };
-                        assert_eq!(steps[0].1, [fact]);
-                        assert_eq!(steps[0].2, cleared(&state, phase));
-                    } else {
-                        assert_eq!(steps[0].1, Vec::<ExpiredDeadline>::new());
-                        let mut expected = state.clone();
-                        match index {
-                            0 => {
-                                expected.schedule_to_start_remaining =
-                                    Some(Remaining { ticks: remaining });
-                            }
-                            1 => {
-                                expected.start_to_close_remaining =
-                                    Some(Remaining { ticks: remaining });
-                            }
-                            2 => {
-                                expected.schedule_to_close_remaining =
-                                    Some(Remaining { ticks: remaining });
-                            }
-                            _ => {
-                                expected.heartbeat_remaining = Some(Remaining { ticks: remaining });
-                            }
+    for maximum in 1..=3 {
+        for number in 1..=maximum {
+            for ticks in [1, 3] {
+                for (index, fact) in [
+                    ExpiredDeadline::ScheduleToStart,
+                    ExpiredDeadline::StartToClose,
+                    ExpiredDeadline::ScheduleToClose,
+                    ExpiredDeadline::Heartbeat,
+                ]
+                .into_iter()
+                .enumerate()
+                {
+                    for pending in [false, true] {
+                        if index == 0 && pending {
+                            continue;
                         }
-                        assert_eq!(steps[0].2, expected);
+                        let mut timeouts = [None; 4];
+                        timeouts[index] = Some(ticks);
+                        let world = configured(maximum, true, timeouts);
+                        let mut state = attempt(&world, number, index != 0, pending);
+                        for remaining in (0..ticks).rev() {
+                            let steps = world.checked_step(&state, Deadline::Tick.into())?;
+                            assert_eq!(steps.len(), 1);
+                            assert_eq!(steps[0].0, Outcome::Accepted);
+                            if remaining == 0 {
+                                assert_eq!(steps[0].1, [fact]);
+                                assert_eq!(steps[0].2, expired(&world, &state, fact));
+                            } else {
+                                assert_eq!(steps[0].1, Vec::<ExpiredDeadline>::new());
+                                let mut expected = state.clone();
+                                let slot = match index {
+                                    0 => &mut expected.schedule_to_start_remaining,
+                                    1 => &mut expected.start_to_close_remaining,
+                                    2 => &mut expected.schedule_to_close_remaining,
+                                    _ => &mut expected.heartbeat_remaining,
+                                };
+                                *slot = Some(Remaining { ticks: remaining });
+                                assert_eq!(steps[0].2, expected);
+                            }
+                            state = steps[0].2.clone();
+                        }
+                        assert!(world.checked_step(&state, Deadline::Tick.into())?.is_empty());
                     }
-                    state = steps[0].2.clone();
                 }
-                assert!(world.checked_step(&state, Deadline::Tick.into())?.is_empty());
             }
         }
     }
@@ -301,15 +314,94 @@ fn simultaneous_expiry_obeys_global_then_attempt_then_heartbeat_priority() -> Te
             }
             let world = configured(3, true, timeouts);
             let before = attempt(&world, 1, started, pending);
-            let phase = if pending && fact == ExpiredDeadline::StartToClose {
-                Phase::Canceled
-            } else {
-                Phase::TimedOut
-            };
             assert_eq!(
                 world.checked_step(&before, Deadline::Tick.into())?.into_vec(),
-                [(Outcome::Accepted, vec![fact], cleared(&before, phase))]
+                [(Outcome::Accepted, vec![fact], expired(&world, &before, fact))]
             );
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn timeout_retry_rearms_waiting_then_poll_and_preserves_spanning_budget() -> TestResult {
+    for maximum in 1..=3 {
+        for (index, fact) in [(1, ExpiredDeadline::StartToClose), (3, ExpiredDeadline::Heartbeat)] {
+            for global in [None, Some(3)] {
+                let mut timeouts = [Some(3), Some(3), global, Some(3)];
+                timeouts[index] = Some(1);
+                let world = configured(maximum, true, timeouts);
+                for number in 1..=maximum {
+                    for pending in [false, true] {
+                        let before = attempt(&world, number, true, pending);
+                        let steps = world.checked_step(&before, Deadline::Tick.into())?;
+                        let expected = expired(&world, &before, fact);
+                        assert_eq!(
+                            steps.into_vec(),
+                            [(Outcome::Accepted, vec![fact], expected.clone())]
+                        );
+                        if pending || number == maximum {
+                            continue;
+                        }
+                        let stale = world.checked_step(&expected, Worker::Poll(number).into())?;
+                        assert_eq!(
+                            stale.into_vec(),
+                            [(
+                                Outcome::Rejected(Rejection::FailedPrecondition),
+                                vec![],
+                                expected.clone()
+                            )]
+                        );
+                        let waiting = world.checked_step(&expected, Deadline::Tick.into())?;
+                        let mut waited = expected.clone();
+                        waited.schedule_to_start_remaining = Some(Remaining { ticks: 2 });
+                        waited.schedule_to_close_remaining = global.map(|_| Remaining { ticks: 1 });
+                        assert_eq!(waiting.into_vec(), [(Outcome::Accepted, vec![], waited)]);
+                        let repolled = accepted(&world, &expected, Worker::Poll(number + 1).into());
+                        let mut running = expected;
+                        running.phase = Phase::Started;
+                        running.schedule_to_start_remaining = None;
+                        running.start_to_close_remaining =
+                            timeouts[1].map(|ticks| Remaining { ticks });
+                        running.heartbeat_remaining = timeouts[3].map(|ticks| Remaining { ticks });
+                        assert_eq!(repolled, running);
+                        assert_closed(
+                            &world,
+                            &repolled,
+                            Worker::RespondCompleted.into(),
+                            Phase::Completed,
+                        );
+                    }
+                }
+                let mut current = attempt(&world, 1, true, false);
+                for number in 1..=maximum {
+                    let steps = world.checked_step(&current, Deadline::Tick.into())?;
+                    let selected = if global.is_some() && number == 3 {
+                        ExpiredDeadline::ScheduleToClose
+                    } else {
+                        fact
+                    };
+                    let next = expired(&world, &current, selected);
+                    assert_eq!(
+                        steps.into_vec(),
+                        [(Outcome::Accepted, vec![selected], next.clone())]
+                    );
+                    if number < maximum {
+                        current = accepted(&world, &next, Worker::Poll(number + 1).into());
+                    } else {
+                        assert_eq!(next.phase, Phase::TimedOut);
+                        assert_eq!(
+                            world.checked_step(&next, Client::Cancel.into())?.into_vec(),
+                            [(Outcome::Rejected(Rejection::NotFound), vec![], next.clone())]
+                        );
+                        for worker in
+                            [Worker::Poll(number), Worker::Heartbeat, Worker::RespondCompleted]
+                        {
+                            assert!(world.checked_step(&next, worker.into())?.is_empty());
+                        }
+                    }
+                }
+            }
         }
     }
     Ok(())
@@ -517,6 +609,70 @@ fn required_tlc_replays_both_pending_failure_payloads_at_every_attempt() -> Test
                     edge.4,
                     cleared(&edge.0, if retryable { Phase::Canceled } else { Phase::Failed })
                 );
+            }
+        }
+    }
+    Ok(())
+}
+
+#[test]
+#[allow(clippy::print_stderr)]
+fn required_tlc_replays_timeout_retries_with_exact_cause_and_budget() -> TestResult {
+    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+        return Ok(());
+    }
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let tlc = umpire_tlc::Tlc::discover(&root)?;
+    for (index, fact) in [(1, ExpiredDeadline::StartToClose), (3, ExpiredDeadline::Heartbeat)] {
+        for (global, number) in [(None, 2), (Some(3), 1)] {
+            let mut deadlines = [Some(3), None, global, None];
+            deadlines[index] = Some(1);
+            let world = configured(3, true, deadlines);
+            let source = extra_method(&format!(
+                r"
+        #[postcondition(after = Deadline::Tick)]
+        fn false_timeout_retry(&self, before: &Self) {{
+            check!(before.attempt != {number} || before.phase != Phase::Started || self.phase != Phase::Scheduled);
+        }}
+"
+            ));
+            let module = only_property(
+                bound_for(world.clone()).lift_source("model.rs", &source)?,
+                "Post_false_timeout_retry",
+            );
+            let result = tlc.check_module(&module)?;
+            let property = &result.properties["Post_false_timeout_retry"];
+            assert_eq!(property.verdict, umpire_tlc::Verdict::Refuted);
+            let trace = property.trace.as_ref().ok_or("missing timeout retry trace")?;
+            let edges = replay(&world, &module, trace)?;
+            let edge = edges
+                .iter()
+                .find(|(before, action, _, facts, after)| {
+                    before.attempt == number
+                        && *action == Deadline::Tick.into()
+                        && facts == &[fact]
+                        && after.phase == Phase::Scheduled
+                })
+                .ok_or("missing exact timeout retry edge")?;
+            assert_eq!(edge.2, Outcome::Accepted);
+            assert_eq!(edge.4, expired(&world, &edge.0, fact));
+            eprintln!(
+                "timeout retry cause={fact:?} global={global:?} attempt={number}: {trace:#?}"
+            );
+            if global.is_none() {
+                let original = match fact {
+                    ExpiredDeadline::StartToClose => "Some(ExpiredDeadline::StartToClose)",
+                    _ => "Some(ExpiredDeadline::Heartbeat)",
+                };
+                let wrong = if index == 1 {
+                    "Some(ExpiredDeadline::Heartbeat)"
+                } else {
+                    "Some(ExpiredDeadline::StartToClose)"
+                };
+                for replacement in [wrong, "None"] {
+                    let mutant = replace_once(&source, original, replacement);
+                    rejects_fact_mutant(&world, &mutant, "Post_false_timeout_retry")?;
+                }
             }
         }
     }
@@ -770,22 +926,43 @@ fn only_property(mut module: umpire_tla::Module, operator: &str) -> umpire_tla::
 }
 
 #[test]
-#[allow(clippy::print_stderr)]
 fn selected_deadline_worlds_agree_compiled_interpreted_and_required_tlc() -> TestResult {
+    selected_deadline_worlds(0)
+}
+
+#[test]
+fn remaining_deadline_worlds_agree_compiled_interpreted_and_required_tlc() -> TestResult {
+    selected_deadline_worlds(1)
+}
+
+#[allow(clippy::print_stderr)]
+fn selected_deadline_worlds(partition: usize) -> TestResult {
     let mut selections = vec![(1, false, [None; 4]), (3, true, [None; 4])];
     for (maximum, asynchronous, ticks) in [(1, false, 1), (3, true, 3)] {
-        for index in 0..4 {
+        for index in [0, 2] {
             let mut deadlines = [None; 4];
             deadlines[index] = Some(ticks);
             selections.push((maximum, asynchronous, deadlines));
         }
     }
+    for maximum in 1..=3 {
+        for index in [1, 3] {
+            for global in [None, Some(1), Some(3)] {
+                let mut deadlines = [Some(3), None, global, None];
+                deadlines[index] = Some(1);
+                selections.push((maximum, true, deadlines));
+            }
+        }
+        for global in [None, Some(1)] {
+            selections.push((maximum, true, [None, Some(1), global, Some(1)]));
+        }
+    }
     selections.extend([
         (1, false, [Some(1), None, Some(1), None]),
-        (3, true, [None, Some(1), Some(1), Some(1)]),
-        (3, true, [None, Some(1), None, Some(1)]),
+        (3, true, [None, Some(3), None, None]),
+        (3, true, [None, None, None, Some(3)]),
     ]);
-    for (maximum, asynchronous, deadlines) in selections {
+    for (maximum, asynchronous, deadlines) in selections.into_iter().skip(partition).step_by(2) {
         let world = configured(maximum, asynchronous, deadlines);
         let graph = umpire_testing::Checker::explore(&world, 4096)?;
         assert!(!graph.counts.cut);
