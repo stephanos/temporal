@@ -125,6 +125,13 @@ set -euo pipefail
 [ "$MISE_AUTO_INSTALL" = false ] && [ "$MISE_EXEC_AUTO_INSTALL" = false ]
 printf '%s|%s|%s|%s|%s|%s|%s|%s\n' "$label" "$PWD" "$CARGO_TARGET_DIR" "$CARGO_HOME" "$UMPIRE_QUICK_CACHE" "$UMPIRE_CACHE_DISABLE" "${{UMPIRE_BACKENDS:-unset}}" "$*" >> "$CONTROL_LOG"
 [ "${{CONTROL_FAIL:-}}" != "$label" ] || {{ printf '%s child diagnostic\n' "$label" >&2; exit 37; }}
+if [ "${{CONTROL_EXPECT_UPDATE:-0}}" = 1 ]; then
+ [ "$INSTA_UPDATE" = always ] && [ "$TRYBUILD" = overwrite ]
+fi
+if [ "${{CONTROL_FAIL_INNER:-0}}" = 1 ] && [ "$*" = 'cargo test -p umpire-checker --quiet' ]; then
+ printf 'inner child diagnostic\n' >&2
+ exit 37
+fi
 if [ "$label" = source-boundary ]; then
  printf '{{"packages":[{{"source":null,"manifest_path":"%s/Cargo.toml"}}]}}\n' "$CONTROL_ROOT"
 fi
@@ -341,5 +348,38 @@ fn validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_fai
         if entry == "validate" {
             assert!(log.lines().all(|line| line.contains("|0|1|require|")), "{log}");
         }
+    }
+}
+
+#[test]
+fn convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status() {
+    let fixture = Fixture::new();
+    for (entry, expected) in
+        [("fmt", "cargo fmt --all"), ("update", "cargo test --workspace --locked --quiet")]
+    {
+        fixture.clear();
+        let mut command = fixture.command(false);
+        command.arg(entry);
+        if entry == "update" {
+            command.env("CONTROL_EXPECT_UPDATE", "1");
+        }
+        let output = command.output().unwrap();
+        assert_status(&output, 0);
+        let log = fs::read_to_string(&fixture.log).unwrap();
+        assert_eq!(log.lines().count(), 1);
+        assert!(log.lines().next().unwrap().ends_with(expected), "{log}");
+    }
+    write(&fixture.root.join("backends/native/src/lib.rs"), "// benchmark input\n");
+    for entry in ["time", "validate"] {
+        fixture.clear();
+        let output =
+            fixture.command(false).arg(entry).env("CONTROL_FAIL_INNER", "1").output().unwrap();
+        assert_status(&output, 37);
+        assert!(
+            stderr(&output).contains("framework stage inner loop (edit+test) failed (exit 37)"),
+            "{output:?}"
+        );
+        assert!(stderr(&output).contains("inner child diagnostic"), "{output:?}");
+        assert_eq!(fixture.labels().len(), LEAVES.len() + 1);
     }
 }
