@@ -98,7 +98,7 @@ impl Scratch {
         match self.0.close() {
             Ok(()) => result,
             Err(error) => Err(Refusal(format!(
-                "TLC cleanup failed: {error}; result: {}",
+                "scratch cleanup failed: {error}; result: {}",
                 result.err().map_or_else(|| "completed".into(), |error| error.to_string())
             ))
             .into()),

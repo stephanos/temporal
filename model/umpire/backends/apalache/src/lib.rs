@@ -10,7 +10,7 @@ use std::{
     process::Command,
     time::Duration,
 };
-use umpire_backend_process::{Limits, Refusal, Scratch, java_command, pinned_java, run_process};
+use umpire_backend_process::{Limits, PinnedJar, Refusal, Scratch, java_command, run_process};
 #[path = "../../../../dev/xtask/src/apalache_pins.rs"]
 mod pins;
 pub use pins::{ARCHIVE_SHA256, JAR_SHA256, VERSION};
@@ -119,42 +119,17 @@ pub struct Apalache {
 impl Apalache {
     /// Check the exact installed release before invoking a Model.
     pub fn discover(root: &Path) -> Result<Self, Refusal> {
-        let root = root.canonicalize()?;
-        let scratch = Scratch::new_in(&root, "model/build/apalache")?;
-        let result = (|| {
-            let cache = root.join("model/build/apalache");
-            let installation = cache.join(format!("apalache-{VERSION}"));
-            let jar = installation.join("lib/apalache.jar");
-            for path in [&installation, &installation.join("lib"), &jar] {
-                if fs::symlink_metadata(path)?.is_symlink() {
-                    return Err(Refusal("Apalache installation contains a symlink".into()));
-                }
-            }
-            if !jar.is_file() || jar.canonicalize()? != jar {
-                return Err(Refusal("Apalache jar escapes workspace build root".into()));
-            }
-            let mut digest = Command::new("shasum");
-            digest.args(["-a", "256"]).arg(&jar).current_dir(scratch.path());
-            let (status, output) =
-                run_process(&mut digest, scratch.path(), "digest", Limits::default(), None)?;
-            if !status.success() || output.split_whitespace().next() != Some(JAR_SHA256) {
-                return Err(Refusal("Apalache integrity mismatch".into()));
-            }
-            let java = pinned_java(&root, scratch.path())?;
-            let tool = Self {
-                root: root.clone(),
-                jar,
-                java,
-                limits: Limits { timeout: CHECK_TIMEOUT, ..Limits::default() },
-            };
-            let mut command = tool.command(scratch.path());
+        let limits = Limits { timeout: CHECK_TIMEOUT, ..Limits::default() };
+        let jar = format!("apalache-{VERSION}/lib/apalache.jar");
+        PinnedJar::admit(root, "model/build/apalache", &jar, JAR_SHA256, |admitted, scratch| {
+            let PinnedJar { root, jar, java } = admitted;
+            let tool = Self { root, jar, java, limits };
+            let mut command = tool.command(scratch);
             command.arg("version");
-            let (status, output) =
-                run_process(&mut command, scratch.path(), "version", tool.limits, None)?;
+            let (status, output) = run_process(&mut command, scratch, "version", limits, None)?;
             validate_version(status.success(), &output)?;
             Ok(tool)
-        })();
-        scratch.finish(result)
+        })
     }
     fn command(&self, work: &Path) -> Command {
         let mut command = java_command(&self.java);
@@ -189,9 +164,8 @@ impl Apalache {
         eprintln!("Apalache {} property={invariant} bound={length} start", module.name);
         let result = (|| {
             validate_length(length)?;
-            if !identifier(&module.name) || !identifier(invariant) {
-                return Err(Refusal("invalid Apalache module/property identifier".into()));
-            }
+            umpire_tla::identifier(&module.name)?;
+            umpire_tla::identifier(invariant)?;
             if !module
                 .metadata
                 .invariants
@@ -263,11 +237,6 @@ fn validate_version(success: bool, output: &str) -> Result<(), Refusal> {
         return Err(Refusal(format!("Apalache version mismatch: {output}")));
     }
     Ok(())
-}
-fn identifier(value: &str) -> bool {
-    !value.is_empty()
-        && value.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_')
-        && !value.as_bytes()[0].is_ascii_digit()
 }
 fn parse_output(
     code: Option<i32>,
@@ -528,29 +497,6 @@ mod tests {
         let (scratch, tool) = fake("exit 0")?;
         fs::remove_file(&tool.java)?;
         assert!(matches!(tool.check(&module, "ArithmeticSafe", 1)?, Bounded::NotRun { .. }));
-        scratch.finish(Ok(()))
-    }
-    #[test]
-    fn missing_changed_and_symlinked_installations_refuse_before_model_execution()
-    -> Result<(), Refusal> {
-        use std::os::unix::fs::symlink;
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
-        let scratch = Scratch::new_in(&root, "model/build/apalache")?;
-        assert!(Apalache::discover(scratch.path()).is_err());
-        let installation = scratch.path().join(format!("model/build/apalache/apalache-{VERSION}"));
-        fs::create_dir_all(installation.join("lib"))?;
-        fs::write(installation.join("lib/apalache.jar"), "wrong release")?;
-        fs::write(scratch.path().join("mise.toml"), "java = \"temurin-27\"\n")?;
-        let error = Apalache::discover(scratch.path())
-            .err()
-            .ok_or_else(|| Refusal("wrong release admitted".into()))?;
-        assert!(error.0.contains("integrity"));
-        fs::rename(installation.join("lib"), installation.join("elsewhere"))?;
-        symlink(installation.join("elsewhere"), installation.join("lib"))?;
-        let error = Apalache::discover(scratch.path())
-            .err()
-            .ok_or_else(|| Refusal("symlink admitted".into()))?;
-        assert!(error.0.contains("symlink"));
         scratch.finish(Ok(()))
     }
     #[test]
