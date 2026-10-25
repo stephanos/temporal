@@ -12,6 +12,7 @@ Port the retired-name stream filter and retire the byte-only original-artifact h
 
 ### Approach
 
+- Implement independently of .5/.6 against completed .2 in an isolated checkout/index/target. The stdin filter and compatibility-checkpoint retirement require no guest bootstrap or installer output. Wire the filter in this lane's dispatcher/lib/shell copy; conductor merges overlaps centrally and checks the joined caller plus lifecycle/mutation controls before task completion. Lane-local evidence does not certify an unmerged combined tool.
 - Record useful old filter controls before removal. `compatibility/original/**` and historical `.flow/artifacts/.../original-artifacts.sha256` remain unmodified historical evidence; the active `manifest.json` is deleted with the retired hash verifier, not consulted as an acceptance gate.
 - Port NUL-separated path/line-number/line handling, the external `grep -E` recheck (kept: Rust `regex` syntax differs from POSIX ERE), author-facade test-token exemption and diagnostic output. Preserve malformed-stream status2, forbidden-match1, no-match0 and grep failure propagation. Switch retired-names.sh only at its helper call.
 - Remove the `python3 verify.py` call from `checkpoint.rs`, delete `verify.py` and `manifest.json`; do not port their commit/count/checksum assertions (owner, 2026-10-24: the hash integrity check is thrown away). Keep the semantic lifecycle comparison against `original/rows.snap.txt` and the changed-edge mutation control unchanged.
@@ -43,6 +44,8 @@ Reanchor the actual compatibility test selector to the post-.3 source before run
 - [ ] Both Python files and retired-name Python tests are removed; the shell invokes Rust and the compatibility README matches.
 
 
+- [ ] The conductor has joined .5/.6/.7 dispatcher/caller edits and verified the filter and semantic lifecycle/mutation controls against that integrated source before task completion; no installer or guest whole-task prerequisite is required.
+
 ## Done summary
 TBD
 
@@ -50,3 +53,4 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+

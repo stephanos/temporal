@@ -1,0 +1,116 @@
+   Compiling serde_core v1.0.229
+   Compiling typenum v1.20.1
+   Compiling const-oid v0.10.2
+   Compiling serde v1.0.229
+   Compiling winnow v1.0.4
+   Compiling cpufeatures v0.3.1
+   Compiling serde_derive v1.0.229
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling hybrid-array v0.4.15
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling digest v0.11.3
+   Compiling sha2 v0.11.1
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling serde_spanned v1.1.2
+   Compiling serde_json v1.0.154
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.67s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target/debug/deps/umpire_backend_process-4737ecfeffb13d76)
+
+running 9 tests
+test support::tests::wrong_java_version_vendor_and_failed_launch_are_refused ... ok
+test syscall::supported::tests::raw_clone_prefix_preserves_flags_and_null_stack ... ok
+test syscall::supported::tests::supervisor_retains_first_stop_signal ... ok
+test syscall::supported::tests::raw_clone_normalizes_sparc_child_identity ... ok
+test syscall::tests::unsupported_platform_is_an_explicit_refusal ... ok
+test syscall::supported::tests::duplicated_descriptors_are_private_and_close_on_exec ... ok
+test syscall::tests::all_darwin_helpers_prevent_process_creation ... ok
+test syscall::supported::tests::supervisor_owner_eof_returns_125 ... ok
+test syscall::supported::tests::close_limit_retains_descriptors_above_lowered_soft_limit ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/process.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target/debug/deps/process-c16a89beae5b1093)
+
+running 20 tests
+test owned_child_reaping_includes_other_process_groups ... ok
+test java_environment_is_clean_and_supervisor_group_is_private ... ok
+test cold_native_execution_does_not_need_python_or_a_sibling_supervisor ... ok
+test cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin ... ok
+test installer_containment_preflight_requires_no_descendants ... ok
+test failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8 ... ok
+test owner_death_terminates_and_reaps_separate_session_descendants ... ok
+test scratch_owns_private_unique_directories_and_preserves_finish_results ... ok
+test pthread_atfork_handlers_do_not_run_in_supervisor_or_target ... ok
+test launch_status_and_prepared_command_contracts_are_preserved ... ok
+test substituted_log_fifo_returns_without_waiting_for_a_reader ... ok
+test substituted_log_symlink_cannot_modify_an_external_file ... ok
+test path_search_tries_candidates_after_exec_errors ... ok
+test simulated_darwin_helper_cannot_start_an_escaped_descendant ... ok
+test diagnostic_text_cannot_make_a_hung_preflight_pass ... ok
+test owner_group_and_direct_supervisor_termination_reap_owned_tree ... ok
+test parent_allocator_threads_do_not_deadlock_forked_supervisors ... ok
+test direct_helper_timeout_retains_output_and_cleans_scratch ... ok
+test bounded_reads_dump_and_scratch_fail_closed ... ok
+test timeout_cleans_descendants_before_return ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.07s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target/debug/deps/xtask-c73dc633b21da36d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target/debug/deps/xtask-ee82249996349f6e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/guest_identity.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target/debug/deps/guest_identity-f49d7b18f5f55ece)
+
+running 25 tests
+test compiler::portable_identity_replaces_guest_metadata_and_remaps_generated_paths ... ok
+test compiler::native_macro_identity_ignores_host_configuration_but_retains_argv_and_collisions ... ok
+test compiler::missing_required_inputs_and_option_values_refuse ... ok
+test compiler::build_std_requires_wasm_marker_and_trusted_source_or_rust_src_coordinate ... ok
+test compiler::probes_pass_through_without_guest_environment ... ok
+test compiler::os_bytes_and_lexical_root_boundaries_are_preserved ... ok
+test compiler::dependency_identity_and_transitive_variants_propagate ... ok
+test compiler::invalid_or_missing_dependency_sidecars_and_macro_collisions_refuse ... ok
+test compiler::package_features_profile_compiler_and_closure_remain_distinct ... ok
+test compiler::missing_ambiguous_and_malformed_lock_maps_refuse ... ok
+test compiler::inherited_jobserver_descriptor_reaches_direct_compiler_child ... ok
+test support::canonical_hash_uses_sorted_json_and_known_sha256 ... ok
+test lock::sourced_entries_are_required_but_git_checksums_are_optional ... ok
+test lock::ambiguous_name_version_coordinates_are_marked_unavailable ... ok
+test lock::malformed_native_documents_and_graphs_are_rejected ... ok
+test compiler::previous_wrapper_and_loader_environment_keep_raw_os_bytes ... ok
+test lock::checksum_changes_propagate_through_normal_and_all_platform_build_edges ... ok
+test support::sidecar_lease_serializes_failure_cleanup_and_refuses_symlink ... ok
+test lock::content_addressed_publication_is_repeatable_and_portable ... ok
+test lock::unified_edges_and_edge_topology_change_ancestor_identity ... ok
+test lock::unrelated_and_dev_only_dependencies_do_not_change_guest_closures ... ok
+test current_inputs::native_toml_accepts_current_documents_and_rejects_malformed_input ... ok
+test compiler::sidecar_precedes_child_and_cleanup_preserves_exit_launch_and_signal_outcomes ... ok
+test support::publication_is_complete_under_concurrent_writers_and_cleans_rename_failure ... ok
+test compiler::actual_rustc_compiles_portable_native_macro_sidecars ... ok
+
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+   Doc-tests umpire_backend_process
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests xtask
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -5,7 +5,7 @@ satisfies: [R3, R4, R5]
 
 ## Description
 
-Complete current-tool documentation, aggregate no-Python proof and final integrated validation (R3, R4, R5). Preserve existing .3 ID; it follows every port and .9, and retains its original .2 prerequisite.
+Complete current-tool documentation, aggregate no-Python proof and final integrated validation (R3, R4, R5). Preserve existing .3 ID; it explicitly waits for .5, .6, .7 and .9, retaining its original .2 prerequisite. This is the central integration/documentation/final-validation owner, not a reason to serialize the three source lanes.
 
 **Size:** M
 **Files:** `Makefile`, `model/{README.md,GUEST_BUILDS.md,DESIGN.md}`, `.plans/UMPIRE_MODULES.md`, completed Rust test harness/gate wiring.
@@ -13,6 +13,7 @@ Complete current-tool documentation, aggregate no-Python proof and final integra
 
 ## Approach
 
+- Consume the conductor's .5/.6/.7 integration join: preserve every new dispatcher command and Make caller, combine Cargo/features without guest-closure leakage, and rerun affected focused controls. Confirm .5's final asset publication/two-build reproducibility/freshness, .6's real pinned install and .7's lifecycle/mutation proofs were completed on joined inputs before accepting their completion. No additional full gate is introduced; the single required pipeline below remains the final integrated gate.
 - Treat the initial 14-file Python inventory as historical evidence and take a fresh integrated tracked/embedded-Python census. Map useful old responsibilities to native controls, recording pure Python quirks and byte-only verifier assertions retired under owner permission. No safety/semantic control is obsolete merely because its implementation was Python. Preserve historical evidence outside the active toolchain and frozen originals.
 - Remove the obsolete Python unittest stage after its retained responsibilities have native Cargo controls. The existing `cargo test --workspace --locked` stage exclusively owns process and xtask unit/integration controls, exactly once per canonical gate; do not add a second package-specific Cargo pass as the replacement stage. Preserve every control responsibility, update stage reporting to describe the ownership transfer, and keep host-only tools outside intended wasm targets.
 - Update current prerequisite/command/alias/wrapper/identity/platform/ownership documentation. Record libc and the R18 admissions (`toml`, `sha2`, `tar`, `flate2`, `tempfile`, `rustix`) accurately; document Rust bootstrap prerequisites/native CLI/schema/parse/error changes, remove duplicated Bash semantic validation and the old helper CI skip matrix, and drop Python/`verify.py`/`manifest.json` verification instructions; do not describe unapproved dependency work or simulated platform tests as completed.
@@ -53,3 +54,4 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+

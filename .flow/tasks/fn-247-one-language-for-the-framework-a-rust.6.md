@@ -4,7 +4,7 @@ satisfies: [R2, R3]
 # fn-247-one-language-for-the-framework-a-rust.6 Port Apalache installation with exact archive, publication and concurrency controls
 
 ## Description
-Port Apalache installation and its security/concurrency controls (R2, R3), after guest integration establishes shared xtask helpers. This isolates archive admission from the other helper ports.
+Port Apalache installation and its security/concurrency controls (R2, R3), after completed .2 establishes native xtask support; no .5 guest-bootstrap implementation is required. This isolates archive admission from the other helper ports.
 
 **Size:** M
 **Files:** `model/dev/xtask/{Cargo.toml,src/fetch_apalache*,tests/apalache*}`, `model/{Cargo.toml,Cargo.lock}`, `model/scripts/{fetch-apalache.py,tests/test_apalache.py}`, `model/umpire/backends/apalache/tests/controls.rs`, `Makefile`.
@@ -12,6 +12,7 @@ Port Apalache installation and its security/concurrency controls (R2, R3), after
 
 ### Approach
 
+- Implement as an independent isolated source lane beside .5/.7. Reuse .2 `Error`/`Result` and hashing/encoding/publication interfaces; installer commands call the compiled host tool and do not require the guest freshness launcher. Own tar/flate2 Cargo/lock edits in this lane's copy; conductor merges shared dispatcher/lib/Makefile/Cargo edits and verifies their combined package/features/guest closure before completion. Lane-local fixture controls are useful evidence, not a claim the unmerged combined tool passes.
 - Add R18-admitted host-only `tar` 0.4.46 (`default-features = false`, no xattr) and `flate2` 1.1.10 (miniz_oxide backend) to xtask; record before/after inventory with each new transitive package's R18 basis and no guest-closure change.
 - Verify the downloaded archive's SHA-256 (in-process `sha2`) before any parsing. Then stream it through `flate2::read::GzDecoder` and `tar::Archive`, select the one exact named member, require it to be a regular file, read its bytes in memory and verify the jar SHA-256. No system tar, member filtering, verbose listing, GNU/BSD parity proof or macOS receipt. No arbitrary caller-supplied archive grammar is introduced; duplicate/type7/gzip-trailer research cases cannot pass the archive hash and need no handling.
 - Keep one Rust pin authority for version/archive hash/jar hash; update the backend's source-include pin consistency control to reference it without copying a second authority.
@@ -43,6 +44,8 @@ Use controlled download/archive fixtures for installer tests; real required Apal
 - [ ] `tar`/`flate2` admissions are recorded with R18 basis and no guest-closure change; Makefile and Apalache pin-consistency controls use Rust; installer Python/control removed after its Rust counterparts pass.
 
 
+- [ ] The conductor has joined .5/.6/.7 shared-file edits and verified installer dispatch/Make caller, admitted dependency features and real pinned-release installation against the joined tool before task completion. No extra full gate is required here.
+
 ## Done summary
 TBD
 
@@ -50,3 +53,4 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+

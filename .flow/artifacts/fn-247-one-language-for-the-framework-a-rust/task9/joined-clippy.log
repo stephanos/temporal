@@ -1,0 +1,23 @@
+    Checking serde_core v1.0.229
+    Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+   Compiling serde_derive v1.0.229
+    Checking typenum v1.20.1
+    Checking winnow v1.0.4
+    Checking const-oid v0.10.2
+    Checking cpufeatures v0.3.1
+    Checking toml_parser v1.1.5+spec-1.1.0
+    Checking umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tla)
+    Checking hybrid-array v0.4.15
+    Checking crypto-common v0.2.2
+    Checking block-buffer v0.12.1
+    Checking umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+    Checking serde_json v1.0.154
+    Checking serde_spanned v1.1.2
+    Checking toml_datetime v1.1.2+spec-1.1.0
+    Checking toml v1.1.8+spec-1.1.0
+    Checking digest v0.11.3
+    Checking sha2 v0.11.1
+    Checking serde v1.0.229
+    Checking xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/dev/xtask)
+    Checking umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/apalache)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.21s

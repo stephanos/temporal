@@ -6,7 +6,9 @@
   "depends_on": [
     "fn-247-one-language-for-the-framework-a-rust.2",
     "fn-247-one-language-for-the-framework-a-rust.7",
-    "fn-247-one-language-for-the-framework-a-rust.9"
+    "fn-247-one-language-for-the-framework-a-rust.9",
+    "fn-247-one-language-for-the-framework-a-rust.5",
+    "fn-247-one-language-for-the-framework-a-rust.6"
   ],
   "id": "fn-247-one-language-for-the-framework-a-rust.3",
   "priority": null,
@@ -14,5 +16,5 @@
   "spec_path": ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.3.md",
   "status": "todo",
   "title": "Complete Rust-only gate wiring, documentation and integrated behavioral evidence",
-  "updated_at": "2026-10-24T23:15:29.406633Z"
+  "updated_at": "2026-10-24T23:59:57.163415Z"
 }

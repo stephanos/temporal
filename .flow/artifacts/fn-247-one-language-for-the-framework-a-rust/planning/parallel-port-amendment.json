@@ -1,0 +1,65 @@
+{
+  "success": true,
+  "body_payloads": {
+    "fn-247-one-language-for-the-framework-a-rust": ".flow/tmp/fn247-parallel-ports/applied/fn-247-one-language-for-the-framework-a-rust.md",
+    "fn-247-one-language-for-the-framework-a-rust.3": ".flow/tmp/fn247-parallel-ports/applied/fn-247-one-language-for-the-framework-a-rust.3.md",
+    "fn-247-one-language-for-the-framework-a-rust.5": ".flow/tmp/fn247-parallel-ports/applied/fn-247-one-language-for-the-framework-a-rust.5.md",
+    "fn-247-one-language-for-the-framework-a-rust.6": ".flow/tmp/fn247-parallel-ports/applied/fn-247-one-language-for-the-framework-a-rust.6.md",
+    "fn-247-one-language-for-the-framework-a-rust.7": ".flow/tmp/fn247-parallel-ports/applied/fn-247-one-language-for-the-framework-a-rust.7.md"
+  },
+  "fallback": [
+    {
+      "task": "fn-247-one-language-for-the-framework-a-rust.6",
+      "before": [
+        "fn-247-one-language-for-the-framework-a-rust.5",
+        "fn-247-one-language-for-the-framework-a-rust.2"
+      ],
+      "after": [
+        "fn-247-one-language-for-the-framework-a-rust.2"
+      ],
+      "expected_definition_sha256": "88f7e35bffd9d609473047c54850863ef3fff27e9ecf8b1cec40e92895b58ee1",
+      "writer": "installed canonicalize_task_for_write + atomic_write_json",
+      "changed_fields": [
+        "depends_on",
+        "updated_at"
+      ]
+    },
+    {
+      "task": "fn-247-one-language-for-the-framework-a-rust.7",
+      "before": [
+        "fn-247-one-language-for-the-framework-a-rust.6",
+        "fn-247-one-language-for-the-framework-a-rust.2"
+      ],
+      "after": [
+        "fn-247-one-language-for-the-framework-a-rust.2"
+      ],
+      "expected_definition_sha256": "5609457d994d218a09eb5e6d047d2ca03bb03945c6f1284f9ec9c6cbd0521807",
+      "writer": "installed canonicalize_task_for_write + atomic_write_json",
+      "changed_fields": [
+        "depends_on",
+        "updated_at"
+      ]
+    }
+  ],
+  "validation": {
+    "success": true,
+    "spec": "fn-247-one-language-for-the-framework-a-rust",
+    "root_errors": [],
+    "valid": true,
+    "errors": [],
+    "warnings": [],
+    "task_count": 9
+  },
+  "coverage": {
+    "success": true,
+    "requirement_coverage": "## Requirement coverage\n\n| Req | Description | Task(s) | Gap justification |\n| --- | --- | --- | --- |\n| R1 | `umpire-backend-process` owns the moved support and a Rust supervisor; TLA+ contains no process implementation or Python; TLA+, TLC and Apalache use the new owner without an Apalache-to-TLC dependency. Native caller contracts preserve functional typed failure/status mapping, Java pin, capture/dump/scratch contracts and platform behavior; old signatures, reexports and diagnostic bytes are not required solely for backward compatibility. Errors: unsupported platforms and unsafe Darwin identity refuse at admission; launch, signal, timeout, cancellation and owner EOF controls retain their outcomes; actual Linux direct/escaped descendants are gone before return; output substitution, malformed UTF-8, bounded reads and cleanup failures retain their checks. The unsafe policy compiles without weakening other crates. | fn-247-one-language-for-the-framework-a-rust.1, fn-247-one-language-for-the-framework-a-rust.4 | \u2014 |\n| R2 | xtask replaces active helper and embedded Python responsibilities with documented native Rust arguments, schemas, grammar, limits and errors; shell/Make callers are updated coherently. Compiler-input identities are deterministic, portable and stable, with new formats/cache invalidation permitted. Necessary guest/golden/pin regeneration records its cause and old/new hashes; rebuilt current-input artifacts are reproducible and freshness passes. Errors: malformed inputs/TOML/JSON/sidecars, missing/ambiguous closures, native-macro collisions, missing/probe-failed tools, stale artifacts, launch/compiler failures, installation hashes/locks/symlinks/concurrency and malformed retired-name streams retain meaningful negative controls. Minimal cold bootstrap disables auto-install before its first probe and fails clearly; Rust owns semantic validation, with no duplicated Bash parser or old CI freshness skip matrix. Python quirks, exact old diagnostics and byte-parity proofs are retired explicitly. | fn-247-one-language-for-the-framework-a-rust.2, fn-247-one-language-for-the-framework-a-rust.5, fn-247-one-language-for-the-framework-a-rust.6, fn-247-one-language-for-the-framework-a-rust.7 | \u2014 |\n| R3 | Every useful existing Python test responsibility and Rust control that constructs Python children has a Rust-owned counterpart; the ordinary gate executes those controls and invokes no Python; no tracked Python file remains under the active Model tree. Record pure Python-quirk assertions retired under the owner amendment rather than recreating them. The byte-only retained-original hash verifier and active hash manifest are removed; semantic lifecycle comparison and its mutation control remain. Errors: a changed original lifecycle edge fails; platform-limited controls are reported honestly; no deletion of a safety control or frozen original satisfies this criterion. | fn-247-one-language-for-the-framework-a-rust.2, fn-247-one-language-for-the-framework-a-rust.3, fn-247-one-language-for-the-framework-a-rust.4, fn-247-one-language-for-the-framework-a-rust.5, fn-247-one-language-for-the-framework-a-rust.6, fn-247-one-language-for-the-framework-a-rust.7 | \u2014 |\n| R4 | Current prerequisites, crate/module ownership documentation and the gate describe native Rust driver contracts, intentional CLI/output/parse/error breaks and process platform/safety policy; design evidence records libc/R18 accounting, semantic/control and current-input reproducibility evidence, justified regenerated pins and measured `make model-validate` under R5. Errors: unmet dependency admission remains explicit; missing platform evidence and timing overruns are reported honestly; no historical byte-parity or redundant full-gate receipt is required. | fn-247-one-language-for-the-framework-a-rust.1, fn-247-one-language-for-the-framework-a-rust.3, fn-247-one-language-for-the-framework-a-rust.8 | \u2014 |\n| R5 | The canonical `model-validate` entrypoint executes exactly one complete TLC-required Model gate, including all current stages, followed by the existing edited-checker benchmark once. Required Apalache mode remains independently selectable and runs its existing controls inside that same gate. Existing `model-check` and `model-time` commands retain their arguments, mode behavior and failure contracts; focused controls preserve absent/default and explicit-skip semantics. Actual mode, commands, stages and timings are recorded honestly, with required timing identified separately from historical default timing. Errors: conflicting environment/command-line/MAKEFLAGS values cannot turn canonical TLC validation into a skip; gate failure prevents the benchmark; gate and benchmark failures retain both child diagnostic texts and propagate their established statuses at direct-wrapper and GNU Make boundaries; timing overruns remain soft warnings and never hide a failed check; no cached/fabricated pass or omitted stage discharges validation. | fn-247-one-language-for-the-framework-a-rust.3, fn-247-one-language-for-the-framework-a-rust.8 | \u2014 |\n| R6 | (2026-10-24) The process crate creates scratch directories with `tempfile::Builder` (prefix, 0700, `tempdir_in`, explicit close) and makes parent-side syscalls through `rustix` safe wrappers; the symlink-refusing workspace-relative walk and the forked child's raw-libc path stay. The audited unsafe site count decreases, recorded before/after. Errors: every existing process control (refusal, timeout, cancellation, signal, owner EOF, descendant cleanup, scratch cleanup failure) retains its outcome. | fn-247-one-language-for-the-framework-a-rust.9 | \u2014 |\n",
+    "spec": "fn-247-one-language-for-the-framework-a-rust",
+    "root_errors": [],
+    "valid": true,
+    "errors": [],
+    "warnings": [],
+    "task_count": 9
+  },
+  "no_commit_or_status_change": true,
+  "task9_body_unchanged": "fresh CLI body already includes TLC/Apalache Touches and mechanical Scratch caller authority"
+}

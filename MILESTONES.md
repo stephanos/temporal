@@ -110,18 +110,17 @@ and the process crate adopts `rustix` and `tempfile` after .4. The nine-task pla
 minimal cold bootstrap and single-pass validation; the amended native plan passed fresh primary review. The workspace test stage owns native controls once, and isolated Cargo edits are reconciled centrally.
 Shared process support is extracted and single-pass validation is delivered: one required gate plus benchmark
 passed in about 17 minutes, with focused default-mode controls and unchanged legacy commands. The supervisor
-replacement is complete locally: 48 focused checks and the resumed review passed, with the closure committed. Helper ports remain queued. Placed before fn-246.1, which depends on it,
+replacement is complete locally: 48 focused checks and the resumed review passed, with the closure committed. The shared native xtask foundation is complete and reviewed; the parent syscall adoption is integrated for review. The guest, installer and retired-name ports run in parallel isolated checkouts from that foundation, accepting integration conflicts and doing final canonical guest publication after the join. Placed before fn-246.1, which depends on it,
 since fn-246 and fn-240 build on the process crate. The retained-original hash integrity check is thrown away (verifier and `manifest.json` deleted); the originals stay in Git and the semantic lifecycle comparison stays.
 [Spec](.flow/specs/fn-247-one-language-for-the-framework-a-rust.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-247.2 | 🔄 in progress | After .4: host-only xtask, lock closure and rustc identity normalization (R2, R3) |
 | fn-247.9 | 🔄 in progress | After .4: `rustix` safe wrappers for parent-side syscalls and `tempfile` scratch directories in the process crate (R6) |
-| fn-247.5 | ⬜ todo | After .2: guest orchestration and freshness, cold admission, guest regeneration with recorded hashes (R2, R3) |
-| fn-247.6 | ⬜ todo | After .5: pinned Apalache installer reading the archive in-process (`tar` + `flate2`), `File::lock`, publication controls (R2, R3) |
-| fn-247.7 | ⬜ todo | After .6: retired-name filtering in Rust (keeps `grep -E`); delete the original-artifact hash verifier and `manifest.json` (R2, R3) |
-| fn-247.3 | ⬜ todo | After .7 and .9: Rust-only gate/docs, behavioral evidence and one combined-backend model-validate run (R3, R4, R5) |
+| fn-247.5 | 🔄 in progress | After .2: guest orchestration and freshness, cold admission, guest regeneration with recorded hashes (R2, R3) |
+| fn-247.6 | 🔄 in progress | Alongside .5/.7 after .2: pinned Apalache installer reading the archive in-process (`tar` + `flate2`), `File::lock`, publication controls (R2, R3) |
+| fn-247.7 | 🔄 in progress | Alongside .5/.6 after .2: retired-name filtering in Rust (keeps `grep -E`); delete the original-artifact hash verifier and `manifest.json` (R2, R3) |
+| fn-247.3 | ⬜ todo | After .2/.5/.6/.7/.9: Rust-only gate/docs, behavioral evidence and one combined-backend model-validate run (R3, R4, R5) |
 
 ### fn-248: Off-the-shelf crates and consolidation in existing model code (model)
 
