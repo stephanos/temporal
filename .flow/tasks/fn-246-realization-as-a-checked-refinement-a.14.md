@@ -8,7 +8,7 @@ Move fn-237.4's already-approved narrow heartbeat key/codec/raw-and-SDK continua
 
 **Size:** M
 **Files:** feature-owned activity task key/response codec and generated wire bindings, worker program admission, raw/SDK continuation and token-scoped completion controls.
-**Touches:** [model/temporal/proto/umpire/temporal/v1/**, model/temporal/api/**, model/temporal/hosts/go/gen/**, model/temporal/hosts/go/reference/worker/**, model/temporal/hosts/go/*program*test.go, model/temporal/realization/tests/program.rs, common/testing/testpilot/temporal/act/**]
+**Touches:** [model/temporal/proto/umpire/temporal/v1/**, model/temporal/api/**, model/temporal/hosts/go/gen/**, model/temporal/hosts/go/reference/worker/**, model/temporal/hosts/go/*program*test.go, model/temporal/realization/tests/program.rs, common/testing/testpilot/temporal/act/**, model/temporal/feature/activity/temporal.rs]
 
 ### Approach
 
@@ -22,7 +22,7 @@ All source coordinates are provisional planning anchors. Reanchor final fn-237.3
 6. Reuse the existing transport seam or deepen it minimally for actual completion notification. If an additional mechanical bridge is necessary, coordinate exact ownership with the conductor before editing the later journal/gate surface. Transport failure/malformed/missing response, context cancellation and Close do not fabricate a bit or advance a key. Wake/join blocked waits and retain partial actual evidence through existing fault owners.
 7. Supply server-free program/native/mock-transport tests now. Mandatory actual live cooperative witnesses remain fn-237.4; this task must not claim them from mocks. Existing terminal live rows remain in .5/.6's validation.
 
-**Dispatch exclusion:** Serialize with .2 on realization/tests/program.rs; the parent overlap guard applies even when the task DAG otherwise permits parallel work. Preserve existing dependencies.
+**Dispatch exclusion:** Production Rust key/program integration consumes .7’s capability/filler migration and is serialized with its active feature/activity/temporal.rs and program-test ownership. SDK-only proof is already integrated. Serialize with .2 on realization/tests/program.rs; the parent overlap guard applies even when the task DAG otherwise permits parallel work. Preserve existing dependencies.
 
 ### Investigation targets
 
