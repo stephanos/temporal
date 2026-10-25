@@ -1,5 +1,0 @@
-error: opaque fields require Bytes or Secret and only Ignored(reason)
-  --> tests/ui/opaque_semantic_kind.rs:12:5
-   |
-12 |     value: Ignored,
-   |     ^^^^^

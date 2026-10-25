@@ -1,5 +1,0 @@
-error: request constraint requires an expectation
- --> tests/ui/missing_request_expectation.rs:9:17
-  |
-9 | struct Mirror { id: Uuid }
-  |                 ^^

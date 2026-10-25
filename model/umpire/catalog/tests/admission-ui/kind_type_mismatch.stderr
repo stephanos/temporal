@@ -1,0 +1,22 @@
+error[E0277]: the trait bound `std::string::String: View<umpire_catalog::kinds::Counter>` is not satisfied
+ --> tests/admission-ui/kind_type_mismatch.rs:7:10
+  |
+7 | #[derive(Catalog)]
+  |          ^^^^^^^ the trait `View<umpire_catalog::kinds::Counter>` is not implemented for `std::string::String`
+  |
+help: `std::string::String` implements trait `View<K>`
+ --> src/views.rs
+  |
+  |         impl View<$kind> for $ty {
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^
+  |         |
+  |         `View<umpire_catalog::kinds::Identifier>`
+  |         `View<umpire_catalog::kinds::Secret>`
+  |         `View<umpire_catalog::kinds::Text>`
+...
+  | identity!(String; kinds::Text, kinds::Identifier, kinds::Secret);
+  | ---------------------------------------------------------------- in this macro invocation
+...
+  | impl View<kinds::Uuid> for String {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `View<umpire_catalog::kinds::Uuid>`
+  = note: this error originates in the derive macro `Catalog` which comes from the expansion of the macro `identity` (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -2,15 +2,18 @@
 
 use std::{cell::Cell, panic::AssertUnwindSafe, rc::Rc};
 
+#[path = "../guests/stock/src/model.rs"]
+mod stock;
+
 use prost::Message;
 use umpire_runtime::{
-    Dispatch, Guest, Model,
+    Dispatch, Guest,
     protocol::{self, response::Outcome},
 };
 
 #[test]
 fn unpublished_exploration_leaves_stock_guest_unexplored() {
-    let mut guest = Guest::new(Model::default());
+    let mut guest = Guest::new(stock::model());
     let explore = protocol::ExploreRequest { budget: 1 << 20 }.encode_to_vec();
     assert!(!guest.dispatch_to(1, &explore, |bytes| {
         assert!(matches!(decode(bytes).outcome, Some(Outcome::Explore(_))));

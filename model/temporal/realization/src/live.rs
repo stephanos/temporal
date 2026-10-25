@@ -188,9 +188,9 @@ impl LiveRuntime {
         }
         let mut start = StartActivityExecutionRequest::decode(filled.bytes.as_slice())
             .map_err(|_| Refusal::malformed("filled Start is malformed"))?;
-        let scenario = crate::temporal::SCENARIOS[(request.seed % 3) as usize];
+        let scenario = crate::activity_realization::SCENARIOS[(request.seed % 3) as usize];
         start.header.get_or_insert_with(Header::default).fields.insert(
-            crate::temporal::SCENARIO_HEADER.into(),
+            crate::activity_realization::SCENARIO_HEADER.into(),
             Payload {
                 metadata: std::collections::BTreeMap::from([(
                     "encoding".into(),
@@ -315,7 +315,10 @@ impl LiveRuntime {
                 .unpack()
                 .unwrap_or_else(|_| unreachable!("validated Start receipt"));
             self.model.replace_realization(Realization::configured(
-                crate::temporal::ProposalContext { start: request, run_id: receipt.run_id.clone() },
+                crate::activity_realization::ProposalContext {
+                    start: request,
+                    run_id: receipt.run_id.clone(),
+                },
             ));
         }
     }

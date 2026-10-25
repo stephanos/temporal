@@ -1,0 +1,24 @@
+error[E0027]: pattern does not mention field `omitted`
+ --> tests/admission-ui/omitted_field.rs:8:41
+  |
+8 | #[mirror(response = "test.Wire", type = Wire)]
+  |                                         ^^^^ missing field `omitted`
+  |
+help: include the missing field in the pattern
+  |
+8 - #[mirror(response = "test.Wire", type = Wire)]
+9 - struct Mirror { id: Uuid }
+8 + #[mirror(response = "test.Wire", type = Wire, omitted }: Uuid }
+  |
+help: if you don't care about this missing field, you can explicitly ignore it
+  |
+8 - #[mirror(response = "test.Wire", type = Wire)]
+9 - struct Mirror { id: Uuid }
+8 + #[mirror(response = "test.Wire", type = Wire, omitted: _ }: Uuid }
+  |
+help: or always ignore missing fields here
+  |
+8 - #[mirror(response = "test.Wire", type = Wire)]
+9 - struct Mirror { id: Uuid }
+8 + #[mirror(response = "test.Wire", type = Wire, .. }: Uuid }
+  |

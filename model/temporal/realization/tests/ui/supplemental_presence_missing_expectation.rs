@@ -1,4 +1,4 @@
-use umpire_temporal_annotate::{Catalog, kinds::*};
+use umpire_catalog::{Catalog, kinds::*};
 mod foundation { pub(crate) mod dc { pub(crate) struct Limits; } }
 #[derive(Clone, Default)]
 struct Wire { value: String }
@@ -7,3 +7,5 @@ struct Wire { value: String }
 #[rule(required(value))]
 struct Supplemental { value: Text }
 fn main() {}
+
+type CatalogContext = foundation::dc::Limits;
