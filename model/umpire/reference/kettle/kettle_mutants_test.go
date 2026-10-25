@@ -220,11 +220,12 @@ func TestKettleMutants(t *testing.T) {
 			if mutant.Accepted != (w.code == codes.OK) || mutant.Code != int32(w.code) || mutant.PredictionCount != 1 || len(mutant.Predictions) != 1 {
 				t.Fatalf("wrong actual response: %v", mutant)
 			}
-			start := strings.Index(report.Report, "Generic case: "+w.caseID+"\n")
+			prefix := "Generic case: " + w.caseID + "\nPrediction: " + mutant.Predictions[0].PredictionId + "\n"
+			start := strings.Index(report.Report, prefix)
 			if start < 0 {
-				t.Fatal("framework omitted witness identity")
+				t.Fatal("framework omitted correlated witness identity")
 			}
-			line := strings.SplitN(report.Report[start:], "\n", 3)[1]
+			line := strings.SplitN(report.Report[start+len(prefix):], "\n", 2)[0]
 			if !strings.HasPrefix(line, w.finding) {
 				t.Fatalf("wrong framework finding: %s", line)
 			}

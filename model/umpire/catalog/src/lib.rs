@@ -5,6 +5,7 @@
 mod black_box;
 mod catalog;
 mod gap;
+pub mod generic_probe;
 mod kind;
 mod negative;
 pub mod types;
