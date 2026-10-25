@@ -1,0 +1,68 @@
+    Blocking waiting for file lock on package cache
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+   Compiling prost-types v0.14.4
+   Compiling prost-build v0.14.4
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tla)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/suite)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/testing)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/umpire)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 25.88s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/umpire_catalog-8bc3fc48503ef19f)
+
+running 1 test
+test black_box::applicability_tests::maps_all_variants_and_wire_values_stay_closed ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/umpire_checker-34cd31bb3c9db349)
+
+running 8 tests
+test helper_tests::panic_payloads_preserve_strings_and_share_one_fallback ... ok
+test helper_tests::seeded_stream_refuses_empty_domain - should panic ... ok
+test helper_tests::seeded_stream_reproduces_and_indices_stay_in_domain ... ok
+test interpret::optional_tests::imports_exact_nominal_optional_values ... ok
+test interpret::exported_values::world_validation_tests::primitive_world_import_refuses_missing_duplicate_extra_kinds_and_ranges ... ok
+test interpret::optional_tests::resolver_preserves_scalar_conversions_and_backing_arithmetic ... ok
+test interpret::optional_tests::some_encoding_checks_ordinal_bounds_without_finite_validation ... ok
+test interpret::optional_tests::optional_default_is_eager_and_decodes_zero_payload ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/umpire_front-bb82f033648c474b)
+
+running 7 tests
+test error_tests::errors_preserve_order_and_success_value ... ok
+test library::tests::library_sources_parse_and_declare_the_laws_and_traits ... ok
+test body::effects::optional_fact_tests::optional_tail_preserves_prefix_state ... ok
+test body::optional::tests::defaults_and_eager_ssa_preserve_nominal_types ... ok
+test shape::tests::facade_roots_preserve_admission_and_library_paths ... ok
+test body::optional::tests::canonical_constructor_types_and_located_refusals ... ok
+test body::effects::optional_fact_tests::optional_fact_declarations_and_tails_are_bounded ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/umpire_suite-988eb4b26ac615c4)
+
+running 11 tests
+test coverage::tests::progress_uses_the_combined_evaluator_on_witness_states ... ok
+test pattern_search::tests::bounded_gap_loops_do_not_spend_work_once_their_labels_are_dominated ... ok
+test coverage::tests::classifies_retained_outcomes_and_equal_display_actions_by_typed_identity ... ok
+test coverage::tests::undeclared_and_complete_empty_catalogs_remain_distinct ... ok
+test pattern_search::tests::exact_outcome_retains_the_selected_row ... ok
+test coverage::tests::refuses_invalid_metadata_and_panicking_callbacks ... ok
+test pattern_search::tests::cut_graph_answers_only_settled_searches ... ok
+test coverage::tests::catalog_validation_and_row_classification_avoid_quadratic_equality_scans ... ok
+test pattern_search::tests::finds_a_global_shortest_match_and_searches_before_the_first_node ... ok
+test pattern_search::tests::only_explicit_gaps_consume_intervening_edges ... ok
+test pattern_search::tests::seeded_walks_retain_loops_and_refuse_too_short_a_horizon ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

@@ -1,0 +1,55 @@
+{
+  "base_commit": "2f195824aa7cfba880aea880cd4f3048982a7807",
+  "source_commit": "bc78db241d14836141a8df039c0d0630b4e16107",
+  "source_hashes": {
+    ".plans/UMPIRE_MODULES.md": "3718f9879acd526ab8271bbc11efa2507f8d6149481824abe22e219ccd870959",
+    "model/Cargo.lock": "51cff6607817c393bded0fd9fcc3c72c25b218a22934ab2b33293111ced8db16",
+    "model/temporal/feature/activity/policy_checks.rs": "84634448599f3eb454d39102f4e22e36e435212275ee2cbc1da7dc16e9cae4f6",
+    "model/temporal/feature/activity/proof_checks.rs": "8155a0dec6adc2eda69e67bc9095fe3497ea22e937dd2283d9f9e5327486d74f",
+    "model/temporal/realization/src/probes/generic.rs": "95a2d16bbfa8ea18475b0ca2c8b0e886b336666ae8541511b6dbd6b0c47a449d",
+    "model/umpire/author/suite/src/coverage.rs": "5819b553e653251eda94061a8fb32b82f0a7e8354869fad3ce1158b4e3f4677e",
+    "model/umpire/author/suite/src/pattern_search.rs": "c073eeb94e3c1bb3b0e9609fe532568802882ce0b82e6706d399b4958cf9aaa4",
+    "model/umpire/author/suite/src/search.rs": "aa2dff478f6910839d862aa3a68018c966818aad4d902a46db81dc2cc85bdebb",
+    "model/umpire/backends/apalache/src/replay.rs": "422a5672adb3febefa0eee11421f35b5191dc01e46570a75b03d55a2475d539b",
+    "model/umpire/backends/native/src/explore.rs": "064e2f91f6ff064835b98c6eb8ab69ca68ff4d7cd169c1ecb3b1b9bb54dee00c",
+    "model/umpire/backends/native/src/lib.rs": "39a916e78b2d4b8bf25ac7d424dc48d97f8d0485f010455507524367b86bde3a",
+    "model/umpire/backends/native/src/rng.rs": "e78cf1780bd8389ef66d4af4ecee23b215f90f606e19b6baecdb4ca2d24ca232",
+    "model/umpire/catalog/Cargo.toml": "dbf60601825e10dc22cd29bd4c80003584579d7704ea7af468a67b65030feb5b",
+    "model/umpire/catalog/src/black_box.rs": "ad741df3e3d3b26b76529bf42bba4fab896a73575ac7b804b948821fc64f1766",
+    "model/umpire/catalog/src/value.rs": "6d2e213dca2c1d3c8e71f69fd1e435c22b5e8680140cd77621386c49873bc5bc",
+    "model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs": "262c528157491ee795626cf80f5df996921e16417f58e338c31ea62a518fb4f1",
+    "model/umpire/dev/testing/src/interpreted.rs": "07c232496bd3ecc108490ddedc2987aeca6494a37fa84430e53a8e43f33fb112",
+    "model/umpire/dev/testing/src/lib.rs": "01830f958eb6f3eb4f140f00c53790d7f94f839d49c5936776053e0343b02cb4",
+    "model/umpire/dev/testing/src/source_edit.rs": "cb6721a7b8aa504bc9415849d626785885e3d4e297d60477949022c1a6d41af4",
+    "model/umpire/dev/testing/src/source_edit_tests.rs": "9c099a303b6abfe54665e3ad937e5a963b27c857d1dab97f911772b89b413938",
+    "model/umpire/front/src/declare/action.rs": "bdbf62808697c1a2751f555dc3dbc47526274d27acd6be2199e8d422b6e44914",
+    "model/umpire/front/src/declare/fields.rs": "b5b660ef25c54fe5fb752a1592fac18cdfee1830c1f143d736e7e9c72ac069f7",
+    "model/umpire/front/src/declare/mod.rs": "b0a4fa3b2b932afe2234ec55152ad083f6b8248c14c9ccd328e9b3963a48f9e6",
+    "model/umpire/front/src/errors.rs": "14563f4dccc643e3056fbe0d15c518c82585154317a4271e9097027bddd997e3",
+    "model/umpire/front/src/lib.rs": "d5a45cb8dfa61dda616f234951da4ed8b8e09d0ee0db664150c663105677ab97",
+    "model/umpire/protocol/runtime/tests/core_protocol.rs": "d60f2cbf4715b50a809ac6c3e137eaf4c25a3064fdd47999ef9dfc061576267c",
+    "model/umpire/protocol/runtime/tests/proposal_wire.rs": "c898c03ade2baec4e7d3746f37ff58defa1adda95d779ef98269c7a331216a10",
+    "model/umpire/protocol/runtime/tests/support/mod.rs": "5921c7519664419e997c626eec60bd2192d383c629dc4ddaa62a055f28e52dfc",
+    "model/umpire/protocol/runtime/tests/wire.rs": "5d736fa8138e824d736511b4e9cc23cacac1c8afc8d65eed181d33de728b1b81",
+    "model/umpire/reference/kettle/probes.rs": "4827dd234ebe0f7f49f77946f5a5e0c9bd95924616a032c3249f1856e07c8a40"
+  },
+  "production_graph_acyclic": true,
+  "packages_checked": 154,
+  "current_catalog_normal_deps": [
+    "prost",
+    "thiserror",
+    "umpire_catalog_macros",
+    "umpire_checker",
+    "umpire_runtime"
+  ],
+  "historical_evidence": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task2/validation.json",
+  "limitation": "Guest feature inventories are lane-local; joined guest publication/full R5 deferred.",
+  "tests": {
+    "exit": 0,
+    "passed": 27
+  },
+  "wire": {
+    "exit": 0,
+    "passed": 8
+  }
+}

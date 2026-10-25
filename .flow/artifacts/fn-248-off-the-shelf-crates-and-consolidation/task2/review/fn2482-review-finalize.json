@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-248-off-the-shelf-crates-and-consolidation.2",
+  "verdict": "SHIP",
+  "session_id": "01a17103-529c-71b1-b721-d844f6ebed89",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "No findings.\n\n```json\n{\"classification_counts\": {\"introduced\": 0, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>SHIP</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17103-529c-71b1-b721-d844f6ebed89",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17103-52b2-7ce3-a1a7-b080c02217d4",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17103-535c-7731-bc07-f32fba6db634",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": 0,
+  "introduced_count": 0,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}

@@ -1,0 +1,20 @@
+{
+  "axis": "integration",
+  "parse_status": {
+    "status": "parsed",
+    "reason": null,
+    "block": null
+  },
+  "backend": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "session_id": "01a17103-535c-7731-bc07-f32fba6db634",
+  "verdict": "SHIP",
+  "failed": false,
+  "failure_class": null,
+  "exit_code": 0,
+  "started_at": "2026-10-25T03:03:17.760729Z",
+  "finished_at": "2026-10-25T03:04:54.896690Z",
+  "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/f7ed09c1d61349518d0f456663164d2d/integration.review.md",
+  "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/f7ed09c1d61349518d0f456663164d2d/integration.out.txt"
+}

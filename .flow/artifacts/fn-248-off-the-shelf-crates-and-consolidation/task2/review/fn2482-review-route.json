@@ -1,0 +1,22 @@
+{
+  "success": true,
+  "type": "review_route",
+  "task_id": "fn-248-off-the-shelf-crates-and-consolidation.2",
+  "standalone": false,
+  "scope_id": "fn-248-off-the-shelf-crates-and-consolidation.2",
+  "receipt_path": "/tmp/impl-review-receipt-8f37faba39e2-fn-248-off-the-shelf-crates-and-consolidation.2.json",
+  "receipt_state": "absent",
+  "receipt_verdict": null,
+  "rotated_to": null,
+  "force": false,
+  "pending": 0,
+  "rounds": 0,
+  "last_verdict": null,
+  "unjournaled_reservation": null,
+  "live_reservation": null,
+  "expired_reservation": null,
+  "phase_lease": null,
+  "action": "fanout",
+  "reason": "first_round",
+  "message": "fresh first round: fan out (stale/foreign receipt rotated aside when --rotate-stale is set)."
+}
