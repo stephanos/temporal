@@ -4,7 +4,7 @@
 fn derive_catalog_uses_shared_admission_and_discovery() -> Result<(), Box<dyn std::error::Error>> {
     let source = r#"
         #[derive(Catalog)]
-        #[mirror(request = "temporal.api.example.v1.Request")]
+        #[mirror(request = "example.v1.Request")]
         #[rule(required(identity), rejects = "identity")]
         struct Request {
             #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity")]
