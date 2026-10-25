@@ -83,18 +83,18 @@
   "integration_control_disposition": "B06combinede624 source compiled0; B03bindings5pass; composition11pass/1integrationfailure correctly refused unregisterednewB06ignoredtest. After exact additive registrydae7c52c97 the affected compiledinventorycase1pass; all12composition cases now have actualpassingevidence. No B03validator/source change for registry correction.",
   "limits": "No qualification/fullcycle or timing acceptance. Source3065 genuine role/native/freeze controls; reviewedB04command arm retained in reviewtree, no new integratedcandidate binary claim. Historicalc862 rawclosure/gap retained, no oldreceipt rewritten.",
   "review": {
-    "verdict": "NEEDS_WORK",
-    "rid": "0df920b683f541f6a2ac18fb0926f217",
-    "reviewed_head": "aeced47e0c",
+    "verdict": "SHIP",
+    "session_id": "01a170c0-bc0c-7d41-bcd1-c30003bc857a",
+    "reviewed_head": "d26ea2bbdc923a589012862ce5fd118f15d843af",
     "model": "gpt-6.1-sol",
     "effort": "high",
-    "findings": 1,
-    "R2": "Composed HostTests/HelperTests/HostFixture leafpaths are not tied to authenticated CandidateRoles descriptors; genuine freeze-v4 accepted unsealed placeholder paths. Fix requires actualrole mapping/seals and catching currentexecutable/path mutations.",
-    "receipt": "/home/agent/wt/evidence/fn242-b03-bindings-composition/review-receipt-round1.json",
-    "receipt_sha256": "3b87995d2cd50d8e376f0c61bae3023499b2f9f2d3c71b0581d148561ca59d14",
-    "rereview": "Single same-receipt impl-review after actualproductionfix and greencontrols; no fanoutrestart"
+    "receipt": "/home/agent/wt/evidence/fn242-b03-bindings-composition/review-receipt-round2.json",
+    "receipt_sha256": "f79ecebaeeee3ffd2596e19abedef6bbb95ea87c61444438f7294dbc38ab8e3d",
+    "finding_1": "fixed; all consumed paths/digests match authenticated roles at freeze/reopen; genuine normal control and9directmutations verified",
+    "unaddressed": [],
+    "reviewer_test_scope": "Formatting passed; local Cargo tests not run in read-only sandbox. Executed retained genuine evidence verified, no surviving blockers."
   },
-  "acceptance": "Corrected current R2 normal and9direct refusal cases passed; all69 originalID dispositions retained. Awaiting single same-receipt independent re-review; noFlowdone.",
+  "acceptance": "B03 whole-batch independentSHIP;69originalchecks/26functions/2endpoints mapped with actual currentR2 controls. Formal member receipts follow17then19; noqualification.",
   "prior_review_round1": {
     "verdict": "NEEDS_WORK",
     "rid": "0df920b683f541f6a2ac18fb0926f217",
