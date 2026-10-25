@@ -7,7 +7,6 @@ pub use model::kettle;
 /// Generated reference service messages.
 #[allow(missing_docs, clippy::all, clippy::pedantic)]
 pub mod wire {
-    pub use umpire_runtime::google;
     pub mod umpire {
         pub mod reference {
             pub mod kettle {
@@ -52,9 +51,7 @@ pub fn runtime() -> KettleRuntime {
 /// Kettle Model dispatcher with independent annotation and probe operations.
 pub type AnnotationRuntime = umpire_runtime::AnnotationRuntime<
     KettleRuntime,
-    fn(
-        &umpire_runtime::google::protobuf::Any,
-    ) -> Result<umpire_runtime::google::protobuf::Any, umpire_runtime::protocol::Refusal>,
+    fn(&prost_types::Any) -> Result<prost_types::Any, umpire_runtime::protocol::Refusal>,
 >;
 
 /// Creates the selected live run and its stateless annotation extension.

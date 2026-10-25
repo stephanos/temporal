@@ -131,18 +131,9 @@ pub type Step<S, O, F> = (O, Vec<F>, S);
 pub type Steps<S, O, F> = SmallVec<[Step<S, O, F>; 1]>;
 
 /// An invalid Model implementation, distinct from an enabled rejecting edge.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]
 pub enum StepError {
     /// A handler both rejected the request and changed its state.
+    #[error("rejecting step changed state")]
     RejectedAfterMutation,
 }
-
-impl Display for StepError {
-    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::RejectedAfterMutation => out.write_str("rejecting step changed state"),
-        }
-    }
-}
-
-impl std::error::Error for StepError {}

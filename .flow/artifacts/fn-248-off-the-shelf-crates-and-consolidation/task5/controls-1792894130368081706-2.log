@@ -1,0 +1,44 @@
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/protocol/runtime)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.06s
+     Running tests/proposal.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/proposal-58f0b3015324cc1d)
+
+running 11 tests
+test enabled_internal_action_is_never_a_proposal ... ok
+test reset_program_and_refusing_defaults_preserve_run_transactions ... ok
+test read_remains_pending_until_correlated_final_explanation_publishes ... ok
+test read_does_not_require_enabled_external_model_action ... ok
+test disabled_proposal_refuses_without_committing_and_quiescent_is_distinct ... ok
+test proposal_is_transactional_and_pending_until_final_observation ... ok
+test bootstrap_configuration_admission_and_polling_publish_atomically ... ok
+test read_commits_intermediate_progress_without_consuming_the_pending_request ... ok
+test runtime_owns_quiescence_before_default_proposal_policy ... ok
+test selected_initial_state_still_requires_declared_bootstrap ... ok
+test unpublished_bootstrap_and_unexplained_pending_effects_roll_back ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/selected_start.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/selected_start-c8f12725c57a235a)
+
+running 3 tests
+test selected_initial_requires_exact_membership_including_other_fields ... ok
+test selected_reset_after_freeze_restores_initial_without_restricting_exploration ... ok
+test selected_publication_failures_preserve_advancement_freeze_and_reset ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/stateful.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/stateful-3659e64137cac2db)
+
+running 10 tests
+test explanations_carry_all_replayed_non_clone_outcomes ... ok
+test explanations_replay_whole_candidate_sequences_and_isolate_instances ... ok
+test failed_unexplained_publication_does_not_freeze_the_run ... ok
+test invalid_candidates_freeze_the_first_enabled_actions_until_reset ... ok
+test answer_validates_the_response_before_committing_delivery_and_awaits_response_evidence ... ok
+test judge_replays_model_steps_and_repeated_current_observations_are_positive ... ok
+test failed_response_publication_preserves_judge_answer_reset_and_exploration ... ok
+test stateful_operations_require_a_unique_initial_state ... ok
+test malformed_and_unknown_requests_preserve_the_current_run ... ok
+test runtime_formats_unit_outcomes_with_debug ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,6 +1,7 @@
 //! Shared Temporal envelope, payload and RPC helpers.
 
 use umpire_dsl::Rejection;
+use umpire_runtime::AnyMessage as _;
 use umpire_runtime::protocol::Refusal;
 pub use umpire_runtime::{callback, reply};
 use umpire_temporal_api::temporal::api::{
@@ -17,8 +18,8 @@ pub struct Observed {
 
 impl Observed {
     /// Admit ordinary evidence or a pair of unchanged actual RPC observations.
-    pub fn new(value: &umpire_runtime::google::protobuf::Any) -> Result<Self, Refusal> {
-        use umpire_runtime::google::protobuf::Any;
+    pub fn new(value: &umpire_runtime::prost_types::Any) -> Result<Self, Refusal> {
+        use umpire_runtime::prost_types::Any;
         use umpire_temporal_api::umpire::temporal::v1::ReconciledObservation;
         let (current, acknowledged) =
             if value.type_url == <ReconciledObservation as prost::Name>::type_url() {

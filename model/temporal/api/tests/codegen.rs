@@ -8,7 +8,7 @@ use std::{
 };
 
 use prost::Message;
-use umpire_runtime::google::protobuf::FileDescriptorSet;
+use prost_types::FileDescriptorSet;
 
 #[path = "../codegen.rs"]
 mod codegen;
@@ -54,5 +54,34 @@ fn descriptor_file_permutations_generate_identical_rust() -> Result<(), Box<dyn 
         assert!(bytes == &results[1][name], "descriptor file order changed {}", name.display());
     }
     fs::remove_dir_all(scratch)?;
+    Ok(())
+}
+
+#[test]
+#[allow(deprecated)]
+fn empty_oneof_uses_unit_and_preserves_presence() -> Result<(), Box<dyn std::error::Error>> {
+    use umpire_temporal_api::temporal::api::workflow::v1::{
+        PendingActivityInfo, pending_activity_info::AssignedBuildId,
+    };
+    let present = PendingActivityInfo {
+        assigned_build_id: Some(AssignedBuildId::UseWorkflowBuildId(())),
+        ..Default::default()
+    };
+    assert_eq!(present.encode_to_vec(), [0x6a, 0]);
+    assert_eq!(PendingActivityInfo::decode([0x6a, 0].as_slice())?, present);
+    assert_ne!(present, PendingActivityInfo::decode([].as_slice())?);
+    Ok(())
+}
+
+#[test]
+fn double_wrapper_uses_scalar_and_preserves_presence() -> Result<(), Box<dyn std::error::Error>> {
+    use umpire_temporal_api::temporal::api::taskqueue::v1::TaskQueueMetadata;
+    let absent = TaskQueueMetadata::default();
+    let zero = TaskQueueMetadata { max_tasks_per_second: Some(0.0) };
+    assert_eq!(zero.encode_to_vec(), [0x0a, 0]);
+    assert_ne!(absent.encode_to_vec(), zero.encode_to_vec());
+    for value in [zero, TaskQueueMetadata { max_tasks_per_second: Some(12.5) }] {
+        assert_eq!(TaskQueueMetadata::decode(value.encode_to_vec().as_slice())?, value);
+    }
     Ok(())
 }

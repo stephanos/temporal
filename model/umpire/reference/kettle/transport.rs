@@ -5,9 +5,10 @@ use crate::{
     config::Limits,
 };
 use umpire_catalog::annotate_message;
+use umpire_runtime::AnyMessage as _;
 use umpire_runtime::{
     annotations::{AnnotationRequest, AnnotationResponse},
-    google::protobuf::Any,
+    prost_types::Any,
     protocol::Refusal,
 };
 

@@ -2,7 +2,7 @@
 
 use prost::Message;
 use umpire_runtime::{
-    AnswerPlan, Projection, Realize, Runtime, Transition, google::protobuf::Any, protocol,
+    AnswerPlan, Projection, Realize, Runtime, Transition, prost_types::Any, protocol,
 };
 
 #[umpire_dsl::machine]

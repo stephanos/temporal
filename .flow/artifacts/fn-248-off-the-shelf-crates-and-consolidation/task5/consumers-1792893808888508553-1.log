@@ -1,0 +1,47 @@
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/temporal/annotate/syntax)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.06s
+     Running tests/admission.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/admission-b04babbef21f5883)
+
+running 14 tests
+test disabled_repeated_constraint_needs_no_request_expectation ... ok
+test catalog_expansion_accepts_a_caller_owned_context_and_api_root ... ok
+test disabled_derive_enum_constraint_needs_no_expectation ... ok
+test request_constraints_need_expectations ... ok
+test rpc_classification_names_the_bound_action_variant ... ok
+test stacked_presence_expectations_may_differ_from_field_constraints ... ok
+test oneof_rules_require_known_nonignored_source_aliases_and_projection ... ok
+test derive_validates_supplemental_intents_and_nested_map_coverage ... ok
+test native_primitive_wkt_mirrors_refuse_named_field_access ... ok
+test supplemental_mirrors_do_not_claim_descriptor_coverage ... ok
+test string_byte_constraints_require_typed_literals_and_request_expectations ... ok
+test derive_catalog_uses_shared_admission_and_discovery ... ok
+test derive_attributes_preserve_admission_errors ... ok
+test item_presence_algebra_and_helper_boundaries_are_explicit ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/expansion.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/expansion-20d24ecc9f81e3ae)
+
+running 1 test
+test executable_expansion_and_source_coverage ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/realize.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/realize-8896e63d85364902)
+
+running 10 tests
+test observation_only_realizations_inherit_the_refusing_answer_default ... ok
+test handler_admission_rejects_ambiguous_or_unclassified_handlers ... ok
+test proposal_dispatch_delegates_the_handler_and_optional_hooks ... ok
+test generated_enum_wildcards_are_refused_without_rejecting_byte_policy_fallbacks ... ok
+test wrapper_alias_payloads_do_not_erase_enum_identity ... ok
+test dereferenced_enum_subjects_preserve_coverage ... ok
+test deferred_and_reassigned_bindings_require_proven_coverage ... ok
+test method_and_cast_results_require_proven_coverage ... ok
+test rest_patterns_cover_actual_payload_positions ... ok
+test enum_aliases_follow_module_and_block_scopes_without_classifying_model_enums ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

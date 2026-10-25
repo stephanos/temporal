@@ -93,9 +93,7 @@ fn every_applicable_descriptor_case_constructs_a_typed_request()
 #[test]
 fn descriptor_changes_drive_inventory_and_unsupported_shapes_refuse()
 -> Result<(), Box<dyn std::error::Error>> {
-    use umpire_runtime::google::protobuf::{
-        FieldDescriptorProto, FileDescriptorSet, field_descriptor_proto::Type,
-    };
+    use prost_types::{FieldDescriptorProto, FileDescriptorSet, field_descriptor_proto::Type};
     let bytes = include_bytes!(concat!(env!("OUT_DIR"), "/annotation-api.binpb"));
     let mut descriptors = FileDescriptorSet::decode(bytes.as_slice())?;
     let root = descriptors
@@ -201,5 +199,34 @@ fn nested_absence_does_not_materialize_an_ancestor() -> Result<(), Box<dyn std::
             bytes
         );
     }
+    Ok(())
+}
+
+#[test]
+fn double_wrapper_descriptor_value_mutates_the_native_scalar()
+-> Result<(), Box<dyn std::error::Error>> {
+    use umpire_temporal_api::temporal::api::workflowservice::v1::PollActivityTaskQueueRequest;
+    let method = WorkflowServiceMethod::PollActivityTaskQueue;
+    let path = "temporal.api.workflowservice.v1.PollActivityTaskQueueRequest.task_queue_metadata.max_tasks_per_second";
+    let present = mutate_workflow_request(method, &[], path, &WireMutation::Empty)?;
+    let decoded = PollActivityTaskQueueRequest::decode(present.as_slice())?;
+    assert_eq!(
+        decoded.task_queue_metadata.ok_or("missing metadata")?.max_tasks_per_second,
+        Some(0.0)
+    );
+    let changed = mutate_workflow_request(
+        method,
+        &present,
+        &format!("{path}.value"),
+        &WireMutation::Negative,
+    )?;
+    let decoded = PollActivityTaskQueueRequest::decode(changed.as_slice())?;
+    assert_eq!(
+        decoded.task_queue_metadata.ok_or("missing metadata")?.max_tasks_per_second,
+        Some(-1.0)
+    );
+    let removed = mutate_workflow_request(method, &changed, path, &WireMutation::Absent)?;
+    let decoded = PollActivityTaskQueueRequest::decode(removed.as_slice())?;
+    assert_eq!(decoded.task_queue_metadata.ok_or("missing metadata")?.max_tasks_per_second, None);
     Ok(())
 }

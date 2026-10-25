@@ -2,7 +2,7 @@
 
 use super::{Catalog, Expectation, Presence, Violation, validate};
 use crate::{GenerationError, Rng};
-use std::{collections::BTreeSet, fmt};
+use std::collections::BTreeSet;
 
 /// Stable identity of a catalog expectation and its negative witness variant.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -29,7 +29,8 @@ pub struct Probe<M> {
 }
 
 /// Missing, unexpected, or repeated case identities in a probe run.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, thiserror::Error)]
+#[error("{self:?}")]
 pub struct ProbeCoverageError {
     /// Expected identities without an observation.
     pub missing: Vec<String>,
@@ -38,13 +39,6 @@ pub struct ProbeCoverageError {
     /// Repeated expected or observed identities.
     pub duplicated: Vec<String>,
 }
-
-impl fmt::Display for ProbeCoverageError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-impl std::error::Error for ProbeCoverageError {}
 
 /// Requires exactly one observation for every stable expected case identity.
 pub fn verify_probe_coverage(
@@ -77,7 +71,8 @@ pub fn verify_probe_coverage(
 }
 
 /// Value-free refusal to construct a negative witness.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, thiserror::Error)]
+#[error("{self:?}")]
 pub enum ProbeError {
     /// The caller supplied an invalid baseline.
     InvalidBaseline(Vec<Violation>),
@@ -90,13 +85,6 @@ pub enum ProbeError {
     /// The accessor did not produce exactly the declared violation.
     InvalidWitness(Vec<Violation>),
 }
-
-impl fmt::Display for ProbeError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-impl std::error::Error for ProbeError {}
 
 impl<M: 'static> Catalog<M> {
     /// Enumerates each declared expectation, including each required-field omission.

@@ -1,7 +1,6 @@
 //! Native typed values and deterministic generation.
 
 use crate::{BytesRules, Kind, NumberRules, RepeatedRules, StringRules, kind::number_name};
-use std::fmt;
 
 /// Stable `SplitMix64` stream; no operating-system randomness is consulted.
 #[derive(Clone, Debug)]
@@ -23,7 +22,8 @@ impl Rng {
 }
 
 /// Refusal to construct a conforming typed value.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, thiserror::Error)]
+#[error("{self:?}")]
 pub enum GenerationError {
     /// This wire carrier cannot represent the requested mutation.
     InapplicableMutation,
@@ -38,13 +38,6 @@ pub enum GenerationError {
     /// Construction exceeds the bounded generator's size or search limit.
     SizeLimit,
 }
-
-impl fmt::Display for GenerationError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-impl std::error::Error for GenerationError {}
 
 /// Direct typed operations on a Rust field. Adapters may implement this for local message types.
 pub trait FieldValue: Clone + Default + PartialEq + 'static {

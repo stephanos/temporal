@@ -11,8 +11,8 @@ rust-version.workspace = true
 workspace = true
 
 [dependencies]
+thiserror.workspace = true
 smallvec.workspace = true
-enum-iterator.workspace = true
 umpire-dsl-macros.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

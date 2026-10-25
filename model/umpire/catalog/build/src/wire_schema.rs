@@ -3,7 +3,7 @@
 use std::{collections::BTreeMap, fmt::Write};
 
 use prost::Message;
-use umpire_runtime::google::protobuf::{
+use umpire_runtime::prost_types::{
     DescriptorProto, FieldDescriptorProto, FileDescriptorSet,
     field_descriptor_proto::{Label, Type},
 };
@@ -138,7 +138,7 @@ impl<'a> Schema<'a> {
         for file in &descriptors.file {
             let package = file.package.as_deref().unwrap_or_default();
             let rust = if package == "google.protobuf" {
-                "::umpire_runtime::google::protobuf".into()
+                "::umpire_runtime::prost_types".into()
             } else if rust_type_root.is_empty() {
                 package.replace('.', "::")
             } else {
@@ -159,7 +159,14 @@ impl<'a> Schema<'a> {
         for descriptor in messages {
             let name = descriptor.name.as_deref().unwrap_or_default();
             let proto = format!("{proto}.{name}");
-            self.nodes.insert(proto.clone(), Node { descriptor, rust: format!("{rust}::{name}") });
+            self.nodes.insert(
+                proto.clone(),
+                Node {
+                    descriptor,
+                    rust: umpire_catalog_syntax::descriptor::well_known_primitive(&proto)
+                        .map_or_else(|| format!("{rust}::{name}"), str::to_owned),
+                },
+            );
             for enumeration in &descriptor.enum_type {
                 self.enums.insert(
                     format!("{proto}.{}", enumeration.name.as_deref().unwrap_or_default()),
@@ -395,7 +402,12 @@ impl<'a> Schema<'a> {
             return Ok(());
         }
         let member = self.member(step)?;
-        let target = format!("{parent}.{member}");
+        let target =
+            if umpire_catalog_syntax::descriptor::well_known_primitive(&step.parent).is_some() {
+                format!("(*{parent})")
+            } else {
+                format!("{parent}.{member}")
+            };
         if self.map(&step.field)? {
             self.map_leaf(&step.field, &target, out)?;
         } else if step.field.label == Some(Label::Repeated as i32) {

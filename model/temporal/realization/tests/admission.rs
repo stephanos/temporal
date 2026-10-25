@@ -2,9 +2,10 @@
 
 use prost::Message;
 use std::panic::AssertUnwindSafe;
+use umpire_runtime::AnyMessage as _;
 use umpire_runtime::{
     Dispatch, Guest,
-    google::protobuf::Any,
+    prost_types::Any,
     protocol::{self, response::Outcome},
     realization::{Observation, observation::Result as ResultValue},
 };
@@ -381,11 +382,11 @@ fn only_explicit_attempt_domain_is_admitted_while_timeouts_are_retained_exactly(
         .unwrap_or_else(|| panic!("request"))
         .unpack()
         .unwrap_or_else(|e| panic!("{e:?}"));
-    let duration = umpire_runtime::google::protobuf::Duration { seconds: 123, nanos: 456_789 };
+    let duration = umpire_runtime::prost_types::Duration { seconds: 123, nanos: 456_789 };
     request.schedule_to_start_timeout = Some(duration);
     request.schedule_to_close_timeout = Some(duration);
     request.heartbeat_timeout =
-        Some(umpire_runtime::google::protobuf::Duration { seconds: 1, nanos: 456_789 });
+        Some(umpire_runtime::prost_types::Duration { seconds: 1, nanos: 456_789 });
     captured.request = Some(Any::pack(&request));
     let mut guest = Guest::new(annotation_runtime());
     explained(judge(&mut guest, &captured));

@@ -1,0 +1,44 @@
+[
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-runtime --test wire --test core_protocol --test proposal_wire --test dispatch --locked",
+    "exit": 0,
+    "seconds": 3.311,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task5/focused-0.log"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-catalog -p umpire-dsl --lib --locked",
+    "exit": 0,
+    "seconds": 9.422,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task5/focused-1.log"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-temporal-api --test codegen --test wire_schema --locked",
+    "exit": 0,
+    "seconds": 21.006,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task5/focused-2.log"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-catalog --test generation --test probe --test black_box --locked",
+    "exit": 0,
+    "seconds": 7.377,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task5/focused-3.log"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-dsl --test path_domains --test path_language_patterns --test outcome --test catalog --locked",
+    "exit": 0,
+    "seconds": 10.057,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task5/focused-4.log"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-catalog-build --test neutral --locked",
+    "exit": 0,
+    "seconds": 30.479,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task5/focused-5.log"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-temporal-annotate-syntax --test admission --test realize --test descriptor --locked",
+    "exit": 101,
+    "seconds": 0.39,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task5/focused-6.log"
+  }
+]

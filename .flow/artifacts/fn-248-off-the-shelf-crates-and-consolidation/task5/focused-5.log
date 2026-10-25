@@ -1,0 +1,19 @@
+   Compiling prost-build v0.14.4
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/backends/native)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/protocol/runtime)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/build)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 29.15s
+     Running tests/neutral.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/neutral-1c88d5f39941eef0)
+
+running 7 tests
+test an_annotated_rpc_must_be_claimed ... ok
+test coverage_build_resolves_feature_claims_against_one_service_table ... ok
+test coverage_build_reads_the_explicit_catalog_root_and_descriptor_path ... ok
+test second_service_uses_configured_identity_and_roots ... ok
+test omitted_field_enum_and_method_are_rejected ... ok
+test payload_classification_binds_every_value_and_rejects_duplicate_variants ... ok
+test added_method_and_action_break_exhaustive_generated_matches ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.09s
+

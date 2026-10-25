@@ -53,7 +53,7 @@ impl Machine for World {
 impl Realize<World> for support::Realization {
     fn observe(
         &self,
-        observation: &umpire_runtime::google::protobuf::Any,
+        observation: &prost_types::Any,
         state: &State,
     ) -> Result<Projection<support::Action, support::Outcome>, protocol::Refusal> {
         <Self as Realize<support::World>>::observe(self, observation, &support::State(state.value))
@@ -61,7 +61,7 @@ impl Realize<World> for support::Realization {
 
     fn answer(
         &self,
-        _: &umpire_runtime::google::protobuf::Any,
+        _: &prost_types::Any,
         _: &State,
     ) -> Result<AnswerPlan<support::Action>, protocol::Refusal> {
         Ok(AnswerPlan::new(

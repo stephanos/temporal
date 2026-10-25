@@ -1,0 +1,5 @@
+{
+  "command": "cd model && mise exec -- cargo test -p umpire-temporal-annotate-syntax --test admission native_primitive_wkt_mirrors_refuse_named_field_access --locked",
+  "exit": 101,
+  "pre_fix": "no refusal for nonexistent named native primitive fields"
+}

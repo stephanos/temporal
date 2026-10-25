@@ -1,9 +1,10 @@
 //! Configured worker programs are issued before any system interaction.
 
 use prost::Message;
+use umpire_runtime::AnyMessage as _;
 use umpire_runtime::{
     Dispatch,
-    google::protobuf::Any,
+    prost_types::Any,
     protocol::{self, response::Outcome},
 };
 use umpire_temporal::annotation_runtime;

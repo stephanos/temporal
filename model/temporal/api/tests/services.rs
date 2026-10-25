@@ -10,7 +10,7 @@ use std::{
 };
 
 use prost::Message;
-use umpire_runtime::google::protobuf::FileDescriptorSet;
+use prost_types::FileDescriptorSet;
 use umpire_temporal_annotate_syntax::{
     descriptor::{self, Coverage},
     services::{classifications, declarations, resolve},

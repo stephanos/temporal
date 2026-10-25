@@ -1,9 +1,10 @@
 use prost::Message;
 use umpire_catalog::{Catalog, validate};
 use umpire_dsl::Machine;
+use umpire_runtime::AnyMessage as _;
 use umpire_runtime::{
     Dispatch, Runtime, Transaction,
-    google::protobuf::Any,
+    prost_types::Any,
     protocol::{self, Refusal, RefusalCode, response::Outcome},
     realization::{Observation, observation::Result as ResultValue},
 };

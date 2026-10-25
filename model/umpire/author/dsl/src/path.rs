@@ -6,11 +6,13 @@
 use std::{fmt, rc::Rc};
 
 /// A finite pattern cannot be expanded under its declared limits.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, thiserror::Error)]
 pub enum PatternError {
     /// The alternative count or expanded sequence length exceeds `usize`.
+    #[error("pattern expansion count overflows usize")]
     ExpansionOverflow,
     /// The number of alternatives exceeds the search budget.
+    #[error("pattern has {count} alternatives, over budget {budget}")]
     Budget {
         /// Authored alternative count.
         count: usize,
@@ -18,6 +20,7 @@ pub enum PatternError {
         budget: usize,
     },
     /// The expanded concrete node storage exceeds the admission limit.
+    #[error("pattern expansion bound is {nodes} nodes, over storage limit {limit}")]
     ExpansionTooLarge {
         /// Conservative bound on concrete nodes across alternatives.
         nodes: usize,
@@ -25,6 +28,8 @@ pub enum PatternError {
         limit: usize,
     },
     /// An unordered group exceeds its declared element limit.
+    #[error("unordered pattern has {elements} elements ({permutations}), over limit {limit}",
+        permutations = .count.map_or_else(|| "permutation count overflows usize".to_owned(), |count| format!("{count} permutations")))]
     PermutationLimit {
         /// Number of authored positional elements.
         elements: usize,
@@ -34,30 +39,6 @@ pub enum PatternError {
         count: Option<usize>,
     },
 }
-
-impl fmt::Display for PatternError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::ExpansionOverflow => f.write_str("pattern expansion count overflows usize"),
-            Self::Budget { count, budget } => {
-                write!(f, "pattern has {count} alternatives, over budget {budget}")
-            }
-            Self::ExpansionTooLarge { nodes, limit } => {
-                write!(f, "pattern expansion bound is {nodes} nodes, over storage limit {limit}")
-            }
-            Self::PermutationLimit { elements, limit, count } => {
-                write!(f, "unordered pattern has {elements} elements (")?;
-                match count {
-                    Some(count) => write!(f, "{count} permutations")?,
-                    None => f.write_str("permutation count overflows usize")?,
-                }
-                write!(f, "), over limit {limit}")
-            }
-        }
-    }
-}
-
-impl std::error::Error for PatternError {}
 
 /// A lazily indexed finite action domain.
 pub struct ActionDomain<A> {

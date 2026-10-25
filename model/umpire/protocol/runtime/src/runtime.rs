@@ -1,8 +1,9 @@
+use crate::AnyMessage as _;
 use prost::Message;
 use umpire_checker::{Checker, StateId};
 use umpire_dsl::Machine;
 
-use crate::{Dispatch, google::protobuf::Any, protocol, refusal::checker_refusal};
+use crate::{Dispatch, prost_types::Any, protocol, refusal::checker_refusal};
 
 /// One declared action and its written-order enabled choice.
 pub struct Transition<A> {

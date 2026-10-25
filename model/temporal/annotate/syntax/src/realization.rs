@@ -9,7 +9,7 @@ use std::{
 use proc_macro2::TokenStream;
 use prost::Message as _;
 use quote::{format_ident, quote};
-use umpire_runtime::google::protobuf::{
+use umpire_runtime::prost_types::{
     DescriptorProto, FileDescriptorSet,
     field_descriptor_proto::{Label, Type},
 };
@@ -165,7 +165,7 @@ impl Schema {
         for file in &descriptors.file {
             let package = file.package.as_deref().unwrap_or_default();
             let module = if package == "google.protobuf" {
-                "::umpire_runtime::google::protobuf".to_owned()
+                "::umpire_runtime::prost_types".to_owned()
             } else {
                 format!("::umpire_temporal_api::{}", package.replace('.', "::"))
             };
@@ -418,7 +418,13 @@ impl Schema {
         let member: syn::Member =
             syn::parse_str(&field.member).map_err(|error| error.to_string())?;
         let access =
-            if message.map_entry { quote!(*(#value).#member) } else { quote!((#value).#member) };
+            if umpire_catalog_syntax::descriptor::well_known_primitive(&message.name).is_some() {
+                quote!(*(#value))
+            } else if message.map_entry {
+                quote!(*(#value).#member)
+            } else {
+                quote!((#value).#member)
+            };
         if let Some(tail) = tail {
             let Kind::Message { target } = &field.kind else {
                 return Err("nested scalar path".into());
@@ -473,7 +479,8 @@ fn collect(
     for descriptor in descriptors {
         let name = descriptor.name.as_deref().ok_or("unnamed message")?;
         let proto = qualified(package, name);
-        let rust = format!("{module}::{name}");
+        let rust = umpire_catalog_syntax::descriptor::well_known_primitive(&proto)
+            .map_or_else(|| format!("{module}::{name}"), str::to_owned);
         let map_entry =
             descriptor.options.as_ref().is_some_and(|options| options.map_entry == Some(true));
         let mut fields = Vec::new();
@@ -585,7 +592,7 @@ fn camel(name: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use umpire_runtime::google::protobuf::{
+    use umpire_runtime::prost_types::{
         DescriptorProto, FieldDescriptorProto, FileDescriptorProto, FileDescriptorSet,
         MethodDescriptorProto, ServiceDescriptorProto,
         field_descriptor_proto::{Label, Type},

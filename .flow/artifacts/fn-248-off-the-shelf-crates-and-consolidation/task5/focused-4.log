@@ -1,0 +1,56 @@
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/author/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/backends/native)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/dev/testing)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.58s
+     Running tests/catalog.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/catalog-36259db4935ca818)
+
+running 4 tests
+test borrowed_outcome_classification_needs_no_value_traits_and_missing_is_unknown ... ok
+test fault_catalog_and_actor_projection_are_typed_and_independent_of_internal ... ok
+test one_typed_consumer_accepts_legacy_and_world_paths_for_each_outcome_type ... ok
+test stock_catalog_declares_every_outcome_even_when_never_emitted ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/outcome.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/outcome-8f45e1cda3569901)
+
+running 6 tests
+test a_field_comparison_named_reject_keeps_unit_outcomes ... ok
+test a_literal_rejection_inside_a_helper_macro_selects_step_outcomes ... ok
+test rejecting_returns_only_from_the_helper_and_keeps_the_first_rejection ... ok
+test the_lifted_stock_outcome_spells_every_native_outcome ... ok
+test inactive_nested_and_unwinding_frames_restore_the_enclosing_outcome ... ok
+test frames_do_not_leak_between_threads ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/path_domains.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/path_domains-311ff6051c878285)
+
+running 4 tests
+test empty_alternatives_still_require_storage_admission ... ok
+test repeated_domain_choices_do_not_describe_every_occurrence_as_its_first_value ... ok
+test legacy_case_budget_is_checked_before_cloning_waypoints ... ok
+test wide_ranges_keep_boundary_values_and_refuse_unrepresentable_counts ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/path_language_patterns.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/path_language_patterns-c648651385b77877)
+
+running 13 tests
+test empty_products_and_empty_repetitions_do_not_expand_unreachable_prefixes ... ok
+test borrowed_outcome_alternatives_need_neither_clone_nor_equality ... ok
+test exclusion_predicates_are_typed_and_do_not_change_explicit_endpoint ... ok
+test manual_world_predicates_keep_lexically_shadowed_state_bindings ... ok
+test enumerates_fresh_choices_in_repetitions_and_positional_permutations ... ok
+test structured_inputs_and_actor_wildcards_keep_full_declared_domains ... ok
+test zero_products_and_zero_repetitions_annihilate_overflowing_subpatterns ... ok
+test manual_world_selection_keeps_authored_predicate_and_waypoint_constraints ... ok
+test legacy_budget_and_structured_append_preserve_constraints ... ok
+test empty_and_reversed_domains_keep_zero_cases_and_zero_repetition_keeps_one ... ok
+test legacy_inference_and_world_adaptation_remain_typed ... ok
+test exact_singleton_repetition_expands_linearly_and_storage_has_its_own_limit ... ok
+test refuses_counts_before_constructing_alternatives ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
