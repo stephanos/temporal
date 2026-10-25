@@ -236,5 +236,24 @@
   },
   "current_owner_amendments": "Retained binary formats delegate wasmhost decoders; no second parser; current main owner draft .21/spec text inspected and requirement included in this batch audit. Compatibility retirement and aggressive evidence reuse policies remain controlling.",
   "qualification_claim": false,
-  "review": "Pending independent high correctness whole-batch review; no SHIP or Flowdone claimed."
+  "review": {
+    "verdict": "SHIP",
+    "backend": "codex",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "draws": [
+      "correctness"
+    ],
+    "rid": "c2cc32a517b94829b20f112e0e295d9c",
+    "reviewed_head": "d2a0b9a85cc0b3f1ce137b68fad417f72ccb90ad",
+    "receipt": "/home/agent/wt/evidence/fn242-b04-reader-foundation/review-receipt.json",
+    "receipt_sha256": "30e918a30d9437344b788bf01315ef4deb79d0421478475bc06b3093c4972118",
+    "raw_review": "/home/agent/wt/evidence/fn242-b04-reader-foundation/review-correctness.review.md",
+    "findings": 0,
+    "execution_limit": "Reviewer read-only Cargo lock prevented fresh execution; actual retained evidence independently verified, exact16source+179dependencyhashes match."
+  },
+  "flow_members_verified_done": [
+    18,
+    21
+  ]
 }
