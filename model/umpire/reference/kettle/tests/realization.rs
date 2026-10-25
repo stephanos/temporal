@@ -252,9 +252,9 @@ fn heat_projects_reach_with_an_exact_target_and_method_owned_evidence() {
     };
     assert!(matches!(
         Realization.reach_evidence(&observation, &[&edge]),
-        EvidenceMatch::Match { cursor: 1 },
+        Ok(EvidenceMatch::Match { cursor: 1 }),
     ));
     let describe =
         observe("Describe", &DescribeResponse { state: Some(state(20, true, false)) }, None);
-    assert!(matches!(Realization.reach_evidence(&describe, &[&edge]), EvidenceMatch::Reject));
+    assert!(matches!(Realization.reach_evidence(&describe, &[&edge]), Ok(EvidenceMatch::Reject)));
 }

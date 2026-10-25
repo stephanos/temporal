@@ -76,6 +76,7 @@ pub trait Evidence<K> {
     /// Admitted typed evidence view.
     type View;
     /// Admit the existing transport before interpreting feature evidence.
+    /// Refusals propagate unchanged; an admitted view without a matching predicate rejects.
     fn admit_evidence(&self, _observation: &Any) -> Result<Self::View, Refusal> {
         Err(Refusal::unsupported("evidence kind unsupported"))
     }

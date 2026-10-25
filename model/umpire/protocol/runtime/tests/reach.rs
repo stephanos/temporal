@@ -289,7 +289,11 @@ impl umpire_runtime::capability::Snapshot<Graph> for NoPredicate {
 
 impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for NoPredicate {
     type World = Graph;
-    type View = umpire_runtime::capability::NoEvidence;
+    type View = Any;
+
+    fn admit_evidence(&self, value: &Any) -> Result<Self::View, protocol::Refusal> {
+        Ok(value.clone())
+    }
 }
 
 impl umpire_runtime::capability::ReplyPolicy<Graph> for NoPredicate {}
@@ -525,6 +529,8 @@ enum RetainedEvidence {
     Outcome,
     Fact,
     Cursor,
+    Malformed(u8),
+    Unsupported(u8),
 }
 struct PrefixBinding(std::rc::Rc<std::cell::Cell<RetainedEvidence>>);
 impl umpire_runtime::capability::Identity for PrefixBinding {
@@ -553,6 +559,8 @@ impl umpire_runtime::capability::Snapshot<Graph> for PrefixBinding {
         match actual.value.as_slice() {
             [1] => Ok(Projection::Reach(Exact(State(1, Some(3))))),
             [2] if state.0 == 1 => Ok(Projection::Current),
+            [3] => Ok(Projection::Reach(Exact(State(2, Some(3))))),
+            [4] if state.0 == 2 => Ok(Projection::Current),
             _ => Err(protocol::Refusal::malformed("unexpected observation")),
         }
     }
@@ -563,10 +571,18 @@ impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for Pre
     type View = Any;
 
     fn admit_evidence(&self, value: &Any) -> Result<Self::View, protocol::Refusal> {
-        Ok(value.clone())
+        match self.0.get() {
+            RetainedEvidence::Malformed(event) if value.value == [event] => {
+                Err(protocol::Refusal::malformed("typed evidence is malformed"))
+            }
+            RetainedEvidence::Unsupported(event) if value.value == [event] => {
+                Err(protocol::Refusal::unsupported("typed evidence kind unsupported"))
+            }
+            _ => Ok(value.clone()),
+        }
     }
 
-    fn check_evidence(&self, _: &Any, path: &[&Evidence<Graph>]) -> EvidenceMatch {
+    fn check_evidence(&self, actual: &Any, path: &[&Evidence<Graph>]) -> EvidenceMatch {
         let [edge] = path else {
             return if path.is_empty() {
                 EvidenceMatch::Continue { cursor: 0 }
@@ -575,8 +591,13 @@ impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for Pre
             };
         };
         let mode = self.0.get();
-        let outcome = if mode == RetainedEvidence::Outcome { 2 } else { 1 };
-        let facts = if mode == RetainedEvidence::Fact { [1, 12] } else { [1, 11] };
+        let original = if actual.value == [3] { 2 } else { 1 };
+        let outcome = if mode == RetainedEvidence::Outcome { original + 1 } else { original };
+        let facts = if mode == RetainedEvidence::Fact {
+            [original, original + 11]
+        } else {
+            [original, original + 10]
+        };
         if edge.outcome != Outcome(outcome) || edge.facts.iter().map(|fact| fact.0).ne(facts) {
             return EvidenceMatch::Reject;
         }
@@ -584,7 +605,26 @@ impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for Pre
     }
 }
 
-impl umpire_runtime::capability::ReplyPolicy<Graph> for PrefixBinding {}
+impl umpire_runtime::capability::ReplyPolicy<Graph> for PrefixBinding {
+    fn propose(
+        &self,
+        _: &Graph,
+        _: &State,
+        _: u64,
+    ) -> Result<umpire_runtime::Proposal<Action>, protocol::Refusal> {
+        Ok(umpire_runtime::Proposal::Read {
+            request: Any { type_url: "test/ReachPrefix".into(), value: vec![3] },
+        })
+    }
+
+    fn matches(&self, request: &Any, actual: &Any) -> Result<(), protocol::Refusal> {
+        if request == actual {
+            Ok(())
+        } else {
+            Err(protocol::Refusal::malformed("crossed read observation"))
+        }
+    }
+}
 
 impl Realize<Graph> for PrefixBinding {}
 
@@ -620,5 +660,70 @@ fn later_current_revalidates_retained_typed_outcome_fact_and_consumption_cursor(
         mode.set(RetainedEvidence::Original);
         assert_eq!(explanation(call(&mut runtime, 2)), first);
         assert_eq!(first.encode_to_vec(), retained_report);
+    }
+}
+
+#[test]
+fn evidence_admission_refusals_preserve_pending_prefix_and_retry() {
+    use protocol::{RefusalCode, response::Outcome as Response};
+    static EDGES: &[Edge] = &[Edge(0, Action::A, 1, 1), Edge(1, Action::B, 2, 2)];
+    for (failure, code, message) in [
+        (
+            RetainedEvidence::Malformed as fn(u8) -> RetainedEvidence,
+            RefusalCode::MalformedRequest,
+            "typed evidence is malformed",
+        ),
+        (
+            RetainedEvidence::Unsupported,
+            RefusalCode::Unsupported,
+            "typed evidence kind unsupported",
+        ),
+    ] {
+        let mode = std::rc::Rc::new(std::cell::Cell::new(RetainedEvidence::Original));
+        let mut runtime = Runtime::new(Graph(EDGES), PrefixBinding(std::rc::Rc::clone(&mode)));
+        let call = |runtime: &mut Runtime<Graph, PrefixBinding>, value| {
+            runtime.dispatch(
+                protocol::Method::Judge as u32,
+                &protocol::JudgeRequest {
+                    observation: Some(Any {
+                        type_url: "test/ReachPrefix".into(),
+                        value: vec![value],
+                    }),
+                }
+                .encode_to_vec(),
+            )
+        };
+        let first = explanation(call(&mut runtime, 1));
+        let immutable = first.encode_to_vec();
+        assert_eq!(first.steps, ["A"]);
+        assert!(matches!(
+            runtime.dispatch(protocol::Method::Propose as u32, &[]).outcome,
+            Some(Response::Propose(_))
+        ));
+        mode.set(failure(3));
+        for _ in 0..2 {
+            assert_eq!(
+                call(&mut runtime, 3).outcome,
+                Some(Response::Refusal(protocol::Refusal::new(code, message)))
+            );
+        }
+        assert!(
+            matches!(runtime.dispatch(protocol::Method::Propose as u32, &[]).outcome, Some(Response::Refusal(ref refusal)) if refusal.code() == RefusalCode::State)
+        );
+        mode.set(RetainedEvidence::Original);
+        let second = explanation(call(&mut runtime, 3));
+        assert_eq!(second.steps, ["A", "B"]);
+        assert_eq!(second.outcomes, ["Outcome(1)", "Outcome(2)"]);
+        assert_eq!(explanation(call(&mut runtime, 4)), second);
+        mode.set(failure(1));
+        for _ in 0..2 {
+            assert_eq!(
+                call(&mut runtime, 4).outcome,
+                Some(Response::Refusal(protocol::Refusal::new(code, message)))
+            );
+        }
+        mode.set(RetainedEvidence::Original);
+        assert_eq!(explanation(call(&mut runtime, 4)), second);
+        assert_eq!(first.encode_to_vec(), immutable);
     }
 }
