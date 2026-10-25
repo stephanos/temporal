@@ -48,13 +48,21 @@ The last command must produce no paths after deletion is staged. Also inspect tr
 - [ ] Semantic expectations, lifecycle comparison and mutation/negative controls pass, with guest freshness/reproducibility against current committed assets. Necessary guest/golden/pin regenerations document cause and old/new hashes; retained originals and frozen artifacts remain unmodified. Historical byte equality is not required; feature-semantic changes remain outside scope.
 
 ## Done summary
-TBD
+Developers can run the native Model gate without Python. The obsolete unittest stage is removed; the existing locked Cargo workspace stage owns native tool/process controls once. Current ownership, prerequisite, driver-break, dependency and platform docs match the joined Rust implementation. The refreshed census maps all 14 historical Python files to native responsibilities or explicitly retired quirks and finds zero tracked Model Python files.
 
+The single `BASH_ENV=/dev/null UMPIRE_APALACHE=require make model-validate` passed with both backends required and all 18 stages plus one benchmark. Gate 2081.715 s, benchmark 10.813 s and outer wall 2092.924 s exceed both 60 s/10 s soft targets. Actual Cargo summaries report 790 passed, zero failed and four disclosed inherited ignores. Real Apalache controls passed 14/14; TLC fixture groups passed 47/47 and 33 executed with one inherited ignore. Freshness, wasm, lifecycle/mutation/negative controls and all three Go modules passed. Baseline was intentionally not run under the owner's single-pipeline policy; no green baseline is claimed.
+
+All 3337 bound inputs and 208 fresh Apalache artifacts verify after review. Existing two-clean-path reproduction, canonical publication, pinned real installation, package inventories and process unsafe 77→67 proofs remain source-bound. Current Temporal guest SHA stays bc27af7d5b6b1ed8fa5c524015046f3a8b7c12d2d488e9ce7cb3df3ea9217872 (3507265 bytes). Linux/aarch64 execution does not establish native Darwin behavior. Initial prelaunch capture and passive-observer faults are disclosed; neither repeated the gate. No Model meaning, snapshots, pins, frozen originals, MILESTONES or remote state changed.
+
+Three fresh same-family codex:gpt-6.1-sol:high draws and the actual backend finalizer returned SHIP with zero findings/unaddressed requirements. Each verified source/artifact hashes and totals; integration also ran shell syntax. No reviewer repeated the full gate. The classifier returned FULL for .plans/UMPIRE_MODULES.md; post-review Verify honored the actual same-source green receipt. Durable commands, stages, tools/platform, cost, controls and review are under .flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task3/.
+
+GATE_SKIPPED:model-validate:green-receipt b7534cd9 - post-review Verify reused actual same-source pass
+
+stage: impl-review - ran (three first-round SHIP draws; backend finalizer SHIP; task3/review/receipt.json)
+Tier: session (jev-unavailable(no_key))
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0925064e4fe346191addf0c79b534e78fc7d6ab6, b7534cd9cb9ba444c19fa1572cbb2eebe2e150bc, 44d78178dafdd032f02a74eaff7ad2996571c977
+- Tests: /bin/bash model/scripts/test-time-gate.sh, BASH_ENV=/dev/null UMPIRE_APALACHE=require make model-validate, git ls-files model/*.py model/**/*.py (empty), git diff --check, GATE_SKIPPED:model-validate:green-receipt b7534cd9 - post-review Verify reused actual same-source pass
 - PRs:
-
-
-
-Conductor validation ownership clarification (2026-10-25): component completion requires its joined native/cold admission and artifact proofs plus primary review. The one complete semantic Go/TLC/Apalache pipeline belongs to final .3 before parent closure; it is not repeated per port, and component tasks do not wait for their own dependent final task. All semantic and negative controls remain mandatory in that pipeline.
