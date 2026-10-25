@@ -1,0 +1,151 @@
+{
+  "source_checkpoint": "4f7523c783b9a6f38eba30d2e0b973cc0dbf7d3a",
+  "all_six_identical": true,
+  "all_six_equal_prior_publication": true,
+  "native_reports_identical": true,
+  "guests": [
+    {
+      "name": "caught_panic_control.wasm",
+      "sha256": "16bdf703328273c57741940a4ec420150576a5a02e84fcc5d279afba14429a12",
+      "bytes": 228653,
+      "same_as_prior": true,
+      "source_b_sha256": "16bdf703328273c57741940a4ec420150576a5a02e84fcc5d279afba14429a12"
+    },
+    {
+      "name": "overflow_control.wasm",
+      "sha256": "7815ea7d693a5cb9f3d6a326c0adcc948b38585d726d751c4cb64e3a2259205e",
+      "bytes": 228653,
+      "same_as_prior": true,
+      "source_b_sha256": "7815ea7d693a5cb9f3d6a326c0adcc948b38585d726d751c4cb64e3a2259205e"
+    },
+    {
+      "name": "stateful_control.wasm",
+      "sha256": "0ce0f654b66cc01a6b52670af9175f1047fa79c51fd5039e7c9742bc205e6b87",
+      "bytes": 165966,
+      "same_as_prior": true,
+      "source_b_sha256": "0ce0f654b66cc01a6b52670af9175f1047fa79c51fd5039e7c9742bc205e6b87"
+    },
+    {
+      "name": "umpire_kettle_guest.wasm",
+      "sha256": "f47eeca8991182ce5d2160a8794ae3e83007de4a0db2a2c5a095c2a0439f2228",
+      "bytes": 1235811,
+      "same_as_prior": true,
+      "source_b_sha256": "f47eeca8991182ce5d2160a8794ae3e83007de4a0db2a2c5a095c2a0439f2228"
+    },
+    {
+      "name": "umpire_stock_guest.wasm",
+      "sha256": "4979d134ba8ae6afc4ba79dadc046251afbbf4ca34397ed61af184205a371222",
+      "bytes": 198992,
+      "same_as_prior": true,
+      "source_b_sha256": "4979d134ba8ae6afc4ba79dadc046251afbbf4ca34397ed61af184205a371222"
+    },
+    {
+      "name": "umpire_temporal_guest.wasm",
+      "sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+      "bytes": 3988334,
+      "same_as_prior": true,
+      "source_b_sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc"
+    }
+  ],
+  "native_reports": {
+    "panic-native": {
+      "effect_overflow.pb": "a6676ea2fe6667eda4b26ea04419c3f7802e377aeb466e72b81399670b378cef",
+      "effect_panic.pb": "57e9cbe2fa91e1476b75eb392b7fb8a00cd723adc0a2fe5be4852605d0836c53"
+    },
+    "current-contract-native": {
+      "callback-3.request.pb": "5409612b12e08c3cb72f885d40a656ecdc839b7c2d32e62eccd6399c96b2df3c",
+      "callback-5.response.pb": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca",
+      "configured-6.request.pb": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "ordinary-5.request.pb": "a5d5734ede85c1d312d39df59be6508f869e01b7b526ed2fd58116fc25d8e58b",
+      "callback-8.response.pb": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f",
+      "ordinary-5.response.pb": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f",
+      "ordinary.methods": "cedd86bf57f9e972594b9022dac13fb0385488ab10a89c9abba71b511c742692",
+      "configured-2.request.pb": "bc16d4fd28f67f38479fde4ea0c5acd3dfecc3d3526b67279eb8dc46253a9f84",
+      "configured-7.response.pb": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f",
+      "configured-0.response.pb": "416a9d19bcde338b35c6b87b563d4a75028b7908aebc3ad87616805ff9cb5e51",
+      "callback.methods": "229432f7c3a51928d48a43d7599fd1f1d949172cd5afbe9fde184df40f4e8538",
+      "configured-3.response.pb": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "callback-7.response.pb": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f",
+      "callback-2.response.pb": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "ordinary-1.response.pb": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "callback-6.response.pb": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca",
+      "configured-4.response.pb": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "configured.methods": "83eb0c69d9d81955ba21ce6501bd8b2ad352f982d8b797738a37e86253957b51",
+      "callback-8.request.pb": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "configured-0.request.pb": "941770022d63e4b6a2bfa6c18564a4f0200a2946e45e5b8c0bcd725b47c41789",
+      "configured-3.request.pb": "5409612b12e08c3cb72f885d40a656ecdc839b7c2d32e62eccd6399c96b2df3c",
+      "configured-5.response.pb": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca",
+      "ordinary-3.response.pb": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca",
+      "callback-4.request.pb": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "ordinary-4.response.pb": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca",
+      "ordinary-2.request.pb": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "configured-4.request.pb": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "ordinary-0.response.pb": "695bac7c2f9efaf41d628f1c0346f02806c9a8f870d17446f827ca1c5a7be36d",
+      "configured-6.response.pb": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca",
+      "callback-1.request.pb": "0218870a40c98ac9edaf9b91ec16a3da998e167f43509c6cdb641b23c8e3b65f",
+      "ordinary-4.request.pb": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "ordinary-1.request.pb": "5409612b12e08c3cb72f885d40a656ecdc839b7c2d32e62eccd6399c96b2df3c",
+      "configured-1.request.pb": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ordinary-2.response.pb": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "ordinary-0.request.pb": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "configured-7.request.pb": "a5d5734ede85c1d312d39df59be6508f869e01b7b526ed2fd58116fc25d8e58b",
+      "callback-7.request.pb": "a5d5734ede85c1d312d39df59be6508f869e01b7b526ed2fd58116fc25d8e58b",
+      "configured-5.request.pb": "3c52cda26b6d67ea4fef8fd7e7609446de58d5a9d0f78ff8f27dd275ad7cbd24",
+      "configured-1.response.pb": "ac81d39b5d928a67d89308851f57a3c1523692209faa8ea7ae8f19022cc428dd",
+      "ordinary-3.request.pb": "3c52cda26b6d67ea4fef8fd7e7609446de58d5a9d0f78ff8f27dd275ad7cbd24",
+      "configured-8.request.pb": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "configured-8.response.pb": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f",
+      "ordinary-6.request.pb": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "callback-1.response.pb": "e0231f4ec51259d0352f601787ef4cd353c7b5360b48ad3c6750f25e657b8104",
+      "callback-0.request.pb": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ordinary-6.response.pb": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f",
+      "callback-2.request.pb": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "callback-6.request.pb": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "callback-0.response.pb": "695bac7c2f9efaf41d628f1c0346f02806c9a8f870d17446f827ca1c5a7be36d",
+      "callback-5.request.pb": "3c52cda26b6d67ea4fef8fd7e7609446de58d5a9d0f78ff8f27dd275ad7cbd24",
+      "callback-3.response.pb": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "configured-2.response.pb": "fd52a50a1e54e5856f8afb7ae62ae9dd45cbc77fec9e597d548f12977236ce51",
+      "callback-4.response.pb": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+    }
+  },
+  "new_driver_lock_compiler_namespaces": {
+    "guest-a": [
+      {
+        "key": "9a95b240f72172d163714d7fdbb86117b56f359b1e68bf0e4ff4cdc1213686fb",
+        "driver_sha256": "c41e28a0000b3324e39ffecd33fcff751b8f51801289fb3553079ebe856b2bb8",
+        "wrapper": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/guest-a/guest-wrappers/9a95b240f72172d163714d7fdbb86117b56f359b1e68bf0e4ff4cdc1213686fb/guest-rustc",
+        "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+        "workspace": "model/umpire",
+        "lock_sha256": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5"
+      },
+      {
+        "key": "950ab8dcfd49569f11a81f63b2b8d1f53525ab83e1cdb7ebf5a511e766245dec",
+        "driver_sha256": "c41e28a0000b3324e39ffecd33fcff751b8f51801289fb3553079ebe856b2bb8",
+        "wrapper": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/guest-a/guest-wrappers/950ab8dcfd49569f11a81f63b2b8d1f53525ab83e1cdb7ebf5a511e766245dec/guest-rustc",
+        "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+        "workspace": "model",
+        "lock_sha256": "50d2b024555c958b02286fa6ec65976efc9fb9cd69f4d27780e9a01998d5d70f"
+      }
+    ],
+    "guest-b": [
+      {
+        "key": "0761e0c8a30ec104e6a42d6c49e670a11499aba4ab2416a76fc979aaccecac0b",
+        "driver_sha256": "d4fc90f3092f570404106d25b04340ec8f6f90f34a01654c322fc174b6ad0a75",
+        "wrapper": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/guest-b/guest-wrappers/0761e0c8a30ec104e6a42d6c49e670a11499aba4ab2416a76fc979aaccecac0b/guest-rustc",
+        "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+        "workspace": "model",
+        "lock_sha256": "50d2b024555c958b02286fa6ec65976efc9fb9cd69f4d27780e9a01998d5d70f"
+      },
+      {
+        "key": "177e8ee3b8dfd7ea3bce5ec5ae4907b6cab9592643128ca05b0cc67c5cedba7f",
+        "driver_sha256": "d4fc90f3092f570404106d25b04340ec8f6f90f34a01654c322fc174b6ad0a75",
+        "wrapper": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/guest-b/guest-wrappers/177e8ee3b8dfd7ea3bce5ec5ae4907b6cab9592643128ca05b0cc67c5cedba7f/guest-rustc",
+        "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+        "workspace": "model/umpire",
+        "lock_sha256": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5"
+      }
+    ]
+  },
+  "cold_scope": "Only the newly selected cache-key namespaces were absent before this source checkpoint; outer targets/bootstrap caches reused.",
+  "resources": "Task13 sole-owned guest-a and guest-b subleases, jobs2 and test threads2 each; parent admitted total4 jobs overlap, no shared Cargo target or cross-checkout target. Shared registry only."
+}

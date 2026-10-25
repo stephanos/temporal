@@ -1,0 +1,23 @@
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/backends/tla)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.92s
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/framework-native/debug/deps/main-0bcfe69ad4d9247f)
+
+running 1 test
+
+thread 'optional_ticks::present_optional_keeps_eager_errors_in_guard_assignment_and_claim' (43118) panicked at backends/tla/tests/main/../fixtures/optional_eager.rs:40:63:
+attempt to divide by zero
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'optional_ticks::present_optional_keeps_eager_errors_in_guard_assignment_and_claim' (43118) panicked at backends/native/src/interpret.rs:935:13:
+attempt to divide by zero
+Error: Os { code: 2, kind: NotFound, message: "No such file or directory" }
+test optional_ticks::present_optional_keeps_eager_errors_in_guard_assignment_and_claim ... FAILED
+
+failures:
+
+failures:
+    optional_ticks::present_optional_keeps_eager_errors_in_guard_assignment_and_claim
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 95 filtered out; finished in 3.41s
+
+error: test failed, to rerun pass `-p umpire-tla --test main`

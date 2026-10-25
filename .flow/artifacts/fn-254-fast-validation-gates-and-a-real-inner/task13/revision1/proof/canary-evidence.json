@@ -1,0 +1,55 @@
+{
+  "command": "CGO_ENABLED=0 mise exec -- go test -tags test_dep -count=1 ./tools/canary/policy ./tools/canary/preflight",
+  "argv": [
+    "mise",
+    "exec",
+    "--",
+    "go",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "./tools/canary/policy",
+    "./tools/canary/preflight"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace",
+  "environment": {
+    "CGO_ENABLED": "0",
+    "GOCACHE": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2561-retirement/go-cache",
+    "GOTMPDIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2561-retirement/go-tmp",
+    "GOFLAGS": "-p=2",
+    "GOMAXPROCS": "2"
+  },
+  "status": 0,
+  "started": "2026-10-25T23:05:03.647653+00:00",
+  "finished": "2026-10-25T23:05:05.611316+00:00",
+  "source_commit_before": "748806bed3d5b9264331b98fb7af99de393afc60",
+  "source_commit_after": "748806bed3d5b9264331b98fb7af99de393afc60",
+  "inputs_before": {
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm": {
+      "sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+      "bytes": 3988334
+    },
+    "tools/canary/policy/production-canary.json": {
+      "sha256": "f3d946007e4b424d3516caa7472068b0849d19907d9ae453371321091bec1151",
+      "bytes": 712
+    }
+  },
+  "inputs_after": {
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm": {
+      "sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+      "bytes": 3988334
+    },
+    "tools/canary/policy/production-canary.json": {
+      "sha256": "f3d946007e4b424d3516caa7472068b0849d19907d9ae453371321091bec1151",
+      "bytes": 712
+    }
+  },
+  "inputs_unchanged": true,
+  "test_source_manifest_unchanged": true,
+  "test_source_manifest_sha256": "65379dcb8c6d2d96398749b1bdb9d7536df1bc6a43cf85ac825dd174f38c5550",
+  "source_changes": {},
+  "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/.flow/tmp/fn25413-revision/canary-tests.log",
+  "log_sha256": "b0c2381c575ecfc8a39c53435fda0f8e34af311f397a3d0e782f7714cede8fa8",
+  "publication_json": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/.flow/tmp/fn25413-revision/canary-policy-publication.json"
+}

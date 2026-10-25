@@ -1,0 +1,76 @@
+{
+  "prior_checkpoint": "04ac5f124b",
+  "prior_exact_mapping": "../proof/identity-accounting.json",
+  "baseline_preserved": 925,
+  "prior_new_context_controls": 4,
+  "new_revision_control": [
+    "guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build"
+  ],
+  "total_libtest_identities": 930,
+  "current_driver_cli_main_binaries": {
+    "umpire-guest-driver": {
+      "before": 32,
+      "after": 33,
+      "removed": [],
+      "added": [
+        "guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build"
+      ],
+      "current": [
+        "guest_identity::compiler::actual_rustc_compiles_portable_native_macro_sidecars",
+        "guest_identity::compiler::build_std_requires_wasm_marker_and_trusted_source_or_rust_src_coordinate",
+        "guest_identity::compiler::dependency_identity_and_transitive_variants_propagate",
+        "guest_identity::compiler::inherited_jobserver_descriptor_reaches_direct_compiler_child",
+        "guest_identity::compiler::invalid_or_missing_dependency_sidecars_and_macro_collisions_refuse",
+        "guest_identity::compiler::missing_ambiguous_and_malformed_lock_maps_refuse",
+        "guest_identity::compiler::missing_required_inputs_and_option_values_refuse",
+        "guest_identity::compiler::native_macro_identity_ignores_host_configuration_but_retains_argv_and_collisions",
+        "guest_identity::compiler::os_bytes_and_lexical_root_boundaries_are_preserved",
+        "guest_identity::compiler::package_features_profile_compiler_and_closure_remain_distinct",
+        "guest_identity::compiler::portable_identity_replaces_guest_metadata_and_remaps_generated_paths",
+        "guest_identity::compiler::previous_wrapper_and_loader_environment_keep_raw_os_bytes",
+        "guest_identity::compiler::probes_pass_through_without_guest_environment",
+        "guest_identity::compiler::sidecar_precedes_child_and_cleanup_preserves_exit_launch_and_signal_outcomes",
+        "guest_identity::current_inputs::native_toml_accepts_current_documents_and_rejects_malformed_input",
+        "guest_identity::lock::ambiguous_name_version_coordinates_are_marked_unavailable",
+        "guest_identity::lock::checksum_changes_propagate_through_normal_and_all_platform_build_edges",
+        "guest_identity::lock::content_addressed_publication_is_repeatable_and_portable",
+        "guest_identity::lock::malformed_native_documents_and_graphs_are_rejected",
+        "guest_identity::lock::sourced_entries_are_required_but_git_checksums_are_optional",
+        "guest_identity::lock::unified_edges_and_edge_topology_change_ancestor_identity",
+        "guest_identity::lock::unrelated_and_dev_only_dependencies_do_not_change_guest_closures",
+        "guest_identity::support::canonical_hash_uses_sorted_json_and_known_sha256",
+        "guest_identity::support::publication_is_complete_under_concurrent_writers_and_cleans_rename_failure",
+        "guest_identity::support::sidecar_lease_serializes_failure_cleanup_and_refuses_symlink",
+        "guest_pipeline::cold_bootstrap_failures_never_build_or_publish",
+        "guest_pipeline::cold_shell_bootstrap_and_cached_native_validation",
+        "guest_pipeline::guest_build_check_and_artifact_refusals",
+        "guest_pipeline::loader_inheritance_survives_orchestration_environment_purge",
+        "guest_pipeline::native_prerequisite_failures_stop_before_guest_build",
+        "guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+        "guest_pipeline::rust_toolchain_metadata_and_rustup_failures_refuse",
+        "guest_pipeline::shell_caller_relative_paths_and_changed_inputs_select_new_cache"
+      ]
+    },
+    "xtask": {
+      "before": 12,
+      "after": 12,
+      "removed": [],
+      "added": [],
+      "current": [
+        "apalache_install::installer::tests::concurrent_installers_publish_once_and_return_same_path",
+        "apalache_install::installer::tests::download_failure_cleans_private_staging_and_never_publishes",
+        "apalache_install::installer::tests::hash_before_parse_and_exact_regular_member_before_publication",
+        "apalache_install::installer::tests::malicious_lock_types_refuse_without_following_or_blocking",
+        "apalache_install::installer::tests::native_curl_contract_and_download_failure_cleanup",
+        "apalache_install::installer::tests::native_dispatch_usage_failure_is_nonzero_and_structured",
+        "apalache_install::installer::tests::partial_wrong_and_nonregular_installations_never_download",
+        "apalache_install::installer::tests::symlinks_in_every_component_including_dangling_are_refused",
+        "retired_names::io_and_missing_grep_errors_fail_closed",
+        "retired_names::malformed_records_fail_closed",
+        "retired_names::posix_ere_recheck_and_grep_failure_propagate",
+        "retired_names::raw_records_exempt_only_author_facade_tokens"
+      ]
+    }
+  },
+  "reuse_scope": "Other test declarations/attributes and targets unchanged from prior checkpoint; optional TLC test body fixes evidence parent only; outer bridge tests retain names. No broad workspace test execution implied."
+}

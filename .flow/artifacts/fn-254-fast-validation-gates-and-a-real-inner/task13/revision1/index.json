@@ -1,0 +1,206 @@
+{
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.13",
+  "revision": 1,
+  "source_commit": "748806bed3d5b9264331b98fb7af99de393afc60",
+  "source_commits": [
+    "0d995d12b5",
+    "4f7523c783",
+    "748806bed3"
+  ],
+  "prior_checkpoint": {
+    "index": "../index.json",
+    "index_sha256": "06576704da640feea02d06f24e746e3e30d664b38413f948e5a3add0d5d1a755",
+    "source_commit": "4be121922082387261e717523b7afa3e64095c1d",
+    "status": "historical checkpoint; old driver identities are not current revision proof"
+  },
+  "source_identity": "proof/source-identities.json",
+  "review_round1_receipt": "proof/review-round1-receipt.json",
+  "review_findings": [
+    {
+      "finding_id": "finding-d26a9adf428f24e97da919cf2f649914",
+      "path": "Makefile",
+      "status": "fixed_in_source_pending_conductor_re_review",
+      "commits": [
+        "0d995d12b5"
+      ],
+      "proofs": [
+        "proof/wiring/expanded-red.log",
+        "proof/wiring/green.log",
+        "proof/wiring/final-all-controls.log"
+      ]
+    },
+    {
+      "finding_id": "finding-cb1f361343c16cfd868b7198150bcf74",
+      "path": "model/umpire/hosts/go/host/current_contract_test.go",
+      "status": "fixed_in_source_pending_conductor_re_review",
+      "commits": [
+        "0d995d12b5"
+      ],
+      "proofs": [
+        "proof/wiring/red.log",
+        "proof/wiring/relative-red.log",
+        "proof/wiring/green.log",
+        "proof/current-contract-host.log"
+      ]
+    },
+    {
+      "finding_id": "finding-f8696c287d19068e9cf86b65d350a31b",
+      "path": "model/umpire/dev/guest-driver/src/guest.rs",
+      "status": "fixed_in_source_pending_conductor_re_review",
+      "commits": [
+        "0d995d12b5",
+        "4f7523c783"
+      ],
+      "proofs": [
+        "proof/cargo-home-red.log",
+        "proof/cargo-home-alias-red.log",
+        "proof/native-controls-alias-final.log",
+        "proof/bootstrap-home-controls-final.log",
+        "proof/root-cargo-home-controls-final.log",
+        "proof/guest-reproduction-current.json"
+      ]
+    },
+    {
+      "finding_id": "finding-8caa19ae2d0ec4c68e8237dd907c3e21",
+      "path": "model/umpire/backends/tla/tests/main/optional_ticks.rs",
+      "status": "fixed_in_source_pending_conductor_re_review",
+      "commits": [
+        "0d995d12b5"
+      ],
+      "proofs": [
+        "proof/tlc-evidence-red.log",
+        "proof/tlc-evidence-green.log",
+        "proof/tlc-required-evidence/"
+      ]
+    },
+    {
+      "finding_id": "finding-9091c3dd48f71f1f39c9c5dba12ac382",
+      "path": "model/umpire/dev/guest-driver/README.md",
+      "status": "fixed_in_source_pending_conductor_re_review",
+      "commits": [
+        "0d995d12b5"
+      ],
+      "proofs": [
+        "source-identities binds explicit --bin umpire-guest-driver README command"
+      ]
+    }
+  ],
+  "policy_publication": {
+    "commit": "748806bed3",
+    "path": "tools/canary/policy/production-canary.json",
+    "policy_sha256": "f3d946007e4b424d3516caa7472068b0849d19907d9ae453371321091bec1151",
+    "guest_path": "model/temporal/hosts/go/umpire_temporal_guest.wasm",
+    "guest_sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+    "publication_proof": "proof/canary-policy-publication.json",
+    "scoped_tests": "proof/canary-evidence.json",
+    "only_modelHash_changed": true
+  },
+  "current_results": {
+    "baseline_logical_tests_preserved": 925,
+    "new_native_controls_total": 5,
+    "total_libtest_identities": 930,
+    "logical_identity_delta": "proof/logical-identity-delta.json",
+    "preserved_snapshot_ui_hashes": 563,
+    "registry_coordinates_checksums_preserved": 119,
+    "current_locked_metadata_and_fmt": "proof/{framework,outer}-metadata-final.json and *-fmt-final.log",
+    "current_framework_independent_locked_build": "proof/standalone-build-current.log",
+    "current_native_control_results": "4 driver library + 33 driver integration + 12 CLI integration tests; outer bridge 5 tests",
+    "current_native_control_logs": [
+      "proof/native-controls-alias-final.log",
+      "proof/outer-tests-alias-final.log"
+    ],
+    "affected_clippy_logs": [
+      "proof/framework-clippy-alias-final.log",
+      "proof/outer-clippy-alias-final.log"
+    ],
+    "required_tlc_absent_evidence_directory": "proof/tlc-evidence-green.log; original failed case proof/tlc-evidence-red.log",
+    "actual_recipe_controls": "20 workspace command boundaries plus 12 Go/Kettle boundaries in timed/untimed and unset/relative/absolute target cases; child commands are probes, not full gates",
+    "current_six_guest_native_reproduction": "proof/guest-reproduction-current.json",
+    "current_freshness": "proof/guest-freshness-current.log",
+    "current_exact_driver_independence": "proof/driver-independence-current.json",
+    "current_canary_policy_preflight": "proof/canary-evidence.json"
+  },
+  "reused_evidence": {
+    "original_complete_workspace_build_test_compilation": "Prior checkpoint retained. Changed tool packages compile/test now; unchanged remaining runtime/test target inventories and declaration/attribute identities reused. No unrelated complete workspace test execution.",
+    "full_three_module_go_host_parity": "proof/host-evidence-reuse.json",
+    "original_doctests": "Task4 reference results remain inherited; no new task13 full doctest run claimed."
+  },
+  "retained_revision_attempts": {
+    "guests-a-alias-initial.log": "Nonfinal absolute-only Cargo-home trial: symlink lexical registry paths embedded checkout paths. Trial WASM hashes/recovery directory bound in reproduction-inputs.json; fixed by canonicalization before final A/B.",
+    "driver-controls-initial.log": "New regression initially omitted the expected published guest fixture for freshness; setup corrected; original wrong-Cargo-home red remains separate.",
+    "native-controls-alias-bootstrap-initial.log": "Alias regression exposed shell bootstrap still forwarding lexical alias; canonical shell normalization added and final native controls passed.",
+    "framework-affected-clippy-initial.log": "Expanded existing fixture exceeded lines threshold; narrowly allow existing fixture constructor size. Final affected Clippy passed.",
+    "bootstrap-home-initial.log": "Bootstrap alone normalized its subprocess while launcher forwarded relative Cargo home; launcher normalization added before final green."
+  },
+  "remaining_obligations": [
+    "Conductor re-review and Flow closure are pending; this revision makes no review approval claim.",
+    "No full combined gate or fresh timing baseline. Owner cadence retains unrelated workspace/combined validation for .8.",
+    ".10 owns final gate/protobuf/host orchestration and compiled-CLI mutation independence renewal. The current poisoned-CLI driver-only control does not compile a mutated CLI.",
+    ".11 owns actual standalone full-gate planted failure controls.",
+    "No native macOS execution claim."
+  ],
+  "files": {
+    "proof/bootstrap-home-controls-final.log": "420d2ed99fa0e1efcc825a37c28dfced2c431812b4bdf52bcbc7533379a0dcb9",
+    "proof/bootstrap-home-green.log": "420d2ed99fa0e1efcc825a37c28dfced2c431812b4bdf52bcbc7533379a0dcb9",
+    "proof/bootstrap-home-initial.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/bootstrap-home-red.log": "a86cfe3e09d7652be34e6b342e73a6a190c5f52ca37731b999bf0c0527529f87",
+    "proof/canary-evidence.json": "d5c23ceaebe023f21f4140a936c3cd9cf9daaedcfe9e2576afc6ab818875a81d",
+    "proof/canary-policy-publication.json": "aef7c61bd1049580886dc2b6cdfddf869156553a19b9986394540389ecf464c6",
+    "proof/canary-tests.log": "b0c2381c575ecfc8a39c53435fda0f8e34af311f397a3d0e782f7714cede8fa8",
+    "proof/cargo-home-alias-red.log": "7b4580cbf9ba67acb5187e6b772b57a5ad9fb620227b4fe6fbd3a37a3eca84a2",
+    "proof/cargo-home-red.log": "1db2ada019b3acd350a798a7b262cb75d53635882328c252a92ef8a972185b46",
+    "proof/current-contract-host.log": "6ccfed896dae8d6cd41ef3af33a20d70feed9565fa3c5a7dd2aad8d2e07b2264",
+    "proof/driver-controls-green.log": "9e56a0f6ffc331f1edc22b3d6837657cf0e67607fa4da8d266ba277008f85145",
+    "proof/driver-controls-initial.log": "b082e1243f13d97d89e09d6016fed98f8d59a39a936ecc3ec2f232b31524e8a3",
+    "proof/driver-independence-baseline-current.log": "99f71393b9903dca098310bb446022a4bdee195ea9996f351a787195555210a6",
+    "proof/driver-independence-current.json": "2f3736bff4b71e49b91419eab9eb146dd0aad2608bc14c5cfa6ee44a2aab4139",
+    "proof/driver-independence-poisoned-current.log": "a13905646e2aed93ec6ea9ed6ac91490a4e01f91af0215c3965279a910612149",
+    "proof/final-static-verification.json": "9aef26b2fd08e7e3ee5c125495a9b9b99c5891e891c6abfb835d30448a9b99db",
+    "proof/framework-affected-clippy-initial.log": "1bfbf46056a4bb87016cb519995102c8e6406ba22685f90eb64cc57ffd6b4c1b",
+    "proof/framework-affected-clippy.log": "f865df5ec6880eef883fad239611b93f8690ffee9bc95598d223d4cd18b79633",
+    "proof/framework-clippy-alias-final.log": "32f49377991196576ecc8b409d96fdb0a5b78fb706e229f9cd77c329890c1e79",
+    "proof/framework-fmt-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-metadata-final.json": "194afe17cbdbde2e9c742242aded91fb885a9fb00525364bf3b5668ab35b50b7",
+    "proof/framework-metadata-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/guest-freshness-current.log": "07ff98260560a3f58c183c5c73d2326372e342b5e9536178c02c9e22df6fbfc1",
+    "proof/guest-reproduction-current.json": "f379c010215b86d3dd34819071b6e6f96d68f0145bb4c7639c5e57f2949e1a60",
+    "proof/guests-a-alias-initial.log": "c22a05f32babf66b2f83aa00945f90883a93bc17ac639705af9a1bab54cf4acf",
+    "proof/guests-a-current.log": "9c3ace5d0b5824d21f62a00fc4834e139bca75e9bf12e1a10e8c73a643acc954",
+    "proof/guests-a-hashes.json": "da61ec6ed861becd3962e34b157eba7eddbeb4df1da8909d8cc221b3fe011459",
+    "proof/guests-b-current.log": "5ed2586dca3cffb2b737c6be32588f51840f53c9fd3c77d1ef61ca27d47d0975",
+    "proof/host-evidence-reuse.json": "21c6bed19a890e234bc9a33def6c89a6571168b084950b38da69ebc89ba9fa6f",
+    "proof/logical-identity-delta.json": "5d800611cb7ee566f7be427495c51b3f3ca0569f11fcaa4fa24a4d03ebc99024",
+    "proof/native-controls-alias-bootstrap-initial.log": "af98d1872910755cf27af1b72acb6af460040bddf8038164d0b8c35fdd2f86bd",
+    "proof/native-controls-alias-final.log": "4e58f9da2ac6d83a4164887c915fc2a9ba2760c06f62e5bcd0fda733fd518364",
+    "proof/native-controls-final.log": "01f2ad45f057f2ae2dd3ccc7bc167d2d20489d5c752de18a4b448b7874168fa0",
+    "proof/outer-bridge-clippy.log": "6389ad5890532d90a4a34d2daf6e614bc65601cbaf7573cc586f11933b2185d0",
+    "proof/outer-bridge-tests.log": "32fa625cb8f5a82cb8dffa78c44cc992e6af95ef7a157451d9307788573333ca",
+    "proof/outer-clippy-alias-final.log": "717c1266bfe5f91895addab7f3e41d9f2cffcbb384ce7667231ee190233ef3b8",
+    "proof/outer-fmt-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/outer-metadata-final.json": "cb7ad90c9ed9d39276aa3ba80cd077a7410887b440cb117f5318272bf8fc2b0b",
+    "proof/outer-metadata-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/outer-metadata.json": "cb7ad90c9ed9d39276aa3ba80cd077a7410887b440cb117f5318272bf8fc2b0b",
+    "proof/outer-tests-alias-final.log": "140a11f7be11fabab70df8c3d99dcf97db3472d246489bfce635704edd466698",
+    "proof/reproduction-inputs-initial.json": "0a52d4c72800c51a271d9d3423d773b6fc813b879ddc5e3f7a6f30753b388821",
+    "proof/reproduction-inputs.json": "5133aca857fc8fef12ae047210122d6bce33417d488f238f0cb9bc583fbfebae",
+    "proof/review-round1-receipt.json": "08ec0b977173602daa5166f085bd3e764f21de21b455ab739ada8914c4686193",
+    "proof/root-cargo-home-controls-final.log": "ae5ba7c52a4cabe0469dfb3d51a9a07925b7ff5a6dfcea47245659e98ed61329",
+    "proof/root-cargo-home-controls.log": "ae5ba7c52a4cabe0469dfb3d51a9a07925b7ff5a6dfcea47245659e98ed61329",
+    "proof/source-identities.json": "e8c82336eacda897ebf79a897fc8d11553c5b77de5f48bdf4671ac31b15230e3",
+    "proof/standalone-build-current.log": "11e76ee61c2046243ea2ddf4de301c4b9d69ad7d5373fc33a7b2188f2f61634d",
+    "proof/standalone-inputs.json": "65df62cc9844ddd9318db936e56dc3bfe6dd07cdba13c0e877647a3dac53c17b",
+    "proof/tlc-evidence-green.log": "06cda88401ad7b7bac4b58878af9398025461d551096bc4d860674e946dae6ca",
+    "proof/tlc-evidence-red.log": "8d127a93d9aad853b30021e90961daa5d178e92b96ce0fc95da647ddfbfa472f",
+    "proof/tlc-required-evidence/fn2372-eager-safety-0.log": "e2d93f685d8f4df72c9df0ec9afc12ffa5340deb9782986fe92b8544e685201f",
+    "proof/tlc-required-evidence/fn2372-eager-safety-1.log": "208d64c71c1b8009bd2c3d0a782097e20f56c8736e836acc2cda9db35020066b",
+    "proof/tlc-required-evidence/fn2372-eager-safety-2.log": "9cfa08c4aa17892b0764bcf0997b6d23e37c4fcc5f6de7597980e84a6608571f",
+    "proof/wiring/diff-check.log": "f6a7d2113895ff7c42d5ce1b8ed901898e65102abf499b98eebd4c7ba5a0c7a2",
+    "proof/wiring/expanded-red.log": "24100cd3271d9e40a887ad657e3f8dd2385f5705648c37165b0988ab00192501",
+    "proof/wiring/final-all-controls.log": "33542ea8e11f1092582935ad6883e7e2ea6a7c27f00d4a033a16385abe0a08fc",
+    "proof/wiring/green.log": "99afa08e0096015c8b73d978f8c0836a8ca64eb39425217cb4ea97e177f6cdd5",
+    "proof/wiring/red.log": "16c20a68d2f63bce49d069b9a1de53b0a4c92dfdad2d1d7d5aebe053aebe48ab",
+    "proof/wiring/relative-red.log": "e83ccf49fefd2260b0d9f918ed03357d264358df70459784377419a4ae944fa0",
+    "proof/wiring/shell-controls.log": "33542ea8e11f1092582935ad6883e7e2ea6a7c27f00d4a033a16385abe0a08fc",
+    "proof/wiring/syntax.log": "719e60bb1ae6df1d35be4e534f411183254b45fcab2a243ae93d308ea302ad4d"
+  }
+}
