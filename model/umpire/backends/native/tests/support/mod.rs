@@ -35,6 +35,8 @@ impl std::fmt::Display for Action {
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Mode {
     SharedStarts,
+    Choices,
+    Vacuity,
     Edges,
     Fails,
     FailsOnEdge,
@@ -69,6 +71,14 @@ impl Machine for Tiny {
     }
     fn step(&self, state: &Value, action: Action) -> Steps<Value, bool, &'static str> {
         let mut steps = Steps::new();
+        if self.0 == Mode::Choices {
+            if state.0 == 0 && action == Action::Advance {
+                steps.push((false, vec!["rejected"], Value(2)));
+                steps.push((true, vec!["accepted"], Value(1)));
+                steps.push((false, vec!["same_target"], Value(1)));
+            }
+            return steps;
+        }
         if state.0 == 0 && action == Action::Advance {
             match self.0 {
                 Mode::EffectPanic => panic!("broken heater"),
@@ -104,6 +114,20 @@ impl Machine for Tiny {
     }
     fn postconditions(&self) -> Vec<StepClaim<Self>> {
         match self.0 {
+            Mode::Choices => {
+                vec![StepClaim::<Self>::new("choice_facts", |_, _, after, _, outcome, facts| {
+                    ((*outcome && after.0 == 1 && facts == ["accepted"])
+                        || (!outcome
+                            && ((after.0 == 2 && facts == ["rejected"])
+                                || (after.0 == 1 && facts == ["same_target"]))))
+                    .into()
+                })]
+            }
+            Mode::Vacuity => vec![StepClaim::<Self>::after(
+                "unused_claim",
+                Action::Unused,
+                |_, _, _, _, _, _| Verdict::Fails,
+            )],
             Mode::Edges => vec![
                 StepClaim::<Self>::new("never_decreases", |_, before, after, _, _, _| {
                     (after.0 >= before.0).into()
