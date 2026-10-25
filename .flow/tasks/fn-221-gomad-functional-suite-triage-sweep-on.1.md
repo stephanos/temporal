@@ -7,9 +7,9 @@ satisfies: [R1]
 Add the explicit-input sweep driver under `internal/backends/wasm`, refusing inherited `GOMAD_*` variables and unbounded runs. Enumerate top-level functions, registered suite methods (including nested registration paths) and nested modules under `tests`, reconcile wrappers against `go test -list`, and require the selected method's own terminal verdict. Reuse an authenticated module by compile-only inputs while retaining fresh per-execution provenance; test compiler counts, invalidation and distinct runtime inputs. Drive the existing explore go-test path with one seed, parallelism one and bounded preparation/execution/global deadlines. Use fn-220's temporal installation now that it has landed, recording that choice. Classify the eight execution classes from the spec, with skips and explicit budget/cap not-run states kept distinct. Early proof remains `tests/gomadfunctional` plus one ordinary tests package capped at ten isolated units; wrapper-only v1 evidence cannot establish it. The full uncapped survey belongs to task .2.
 
 **Size:** M
-**Files:** tools/gomad/internal/backends/wasm/** (harness/cache), tools/gomad/internal/backends/wasm/README.md, .flow/artifacts/fn221-*
+**Files:** tools/gomad/internal/backends/wasm/** (harness/cache), tools/gomad/docs/wasm/README.md, .flow/artifacts/fn221-*
 
-**Touches:** tools/gomad/internal/backends/wasm/** (harness/cache), tools/gomad/internal/backends/wasm/README.md, .flow/artifacts/fn221-*
+**Touches:** tools/gomad/internal/backends/wasm/** (harness/cache), tools/gomad/docs/wasm/README.md, .flow/artifacts/fn221-*
 ## Acceptance
 - [ ] Harness refuses inherited GOMAD_* variables and unbounded runs
 - [ ] Top-level counts reconcile against go test -list; method declarations and registration paths are inventoried separately

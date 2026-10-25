@@ -1,11 +1,11 @@
 # WASM operator entrypoint
 
-The host implementation now lives in the single [Rust workspace](../../../rust/README.md).
+The host implementation now lives in the single [Rust workspace](../rust/README.md).
 The Go CLI, runner and host qualification producers described in older sections
 are retired source; retained Go code owns models, protocol generation, conformance
 oracles and the guest runtime overlay. Current build and reference checks are
 `make -C tools/gomad build`, `validate` and `test-wasm`. Final qualification uses
-the [Rust driver](../../../rust/driver/README.md) with frozen authenticated inputs and the unchanged
+the [Rust driver](../driver/README.md) with frozen authenticated inputs and the unchanged
 3,600-second limit. This prospective source consolidation supplies no R12/R13
 acceptance; the conductor retains the frozen Go baseline until those gates pass.
 
@@ -215,7 +215,7 @@ listed above. Different explicit policies can produce different final bytes.
 Support here is limited to `TestFrontendSystemInfo` in `tests/gomadfunctional`.
 The setup path grants no additional guest capability or support for other tests.
 One-box qualification and per-test support evidence are owned separately by
-[fn-222](../../../../../.flow/specs/fn-222-gomad-qualify-the-one-box-cell-and.md).
+[fn-222](../../../../.flow/specs/fn-222-gomad-qualify-the-one-box-cell-and.md).
 
 ## Wrap existing Go commands
 
@@ -324,7 +324,7 @@ All capacity, output/choice limits and modeled boundaries still apply.
 ### Temporal Make smoke
 
 Use the exact constrained command in the
-[README](../../../README.md#run-existing-commands-through-gomad). It sets all three
+[README](../README.md#run-existing-commands-through-gomad). It sets all three
 functional package variables to `./tests/gomadfunctional` and selects only
 `TestFrontendSystemInfo`: three sequential executions of one registered test,
 not three independently supported packages or an NDC/XDC support claim.
@@ -341,7 +341,7 @@ status separately. Each Make recipe pipes through `tee -a test.log`; the final
 verifier requires some `^ok` and no `^--- FAIL`. A stale passing log can mask a
 refusal, so the acceptance harness requires a fresh log and does not add pipefail
 or change the shell to improve the result. The wrapper returns Make's actual
-status. See the [execution plan](../../../testdata/parity/interception-make-plan.md)
+status. See the [execution plan](../../testdata/parity/interception-make-plan.md)
 for stage commands and evidence boundaries.
 
 ## Discovery
@@ -542,7 +542,7 @@ required names, including in real `-s` modules with retained pclntab, yield
 `no_symbols`. Module digest/read errors still refuse inspection.
 Analysis shares fixed cumulative limits and a single immutable result map;
 exhaustion discards partial symbols. Artifacts and all recorded identities
-remain unchanged. The [Rust inspection contract](../../../CLI.md#rust-artifact-inspection)
+remain unchanged. The [Rust inspection contract](../CLI.md#rust-artifact-inspection)
 lists the limits and the pending authenticated campaign-divergence consumer.
 
 Replay loads the retained module, provenance, modeled inputs, choices and

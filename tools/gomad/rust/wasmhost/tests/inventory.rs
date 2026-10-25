@@ -1692,7 +1692,7 @@ fn inventory_reviewed_versions_match_exact_candidate_pins() {
 #[test]
 fn every_escape_resolves_a_readme_heading() {
     let inventory = parse(INVENTORY).unwrap();
-    let readme = include_str!("../../../internal/backends/wasm/README.md");
+    let readme = include_str!("../../../docs/wasm/README.md");
     let headings: BTreeSet<String> = readme
         .lines()
         .filter_map(|line| line.trim().strip_prefix('#'))

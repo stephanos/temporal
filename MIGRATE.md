@@ -586,7 +586,7 @@ for their completion.
 Read these source-layout anchors before modifying their relocated equivalents:
 
 - `AGENTS.md`, `.github/copilot-instructions.md`, `MILESTONES.md`.
-- `tools/gomad/README.md`, `tools/gomad/SPEC.md`, `tools/gomad/ARCHITECTURE.md`.
+- `tools/gomad/docs/README.md`, `tools/gomad/docs/SPEC.md`, `tools/gomad/docs/ARCHITECTURE.md`.
 - `tools/gomad/go.mod` and `internal/backends/native/go.mod`.
 - Root `Makefile`, `tools/gomad/Makefile`, WASM `Makefile`.
 - `.github/workflows/gomad.yml`, `gomad-smoke.yml`, root lint tooling/config.
@@ -607,7 +607,7 @@ line numbers refer to the source layout and must be rechecked at execution time.
 
 ### Analogous Features
 
-- `tools/gomad/README.md:13` — Existing extraction separates the shared/WASM module from the native child module while retaining source paths and backend contracts.
+- `tools/gomad/docs/README.md:13` — Existing extraction separates the shared/WASM module from the native child module while retaining source paths and backend contracts.
 - `cmd/tools/lintcode/rename_policy_test.go:51` — Existing rename tests preserve historical versus newly introduced findings across module moves; migration-sensitive lint behavior already has coverage.
 - `tools/gomad/internal/backends/wasm/wasi/integration_test.go:2782` — Temporal qualification captures a dependency, materializes a private copy, verifies unchanged source inventory, and compares effective module graphs.
 - `tools/gomad/internal/backends/wasm/wasi/integration_test.go:2441` — Temporal frontend guests compile `./tests/gomadfunctional`; other guests compile Temporal persistence packages and `./tests`.
@@ -625,7 +625,7 @@ line numbers refer to the source layout and must be rechecked at execution time.
 ### Convention Anchors
 
 - **Module boundaries:** `tools/gomad/go.mod:1` and `tools/gomad/internal/backends/native/go.mod:1` declare separate modules with reciprocal local replacements and distinct relative replacements for Temporal. The current module namespace also determines Go `internal` import accessibility.
-- **Canonical source ownership:** `tools/gomad/README.md:13` assigns runtime/model sources to Gomad; `internal/model/network/adapter.go:20` and `internal/model/volume/runtime.go:5` declare generation beside the owning model.
+- **Canonical source ownership:** `tools/gomad/docs/README.md:13` assigns runtime/model sources to Gomad; `internal/model/network/adapter.go:20` and `internal/model/volume/runtime.go:5` declare generation beside the owning model.
 - **Repository versus module roots:** `tools/gomad/internal/backends/wasm/cmd/wasmmeasure/main.go:70`, `:103`, and `:192` construct `repo/tools/gomad` paths. `internal/measurement/measurement.go:96` records that location in reproduction metadata. These are operational assumptions, beyond prose links.
 - **Guest staging:** `tools/gomad/internal/backends/wasm/wasi/integration_test.go:2492` stages Gomad-owned fixtures into Temporal `.tmp/wasm-backend-temporal`; line 2508 discovers dependencies from the Temporal build root. Line 2573 sets guest `TEMPORAL_ROOT=/workspace`, a virtual guest namespace distinct from host checkout placement.
 - **Root integration ownership:** Root `Makefile:170`, `:190`, `:510`, and `:513` dispatch Gomad builds, qualification, and module-aware lint; `.github/workflows/gomad-smoke.yml:15` and `:106` route paths and select the nested Go version. Root `cmd/tools/lintcode` contains Gomad-specific lint tests and behavior.

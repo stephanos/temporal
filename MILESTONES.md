@@ -8,8 +8,8 @@ same seed produces the same run and a retained artifact replays byte-exactly.
 [GOMAD_NEXT.md](.plans/GOMAD_NEXT.md) remains the capability roadmap across all four tracks.
 
 The WASM backend lives in `tools/gomad/internal/backends/wasm` and shares its
-campaign, artifact, replay, and choice owners. Read [the WASM README](tools/gomad/internal/backends/wasm/README.md) before working on that
-backend; [the qualification contract](tools/gomad/internal/backends/wasm/QUALIFICATION.md)
+campaign, artifact, replay, and choice owners. Read [the WASM README](tools/gomad/docs/wasm/README.md) before working on that
+backend; [the qualification contract](tools/gomad/docs/wasm/QUALIFICATION.md)
 lists the gates a shared-owner change must pass.
 
 ## Work tracking
@@ -487,7 +487,7 @@ CI, PR, or push authority.
 - **Platform.** The removed native backend's boundary manifest named `darwin/arm64` and
   `linux/amd64`; its sandbox, DTrace and compatibility-pack gates are historical.
   WASM qualification binds the recorded engine, host, profile and workload under
-  [the qualification contract](tools/gomad/internal/backends/wasm/QUALIFICATION.md).
+  [the qualification contract](tools/gomad/docs/wasm/QUALIFICATION.md).
 - **Server source changes are allowed but bounded.** A change under `common`, `service`,
   `temporal`, or `tests/testcore` is acceptable when it isolates an optional provider behind a
   build tag or an injection seam and the default build is unchanged. A change that alters

@@ -9,9 +9,9 @@ Extend the diagnostic-profile feature in wasmhost: record each host import's exa
 Pending R4 receiving cross-reference: fn-232 R12/task .13's final frozen Rust window receives the actual runtime-cost-equivalent release-behavior and qualified choice/WASI/network/stdout/stderr preservation comparisons, with the original assertions, bounds and actual identity bindings. R4 stays OPEN in this task until that receiving proof exists and is reconciled here; older f172 raw early proofs remain historical and do not close fn-185.1 for the current candidate. This coordination authorizes no new Go-only profiling/full qualification, migrated or relabeled digests, acceptance waiver or status change.
 
 **Size:** M
-**Files:** tools/gomad/internal/backends/wasm/wasmhost/src/** (diagnostic owner and dispatch modules after fn-187), tools/gomad/rust/gomad/src/**, tools/gomad/internal/backends/wasm/README.md
+**Files:** tools/gomad/internal/backends/wasm/wasmhost/src/** (diagnostic owner and dispatch modules after fn-187), tools/gomad/rust/gomad/src/**, tools/gomad/docs/wasm/README.md
 
-**Touches:** tools/gomad/internal/backends/wasm/wasmhost/src/** (diagnostic owner and dispatch modules after fn-187), tools/gomad/rust/gomad/src/**, tools/gomad/internal/backends/wasm/README.md
+**Touches:** tools/gomad/internal/backends/wasm/wasmhost/src/** (diagnostic owner and dispatch modules after fn-187), tools/gomad/rust/gomad/src/**, tools/gomad/docs/wasm/README.md
 
 ## Acceptance
 Implement request-local diagnostic session and execute spans on the Rust linked execution path, with bounded sinks and current Rust collector/report owners. Go transport/wasmmeasure paths are semantic references only. Prove the linked diagnostic producer emits the required attribution, without losing the existing pending fn-232.13 receiving obligation for R4. **Touches additionally:** tools/gomad/rust/gomad/src/** and helper linked execution/diagnostic modules.

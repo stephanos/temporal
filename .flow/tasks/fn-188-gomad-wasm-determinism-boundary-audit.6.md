@@ -4,12 +4,12 @@ satisfies: [R5, R6]
 # fn-188-gomad-wasm-determinism-boundary-audit.6 Regression gates, version pinning, validate wiring and the documented contract
 
 ## Description
-**Touches:** tools/gomad/internal/backends/wasm/determinism/**, tools/gomad/internal/backends/wasm/README.md, tools/gomad/README.md, tools/gomad/Makefile and tools/gomad/rust/** for Rust receiving-gate integration with fn-232.13.
+**Touches:** tools/gomad/internal/backends/wasm/determinism/**, tools/gomad/docs/wasm/README.md, tools/gomad/docs/README.md, tools/gomad/Makefile and tools/gomad/rust/** for Rust receiving-gate integration with fn-232.13.
 
 Turn every escape or divergence found in tasks .1 to .5 into a named regression test (fn-187.1 transcript corpus case where end-to-end, otherwise an engine refusal test or Go host test) referenced by its inventory row; the completeness test fails when a named test disappears. Pin the inventory `reviewed` versions (Go toolchain from the WASM toolchain descriptor, Wasmtime from Cargo.lock, Rust from rust-toolchain.toml) and fail the inventory test on mismatch until the pin and a review date are updated together. Wire the inventory, source-scan, archcheck and boundary tests into `make -C internal/backends/wasm test` and `make -C tools/gomad validate`. Docs: add a determinism contract section to the WASM README listing dispositions by class, escapes with justification and the retained stress evidence, worded as a tested contract and never as elimination of all nondeterminism; in the top-level README determinism section, state for each catalogued native escape (GC stamps, FIPS monoTime, tracer snapshot, Gettimeofday, cputicks, enlistWorker) whether it applies under wasip1, cross-referencing the WASM README; update ARCHITECTURE.md where it describes the soak and diagnostics. If any .1-.5 fix rotated helper, model or runtime identities, record the rotation and rerun the WASM gates on the frozen candidate.
 
 **Size:** M
-**Files:** tools/gomad/internal/backends/wasm/determinism/*, tools/gomad/internal/backends/wasm/Makefile, tools/gomad/Makefile, tools/gomad/internal/backends/wasm/README.md, tools/gomad/README.md, tools/gomad/ARCHITECTURE.md, tools/gomad/internal/backends/wasm/wasmhost/tests/testdata/helper_transcript/**
+**Files:** tools/gomad/internal/backends/wasm/determinism/*, tools/gomad/internal/backends/wasm/Makefile, tools/gomad/Makefile, tools/gomad/docs/wasm/README.md, tools/gomad/docs/README.md, tools/gomad/docs/ARCHITECTURE.md, tools/gomad/internal/backends/wasm/wasmhost/tests/testdata/helper_transcript/**
 
 **Re-homing (owner decision 2026-10-20, Rust host rewrite):** complete the named regression tests, inventory pins and README contract here. The `make validate` and WASM test-target wiring that lives in the Go host build is re-homed to fn-232.13 (Rust host retirement), which wires the inventory and boundary tests into the Rust binary's validate path; do not add Go-host-only gate code.
 

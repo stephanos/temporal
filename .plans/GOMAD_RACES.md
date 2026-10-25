@@ -67,7 +67,7 @@ Ps parallelism reaches it; that is why 2,000 updates were needed.
 Gomad's cooperative profile keeps one logical processor, disables asynchronous
 preemption, and asks the helper for a decision only at goroutine creation,
 run-queue dispatch, and select poll/result
-([ARCHITECTURE.md, Scheduling](../tools/gomad/ARCHITECTURE.md)). The overlay's
+([ARCHITECTURE.md, Scheduling](../tools/gomad/docs/ARCHITECTURE.md)). The overlay's
 rewrite list in `tools/gomad/internal/backends/wasm/toolchain/overlay.go:255`
 touches `proc.go`, `select.go`, `rand.go`, `time.go`, `runtime2.go`,
 `note_other.go`, `lock_wasip1.go` and the WASI files. It never touches
@@ -89,7 +89,7 @@ the crash**. A seed sweep has probability zero.
   guarded by `lock`, so the stale-size variant is invisible by construction.
 - The bug sits behind a dynamic-config flag that is off by default, and the
   qualified one-box cells
-  ([QUALIFICATION.md](../tools/gomad/internal/backends/wasm/QUALIFICATION.md))
+  ([QUALIFICATION.md](../tools/gomad/docs/wasm/QUALIFICATION.md))
   run frontend smoke tests, not concurrent updates on one workflow.
 
 ### The research already names this class
@@ -158,7 +158,7 @@ Constraints:
 - Bound the choice space: a seeded per-write probability or a per-execution
   budget, recorded in the tape so replay forces the same yields. Every map write
   in Temporal becomes a potential decision, so the frontier rules in
-  [SPEC.md `[RUNTIME.CHOICES]`](../tools/gomad/SPEC.md) and the frozen-plan
+  [SPEC.md `[RUNTIME.CHOICES]`](../tools/gomad/docs/SPEC.md) and the frozen-plan
   `Frontier` need the bound.
 - Any overlay change reopens the determinism inventory and requalification.
 

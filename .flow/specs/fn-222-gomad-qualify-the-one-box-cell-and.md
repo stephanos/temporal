@@ -55,7 +55,7 @@ Task .1 runs unchanged source preparation first. A preparation failure is retain
 ```sh
 cargo test --manifest-path tools/gomad/rust/Cargo.toml -p gomad qualification
 python3 -m unittest discover -s tools/gomad/rust/driver/tests -p 'test_onebox*'
-# Exact cell commands and environment: tools/gomad/internal/backends/wasm/QUALIFICATION.md#one-box-cell-gates
+# Exact cell commands and environment: tools/gomad/docs/wasm/QUALIFICATION.md#one-box-cell-gates
 ```
 
 ## Requirement coverage

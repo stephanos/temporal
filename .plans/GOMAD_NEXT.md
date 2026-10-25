@@ -5,9 +5,9 @@ This roadmap collects candidate investments beyond committed work.
 functional-test dispositions, open findings, and deferred follow-ups with revival
 triggers. Flow-Next specs own tasks and acceptance criteria.
 
-Use the [README](../tools/gomad/README.md) for implemented capabilities and platform
-limits, the [specification](../tools/gomad/SPEC.md) for requirements, and the
-[architecture](../tools/gomad/ARCHITECTURE.md) for module ownership and replay
+Use the [README](../tools/gomad/docs/README.md) for implemented capabilities and platform
+limits, the [specification](../tools/gomad/docs/SPEC.md) for requirements, and the
+[architecture](../tools/gomad/docs/ARCHITECTURE.md) for module ownership and replay
 contracts. [Downstream findings](GOMAD_CLOUD.md) identify seams consuming modules
 must supply; qualification manifests and reports own workload support.
 

@@ -16,12 +16,12 @@ The host is the single [Rust workspace](rust/README.md): the `gomad` crate
 protocol generation, conformance oracles and the guest runtime overlay; the Go
 CLI, Runner, backend adapters and host qualification producers were retired by
 fn-232.13. Build and check with `make -C tools/gomad build`, `validate` and
-`test-wasm`. Final qualification uses the [Rust driver](rust/driver/README.md)
+`test-wasm`. Final qualification uses the [Rust driver](driver/README.md)
 with frozen authenticated inputs and the unchanged 3,600-second limit.
 
 This document is the map. The [README](README.md) is the operator walkthrough,
-the [WASM operator guide](internal/backends/wasm/CLI.md) has every command, the
-[qualification contract](internal/backends/wasm/QUALIFICATION.md) says what is
+the [WASM operator guide](wasm/CLI.md) has every command, the
+[qualification contract](wasm/QUALIFICATION.md) says what is
 proven, and [SPEC.md](SPEC.md) defines the vocabulary used below.
 
 ## The big picture
@@ -215,12 +215,12 @@ build with modeled imports and supports observed replay only.
 supports exact replay, choice exploration, and typed scenarios. Everything
 below assumes the cooperative profile.
 
-The [WASM determinism inventory](internal/backends/wasm/determinism/inventory.json)
+The [WASM determinism inventory](../internal/backends/wasm/determinism/inventory.json)
 records each reviewed influence as controlled, recorded, rejected or escaped.
 Source-derived completeness checks cover imports, runtime patches, seeded
 streams, host effects and engine settings. The inventory binds its review to
 the pinned compiler, Wasmtime and Rust versions. Its
-[documented escapes](internal/backends/wasm/README.md#known-determinism-escapes)
+[documented escapes](wasm/README.md#known-determinism-escapes)
 bound the guarantee.
 
 Diagnostic traces retain seeded draw counters at choice points. Same-seed
@@ -307,7 +307,7 @@ coverage must establish replacement before a test is deleted.
 
 Measurement producers live behind the explicit Rust `gomad-measure` binary, outside
 test targets. They retain their host-admission, identity and resource checks.
-The [WASM implementation guide](internal/backends/wasm/README.md) documents the
+The [WASM implementation guide](wasm/README.md) documents the
 regeneration workflow and command invocation.
 
 ## Evidence: records, artifacts, replay
@@ -381,7 +381,7 @@ helper, module, model, compiler, host, profile and limits. The current cells
 are a small fixture, a SQLite storage workload, a one-box Temporal workload and
 a multi-instance cluster scenario. A passing cell qualifies that cell on that
 candidate; it is not a claim about arbitrary tests, other hosts, or
-performance. See the [qualification contract](internal/backends/wasm/QUALIFICATION.md).
+performance. See the [qualification contract](wasm/QUALIFICATION.md).
 
 ## What is not claimed
 
@@ -396,9 +396,9 @@ performance. See the [qualification contract](internal/backends/wasm/QUALIFICATI
 ## Where to read next
 
 - [README](README.md): installation to a retained failure, step by step.
-- [WASM operator guide](internal/backends/wasm/CLI.md): every verb and flag.
-- [WASM README](internal/backends/wasm/README.md): helper layout, corpora,
+- [WASM operator guide](wasm/CLI.md): every verb and flag.
+- [WASM README](wasm/README.md): helper layout, corpora,
   regeneration.
-- [Qualification](internal/backends/wasm/QUALIFICATION.md): cells, gates,
+- [Qualification](wasm/QUALIFICATION.md): cells, gates,
   measured costs.
 - [SPEC](SPEC.md): definitions and product claims.

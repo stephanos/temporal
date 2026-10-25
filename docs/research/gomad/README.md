@@ -21,5 +21,5 @@ and experimental proposals. They do not define current support or task state.
 
 Use the [capability roadmap](../../../.plans/GOMAD_NEXT.md) for remaining
 candidates and [milestones](../../../MILESTONES.md) for delivery order.
-Current contracts live in the [specification](../../../tools/gomad/SPEC.md) and
-[architecture](../../../tools/gomad/ARCHITECTURE.md).
+Current contracts live in the [specification](../../../tools/gomad/docs/SPEC.md) and
+[architecture](../../../tools/gomad/docs/ARCHITECTURE.md).

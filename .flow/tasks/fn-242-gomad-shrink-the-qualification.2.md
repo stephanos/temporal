@@ -12,7 +12,7 @@ Preserve the current global allowance of TWO new full dispatches, both unused at
 
 Consume every mandatory retained-unproved pending_regression contract assigned to this task by .1. Implement and actually execute its catching fixture or controlled mutation and valid control against the Rust check, preserving the original concrete failure and trust boundary. Retain the inventory IDs, source bindings, exact commands, observed outcomes and numeric exits for .7's proof audit. A named future test, an assertion in source or an unexecuted fixture does not resolve proof. A shared fixture may cover multiple rows only when the evidence maps its catching outcome to each original failure/trust boundary. This task cannot claim its assigned proof complete while any assigned row is unresolved; split oversized surfaces through Flow before implementation and make cutover wait for every proof-producing successor. No full qualification dispatch belongs to this proof work.
 
-**Touches:** tools/gomad/rust/gomad/src/cycle/**, tools/gomad/rust/gomad/src/cli/**, tools/gomad/rust/gomad/src/main.rs, tools/gomad/rust/gomad/src/lib.rs, tools/gomad/CLI.md
+**Touches:** tools/gomad/rust/gomad/src/cycle/**, tools/gomad/rust/gomad/src/cli/**, tools/gomad/rust/gomad/src/main.rs, tools/gomad/rust/gomad/src/lib.rs, tools/gomad/docs/CLI.md
 
 Crate amendment (owner, 2026-10-24): the cycle verb parses argv with `clap` (derive), uses `tempfile` for scratch directories and `regex` where the Python driver used `re`. All pinned `=` in the workspace.
 ## Acceptance

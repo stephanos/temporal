@@ -34,7 +34,7 @@ this document does not qualify the checkpoint.
 The stream profile and affected config/record/model/transition identities must
 rotate together. Old identities reject before activation through the single
 generated semantic codec. See the
-[network contract](../../../README.md#network-streams-partitions-and-replay).
+[network contract](../../../docs/README.md#network-streams-partitions-and-replay).
 
 | Action | Existing connection | New dial |
 | --- | --- | --- |

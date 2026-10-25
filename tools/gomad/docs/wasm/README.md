@@ -1,6 +1,6 @@
 # Gomad WASM
 
-The execution host and engine live in the single [Rust workspace](../../../rust/README.md).
+The execution host and engine live in the single [Rust workspace](../rust/README.md).
 This directory retains the cooperative Go runtime overlay, guest fixtures,
 determinism inventory and Go cluster conformance oracles. The Go CLI, Runner,
 provider and measurement producers have been removed from the prospective
@@ -21,14 +21,14 @@ Guest files use captured immutable bytes and an in-memory namespace. Network,
 clock, volume and entropy operations use explicit models. A linked execution
 creates fresh engine, store and guest state. The Rust helper's public linked
 interfaces and retained-record contracts are documented in the
-[Rust host guide](../../../rust/README.md); its standalone framed transport is
-specified in [the helper protocol](../../../rust/wasmhost/protocol.md).
+[Rust host guide](../rust/README.md); its standalone framed transport is
+specified in [the helper protocol](../rust/protocol.md).
 
 Forced replay admits retained raw Choice Trace bytes and their expected digests
 through the helper's preflight validator. It does not accept a host-projected
 decision tape. Inspection and replay authenticate Rust-lineage artifacts and
 refuse historical Go-lineage manifests. The public command contracts are in
-[the maintainer CLI guide](../../../CLI.md).
+[the maintainer CLI guide](../CLI.md).
 
 The workspace pins Rust 1.99.1 and Wasmtime 47.0.3, with one `Cargo.lock`,
 `rust-toolchain.toml` and shared `rust/target` directory (or explicit
@@ -80,14 +80,14 @@ history. Current acceptance remains open under fn-232, with final execution and 
 in fn-246 after fn-242's Rust driver cutover and the full fn-240 extraction,
 including the transferred live roots and complete behavioral reach of
 `make -C tools/gomad test-wasm`. The [qualification contract](QUALIFICATION.md),
-[delivery milestones](../../../../../MILESTONES.md) and
-[Rust qualification driver](../../../rust/driver/README.md) define those gates.
+[delivery milestones](../../../../MILESTONES.md) and
+[Rust qualification driver](../driver/README.md) define those gates.
 The unchanged 3,600-second end-to-end bound applies. Source consolidation and
 source checks supply no final qualification pass.
 
 ## Determinism contract
 
-The checked-in [inventory](determinism/inventory.json)
+The checked-in [inventory](../../internal/backends/wasm/determinism/inventory.json)
 (`gomad.wasm-determinism-inventory/v1`) records influences as `controlled`,
 `recorded`, `rejected` or `escape`. Rust inventory tests derive helper imports,
 engine configuration and source sites and compare them with reviewed rows.
@@ -138,14 +138,14 @@ The retired Go end-to-end regressions are received as follows:
 
 | Retired Go test | Receiver |
 | --- | --- |
-| `TestDeterminismExecutedDivergenceArtifacts` | The four original fixture pairs (`draw`, `clock`, `handoff`, `output-clock`) in `campaign::counterfactual::produce_the_four_original_counterfactual_artifact_pairs`, run by the [executed-divergence driver stage](../../../rust/driver/executed-divergence.md). |
-| `TestCooperativeRuntimeQualification` | 32 seeds × 25 fresh stores plus one forced replay per seed, produced by `runtime_qualification` and checked by the [runtime gate](../../../rust/driver/runtime-gate.md). |
+| `TestDeterminismExecutedDivergenceArtifacts` | The four original fixture pairs (`draw`, `clock`, `handoff`, `output-clock`) in `campaign::counterfactual::produce_the_four_original_counterfactual_artifact_pairs`, run by the [executed-divergence driver stage](../driver/executed-divergence.md). |
+| `TestCooperativeRuntimeQualification` | 32 seeds × 25 fresh stores plus one forced replay per seed, produced by `runtime_qualification` and checked by the [runtime gate](../driver/runtime-gate.md). |
 | `TestInstalledOperatorClusterFailureEndsPromptly` | The installed native 10-second deadlock/capacity check (`installed_cluster_failure.py`) and, for the reference-helper control reader, `manual_cluster_trap_ends_run_without_control_frame.json`. |
 | `TestTerminalExitMeasurementControls` | `measurement::terminal_controls` native controls and the terminal-controls driver stage. |
 | `TestTransportRejectsInvalidTerminalClaims` | Its migration contract. Output and fuel claims are received by resealed public-intake refusals in `evidence::store::record_intake_tests`. |
 
 Retained same-seed stress evidence is produced by the
-[Rust stress matrix](../../../rust/STRESS.md). Its first-divergence reports name
+[Rust stress matrix](../rust/STRESS.md). Its first-divergence reports name
 fn-188.6. A matrix result applies only to the exact candidate, host and
 workloads it binds.
 

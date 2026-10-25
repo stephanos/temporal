@@ -1,12 +1,12 @@
 # WASM qualification
 
-The host implementation now lives in the single [Rust workspace](../../../rust/README.md).
+The host implementation now lives in the single [Rust workspace](../rust/README.md).
 The Go CLI, runner and host qualification producers described in older sections
 are retired source; retained Go code owns models, protocol generation, conformance
 oracles and the guest runtime overlay. Current build and reference checks are
 `make -C tools/gomad build`, `validate` and `test-wasm`. fn-242 ports the remaining
 Python driver into Rust before fn-240 extraction. Final qualification is pending
-under fn-246 and follows the preserved [driver contract](../../../rust/driver/README.md)
+under fn-246 and follows the preserved [driver contract](../driver/README.md)
 with frozen authenticated inputs and the unchanged
 3,600-second limit. This prospective source consolidation supplies no R12/R13
 acceptance; the conductor retains the frozen Go baseline until those gates pass.
@@ -317,7 +317,7 @@ inside the cycle root. Each root must hold only support-cell Results; a root tha
 also holds other cells, such as the mandatory corpus root, is refused. No list
 exists yet for the current candidate.
 
-The [Go preparatory disposition report](../../../../../.flow/artifacts/fn222-go-support-pending-2026-10-20.md)
+The [Go preparatory disposition report](../../../../.flow/artifacts/fn222-go-support-pending-2026-10-20.md)
 records zero qualified rows and the historical receipts available to fn-222.2.
 It is a pending report, not a `gomad.wasm-support-list/v1` publication:
 `BuildSupportList` and `ValidateSupportList` refuse an empty list. Missing gates
@@ -325,7 +325,7 @@ have no numeric exit; they must not be encoded as exit 0 or supplied to the
 producer. Historical preparation and inspection observations retain their own
 source/helper identities and cannot be combined into a current-candidate row.
 
-Under the merged [milestone order](../../../../../MILESTONES.md#rust-host-rewrite-owner-decision-2026-10-20),
+Under the merged [milestone order](../../../../MILESTONES.md#rust-host-rewrite-owner-decision-2026-10-20),
 fn-222.2 owned this preparatory Go contract and its truthful dispositions. fn-222.1
 owns the final frozen Rust candidate's gates and the first accepted list. Both are
 produced by the fn-222 group inside fn-232.13's final cycle. That list requires
@@ -336,7 +336,7 @@ runtime, engine, model, compiler or host identities must earn their rows again.
 
 ## Post-migration cleanup
 
-The [fn-183 specification](../../../../../.flow/specs/fn-183-gomad-wasm-post-migration-cleanup.md)
+The [fn-183 specification](../../../../.flow/specs/fn-183-gomad-wasm-post-migration-cleanup.md)
 defines production/reference ownership. Differential namespace, volume, network and
 World models remain required, including generated wire-codec checks (`make validate`), actual
 storage recovery, independent evidence bounds and retained lifecycle replay.
@@ -627,7 +627,7 @@ exits 1. Producers keep their admission, identity, host-evidence and repetition
 checks, and refuse historical Go host artifacts and receipts. Retained artifacts
 keep their schemas, and their `rerun` records name the command. Diagnostic,
 sampled-guest and fuel-off variants need their Cargo features and separately
-admitted executables (see the [Rust README](../../../rust/README.md#native-measurement-preservation)).
+admitted executables (see the [Rust README](../rust/README.md#native-measurement-preservation)).
 
 The frozen cycle invokes only the producers whose "Driver stage" column names a
 stage or final reader. Stages run them through the driver's frozen bootstrap

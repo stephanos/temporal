@@ -14,8 +14,8 @@ including the closure-mode, Linux, and seam-guide follow-ups D8/D9/D10.
 
 Current downstream-module behavior, `--working-dir`, forced build environment,
 exact adapters, and external packs are documented in the
-[README](../tools/gomad/README.md) and
-[architecture](../tools/gomad/ARCHITECTURE.md#targets-outside-this-repository).
+[README](../tools/gomad/docs/README.md) and
+[architecture](../tools/gomad/docs/ARCHITECTURE.md#targets-outside-this-repository).
 Packs remain downstream-owned, authored through `--compatibility-root`, and loaded
 with `GOMAD3_COMPATIBILITY_PACKS`; their exact identities bind preparation and replay.
 
