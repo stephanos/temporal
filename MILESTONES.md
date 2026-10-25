@@ -60,7 +60,7 @@ Record a deferred task's revival trigger in its owning Flow task before implemen
 Validation gate speed takes priority over the remaining cleanup ladder below. Cycle 8 (2026-10-24) used the whole hour on 25 of 96 stages; the inner Rust loop needs 3 min to compile tests after a one-file change.
 [fn-253](.flow/specs/fn-253-gomad-fast-validation-gates.md) owns the work. Gates get faster, never weaker: no stage, assertion, bound or fn-246 obligation is dropped.
 
-1. **Now, in parallel with fn-242.** These don't touch the cycle driver's leaf argv:
+1. **Now, while fn-242 is parked.** These don't touch the cycle driver's leaf argv:
    - fn-253.1 inner loop (`check-fast`, dev profile with optimised dependencies)
    - fn-253.6 cargo-nextest
    - fn-253.4 standalone `tools/gomad` entrypoints (mise/cargo; the cycle's `make` argv changes after the cutover)
@@ -556,16 +556,16 @@ Listed by spec dependencies and the current delivery order (2026-10-25): fn-253 
 
 ### Fast validation gates — [fn-253](.flow/specs/fn-253-gomad-fast-validation-gates.md)
 
-Owner amendment 2026-10-25: highest priority outside fn-242. Gates get faster, never weaker. The fn-242 G1–G3 amendment is approved and applied (366a3ebba9). fn-253.2 starts only after the fn-242 cutover; Flow lists it as ready because it cannot express that cross-spec dependency.
+Owner amendment 2026-10-25: highest priority while fn-242 is parked. Gates get faster, never weaker. fn-253.2/.3 are explicitly blocked until the fn-242 cutover. Task validation follows the [delivery cadence](tools/gomad/docs/RULES.md#delivery); broad validation remains required before spec closure.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-253.1](.flow/tasks/fn-253-gomad-fast-validation-gates.1.md) | ⬜ Todo | Inner loop: `check-fast` and dev profile with optimised dependencies |
-| [fn-253.6](.flow/tasks/fn-253-gomad-fast-validation-gates.6.md) | ⬜ Todo | Adopt cargo-nextest for gomad Rust tests |
-| [fn-253.4](.flow/tasks/fn-253-gomad-fast-validation-gates.4.md) | ⬜ Todo | Standalone `tools/gomad`: mise tasks and cargo entrypoints replace the Makefiles |
-| [fn-253.5](.flow/tasks/fn-253-gomad-fast-validation-gates.5.md) | ⬜ Todo | Content-addressed evidence store and retention verb (owner approves first dry run) |
-| [fn-253.2](.flow/tasks/fn-253-gomad-fast-validation-gates.2.md) | ⬜ Todo | Cheap stages first: measured cost classes in the cycle scheduler (after fn-242 cutover) |
-| [fn-253.3](.flow/tasks/fn-253-gomad-fast-validation-gates.3.md) | ⬜ Todo | Content-keyed stage reuse for development cycles (after .2; never in fn-246) |
+| [fn-253.1](.flow/tasks/fn-253-gomad-fast-validation-gates.1.md) | 🚧 Running | Inner loop: `check-fast` and dev profile with optimised dependencies |
+| [fn-253.6](.flow/tasks/fn-253-gomad-fast-validation-gates.6.md) | 🚧 Running | Adopt cargo-nextest for gomad Rust tests |
+| [fn-253.4](.flow/tasks/fn-253-gomad-fast-validation-gates.4.md) | 🚧 Running | Standalone `tools/gomad`: mise tasks and cargo entrypoints replace the Makefiles |
+| [fn-253.5](.flow/tasks/fn-253-gomad-fast-validation-gates.5.md) | 🚧 Running | Content-addressed evidence store and retention verb (owner approves first dry run) |
+| [fn-253.2](.flow/tasks/fn-253-gomad-fast-validation-gates.2.md) | ⛔ Blocked | Cheap stages first: measured cost classes in the cycle scheduler (after fn-242 cutover) |
+| [fn-253.3](.flow/tasks/fn-253-gomad-fast-validation-gates.3.md) | ⛔ Blocked | Content-keyed stage reuse for development cycles (after .2; never in fn-246) |
 
 ### Deeper Rust host testing — [fn-254](.flow/specs/fn-254-gomad-deeper-rust-host-testing-mutation.md)
 
