@@ -819,7 +819,7 @@ pub(crate) fn check_registry_enums(
     let scope = source.map_or_else(
         || Ok(Scope::default()),
         |(source, location)| {
-            Scope::in_source(source, location)
+            Scope::in_registry_source(source, location)
                 .map_err(|error| syn::Error::new(item.impl_token.span, error.to_string()))
         },
     )?;
