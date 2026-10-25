@@ -278,6 +278,11 @@ records actual fixed-release admission and cached reuse. Archive SHA precedes pa
 the exact regular member and jar hash precede locked atomic publication. No arbitrary
 archive input, system tar or reader-parity contract is introduced.
 
+fn-248 admitted darling 0.24.1 (with darling_core, darling_macro and ident_case 1.0.1),
+heck and prost-types, and removed enum-iterator; the
+[task4 inventory](../.flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task4/dependency-inventory.json)
+and fn-210's R18 notes record each.
+
 The checksum-only original verifier/manifest is removed; historical originals, semantic
 lifecycle comparison and the changed-edge mutation control remain. Historical Python
 certification helpers under `.flow/artifacts` remain evidence, not active prerequisites.

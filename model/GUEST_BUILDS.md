@@ -160,14 +160,25 @@ built stock and Temporal guests at source `523d131d2cf992b04a43b4d595ea0f1a434f4
 in two clean Linux/aarch64 clones with different paths and independent empty targets.
 Both pairs agreed. Native identity schema 2 caused the necessary Temporal regeneration;
 the [publication receipt](../.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task5/joined/canonical-publication.json)
-records the old hash, publication and two successful checks. The current committed
-Temporal asset is 3507265 bytes, SHA-256
-`bc27af7d5b6b1ed8fa5c524015046f3a8b7c12d2d488e9ce7cb3df3ea9217872`.
+records the old hash, publication and two successful checks. That publication was
+3507265 bytes, SHA-256 `bc27af7d5b6b1ed8fa5c524015046f3a8b7c12d2d488e9ce7cb3df3ea9217872`;
+fn-248.7 superseded it (below).
 The component proof includes actual cold/cached freshness and stale status 2, not
 the semantic Go suites or a complete Model gate. Final integrated validation uses
 one `UMPIRE_APALACHE=require make model-validate`, which covers both required backends
 and existing host suites, then benchmarks once. Native macOS/cross-OS certification
 is not claimed for this migration. The earlier proofs below retain their own pins.
+
+## Joined consolidation regeneration (fn-248.7)
+
+fn-248's six lanes changed sources and the lockfile inside the Temporal guest closure
+(`thiserror`, `prost-types` WKTs, `quote`/`darling` catalog generation, IR traversal;
+enum-iterator removed), so the committed asset went stale. `make umpire-guest` on the
+joined inputs published 3516063 bytes, SHA-256
+`dca9ec1ac97038d5ff2cf9793eb72a0c878a0a720306c049b5e7518aa48b93c5`. A clean clone at a
+different path with an independent empty target rebuilt identical bytes and passed the
+freshness check. The fn-250.4/.5 back-end changes are outside the guest closure.
+Linux/aarch64 only; no macOS certification is claimed.
 
 ## Linux source-path independence
 

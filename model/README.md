@@ -992,6 +992,9 @@ dependency needs the same check and a line in the spec. Native tools use the adm
 rustix/tempfile, toml (std/parse/serde), sha2 and tar/flate2 packages (backend jar admission
 reuses sha2); current lockfile and [fn247 inventories](../.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task6/dependency-inventory.json)
 record versions/features, transitive R18 accounting and guest-closure separation.
+fn-248 added darling (with ident_case), heck and prost-types and removed enum-iterator; its
+[task4 inventory](../.flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task4/dependency-inventory.json)
+records them.
 
 ## Configured activity proposals
 
