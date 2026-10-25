@@ -14,8 +14,3 @@
 - Prefer typed contracts and shared validators.
 - Test real boundaries before expensive runs.
 - Match completion claims to execution evidence.
-
-## Verification
-
-Bind determinism claims to retained evidence for the exact candidate, host, profile, and workload.
-Final qualification and independent receiving follow fn-246 and its prerequisites in [MILESTONES.md](../../MILESTONES.md).
