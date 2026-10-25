@@ -38,7 +38,7 @@ name normal domain dependencies; test-only dependencies do not reverse the produ
 | `umpire-ir`, `ir` and `umpire-ir-derive`, `ir/derive` | Represent the admitted tree, expressions and embedded typed values; derive constructor tokens. | IR depends on its derive support; no front or backend import. |
 | `umpire-checker`, `backends/native` | Explore a `Machine`, evaluate claims and retain exact rows and witnesses; interpreted checking uses the same admitted tree. | DSL, including its embedded IR contract; no symbolic adapter or system Model. |
 | `umpire-suite`, `author/suite` | Authored `Run`, `Space`, path search, coverage and verification questions. | DSL and native checker. |
-| `umpire-backend-process`, `backends/process` | Own bounded execution, Java admission, capture and scratch cleanup; Python supervision is temporary until its Rust replacement passes the retained controls. | No domain dependencies. |
+| `umpire-backend-process`, `backends/process` | Own native bounded supervision, Java admission, capture and scratch cleanup; parent-side rustix/tempfile support and an audited allocation-free raw-libc child path. | No domain dependencies. |
 | `umpire-tla`, `backends/tla` | Bind a selected World and emit TLA+ from the admitted tree; typed assignment/schema admission. | Front and process support; no normal TLC or Apalache dependency. |
 | `umpire-tlc`, `backends/tlc` | Run pinned TLC, decode complete reachable sets and typed counterexamples, distinguish execution/evaluation failures from verdicts. | TLA+ and process support. |
 | `umpire-apalache`, `backends/apalache` | Run optional bounded safety checks, decode typed ITF and confirm exact traces by native replay. | TLA+ and process support, DSL and native checker; no TLC dependency. |
@@ -47,7 +47,11 @@ name normal domain dependencies; test-only dependencies do not reverse the produ
 | `umpire-catalog-syntax`, `catalog/syntax`; `umpire-catalog-macros`, `catalog/macros`; `umpire-catalog-build`, `catalog/build` | Admit exhaustive declarations; expose derive entry points; generate descriptor-checked API dispatch and wire mutations. | Macros depend on syntax; syntax on runtime; build support on syntax and runtime. |
 | `umpire-testing`, `dev/testing`; `umpire-fixtures`, `dev/fixtures` | Deterministic fixture discovery/golden comparison; shared Models and authored tests consume the facade. | Testing uses DSL, native checker, TLA+ and TLC; fixtures use author and test support, never system Models. |
 | `umpire-reference-kettle`, `reference/kettle` | Independent reference Model and realization, with its own guest and Go service/parity controls. | Generic DSL, native checker, catalog and runtime; no Temporal extension. |
+| `xtask`, `../dev/xtask` | Host-only native guest/closure/compiler/freshness tooling, pinned Apalache installation and retired-name filtering; Bash bootstraps/orchestrates commands. | No Model-domain dependencies; never part of a guest runtime closure. |
 
+Workspace Rust tests own process/xtask controls once; no active Model helper requires Python.
+Process support preserves Linux adopted-descendant cleanup and Darwin descendant prevention;
+other platforms refuse. Native macOS execution is not inferred from Linux/source controls.
 The default model gate leaves Apalache opt-in (`UMPIRE_APALACHE=require`); required TLC
 agreement uses `UMPIRE_BACKENDS=require`. `model/temporal/` owns system Models, API acquisition,
 annotation defaults, realization, guest and its Go adapter. Generic crates retain the source

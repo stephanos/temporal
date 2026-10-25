@@ -55,12 +55,18 @@ The `umpire` facade exports DSL and suite items at its root, including `machine`
 The same surfaces are available as `umpire::{dsl, suite, catalog}`. It reduces author
 dependencies while the underlying crates remain independently usable. Backend adapters share
 supervision through `umpire-backend-process` and typed assignments through `umpire-tla`;
-`umpire-apalache` has no dependency on `umpire-tlc`. The process crate temporarily retains its
-Python supervisor until the Rust replacement passes the retained process controls. Apalache remains opt-in with
-`UMPIRE_APALACHE=require`; the required TLC gate uses `UMPIRE_BACKENDS=require`.
+`umpire-apalache` has no dependency on `umpire-tlc`. Process supervision is native Rust;
+parent-side rustix/tempfile support surrounds an audited allocation-free raw-libc child path.
+Linux owns adopted descendants; Darwin prevents descendants and refuses root. Other platforms
+refuse. Apalache remains opt-in with `UMPIRE_APALACHE=require`; TLC requires `UMPIRE_BACKENDS=require`.
 `author/umpire/tests/consumer` proves authoring with one renamed facade dependency.
 `protocol/runtime/guests` contains stock/control guest packages; `reference/kettle/guest`
 contains the reference guest. The Temporal guest and extension remain under `model/temporal/`.
+
+The host-only `model/dev/xtask` crate owns guest/identity/freshness tools, pinned Apalache
+installation and retired-name filtering. Bash bootstraps/orchestrates it; active Model tools
+need no Python. Its controls and process controls run once in the workspace Rust test stage.
+See [GUEST_BUILDS.md](GUEST_BUILDS.md) and [native tool contracts](dev/xtask/README.md).
 
 ## Hygiene
 
@@ -71,7 +77,9 @@ One lint policy for all crates lives in the workspace `Cargo.toml` (`[workspace.
 `clippy.toml`, formatting in `rustfmt.toml` (stable options only, 2024 style, 100 columns).
 `rust-toolchain.toml` matches the mise pin and names the components (rustfmt, clippy, rust-src,
 rust-analyzer). `deny.toml` is the cargo-deny policy for licenses, duplicate versions, sources and
-advisories; it needs the tool installed and the network.
+advisories; it needs the tool installed and the network. Process support mirrors the workspace
+lints with `unsafe_code=deny` and permits unsafe only in its audited syscall subtree;
+other modules retain `forbid`. Java heap and polled file limits are not kernel resource caps.
 
 The gate, from the repository root (`temporal/`):
 
@@ -967,7 +975,10 @@ Only admitted crates (fn-210 R18): a release in the last 12 months, or finished 
 They are declared once in `[workspace.dependencies]`; a crate opts in with `name.workspace = true`.
 `deny.toml` bans the unmaintained alternatives (`im`, `derivative`, `proc-macro-error`,
 `proc-macro-error2`, `deluxe`, `index_vec`, `stateright`); `cargo deny check bans` enforces it. A new
-dependency needs the same check and a line in the spec.
+dependency needs the same check and a line in the spec. Native tools use the admitted libc,
+rustix/tempfile, toml (std/parse/serde), sha2 and tar/flate2 packages; current lockfile and
+[fn247 inventories](../.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task6/dependency-inventory.json)
+record versions/features, transitive R18 accounting and guest-closure separation.
 
 ## Configured activity proposals
 

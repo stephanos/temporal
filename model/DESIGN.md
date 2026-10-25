@@ -242,6 +242,51 @@ real guest through the Go host, validates its export signatures, and rejects
 missing, unexpected and mis-typed exports through compiled negative controls.
 Direct locked Cargo builds need no custom linker or post-link processing.
 
+## Native framework tools (fn-247)
+
+The owner moved bounded process ownership out of the TLA+ emitter and removed Python
+from active Model tooling. `umpire-backend-process` owns Java admission, capture/dump
+checks, scratch cleanup and supervision for TLC/Apalache. Parent preparation resolves
+all executable/argv/environment/descriptor state. The forked supervisor/target uses
+the audited allocation-free syscall path, with no runtime Cargo or sibling supervisor.
+Linux subreaper cleanup includes escaped descendants; Darwin refuses root and prevents
+descendant creation. Other platforms refuse. Linux controls and Darwin source/simulation
+are recorded separately; no native macOS process proof is claimed.
+
+The process crate's audited syscall exception retains the workspace forbid elsewhere.
+rustix handles parent-side safe operations; tempfile owns private scratch with explicit
+observable close. Task9's lexical unsafe inventory decreased from 77 to 67 sites; this
+is a source count, not a proof of runtime safety. Java heap configuration is not an OS
+memory cap, and regular-file polling is not a strict kernel output cap.
+
+Host-only `model/dev/xtask` owns native guest/closure/compiler identity/freshness,
+Apalache installation and retired-name filtering. Bash bootstraps the native tool
+before guest wrappers/flags and disables automatic installs before its first probe.
+Rust owns TOML/JSON/pin/readiness admission, including cold and cached paths; missing
+tools fail regardless of CI. Schema 2 and native parser/argument/error contracts replace
+old Python encodings and quirks, with coordinated callers and cache invalidation.
+Raw OS argv, prior wrappers, jobserver/loader inheritance and sidecar-before-compiler
+publication/failure cleanup remain controls. [Native contracts](dev/xtask/README.md).
+
+R18 admissions are libc 0.2.191, rustix 1.1.5, tempfile 3.27.0, native toml 1.1.8+spec-1.1.0
+(std/parse/serde), sha2 0.11.1, tar 0.4.46 (no default/xattr) and flate2 1.1.10 (miniz_oxide).
+The [dependency inventory](../.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task6/dependency-inventory.json)
+records 145→152 packages and the seven archive transitive/direct additions; retained
+R18 evidence accounts for each. Before/after six-guest closure maps agree across the
+installer additions; they do not substitute for compilation. [Joined install evidence](../.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task6/joined/README.md)
+records actual fixed-release admission and cached reuse. Archive SHA precedes parsing;
+the exact regular member and jar hash precede locked atomic publication. No arbitrary
+archive input, system tar or reader-parity contract is introduced.
+
+The checksum-only original verifier/manifest is removed; historical originals, semantic
+lifecycle comparison and the changed-edge mutation control remain. Historical Python
+certification helpers under `.flow/artifacts` remain evidence, not active prerequisites.
+The ordinary workspace Rust test stage owns native controls once. Component receipts,
+the necessary native-identity guest regeneration and Linux two-clone proof are retained
+under [fn247 evidence](../.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/).
+Final task3 owns one combined required `model-validate` gate plus its existing benchmark;
+component and historical default timings do not certify that final integrated run.
+
 ## Reproducible guest builds (fn-230)
 
 Linux unwind proof, 2026-10-21 UTC, source `594c13b237b3e3e5defcd67e7457257fa1db21ae`.
@@ -260,7 +305,8 @@ The default gate builds the same unwind profile. [Commands and timing](GUEST_BUI
 fn-232 certified source `3c314fb5b85427471a1525d6f190fe5d1fb9f3b2` on 2026-10-21 using four clean clones after fn-236's compiler-input fix.
 Linux 7.0.14/aarch64 and macOS 25.6.0/arm64 matched stock (192271 bytes) and Temporal (3330006 bytes); all twelve comparisons and both native host suites passed.
 [Certification evidence](../.flow/artifacts/fn-232-linux-macos-guest-byte-identity/certification-3c314fb5b8/proof.md) records source/toolchain guards, independent targets, exact commands, sizes and hashes.
-Temporal embeds the current asset; [build details and renewed proof](GUEST_BUILDS.md) cover freshness, cache identities and cross-OS verification.
+Those certifications describe their source-pinned assets. [Current build details](GUEST_BUILDS.md)
+separate their historical cross-OS evidence from the native driver and current committed guest.
 fn-239 renewed that proof after fn-238.8 at `a96a4c6550b468c5d7c3011a7961d4e118dacd93` on 2026-10-22. Four clean clones matched stock (192489 bytes) and Temporal (3332314 bytes); all twelve comparisons and both host suites passed on each OS. [Renewed certification](../.flow/artifacts/fn-239-renew-the-linuxmacos-guest-byte/certification-a96a4c6550/proof.md) retains closure maps, commands, toolchains and results.
 
 ## Capability and panic boundaries
@@ -680,7 +726,7 @@ retain the seven-scenario SDK proof: successful Start before worker startup, ret
 on attempt 1, actual failure-RPC acknowledgment, fresh Describe delayed beyond the retry
 interval still Scheduled at 2 under a serialized actual-Poll permit, then released Poll 2
 and Complete. This is request/server/SDK evidence, not a Testpilot Case or general conformance.
-The current guest SHA-256 is `f832a33c3024a8752976d146be839b62a95afde4790fa0db60f1dac9004b4e7e`.
+At this recorded checkpoint, the guest SHA-256 was `f832a33c3024a8752976d146be839b62a95afde4790fa0db60f1dac9004b4e7e`.
 The .5 slice passed in 21.547 s; gaps/private-output controls passed at that guest in
 361.572 s Go time (367.085 s outer). Its required model-time passed all 17 stages: 581.229 s
 against the 60 s soft gate target (missed), inner 6.084 s against 10 s (met), outer 587.528 s.

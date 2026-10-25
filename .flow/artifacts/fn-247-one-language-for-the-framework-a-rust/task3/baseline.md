@@ -1,0 +1,3 @@
+Full baseline intentionally not run: owner requires one complete final `UMPIRE_APALACHE=require make model-validate`, including its one benchmark. This is neither a green baseline nor a gate skip receipt. Source-bound joined/component proofs are reused for unchanged code; the task3 Make wiring uses existing native workspace tests once. Pre-edit source guards all matched d37af8922a70928a89f866d3d8d93efad5d4a314.
+
+Similar code search: extend existing Make model-check/tests stage; reuse existing test-time-gate.sh/test-model-validate.sh mode/conflict/failure controls. No new test implementation or package-specific test stage. `/bin/bash model/scripts/test-time-gate.sh` exit 0; fake-child orchestration evidence only.

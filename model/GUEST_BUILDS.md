@@ -3,7 +3,8 @@
 `bash model/scripts/guest.sh <crate> <output> [--check]` builds any cdylib with
 the mise-pinned Rust 1.99.1 compiler, `--locked`, `wasm32-wasip1` and `profile.guest`.
 It discovers the output through Cargo's artifact messages, including custom library
-names. It requires Bash, mise, installed pinned Rust/Cargo, and the `rust-src` component.
+names. It requires Bash, mise, installed pinned Rust/Cargo, and the `rust-src` component;
+active guest/build helpers require no Python.
 `xtask.sh` builds the current native host tool in `<target>/xtask-bootstrap` before
 installing guest wrappers, flags or cache settings. It prints the absolute binary
 path for shell callers. This incremental build also prevents stale cached tools
@@ -54,8 +55,9 @@ host-specific directory hash from generated-source locations. Native tool binary
 lockfile or compiler changes select a new cache so older artifacts cannot bypass this
 evidence; a lockfile change outside every guest closure rebuilds identical bytes.
 Existing `RUSTC_WRAPPER` executables are chained. These inputs support the pinned
-workspace and toolchain; a compiler or dependency upgrade requires renewed native
-cross-OS comparisons and the existing host controls.
+workspace and toolchain. Changed compiler/dependency inputs require current-input
+reproduction, freshness and existing host controls. Platform evidence is explicit;
+historical cross-OS certification is not a compatibility gate for the native driver.
 
 
 Native guest commands execute with `model/` as their working directory:
@@ -141,6 +143,31 @@ The full Rust authoring gate still requires its toolchain. Slice and gaps use th
 embedded asset directly; the umbrella's separate legacy IR bridge remains source-built.
 Only the Temporal guest is committed, as a binary Git file without LFS; generic
 stock/control guests are built for the gate and remain uncommitted.
+
+## Native tool migration and current artifact (fn-247)
+
+Native Rust commands own the former Python lock/compiler, guest/freshness, installer
+and retired-name responsibilities. The workspace `cargo test --workspace --locked`
+stage owns their unit/integration controls and the process controls once; no Python
+unittest or extra package-specific Cargo stage is required. Bash timing, capabilities,
+protobuf and guest-entry scripts remain orchestration. Native TOML/JSON schemas,
+arguments and errors intentionally replace Python quirks; Model meaning, typed
+refusals, lifecycle/mutation controls, raw compiler argv, jobserver/loader inheritance
+and current artifact integrity remain required.
+
+The [joined proof](../.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task5/joined/proof-report.md)
+built stock and Temporal guests at source `523d131d2cf992b04a43b4d595ea0f1a434f44b6`
+in two clean Linux/aarch64 clones with different paths and independent empty targets.
+Both pairs agreed. Native identity schema 2 caused the necessary Temporal regeneration;
+the [publication receipt](../.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task5/joined/canonical-publication.json)
+records the old hash, publication and two successful checks. The current committed
+Temporal asset is 3507265 bytes, SHA-256
+`bc27af7d5b6b1ed8fa5c524015046f3a8b7c12d2d488e9ce7cb3df3ea9217872`.
+The component proof includes actual cold/cached freshness and stale status 2, not
+the semantic Go suites or a complete Model gate. Final integrated validation uses
+one `UMPIRE_APALACHE=require make model-validate`, which covers both required backends
+and existing host suites, then benchmarks once. Native macOS/cross-OS certification
+is not claimed for this migration. The earlier proofs below retain their own pins.
 
 ## Linux source-path independence
 
@@ -297,7 +324,9 @@ python3 .flow/artifacts/fn-232-linux-macos-guest-byte-identity/certification-3c3
 The [committed certification](../.flow/artifacts/fn-232-linux-macos-guest-byte-identity/certification-3c314fb5b8/proof.md)
 records the full source pin, exact invocations, platform/toolchain transcripts,
 source and target guards, artifact manifests, actual comparisons and host logs.
-This completes fn-232's committed-source requirement. The frozen fn-236 validation
+This completes fn-232's historical committed-source requirement. Its retained `compare.py`
+command is reproduction evidence outside the active Model toolchain, not a current Python
+prerequisite. The frozen fn-236 validation
 and historical failed fn-232/Linux-only proofs remain separate records.
 
 ## Lockfile closure identities (fn-238.8)
@@ -338,7 +367,7 @@ manifests, closure-map checks and all twelve comparison results. This renews the
 certification for the per-crate closure identity input. Earlier proofs retain
 their historical source pins and hashes.
 
-## Current verification and measured gate cost
+## Historical fn-230 task-2 verification and measured gate cost
 
 Task 2 passed both complete embedded live targets, including the exact existing
 gap report golden, all 2238 generic cases and the strict/scope controls. The slice
@@ -358,7 +387,7 @@ The failed run, focused red/green and successful retry remain in
 `.flow/tmp/fn2302/`; the owned `task-2-verification.md` artifact records exact logs.
 Gate-built stock and Temporal bytes still match the renewed clean-clone proof.
 
-## Earlier task-1 verification and measured gate cost
+## Historical fn-230 task-1 verification and measured gate cost
 
 The default and `UMPIRE_BACKENDS=require make model-check` gates passed on the
 integrated source. Required mode exercised the existing TLC agreement and negative

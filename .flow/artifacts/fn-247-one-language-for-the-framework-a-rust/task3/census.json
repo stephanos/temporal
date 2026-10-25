@@ -1,0 +1,192 @@
+{
+  "head": "d37af8922a70928a89f866d3d8d93efad5d4a314",
+  "historical_python_inventory_anchor": "94e47d7878",
+  "historical_python_files": [
+    "model/scripts/fetch-apalache.py",
+    "model/scripts/guest-freshness.py",
+    "model/scripts/guest-lock.py",
+    "model/scripts/guest-rustc.py",
+    "model/scripts/retired-name-matches.py",
+    "model/scripts/tests/test_apalache.py",
+    "model/scripts/tests/test_backend_process.py",
+    "model/scripts/tests/test_guest.py",
+    "model/scripts/tests/test_guest_freshness.py",
+    "model/scripts/tests/test_guest_lock.py",
+    "model/scripts/tests/test_guest_rustc.py",
+    "model/scripts/tests/test_retired_names.py",
+    "model/temporal/feature/activity/compatibility/verify.py",
+    "model/umpire/backends/tla/src/process.py"
+  ],
+  "current_tracked_python_files": [],
+  "active_executable_python_references": [],
+  "descriptive_test_names": [
+    {
+      "path": "model/umpire/backends/process/tests/process.rs",
+      "line": 66,
+      "text": "fn cold_native_execution_does_not_need_python_or_a_sibling_supervisor() -> Result<(), Refusal> {"
+    }
+  ],
+  "test_source_inventory": {
+    "model/dev/xtask/tests/guest_pipeline.rs": {
+      "sha256": "472bbe7a9bcd4a2cd6cc47791a3850becfca7199bda73099d0e9cc3856bb5208",
+      "names": [
+        "guest_build_check_and_artifact_refusals",
+        "cold_shell_bootstrap_and_cached_native_validation",
+        "cold_bootstrap_failures_never_build_or_publish",
+        "native_prerequisite_failures_stop_before_guest_build",
+        "actual_make_freshness_recipe_propagates_stale_failure",
+        "shell_caller_relative_paths_and_changed_inputs_select_new_cache",
+        "rust_toolchain_metadata_and_rustup_failures_refuse",
+        "absent_embedded_guest_fails_go_compilation",
+        "loader_inheritance_survives_orchestration_environment_purge"
+      ],
+      "count": "source declarations, not executed results",
+      "declaration_count": 9
+    },
+    "model/dev/xtask/tests/retired_names.rs": {
+      "sha256": "cee01937f14c2faba6cb4ea38c1d3e8a69326e1ecb9353c704909a447c13e5e8",
+      "names": [
+        "raw_records_exempt_only_author_facade_tokens",
+        "malformed_records_fail_closed",
+        "posix_ere_recheck_and_grep_failure_propagate",
+        "active_spellings_and_historical_exclusions",
+        "tool_failures_never_report_clean",
+        "io_and_missing_grep_errors_fail_closed",
+        "shell_preserves_filter_failure_when_git_grep_gets_sigpipe"
+      ],
+      "count": "source declarations, not executed results",
+      "declaration_count": 7
+    },
+    "model/dev/xtask/tests/apalache/cases.rs": {
+      "sha256": "fc71ce08c176e0e2f44936abc00265748d3fd55fe734a276ccc18710da47bedd",
+      "names": [
+        "hash_before_parse_and_exact_regular_member_before_publication",
+        "symlinks_in_every_component_including_dangling_are_refused",
+        "partial_wrong_and_nonregular_installations_never_download",
+        "malicious_lock_types_refuse_without_following_or_blocking",
+        "download_failure_cleans_private_staging_and_never_publishes",
+        "concurrent_installers_publish_once_and_return_same_path",
+        "native_curl_contract_and_download_failure_cleanup",
+        "native_dispatch_usage_failure_is_nonzero_and_structured"
+      ],
+      "count": "source declarations, not executed results",
+      "declaration_count": 8
+    },
+    "model/dev/xtask/tests/identity/compiler.rs": {
+      "sha256": "8b198ad02c95fad742de7779849ef79638ab9050addce39c290fd1f5d723b12d",
+      "names": [
+        "probes_pass_through_without_guest_environment",
+        "portable_identity_replaces_guest_metadata_and_remaps_generated_paths",
+        "package_features_profile_compiler_and_closure_remain_distinct",
+        "dependency_identity_and_transitive_variants_propagate",
+        "missing_ambiguous_and_malformed_lock_maps_refuse",
+        "build_std_requires_wasm_marker_and_trusted_source_or_rust_src_coordinate",
+        "invalid_or_missing_dependency_sidecars_and_macro_collisions_refuse",
+        "native_macro_identity_ignores_host_configuration_but_retains_argv_and_collisions",
+        "os_bytes_and_lexical_root_boundaries_are_preserved",
+        "missing_required_inputs_and_option_values_refuse",
+        "sidecar_precedes_child_and_cleanup_preserves_exit_launch_and_signal_outcomes",
+        "previous_wrapper_and_loader_environment_keep_raw_os_bytes",
+        "inherited_jobserver_descriptor_reaches_direct_compiler_child",
+        "actual_rustc_compiles_portable_native_macro_sidecars"
+      ],
+      "count": "source declarations, not executed results",
+      "declaration_count": 14
+    },
+    "model/dev/xtask/tests/identity/lock.rs": {
+      "sha256": "93283a6c8d01ccd568efa72d5078bc40f4d2c11f46d1205a0d5e913da4ebd220",
+      "names": [
+        "content_addressed_publication_is_repeatable_and_portable",
+        "unrelated_and_dev_only_dependencies_do_not_change_guest_closures",
+        "checksum_changes_propagate_through_normal_and_all_platform_build_edges",
+        "unified_edges_and_edge_topology_change_ancestor_identity",
+        "ambiguous_name_version_coordinates_are_marked_unavailable",
+        "sourced_entries_are_required_but_git_checksums_are_optional",
+        "malformed_native_documents_and_graphs_are_rejected"
+      ],
+      "count": "source declarations, not executed results",
+      "declaration_count": 7
+    },
+    "model/dev/xtask/tests/identity/support.rs": {
+      "sha256": "47c89b178a46f15a931c88fa2f08e52649763c45ef26bb0df5ed12ac022ef08d",
+      "names": [
+        "canonical_hash_uses_sorted_json_and_known_sha256",
+        "publication_is_complete_under_concurrent_writers_and_cleans_rename_failure",
+        "sidecar_lease_serializes_failure_cleanup_and_refuses_symlink"
+      ],
+      "count": "source declarations, not executed results",
+      "declaration_count": 3
+    },
+    "model/dev/xtask/tests/identity/current_inputs.rs": {
+      "sha256": "9664f778fe38efb7c3d4af94635661e5ebcea6d2ad2f164f6a50b983f68e20e5",
+      "names": [
+        "native_toml_accepts_current_documents_and_rejects_malformed_input"
+      ],
+      "count": "source declarations, not executed results",
+      "declaration_count": 1
+    },
+    "model/umpire/backends/process/tests/process.rs": {
+      "sha256": "f1106477e2d4aa2388883cf1c701d9f84bc0860206ad7a8c95abcc127ce2a13f",
+      "names": [
+        "cold_native_execution_does_not_need_python_or_a_sibling_supervisor",
+        "direct_helper_timeout_retains_output_and_cleans_scratch",
+        "java_environment_is_clean_and_supervisor_group_is_private",
+        "substituted_log_symlink_cannot_modify_an_external_file",
+        "substituted_log_fifo_returns_without_waiting_for_a_reader",
+        "failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8",
+        "parent_allocator_threads_do_not_deadlock_forked_supervisors",
+        "bounded_reads_dump_and_scratch_fail_closed",
+        "launch_status_and_prepared_command_contracts_are_preserved",
+        "path_search_tries_candidates_after_exec_errors",
+        "scratch_owns_private_unique_directories_and_preserves_finish_results"
+      ],
+      "count": "source declarations, not executed results",
+      "declaration_count": 11
+    },
+    "model/umpire/backends/process/src/tests.rs": {
+      "sha256": "b047a8f6b58b31abf17b9b8c8d2c6b612252cf856ab59c8419d6e7b4162084a9",
+      "names": [
+        "wrong_java_version_vendor_and_failed_launch_are_refused"
+      ],
+      "count": "source declarations, not executed results",
+      "declaration_count": 1
+    },
+    "model/umpire/backends/process/src/syscall.rs": {
+      "sha256": "195b054420b14d273049aeb82f1e60501d876e36ebf07170c691ca0a818e8a90",
+      "names": [
+        "duplicated_descriptors_are_private_and_close_on_exec",
+        "close_limit_retains_descriptors_above_lowered_soft_limit",
+        "supervisor_owner_eof_returns_125",
+        "supervisor_retains_first_stop_signal",
+        "all_darwin_helpers_prevent_process_creation",
+        "unsupported_platform_is_an_explicit_refusal"
+      ],
+      "count": "source declarations, not executed results",
+      "declaration_count": 6
+    }
+  },
+  "lockfile_package_count": 152,
+  "draft_make_removed_python_reference": true,
+  "native_test_stage_exactly_once": true,
+  "source_state": "task3 precommit working tree; source hashes bind final inputs",
+  "python_token_scan": [
+    {
+      "path": "model/dev/xtask/src/support.rs",
+      "line": 11,
+      "text": "/// Native identity and sidecar version. Old Python records are deliberately rejected."
+    },
+    {
+      "path": "model/umpire/backends/process/tests/process.rs",
+      "line": 66,
+      "text": "fn cold_native_execution_does_not_need_python_or_a_sibling_supervisor() -> Result<(), Refusal> {"
+    }
+  ],
+  "scan_classification": "Two descriptive tokens: native-schema documentation and no-Python process control name. No executable invocation/heredoc. Make model stages checked separately.",
+  "final_source_hashes": {
+    "Makefile": "261f445547de8e8c8aa3f41a8de65b7e4316a45ebcf3d8e70c8cb9c3b30c63a4",
+    "model/README.md": "3cdec2ea92a2968fc995a37bcee5ea5f560d033280906d541cf47389d16f439c",
+    "model/GUEST_BUILDS.md": "3504a1ab98246d63c15c49af0cf294075624cbcf8a0f4bb7ec7920b235271ced",
+    "model/DESIGN.md": "838ef36e53def1c09e64fbaded08df6cf9933ff880ab2361dcb3aa9c0b95ac0e",
+    ".plans/UMPIRE_MODULES.md": "e51386bd78f062a043c36e6912a1656ba4c4025a6fcc99e46dd4961034b76cb0"
+  }
+}
