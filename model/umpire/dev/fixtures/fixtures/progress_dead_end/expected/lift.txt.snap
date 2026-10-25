@@ -1,0 +1,4 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+fixtures/progress_dead_end/model.rs:6:1: warning: the lifter reads #[machine] Models; `impl Machine for ProgressDeadEnd<M>` implements Machine by hand; TLA+ emission refused

@@ -1,6 +1,0 @@
-0: Model { attempt: 1, done: false, failed: false, skipped: false }
-1: Model { attempt: 1, done: true, failed: false, skipped: false }
-2: Model { attempt: 1, done: false, failed: true, skipped: false }
-3: Model { attempt: 2, done: false, failed: false, skipped: false }
-4: Model { attempt: 2, done: true, failed: false, skipped: false }
-5: Model { attempt: 2, done: false, failed: true, skipped: false }

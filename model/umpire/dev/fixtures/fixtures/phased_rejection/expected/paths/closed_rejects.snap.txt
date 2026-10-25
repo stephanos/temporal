@@ -1,4 +1,0 @@
-start: Model { phase: Queued, attempt: 1 }
-1: Client::Drop choice=0 -> Model { phase: Dropped, attempt: 1 }
-2: Worker::Reopen choice=0 -> Model { phase: Queued, attempt: 2 }
-failure: check!(after == before) failed at Model { phase: Queued, attempt: 2 }

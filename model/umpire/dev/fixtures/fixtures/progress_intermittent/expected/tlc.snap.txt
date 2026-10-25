@@ -1,4 +1,0 @@
-TLC 1.7.4; complete source-lifted exploration
-states: 3; native: 3; agreement: yes
-claim reaches_target: Refuted; native: Refuted; agreement: yes
-counterexamples replayed: 1

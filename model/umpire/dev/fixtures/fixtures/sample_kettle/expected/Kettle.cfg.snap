@@ -1,0 +1,7 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+SPECIFICATION Spec
+INVARIANT Invariant_beeps_only_when_off
+PROPERTY Post_warms_only_when_on
+PROPERTY Post_fails_over_at_boiling

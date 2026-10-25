@@ -20,6 +20,7 @@ prost.workspace = true
 umpire-catalog.workspace = true
 
 [dev-dependencies]
+insta.workspace = true
 umpire-catalog-syntax.workspace = true
 trybuild.workspace = true
 

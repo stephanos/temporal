@@ -1,1 +1,0 @@
-0: Action::Advance choice=0 outcome=true facts=[] -> Value { 0: 1 }

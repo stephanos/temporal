@@ -1,0 +1,256 @@
+---
+source: umpire/reference/kettle/tests/live_snapshots.rs
+---
+Fill: temperature=20 heating_on=false beeping=false Explained steps=[] outcomes=[]
+Heat: temperature=20 heating_on=true beeping=false Explained steps=[User::PressButton] outcomes=[()]
+Heat: temperature=20 heating_on=false beeping=false Explained steps=[User::DepressButton] outcomes=[()]
+Describe: temperature=20 heating_on=false beeping=false Explained steps=[] outcomes=[]
+Heat: temperature=20 heating_on=true beeping=false Explained steps=[User::PressButton] outcomes=[()]
+Pour: temperature=20 heating_on=true beeping=false Explained steps=[] outcomes=[]
+PollHeating: temperature=20 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+Describe: temperature=20 heating_on=true beeping=false Explained steps=[] outcomes=[]
+RespondHeating: temperature=21 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=21 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=22 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=22 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=23 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=23 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=24 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=24 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=25 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=25 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=26 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=26 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=27 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=27 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=28 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=28 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=29 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=29 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=30 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=30 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=31 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=31 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=32 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=32 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=33 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=33 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=34 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=34 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=35 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=35 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=36 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=36 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=37 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=37 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=38 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=38 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=39 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=39 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=40 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=40 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=41 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=41 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=42 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=42 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=43 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=43 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=44 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=44 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=45 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=45 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=46 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=46 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=47 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=47 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=48 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=48 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=49 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=49 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=50 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=50 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=51 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=51 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=52 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=52 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=53 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=53 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=54 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=54 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=55 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=55 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=56 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=56 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=57 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=57 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=58 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=58 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=59 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=59 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=60 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=60 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=61 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=61 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=62 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=62 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=63 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=63 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=64 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=64 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=65 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=65 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=66 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=66 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=67 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=67 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=68 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=68 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=69 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=69 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=70 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=70 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=71 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=71 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=72 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=72 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=73 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=73 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=74 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=74 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=75 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=75 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=76 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=76 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=77 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=77 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=78 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=78 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=79 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=79 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=80 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=80 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=81 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=81 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=82 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=82 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=83 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=83 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=84 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=84 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=85 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=85 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=86 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=86 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=87 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=87 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=88 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=88 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=89 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=89 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=90 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=90 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=91 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=91 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=92 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=92 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=93 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=93 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=94 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=94 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=95 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=95 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=96 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=96 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=97 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=97 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=98 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=98 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=99 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=99 heating_on=true beeping=false action=HEATING_ACTION_HEAT
+Answer: kettle_id=room action=HEATING_ACTION_HEAT (not committed)
+RespondHeating: temperature=100 heating_on=true beeping=false Explained steps=[Heater::Heat] outcomes=[()]
+PollHeating: temperature=100 heating_on=true beeping=false action=HEATING_ACTION_FAILOVER
+Answer: kettle_id=room action=HEATING_ACTION_FAILOVER (not committed)
+Describe: temperature=100 heating_on=true beeping=false Explained steps=[] outcomes=[]
+RespondHeating: temperature=100 heating_on=false beeping=true Explained steps=[Heater::Failover] outcomes=[()]
+Describe: temperature=100 heating_on=false beeping=true Explained steps=[] outcomes=[]
+Explore: starts=81 reached=283 outcome=Verified

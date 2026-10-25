@@ -1,0 +1,7 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+TLC 1.7.4; complete source-lifted exploration
+states: 1; native: 1; agreement: yes
+claim reaches_target: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 1

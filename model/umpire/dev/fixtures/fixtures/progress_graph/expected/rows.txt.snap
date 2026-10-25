@@ -1,0 +1,6 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+0: User::Enter choice=0 outcome=() facts=[] -> Model { value: 1 }
+1: User::Left choice=0 outcome=() facts=[] -> Model { value: 2 }
+2: User::Right choice=0 outcome=() facts=[] -> Model { value: 1 }

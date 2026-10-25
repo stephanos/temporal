@@ -1,0 +1,4 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+0: User::Left choice=0 outcome=() facts=[] -> Model { value: 0 }

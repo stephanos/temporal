@@ -4,7 +4,7 @@ use std::{fs, path::Path, process::Command};
 use umpire_testing::{ExternalConsumer, Files, TestResult, run_at_skipping_with_external};
 
 const LIVE: ExternalConsumer =
-    ExternalConsumer { name: "TestLiveArtifact", fixture: "control", expected: "live.txt" };
+    ExternalConsumer { name: "TestLiveArtifact", fixture: "control", expected: "live.txt.snap" };
 
 #[test]
 fn external_runner_child() -> TestResult {
@@ -23,8 +23,8 @@ fn with_fixture(name: &str, check: impl FnOnce(&Path, &Path) -> TestResult) -> T
     let expected = root.join("control/expected");
     fs::create_dir_all(&expected)?;
     fs::write(root.join("control/model.rs"), "")?;
-    fs::write(expected.join("report.snap.txt"), "native\n")?;
-    fs::write(expected.join("live.txt"), "live proof\n")?;
+    fs::write(expected.join("report.txt.snap"), "---\nsource: control.rs\n---\nnative\n")?;
+    fs::write(expected.join("live.txt.snap"), "---\nsource: control.rs\n---\nlive proof\n")?;
     let result = check(&root, &expected);
     fs::remove_dir_all(root)?;
     result
@@ -43,7 +43,12 @@ fn external_artifact_is_unchanged_during_native_update_and_compare() -> TestResu
             let diagnostic = String::from_utf8_lossy(&result.stderr);
             assert!(diagnostic.contains("TestLiveArtifact"), "{diagnostic}");
             assert!(diagnostic.contains("no execution or comparison evidence"), "{diagnostic}");
-            assert_eq!(fs::read(expected.join("live.txt"))?, b"live proof\n");
+            assert_eq!(
+                umpire_testing::snapshot_payload(&fs::read_to_string(
+                    expected.join("live.txt.snap")
+                )?)?,
+                "live proof\n"
+            );
             assert!(!expected.join("live.snap").exists());
         }
         Ok(())
@@ -54,14 +59,19 @@ fn external_artifact_is_unchanged_during_native_update_and_compare() -> TestResu
 fn external_declarations_refuse_invalid_ownership_and_paths() -> TestResult {
     with_fixture("invalid", |root, expected| {
         for (fixture, artifact, name, diagnostic) in [
-            ("absent", "live.txt", "TestLiveArtifact", "unknown external fixture"),
-            ("control", "absent.txt", "TestLiveArtifact", "missing external artifact"),
-            ("control", "live.txt", "", "invalid external consumer"),
+            ("absent", "live.txt.snap", "TestLiveArtifact", "unknown external fixture"),
+            ("control", "absent.txt.snap", "TestLiveArtifact", "missing external artifact"),
+            ("control", "live.txt.snap", "", "invalid external consumer"),
             ("control", "../live.txt", "TestLiveArtifact", "invalid external artifact"),
             ("control", "./live.txt", "TestLiveArtifact", "invalid external artifact"),
             ("control", "nested/live.txt", "TestLiveArtifact", "invalid external artifact"),
             ("control", "live.snap.txt", "TestLiveArtifact", "invalid external artifact"),
-            ("control", "report.txt", "TestLiveArtifact", "external artifact has native consumer"),
+            (
+                "control",
+                "report.txt.snap",
+                "TestLiveArtifact",
+                "external artifact has native consumer",
+            ),
         ] {
             let error = run_at_skipping_with_external(
                 root,
@@ -106,8 +116,23 @@ fn external_declarations_refuse_invalid_ownership_and_paths() -> TestResult {
         .err()
         .ok_or("native producer supplied external evidence")?;
         assert!(error.to_string().contains("native producer emitted external artifact"), "{error}");
-        assert_eq!(fs::read(expected.join("live.txt"))?, b"live proof\n");
-        fs::remove_file(expected.join("report.snap.txt"))?;
+        assert_eq!(
+            umpire_testing::snapshot_payload(&fs::read_to_string(expected.join("live.txt.snap"))?)?,
+            "live proof\n"
+        );
+        fs::write(expected.join("live.txt.snap.new"), "pending")?;
+        let error = run_at_skipping_with_external(
+            root,
+            vec![("control", || Ok(Files::new()))],
+            &[umpire_testing::CHECKER],
+            &[],
+            &[LIVE],
+        )
+        .err()
+        .ok_or("pending external snapshot passed")?;
+        assert!(error.to_string().contains("pending golden"), "{error}");
+        fs::remove_file(expected.join("live.txt.snap.new"))?;
+        fs::remove_file(expected.join("report.txt.snap"))?;
         let error = run_at_skipping_with_external(
             root,
             vec![("control", || panic!("external-only fixture ran native producer"))],

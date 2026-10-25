@@ -1,0 +1,16 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+starts: 1
+reached: 1
+emitted: 0
+evaluated: 2
+refused: 1
+depth: 0
+cut: false
+outcome: Refuted
+claim reaches_target: Unknown
+claim step_0_0: Refuted
+failure step_0_0: action Action::Advance panicked: broken progress effect
+vacuity: action Action::Advance never fired
+vacuity: action Action::Loop never fired

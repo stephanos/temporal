@@ -1,2 +1,0 @@
-0: Model { temperature: 20, heating_on: false, beeping: false }
-1: Model { temperature: 20, heating_on: true, beeping: false }

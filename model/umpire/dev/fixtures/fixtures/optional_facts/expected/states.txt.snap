@@ -1,0 +1,10 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+0: Model { value: 0 }
+1: Model { value: 1 }
+2: Model { value: 2 }
+3: Model { value: 3 }
+4: Model { value: 4 }
+5: Model { value: 6 }
+6: Model { value: 5 }

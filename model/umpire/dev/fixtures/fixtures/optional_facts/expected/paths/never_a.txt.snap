@@ -1,0 +1,6 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+start: Model { value: 0 }
+1: Signal::A choice=0 -> Model { value: 1 }
+failure: check!(self.value != 1) failed at Model { value: 1 }

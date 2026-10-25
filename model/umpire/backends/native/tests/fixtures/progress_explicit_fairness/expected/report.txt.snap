@@ -1,0 +1,16 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+starts: 1
+reached: 4
+emitted: 4
+evaluated: 8
+refused: 4
+depth: 2
+cut: false
+outcome: Refuted
+claim internal_is_not_fair: Refuted
+claim explicit_fair: Verified
+claim fair_does_not_admit: Refuted
+claim only_finish: Verified
+vacuity: none

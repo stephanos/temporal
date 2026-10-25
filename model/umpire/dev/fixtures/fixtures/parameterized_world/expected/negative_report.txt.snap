@@ -1,0 +1,16 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+starts: 2
+reached: 5
+emitted: 3
+evaluated: 5
+refused: 2
+depth: 2
+cut: false
+outcome: Refuted
+claim bounded: Verified
+claim never_three: Refuted
+claim advances: Verified
+claim finishes: Verified
+vacuity: none

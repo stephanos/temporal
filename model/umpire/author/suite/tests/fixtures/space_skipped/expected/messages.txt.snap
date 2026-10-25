@@ -1,0 +1,32 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+never 3:
+refused: at Dial(2), action Turn panicked: stuck, so the exploration skipped that step
+to 3:
+refused: at Dial(2), action Turn panicked: stuck, so the exploration skipped that step
+to 1:
+start: Dial(0)
+1: Turn choice=0 -> Dial(1)
+to 2 (panic at equal depth):
+start: Dial(0)
+1: Turn choice=0 -> Dial(1)
+2: Turn choice=0 -> Dial(2)
+refuted at 1:
+start: Dial(0)
+1: Turn choice=0 -> Dial(1)
+refuted at 2:
+start: Dial(0)
+1: Turn choice=0 -> Dial(1)
+2: Turn choice=0 -> Dial(2)
+along to 1:
+start: Dial(0)
+1: Turn choice=0 -> Dial(1)
+along to 2:
+start: Dial(0)
+1: Turn choice=0 -> Dial(1)
+2: Turn choice=0 -> Dial(2)
+to 1, panic at a shallower start:
+refused: at Dial(2), action Turn panicked: stuck, so the exploration skipped that step
+refuted at 1, panic at a shallower start:
+refused: at Dial(2), action Turn panicked: stuck, so the exploration skipped that step

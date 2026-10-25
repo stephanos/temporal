@@ -1,0 +1,21 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+0: Model { count: 0, done: false, level: 250 }
+1: Model { count: 0, done: false, level: 251 }
+2: Model { count: 0, done: false, level: 252 }
+3: Model { count: 0, done: false, level: 253 }
+4: Model { count: 0, done: false, level: 254 }
+5: Model { count: 0, done: false, level: 255 }
+6: Model { count: 3, done: true, level: 250 }
+7: Model { count: 6, done: true, level: 250 }
+8: Model { count: 3, done: true, level: 251 }
+9: Model { count: 6, done: true, level: 251 }
+10: Model { count: 3, done: true, level: 252 }
+11: Model { count: 6, done: true, level: 252 }
+12: Model { count: 3, done: true, level: 253 }
+13: Model { count: 6, done: true, level: 253 }
+14: Model { count: 3, done: true, level: 254 }
+15: Model { count: 6, done: true, level: 254 }
+16: Model { count: 3, done: true, level: 255 }
+17: Model { count: 6, done: true, level: 255 }

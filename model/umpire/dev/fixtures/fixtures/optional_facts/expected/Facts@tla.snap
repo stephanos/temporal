@@ -1,6 +1,0 @@
----
-source: umpire/dev/testing/src/runner.rs
-assertion_line: 354
-extension: tla
-snapshot_kind: binary
----

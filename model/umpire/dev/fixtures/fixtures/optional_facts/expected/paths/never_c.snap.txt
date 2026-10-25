@@ -1,3 +1,0 @@
-start: Model { value: 0 }
-1: Signal::C choice=0 -> Model { value: 3 }
-failure: check!(self.value != 3) failed at Model { value: 3 }

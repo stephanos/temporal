@@ -1,0 +1,8 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+SPECIFICATION Spec
+CONSTANT __umpire_world_attempts = 2
+CONSTANT __umpire_world_spares = 0
+INVARIANT Invariant_attempts_bounded
+PROPERTY Post_attempts_never_decrease

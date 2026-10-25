@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -100,7 +99,7 @@ func TestKettleAnnotationCoverageAndActualWireGaps(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	kettleAnnotationGolden(t, "coverage.snap", coverage.Report)
+	compareSnapshot(t, "coverage.txt", coverage.Report)
 	if !strings.Contains(coverage.Report, "Ignored") {
 		t.Fatal("coverage must retain an Ignored field with its reason")
 	}
@@ -174,22 +173,5 @@ func TestKettleAnnotationCoverageAndActualWireGaps(t *testing.T) {
 	if report.Fails || !strings.Contains(report.Report, "Unverifiable") {
 		t.Fatalf("healthy gap report must pass and retain Unverifiable: %s", report.Report)
 	}
-	kettleAnnotationGolden(t, "gaps.txt", report.Report)
-}
-
-func kettleAnnotationGolden(t *testing.T, name, actual string) {
-	t.Helper()
-	path := "expected/" + name
-	if name == "gaps.txt" && os.Getenv("UMPIRE_UPDATE_KETTLE_GAPS") == "1" || name == "mutants.snap.txt" && os.Getenv("UMPIRE_UPDATE_KETTLE_MUTANTS") == "1" {
-		if err := os.WriteFile(path, []byte(actual), 0o644); err != nil {
-			t.Fatal(err)
-		}
-	}
-	expected, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if actual != string(expected) {
-		t.Fatalf("Kettle %s differs:\n%s", name, actual)
-	}
+	compareSnapshot(t, "gaps.txt", report.Report)
 }

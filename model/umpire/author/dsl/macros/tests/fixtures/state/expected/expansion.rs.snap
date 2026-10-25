@@ -1,0 +1,100 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+#[automatically_derived]
+impl ::core::clone::Clone for Kettle
+where
+    i32: ::core::clone::Clone,
+    bool: ::core::clone::Clone,
+    bool: ::core::clone::Clone,
+{
+    fn clone(&self) -> Self {
+        Self {
+            temperature: ::core::clone::Clone::clone(&self.temperature),
+            heating_on: ::core::clone::Clone::clone(&self.heating_on),
+            beeping: ::core::clone::Clone::clone(&self.beeping),
+        }
+    }
+}
+#[automatically_derived]
+impl ::core::cmp::PartialEq for Kettle
+where
+    i32: ::core::cmp::PartialEq,
+    bool: ::core::cmp::PartialEq,
+    bool: ::core::cmp::PartialEq,
+{
+    fn eq(&self, other: &Self) -> bool {
+        true && self.temperature == other.temperature
+            && self.heating_on == other.heating_on && self.beeping == other.beeping
+    }
+}
+#[automatically_derived]
+impl ::core::cmp::Eq for Kettle
+where
+    i32: ::core::cmp::Eq,
+    bool: ::core::cmp::Eq,
+    bool: ::core::cmp::Eq,
+{}
+#[automatically_derived]
+impl ::core::hash::Hash for Kettle
+where
+    i32: ::core::hash::Hash,
+    bool: ::core::hash::Hash,
+    bool: ::core::hash::Hash,
+{
+    fn hash<__UmpireHasher: ::core::hash::Hasher>(&self, state: &mut __UmpireHasher) {
+        ::core::hash::Hash::hash(&self.temperature, state);
+        ::core::hash::Hash::hash(&self.heating_on, state);
+        ::core::hash::Hash::hash(&self.beeping, state);
+    }
+}
+#[automatically_derived]
+impl ::core::fmt::Debug for Kettle
+where
+    i32: ::core::fmt::Debug,
+    bool: ::core::fmt::Debug,
+    bool: ::core::fmt::Debug,
+{
+    fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        out.debug_struct("Kettle")
+            .field("temperature", &self.temperature)
+            .field("heating_on", &self.heating_on)
+            .field("beeping", &self.beeping)
+            .finish()
+    }
+}
+#[automatically_derived]
+impl ::core::fmt::Display for Kettle
+where
+    i32: ::core::fmt::Debug,
+    bool: ::core::fmt::Debug,
+    bool: ::core::fmt::Debug,
+{
+    fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        ::core::fmt::Debug::fmt(self, out)
+    }
+}
+impl Kettle
+where
+    i32: ::core::clone::Clone,
+    bool: ::core::clone::Clone,
+    bool: ::core::clone::Clone,
+    bool: ::core::default::Default,
+    bool: ::core::default::Default,
+{
+    /// Enumerates initial states in field order with defaults for unannotated fields.
+    pub fn starts() -> ::std::vec::Vec<Self> {
+        let mut __umpire_starts = ::std::vec::Vec::new();
+        for __umpire_field_0 in COLDEST_TEMPERATURE..=40 {
+            let __umpire_field_1: bool = ::core::default::Default::default();
+            let __umpire_field_2: bool = ::core::default::Default::default();
+            __umpire_starts
+                .push(Self {
+                    temperature: ::core::clone::Clone::clone(&__umpire_field_0),
+                    heating_on: ::core::clone::Clone::clone(&__umpire_field_1),
+                    beeping: ::core::clone::Clone::clone(&__umpire_field_2),
+                });
+        }
+        __umpire_starts
+    }
+}

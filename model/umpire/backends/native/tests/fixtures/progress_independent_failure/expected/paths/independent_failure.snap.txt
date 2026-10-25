@@ -1,5 +1,0 @@
-prefix:
-start: State { 0: 1 }
-cycle:
-1: Action::Loop choice=0 -> State { 0: 1 }
-repeat cycle

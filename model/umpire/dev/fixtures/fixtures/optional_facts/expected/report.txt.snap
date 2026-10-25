@@ -1,0 +1,23 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+starts: 1
+reached: 7
+emitted: 31
+evaluated: 84
+refused: 53
+depth: 2
+cut: false
+outcome: Refuted
+claim never_a: Refuted
+failure never_a: check!(self.value != 1) failed at Model { value: 1 }
+claim never_b: Refuted
+failure never_b: check!(self.value != 2) failed at Model { value: 2 }
+claim never_c: Refuted
+failure never_c: check!(self.value != 3) failed at Model { value: 3 }
+claim never_d: Refuted
+failure never_d: check!(self.value != 4) failed at Model { value: 4 }
+claim never_clear: Refuted
+failure never_clear: check!(self.value != 5) failed at Model { value: 5 }
+vacuity: action Signal::UnchangedNone never fired
+vacuity: action Signal::UnchangedSome never fired

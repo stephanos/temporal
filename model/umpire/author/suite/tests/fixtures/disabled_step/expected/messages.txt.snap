@@ -1,0 +1,12 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+pressed, then heated three times:
+start: Model { temperature: 97, heating_on: false, beeping: false }
+1: User::PressButton choice=0 -> Model { temperature: 97, heating_on: true, beeping: false }
+2: Heater::Heat choice=0 -> Model { temperature: 98, heating_on: true, beeping: false }
+3: Heater::Heat choice=0 -> Model { temperature: 99, heating_on: true, beeping: false }
+4: Heater::Heat choice=0 -> Model { temperature: 100, heating_on: true, beeping: false }
+pressed while on: User::PressButton is disabled at Model { temperature: 100, heating_on: true, beeping: false }
+depressed while off: User::DepressButton is disabled at Model { temperature: 20, heating_on: false, beeping: false }
+heated three times from 98: Heater::Heat is disabled at Model { temperature: 100, heating_on: true, beeping: false }

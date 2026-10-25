@@ -1,0 +1,14 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+starts: 1
+reached: 2
+emitted: 2
+evaluated: 8
+refused: 6
+depth: 1
+cut: false
+outcome: Refuted
+claim boils: Refuted
+vacuity: action Heater::Heat never fired
+vacuity: action Heater::Failover never fired

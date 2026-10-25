@@ -8,7 +8,9 @@ mod bound;
 mod interpreted;
 mod render;
 mod runner;
+mod snapshot_payload;
 mod source_edit;
+pub use snapshot_payload::snapshot_payload;
 pub use source_edit::{replace_code, replace_in, replace_once};
 
 pub use bound::{Bound, Declared, bound};

@@ -1,5 +1,9 @@
 //! Native parity and refusal checks for generated dispatch.
 
+#[path = "../../../dev/testing/src/snapshot_payload.rs"]
+#[allow(unreachable_pub, reason = "the shared reader is public when reexported by umpire-testing")]
+mod snapshot_payload;
+
 use prost::Message;
 use umpire_runtime::{
     Model,
@@ -103,9 +107,10 @@ fn generated_dispatch_matches_trait_kettle_goldens() {
     };
     assert_eq!(
         result.report,
-        include_str!(
-            "../../../backends/native/tests/fixtures/sample_kettle_trait/expected/report.snap.txt"
-        )
+        snapshot_payload::snapshot_payload(include_str!(
+            "../../../backends/native/tests/fixtures/sample_kettle_trait/expected/report.txt.snap"
+        ))
+        .unwrap_or_else(|error| panic!("{error}"))
     );
     assert_eq!(
         (
@@ -130,9 +135,10 @@ fn generated_dispatch_matches_trait_kettle_goldens() {
     }
     assert_eq!(
         text,
-        include_str!(
-            "../../../backends/native/tests/fixtures/sample_kettle_trait/expected/rows.snap.txt"
-        )
+        snapshot_payload::snapshot_payload(include_str!(
+            "../../../backends/native/tests/fixtures/sample_kettle_trait/expected/rows.txt.snap"
+        ))
+        .unwrap_or_else(|error| panic!("{error}"))
     );
 }
 

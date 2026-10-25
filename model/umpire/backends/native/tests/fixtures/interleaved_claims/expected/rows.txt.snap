@@ -1,0 +1,4 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+0: User::Advance choice=0 outcome=() facts=[] -> Counter { value: 1 }

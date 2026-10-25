@@ -1,2 +1,0 @@
-0: User::Enter choice=0 outcome=() facts=[] -> Model { value: 1 }
-1: User::Left choice=0 outcome=() facts=[] -> Model { value: 1 }

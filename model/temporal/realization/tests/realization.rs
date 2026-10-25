@@ -375,7 +375,12 @@ fn named_guest_adapter_preserves_the_independent_report_and_ordered_rows() {
     else {
         panic!("missing exploration")
     };
-    assert_eq!(exploration.report, include_str!("../../feature/activity/expected/report.snap.txt"));
+    let mut settings = insta::Settings::clone_current();
+    settings.set_snapshot_path("../../feature/activity/expected");
+    settings.set_prepend_module_to_snapshot(false);
+    settings.set_omit_expression(true);
+    let _guard = settings.bind_to_scope();
+    insta::assert_snapshot!("report.txt", exploration.report);
     let mut rows = String::new();
     for state_id in 0..exploration.reached {
         let Some(Outcome::Rows(value)) =
@@ -387,7 +392,7 @@ fn named_guest_adapter_preserves_the_independent_report_and_ordered_rows() {
             rows.push_str(&row);
         }
     }
-    assert_eq!(rows, include_str!("../../feature/activity/expected/rows.snap.txt"));
+    insta::assert_snapshot!("rows.txt", rows);
 }
 
 #[test]

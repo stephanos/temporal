@@ -1,0 +1,45 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+0: Client::Step choice=0 outcome=Accepted facts=[] -> Model { count: 3, done: true, level: 250 }
+0: Client::Add(1) choice=0 outcome=Accepted facts=[] -> Model { count: 3, done: true, level: 250 }
+0: Client::Add(2) choice=0 outcome=Accepted facts=[] -> Model { count: 6, done: true, level: 250 }
+0: Client::Bump choice=0 outcome=Accepted facts=[] -> Model { count: 0, done: false, level: 251 }
+1: Client::Step choice=0 outcome=Accepted facts=[] -> Model { count: 3, done: true, level: 251 }
+1: Client::Add(1) choice=0 outcome=Accepted facts=[] -> Model { count: 3, done: true, level: 251 }
+1: Client::Add(2) choice=0 outcome=Accepted facts=[] -> Model { count: 6, done: true, level: 251 }
+1: Client::Bump choice=0 outcome=Accepted facts=[] -> Model { count: 0, done: false, level: 252 }
+2: Client::Step choice=0 outcome=Accepted facts=[] -> Model { count: 3, done: true, level: 252 }
+2: Client::Add(1) choice=0 outcome=Accepted facts=[] -> Model { count: 3, done: true, level: 252 }
+2: Client::Add(2) choice=0 outcome=Accepted facts=[] -> Model { count: 6, done: true, level: 252 }
+2: Client::Bump choice=0 outcome=Accepted facts=[] -> Model { count: 0, done: false, level: 250 }
+3: Client::Step choice=0 outcome=Accepted facts=[] -> Model { count: 3, done: true, level: 253 }
+3: Client::Add(1) choice=0 outcome=Accepted facts=[] -> Model { count: 3, done: true, level: 253 }
+3: Client::Add(2) choice=0 outcome=Accepted facts=[] -> Model { count: 6, done: true, level: 253 }
+3: Client::Bump choice=0 outcome=Accepted facts=[] -> Model { count: 0, done: false, level: 250 }
+4: Client::Step choice=0 outcome=Accepted facts=[] -> Model { count: 3, done: true, level: 254 }
+4: Client::Add(1) choice=0 outcome=Accepted facts=[] -> Model { count: 3, done: true, level: 254 }
+4: Client::Add(2) choice=0 outcome=Accepted facts=[] -> Model { count: 6, done: true, level: 254 }
+4: Client::Bump choice=0 outcome=Accepted facts=[] -> Model { count: 0, done: false, level: 250 }
+5: Client::Step choice=0 outcome=Accepted facts=[] -> Model { count: 3, done: true, level: 255 }
+5: Client::Add(1) choice=0 outcome=Accepted facts=[] -> Model { count: 3, done: true, level: 255 }
+5: Client::Add(2) choice=0 outcome=Accepted facts=[] -> Model { count: 6, done: true, level: 255 }
+5: Client::Bump choice=0 outcome=Rejected(Unavailable) facts=[] -> Model { count: 0, done: false, level: 255 }
+6: Client::Step choice=0 outcome=Rejected(NotFound) facts=[] -> Model { count: 3, done: true, level: 250 }
+6: Client::Bump choice=0 outcome=Accepted facts=[] -> Model { count: 3, done: true, level: 251 }
+7: Client::Bump choice=0 outcome=Accepted facts=[] -> Model { count: 6, done: true, level: 251 }
+8: Client::Step choice=0 outcome=Rejected(NotFound) facts=[] -> Model { count: 3, done: true, level: 251 }
+8: Client::Bump choice=0 outcome=Accepted facts=[] -> Model { count: 3, done: true, level: 252 }
+9: Client::Bump choice=0 outcome=Accepted facts=[] -> Model { count: 6, done: true, level: 252 }
+10: Client::Step choice=0 outcome=Rejected(NotFound) facts=[] -> Model { count: 3, done: true, level: 252 }
+10: Client::Bump choice=0 outcome=Accepted facts=[] -> Model { count: 3, done: true, level: 250 }
+11: Client::Bump choice=0 outcome=Accepted facts=[] -> Model { count: 6, done: true, level: 250 }
+12: Client::Step choice=0 outcome=Rejected(NotFound) facts=[] -> Model { count: 3, done: true, level: 253 }
+12: Client::Bump choice=0 outcome=Accepted facts=[] -> Model { count: 3, done: true, level: 250 }
+13: Client::Bump choice=0 outcome=Accepted facts=[] -> Model { count: 6, done: true, level: 250 }
+14: Client::Step choice=0 outcome=Rejected(NotFound) facts=[] -> Model { count: 3, done: true, level: 254 }
+14: Client::Bump choice=0 outcome=Accepted facts=[] -> Model { count: 3, done: true, level: 250 }
+15: Client::Bump choice=0 outcome=Accepted facts=[] -> Model { count: 6, done: true, level: 250 }
+16: Client::Step choice=0 outcome=Rejected(NotFound) facts=[] -> Model { count: 3, done: true, level: 255 }
+16: Client::Bump choice=0 outcome=Rejected(Unavailable) facts=[] -> Model { count: 3, done: true, level: 255 }
+17: Client::Bump choice=0 outcome=Rejected(Unavailable) facts=[] -> Model { count: 6, done: true, level: 255 }

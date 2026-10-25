@@ -1,0 +1,4 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+overflow: Err(ExpansionOverflow); empty: Ok(0); finite: Ok(4)

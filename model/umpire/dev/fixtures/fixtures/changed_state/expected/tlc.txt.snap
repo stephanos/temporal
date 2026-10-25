@@ -1,0 +1,10 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+TLC 1.7.4; complete source-lifted exploration
+states: 2; native: 2; agreement: yes
+claim actual_change_checked: Refuted; native: Refuted; agreement: yes
+claim mutate_restore_checked: Verified; native: Verified; agreement: yes
+claim no_change_checked: Verified; native: Verified; agreement: yes
+claim same_value_checked: Verified; native: Verified; agreement: yes
+counterexamples replayed: 1

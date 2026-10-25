@@ -1,0 +1,48 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+cover
+actions:
+  [0] User::Add { amount: 0 }: untouched
+  [1] User::Add { amount: 1 }: touched
+  [2] User::Close: touched
+  [3] User::Missing: untouched
+  [4] Fault::Crash: touched
+outcomes:
+  [0] Accepted: touched
+  [1] Rejected(NotFound): untouched
+  [2] Rejected(AlreadyExists): untouched
+  [3] Rejected(FailedPrecondition): untouched
+  [4] Rejected(InvalidArgument): untouched
+  [5] Rejected(PermissionDenied): untouched
+  [6] Rejected(Unavailable): untouched
+faults:
+  [0] Fault::Crash: touched
+claims (witness evaluations only):
+  invariant[0] bounded: touched evaluated=11
+  postcondition[0] missing_preserves: untouched evaluated=0 triggered=0
+  progress[0] closes: touched evaluated=11 triggered=6
+  progress[1] never_triggered: touched evaluated=11 triggered=0
+
+sample (finite experiment)
+actions:
+  [0] User::Add { amount: 0 }: touched
+  [1] User::Add { amount: 1 }: touched
+  [2] User::Close: touched
+  [3] User::Missing: touched
+  [4] Fault::Crash: untouched
+outcomes:
+  [0] Accepted: touched
+  [1] Rejected(NotFound): touched
+  [2] Rejected(AlreadyExists): untouched
+  [3] Rejected(FailedPrecondition): untouched
+  [4] Rejected(InvalidArgument): untouched
+  [5] Rejected(PermissionDenied): untouched
+  [6] Rejected(Unavailable): untouched
+faults:
+  [0] Fault::Crash: untouched
+claims (witness evaluations only):
+  invariant[0] bounded: touched evaluated=14
+  postcondition[0] missing_preserves: touched evaluated=1 triggered=1
+  progress[0] closes: touched evaluated=14 triggered=4
+  progress[1] never_triggered: touched evaluated=14 triggered=0

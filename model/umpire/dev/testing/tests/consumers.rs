@@ -59,7 +59,7 @@ fn with_control(
     let expected = root.join("fixtures/control/expected");
     fs::create_dir_all(&expected)?;
     fs::write(root.join("fixtures/control/model.rs"), "")?;
-    fs::write(expected.join("artifact@tla.snap.tla"), "seed\n")?;
+    fs::write(expected.join("artifact.tla.snap"), "---\nsource: control.rs\n---\nseed\n")?;
     let result = check(&root, &expected);
     fs::remove_dir_all(root)?;
     result
@@ -71,23 +71,33 @@ fn consumers_select_generic_snapshot_files() -> Result<(), Box<dyn Error>> {
         let updated = child(&root.join("fixtures"), "always", "first\n", false)?;
         assert!(updated.status.success(), "{}", String::from_utf8_lossy(&updated.stdout));
         for extension in ["tla", "cfg"] {
-            let payload = expected.join(format!("artifact@{extension}.snap.{extension}"));
+            let payload = expected.join(format!("artifact.{extension}.snap"));
             assert_eq!(
-                fs::read_to_string(&payload).map_err(|e| format!(
-                    "{}: {e}; runner: {}",
-                    payload.display(),
-                    String::from_utf8_lossy(&updated.stdout)
-                ))?,
+                fs::read_to_string(&payload)
+                    .map_err(|e| format!(
+                        "{}: {e}; runner: {}",
+                        payload.display(),
+                        String::from_utf8_lossy(&updated.stdout)
+                    ))?
+                    .split_once("\n---\n")
+                    .ok_or("missing text snapshot header")?
+                    .1,
                 "first\n"
             );
             assert!(!expected.join(format!("artifact.{extension}")).exists());
         }
         let checked = child(&root.join("fixtures"), "no", "first\n", false)?;
         assert!(checked.status.success(), "{}", String::from_utf8_lossy(&checked.stdout));
-        fs::write(expected.join("report.snap.txt"), "seed\n")?;
+        fs::write(expected.join("report.txt.snap"), "---\nsource: control.rs\n---\nseed\n")?;
         let mixed = child(&root.join("fixtures"), "always", "first\n", true)?;
         assert!(mixed.status.success(), "{}", String::from_utf8_lossy(&mixed.stdout));
-        assert_eq!(fs::read_to_string(expected.join("report.snap.txt"))?, "checker selected\n");
+        assert_eq!(
+            fs::read_to_string(expected.join("report.txt.snap"))?
+                .split_once("\n---\n")
+                .ok_or("missing header")?
+                .1,
+            "checker selected\n"
+        );
         assert!(!expected.join("report.txt").exists());
         let mixed = child(&root.join("fixtures"), "no", "first\n", true)?;
         assert!(mixed.status.success(), "{}", String::from_utf8_lossy(&mixed.stdout));
@@ -96,34 +106,20 @@ fn consumers_select_generic_snapshot_files() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-#[ignore = "requires the optional cargo-insta CLI; run explicitly with --ignored"]
-fn accepts_generic_pending_snapshots_with_cli() -> Result<(), Box<dyn Error>> {
+fn pending_text_snapshots_require_explicit_acceptance() -> Result<(), Box<dyn Error>> {
     with_control("accept-consumers", |root, expected| {
-        let updated = child(&root.join("fixtures"), "always", "first\n", false)?;
-        assert!(updated.status.success(), "{}", String::from_utf8_lossy(&updated.stdout));
-        let pending = child(&root.join("fixtures"), "new", "accepted\n", false)?;
-        assert!(!pending.status.success(), "mismatching snapshot silently passed");
-        assert!(expected.join("artifact@cfg.snap.new").is_file());
-        assert!(expected.join("artifact@cfg.snap.new.cfg").is_file());
-        fs::write(
-            root.join("Cargo.toml"),
-            "[package]\nname = \"snapshot-control\"\nversion = \"0.0.0\"\nedition = \"2024\"\n[workspace]\n[lib]\npath = \"fixtures/control/model.rs\"\n",
-        )?;
-        let accepted = Command::new("cargo")
-            .args(["insta", "accept", "--manifest-path"])
-            .arg(root.join("Cargo.toml"))
-            .output()?;
-        assert!(accepted.status.success(), "{}", String::from_utf8_lossy(&accepted.stderr));
-        let checked = child(&root.join("fixtures"), "no", "accepted\n", false)?;
-        // The first mismatch stops insta; accept the second output on its next run.
-        if !checked.status.success() {
+        assert!(child(&root.join("fixtures"), "always", "first\n", false)?.status.success());
+        for extension in ["cfg", "tla"] {
             let pending = child(&root.join("fixtures"), "new", "accepted\n", false)?;
-            assert!(!pending.status.success());
-            let accepted = Command::new("cargo")
-                .args(["insta", "accept", "--manifest-path"])
-                .arg(root.join("Cargo.toml"))
-                .output()?;
-            assert!(accepted.status.success());
+            assert!(!pending.status.success(), "mismatching snapshot silently passed");
+            let path = expected.join(format!("artifact.{extension}.snap.new"));
+            let snapshot = insta::Snapshot::from_file(&path)?;
+            assert!(
+                !child(&root.join("fixtures"), "always", "first\n", false)?.status.success(),
+                "pending snapshot passed during update"
+            );
+            snapshot.save(&expected.join(format!("artifact.{extension}.snap")))?;
+            fs::remove_file(path)?;
         }
         let checked = child(&root.join("fixtures"), "no", "accepted\n", false)?;
         assert!(checked.status.success(), "{}", String::from_utf8_lossy(&checked.stdout));
@@ -140,7 +136,7 @@ fn rejects_orphan_snapshot_artifacts() -> Result<(), Box<dyn Error>> {
         fs::write(root.join("control/model.rs"), "")?;
         for artifact in [
             "report.txt",
-            "report.snap.txt",
+            "report.txt.snap",
             "report.snap",
             "report.snap.new.txt",
             "report.snap.new",
@@ -184,18 +180,37 @@ fn skipped_backend_requires_selected_complete_goldens() -> Result<(), Box<dyn Er
             &[backend],
             &["external"],
         )?;
-        fs::write(expected.join("artifact@cfg.snap.new.cfg"), "orphan\n")?;
-        let result = umpire_testing::run_at_skipping(
-            &root.join("fixtures"),
-            vec![("control", || panic!("unselected checker executed"))],
-            &[Consumer {
-                name: "external",
-                expected: &["artifact.tla", "artifact.cfg"],
-                render: |_, _| panic!("skipped backend executed"),
-            }],
-            &["external"],
-        );
-        assert!(result.is_err(), "an orphan pending snapshot passed while skipped");
+        for (file, content, diagnostic) in [
+            ("artifact.cfg.snap.new", Some("pending\n"), "pending golden"),
+            ("artifact.cfg.snap", Some("malformed\n"), "incomplete golden"),
+            ("artifact.cfg.snap", None, "incomplete golden"),
+        ] {
+            let path = expected.join(file);
+            let original = fs::read(&path).ok();
+            if let Some(content) = content {
+                fs::write(&path, content)?;
+            } else {
+                fs::remove_file(&path)?;
+            }
+            let error = umpire_testing::run_at_skipping(
+                &root.join("fixtures"),
+                vec![("control", || panic!("skipped producer executed"))],
+                &[Consumer {
+                    name: "external",
+                    expected: &["artifact.tla", "artifact.cfg"],
+                    render: |_, _| panic!("skipped backend executed"),
+                }],
+                &["external"],
+            )
+            .err()
+            .ok_or("incomplete or pending skipped snapshot passed")?;
+            assert!(error.to_string().contains(diagnostic), "{error}");
+            if let Some(original) = original {
+                fs::write(path, original)?;
+            } else {
+                fs::remove_file(path)?;
+            }
+        }
         Ok(())
     })
 }

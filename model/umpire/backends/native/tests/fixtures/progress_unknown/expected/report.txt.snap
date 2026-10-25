@@ -1,0 +1,22 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+starts: 2
+reached: 2
+emitted: 1
+evaluated: 4
+refused: 3
+depth: 0
+cut: false
+outcome: Refuted
+claim trigger_hole: Unknown
+hole trigger_hole: trigger unavailable
+claim target_hole: Unknown
+hole target_hole: target unavailable
+claim trigger_panic: Refuted
+failure trigger_panic: claim trigger_panic panicked: broken progress trigger
+claim target_panic: Refuted
+failure target_panic: claim target_panic panicked: broken progress target
+claim independent_failure: Unknown
+hole independent_failure: independent target unavailable
+vacuity: action Action::Advance never fired

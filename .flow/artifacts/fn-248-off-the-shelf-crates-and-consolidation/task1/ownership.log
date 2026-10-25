@@ -1,0 +1,13 @@
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2481-snapshots/model/umpire/dev/testing)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2481-snapshots/model/temporal/realization/macros)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2481-snapshots/model/temporal/api)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2481-snapshots/model/temporal/realization)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2481-snapshots/model/temporal/testing)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.87s
+     Running snapshot_ownership.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/snapshot_ownership-8e7cb0132725e994)
+
+running 2 tests
+test nonfixture_orphan_pending_and_missing_reader_refuse ... ok
+test current_snapshots_have_explicit_owners ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s

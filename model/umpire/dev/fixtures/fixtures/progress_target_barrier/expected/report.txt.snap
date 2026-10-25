@@ -1,0 +1,13 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+starts: 1
+reached: 3
+emitted: 3
+evaluated: 12
+refused: 9
+depth: 2
+cut: false
+outcome: Verified
+claim reaches_target: Verified
+vacuity: action User::Escape never fired
