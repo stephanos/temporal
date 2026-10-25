@@ -109,7 +109,7 @@ Whether fn-246.13's protocol Model may share the Temporal layer is an open owner
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-253.1 | ⛔ blocked | After committed fn-246.15: deadline handler via Option equality and named expiry effects; split `state_bounds` (R4) |
+| fn-253.1 | ⛔ blocked | After committed fn-246.15: Option equality in `deadline` and `tick_priority`, named expiry effects and progress helpers, deduplicated Tick postconditions, split `state_bounds` (R4) |
 | fn-253.2 | ⬜ todo | Spike: activity against the proposed `countdown` surface; verdict in `model/design/deadline-countdowns.md` (R1) |
 | fn-253.3 | ⬜ todo | After .2: `umpire_dsl::countdown` functions and laws in plain Rust (R2) |
 | fn-253.4 | ⬜ todo | After .3: front end lowers countdown calls in handlers, effects and claims (R2) |
@@ -117,6 +117,8 @@ Whether fn-246.13's protocol Model may share the Temporal layer is an open owner
 | fn-253.6 | ⬜ todo | After .2, .5: Temporal deadline semantics as a named pattern (R3) |
 | fn-253.7 | ⬜ todo | After .1, .6: activity uses countdowns and the deadline pattern, behaviour pinned (R4) |
 | fn-253.8 | ⬜ todo | After .7: docs and full gates (R5) |
+| fn-253.9 | ⬜ todo | After .1, coordinated with fn-246.13: `maximum_attempts` as a `Finite` wrapper (R4) |
+| fn-253.10 | ⬜ todo | After .1 and an owner decision on the fn-237 R3 compatibility control: remove `asynchronous_cancel`, always cooperative; coordinated with fn-237.4's live binding (R6) |
 
 ### fn-240: Symbolic back end (deferred)
 

@@ -16,6 +16,7 @@ Rewrite the activity's deadline code against the proposed `countdown` surface in
 - Worktree `.worktrees/fn2531-spike` on `work/fn2531-spike`. Stub `umpire_dsl::countdown` with plain Rust bodies so the native Model compiles; the refusals come from the front end.
 - Rewrite `deadline`, `decrement`, the arming in `worker`/`initial`, `state_bounds` (split per spec R4), `countdowns_decrement` and `tick_priority` (`model/temporal/feature/activity/model.rs`).
 - Test whether a local helper alone suffices for the activity: an unmarked `fn arm(ticks: Option<Ticks>) -> Option<Remaining>` (and a `tick` counterpart) called from `initial`, `Poll`, retry, `Heartbeat` and `decrement`. The `armed(&self) -> bool` helper is already admitted (2026-10-25). If value-returning local helpers are admitted, record that the library is only needed for sharing across Models, and size .4 accordingly.
+- Shared `Ticks`/`Remaining` (owner question 2026-10-25): try library-owned types with the range as a const parameter (e.g. `Ticks<3>`/`Remaining<3>`), so one bound ties the configured range (`1..=N`) to the live range (`0..=N`). Today the activity states them separately as `#[inputs(1..=3)]` and `#[inputs(0..=3)]`, and nothing checks that they agree. The front end currently refuses generic input types and custom `Finite` impls; record what admitting a const-generic wrapper costs.
 - Try both representations from the spec's Parked unknowns: library-owned countdown types, and a trait implemented by the Model's `Finite` wrappers (`Ticks`, `Remaining`). Record which one the front end can type without new nominal-type machinery.
 - Try the Temporal-layer form: a shared helper module in `model/temporal` versus named per-Model effects (`time_out`, `time_out_attempt`). Record the front-end change a shared module would need.
 - Answer the spec's three Parked unknowns, or name them as owner questions.
@@ -51,6 +52,7 @@ fn-246.15 is rewriting the activity's timeout-retry cells. Spike from the curren
 ### Acceptance
 - [ ] TBD
 - [ ] The verdict states whether value-returning local helpers are admitted today, with the refusal if not.
+- [ ] The verdict decides whether `Ticks`/`Remaining` become shared `umpire-dsl` types with a Model-selected bound.
 ## Done summary
 TBD
 

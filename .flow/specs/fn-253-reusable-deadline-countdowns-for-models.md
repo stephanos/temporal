@@ -106,6 +106,7 @@ Provisional; task 1 fixes it.
 
   Errors: native/TLC agreement, exact transitions and facts, the closure-law and deadline mutants, and `compatibility/checkpoint.rs` all still pass. Reanchored source mutants still discriminate.
 - **R5:** `make model-check` passes and the TLC-required `make model-validate` passes. Goldens are re-accepted after review. README and DESIGN describe the abstraction and how a new Model declares its countdowns.
+- **R6:** The activity World has no cancellation-mode flag (`asynchronous_cancel` removed). Cancellation is always cooperative, matching the pinned request-cancel contract: immediate with no running attempt, pending while an attempt runs. The fn-237 R3 compatibility control is either re-expressed as a projection (pending Cancel then acknowledgement maps to one atomic cancel) or retired, by owner decision recorded in fn-237's Decision Context. Errors: the reintroduced atomic transition (Cancel in `Started` closing at once) is refuted by native and TLC; a changed old lifecycle edge still fails the control if it is kept.
 
 ## Boundaries
 
@@ -127,6 +128,8 @@ Provisional; task 1 fixes it.
 
 Placement (my proposal, owner to confirm): R1's spike and R2's `umpire-dsl` work touch no fn-246 files and can run as a parallel lane once a lane is free. R3/R4 start after fn-246.15's committed closure. Whether they land before fn-246.13 (so the protocol Model can use the countdown) is the owner's ordering call. Not yet in MILESTONES' current order.
 
+2026-10-25, owner: remove the cancellation-mode flag and always model cooperative cancellation (R6, task .10). The atomic World matched no live behaviour; it existed for fn-227's retained lifecycle comparison and the atomic live binding. Reopens fn-237 R3's control shape.
+
 2026-10-25, owner question "where do we file this": the tested deadline-handler cleanup and the `state_bounds` split are task .1, gated only on fn-246.15's committed closure and independent of the spike, so they land before the abstraction rather than inside the migration. fn-252 (quick wins) is closed, and fn-246.15 is in progress with a fixed scope.
 
 ## Requirement coverage
@@ -134,13 +137,14 @@ Placement (my proposal, owner to confirm): R1's spike and R2's `umpire-dsl` work
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
 | R1 | A spike rewrites the activity's deadline code against the proposed `countdown` surface (in a worktree, not merged) and records the resulting admission refusals. It also writes a short verdict in `model/design/deadline-countdowns.md` choosing the representation and the Temporal-layer form. Errors: every refusal is listed with its source location and the front-end owner that must change. | fn-253-reusable-deadline-countdowns-for-models.2 | — |
-| R2 | `umpire_dsl::countdown` exists with pure arm/tick/expired/armed functions and within/descends laws, documented with what each does not promise. It is admitted by the shared front end and lowered from its own source by every checker. Errors: a negative fixture shows TLC and native both refuting a broken `tick` (no decrement, decrement of an absent budget, decrement below zero) and a broken `within`. Unsupported uses (aliases, glob imports, nesting) refuse at their span. | fn-253-reusable-deadline-countdowns-for-models.3, fn-253-reusable-deadline-countdowns-for-models.4, fn-253-reusable-deadline-countdowns-for-models.5 | — |
+| R2 | `umpire_dsl::countdown` exists with pure arm/tick/expired/armed functions and within/descends laws, documented with what each does not promise. It is admitted by the shared front end and lowered from its own source by every checker. Errors: a negative fixture shows TLC and native both refuting a broken `tick` (no decrement, decrement of an absent countdown, decrement below zero) and a broken `within`. Unsupported uses (aliases, glob imports, nesting) refuse at their span. | fn-253-reusable-deadline-countdowns-for-models.3, fn-253-reusable-deadline-countdowns-for-models.4, fn-253-reusable-deadline-countdowns-for-models.5 | — |
 | R3 | The Temporal deadline semantics exist once under the form R1 chose, named, and documented with their authority (pinned API and docs references already used by fn-237/fn-246.15). | fn-253-reusable-deadline-countdowns-for-models.6 | — |
-| R4 | The activity Model uses R2 and R3: | fn-253-reusable-deadline-countdowns-for-models.1, fn-253-reusable-deadline-countdowns-for-models.7 | — |
-| R5 | `make model-check` passes and the TLC-required `make model-validate` passes. Goldens are re-accepted after review. README and DESIGN describe the abstraction and how a new Model declares its budgets. | fn-253-reusable-deadline-countdowns-for-models.8 | — |
+| R4 | The activity Model uses R2 and R3: | fn-253-reusable-deadline-countdowns-for-models.1, fn-253-reusable-deadline-countdowns-for-models.7, fn-253-reusable-deadline-countdowns-for-models.9 | — |
+| R5 | `make model-check` passes and the TLC-required `make model-validate` passes. Goldens are re-accepted after review. README and DESIGN describe the abstraction and how a new Model declares its countdowns. | fn-253-reusable-deadline-countdowns-for-models.8 | — |
+| R6 | The activity World has no cancellation-mode flag (`asynchronous_cancel` removed). Cancellation is always cooperative, matching the pinned request-cancel contract: immediate with no running attempt, pending while an attempt runs. The fn-237 R3 compatibility control is either re-expressed as a projection (pending Cancel then acknowledgement maps to one atomic cancel) or retired, by owner decision recorded in fn-237's Decision Context. Errors: the reintroduced atomic transition (Cancel in `Started` closing at once) is refuted by native and TLC; a changed old lifecycle edge still fails the control if it is kept. | fn-253-reusable-deadline-countdowns-for-models.10 | — |
 
 ## Parked unknowns
 
 - May the independent protocol Model (fn-246.13) use the Temporal deadline layer, or only the generic countdown?
-- Library-owned countdown types vs a trait over each Model's `Finite` wrappers.
+- Library-owned countdown types vs a trait over each Model's `Finite` wrappers. Owner, 2026-10-25, asked whether `Ticks` should be a shared Umpire concern. Proposed answer: the abstract tick and the configured/remaining pair are system-agnostic and belong with `countdown` in `umpire-dsl`; the bound stays Model-selected (it sizes the state space), ideally one const parameter shared by both types. .2 decides.
 - Whether a registered project library (shared `model/temporal` source read by the front end) is worth its cost, or the authoring-pattern form suffices.
