@@ -4,6 +4,10 @@ use crate::activity::activity::{
 use umpire_dsl::{__lifted::ConcreteOf, Machine, Outcome, Phase as _, Rejection, Verdict};
 use umpire_tla::observers;
 
+fn framework_root() -> std::path::PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../umpire")
+}
+
 fn checked_world(
     maximum: u8,
     asynchronous: bool,
@@ -312,7 +316,7 @@ fn tlc_refutes_closure_law_mutants_of_this_source() -> umpire_testing::TestResul
     }
     let manifest = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let source = std::fs::read_to_string(manifest.join("../feature/activity/model.rs"))?;
-    let tlc = umpire_tlc::Tlc::discover(&manifest.join("../../.."))?;
+    let tlc = umpire_tlc::Tlc::discover(&framework_root())?;
     for (edit, laws) in [
         (None, [Verified, Verified]),
         (
@@ -455,7 +459,7 @@ fn actual_tlc_rejected_outcome_counterexample_replays_in_the_activity_model()
     assert_ne!(negative, source);
     let world = world();
     let module = bound_for(world.clone()).lift_source("model.rs", &negative)?;
-    let result = umpire_tlc::Tlc::discover(&manifest.join("../../.."))?.check_module(&module)?;
+    let result = umpire_tlc::Tlc::discover(&framework_root())?.check_module(&module)?;
     let property = &result.properties["Post_accepts_every_step"];
     assert_eq!(property.verdict, umpire_tlc::Verdict::Refuted);
     let trace = property.trace.as_ref().ok_or("missing outcome counterexample")?;

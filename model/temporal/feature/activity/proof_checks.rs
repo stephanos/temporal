@@ -319,8 +319,7 @@ fn global_disagreement(
 }
 
 fn tlc() -> Result<umpire_tlc::Tlc, Box<dyn std::error::Error>> {
-    let manifest = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    Ok(umpire_tlc::Tlc::discover(&manifest.join("../../.."))?)
+    Ok(umpire_tlc::Tlc::discover(&super::framework_root())?)
 }
 
 fn safety_only(mut module: umpire_tla::Module, properties: &[&str]) -> umpire_tla::Module {
