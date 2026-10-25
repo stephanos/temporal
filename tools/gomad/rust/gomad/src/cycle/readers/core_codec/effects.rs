@@ -225,7 +225,7 @@ fn crash_identity(id: &str, d: &Durable) -> Result<String, String> {
     }
     Ok(h.finish())
 }
-fn snapshot_identity(snapshot: &Value) -> Result<String, String> {
+pub(super) fn snapshot_identity(snapshot: &Value) -> Result<String, String> {
     let text = |v: &Value, k: &str| {
         v[k].as_str()
             .map(str::to_owned)
@@ -423,6 +423,19 @@ pub(super) fn recovered(
     image: &RecoveryObservation,
     state: &StateObservation<'_>,
 ) -> Result<(), String> {
+    let history: BTreeMap<_, _> = image
+        .volumes()
+        .iter()
+        .map(|volume| {
+            (
+                volume.id(),
+                volume.history().iter().map(operation).collect::<Vec<_>>(),
+            )
+        })
+        .collect();
+    if state.history() != &json!(history) {
+        return Err("recovered namespace history differs from image".into());
+    }
     let snapshots=image.volumes().iter().map(|volume|{
         let entries=Durable::new(volume).entries(false)?;
         let mut snapshot=json!({"ID":volume.id(),"Mount":volume.mount(),"CapacityBytes":volume.capacity_bytes(),"Persisted":entries,"Volatile":entries,"PendingOperations":0,"PendingSHA256":pending(volume.id(),&[]),"NextOperation":volume.next_operation()});

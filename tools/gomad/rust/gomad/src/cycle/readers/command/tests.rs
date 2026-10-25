@@ -174,6 +174,13 @@ fn command_custody_rejects_alias_mode_link_bound_and_root_substitution() {
 pub(crate) fn run_cases(owner: &crate::cycle::process::CycleOwner) -> Result<(), String> {
     use crate::cycle::process::{Environment, Runner};
     use std::{sync::atomic::AtomicBool, time::Duration};
+    if std::env::var("B04_CHILD").as_deref() == Ok("inspect") {
+        return crate::cli::inspect::run(
+            &std::env::args().skip(2).collect::<Vec<_>>(),
+            &mut std::io::stdout(),
+        )
+        .map_err(|e| e.message);
+    }
     let root = PathBuf::from(std::env::var("B04_COMMAND_ROOT").map_err(|e| e.to_string())?);
     fs::create_dir_all(&root).map_err(|e| e.to_string())?;
     fs::set_permissions(&root, fs::Permissions::from_mode(0o700)).map_err(|e| e.to_string())?;
@@ -235,6 +242,72 @@ pub(crate) fn run_cases(owner: &crate::cycle::process::CycleOwner) -> Result<(),
     private(&actual, &canonical(&row)?);
     private(&process, &canonical(&row)?);
     session.command(&registry, "actual", &command, false)?;
+    let mut deadline = command.clone();
+    deadline.timeout = Duration::ZERO;
+    let error = session
+        .command(&registry, "actual", &deadline, false)
+        .err()
+        .ok_or("original timeout ignored")?;
+    require(
+        error.contains("bound exceeded"),
+        "wrong actual timeout predicate",
+    )?;
+    proof("actual elapsed timeout", &row, &error);
+    let error = session
+        .command(&registry, "actual", &command, true)
+        .err()
+        .ok_or("required capture omitted")?;
+    require(
+        error.contains("lacks actual preparation"),
+        "wrong missing capture predicate",
+    )?;
+    proof("actual missing required capture", &row, &error);
+    let mut foreign = session.config.clone();
+    foreign["files"]
+        .as_object_mut()
+        .ok_or("files map missing")?
+        .remove(executable);
+    let error = RetainedSession::from_value(foreign)?
+        .command(&registry, "actual", &command, false)
+        .err()
+        .ok_or("unsealed executable accepted")?;
+    require(error.contains("not sealed"), "wrong executable predicate")?;
+    proof("actual executable not sealed", &row, &error);
+    let mut changed = row.clone();
+    changed["end_ns"] = json!(unsigned(&row, "end_ns")? + 1);
+    private(&process, &canonical(&changed)?);
+    let error = session
+        .command(&registry, "actual", &command, false)
+        .err()
+        .ok_or("process end escaped command interval")?;
+    require(
+        error.contains("process/command"),
+        "wrong process end predicate",
+    )?;
+    proof("actual process end interval", &changed, &error);
+    private(&process, &canonical(&row)?);
+    let owner_path = root.join("producer-root.json");
+    let owner = json!({"pid":row["stage_pid"],"start_ns":row["start_ns"]});
+    private(&owner_path, &canonical(&owner)?);
+    session.command(&registry, "actual", &command, false)?;
+    for (field, value) in [
+        ("pid", json!(unsigned(&row, "stage_pid")? + 1)),
+        ("start_ns", json!(unsigned(&row, "end_ns")? + 1)),
+    ] {
+        let mut changed = owner.clone();
+        changed[field] = value;
+        private(&owner_path, &canonical(&changed)?);
+        let error = session
+            .command(&registry, "actual", &command, false)
+            .err()
+            .ok_or("foreign producer owner accepted")?;
+        require(
+            error.contains("actual producer"),
+            "wrong producer owner predicate",
+        )?;
+        proof(&format!("actual producer {field}"), &changed, &error);
+    }
+    fs::remove_file(owner_path).map_err(|e| e.to_string())?;
     println!(
         "B04_COMMAND_ACTUAL {}",
         json!({"pid":completed.pid,"supervisor":completed.supervisor_pid,"exit":completed.exit,"command":row,"control":"normal-return","source_sha256":digest(include_bytes!("mod.rs"))})
@@ -255,7 +328,7 @@ fn genuine_preparation(root: &Path) -> Result<(), String> {
     .map_err(|e| e.to_string())?;
     fs::write(
         source.join("main.go"),
-        b"package main\nfunc main(){println(\"b04-current-preparation\")}\n",
+        b"package main\nimport \"os\"\nfunc main(){if len(os.Args)>1 && os.Args[1]==\"canary\" {panic(\"b04 expected canary\")};println(\"b04-current-preparation\")}\n",
     )
     .map_err(|e| e.to_string())?;
     let compiler = PathBuf::from(
@@ -359,6 +432,7 @@ fn genuine_preparation(root: &Path) -> Result<(), String> {
         campaigns: BTreeSet::from([campaign.clone()]),
     });
     session.verify_pending_preparations()?;
+    session.authenticate_prepared_artifact(&campaign, &provenance)?;
     for (field, value, reason) in [
         ("source_sha256", json!("f".repeat(64)), "source/binary"),
         ("binary_sha256", json!("f".repeat(64)), "source/binary"),
@@ -476,7 +550,18 @@ fn genuine_preparation(root: &Path) -> Result<(), String> {
         &error,
     );
     preparation_guards(&config, &row, &receipt, &campaign)?;
-    genuine_result(root, &source, &installation_path, &config)?;
+    for (cluster, canary) in [(false, false), (false, true), (true, false)] {
+        let case = root.join(if cluster {
+            "cluster-result"
+        } else if canary {
+            "canary-result"
+        } else {
+            "standalone-result"
+        });
+        fs::create_dir(&case).map_err(|e| e.to_string())?;
+        fs::set_permissions(&case, fs::Permissions::from_mode(0o700)).map_err(|e| e.to_string())?;
+        genuine_result(&case, &source, &installation_path, &config, cluster, canary)?;
+    }
     println!(
         "B04_PREPARATION_ACTUAL {}",
         json!({"control":"normal-return","guest_exit":execution.publication.record.outcome.exit_code,"row":row,"receipt":receipt,"provenance":provenance,"config":config})
@@ -484,11 +569,111 @@ fn genuine_preparation(root: &Path) -> Result<(), String> {
     Ok(())
 }
 
+fn fixture_specification(
+    root: &Path,
+    source: &Path,
+    manifest_path: &Path,
+    source_sha256: &str,
+    cluster: bool,
+    canary: bool,
+) -> Result<Value, String> {
+    let mut specification = json!({"Manifest":{"ID":"b04-receiving-control","Workload":"fixture","IntegratedSourceSHA256":format!("sha256:{source_sha256}"),"IntegratedSourceManifestPath":manifest_path,"Seed":7,"Repeat":2},"Campaign":{"Target":{"Backend":"wasm","Kind":"go-run","Source":".","WorkingDir":source},"Environment":[],"Artifacts":root.join("result-campaigns"),"ExecutionTimeout":60_000_000_000_u64,"OverallTimeout":600_000_000_000_u64},"ArtifactRoot":root.join("results")});
+    specification["Manifest"]["Cell"] = json!(if canary { "canary" } else { "success" });
+    if canary {
+        specification["Campaign"]["Target"]["Args"] = json!(["canary"]);
+    }
+    if cluster {
+        specification["Manifest"]["Workload"] = json!("multi-instance");
+        let mut scenario = custody::strict_json(include_bytes!(
+            "../../../qualify/workloads/testdata/sqlite.json"
+        ))?;
+        scenario
+            .as_object_mut()
+            .ok_or("scenario map missing")?
+            .remove("workload");
+        scenario["spec"]["nodes"] = json!([{"id":"a","boot":"guest","address":"10.0.0.1"},{"id":"b","boot":"guest","address":"10.0.0.2"}]);
+        scenario["spec"]["volumes"] = json!([]);
+        scenario["spec"]["links"] = json!([]);
+        scenario["boots"] = json!([{"id":"guest"}]);
+        scenario["actions"] = json!([{"action":"start","handle":{"node":"a","incarnation":1}},{"action":"start","handle":{"node":"b","incarnation":1}},{"action":"wait","handle":{"node":"a","incarnation":1}},{"action":"wait","handle":{"node":"b","incarnation":1}}]);
+        for field in [
+            "incarnation_boots",
+            "output_crashes",
+            "output_stops",
+            "network_faults",
+        ] {
+            scenario[field] = json!([]);
+        }
+        specification["Campaign"]["Target"]["Scenario"] =
+            json!(crate::campaign::exploration::base64(&canonical(&scenario)?));
+    }
+    Ok(specification)
+}
+
+#[test]
+fn actual_fixture_declarations_match_current_spec_manifest_and_scenario_schemas() {
+    use crate::qualify::{cells, result, spec};
+    let root = Path::new("/private/b04-fixture-declaration");
+    let digest = "a".repeat(64);
+    for (cluster, canary) in [(false, false), (false, true), (true, false)] {
+        let value = fixture_specification(
+            root,
+            &root.join("source"),
+            &root.join("source.manifest"),
+            &digest,
+            cluster,
+            canary,
+        )
+        .unwrap();
+        let declared: spec::Spec = spec::strict(&canonical(&value).unwrap()).unwrap();
+        let manifest = result::Manifest {
+            schema: result::MANIFEST_SCHEMA.into(),
+            provisional: false,
+            integrated_source_manifest_path: Some(
+                declared.manifest.integrated_source_manifest_path.clone(),
+            ),
+            id: declared.manifest.id.clone(),
+            workload: declared.manifest.workload.clone(),
+            profile: "controlled".into(),
+            cell: Some(declared.manifest.cell.clone()),
+            integrated_source_sha256: digest.clone(),
+            workload_source_sha256: digest.clone(),
+            runtime_sha256: digest.clone(),
+            compiler_sha256: digest.clone(),
+            helper_sha256: digest.clone(),
+            host_sha256: digest.clone(),
+            model_sha256: digest.clone(),
+            engine_sha256: digest.clone(),
+            host_config_sha256: digest.clone(),
+            module_sha256: digest.clone(),
+            toolchain_sha256: digest.clone(),
+            scenario_sha256: cluster.then(|| digest.clone()),
+            host_os: std::env::consts::OS.into(),
+            host_arch: std::env::consts::ARCH.into(),
+            seed: declared.manifest.seed,
+            repeat: declared.manifest.repeat,
+            fuel: 1,
+            memory_bytes: 65536,
+            unsupported: Vec::new(),
+        };
+        manifest.validate().unwrap();
+        if let Some(encoded) = declared.campaign.target.scenario.as_ref() {
+            let bytes = cells::base64(encoded.as_str().unwrap()).unwrap();
+            assert_eq!(
+                crate::campaign::scenario::evidence_limit(&bytes, 123).unwrap(),
+                246
+            );
+        }
+    }
+}
+
 fn genuine_result(
     root: &Path,
     source: &Path,
     installation: &Path,
     config: &Value,
+    cluster: bool,
+    canary: bool,
 ) -> Result<(), String> {
     use crate::qualify::{cells, result, spec, usage};
     let manifest_path = root.join("source.manifest");
@@ -499,7 +684,14 @@ fn genuine_result(
         source_file.display()
     );
     private(&manifest_path, manifest.as_bytes());
-    let specification = json!({"Manifest":{"ID":"b04-receiving-control","Workload":"genuine stock Go guest","IntegratedSourceSHA256":format!("sha256:{}",digest(manifest.as_bytes())),"IntegratedSourceManifestPath":manifest_path,"Seed":7,"Repeat":2},"Campaign":{"Target":{"Backend":"wasm","Kind":"go-run","Source":".","WorkingDir":source},"Environment":["GOMAXPROCS=1"],"Artifacts":root.join("result-campaigns"),"ExecutionTimeout":60_000_000_000_u64,"OverallTimeout":600_000_000_000_u64},"ArtifactRoot":root.join("results")});
+    let specification = fixture_specification(
+        root,
+        source,
+        &manifest_path,
+        &digest(manifest.as_bytes()),
+        cluster,
+        canary,
+    )?;
     let specification: spec::Spec = spec::strict(&canonical(&specification)?)?;
     usage::enable_phases();
     let frozen = cells::freeze(
@@ -510,12 +702,61 @@ fn genuine_result(
     )?;
     let retained = cells::run(&frozen)?;
     require(
-        retained.report.qualified,
-        "genuine Result guest/replay failed",
+        retained.report.qualified == !canary
+            && retained.report.target_success == !canary
+            && retained.report.executions.iter().all(|row| {
+                row.record.outcome.class == if canary { "target_failure" } else { "success" }
+            }),
+        "genuine Result guest/canary/replay classification failed",
     )?;
     let published = cells::publish(&frozen, retained)?;
     let retained = result::open(&published.path)?;
     let (receipt, terminal) = result::open_receipt(&published.path, &retained)?;
+    RetainedSession::final_publication(&retained, &receipt, &terminal)?;
+    let result_raw = custody::read_file(&published.path, 64 << 20)?;
+    let result_digest = digest(&result_raw);
+    for (pointer, value) in [
+        ("/schema", json!("foreign")),
+        ("/result_sha256", json!("f".repeat(64))),
+        ("/operator_process_id", json!(0)),
+        ("/linked_after", Value::Null),
+        ("/linked_after/user_nanos", json!(0)),
+        ("/linked_after/peak_rss_bytes", json!(0)),
+        ("/operator_peak_rss_bytes", Value::Null),
+        ("/operator_peak_rss_bytes", json!(0)),
+        ("/operator_peak_rss_bytes", json!(3_u64 << 30)),
+    ] {
+        let mut changed = serde_json::to_value(&receipt).map_err(|e| e.to_string())?;
+        *changed
+            .pointer_mut(pointer)
+            .ok_or("actual receipt pointer missing")? = value;
+        let typed = serde_json::from_value(changed.clone()).map_err(|e| e.to_string())?;
+        let error = result::validate_receipt(&retained, &typed, &result_digest)
+            .and_then(|tail| RetainedSession::final_publication(&retained, &typed, &tail))
+            .unwrap_err();
+        proof(&format!("actual publication {pointer}"), &changed, &error);
+    }
+    let mut noncanonical = result_raw.clone();
+    noncanonical.push(b' ');
+    let alternate = published
+        .path
+        .parent()
+        .ok_or("result parent missing")?
+        .join(format!("result-{}.json", digest(&noncanonical)));
+    private(&alternate, &noncanonical);
+    let error = result::open(&alternate)
+        .err()
+        .ok_or("noncanonical Result accepted")?;
+    require(
+        error.contains("canonical"),
+        "wrong Result canonical predicate",
+    )?;
+    proof(
+        "rehashed noncanonical actual Result",
+        &json!({"path":alternate,"raw_sha256":digest(&noncanonical)}),
+        &error,
+    );
+    fs::remove_file(alternate).map_err(|e| e.to_string())?;
     let reported = json!({"result":retained,"receipt":receipt,"publication":terminal});
     let mut configured = config.clone();
     configured["source_manifest"] = json!(manifest_path);
@@ -595,11 +836,15 @@ fn genuine_result(
             json!("f".repeat(64)),
             "foreign/final",
         ),
-        ("/report/qualified", json!(false), "deterministic final"),
+        (
+            "/report/qualified",
+            json!(!retained.report.qualified),
+            "deterministic final",
+        ),
         ("/report/deterministic", json!(false), "deterministic final"),
         (
             "/report/target_success",
-            json!(false),
+            json!(!retained.report.target_success),
             "deterministic final",
         ),
         (
@@ -623,6 +868,66 @@ fn genuine_result(
             "wrong admitted final Result predicate",
         )?;
         proof(pointer, &changed, &error);
+    }
+    for (pointer, value, reason) in [
+        ("/schema", json!("foreign"), "result schema"),
+        ("/report/schema", json!("foreign"), "qualification report"),
+        (
+            "/manifest/host_arch",
+            json!("foreign-arch"),
+            "execution identity",
+        ),
+        (
+            "/observations/samples/0/trace_bytes",
+            json!(retained.observations.samples[0].trace_bytes + 1),
+            "trace bytes",
+        ),
+        (
+            "/observations/samples/0/guest_memory_limit_bytes",
+            json!(retained.manifest.memory_bytes + 1),
+            "store sample",
+        ),
+    ] {
+        let mut changed = serde_json::to_value(&retained).map_err(|e| e.to_string())?;
+        *changed
+            .pointer_mut(pointer)
+            .ok_or("actual Result mutation pointer absent")? = value;
+        let typed = serde_json::from_value(changed.clone()).map_err(|e| e.to_string())?;
+        let error = result::validate(&typed).unwrap_err();
+        require(
+            error.contains(reason),
+            "wrong shared Result inner predicate",
+        )?;
+        proof(&format!("actual Result {pointer}"), &changed, &error);
+    }
+    if cluster {
+        let mut changed = retained.clone();
+        changed.observations.samples[0].incarnation = Some("foreign/1".into());
+        let error = result::validate(&changed).unwrap_err();
+        require(
+            error.contains("record's incarnations"),
+            "wrong borrowed cluster handle predicate",
+        )?;
+        proof(
+            "actual Result borrowed cluster incarnation",
+            &serde_json::to_value(&changed).map_err(|e| e.to_string())?,
+            &error,
+        );
+        let handle = retained.observations.samples[0].incarnation.clone();
+        let mut changed = retained.clone();
+        changed.observations.samples.retain(|sample| {
+            !(sample.phase == "execute" && sample.iteration == 1 && sample.incarnation == handle)
+        });
+        let error = result::validate(&changed).unwrap_err();
+        require(
+            error.contains("record's incarnations"),
+            "wrong missing cluster handle predicate",
+        )?;
+        proof(
+            "actual Result omitted cluster incarnation",
+            &serde_json::to_value(&changed).map_err(|e| e.to_string())?,
+            &error,
+        );
     }
     for phase in ["execute", "replay"] {
         let mut changed = retained.clone();
@@ -1016,12 +1321,17 @@ fn genuine_command_preparation(
     config["root"] = json!(root);
     config["repo"] = json!(producer);
     config["sent_epoch"] = json!(sent);
-    let mut session = RetainedSession::from_value(config)?;
+    let mut session = RetainedSession::from_value(config.clone())?;
     let command = session.command(registry, "prepare", &command, true)?;
     require(
         command.row["pid"] == observed["row"]["pid"],
         "actual child PID preparation binding changed",
     )?;
+    let campaign = PathBuf::from(text(
+        &observed["row"]["private_observations"]["campaigns"][0],
+        "path",
+    )?);
+    genuine_inspection(root, registry, runner, &config, &campaign)?;
     println!(
         "B04_PREPARATION_COMMAND_ACTUAL {}",
         json!({"control":"normal-return","pid":completed.pid,"row":command.row,"stdout_sha256":digest(&command.stdout),"stderr_sha256":digest(&command.stderr)})
@@ -1166,5 +1476,205 @@ fn preparation_guards(
         );
     }
     RetainedSession::from_value(config.clone())?.capture_preparations(row)?;
+    let mut observed = RetainedSession::from_value(config.clone())?;
+    observed.capture_preparations(row)?;
+    observed.authenticate_prepared_artifact(campaign, &provenance)?;
+    let mut wrong = provenance.clone();
+    wrong["build_key"] = json!("f".repeat(64));
+    let error = observed.prepared_observation(campaign, &wrong).unwrap_err();
+    require(
+        error.contains("different prepared provenance"),
+        "wrong observed provenance predicate",
+    )?;
+    proof("actual borrowed prepared provenance", &wrong, &error);
+    let installation_arg = argument(
+        &serde_json::from_value::<Vec<String>>(row["argv"].clone()).map_err(|e| e.to_string())?,
+        "--installation",
+    )?
+    .to_owned();
+    let mut runtime = row.clone();
+    runtime["argv"] = json!([
+        config["binary"],
+        "produce",
+        installation_arg,
+        "fixture",
+        "0",
+        campaign.parent().ok_or("campaign parent missing")?
+    ]);
+    let error = RetainedSession::from_value(config.clone())?
+        .capture_preparations(&runtime)
+        .unwrap_err();
+    require(
+        error.contains("not frozen release harness"),
+        "wrong runtime harness substitution predicate",
+    )?;
+    proof("actual runtime foreign harness", &runtime, &error);
+    let mut runtime_config = config.clone();
+    runtime_config["stages"] = json!({"runtime":{"harness":config["binary"]}});
+    let error = RetainedSession::from_value(runtime_config)?
+        .capture_preparations(&runtime)
+        .unwrap_err();
+    require(
+        error.contains("runtime preparation root changed"),
+        "wrong runtime campaign path predicate",
+    )?;
+    proof("actual runtime campaign path", &runtime, &error);
+    observed
+        .preparations
+        .get_mut(campaign)
+        .ok_or("observed campaign missing")?
+        .owner += 1;
+    let error = observed.capture_preparations(row).unwrap_err();
+    require(
+        error.contains("conflicting producer"),
+        "wrong conflicting observation predicate",
+    )?;
+    proof("actual conflicting preparation cache", row, &error);
+    let installation_path = Path::new(argument(
+        &serde_json::from_value::<Vec<String>>(row["argv"].clone()).map_err(|e| e.to_string())?,
+        "--installation",
+    )?)
+    .to_owned();
+    let installation = custody::strict_json(&custody::read_file(&installation_path, 16 << 20)?)?;
+    let mut wrong_config = config.clone();
+    let pin = installation["admission"]["compiler_inputs"]
+        .as_object()
+        .ok_or("compiler inventory missing")?
+        .keys()
+        .find(|name| name.as_str() != text(&provenance["inputs"], "compiler_path").unwrap())
+        .ok_or("compiler auxiliary pin missing")?;
+    wrong_config["files"][pin] = json!("f".repeat(64));
+    let mut session = RetainedSession::from_value(wrong_config.clone())?;
+    session.capture_preparations(row)?;
+    let error = session
+        .authenticate_prepared_artifact(campaign, &provenance)
+        .unwrap_err();
+    require(
+        error.contains("complete compiler inventory differs"),
+        "wrong installation inventory predicate",
+    )?;
+    proof("actual installation compiler pin", &wrong_config, &error);
+    let original = custody::read_file(&prepared.join("target/provenance.json"), 16 << 20)?;
+    let session = RetainedSession::from_value(config.clone())?;
+    let changed = session.with_artifact(&prepared, |opened| {
+        let bytes = opened.payload("target/provenance.json", 16 << 20)?;
+        private(
+            &prepared.join("target/provenance.json"),
+            b"receiver changed after callback read",
+        );
+        Ok(bytes)
+    });
+    private(&prepared.join("target/provenance.json"), &original);
+    let error = changed.unwrap_err();
+    require(
+        error.contains("payload"),
+        "wrong callback payload reauthentication predicate",
+    )?;
+    proof(
+        "artifact callback payload replacement",
+        &json!({"path":prepared,"before_sha256":digest(&original)}),
+        &error,
+    );
+    let moved = prepared.with_extension("callback-moved");
+    let changed = session.with_artifact(&prepared, |_| {
+        fs::rename(&prepared, &moved).map_err(|e| e.to_string())?;
+        fs::create_dir(&prepared).map_err(|e| e.to_string())?;
+        fs::set_permissions(&prepared, fs::Permissions::from_mode(0o700))
+            .map_err(|e| e.to_string())?;
+        Ok(())
+    });
+    fs::remove_dir(&prepared).map_err(|e| e.to_string())?;
+    fs::rename(&moved, &prepared).map_err(|e| e.to_string())?;
+    let error = changed.unwrap_err();
+    require(
+        error.contains("directory identity changed"),
+        "wrong callback directory identity predicate",
+    )?;
+    proof(
+        "artifact callback named directory replacement",
+        &json!({"path":prepared}),
+        &error,
+    );
+    session.artifact(&prepared)?;
+    Ok(())
+}
+
+fn genuine_inspection(
+    root: &Path,
+    registry: &Path,
+    runner: &mut crate::cycle::process::Runner,
+    config: &Value,
+    campaign: &Path,
+) -> Result<(), String> {
+    use crate::cycle::process::{Command, Environment};
+    let mut session = RetainedSession::from_value(config.clone())?;
+    let plan = session.json(&campaign.join("plan.json"), 16 << 20)?;
+    let artifact = campaign.join(text(&plan, "prepared_artifact")?);
+    let mut environment = std::env::vars()
+        .filter(|(k, _)| !k.starts_with("GIT_") && !k.starts_with("SANDBOX_") && k != "GOROOT")
+        .collect::<BTreeMap<_, _>>();
+    environment.insert("B04_CHILD".into(), "inspect".into());
+    let expected = Command {
+        argv: vec![
+            text(config, "binary")?.into(),
+            "inspect".into(),
+            "--json".into(),
+            artifact.to_string_lossy().into_owned(),
+        ],
+        cwd: root.to_owned(),
+        environment: Environment::Exact(environment.clone()),
+        declared_environment: environment,
+        temporary_paths: BTreeMap::new(),
+        accepted: vec![0],
+        timeout: std::time::Duration::from_secs(60),
+        private_context: None,
+    };
+    let cancelled = std::sync::atomic::AtomicBool::new(false);
+    let completed = runner
+        .start("inspect-actual", expected.clone(), &cancelled, |_| Ok(()))
+        .map_err(|e| e.to_string())?
+        .wait(&cancelled)?;
+    require(completed.accepted(), "actual public inspect failed")?;
+    let admitted = session.command(registry, "inspect-actual", &expected, false)?;
+    let projection = custody::strict_json(&admitted.stdout)?;
+    for field in ["record", "files"] {
+        let mut changed = projection.clone();
+        changed["artifact"][field] = json!({});
+        let bytes = canonical(&changed)?;
+        let mut row = admitted.row.clone();
+        row["stdout_sha256"] = json!(digest(&bytes));
+        private(&registry.join("inspect-actual.stdout"), &bytes);
+        for suffix in ["command.json", "process.json"] {
+            private(
+                &registry.join(format!("inspect-actual.{suffix}")),
+                &canonical(&row)?,
+            );
+        }
+        let error = session
+            .command(registry, "inspect-actual", &expected, false)
+            .err()
+            .ok_or("public inspect mutant accepted")?;
+        require(
+            error.contains("public inspect"),
+            "wrong resealed public inspect predicate",
+        )?;
+        proof(
+            &format!("actual public inspect {field}"),
+            &json!({"row":row,"reported":changed}),
+            &error,
+        );
+    }
+    private(&registry.join("inspect-actual.stdout"), &admitted.stdout);
+    for suffix in ["command.json", "process.json"] {
+        private(
+            &registry.join(format!("inspect-actual.{suffix}")),
+            &canonical(&admitted.row)?,
+        );
+    }
+    session.command(registry, "inspect-actual", &expected, false)?;
+    println!(
+        "B04_INSPECT_ACTUAL {}",
+        json!({"control":"normal-return","pid":completed.pid,"artifact":artifact,"stdout_sha256":digest(&admitted.stdout)})
+    );
     Ok(())
 }

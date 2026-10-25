@@ -255,55 +255,75 @@ impl RetainedSession {
         )?;
         Ok((&value.sidecar, value.owner))
     }
+    pub(crate) fn authenticate_prepared_artifact(
+        &self,
+        campaign: &Path,
+        provenance: &Value,
+    ) -> Result<(), String> {
+        let observed = self
+            .preparations
+            .get(campaign)
+            .ok_or("preparation lacks actual command observation seal")?;
+        self.verify_observed_preparation(&Pending {
+            campaign: campaign.to_owned(),
+            provenance: provenance.clone(),
+            owner: observed.owner,
+            campaigns: observed.campaigns.clone(),
+        })
+    }
+    fn verify_observed_preparation(&self, pending: &Pending) -> Result<(), String> {
+        let (_, owner) = self.prepared_observation(&pending.campaign, &pending.provenance)?;
+        let observed = self
+            .preparations
+            .get(&pending.campaign)
+            .ok_or("missing preparation")?;
+        require(
+            owner == pending.owner && observed.campaigns == pending.campaigns,
+            "Result producer/complete campaign set differs",
+        )?;
+        let installation_raw = custody::read_file(&observed.installation, 16 << 20)?;
+        let installation = custody::strict_json(&installation_raw)?;
+        let typed = crate::qualify::spec::strict(&installation_raw)?;
+        crate::install::manifest::validate_for_executable(
+            &typed,
+            text(&self.config, "binary_sha256")?,
+        )?;
+        let inputs = &pending.provenance["inputs"];
+        let compiler = installation["admission"]["compiler_inputs"]
+            .as_object()
+            .ok_or("complete installation compiler inventory missing")?;
+        require(
+            installation["profile"] == pending.provenance["configuration"]["profile"]
+                && installation["compiler_path"] == inputs["compiler_path"]
+                && installation["compiler_sha256"] == inputs["compiler_sha256"]
+                && installation["runtime_implementation_sha256"]
+                    == inputs["runtime_implementation"]
+                && installation["admission"]["host_executable_sha256"]
+                    == self.config["binary_sha256"]
+                && ["host", "helper"].iter().all(|role| {
+                    installation[format!("{role}_sha256")] == self.config["identity"][role]
+                })
+                && compiler
+                    .iter()
+                    .all(|(path, sha)| self.config["files"][path] == *sha)
+                && inputs["compiler"].as_object().is_some_and(|map| {
+                    map.iter()
+                        .all(|(path, sha)| compiler.get(path) == Some(sha))
+                }),
+            "actual installation/complete compiler inventory differs",
+        )?;
+        crate::cycle::preparation::inputs::verify_preparation(
+            &self.config,
+            &observed.sidecar,
+            &installation,
+            inputs,
+            Some(owner),
+        )?;
+        Ok(())
+    }
     pub(crate) fn verify_pending_preparations(&mut self) -> Result<(), String> {
         for pending in &self.pending_preparations {
-            let (_, owner) = self.prepared_observation(&pending.campaign, &pending.provenance)?;
-            let observed = self
-                .preparations
-                .get(&pending.campaign)
-                .ok_or("missing preparation")?;
-            require(
-                owner == pending.owner && observed.campaigns == pending.campaigns,
-                "Result producer/complete campaign set differs",
-            )?;
-            let installation_raw = custody::read_file(&observed.installation, 16 << 20)?;
-            let installation = custody::strict_json(&installation_raw)?;
-            let typed = crate::qualify::spec::strict(&installation_raw)?;
-            crate::install::manifest::validate_for_executable(
-                &typed,
-                text(&self.config, "binary_sha256")?,
-            )?;
-            let inputs = &pending.provenance["inputs"];
-            let compiler = installation["admission"]["compiler_inputs"]
-                .as_object()
-                .ok_or("complete installation compiler inventory missing")?;
-            require(
-                installation["profile"] == pending.provenance["configuration"]["profile"]
-                    && installation["compiler_path"] == inputs["compiler_path"]
-                    && installation["compiler_sha256"] == inputs["compiler_sha256"]
-                    && installation["runtime_implementation_sha256"]
-                        == inputs["runtime_implementation"]
-                    && installation["admission"]["host_executable_sha256"]
-                        == self.config["binary_sha256"]
-                    && ["host", "helper"].iter().all(|role| {
-                        installation[format!("{role}_sha256")] == self.config["identity"][role]
-                    })
-                    && compiler
-                        .iter()
-                        .all(|(path, sha)| self.config["files"][path] == *sha)
-                    && inputs["compiler"].as_object().is_some_and(|map| {
-                        map.iter()
-                            .all(|(path, sha)| compiler.get(path) == Some(sha))
-                    }),
-                "actual installation/complete compiler inventory differs",
-            )?;
-            crate::cycle::preparation::inputs::verify_preparation(
-                &self.config,
-                &observed.sidecar,
-                &installation,
-                inputs,
-                Some(owner),
-            )?;
+            self.verify_observed_preparation(pending)?;
         }
         self.pending_preparations.clear();
         Ok(())

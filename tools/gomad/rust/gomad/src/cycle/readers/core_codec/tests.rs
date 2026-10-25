@@ -351,7 +351,40 @@ fn probe_recovered(expected: &Value, image: &[u8], present: bool) {
     let observed = admit(&result).unwrap();
     let storage = serde_json::from_value(input["storage"].clone()).unwrap();
     let original = recovery(&storage, image, &format!("{:x}", Sha256::digest(image))).unwrap();
-    effects::recovered(&original, &observed.state).unwrap();
+    validate_recovered_state(&observed.state, &original).unwrap();
+    for section in [0, 1] {
+        let mut changed = result.clone();
+        let mut sections = observed
+            .state
+            .sections()
+            .iter()
+            .map(|v| v.to_vec())
+            .collect::<Vec<_>>();
+        let mut document: Value = serde_json::from_slice(&sections[section]).unwrap();
+        if section == 0 {
+            document[0]["NextOperation"] =
+                json!(document[0]["NextOperation"].as_u64().unwrap() + 1);
+            document[0]["Identity"] = json!(effects::snapshot_identity(&document[0]).unwrap());
+        } else {
+            document["data"] = json!([]);
+        }
+        sections[section] = serde_json::to_vec(&document).unwrap();
+        changed.state = envelope(observed.state.version(), &sections);
+        let changed_state = admit(&changed).unwrap();
+        let error = validate_recovered_state(&changed_state.state, &original).unwrap_err();
+        assert!(
+            error.contains(if section == 0 { "snapshots" } else { "history" }),
+            "{error}"
+        );
+        retain_rows(
+            if section == 0 {
+                "recovered-snapshot"
+            } else {
+                "recovered-history"
+            },
+            &[changed],
+        );
+    }
 }
 
 fn envelope(version: u32, sections: &[Vec<u8>]) -> Vec<u8> {
