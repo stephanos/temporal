@@ -9,7 +9,7 @@ Implement current-format Run recording, replay/question/reduce and generic prese
 
 **Size:** M
 **Files:** Runner session/admission/replay/question/reduce, current protocol/bindings, report consumers and focused current-format fixtures/documentation.
-**Touches:** [model/umpire/hosts/go/**, model/umpire/protocol/proto/**, model/umpire/protocol/runtime/tests/**]
+**Touches:** [tests/testpilot_model_slice_umpire_test.go, model/umpire/hosts/go/**, model/umpire/protocol/proto/**, model/umpire/protocol/runtime/tests/**]
 
 ## Approach
 
@@ -30,6 +30,12 @@ Implement current-format Run recording, replay/question/reduce and generic prese
 ## Verification
 
 Focused generic Go runner/Host tests with test_dep, current-format record/render comparisons and runtime/guest fixture parity. Regenerate current schemas and fixtures as needed. No old recording, old reader or old rendering compatibility gate remains.
+
+### Live consumer regression discovered during fn-256.1
+
+The actual live gate failed twice at the raw/SDK `judgmentPath` equality (seed21: 103/105 flattened steps; seed3: 31/32), while the supported Runs were Explained. The existing helper concatenates complete-prefix Explanation steps from every observation. Source/log analysis strongly suggests differing read-sampling counts repeat the same complete witness; the original per-event Runs were removed by t.TempDir, so capture them on the next targeted reproduction before choosing a fix. Evidence: `.flow/artifacts/fn-246-realization-as-a-checked-refinement-a/task9-planning/live-parity-diagnosis.md`.
+
+Migrate this consumer to the already-required whole-prefix contract. Preserve raw/SDK semantic parity and mutation detection; do not change the Model, accept Unexplained events, discard differing final witnesses, or relax parity based only on flattened-length differences. Verify repeated unchanged observations and genuinely differing semantic paths separately, then execute every required named live row including SDK HostRefusal (not reached after the current fatal equality). fn-256.1 retains its live-gate obligation until an actual green result exists; a cleanup-source/import identity argument is not a passing gate.
 
 ## Acceptance
 
