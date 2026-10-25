@@ -1,0 +1,7 @@
+# Stable rustfmt options only, so `cargo fmt` is warning-free on the pinned stable toolchain.
+edition = "2024"
+style_edition = "2024"
+max_width = 100
+use_small_heuristics = "Max"
+reorder_imports = true
+newline_style = "Unix"

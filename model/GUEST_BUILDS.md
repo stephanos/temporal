@@ -440,3 +440,11 @@ script invocation under this host's directory-resetting shell startup; the build
 now invokes an absolute script path. The first timing run exposed its wrapper's
 different working directory; Python test discovery now also uses an absolute path.
 Neither correction changes test assertions or guest code generation.
+
+The independent framework workspace at `model/umpire` owns the native tools and
+pins. `xtask` executes the dedicated `umpire-guest-driver`; guest caches hash that
+driver's complete executable, the caller workspace's complete lockfile and compiler
+input. Framework and caller workspace roots are admitted separately. Their canonical
+longest-root remaps distinguish framework sources from caller sources, including when
+the framework is nested inside the caller. Root shell entry points preserve the existing
+Temporal guest publication paths while framework-local scripts work without the parent.

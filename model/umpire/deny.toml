@@ -1,0 +1,25 @@
+# cargo-deny policy: run `cargo deny check` when the tool is installed (needs network for advisories).
+[licenses]
+allow = ["MIT", "Apache-2.0", "Apache-2.0 WITH LLVM-exception", "BSD-2-Clause", "BSD-3-Clause", "ISC", "Unicode-3.0", "Zlib"]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+# Unmaintained or superseded (fn-210 R18): use the admitted alternative named in the spec.
+deny = [
+  { name = "im", reason = "unmaintained since 2022; use imbl" },
+  { name = "derivative", reason = "unmaintained since 2021; use std derives or educe" },
+  { name = "proc-macro-error", reason = "unmaintained since 2020; use manyhow" },
+  { name = "proc-macro-error2", reason = "no release since 2024; use manyhow" },
+  { name = "deluxe", reason = "no release since 2023; use darling" },
+  { name = "index_vec", reason = "no release since 2024; use typed-index-collections if needed" },
+  { name = "stateright", reason = "single maintainer, stale; reference only" },
+]
+
+[advisories]
+unmaintained = "workspace"
+yanked = "deny"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
