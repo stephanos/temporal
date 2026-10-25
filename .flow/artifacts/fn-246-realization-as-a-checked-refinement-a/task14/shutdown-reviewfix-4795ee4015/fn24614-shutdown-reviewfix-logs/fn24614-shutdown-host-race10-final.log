@@ -1,0 +1,47 @@
+ok  	umpire.local/temporal/reference/worker	1.185s
+ok  	umpire.local/temporal/reference/worker/raw	4.281s
+--- FAIL: TestProductionSDKOriginalOneHeartbeatSubset (0.04s)
+    --- FAIL: TestProductionSDKOriginalOneHeartbeatSubset/false/failed (0.01s)
+        continuation_test.go:871: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:871
+            	Error:      	Received unexpected error:
+            	            	SDK terminal completion: context canceled
+            	Test:       	TestProductionSDKOriginalOneHeartbeatSubset/false/failed
+--- FAIL: TestProductionSDKFollowsActualHeartbeatHistory (0.22s)
+    --- FAIL: TestProductionSDKFollowsActualHeartbeatHistory/failed (0.07s)
+        continuation_test.go:401: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:401
+            	Error:      	Received unexpected error:
+            	            	SDK terminal completion: context canceled
+            	Test:       	TestProductionSDKFollowsActualHeartbeatHistory/failed
+--- FAIL: TestProductionSDKFollowsActualHeartbeatHistory (0.23s)
+    --- FAIL: TestProductionSDKFollowsActualHeartbeatHistory/completed (0.08s)
+        continuation_test.go:401: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:401
+            	Error:      	Received unexpected error:
+            	            	SDK terminal completion: context canceled
+            	Test:       	TestProductionSDKFollowsActualHeartbeatHistory/completed
+--- FAIL: TestProductionSDKOriginalOneHeartbeatSubset (0.04s)
+    --- FAIL: TestProductionSDKOriginalOneHeartbeatSubset/true/completed (0.01s)
+        continuation_test.go:871: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:871
+            	Error:      	Received unexpected error:
+            	            	SDK terminal completion: context canceled
+            	Test:       	TestProductionSDKOriginalOneHeartbeatSubset/true/completed
+--- FAIL: TestProductionSDKOriginalOneHeartbeatSubset (0.04s)
+    --- FAIL: TestProductionSDKOriginalOneHeartbeatSubset/true/completed (0.01s)
+        continuation_test.go:871: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:871
+            	Error:      	Received unexpected error:
+            	            	SDK terminal completion: context canceled
+            	Test:       	TestProductionSDKOriginalOneHeartbeatSubset/true/completed
+--- FAIL: TestProductionSDKOriginalOneHeartbeatSubset (0.07s)
+    --- FAIL: TestProductionSDKOriginalOneHeartbeatSubset/true/completed (0.01s)
+        continuation_test.go:871: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:871
+            	Error:      	Received unexpected error:
+            	            	SDK terminal completion: context canceled
+            	Test:       	TestProductionSDKOriginalOneHeartbeatSubset/true/completed
+FAIL
+FAIL	umpire.local/temporal/reference/worker/sdk	95.620s
+FAIL

@@ -1,0 +1,51 @@
+{
+  "task_id": "fn-246.14",
+  "slice": "act review correction for shutdown ordering and late Follow error preservation",
+  "status": "in_progress; source uncommitted for parent",
+  "base_commit": "5c7644bd566c723a9175cb545bd1bff3a5da711e",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+  "commits": [],
+  "source_sha256": {
+    "common/testing/testpilot/temporal/act/act.go": "02f30711640dc062f60a81e37ee3014aaa0ae5527e0523d10a4a35fd07bd032f",
+    "common/testing/testpilot/temporal/act/shutdown_test.go": "9bddb7ab3967db030821586c89c10bd9d06d71737094e6668b3b3af61f7e5c8e"
+  },
+  "commands": [
+    {
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./common/testing/testpilot/temporal/act -run '^TestClose(CancelsWorkerBeforePollHold|RetainsLateFollowValidation)$' -count=1 -v",
+      "exit_code": 1,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-act-reviewfix-logs/fn24614-act-reviewfix-red.log",
+      "phase": "red reproduction before production fix"
+    },
+    {
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./common/testing/testpilot/temporal/act -run '^TestClose(CancelsWorkerBeforePollHold|RetainsLateFollowValidation)$' -count=1 -v",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-act-reviewfix-logs/fn24614-act-reviewfix-green.log",
+      "phase": "green focused correction",
+      "reported_seconds": 0.011
+    }
+  ],
+  "tests": [
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./common/testing/testpilot/temporal/act -run '^TestClose(CancelsWorkerBeforePollHold|RetainsLateFollowValidation)$' -count=1 -v"
+  ],
+  "review_source": "/tmp/impl-review-receipt-8f37faba39e2-fn-246-realization-as-a-checked-refinement-a.14.json",
+  "review_findings": [
+    "finding-a568b826a321a2e8f776b1e0e4309fcf",
+    "finding-ae9fa2de9595bf4094570edf4228dfe2"
+  ],
+  "log_sha256": {
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-act-reviewfix-logs/fn24614-act-reviewfix-green.log": "b1518fd6f83c31c98b55c851a89f6de278efcf55ca20a59d642a0c8aa787d7a4",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-act-reviewfix-logs/fn24614-act-reviewfix-red.log": "cdc2b6c8a0a183787552b4c0e99ed60f216e64e48f4e44d3596cb33237cbade2",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-act-reviewfix-logs/review-receipt.json": "3c8eadc83275d0c8438cb1dc664dc402d7c3963ebeea4f14c9067af2a0686e59",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-act-reviewfix-logs/source.patch": "6f218fb6ceabb921fb57d693a6d9b5c141028741b28798d24135d47aae77f0c7"
+  },
+  "reproduction": {
+    "ordering": "Close pauses inside the existing poll cancel function until a real public WorkflowService poll returns and Follow records its parent context state. Before fix that state was nil; after fix it is context.Canceled. No timer-based ordering inference.",
+    "late_failure": "Follow sends an actual RespondActivityTaskFailed RPC, receives and acknowledges the real captured response, then waits for Driver Run cancellation before returning validation error. Before fix Driver.Close returned nil; after fix it returns the validation sentinel and exact captured request/invalid response in WorkerTransportFault.",
+    "controls": "Direct canceled, wrapped deadline and cancellation-only joined chains stay clean. Direct validation, mixed canceled/validation joins and wrapped mixed joins remain faults."
+  },
+  "scope": "No SDK, Bridge, worker capture implementation, proto, Model or Flow lifecycle edits by this correction slice. Parent owns SDK/coordinator correction and final full gates.",
+  "source_timing": "Parent will add bounded 5s channel-wait guard contexts after these focused receipts without changing barriers/assertions. Parent final joined receipts cover that polish; source hashes here reflect bytes at handover.",
+  "ownership": "All owned command handles terminal. Go cache lease explicitly released to parent after green. No review or lifecycle command dispatched."
+}

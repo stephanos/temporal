@@ -1,0 +1,18 @@
+=== RUN   TestCloseCancelsWorkerBeforePollHold
+--- PASS: TestCloseCancelsWorkerBeforePollHold (0.00s)
+=== RUN   TestCloseRetainsLateFollowValidation
+=== RUN   TestCloseRetainsLateFollowValidation/canceled
+=== RUN   TestCloseRetainsLateFollowValidation/wrapped-deadline
+=== RUN   TestCloseRetainsLateFollowValidation/cancellation-only-join
+=== RUN   TestCloseRetainsLateFollowValidation/validation
+=== RUN   TestCloseRetainsLateFollowValidation/mixed-join
+=== RUN   TestCloseRetainsLateFollowValidation/wrapped-mixed-join
+--- PASS: TestCloseRetainsLateFollowValidation (0.01s)
+    --- PASS: TestCloseRetainsLateFollowValidation/canceled (0.00s)
+    --- PASS: TestCloseRetainsLateFollowValidation/wrapped-deadline (0.00s)
+    --- PASS: TestCloseRetainsLateFollowValidation/cancellation-only-join (0.00s)
+    --- PASS: TestCloseRetainsLateFollowValidation/validation (0.00s)
+    --- PASS: TestCloseRetainsLateFollowValidation/mixed-join (0.00s)
+    --- PASS: TestCloseRetainsLateFollowValidation/wrapped-mixed-join (0.00s)
+PASS
+ok  	go.temporal.io/server/common/testing/testpilot/temporal/act	0.011s

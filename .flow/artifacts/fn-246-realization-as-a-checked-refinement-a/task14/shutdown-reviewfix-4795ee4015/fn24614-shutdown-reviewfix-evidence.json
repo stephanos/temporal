@@ -1,0 +1,223 @@
+{
+  "task_id": "fn-246-realization-as-a-checked-refinement-a.14",
+  "status": "in_progress",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+  "base_commit": "5c7644bd566c723a9175cb545bd1bff3a5da711e",
+  "commits": [
+    "4795ee401544d2fde7b7e64ddf64b1db612e24d8"
+  ],
+  "prs": [],
+  "tests": [
+    "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go CGO_ENABLED=0 timeout 600 go test -tags test_dep ./...",
+    "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go timeout 600 go test -race -tags test_dep ./reference/worker/... -count=10",
+    "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go timeout 120 go test -race -tags test_dep ./reference/worker/... -run \"TestTerminalCoordinator|TestShutdownCancellation|TestBridgeShutdown|TestProductionSDKRunCancellationJoinsBlockedStages\" -count=10",
+    "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go timeout 600 go test -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+    "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go timeout 600 go test -race -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver -run 'TestCloseCancelsWorkerBeforePollHold|TestCloseRetainsLateFollowValidation|TestFactoryComposesActualHeartbeatContinuationAndFaultCapture' -count=10",
+    "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go timeout 600 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=.github/.golangci.yml --build-tags=test_dep --timeout=10m ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+    "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go timeout 600 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m ./reference/worker ./reference/worker/raw ./reference/worker/sdk",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=.github/.golangci.yml common/testing/testpilot/temporal/act/act.go common/testing/testpilot/temporal/act/shutdown_test.go model/temporal/hosts/go/reference/worker/bridge.go model/temporal/hosts/go/reference/worker/bridge_test.go model/temporal/hosts/go/reference/worker/sdk/sdk.go model/temporal/hosts/go/reference/worker/sdk/continuation_test.go model/temporal/hosts/go/reference/worker/sdk/namespace_test.go",
+    "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go timeout 600 go vet -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+    "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go timeout 600 go vet -tags test_dep ./reference/worker/..."
+  ],
+  "commands": [
+    {
+      "command": "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go CGO_ENABLED=0 timeout 600 go test -tags test_dep ./...",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-shutdown-reviewfix-logs/fn24614-shutdown-host-module-checkpoint.log",
+      "phase": "final whole Temporal host module",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go timeout 600 go test -race -tags test_dep ./reference/worker/... -count=10",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-shutdown-reviewfix-logs/fn24614-shutdown-host-race10-frozen.log",
+      "phase": "full worker/raw/SDK race10 after final production repair",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "note": "Final test-only exhaustive switch/capture-time assertions followed this full pass and were verified by the next focused race10 and whole-module pass."
+    },
+    {
+      "command": "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go timeout 120 go test -race -tags test_dep ./reference/worker/... -run \"TestTerminalCoordinator|TestShutdownCancellation|TestBridgeShutdown|TestProductionSDKRunCancellationJoinsBlockedStages\" -count=10",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-shutdown-reviewfix-logs/fn24614-shutdown-assertion-focused-final.log",
+      "phase": "final assertion-focused race10",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go timeout 600 go test -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-shutdown-reviewfix-logs/fn24614-shutdown-shared-frozen.log",
+      "phase": "final whole ordinary shared suites",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof"
+    },
+    {
+      "command": "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go timeout 600 go test -race -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver -run 'TestCloseCancelsWorkerBeforePollHold|TestCloseRetainsLateFollowValidation|TestFactoryComposesActualHeartbeatContinuationAndFaultCapture' -count=10",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-shutdown-reviewfix-logs/fn24614-shutdown-shared-focused-race10.log",
+      "phase": "required actual transport/composed Close race10",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof"
+    },
+    {
+      "command": "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go timeout 600 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=.github/.golangci.yml --build-tags=test_dep --timeout=10m ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-shutdown-reviewfix-logs/fn24614-shutdown-shared-lint.log",
+      "phase": "strict unfiltered shared lint",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof"
+    },
+    {
+      "command": "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go timeout 600 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m ./reference/worker ./reference/worker/raw ./reference/worker/sdk",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-shutdown-reviewfix-logs/fn24614-shutdown-host-lint-final.log",
+      "phase": "strict unfiltered nested lint",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=.github/.golangci.yml common/testing/testpilot/temporal/act/act.go common/testing/testpilot/temporal/act/shutdown_test.go model/temporal/hosts/go/reference/worker/bridge.go model/temporal/hosts/go/reference/worker/bridge_test.go model/temporal/hosts/go/reference/worker/sdk/sdk.go model/temporal/hosts/go/reference/worker/sdk/continuation_test.go model/temporal/hosts/go/reference/worker/sdk/namespace_test.go",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-shutdown-reviewfix-logs/fn24614-shutdown-fmt-checkpoint.log",
+      "phase": "final changed-file format",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof"
+    },
+    {
+      "command": "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go timeout 600 go vet -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-shutdown-reviewfix-logs/fn24614-shutdown-shared-vet.log",
+      "phase": "shared vet",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof"
+    },
+    {
+      "command": "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go timeout 600 go vet -tags test_dep ./reference/worker/...",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-shutdown-reviewfix-logs/fn24614-shutdown-host-vet.log",
+      "phase": "nested vet",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go"
+    },
+    {
+      "command": "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go timeout 600 go test -tags test_dep ./common/testing/testpilot/temporal/act -run '^TestClose(CancelsWorkerBeforePollHold|RetainsLateFollowValidation)$' -count=1 -v",
+      "exit_code": 1,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-shutdown-reviewfix-logs/fn24614-act-reviewfix-red.log",
+      "phase": "deterministic pre-fix act reproduction",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof"
+    },
+    {
+      "command": "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go CGO_ENABLED=0 timeout 120 go test -tags test_dep ./reference/worker/sdk -run TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown -count=1",
+      "exit_code": 1,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-shutdown-reviewfix-logs/fn24614-shutdown-expanded-sdk-red.log",
+      "phase": "deterministic pre-fix coordinator reproduction",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "note": "Original bridge/SDK implementation restored temporarily for this red run; newly introduced helper-only test omitted for compile compatibility, then all corrected files restored. Both original findings and unrecovered RPC failures reproduce."
+    },
+    {
+      "command": "GOMAXPROCS=2 GOFLAGS=-p=2 GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go timeout 600 go test -race -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver -count=10",
+      "exit_code": 1,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-shutdown-reviewfix-logs/fn24614-shutdown-shared-race10.log",
+      "phase": "optional broader whole shared race attempt",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "note": "act full race10 passed39.427s; unchanged guest test repeatedly hit its30s interpreter deadlines. Owned temporaldriver test received SIGQUIT for diagnostic stack and termination, command exit1 at389.459s. This is explicitly not a broad-race pass."
+    }
+  ],
+  "source_hashes": {
+    "common/testing/testpilot/temporal/act/act.go": "02f30711640dc062f60a81e37ee3014aaa0ae5527e0523d10a4a35fd07bd032f",
+    "common/testing/testpilot/temporal/act/shutdown_test.go": "9bddb7ab3967db030821586c89c10bd9d06d71737094e6668b3b3af61f7e5c8e",
+    "model/temporal/hosts/go/reference/worker/bridge.go": "3403559ef8bed96a04f10f2d4ffcb7d0f330bd09648a1cb6401aefb94e21f475",
+    "model/temporal/hosts/go/reference/worker/bridge_test.go": "6b1bcad42e9711f8143c01e6e5c37150d907527f2d3a694c75c2f89e60348973",
+    "model/temporal/hosts/go/reference/worker/sdk/continuation_test.go": "f894f2b51bddae876fbadd10946cde71814cc2226ce63cee655ea122d33f0dcd",
+    "model/temporal/hosts/go/reference/worker/sdk/namespace_test.go": "d4b070c3602f09093ed3422289dcc2b10ab4471579cf754d14466a895b45bc4f",
+    "model/temporal/hosts/go/reference/worker/sdk/sdk.go": "1a808bb97b47a4d3ae8689131ab2dda6e73acd8557b50308d97402423f3b34b4"
+  },
+  "log_hashes": {
+    "fn24614-act-reviewfix-green.log": "b1518fd6f83c31c98b55c851a89f6de278efcf55ca20a59d642a0c8aa787d7a4",
+    "fn24614-act-reviewfix-red.log": "cdc2b6c8a0a183787552b4c0e99ed60f216e64e48f4e44d3596cb33237cbade2",
+    "fn24614-shutdown-assertion-focused-final.log": "1ad4f93975fcb5f303803a1fd77022789cdef6e1be2de53fa42cf19f028bebe9",
+    "fn24614-shutdown-expanded-red.log": "ac4c61cb465d9e1abb8825ea3431cc31e6024e35684e34a39575eddb8fb0fd0d",
+    "fn24614-shutdown-expanded-sdk-red.log": "a11df738408cac1465dc5b7c6ad64548ba8ee1236fef5f785f419b5607551384",
+    "fn24614-shutdown-fmt-checkpoint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "fn24614-shutdown-fmt-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "fn24614-shutdown-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "fn24614-shutdown-focused-green.log": "e63772c5a16e2c288a3a0be7b0b4a69e66b4d878e38ed3ad99c410d406adb70d",
+    "fn24614-shutdown-host-all-final.log": "a258ed1a710613f9fa1e45b3f6d91063d3f915d797b5b003dbc9da974dc9222e",
+    "fn24614-shutdown-host-final.log": "8d57599f2c6247bf7fc95f9372a942b6f825a70e0137e7ea819e98ca65612e6a",
+    "fn24614-shutdown-host-full-green.log": "84bf25fe095d34b198cad083a835648d7d52323929f97cb128e685f4de140c98",
+    "fn24614-shutdown-host-full.log": "13cdbd64f94a2b7d31aa106295a3f20a0db3f170dcc6953f73d278698220c8fb",
+    "fn24614-shutdown-host-lint-final.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    "fn24614-shutdown-host-lint-frozen.log": "23d8fda7224150a3e1bc6cb1b386347fcae0a70a7b1a3570fca26f019e21c830",
+    "fn24614-shutdown-host-lint.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    "fn24614-shutdown-host-module-checkpoint.log": "294a4ad99dd35b0f6da2525088289c0b9677070f51dc1cf012aff165fee11653",
+    "fn24614-shutdown-host-race10-complete.log": "a2c21511456a30340f44328c201c48031b1ad11e2edf8cb50a1b113d21edf7f0",
+    "fn24614-shutdown-host-race10-final.log": "a4f772ef3ad8b187380bfb6c3c4c3353d88334b8c5f3c2a362d50da3714cca2b",
+    "fn24614-shutdown-host-race10-frozen.log": "e5f5470c10bfd4194b0331757f152d9eb977f3b8d76f51967a5a84d12045474d",
+    "fn24614-shutdown-host-race10-owner-final.log": "de20d9b02d8dea15652a3e11108284d4e9b2efaf726a574491a3f28260bffbf2",
+    "fn24614-shutdown-host-race10.log": "9910066662b4493ceeef70fa92ed71838f0953aea950bf22d0a9f423dbcd0074",
+    "fn24614-shutdown-host-vet.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "fn24614-shutdown-owner-focused.log": "1d71dd8cc1f0ca6a76e8a144af48d4639945a11abc7f1d66271f004bc7fefa20",
+    "fn24614-shutdown-sdk-green.log": "d5a19d4c0f98ba08d9d19c3736cfe3482dfb460c2bb3c746900b7308a1d2c02e",
+    "fn24614-shutdown-sdk-red.log": "7c07be41a3d1bf789be7b0a6dd4a00494b2b40e267bfa98287fb60f2b93bc038",
+    "fn24614-shutdown-shared-final.log": "fcebaeaf19eb5597625bad6ca37e69a9c1c18a112646737a1e33ae4a78eadc00",
+    "fn24614-shutdown-shared-focused-race10.log": "87cf117f7934a9419048b185a562a9c779c8e51d7196242b92034038274288f7",
+    "fn24614-shutdown-shared-frozen.log": "399d832717be2db48359760b396ffe8ac3f988c30281db5ee2145c8a3d8b5e07",
+    "fn24614-shutdown-shared-full.log": "b750a78ef37c827389a39c9fb93eebaa1df1fa4aabecebb56f62b5f7e455fd5d",
+    "fn24614-shutdown-shared-lint.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    "fn24614-shutdown-shared-race10.log": "409ea3b8e3370bdae5a63fec43e9122634b7f00025eebb76eaa8fe01eed52b4b",
+    "fn24614-shutdown-shared-vet.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "original-review-receipt.json": "3c8eadc83275d0c8438cb1dc664dc402d7c3963ebeea4f14c9067af2a0686e59"
+  },
+  "original_review_findings": [
+    "finding-a568b826a321a2e8f776b1e0e4309fcf",
+    "finding-ae9fa2de9595bf4094570edf4228dfe2"
+  ],
+  "reproduction": {
+    "act": "Existing poll cancel function is wrapped with a channel barrier: poll returns and Follow records parent context state before Close continues. Old order returned nil parent Err; corrected order returns context.Canceled. Real mock gRPC Failed acknowledgment is captured before Close, and substantive Follow error is released only after Run cancellation; exact request/invalid reply bytes survive in Driver.Close Evidence().",
+    "coordinator": "Production Bridge.Observe captures exact terminal snapshots before explicit coordinator resume barrier and shutdown. Both Run-canceled and owner-canceled/derived-Run-still-live states check valid/invalid snapshots. Active owner+Run with an already-expired terminal deadline must fault. This is a private production-boundary control, not a paused-native-end-to-end proof.",
+    "native": "Existing actual SDK worker/client mock-transport suite runs unchanged in assertions except fixture Run binding and added capture provenance assertions. Fixture uses public joined AfterFunc, preserves original context values/deadline, and invokes actual gRPC even on canceled contexts. No private SDK hooks/raw surrogate or native handler cancellation fabricated. Original standalone heartbeat proof bytes unchanged."
+  },
+  "controls": [
+    "valid captured completion clean",
+    "mutated captured terminal request faults",
+    "nonempty Failed acknowledgment faults",
+    "malformed terminal response faults",
+    "unrecovered terminal Unavailable faults",
+    "ambiguous Internal status faults",
+    "malformed neutral status faults",
+    "live-context server Canceled and DeadlineExceeded fault",
+    "genuinely unfinished canceled operation clean",
+    "actual locally canceled invocation clean only with canceled invocation context and captured Canceled/DeadlineExceeded status",
+    "failed terminal invocation followed by actual retry success clean",
+    "failed terminal invocation followed by local cancellation retains earlier failure",
+    "captured successful terminal survives cancellation; captured true heartbeat cannot advance after cancellation",
+    "late direct/wrapped/mixed-joined substantive Follow errors retain exact fault snapshot",
+    "cancellation-only wrapped/joined Follow errors clean"
+  ],
+  "implementation": {
+    "shutdown_order": "Cancel worker context before closing/canceling poll hold; join poll hold, worker, capture, bridge and connections.",
+    "terminal_drain": "Stop SDK, join registered handlers, close their terminal queue, join coordinator. Only unfinished Wait errors may be suppressed by shutdown cancellation; completed RPC validation errors are always retained.",
+    "retry_evidence": "Mechanical latest substantive failed terminal RPC is separate from successful operation result; actual success supersedes failure, local cancellation does not erase failure. Neither path manufactures heartbeat bits.",
+    "propagation": "Private coordinator checks both owner and derived Run cancellation, preserving real active deadline errors."
+  },
+  "optional_broad_race_limitation": {
+    "result": "FAILED, not green",
+    "test": "TestUnheldCancellationRefusedBeforeCancelRPC/raw and /sdk",
+    "phases": [
+      "METHOD_RESET: umpire_buffer_alloc / umpire_call",
+      "METHOD_PROPOSE: umpire_call",
+      "METHOD_JUDGE: umpire_call"
+    ],
+    "source_unchanged_since_base": true,
+    "source_sha256": "58aafa73a77e22668e01388def2e40ee4eacb1cac07fdc4200415cdcc4d93424",
+    "stack": "wazero internal/engine/interpreter compiler.handleInstruction/compile/CompileModule; retained SIGQUIT stack",
+    "attribution": "Observed guest call deadlines and interpreter compilation, not worker validation diagnostics. RESET/host compilation precedes worker effects; the log does not establish that no poll ever occurred in later PROPOSE/JUDGE attempts. No positive broad-race or live proof claimed. Original tests/deadlines preserved; ordinary full suite and focused actual transport race10 passed."
+  },
+  "attempt_history": {
+    "fn24614-shutdown-expanded-red.log": "Supplemental red attempt included a new private-helper reference unavailable in old SDK source; SDK compile failure is inconclusive, while bridge terminal cancellation assertion failed as intended. Separate expanded SDK red log is the valid runtime reproduction.",
+    "fn24614-shutdown-host-full.log": "First full attempt exposed test fixture raw context.Canceled with live SDK context; retained failure.",
+    "fn24614-shutdown-host-full-green.log": "Intermediate whole attempt hit a missing Run value in shared namespace fixture; panic retained, fixed by passing its existing ctx to capture constructor.",
+    "fn24614-shutdown-host-race10.log": "Intermediate race exposed fixture Unknown status from returning raw context.Canceled without actual gRPC invoke. Corrected to actual canceled-context invocation.",
+    "fn24614-shutdown-host-race10-final.log": "Intermediate race exposed owner-before-derived-Run cancellation propagation; production correction plus deterministic owner-first controls followed.",
+    "fn24614-shutdown-host-race10-owner-final.log": "Superseded in-flight gate explicitly terminated143 to add owner-order matrix before rerunning full required race scope.",
+    "fn24614-shutdown-host-lint-frozen.log": "New test mutation switch lacked default; strict lint failed, exhaustive known nonmutation cases and default fatal added, final lint0."
+  },
+  "native_proof_sha256": "77a494e981ab8f65a738049e8d1972e9c28a51f14ff072b042ce14ca9c88969d",
+  "native_proof_unchanged": true,
+  "owned_commands": "All owned commands terminal; no build/test/lint handles remain. Go and Rust private cache leases released, contents retained. Worktree clean at committed correction; source immutable pending conductor review.",
+  "review": "No worker review dispatched, verdict claimed, or Flow lifecycle mutated. Conductor owns integration and same-primary review resume.",
+  "stage": "impl-review skipped(policy: host-deferred; conductor owns review)",
+  "command_representation": "Effective command and explicit cwd are retained; outer shell cd/output-capture wrapper is omitted. Exit codes are directly observed tool command exits."
+}

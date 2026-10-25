@@ -8,7 +8,7 @@ Move fn-237.4's already-approved narrow heartbeat key/codec/raw-and-SDK continua
 
 **Size:** M
 **Files:** feature-owned activity task key/response codec and generated wire bindings, worker program admission, raw/SDK continuation and token-scoped completion controls.
-**Touches:** [model/temporal/proto/umpire/temporal/v1/**, model/temporal/api/**, model/temporal/hosts/go/umpire/temporal/v1/**, model/temporal/hosts/go/reference/worker/**, model/temporal/hosts/go/*test.go, model/temporal/realization/tests/program.rs, model/temporal/realization/tests/program_history.rs, model/temporal/realization/tests/catalog.rs, model/temporal/feature/activity/claims.rs, model/temporal/feature/activity/api.rs, model/temporal/feature/activity/expected/realization.txt.snap, model/temporal/realization/Cargo.toml, model/Cargo.lock, common/testing/testpilot/temporal/act/**, tools/umpire/temporaldriver/**, model/umpire/hosts/go/runner/session.go, model/umpire/hosts/go/runner/*test.go, model/temporal/hosts/go/umpire_temporal_guest.wasm, model/temporal/feature/activity/temporal.rs]
+**Touches:** [Makefile, model/temporal/proto/umpire/temporal/v1/**, model/temporal/api/**, model/temporal/hosts/go/umpire/temporal/v1/**, model/temporal/hosts/go/reference/worker/**, model/temporal/hosts/go/*test.go, model/temporal/realization/tests/program.rs, model/temporal/realization/tests/program_history.rs, model/temporal/realization/tests/catalog.rs, model/temporal/feature/activity/claims.rs, model/temporal/feature/activity/api.rs, model/temporal/feature/activity/expected/realization.txt.snap, model/temporal/realization/Cargo.toml, model/Cargo.lock, common/testing/testpilot/temporal/act/**, tools/umpire/temporaldriver/**, model/umpire/hosts/go/runner/session.go, model/umpire/hosts/go/runner/*test.go, model/temporal/hosts/go/umpire_temporal_guest.wasm, model/temporal/feature/activity/temporal.rs]
 
 ### Approach
 
@@ -36,6 +36,8 @@ All source coordinates are provisional planning anchors. Reanchor final fn-237.3
 - `model/temporal/hosts/go/program_test.go` and `model/temporal/realization/tests/program.rs` for current terminal-response semantics, program round-trip and executor parity.
 
 ### Verification
+
+The conductor owns the narrow Makefile integration correction: fast-lint Git scans must exclude `.flow/**` evidence, matching the existing source-find boundary. Preserve archived proof bytes and verify actual product Go packages still pass `make lint-code-fast`.
 
 Run existing Temporal protobuf generation/check scripts, Rust program codec tests and `go test -tags test_dep ./...` from model/temporal/hosts/go. Use the actual pinned SDK worker/client with mock transport to test exact repeated-false, false-to-true, after-true/canceled-context, throttle/coalescing and terminal-RPC behavior; counting API invocations is insufficient. Also run focused act/temporaldriver tests from the repository root and generic runner tests from model/umpire/hosts/go, retaining actual Driver.Close fault evidence controls. Regenerate the local Temporal guest when current codec/program tests require it; the conductor verifies/promotes the joined guest. Changed-Go fmt/lint and scoped Rust fmt/strict clippy are required. Full fresh guest/live gates belong .6; original actual cooperative proof stays later.
 

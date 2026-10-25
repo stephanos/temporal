@@ -1,0 +1,3 @@
+ok  	umpire.local/temporal/reference/worker	1.051s
+ok  	umpire.local/temporal/reference/worker/raw	1.022s [no tests to run]
+ok  	umpire.local/temporal/reference/worker/sdk	1.638s

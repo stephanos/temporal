@@ -1,0 +1,26 @@
+ok  	umpire.local/temporal/reference/worker	1.204s
+ok  	umpire.local/temporal/reference/worker/raw	4.400s
+--- FAIL: TestProductionSDKRunCancellationJoinsBlockedStages (1.04s)
+    --- FAIL: TestProductionSDKRunCancellationJoinsBlockedStages/terminal (1.01s)
+        continuation_test.go:641: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:641
+            	Error:      	Received unexpected error:
+            	            	SDK terminal completion: missing actual completed worker RPC
+            	Test:       	TestProductionSDKRunCancellationJoinsBlockedStages/terminal
+--- FAIL: TestProductionSDKRunCancellationJoinsBlockedStages (1.04s)
+    --- FAIL: TestProductionSDKRunCancellationJoinsBlockedStages/terminal (1.01s)
+        continuation_test.go:641: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:641
+            	Error:      	Received unexpected error:
+            	            	SDK terminal completion: missing actual completed worker RPC
+            	Test:       	TestProductionSDKRunCancellationJoinsBlockedStages/terminal
+--- FAIL: TestProductionSDKRunCancellationJoinsBlockedStages (1.04s)
+    --- FAIL: TestProductionSDKRunCancellationJoinsBlockedStages/terminal (1.01s)
+        continuation_test.go:641: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:641
+            	Error:      	Received unexpected error:
+            	            	SDK terminal completion: missing actual completed worker RPC
+            	Test:       	TestProductionSDKRunCancellationJoinsBlockedStages/terminal
+FAIL
+FAIL	umpire.local/temporal/reference/worker/sdk	106.166s
+FAIL

@@ -1,0 +1,68 @@
+{
+  "source_commit": "2a876bffff74c18a41880d6765ee30cceb8cb1e8",
+  "native_heartbeat_proof_sha256": "77a494e981ab8f65a738049e8d1972e9c28a51f14ff072b042ce14ca9c88969d",
+  "status": "terminal-failed",
+  "results": [
+    {
+      "name": "temporal-host",
+      "command": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./..."
+      ],
+      "exit_code": 0,
+      "seconds": 57.885,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24614-shutdown-joined-temporal-host.log",
+      "log_sha256": "5b49ad916ac18ad0780b269af4766d51d9711d6054d7e54272e8f11a4110c952"
+    },
+    {
+      "name": "shared-driver",
+      "command": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./common/testing/testpilot/temporal/act",
+        "./tools/umpire/temporaldriver"
+      ],
+      "exit_code": 0,
+      "seconds": 8.075,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24614-shutdown-joined-shared-driver.log",
+      "log_sha256": "bc52889d1233f5697ecf9e7403bb2f28df8dc04255cb48fc76916108ee86a961"
+    },
+    {
+      "name": "generic-runner",
+      "command": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./runner/..."
+      ],
+      "exit_code": 0,
+      "seconds": 2.308,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24614-shutdown-joined-generic-runner.log",
+      "log_sha256": "087c64d4878f60cb1f15c2210ed46fd49b8cfa782ee6103f4aef9b7dc2d180f5"
+    },
+    {
+      "name": "lint-code-fast",
+      "command": [
+        "make",
+        "lint-code-fast",
+        "GOLANGCI_LINT_BASE_REV=5c7644bd566c723a9175cb545bd1bff3a5da711e",
+        "GOLANGCI_LINT=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1",
+        "ERRORTYPE=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype",
+        "GOLANGCI_LINT_FIX=false"
+      ],
+      "exit_code": 2,
+      "seconds": 4.457,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24614-shutdown-joined-lint-code-fast.log",
+      "log_sha256": "0bcd889390ffa6b6847462d8ef7600e33b78bfbb7b513283cb03f6838e916840"
+    }
+  ]
+}

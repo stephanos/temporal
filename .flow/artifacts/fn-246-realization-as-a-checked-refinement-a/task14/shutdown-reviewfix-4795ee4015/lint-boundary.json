@@ -1,0 +1,27 @@
+{
+  "before": [
+    ".flow/artifacts/fn-246-realization-as-a-checked-refinement-a/planning/next-frontier-preparation/compare-descriptor-images.go",
+    "common/testing/testpilot/temporal/act/act.go",
+    "common/testing/testpilot/temporal/act/shutdown_test.go",
+    "model/temporal/hosts/go/reference/worker/bridge.go",
+    "model/temporal/hosts/go/reference/worker/bridge_test.go",
+    "model/temporal/hosts/go/reference/worker/sdk/continuation_test.go",
+    "model/temporal/hosts/go/reference/worker/sdk/namespace_test.go",
+    "model/temporal/hosts/go/reference/worker/sdk/sdk.go"
+  ],
+  "after": [
+    "common/testing/testpilot/temporal/act/act.go",
+    "common/testing/testpilot/temporal/act/shutdown_test.go",
+    "model/temporal/hosts/go/reference/worker/bridge.go",
+    "model/temporal/hosts/go/reference/worker/bridge_test.go",
+    "model/temporal/hosts/go/reference/worker/sdk/continuation_test.go",
+    "model/temporal/hosts/go/reference/worker/sdk/namespace_test.go",
+    "model/temporal/hosts/go/reference/worker/sdk/sdk.go"
+  ],
+  "removed": [
+    ".flow/artifacts/fn-246-realization-as-a-checked-refinement-a/planning/next-frontier-preparation/compare-descriptor-images.go"
+  ],
+  "corrected_fast_lint_exit": 0,
+  "unfiltered_product_diagnostic_exit": 0,
+  "root_cause": "Fast target selected historical .flow Go evidence excluded by existing SOURCE_FIND; all four scans now exclude .flow/** without editing evidence or narrowing product packages."
+}

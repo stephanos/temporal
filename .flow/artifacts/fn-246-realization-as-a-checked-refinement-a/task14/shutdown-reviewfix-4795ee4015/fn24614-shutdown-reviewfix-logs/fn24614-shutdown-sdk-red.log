@@ -1,0 +1,14 @@
+--- FAIL: TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown (0.00s)
+    --- FAIL: TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/mutated-request (0.00s)
+        continuation_test.go:1012: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:1012
+            	Error:      	"[]" should have 1 item(s), but has 0
+            	Test:       	TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/mutated-request
+    --- FAIL: TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/nonempty-failed-ack (0.00s)
+        continuation_test.go:1012: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:1012
+            	Error:      	"[]" should have 1 item(s), but has 0
+            	Test:       	TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/nonempty-failed-ack
+FAIL
+FAIL	umpire.local/temporal/reference/worker/sdk	0.005s
+FAIL

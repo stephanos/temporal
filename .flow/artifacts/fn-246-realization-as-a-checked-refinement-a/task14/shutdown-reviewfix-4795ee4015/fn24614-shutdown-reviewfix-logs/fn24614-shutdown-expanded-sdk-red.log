@@ -1,0 +1,44 @@
+--- FAIL: TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown (0.00s)
+    --- FAIL: TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/mutated-request (0.00s)
+        continuation_test.go:1047: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:1047
+            	Error:      	"[]" should have 1 item(s), but has 0
+            	Test:       	TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/mutated-request
+    --- FAIL: TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/nonempty-failed-ack (0.00s)
+        continuation_test.go:1047: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:1047
+            	Error:      	"[]" should have 1 item(s), but has 0
+            	Test:       	TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/nonempty-failed-ack
+    --- FAIL: TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/malformed-response (0.00s)
+        continuation_test.go:1047: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:1047
+            	Error:      	"[]" should have 1 item(s), but has 0
+            	Test:       	TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/malformed-response
+    --- FAIL: TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/transport-error (0.00s)
+        continuation_test.go:1047: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:1047
+            	Error:      	"[]" should have 1 item(s), but has 0
+            	Test:       	TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/transport-error
+    --- FAIL: TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/ambiguous-status (0.00s)
+        continuation_test.go:1047: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:1047
+            	Error:      	"[]" should have 1 item(s), but has 0
+            	Test:       	TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/ambiguous-status
+    --- FAIL: TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/malformed-status (0.00s)
+        continuation_test.go:1047: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:1047
+            	Error:      	"[]" should have 1 item(s), but has 0
+            	Test:       	TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/malformed-status
+    --- FAIL: TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/server-canceled (0.00s)
+        continuation_test.go:1047: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:1047
+            	Error:      	"[]" should have 1 item(s), but has 0
+            	Test:       	TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/server-canceled
+    --- FAIL: TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/failure-then-local-canceled (0.00s)
+        continuation_test.go:1047: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:1047
+            	Error:      	"[]" should have 1 item(s), but has 0
+            	Test:       	TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown/failure-then-local-canceled
+FAIL
+FAIL	umpire.local/temporal/reference/worker/sdk	0.007s
+FAIL

@@ -1,0 +1,14 @@
+# umpire.local/temporal/reference/worker/sdk [umpire.local/temporal/reference/worker/sdk.test]
+reference/worker/sdk/continuation_test.go:1066:19: undefined: shutdownCancellation
+reference/worker/sdk/continuation_test.go:1067:18: undefined: shutdownCancellation
+--- FAIL: TestBridgeShutdownRetainsTerminalButCannotAdvanceHeartbeat (0.00s)
+    --- FAIL: TestBridgeShutdownRetainsTerminalButCannotAdvanceHeartbeat/terminal (0.00s)
+        bridge_test.go:320: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go/reference/worker/bridge_test.go:320
+            	Error:      	Received unexpected error:
+            	            	context canceled
+            	Test:       	TestBridgeShutdownRetainsTerminalButCannotAdvanceHeartbeat/terminal
+FAIL
+FAIL	umpire.local/temporal/reference/worker	0.007s
+FAIL	umpire.local/temporal/reference/worker/sdk [build failed]
+FAIL

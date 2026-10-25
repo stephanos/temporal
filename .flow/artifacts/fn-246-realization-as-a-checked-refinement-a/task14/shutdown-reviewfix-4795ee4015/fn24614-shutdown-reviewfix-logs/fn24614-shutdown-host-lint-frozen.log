@@ -1,0 +1,21 @@
+../model/temporal/hosts/go/reference/worker/sdk/continuation_test.go:1042:6: enforce-switch-style: switch must have a default case clause (revive)
+					switch outcome {
+					case "transport-error", "retry-success", "failure-then-local-canceled":
+						completed.CallError = pack(status.New(codes.Unavailable, "retryable terminal failure").Proto())
+					case "ambiguous-status":
+						completed.CallError = pack(status.New(codes.Internal, "unattributed failure").Proto())
+					case "malformed-status":
+						completed.CallError = pack(status.New(codes.Canceled, "malformed").Proto())
+						completed.CallError.Value = []byte{0xff}
+					case "server-deadline":
+						completed.CallError = pack(status.New(codes.DeadlineExceeded, "server deadline with live call context").Proto())
+					case "server-canceled", "local-canceled":
+						completed.CallError = pack(status.New(codes.Canceled, "canceled terminal").Proto())
+						if outcome == "local-canceled" {
+							cancelCall()
+						}
+					case "malformed-response":
+						completed.Response.Value = []byte{0xff}
+					}
+1 issues:
+* revive: 1

@@ -1,0 +1,350 @@
+ok  	go.temporal.io/server/common/testing/testpilot/temporal/act	39.427s
+--- FAIL: TestUnheldCancellationRefusedBeforeCancelRPC (60.19s)
+    --- FAIL: TestUnheldCancellationRefusedBeforeCancelRPC/raw (30.19s)
+        cancel_rpc_test.go:101: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/tools/umpire/temporaldriver/cancel_rpc_test.go:101
+            	Error:      	Received unexpected error:
+            	            	METHOD_RESET: umpire_buffer_alloc: module closed with context deadline exceeded
+            	Test:       	TestUnheldCancellationRefusedBeforeCancelRPC/raw
+    --- FAIL: TestUnheldCancellationRefusedBeforeCancelRPC/sdk (30.00s)
+        cancel_rpc_test.go:101: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/tools/umpire/temporaldriver/cancel_rpc_test.go:101
+            	Error:      	Received unexpected error:
+            	            	METHOD_PROPOSE: umpire_call: module closed with context deadline exceeded
+            	Test:       	TestUnheldCancellationRefusedBeforeCancelRPC/sdk
+--- FAIL: TestUnheldCancellationRefusedBeforeCancelRPC (60.69s)
+    --- FAIL: TestUnheldCancellationRefusedBeforeCancelRPC/raw (30.69s)
+        cancel_rpc_test.go:101: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/tools/umpire/temporaldriver/cancel_rpc_test.go:101
+            	Error:      	Received unexpected error:
+            	            	METHOD_RESET: umpire_buffer_alloc: module closed with context deadline exceeded
+            	Test:       	TestUnheldCancellationRefusedBeforeCancelRPC/raw
+    --- FAIL: TestUnheldCancellationRefusedBeforeCancelRPC/sdk (30.00s)
+        cancel_rpc_test.go:101: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/tools/umpire/temporaldriver/cancel_rpc_test.go:101
+            	Error:      	Received unexpected error:
+            	            	METHOD_RESET: umpire_call: module closed with context deadline exceeded
+            	Test:       	TestUnheldCancellationRefusedBeforeCancelRPC/sdk
+--- FAIL: TestUnheldCancellationRefusedBeforeCancelRPC (61.75s)
+    --- FAIL: TestUnheldCancellationRefusedBeforeCancelRPC/raw (30.69s)
+        cancel_rpc_test.go:101: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/tools/umpire/temporaldriver/cancel_rpc_test.go:101
+            	Error:      	Received unexpected error:
+            	            	METHOD_RESET: umpire_buffer_alloc: module closed with context deadline exceeded
+            	Test:       	TestUnheldCancellationRefusedBeforeCancelRPC/raw
+    --- FAIL: TestUnheldCancellationRefusedBeforeCancelRPC/sdk (31.07s)
+        cancel_rpc_test.go:101: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/tools/umpire/temporaldriver/cancel_rpc_test.go:101
+            	Error:      	Received unexpected error:
+            	            	METHOD_RESET: umpire_buffer_alloc: module closed with context deadline exceeded
+            	Test:       	TestUnheldCancellationRefusedBeforeCancelRPC/sdk
+--- FAIL: TestUnheldCancellationRefusedBeforeCancelRPC (62.28s)
+    --- FAIL: TestUnheldCancellationRefusedBeforeCancelRPC/raw (31.16s)
+        cancel_rpc_test.go:101: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/tools/umpire/temporaldriver/cancel_rpc_test.go:101
+            	Error:      	Received unexpected error:
+            	            	METHOD_RESET: umpire_buffer_alloc: module closed with context deadline exceeded
+            	Test:       	TestUnheldCancellationRefusedBeforeCancelRPC/raw
+    --- FAIL: TestUnheldCancellationRefusedBeforeCancelRPC/sdk (31.12s)
+        cancel_rpc_test.go:101: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/tools/umpire/temporaldriver/cancel_rpc_test.go:101
+            	Error:      	Received unexpected error:
+            	            	METHOD_RESET: umpire_buffer_alloc: module closed with context deadline exceeded
+            	Test:       	TestUnheldCancellationRefusedBeforeCancelRPC/sdk
+--- FAIL: TestUnheldCancellationRefusedBeforeCancelRPC (61.14s)
+    --- FAIL: TestUnheldCancellationRefusedBeforeCancelRPC/raw (30.00s)
+        cancel_rpc_test.go:101: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/tools/umpire/temporaldriver/cancel_rpc_test.go:101
+            	Error:      	Received unexpected error:
+            	            	METHOD_JUDGE: umpire_call: module closed with context deadline exceeded
+            	Test:       	TestUnheldCancellationRefusedBeforeCancelRPC/raw
+    --- FAIL: TestUnheldCancellationRefusedBeforeCancelRPC/sdk (31.14s)
+        cancel_rpc_test.go:101: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/tools/umpire/temporaldriver/cancel_rpc_test.go:101
+            	Error:      	Received unexpected error:
+            	            	METHOD_RESET: umpire_buffer_alloc: module closed with context deadline exceeded
+            	Test:       	TestUnheldCancellationRefusedBeforeCancelRPC/sdk
+--- FAIL: TestUnheldCancellationRefusedBeforeCancelRPC (61.29s)
+    --- FAIL: TestUnheldCancellationRefusedBeforeCancelRPC/raw (31.15s)
+        cancel_rpc_test.go:101: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/tools/umpire/temporaldriver/cancel_rpc_test.go:101
+            	Error:      	Received unexpected error:
+            	            	METHOD_RESET: umpire_buffer_alloc: module closed with context deadline exceeded
+            	Test:       	TestUnheldCancellationRefusedBeforeCancelRPC/raw
+    --- FAIL: TestUnheldCancellationRefusedBeforeCancelRPC/sdk (30.14s)
+        cancel_rpc_test.go:101: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/tools/umpire/temporaldriver/cancel_rpc_test.go:101
+            	Error:      	Received unexpected error:
+            	            	METHOD_RESET: umpire_buffer_alloc: module closed with context deadline exceeded
+            	Test:       	TestUnheldCancellationRefusedBeforeCancelRPC/sdk
+SIGQUIT: quit
+PC=0xd778c m=0 sigcode=0
+
+goroutine 0 gp=0x2311620 m=0 mp=0x23126e0 [idle]:
+runtime.futex(0x2312838, 0x80, 0x0, 0x0, 0x0, 0x0)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/sys_linux_arm64.s:665 +0x1c fp=0xfffffa4e69a0 sp=0xfffffa4e69a0 pc=0xd778c
+runtime.futexsleep(0xc000065808?, 0x98c00?, 0xfffffa4e6a28?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/os_linux.go:73 +0x28 fp=0xfffffa4e69f0 sp=0xfffffa4e69a0 pc=0x8e0b8
+runtime.notesleep(0x2312838)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/lock_futex.go:47 +0x8c fp=0xfffffa4e6a30 sp=0xfffffa4e69f0 pc=0x63ebc
+runtime.mPark(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:1985
+runtime.stopm()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:3023 +0x84 fp=0xfffffa4e6a60 sp=0xfffffa4e6a30 pc=0x98be4
+runtime.findRunnable()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:3811 +0xf84 fp=0xfffffa4e6c30 sp=0xfffffa4e6a60 pc=0x9a8d4
+runtime.schedule()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:4179 +0x90 fp=0xfffffa4e6c70 sp=0xfffffa4e6c30 pc=0x9bbd0
+runtime.goschedImpl(0xc006f04000, 0x1)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:4360 +0x218 fp=0xfffffa4e6cd0 sp=0xfffffa4e6c70 pc=0x9c288
+runtime.gopreempt_m(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:4377
+runtime.newstack()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/stack.go:1174 +0x2f8 fp=0xfffffa4e6e00 sp=0xfffffa4e6cd0 pc=0xae6f8
+runtime.morestack()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/asm_arm64.s:487 +0x70 fp=0xfffffa4e6e00 sp=0xfffffa4e6e00 pc=0xd3f90
+
+goroutine 1 gp=0xc0000041e0 m=nil [chan receive]:
+runtime.gopark(0x30032ce60?, 0xffff4cf48760?, 0x0?, 0xa?, 0x18?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0xc0000255a0 sp=0xc000025580 pc=0xce558
+runtime.chanrecv(0xc00037f100, 0xc0000256ae, 0x1)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/chan.go:667 +0x410 fp=0xc000025630 sp=0xc0000255a0 pc=0x5e4a0
+runtime.chanrecv1(0x211c5b8?, 0x20d13b8?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/chan.go:509 +0x14 fp=0xc000025660 sp=0xc000025630 pc=0x5e054
+testing.(*T).Run(0xc00406ab48, {0xfb454d, 0x2c}, 0x22673f0)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2266 +0x7dc fp=0xc0000257b0 sp=0xc000025660 pc=0x1e660c
+testing.runTests.func1(0xc00406ab48)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2742 +0x78 fp=0xc000025800 sp=0xc0000257b0 pc=0x1ee758
+testing.tRunner(0xc00406ab48, 0xc000025a28)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2193 +0x168 fp=0xc0000258e0 sp=0xc000025800 pc=0x1e5dc8
+testing.runTests({0xf93df2, 0x15}, {0xfba41a, 0x31}, 0xc00012b008, {0x22ed5e0, 0x3, 0x3}, {0x0?, 0xc0002fd5d0?, ...})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2740 +0x7a4 fp=0xc000025a50 sp=0xc0000258e0 pc=0x1e9454
+testing.(*M).Run(0xc00032cdc0)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2600 +0xb3c fp=0xc000025dd0 sp=0xc000025a50 pc=0x1e795c
+main.main()
+	_testmain.go:50 +0x104 fp=0xc000025ea0 sp=0xc000025dd0 pc=0xeef344
+runtime.main()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:302 +0x380 fp=0xc000025fd0 sp=0xc000025ea0 pc=0x93f00
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0xc000025fd0 sp=0xc000025fd0 pc=0xd5ee4
+
+goroutine 2 gp=0xc000004d20 m=nil [force gc (idle), 6 minutes]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0xc000074790 sp=0xc000074770 pc=0xce558
+runtime.goparkunlock(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:480
+runtime.forcegchelper()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:387 +0xb4 fp=0xc0000747d0 sp=0xc000074790 pc=0x941e4
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0xc0000747d0 sp=0xc0000747d0 pc=0xd5ee4
+created by runtime.init.7 in goroutine 1
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:375 +0x24
+
+goroutine 3 gp=0xc0000052c0 m=nil [GC sweep wait]:
+runtime.gopark(0x1?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0xc00008ef70 sp=0xc00008ef50 pc=0xce558
+runtime.goparkunlock(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:480
+runtime.bgsweep(0xc00007e000)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/mgcsweep.go:324 +0x178 fp=0xc00008efb0 sp=0xc00008ef70 pc=0x7d748
+runtime.gcenable.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/mgc.go:214 +0x20 fp=0xc00008efd0 sp=0xc00008efb0 pc=0xc3c00
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0xc00008efd0 sp=0xc00008efd0 pc=0xd5ee4
+created by runtime.gcenable in goroutine 1
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/mgc.go:214 +0x6c
+
+goroutine 4 gp=0xc0000054a0 m=nil [GC scavenge wait]:
+runtime.gopark(0x7e5191?, 0x7a0cfe?, 0x0?, 0x0?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0xc000088f60 sp=0xc000088f40 pc=0xce558
+runtime.goparkunlock(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:480
+runtime.(*scavengerState).park(0x23110c0)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/mgcscavenge.go:425 +0x5c fp=0xc000088f90 sp=0xc000088f60 pc=0x7b2dc
+runtime.bgscavenge(0xc00007e000)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/mgcscavenge.go:658 +0xac fp=0xc000088fb0 sp=0xc000088f90 pc=0x7b84c
+runtime.gcenable.gowrap2()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/mgc.go:215 +0x20 fp=0xc000088fd0 sp=0xc000088fb0 pc=0xc3bc0
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0xc000088fd0 sp=0xc000088fd0 pc=0xd5ee4
+created by runtime.gcenable in goroutine 1
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/mgc.go:215 +0xac
+
+goroutine 18 gp=0xc000102000 m=nil [GOMAXPROCS updater (idle), 6 minutes]:
+runtime.gopark(0x0?, 0xc0000054a0?, 0xa8?, 0x57?, 0xc3bc0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0xc000075770 sp=0xc000075750 pc=0xce558
+runtime.goparkunlock(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:480
+runtime.updateMaxProcsGoroutine()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:7146 +0xf4 fp=0xc0000757d0 sp=0xc000075770 pc=0xa1eb4
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0xc0000757d0 sp=0xc0000757d0 pc=0xd5ee4
+created by runtime.defaultGOMAXPROCSUpdateEnable in goroutine 1
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:7134 +0x48
+
+goroutine 19 gp=0xc0001025a0 m=nil [finalizer wait]:
+runtime.gopark(0x0?, 0xc0034bfa30?, 0x0?, 0x0?, 0x1000000010?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0xc00008fd80 sp=0xc00008fd60 pc=0xce558
+runtime.runFinalizers()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/mfinal.go:210 +0x120 fp=0xc00008ffd0 sp=0xc00008fd80 pc=0x6e800
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0xc00008ffd0 sp=0xc00008ffd0 pc=0xd5ee4
+created by runtime.createfing in goroutine 1
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/mfinal.go:172 +0x78
+
+goroutine 20 gp=0xc0002e7680 m=nil [cleanup wait, 6 minutes]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0xc000070f10 sp=0xc000070ef0 pc=0xce558
+runtime.goparkunlock(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:480
+runtime.(*cleanupQueue).dequeue(0x2311460)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/mcleanup.go:522 +0x160 fp=0xc000070f50 sp=0xc000070f10 pc=0x6b130
+runtime.runCleanups()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/mcleanup.go:718 +0x3c fp=0xc000070fd0 sp=0xc000070f50 pc=0x6b87c
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0xc000070fd0 sp=0xc000070fd0 pc=0xd5ee4
+created by runtime.(*cleanupQueue).createGs in goroutine 1
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/mcleanup.go:672 +0x108
+
+goroutine 24 gp=0xc000344b40 m=nil [GC worker (idle)]:
+runtime.gopark(0xc102bfd6fbb6?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0xc0000adf20 sp=0xc0000adf00 pc=0xce558
+runtime.gcBgMarkWorker(0xc000104850)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/mgc.go:1807 +0xe0 fp=0xc0000adfb0 sp=0xc0000adf20 pc=0x71b50
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/mgc.go:1711 +0x20 fp=0xc0000adfd0 sp=0xc0000adfb0 pc=0xc4130
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0xc0000adfd0 sp=0xc0000adfd0 pc=0xd5ee4
+created by runtime.gcBgMarkStartWorkers in goroutine 22
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/mgc.go:1711 +0x130
+
+goroutine 25 gp=0xc000344d20 m=nil [GC worker (idle)]:
+runtime.gopark(0xc102bfd678b0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0xc0000acf20 sp=0xc0000acf00 pc=0xce558
+runtime.gcBgMarkWorker(0xc000104850)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/mgc.go:1807 +0xe0 fp=0xc0000acfb0 sp=0xc0000acf20 pc=0x71b50
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/mgc.go:1711 +0x20 fp=0xc0000acfd0 sp=0xc0000acfb0 pc=0xc4130
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0xc0000acfd0 sp=0xc0000acfd0 pc=0xd5ee4
+created by runtime.gcBgMarkStartWorkers in goroutine 22
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/mgc.go:1711 +0x130
+
+goroutine 15224 gp=0xc006f04000 m=nil [runnable]:
+github.com/tetratelabs/wazero/internal/leb128.LoadUint32({0xc007778e60, 0xf4e, 0xf4e})
+	/home/agent/go/pkg/mod/github.com/tetratelabs/wazero@v1.12.0/internal/leb128/leb128.go:102 +0xac fp=0xc003865b20 sp=0xc003865b20 pc=0xcb64cc
+github.com/tetratelabs/wazero/internal/engine/interpreter.(*compiler).handleInstruction(0xc00b5f5408)
+	/home/agent/go/pkg/mod/github.com/tetratelabs/wazero@v1.12.0/internal/engine/interpreter/compiler.go:720 +0x1c74 fp=0xc003866b20 sp=0xc003865b20 pc=0xd36c64
+github.com/tetratelabs/wazero/internal/engine/interpreter.(*compiler).compile(0xc00b5f5408, 0xc006d24128, {0xc007778800, 0x15ae, 0x15ae}, {0xc0075bfd40, 0x6, 0x6}, 0x397227)
+	/home/agent/go/pkg/mod/github.com/tetratelabs/wazero@v1.12.0/internal/engine/interpreter/compiler.go:402 +0x36c fp=0xc003866c20 sp=0xc003866b20 pc=0xd34ecc
+github.com/tetratelabs/wazero/internal/engine/interpreter.(*compiler).Next(0xc00b5f5408)
+	/home/agent/go/pkg/mod/github.com/tetratelabs/wazero@v1.12.0/internal/engine/interpreter/compiler.go:362 +0x308 fp=0xc003866d30 sp=0xc003866c20 pc=0xd34ac8
+github.com/tetratelabs/wazero/internal/engine/interpreter.(*engine).CompileModule(0xc006d07890, {0xc0087f2000?, 0x3cd298?}, 0xc004646fc0, {0x0, 0x0, 0x800286f08?}, 0x1)
+	/home/agent/go/pkg/mod/github.com/tetratelabs/wazero@v1.12.0/internal/engine/interpreter/interpreter.go:531 +0x270 fp=0xc003866e80 sp=0xc003866d30 pc=0xd4e7f0
+github.com/tetratelabs/wazero.(*runtime).CompileModule(0xc0050d49f0, {0x225f770, 0xc0000a03f0}, {0xc0087f2000, 0x3cd298, 0x3ce000})
+	/home/agent/go/pkg/mod/github.com/tetratelabs/wazero@v1.12.0/runtime.go:262 +0x348 fp=0xc003866f70 sp=0xc003866e80 pc=0xe6d358
+umpire.local/model/host.New({0x225f770, 0xc0000a03f0}, {0xc0087f2000, 0x3cd298, 0x3ce000})
+	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/hosts/go/host/host.go:46 +0x21c fp=0xc003867410 sp=0xc003866f70 pc=0xe6fd1c
+umpire.local/model/runner.(*Runner).newSession(0xc00320a540, {0x225f770, 0xc0000a03f0}, 0x2, 0x1, {0xc004069540, 0x12, 0x0, 0x2, 0x400, ...}, ...)
+	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/hosts/go/runner/session.go:32 +0x94 fp=0xc0038674f0 sp=0xc003867410 pc=0xe7bae4
+umpire.local/model/runner.(*Runner).execute(0xc00320a540, {0x225f770, 0xc0000a03f0}, 0x2, 0x1, {0xc004069540, 0x12, 0x0, 0x2, 0x400, ...}, ...)
+	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/hosts/go/runner/session.go:300 +0x98 fp=0xc0038676e0 sp=0xc0038674f0 pc=0xe7fed8
+umpire.local/model/runner.(*Runner).batch(0xc00320a540, {0x225f770, 0xc0000a03f0}, 0x2, {0xc004069540, 0x12, 0x0, 0x2, 0x400, 0x3b9aca00, ...}, ...)
+	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/hosts/go/runner/runner.go:193 +0x290 fp=0xc003867840 sp=0xc0038676e0 pc=0xe7ac80
+umpire.local/model/runner.(*Runner).Run(0xc00320a540, {0x225f770, 0xc0000a03f0}, 0x2, {0xc004069540, 0x12, 0x0, 0x2, 0x400, 0x3b9aca00, ...})
+	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/hosts/go/runner/runner.go:154 +0x140 fp=0xc0038679a0 sp=0xc003867840 pc=0xe7a680
+go.temporal.io/server/tools/umpire/temporaldriver.TestUnheldCancellationRefusedBeforeCancelRPC.func1(0xc00406afc8)
+	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/tools/umpire/temporaldriver/cancel_rpc_test.go:94 +0x1000 fp=0xc003867ec0 sp=0xc0038679a0 pc=0xeb2e20
+testing.tRunner(0xc00406afc8, 0xc004032c30)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2193 +0x168 fp=0xc003867fa0 sp=0xc003867ec0 pc=0x1e5dc8
+testing.(*T).Run.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2258 +0x38 fp=0xc003867fd0 sp=0xc003867fa0 pc=0x1ee128
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0xc003867fd0 sp=0xc003867fd0 pc=0xd5ee4
+created by testing.(*T).Run in goroutine 15223
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2258 +0x7c0
+
+goroutine 15223 gp=0xc00406e960 m=nil [chan receive]:
+runtime.gopark(0x30032ce60?, 0xffff4cf48760?, 0x0?, 0xa?, 0x18?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0xc0000abc00 sp=0xc0000abbe0 pc=0xce558
+runtime.chanrecv(0xc00037f180, 0xc0000abd0e, 0x1)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/chan.go:667 +0x410 fp=0xc0000abc90 sp=0xc0000abc00 pc=0x5e4a0
+runtime.chanrecv1(0x211c5b8?, 0x20d13b8?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/chan.go:509 +0x14 fp=0xc0000abcc0 sp=0xc0000abc90 pc=0x5e054
+testing.(*T).Run(0xc00406ad88, {0xf8027a, 0x3}, 0xc004032c30)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2266 +0x7dc fp=0xc0000abe10 sp=0xc0000abcc0 pc=0x1e660c
+go.temporal.io/server/tools/umpire/temporaldriver.TestUnheldCancellationRefusedBeforeCancelRPC(0xc00406ad88)
+	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/tools/umpire/temporaldriver/cancel_rpc_test.go:65 +0xb8 fp=0xc0000abec0 sp=0xc0000abe10 pc=0xeaeea8
+testing.tRunner(0xc00406ad88, 0x22673f0)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2193 +0x168 fp=0xc0000abfa0 sp=0xc0000abec0 pc=0x1e5dc8
+testing.(*T).Run.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2258 +0x38 fp=0xc0000abfd0 sp=0xc0000abfa0 pc=0x1ee128
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0xc0000abfd0 sp=0xc0000abfd0 pc=0xd5ee4
+created by testing.(*T).Run in goroutine 1
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/testing/testing.go:2258 +0x7c0
+
+goroutine 15225 gp=0xc00b578f00 m=nil [IO wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0xc002315950 sp=0xc002315930 pc=0xce558
+runtime.netpollblock(0x224f170?, 0xffffffff?, 0xff?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/netpoll.go:575 +0x150 fp=0xc002315990 sp=0xc002315950 pc=0x8d330
+internal/poll.runtime_pollWait(0xffff96e29000, 0x72)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/netpoll.go:351 +0xa0 fp=0xc0023159c0 sp=0xc002315990 pc=0xcd780
+internal/poll.(*pollDesc).wait(0xc002f8b4a0, 0x72, 0x0)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/internal/poll/fd_poll_runtime.go:84 +0xb8 fp=0xc002315a10 sp=0xc0023159c0 pc=0x127388
+internal/poll.(*pollDesc).waitRead(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Accept(0xc002f8b480)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/internal/poll/fd_unix.go:618 +0x360 fp=0xc002315b20 sp=0xc002315a10 pc=0x12c6a0
+net.(*netFD).accept(0xc002f8b480)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/net/fd_unix.go:149 +0x38 fp=0xc002315c30 sp=0xc002315b20 pc=0x3cd3e8
+net.(*TCPListener).accept(0xc0031e96c0)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/net/tcpsock_posix.go:159 +0x40 fp=0xc002315cd0 sp=0xc002315c30 pc=0x3ec4e0
+net.(*TCPListener).Accept(0xc0031e96c0)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/net/tcpsock.go:387 +0x68 fp=0xc002315d50 sp=0xc002315cd0 pc=0x3eae78
+google.golang.org/grpc.(*Server).Serve(0xc00406b208, {0x225cc50, 0xc0031e96c0})
+	/home/agent/go/pkg/mod/google.golang.org/grpc@v1.83.2/server.go:934 +0x560 fp=0xc002315f70 sp=0xc002315d50 pc=0x84f5b0
+go.temporal.io/server/tools/umpire/temporaldriver.TestUnheldCancellationRefusedBeforeCancelRPC.func1.1()
+	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/tools/umpire/temporaldriver/cancel_rpc_test.go:74 +0x48 fp=0xc002315fd0 sp=0xc002315f70 pc=0xeb3988
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0xc002315fd0 sp=0xc002315fd0 pc=0xd5ee4
+created by go.temporal.io/server/tools/umpire/temporaldriver.TestUnheldCancellationRefusedBeforeCancelRPC.func1 in goroutine 15224
+	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/tools/umpire/temporaldriver/cancel_rpc_test.go:74 +0x200
+
+r0      0x2312838
+r1      0x80
+r2      0x0
+r3      0x0
+r4      0x0
+r5      0x0
+r6      0x0
+r7      0xc10620103d66
+r8      0x62
+r9      0x1
+r10     0x3598
+r11     0x2
+r12     0x2
+r13     0x0
+r14     0x56adb043
+r15     0x0
+r16     0xfffff9cec6c0
+r17     0xfffffa4e6ae0
+r18     0x0
+r19     0xc003866c20
+r20     0xfffffa4e69e0
+r21     0x23126e0
+r22     0x1
+r23     0xffff9730be60
+r24     0x0
+r25     0x0
+r26     0x0
+r27     0x22d4000
+r28     0x2311620
+r29     0xfffffa4e6998
+lr      0x8e0b8
+sp      0xfffffa4e69a0
+pc      0xd778c
+fault   0x0
+FAIL	go.temporal.io/server/tools/umpire/temporaldriver	389.459s
+FAIL

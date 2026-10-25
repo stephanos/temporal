@@ -831,13 +831,14 @@ lint-actions: $(ACTIONLINT)
 # golangci-lint's --new-from-rev reads `git diff <rev>` of the whole tree, and its diff reader
 # (revgrep) parses the continuation of any line over 4 KiB as a fresh line: a tracked log that quotes
 # source on one line makes it panic. Both targets therefore filter by a patch of the Go files outside
-# testdata and nested modules, tracked and untracked, against the merge base. $(1) is the patch file.
+# Flow evidence, testdata and nested modules, tracked and untracked, against the merge base.
+# $(1) is the patch file.
 define go-only-patch
 base=$$(git merge-base HEAD "$(GOLANGCI_LINT_BASE_REV)"); \
 excludes=$$(git ls-files --cached --others --exclude-standard -- '*/go.mod' \
   | sed 's|/go.mod$$|/**|; s|^|:(exclude,glob)|'); \
-git diff --no-ext-diff --no-renames "$$base" -- '*.go' ':(exclude,glob)**/testdata/**' $$excludes > "$(1)"; \
-git ls-files --others --exclude-standard -- '*.go' ':(exclude,glob)**/testdata/**' $$excludes | \
+git diff --no-ext-diff --no-renames "$$base" -- '*.go' ':(exclude,glob).flow/**' ':(exclude,glob)**/testdata/**' $$excludes > "$(1)"; \
+git ls-files --others --exclude-standard -- '*.go' ':(exclude,glob).flow/**' ':(exclude,glob)**/testdata/**' $$excludes | \
 	while IFS= read -r file; do \
 		status=0; git diff --no-ext-diff --no-index -- /dev/null "$$file" >> "$(1)" || status=$$?; \
 		[ "$$status" -le 1 ] || exit "$$status"; \
@@ -855,8 +856,8 @@ lint-code-fast:
 	excludes=$$(git ls-files --cached --others --exclude-standard -- '*/go.mod' \
 	  | sed 's|/go.mod$$|/**|; s|^|:(exclude,glob)|'); \
 	targets=$$({ \
-		git diff --no-renames --name-only "$$base" -- '*.go' ':(exclude,glob)**/testdata/**' $$excludes; \
-		git ls-files --others --exclude-standard -- '*.go' ':(exclude,glob)**/testdata/**' $$excludes; \
+		git diff --no-renames --name-only "$$base" -- '*.go' ':(exclude,glob).flow/**' ':(exclude,glob)**/testdata/**' $$excludes; \
+		git ls-files --others --exclude-standard -- '*.go' ':(exclude,glob).flow/**' ':(exclude,glob)**/testdata/**' $$excludes; \
 	} | sed 's|^|./|; s|/[^/]*$$||' | sort -u \
 	  | while read -r dir; do [ -d "$$dir" ] && printf '%s ' "$$dir"; done); \
 	if [ -z "$$targets" ]; then \
