@@ -6,7 +6,9 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [],
+  "depends_on_epics": [
+    "fn-253-gomad-fast-validation-gates"
+  ],
   "id": "fn-249-gomad-retire-the-go-reference-models",
   "impl_review_rounds": {
     "fn-249-gomad-retire-the-go-reference-models.1": 0
@@ -191,5 +193,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T22:39:09.710430Z"
+  "updated_at": "2026-10-25T18:06:44.248461Z"
 }

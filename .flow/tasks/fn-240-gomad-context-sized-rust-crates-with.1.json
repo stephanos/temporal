@@ -3,12 +3,14 @@
   "claim_note": "",
   "claimed_at": null,
   "created_at": "2026-10-22T21:07:06.823258Z",
-  "depends_on": [],
+  "depends_on": [
+    "fn-240-gomad-context-sized-rust-crates-with.14"
+  ],
   "id": "fn-240-gomad-context-sized-rust-crates-with.1",
   "priority": null,
   "spec": "fn-240-gomad-context-sized-rust-crates-with",
   "spec_path": ".flow/tasks/fn-240-gomad-context-sized-rust-crates-with.1.md",
   "status": "todo",
   "title": "Dependency survey and crate cut table",
-  "updated_at": "2026-10-22T21:07:06.823258Z"
+  "updated_at": "2026-10-25T17:49:06.251841Z"
 }

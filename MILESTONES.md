@@ -53,6 +53,22 @@ Record a deferred task's revival trigger in its owning Flow task before implemen
 
 ## Immediate delivery order
 
+### Fast validation gates first (owner amendment, 2026-10-25)
+
+Validation gate speed takes priority over the remaining cleanup ladder below. Cycle 8 (2026-10-24) used the whole hour on 25 of 96 stages; the inner Rust loop needs 3 min to compile tests after a one-file change.
+[fn-253](.flow/specs/fn-253-gomad-fast-validation-gates.md) owns the work. Gates get faster, never weaker: no stage, assertion, bound or fn-246 obligation is dropped.
+
+1. **Now, in parallel with fn-242.** These don't touch the cycle driver's leaf argv:
+   - fn-253.1 inner loop (`check-fast`, dev profile with optimised dependencies)
+   - fn-253.6 cargo-nextest
+   - fn-253.4 standalone `tools/gomad` entrypoints (mise/cargo; the cycle's `make` argv changes after the cutover)
+   - fn-253.5 evidence store and retention (the first prune is a dry run the owner approves)
+2. **Inside fn-242.** The owner approved the gate-speed amendment on 2026-10-25, and it is applied in the fn-242 spec (366a3ebba9; rationale in [the amendment artifact](.flow/artifacts/fn242-gate-speed-amendment-draft-2026-10-25.md)). It covers G1 (custody hashing once per cycle), G2 (job counts match the admitted cores) and G3 (compile once). G1–G3 come before fn-242's remaining port tasks, so the Rust cycle verb does not take on the per-stage overhead.
+3. **Right after the fn-242 cutover:** fn-253.2 (cheap stages first), then fn-253.3 (content-keyed stage reuse for development cycles; never in fn-246).
+4. **Then** the throughput order below continues. fn-248 and fn-249 depend on fn-253 at spec level, so fn-247, fn-240, fn-245 and fn-246 follow it transitively.
+
+Workers pick fn-253 tasks ahead of any other ready task outside fn-242.
+
 ### Cleanup first (owner amendment, 2026-10-24)
 
 Finish the narrow fn-232.30 checkpoint, then complete fn-242's Rust driver implementation
@@ -532,7 +548,20 @@ CI, PR, or push authority.
 
 ## Open specs
 
-Listed by spec dependencies and the current delivery order (2026-10-24): fn-242 → (fn-249 ∥ fn-248) → fn-247 → fn-240 → (fn-245 ∥ fn-246) → fn-232 acceptance closeout. Deferred work follows the active ladder.
+Listed by spec dependencies and the current delivery order (2026-10-25): fn-253 (∥ fn-242 where it does not touch the cycle argv) → fn-242 cutover → fn-253.2/.3 → (fn-249 ∥ fn-248) → fn-247 → fn-240 → (fn-245 ∥ fn-246) → fn-232 acceptance closeout. Deferred work follows the active ladder.
+
+### Fast validation gates — [fn-253](.flow/specs/fn-253-gomad-fast-validation-gates.md)
+
+Owner amendment 2026-10-25: highest priority outside fn-242. Gates get faster, never weaker. The fn-242 G1–G3 amendment is approved and applied (366a3ebba9). fn-253.2 starts only after the fn-242 cutover; Flow lists it as ready because it cannot express that cross-spec dependency.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-253.1](.flow/tasks/fn-253-gomad-fast-validation-gates.1.md) | ⬜ Todo | Inner loop: `check-fast` and dev profile with optimised dependencies |
+| [fn-253.6](.flow/tasks/fn-253-gomad-fast-validation-gates.6.md) | ⬜ Todo | Adopt cargo-nextest for gomad Rust tests |
+| [fn-253.4](.flow/tasks/fn-253-gomad-fast-validation-gates.4.md) | ⬜ Todo | Standalone `tools/gomad`: mise tasks and cargo entrypoints replace the Makefiles |
+| [fn-253.5](.flow/tasks/fn-253-gomad-fast-validation-gates.5.md) | ⬜ Todo | Content-addressed evidence store and retention verb (owner approves first dry run) |
+| [fn-253.2](.flow/tasks/fn-253-gomad-fast-validation-gates.2.md) | ⬜ Todo | Cheap stages first: measured cost classes in the cycle scheduler (after fn-242 cutover) |
+| [fn-253.3](.flow/tasks/fn-253-gomad-fast-validation-gates.3.md) | ⬜ Todo | Content-keyed stage reuse for development cycles (after .2; never in fn-246) |
 
 ### Qualification machinery cleanup — [fn-242](.flow/specs/fn-242-gomad-shrink-the-qualification.md)
 
@@ -623,6 +652,7 @@ Target layout fixed by the owner on 2026-10-24 (spec Amendment 4); R11 typed err
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
+| [fn-240.14](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.14.md) | ⬜ Todo | Adopt umpire `rustfmt.toml`: one reformat commit before the .1 baseline (after fn-242 worktrees merge) |
 | [fn-240.1](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.1.md) | ⏸ Parked | Survey done; `cargo build --timings` baseline still to record |
 | [fn-240.5](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.5.md) | ⬜ Todo | Foundations: `HostError`, identity closure with flip-byte test, inventory scanner, workspace lints and allow-list |
 | [fn-240.2](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.2.md) | ⬜ Todo | Extract `gomad-evidence` with boundary tests (three listed back-edges first) |
@@ -666,6 +696,8 @@ Original acceptance closes from fn-246 receiving after fn-242 and fn-240. New ev
 | [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | ⛔ Blocked | Original reach acceptance; fn-246.1 restores strict admission before final qualification |
 | [fn-232.32](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.32.md) | ⛔ Blocked | Unify literal payload read bounds with authenticated limits (same class as the .30 replay refusal) |
 | [fn-232.33](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.33.md) | ⬜ Todo | producer.py installs without `--compile-cache`; warm-resident budget refuses storage, network and clusters cells (found standalone 2026-10-24; fix proven) |
+| [fn-232.34](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.34.md) | ⬜ Todo | Bump wasmtime off 47.0.3 to clear 20 cargo-deny advisories (one qualification cycle with .35) |
+| [fn-232.35](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.35.md) | ⬜ Todo | Release profile `overflow-checks = true` (umpire parity) |
 
 Historical closure plan, superseded by the cleanup-first amendment above: tasks .21–.26 were closure predecessors of the already-running .13. The conductor
 launches one fresh cycle after the integrated .21 and .26 repairs pass; .22–.25 prepare independently and finish

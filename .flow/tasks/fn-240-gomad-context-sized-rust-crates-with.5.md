@@ -14,7 +14,7 @@ Umpire-parity amendment (owner, 2026-10-25; compared against umpire/temporal/mod
 - (e) Every workspace package opts into `[workspace.lints]` with `[lints] workspace = true`, including `tools/source_size`, which has no lint table today and which `lint-rust` and the driver `rust-lint` stage never lint (both list packages by name). The workspace table keeps exactly today's per-crate clippy set; R12 adds the two size lints and nothing else. Extend `lint-rust` and the driver stage to every workspace package here rather than waiting for .13.
 - (f) Add `clippy.toml` with umpire's thresholds: `too-many-arguments-threshold = 6`, `type-complexity-threshold = 300`, `cognitive-complexity-threshold = 25`. New offenders join the R12 allow-list under the same rules.
 - (g) Add `[workspace.package]` (`edition`, `rust-version`, `publish = false`, `license`); crates inherit with `.workspace = true`. This replaces the per-crate `publish = false` lines that `deny.toml` (`private = { ignore = true }`, `allow-wildcard-paths`) relies on; `cargo deny --workspace check -D warnings bans licenses sources` stays green.
-- (h) Add `rustfmt.toml` matching umpire (`style_edition = "2024"`, `max_width = 100`, `use_small_heuristics = "Max"`, `reorder_imports`, `newline_style = "Unix"`; stable options only). Land the mass reformat as its own commit containing nothing else, and list its hash in `.git-blame-ignore-revs`. Coordinate with open worktrees: anyone still in flight rebases onto a reformatted tree.
+- (h) Moved to the rustfmt task that .1 depends on (owner, 2026-10-25): the reformat has to land before the .1 line-count baseline.
 - (i) Add a rustdoc gate: `RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps`, in `lint-rust` and in the driver `rust-lint` stage. It is clean on 2026-10-25, so this only locks that in.
 
 Precondition seen 2026-10-25: `make -C tools/gomad lint-rust` was red on head. `-p gomad --all-targets -D warnings` gave ~370 errors, all in test targets (`allocation_receiving`, the three `cycle_*_owner` fixtures, `cfg(test)` modules under `cycle/`); lib and bins were clean. This task's acceptance assumes fn-242 leaves that gate green.
@@ -23,7 +23,7 @@ grep -rn 'wasmtime::' under wasmhost/src/{model,namespace,protocol.rs,transcript
 - `HostError` derives `thiserror::Error`; later extractions follow the same pattern.
 - The kind enum covers every message-prefix classification; extraction tasks convert prefix dispatch with their error enums.
 - Every workspace package has `[lints] workspace = true`; `lint-rust` and the driver `rust-lint` stage cover every workspace package (a new crate is linted without editing either list).
-- `clippy.toml`, `rustfmt.toml` and `[workspace.package]` exist as described in (f)-(h); the reformat commit contains only formatting and is listed in `.git-blame-ignore-revs`.
+- `clippy.toml` and `[workspace.package]` exist as described in (f) and (g).
 - The rustdoc gate (i) runs in `lint-rust` and in the driver, and it passes.
 ## Done summary
 TBD

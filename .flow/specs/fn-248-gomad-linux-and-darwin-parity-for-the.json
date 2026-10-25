@@ -2,7 +2,8 @@
   "branch_name": "fn-248-gomad-linux-and-darwin-parity-for-the",
   "created_at": "2026-10-24T22:04:55.549615Z",
   "depends_on_epics": [
-    "fn-242-gomad-shrink-the-qualification"
+    "fn-242-gomad-shrink-the-qualification",
+    "fn-253-gomad-fast-validation-gates"
   ],
   "id": "fn-248-gomad-linux-and-darwin-parity-for-the",
   "next_task": 1,
@@ -22,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T22:07:17.708025Z"
+  "updated_at": "2026-10-25T18:06:43.908315Z"
 }

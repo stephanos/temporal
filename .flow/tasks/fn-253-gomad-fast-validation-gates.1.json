@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-25T17:55:45.507804Z",
+  "depends_on": [],
+  "id": "fn-253-gomad-fast-validation-gates.1",
+  "priority": null,
+  "spec": "fn-253-gomad-fast-validation-gates",
+  "spec_path": ".flow/tasks/fn-253-gomad-fast-validation-gates.1.md",
+  "status": "todo",
+  "title": "Inner loop: make check-fast and dev profile with optimised dependencies",
+  "updated_at": "2026-10-25T17:55:45.507804Z"
+}
