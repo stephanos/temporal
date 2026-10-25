@@ -70,6 +70,12 @@ pub(crate) struct RetainedArtifact {
     pub payloads: BTreeMap<String, Vec<u8>>,
 }
 
+pub(super) struct PrivateInputAuthority {
+    pub original: PathBuf,
+    pub sha256: String,
+    pub detached: bool,
+}
+
 pub(crate) struct RetainedSession {
     config: Value,
     root: PathBuf,
@@ -77,6 +83,8 @@ pub(crate) struct RetainedSession {
     preparations: BTreeMap<PathBuf, preparation::PreparedObservation>,
     pending_preparations: Vec<preparation::Pending>,
     build_roles: BTreeMap<PathBuf, Value>,
+    private_inputs: BTreeMap<String, PrivateInputAuthority>,
+    private_input_roots: BTreeMap<PathBuf, PathBuf>,
 }
 impl RetainedSession {
     pub(crate) fn new(config: &Configured) -> Result<Self, String> {
@@ -98,6 +106,8 @@ impl RetainedSession {
             preparations: BTreeMap::new(),
             pending_preparations: Vec::new(),
             build_roles: BTreeMap::new(),
+            private_inputs: BTreeMap::new(),
+            private_input_roots: BTreeMap::new(),
         })
     }
     fn check_root(&self) -> Result<(), String> {
@@ -305,7 +315,11 @@ impl RetainedSession {
             stderr,
         })
     }
-    pub(crate) fn artifact(&self, path: &Path) -> Result<RetainedArtifact, String> {
+    pub(crate) fn with_artifact<T>(
+        &self,
+        path: &Path,
+        read: impl FnOnce(&Opened) -> Result<T, String>,
+    ) -> Result<T, String> {
         let parent = self.directory(path.parent().ok_or("artifact parent missing")?)?;
         let pool = if open::entries(&parent)?
             .iter()
@@ -319,39 +333,59 @@ impl RetainedSession {
         } else {
             None
         };
-        let opened = Opened::from_root_with_pool(self.directory(path)?, pool.as_ref())?;
-        let manifest = opened.manifest().clone();
+        let directory = self.directory(path)?;
+        let before = directory.metadata().map_err(|e| e.to_string())?;
+        let opened = Opened::from_root_with_pool(directory, pool.as_ref())?;
+        let value = read(&opened)?;
+        opened.authenticate_all()?;
+        let after = self
+            .directory(path)?
+            .metadata()
+            .map_err(|e| e.to_string())?;
         require(
-            manifest.files.values().filter(|e| e.module).count() == 1,
-            "exactly one authenticated native module required",
+            (before.dev(), before.ino()) == (after.dev(), after.ino()),
+            "artifact directory identity changed during receiving",
         )?;
-        let mut payloads = BTreeMap::new();
-        let mut total = 0u64;
-        for (name, entry) in &manifest.files {
-            let limit = match name.as_str() {
-                "target/module.wasm" => 512 << 20,
-                "target/provenance.json" | "evidence/replay.json" | "record.json" => 16 << 20,
-                _ if matches!(name.rsplit('/').next(), Some("choice" | "transcript"))
-                    || name.starts_with("output/")
-                    || name.contains("/output/") =>
-                {
-                    1 << 30
-                }
-                _ => 256 << 20,
-            };
-            total = total
-                .checked_add(entry.bytes)
-                .ok_or("artifact aggregate byte overflow")?;
-            let bytes = opened.payload(name, limit)?;
-            if matches!(
-                name.as_str(),
-                "target/module.wasm" | "target/provenance.json" | "evidence/replay.json"
-            ) {
-                payloads.insert(name.clone(), bytes);
-            }
-        }
         self.check_root()?;
-        Ok(RetainedArtifact { manifest, payloads })
+        Ok(value)
+    }
+    pub(crate) fn artifact(&self, path: &Path) -> Result<RetainedArtifact, String> {
+        self.with_artifact(path, |opened| {
+            let manifest = opened.manifest().clone();
+            require(
+                manifest.files.values().filter(|e| e.module).count() == 1,
+                "exactly one authenticated native module required",
+            )?;
+            let mut payloads = BTreeMap::new();
+            let mut total = 0_u64;
+            for (name, entry) in &manifest.files {
+                let limit = match name.as_str() {
+                    "target/module.wasm" => 512 << 20,
+                    "target/provenance.json" | "evidence/replay.json" | "record.json" => 16 << 20,
+                    _ if matches!(name.rsplit('/').next(), Some("choice" | "transcript"))
+                        || name.starts_with("output/")
+                        || name.contains("/output/") =>
+                    {
+                        1 << 30
+                    }
+                    _ => 256 << 20,
+                };
+                require(
+                    entry.bytes <= limit,
+                    "artifact payload exceeds current global bound",
+                )?;
+                total = total
+                    .checked_add(entry.bytes)
+                    .ok_or("artifact aggregate byte overflow")?;
+                if matches!(
+                    name.as_str(),
+                    "target/module.wasm" | "target/provenance.json" | "evidence/replay.json"
+                ) {
+                    payloads.insert(name.clone(), opened.payload(name, limit)?);
+                }
+            }
+            Ok(RetainedArtifact { manifest, payloads })
+        })
     }
     pub(crate) fn authenticate_build(
         &mut self,

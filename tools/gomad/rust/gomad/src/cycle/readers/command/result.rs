@@ -4,6 +4,15 @@ use super::{
 };
 use crate::qualify::result::{self, Manifest, QualificationResult};
 
+pub(super) const CHOICE_SOURCES: [&str; 7] = [
+    "choice/schema/choicewire.json",
+    "choice/schema/choicewire.go.tmpl",
+    "choice/schema/choicewire_runtime.go.tmpl",
+    "choice/schema/choicewire_test.go.tmpl",
+    "runtimesource/gomad_semantics.go.txt",
+    "choice/trace.go",
+    "choice/tape.go",
+];
 impl RetainedSession {
     pub(crate) fn provenance(&self, provenance: &Value) -> Result<Manifest, String> {
         let inputs = &provenance["inputs"];
@@ -14,15 +23,27 @@ impl RetainedSession {
             "prepared provenance belongs to foreign release/helper",
         )?;
         let compiler = text(inputs, "compiler_path")?;
+        let frozen = self.config["files"].get(compiler).and_then(Value::as_str);
+        let alias = self.private_inputs.get(compiler);
+        let expected = frozen.or_else(|| alias.map(|value| value.sha256.as_str()));
         require(
-            self.config["files"].get(compiler) == inputs.get("compiler_sha256"),
+            expected == Some(text(inputs, "compiler_sha256")?),
             "qualification compiler path/hash not frozen",
         )?;
-        require(
-            digest(&custody::read_file(Path::new(compiler), 512 << 20)?)
-                == text(inputs, "compiler_sha256")?,
-            "actual frozen compiler changed",
-        )?;
+        if frozen.is_some() || !alias.is_some_and(|value| value.detached) {
+            require(
+                digest(&custody::read_file(Path::new(compiler), 512 << 20)?)
+                    == text(inputs, "compiler_sha256")?,
+                "actual frozen compiler changed",
+            )?;
+        }
+        if configuration["profile"] == "gomad.wasi-cooperative/v1" {
+            let inventory = crate::cycle::preparation::inputs::Inventory::new(&self.config)?;
+            let root = Path::new(text(&self.config, "repo")?).join("tools/gomad/internal/model");
+            for name in CHOICE_SOURCES {
+                inventory.file_bytes(&root.join(name))?;
+            }
+        }
         let manifest = Manifest {
             schema: result::MANIFEST_SCHEMA.into(),
             provisional: false,
@@ -85,6 +106,10 @@ impl RetainedSession {
         )?;
         self.provenance(&retained.provenance)?;
         let report = &retained.report;
+        let success = report
+            .executions
+            .iter()
+            .all(|row| row.record.outcome.class == "success");
         require(
             report.executions.len() == 2
                 && report.executions.iter().map(|row| row.iteration).eq([1, 2])
@@ -93,8 +118,8 @@ impl RetainedSession {
                 && !report.command.is_empty()
                 && report.failure.is_none()
                 && report.deterministic
-                && report.qualified
-                && report.target_success
+                && report.qualified == success
+                && report.target_success == success
                 && report.first_divergence.is_none(),
             "Result lacks complete deterministic final outcomes",
         )?;
@@ -109,6 +134,7 @@ impl RetainedSession {
             "Result lacks complete within-budget raw accounting",
         )?;
         for execution in &report.executions {
+            Self::stream_owners(&execution.record)?;
             for phase in ["execute", "replay"] {
                 require(
                     retained.observations.samples.iter().any(|sample| {
@@ -119,6 +145,37 @@ impl RetainedSession {
             }
         }
         Ok(())
+    }
+    pub(super) fn stream_owners(record: &crate::evidence::record::Record) -> Result<(), String> {
+        for name in record.streams.keys() {
+            if let Some(owner) = name.strip_prefix("evidence/cluster/") {
+                let parts = owner.splitn(3, '/').collect::<Vec<_>>();
+                require(
+                    parts.len() == 3 && parts.iter().all(|part| !part.is_empty()),
+                    "malformed cluster stream owner",
+                )?;
+            }
+        }
+        Ok(())
+    }
+    pub(super) fn final_publication(
+        retained: &QualificationResult,
+        receipt: &result::Receipt,
+        terminal: &crate::qualify::cost::Terminal,
+    ) -> Result<(), String> {
+        require(
+            receipt.linked_after.is_some()
+                && receipt.operator_peak_rss_bytes.is_some_and(|peak| {
+                    peak > 0
+                        && peak <= 2 << 30
+                        && retained
+                            .observations
+                            .operator_peak_rss_bytes
+                            .is_some_and(|before| before > 0 && before <= peak)
+                })
+                && terminal.status == "within",
+            "final Result publication lacks attributed within-budget measurement",
+        )
     }
     #[expect(
         clippy::too_many_lines,
@@ -138,9 +195,10 @@ impl RetainedSession {
                 && reported["receipt"]
                     == serde_json::to_value(&receipt).map_err(|e| e.to_string())?
                 && reported["publication"]
-                    == serde_json::to_value(terminal).map_err(|e| e.to_string())?,
+                    == serde_json::to_value(&terminal).map_err(|e| e.to_string())?,
             "public report differs from raw Result/receipt/publication",
         )?;
+        Self::final_publication(&retained, &receipt, &terminal)?;
         self.final_contract(&retained)?;
         let manifest = &retained.manifest;
         let report = &retained.report;

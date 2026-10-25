@@ -575,10 +575,6 @@ pub(crate) fn read_record(
     )
 }
 #[expect(
-    clippy::too_many_arguments,
-    reason = "Frozen candidate and dry-run fallback retain distinct custody semantics"
-)]
-#[expect(
     clippy::too_many_lines,
     reason = "One transaction retains all parsed input pins until final source and byte revalidation"
 )]
