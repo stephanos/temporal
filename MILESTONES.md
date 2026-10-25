@@ -514,12 +514,10 @@ Execute this spec through [16 owner-authorized batches](.flow/artifacts/fn242-ex
 | --- | --- | --- |
 | [fn-242.17](.flow/tasks/fn-242-gomad-shrink-the-qualification.17.md) | 🚧 Running | Freeze authenticated role and configuration bindings |
 | [fn-242.19](.flow/tasks/fn-242-gomad-shrink-the-qualification.19.md) | ⬜ Todo | Compose fixed stages and surviving endpoint bindings |
-| [fn-242.18](.flow/tasks/fn-242-gomad-shrink-the-qualification.18.md) | 🚧 Running | Validate command, artifact and preparation custody |
-| [fn-242.21](.flow/tasks/fn-242-gomad-shrink-the-qualification.21.md) | ⬜ Todo | Validate retained storage and engine codecs |
-| [fn-242.24](.flow/tasks/fn-242-gomad-shrink-the-qualification.24.md) | ⬜ Todo | Validate actual guest and preparation observations |
+| [fn-242.24](.flow/tasks/fn-242-gomad-shrink-the-qualification.24.md) | 🚧 Running | Validate actual guest and preparation observations |
 | [fn-242.25](.flow/tasks/fn-242-gomad-shrink-the-qualification.25.md) | ⬜ Todo | Validate inspection decoding, search and refused mappings |
 | [fn-242.35](.flow/tasks/fn-242-gomad-shrink-the-qualification.35.md) | ⬜ Todo | Validate installed inspection and recovery evidence |
-| [fn-242.27](.flow/tasks/fn-242-gomad-shrink-the-qualification.27.md) | ⬜ Todo | Validate World, network, boot and cluster wire observations |
+| [fn-242.27](.flow/tasks/fn-242-gomad-shrink-the-qualification.27.md) | 🚧 Running | Validate World, network, boot and cluster wire observations |
 | [fn-242.36](.flow/tasks/fn-242-gomad-shrink-the-qualification.36.md) | ⬜ Todo | Validate lifecycle recovery, drain and capacity |
 | [fn-242.26](.flow/tasks/fn-242-gomad-shrink-the-qualification.26.md) | ⬜ Todo | Validate retained inputs, presence and mutation matrix |
 | [fn-242.34](.flow/tasks/fn-242-gomad-shrink-the-qualification.34.md) | ⬜ Todo | Validate mandatory Results, SQLite selections and Temporal histories |
