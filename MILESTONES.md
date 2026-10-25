@@ -49,14 +49,14 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-254.2 | ⬜ todo | After .1: TLC one batched run per check, split on failure, parallel properties; equivalence control (R3) |
+| fn-254.2 | 🔄 in progress | TLC batching and bounded property runs; exact verdict/trace equivalence against the original path (R3) |
 | fn-254.3 | ⬜ todo | After .10: cargo-nextest across binaries with a JVM test group; identical logical test inventory (R4) |
 | fn-254.4 | ⬜ todo | After .9: one test binary per `umpire` crate, cheaper test debuginfo, faster linker if measured (R4) |
 | fn-254.5 | ⬜ todo | After .10: Apalache out of routine gates, overlapping stages, trybuild trim, dead `model-check-changed` removed (R5) |
 | fn-254.6 | ⬜ todo | After .2, .10: `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
 | fn-254.7 | ⛔ blocked | After .4 and committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After .2–.7, .11, .12: final measurement against the baseline, targets, docs (R6, R1) |
-| fn-254.9 | ⬜ todo | After .1: classify gate steps, scripts and caches as framework or Temporal; owner picks entry point and workspace (R7) |
+| fn-254.9 | 🔄 in progress | Classify gate/tool ownership and select standalone entry point/workspace under delegated judgment (R7) |
 | fn-254.10 | ⬜ todo | After .13: compose framework gate in `model/umpire`; root Makefile delegates and keeps Temporal steps (R7) |
 | fn-254.11 | ⬜ todo | After .10: framework gate passes on `model/umpire` alone; planted Temporal coupling fails (R7) |
 | fn-254.12 | ⬜ todo | After framework optimizations and controls: committed stage budgets; hard work counts, bounded timing retry, unbudgeted stages fail (R8) |
