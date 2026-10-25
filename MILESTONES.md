@@ -102,7 +102,7 @@ fn-248 closed locally on 2026-10-25: crates replace hand-written code (insta gol
 
 fn-250.1/.2, fn-251.1/.2 and fn-252.1/.2 are complete locally: their scoped reviews and the joined `UMPIRE_APALACHE=require make model-validate` passed at `1c1e7fbf07`, including TLC, Apalache, workspace tests, guest freshness and all three Go hosts. The gate took 1549.246s against the 60s soft target; the inner loop took 7.623s against 10s. This used a cold task-owned cache with other independent work active, so it is not a controlled speed comparison. Apalache still refuses Models with non-unit edge facts until fn-250.3 supplies the required real-tool replay control.
 
-fn-251.6 and fn-252.8 are complete locally and integrated: three-draw SHIP reviews, joined focused Rust tests and strict clippy passed; the regenerated Temporal guest is fresh, all standard wasm guests/native controls built, and Temporal/runtime/Kettle Go host suites passed on the same model tree. The consolidation parents retain their final full-gate obligations. fn-250.3 is now implementing shared typed replay in its isolated lane.
+fn-251.6 and fn-252.8 are complete locally and integrated: three-draw SHIP reviews, joined focused Rust tests and strict clippy passed; the regenerated Temporal guest is fresh, all standard wasm guests/native controls built, and Temporal/runtime/Kettle Go host suites passed on the same model tree. The consolidation parents retain their final full-gate obligations. fn-250.3 and fn-251.3 are integrated for implementation review and joined validation; their scoped tests passed. fn-252.5 is consolidating the existing test coverage in an isolated lane.
 
 ### fn-250: Shared value, type and trace layer for the TLA+ back ends (model)
 
@@ -114,7 +114,7 @@ Apalache. One layer replaces them (about 600–800 lines). A parallel lane after
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-250.3 | 🔄 in progress | Observer names in one module; one typed trace-replay core for TLC and Apalache, including real-tool fact controls (R3) |
+| fn-250.3 | 🔄 in progress | Typed replay and observer ownership implemented; real-tool facts/TLC controls passed; review/full gate pending (R3) |
 
 ### fn-251: One probe engine and one catalog build path for Kettle and Temporal (model, temporal)
 
@@ -127,7 +127,7 @@ before fn-246, which rewrites the same probes.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-251.3 | 🔄 in progress | Generated `request_findings` replaces Temporal's `Wire` enum, preserving supplemental intents and failure findings (R3) |
+| fn-251.3 | 🔄 in progress | Generated findings/typed dispatch replace `Wire`; semantic controls passed; review/joined validation pending (R3) |
 | fn-251.5 | ⬜ todo | After .2: generated annotation dispatch and `AnnotationRuntime::with_probes` (R5) |
 | fn-251.4 | ⬜ todo | After .3: one generic probe engine for Kettle and Temporal (R4) |
 
@@ -142,7 +142,7 @@ Both tasks completed locally with focused checks and scoped SHIP reviews: .3 rem
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-252.5 | ⬜ todo | After fn-251.6 where it touches `temporal/annotate`: trybuild cases to tables, guest test harness, `protocol::Method`, catalog-syntax tests (R5) |
+| fn-252.5 | 🔄 in progress | Preserve compiler-dependent controls; table/unit admission cases, shared guest harness and existing Method enum, syntax test ownership (R5) |
 | fn-252.6 | ⬜ todo | Activity TLC replay through the shared replay (fn-250.3's core if landed) (R6) |
 | fn-252.7 | ⬜ todo | One proto-go script, one wasm environment variable, workspace lints for guests (R7) |
 
@@ -185,6 +185,8 @@ The obsolete whole-fn-243 dependency is removed; the whole-fn-247 dependency rem
 | fn-246.6 | ⬜ todo | After .3, .4, .5: integrated evidence, count/timing gates and author docs (R1–R7) |
 
 ### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
+
+The amended remaining plan has passed fresh primary review and is integrated. Its committed-prerequisite admission and every original live/SDK proof remain required.
 
 Split from fn-227 on 2026-10-21 by owner decision; depends on fn-227. Carries the four optional
 timeouts, Heartbeat, Tick and cooperative cancellation with their native and source support
