@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-246-realization-as-a-checked-refinement-a.15",
+  "verdict": "SHIP",
+  "session_id": "01a174b4-4315-7a72-a822-259023b1bb23",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "No surviving findings. All three backend draws returned SHIP for task .15's approved correction.\n\nThe draws confirmed exact timeout facts, timer rearming/clearing, global-budget priority, attempt bounds, compatibility projection, source lifting and native adapter agreement. They checked matching source/binary hashes and ran focused retained controls. The original timed-out TLC command remains inconclusive; its passing unfinished-test complement covers the recorded remaining tests. The joined full gate remains conductor-owned evidence, separate from these reviewer checks.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n| --- | --- | --- |\n| R5 | partial | Task .15's approved timeout correction and focused proof renewal are implemented. Protocol/refinement and live work retain their separate owners. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a174b4-4315-7a72-a822-259023b1bb23",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a174b4-4318-7a83-9a41-d831d37911d0",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a174b4-431d-7bf0-94f8-f7406ee8f740",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": null,
+  "introduced_count": 0,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}

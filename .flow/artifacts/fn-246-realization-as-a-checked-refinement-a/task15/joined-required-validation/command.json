@@ -1,0 +1,18 @@
+{
+  "source_commit": "3d54e19b1bfbce799ada92e4d5ffc7e8db636797",
+  "model_tree": "aedbb9abca63e161ae796d8d087c03043895862b",
+  "command": [
+    "make",
+    "model-validate"
+  ],
+  "started_at": "2026-10-25T19:28:27.247468+00:00",
+  "status": "terminal",
+  "purpose": "required fn246 joined validation; no fn254 baseline measurement",
+  "cache_state": "warm root fn24612; separate fn254 implementation worktrees may build in private targets",
+  "pid": 3812744,
+  "exit_code": 0,
+  "seconds": 1607.932,
+  "finished_at": "2026-10-25T19:55:15.179894+00:00",
+  "log": ".flow/tmp/milestones-resume-20261024/fn246-joined-required-validation-attempt3.log",
+  "log_sha256": "cf3d90163bbbc413a56d45d20a6f109e1a22388b409eef3d58af486cda6e6488"
+}

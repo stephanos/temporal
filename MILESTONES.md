@@ -19,8 +19,8 @@ The Scala tree under `model/archived/` is frozen reference material.
 
 Current order: **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
-ranks a fast feedback loop among the most important properties. fn-246.15 continues through joined validation and
-review while fn-254.2 renews the batching equivalence proofs. Deliver fn-254's independent framework/gate checkpoint,
+ranks a fast feedback loop among the most important properties. fn-246's in-flight work is wrapped;
+fn-254.2 is renewing batching equivalence proofs. Deliver fn-254's independent framework/gate checkpoint,
 resume fn-246 to closure, then finish fn-254.7/.8.
 The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246, and fn-254.13's workspace move lands at an
 integration boundary. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; fn-253.1, .7, .9
@@ -105,7 +105,6 @@ subprocess refusal remains recorded separately.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-246.15 | 🔄 in progress | Approved nonpending timeout-retry correction and native/TLC proof renewal (R5) |
 | fn-246.13 | ⬜ todo | After committed .15: independent standalone-activity protocol Model and native/TLC invariants (R5) |
 | fn-246.9 | ⬜ todo | After .8: current-format whole-prefix Run recording, replay and presentation (R1, R5) |
 | fn-246.10 | ⬜ todo | After .9: bounded alternatives and coherent explanation publication (R1, R5) |

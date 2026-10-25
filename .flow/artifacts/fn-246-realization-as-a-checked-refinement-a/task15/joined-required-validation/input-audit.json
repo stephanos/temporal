@@ -1,0 +1,22 @@
+{
+  "checked_at": "2026-10-25T20:17:41.301380+00:00",
+  "current_head": "81f509b088226986e5ea2cbd8ee10a2942d430e4",
+  "gate_source": "3d54e19b1bfbce799ada92e4d5ffc7e8db636797",
+  "gate_exit": 0,
+  "gate_seconds": 1607.932,
+  "gate_log_sha256": "cf3d90163bbbc413a56d45d20a6f109e1a22388b409eef3d58af486cda6e6488",
+  "required_backend_mode": "require",
+  "optional_apalache": "skip, opt-in deferred",
+  "workspace_tests_stage_seconds": 1340.14,
+  "stage_output_limit": "Successful step wrapper suppresses per-test stdout; full unfiltered workspace test stage exit0 is proven by outer command0. No third-run per-test count extracted. Explicit39/2 receipt remains in attempt2, with identical task15Model sources.",
+  "model_source_sha_verified": 9,
+  "protected_paths_unchanged": 154,
+  "post_gate_model_tree_delta": [
+    "model/design/framework-gate.md"
+  ],
+  "post_gate_compiled_inputs_changed": false,
+  "added_design_doc_hygiene": "passed separately using existing native helper",
+  "review_base": "4100c8879d",
+  "prior_failed_attempts": "retained task8/task11 integration evidence",
+  "purpose": "Required fn246 joined verification, not new fn254 baseline measurement"
+}
