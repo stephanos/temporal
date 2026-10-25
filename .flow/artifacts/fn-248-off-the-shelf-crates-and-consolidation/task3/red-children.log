@@ -1,0 +1,79 @@
+   Compiling syn v3.0.9
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2483-traversal/model/umpire/ir/derive)
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2483-traversal/model/umpire/ir)
+error[E0599]: no method named `children` found for enum `expr::ExprKind` in the current scope
+  --> umpire/ir/src/expr_tests.rs:41:35
+   |
+41 |         let values: Vec<_> = kind.children().map(|expr| expr.kind.clone()).collect();
+   |                                   ^^^^^^^^ method not found in `expr::ExprKind`
+   |
+  ::: umpire/ir/src/expr.rs:12:1
+   |
+12 | pub enum ExprKind {
+   | ----------------- method `children` not found for this enum
+
+error[E0599]: no method named `children_mut` found for enum `expr::ExprKind` in the current scope
+  --> umpire/ir/src/expr_tests.rs:44:27
+   |
+44 |         for child in kind.children_mut() {
+   |                           ^^^^^^^^^^^^ method not found in `expr::ExprKind`
+   |
+  ::: umpire/ir/src/expr.rs:12:1
+   |
+12 | pub enum ExprKind {
+   | ----------------- method `children_mut` not found for this enum
+
+error[E0614]: type `i128` cannot be dereferenced
+  --> umpire/ir/src/expr_tests.rs:46:26
+   |
+46 |             visited.push(*value);
+   |                          ^^^^^^ can't be dereferenced
+
+error[E0614]: type `i128` cannot be dereferenced
+  --> umpire/ir/src/expr_tests.rs:47:13
+   |
+47 |             *value = -*value;
+   |             ^^^^^^ can't be dereferenced
+
+error[E0614]: type `i128` cannot be dereferenced
+  --> umpire/ir/src/expr_tests.rs:47:23
+   |
+47 |             *value = -*value;
+   |                       ^^^^^^ can't be dereferenced
+
+error[E0599]: no method named `children` found for enum `expr::ExprKind` in the current scope
+  --> umpire/ir/src/expr_tests.rs:54:21
+   |
+54 |     assert_eq!(kind.children().collect::<Vec<_>>(), vec![&nested]);
+   |                     ^^^^^^^^ method not found in `expr::ExprKind`
+   |
+  ::: umpire/ir/src/expr.rs:12:1
+   |
+12 | pub enum ExprKind {
+   | ----------------- method `children` not found for this enum
+
+error[E0599]: no method named `children_mut` found for enum `expr::ExprKind` in the current scope
+  --> umpire/ir/src/expr_tests.rs:62:32
+   |
+62 |         for child in expr.kind.children_mut() {
+   |                                ^^^^^^^^^^^^ method not found in `expr::ExprKind`
+   |
+  ::: umpire/ir/src/expr.rs:12:1
+   |
+12 | pub enum ExprKind {
+   | ----------------- method `children_mut` not found for this enum
+
+error[E0599]: no method named `children` found for enum `expr::ExprKind` in the current scope
+  --> umpire/ir/src/expr_tests.rs:65:22
+   |
+65 |         if expr.kind.children().next().is_some() {
+   |                      ^^^^^^^^ method not found in `expr::ExprKind`
+   |
+  ::: umpire/ir/src/expr.rs:12:1
+   |
+12 | pub enum ExprKind {
+   | ----------------- method `children` not found for this enum
+
+Some errors have detailed explanations: E0599, E0614.
+For more information about an error, try `rustc --explain E0599`.
+error: could not compile `umpire-ir` (lib test) due to 8 previous errors

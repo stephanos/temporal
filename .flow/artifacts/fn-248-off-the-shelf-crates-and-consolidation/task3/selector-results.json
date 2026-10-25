@@ -1,0 +1,32 @@
+[
+  {
+    "command": "mise exec -- cargo test -p umpire-ir --lib --locked expr::tests",
+    "cwd": "model",
+    "exit_code": 0,
+    "log": "select-ir.log"
+  },
+  {
+    "command": "mise exec -- cargo test -p umpire-tla --lib --locked rename_override_stops_before_replacement_children",
+    "cwd": "model",
+    "exit_code": 0,
+    "log": "select-rename.log"
+  },
+  {
+    "command": "mise exec -- cargo test -p umpire-tla --lib --locked priming_recurses_through_nested_vectors_and_three_children_without_changing_other_leaves",
+    "cwd": "model",
+    "exit_code": 0,
+    "log": "select-prime.log"
+  },
+  {
+    "command": "mise exec -- cargo test -p umpire-fixtures --test interpreted --locked rewrite_visits_replacement_children_in_preorder",
+    "cwd": "model",
+    "exit_code": 0,
+    "log": "select-rewrite.log"
+  },
+  {
+    "command": "mise exec -- rustfmt --check umpire/ir/src/expr.rs umpire/ir/src/expr_tests.rs umpire/backends/tla/src/names.rs umpire/backends/tla/src/emit.rs umpire/backends/tla/src/emit_optional_tests.rs umpire/dev/fixtures/interpreted.rs",
+    "cwd": "model",
+    "exit_code": 0,
+    "log": "format.log"
+  }
+]

@@ -300,27 +300,7 @@ fn kettle_tree() -> Result<Lifted, String> {
 /// Applies `change` to every node of `expr`.
 fn rewrite(expr: &mut Expr, change: &mut dyn FnMut(&mut ExprKind)) {
     change(&mut expr.kind);
-    let children: Vec<&mut Expr> = match &mut expr.kind {
-        ExprKind::Unary(_, value)
-        | ExprKind::Length(value)
-        | ExprKind::Check(_, value)
-        | ExprKind::Bounded(value)
-        | ExprKind::Payload(value)
-        | ExprKind::Some(value) => {
-            vec![value]
-        }
-        ExprKind::Binary(_, left, right)
-        | ExprKind::Append(left, right)
-        | ExprKind::OptionalOr(left, right) => vec![left, right],
-        ExprKind::If(first, second, third) | ExprKind::GetOr(first, second, third) => {
-            vec![first, second, third]
-        }
-        ExprKind::Tuple(values) | ExprKind::Sequence(values) | ExprKind::Checks(values) => {
-            values.iter_mut().collect()
-        }
-        _ => Vec::new(),
-    };
-    for child in children {
+    for child in expr.kind.children_mut() {
         rewrite(child, change);
     }
 }
@@ -605,4 +585,39 @@ fn timing() -> TestResult {
         std::fs::write(path, report)?;
     }
     Ok(())
+}
+
+#[test]
+fn rewrite_visits_replacement_children_in_preorder() {
+    let mut expr = Expr {
+        kind: ExprKind::If(
+            Box::new(Expr::bool(true)),
+            Box::new(Expr::unit()),
+            Box::new(Expr::bool(false)),
+        ),
+        ty: Type::Unit,
+    };
+    let mut visited = Vec::new();
+    rewrite(&mut expr, &mut |kind| match kind {
+        ExprKind::If(..) => visited.push("if"),
+        ExprKind::Bool(true) => visited.push("true"),
+        ExprKind::Unit => {
+            visited.push("unit");
+            *kind = ExprKind::Tuple(vec![Expr::bool(false), Expr::bool(true)]);
+        }
+        ExprKind::Bool(false) => visited.push("false"),
+        other => panic!("unexpected visit: {other:?}"),
+    });
+    assert_eq!(visited, ["if", "true", "unit", "false", "true", "false"]);
+    assert_eq!(
+        expr.kind,
+        ExprKind::If(
+            Box::new(Expr::bool(true)),
+            Box::new(Expr {
+                kind: ExprKind::Tuple(vec![Expr::bool(false), Expr::bool(true)]),
+                ty: Type::Unit
+            }),
+            Box::new(Expr::bool(false)),
+        )
+    );
 }

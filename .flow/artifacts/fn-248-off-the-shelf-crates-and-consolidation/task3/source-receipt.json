@@ -1,0 +1,99 @@
+{
+  "task": "fn-248-off-the-shelf-crates-and-consolidation.3",
+  "base_commit": "0a1a733c72b91054ca0a4ee3d21378c56c26abef",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2483-traversal",
+  "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2483-target",
+  "baseline": "green",
+  "source_sha256": {
+    "model/umpire/ir/src/expr.rs": "bfc1b923ab4313c52cc0b0199292393163b3d666cb1520a32be80fd93b60026f",
+    "model/umpire/ir/src/expr_tests.rs": "280e7000a9bd967a5ed351080185f892e6468527642e0d80124f122ec726ca5c",
+    "model/umpire/backends/tla/src/names.rs": "dbca1cbc46a744f7be5670a9d9558bf1fe9807ea891ac8600b9a46e7f28f480b",
+    "model/umpire/backends/tla/src/emit.rs": "f06d74e540a81420d264966060b9aec77de493c8a9075b577fba6c99832f5767",
+    "model/umpire/backends/tla/src/emit_optional_tests.rs": "e2332a28e98feca97aaba49752d13509dc884734400de22e86be4d0de8e9878a",
+    "model/umpire/dev/fixtures/interpreted.rs": "a2405adb6b4f831b7e580bd905507b74422f4862c4fa96004e5d95b354f12e41"
+  },
+  "commands": [
+    {
+      "command": "mise exec -- cargo test -p umpire-ir -p umpire-tla --lib --locked",
+      "cwd": "model",
+      "exit_code": 0,
+      "log": "baseline-lib.log",
+      "observation": "base commit; IR 2 passed, TLA 4 passed"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-fixtures --test interpreted --locked",
+      "cwd": "model",
+      "exit_code": 0,
+      "log": "baseline-interpreted.log",
+      "observation": "base commit; 12 passed, 1 timing test ignored"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-ir --lib --locked",
+      "cwd": "model",
+      "exit_code": 101,
+      "log": "red-children.log",
+      "observation": "precursor traversal tests; E0599 missing children/children_mut before implementation; expected red"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-ir --lib --locked",
+      "cwd": "model",
+      "exit_code": 0,
+      "log": "green-children.log",
+      "observation": "initial implementation; 4 passed"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-ir -p umpire-tla --lib --locked",
+      "cwd": "model",
+      "exit_code": 0,
+      "log": "verify-lib.log",
+      "observation": "final source hashes; IR 4 passed, TLA 6 passed"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-fixtures --test interpreted --locked",
+      "cwd": "model",
+      "exit_code": 0,
+      "log": "verify-interpreted.log",
+      "observation": "final source hashes; 13 passed, 1 timing test ignored"
+    },
+    {
+      "command": "mise exec -- cargo clippy -p umpire-ir -p umpire-tla --lib --tests --locked -- -D warnings",
+      "cwd": "model",
+      "exit_code": 0,
+      "log": "clippy.log",
+      "observation": "final source hashes"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-ir --lib --locked expr::tests",
+      "cwd": "model",
+      "exit_code": 0,
+      "log": "select-ir.log"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-tla --lib --locked rename_override_stops_before_replacement_children",
+      "cwd": "model",
+      "exit_code": 0,
+      "log": "select-rename.log"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-tla --lib --locked priming_recurses_through_nested_vectors_and_three_children_without_changing_other_leaves",
+      "cwd": "model",
+      "exit_code": 0,
+      "log": "select-prime.log"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-fixtures --test interpreted --locked rewrite_visits_replacement_children_in_preorder",
+      "cwd": "model",
+      "exit_code": 0,
+      "log": "select-rewrite.log"
+    },
+    {
+      "command": "mise exec -- rustfmt --check umpire/ir/src/expr.rs umpire/ir/src/expr_tests.rs umpire/backends/tla/src/names.rs umpire/backends/tla/src/emit.rs umpire/backends/tla/src/emit_optional_tests.rs umpire/dev/fixtures/interpreted.rs",
+      "cwd": "model",
+      "exit_code": 0,
+      "log": "format.log"
+    }
+  ],
+  "deferred": "Task7 owns joined snapshot acceptance, required TLC agreement, current guest publication and the single covering R5 pipeline. No local result certifies combined code.",
+  "snapshots_changed": false,
+  "review": "conductor-owned; no worker review dispatched"
+}

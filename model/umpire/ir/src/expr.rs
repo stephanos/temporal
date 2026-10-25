@@ -70,6 +70,73 @@ pub enum Op {
     Gt,
     Ge,
 }
+impl ExprKind {
+    /// Immediate children in expression evaluation order.
+    pub fn children(&self) -> impl Iterator<Item = &Expr> {
+        let (fixed, many): ([Option<&Expr>; 3], &[Expr]) = match self {
+            Self::Bool(_)
+            | Self::Int(_)
+            | Self::Text(_)
+            | Self::Unit
+            | Self::Var(..)
+            | Self::World(_)
+            | Self::Input(_)
+            | Self::Outcome
+            | Self::Local(_)
+            | Self::Enum(_) => ([None, None, None], &[]),
+            Self::Unary(_, value)
+            | Self::Bounded(value)
+            | Self::Payload(value)
+            | Self::Some(value)
+            | Self::Length(value)
+            | Self::Check(_, value) => ([Some(value.as_ref()), None, None], &[]),
+            Self::Binary(_, left, right)
+            | Self::OptionalOr(left, right)
+            | Self::Append(left, right) => ([Some(left.as_ref()), Some(right.as_ref()), None], &[]),
+            Self::If(first, second, third) | Self::GetOr(first, second, third) => {
+                ([Some(first.as_ref()), Some(second.as_ref()), Some(third.as_ref())], &[])
+            }
+            Self::Tuple(values) | Self::Sequence(values) | Self::Checks(values) => {
+                ([None, None, None], values)
+            }
+        };
+        fixed.into_iter().flatten().chain(many.iter())
+    }
+    /// Immediate children in expression evaluation order.
+    pub fn children_mut(&mut self) -> impl Iterator<Item = &mut Expr> {
+        let (fixed, many): ([Option<&mut Expr>; 3], &mut [Expr]) = match self {
+            Self::Bool(_)
+            | Self::Int(_)
+            | Self::Text(_)
+            | Self::Unit
+            | Self::Var(..)
+            | Self::World(_)
+            | Self::Input(_)
+            | Self::Outcome
+            | Self::Local(_)
+            | Self::Enum(_) => ([None, None, None], &mut []),
+            Self::Unary(_, value)
+            | Self::Bounded(value)
+            | Self::Payload(value)
+            | Self::Some(value)
+            | Self::Length(value)
+            | Self::Check(_, value) => ([Some(value.as_mut()), None, None], &mut []),
+            Self::Binary(_, left, right)
+            | Self::OptionalOr(left, right)
+            | Self::Append(left, right) => {
+                ([Some(left.as_mut()), Some(right.as_mut()), None], &mut [])
+            }
+            Self::If(first, second, third) | Self::GetOr(first, second, third) => {
+                ([Some(first.as_mut()), Some(second.as_mut()), Some(third.as_mut())], &mut [])
+            }
+            Self::Tuple(values) | Self::Sequence(values) | Self::Checks(values) => {
+                ([None, None, None], values)
+            }
+        };
+        fixed.into_iter().flatten().chain(many.iter_mut())
+    }
+}
+
 impl Expr {
     pub fn bool(value: bool) -> Self {
         Self { kind: ExprKind::Bool(value), ty: Type::Bool }
@@ -131,34 +198,16 @@ impl Expr {
     /// Whether evaluating this cannot fail: no checked arithmetic and no sequence indexing.
     pub fn infallible(&self) -> bool {
         match &self.kind {
-            ExprKind::Bool(_)
-            | ExprKind::Int(_)
-            | ExprKind::Text(_)
-            | ExprKind::Unit
-            | ExprKind::Var(..)
-            | ExprKind::World(_)
-            | ExprKind::Input(_)
-            | ExprKind::Outcome
-            | ExprKind::Enum(_) => true,
             ExprKind::Local(_)
             | ExprKind::Unary(Unary::Neg, _)
             | ExprKind::GetOr(..)
-            | ExprKind::Some(_) => false,
-            ExprKind::Unary(Unary::Not, value)
-            | ExprKind::Length(value)
-            | ExprKind::Check(_, value)
-            | ExprKind::Bounded(value)
-            | ExprKind::Payload(value) => value.infallible(),
-            ExprKind::Binary(op, left, right) => {
-                !matches!(op, Op::Add | Op::Sub | Op::Mul | Op::Div | Op::Rem)
-                    && left.infallible()
-                    && right.infallible()
-            }
-            ExprKind::If(a, b, c) => a.infallible() && b.infallible() && c.infallible(),
-            ExprKind::Append(a, b) | ExprKind::OptionalOr(a, b) => a.infallible() && b.infallible(),
-            ExprKind::Tuple(values) | ExprKind::Sequence(values) | ExprKind::Checks(values) => {
-                values.iter().all(Self::infallible)
-            }
+            | ExprKind::Some(_)
+            | ExprKind::Binary(Op::Add | Op::Sub | Op::Mul | Op::Div | Op::Rem, ..) => false,
+            _ => self.kind.children().all(Self::infallible),
         }
     }
 }
+
+#[cfg(test)]
+#[path = "expr_tests.rs"]
+mod tests;

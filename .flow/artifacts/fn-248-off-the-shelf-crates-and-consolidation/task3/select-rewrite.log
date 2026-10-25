@@ -1,0 +1,8 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.63s
+     Running interpreted.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2483-target/debug/deps/interpreted-9b05b435b31bfb54)
+
+running 1 test
+test rewrite_visits_replacement_children_in_preorder ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.00s
+
