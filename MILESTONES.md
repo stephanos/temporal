@@ -130,7 +130,7 @@ The obsolete whole-fn-243 dependency is removed; the whole-fn-247 dependency rem
 | fn-246.12 | 🔄 in progress | Descriptor-generated structural mirrors, explicit claims and exact probe accounting (R3, R4) |
 | fn-246.13 | ⛔ blocked | Owner Model-policy decision: selected retry World conflicts with pinned API; exact R5 cannot preserve both |
 | fn-246.14 | 🔄 in progress | Actual SDK transport proof integrated; production key/codec/raw-and-SDK continuation remains (R6) |
-| fn-246.7 | ⬜ todo | After .1: typed capabilities, fillers and internal evidence adapters (R2) |
+| fn-246.7 | 🔄 in progress | Typed capabilities, one filler contract and admitted internal evidence adapters (R2) |
 | fn-246.8 | ⬜ todo | After .7: current default whole-prefix guest/Host contract (R1, R2) |
 | fn-246.11 | ⬜ todo | After .7: variant metadata and Temporal action/entity/read registry (R2, R3) |
 | fn-246.9 | ⬜ todo | After .8: current-format whole-prefix Run recording, replay and presentation (R1, R5) |
