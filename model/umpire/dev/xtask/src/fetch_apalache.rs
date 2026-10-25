@@ -137,7 +137,7 @@ fn install_with(
 ) -> Result<PathBuf> {
     let root = fs::canonicalize(root)?;
     let mut cache = root;
-    for part in ["model", "build", "apalache"] {
+    for part in ["build", "apalache"] {
         cache.push(part);
         directory(&cache)?;
     }

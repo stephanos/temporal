@@ -31,7 +31,7 @@ mod tests {
         })
     }
     fn cache(root: &Path) -> PathBuf {
-        root.join("model/build/apalache")
+        root.join("build/apalache")
     }
     fn destination(root: &Path) -> PathBuf {
         cache(root).join(format!("apalache-{VERSION}"))
@@ -80,12 +80,11 @@ mod tests {
     #[test]
     fn symlinks_in_every_component_including_dangling_are_refused() {
         for component in [
-            "model".into(),
-            "model/build".into(),
-            "model/build/apalache".into(),
-            format!("model/build/apalache/apalache-{VERSION}"),
-            format!("model/build/apalache/apalache-{VERSION}/lib"),
-            format!("model/build/apalache/apalache-{VERSION}/lib/apalache.jar"),
+            "build".into(),
+            "build/apalache".into(),
+            format!("build/apalache/apalache-{VERSION}"),
+            format!("build/apalache/apalache-{VERSION}/lib"),
+            format!("build/apalache/apalache-{VERSION}/lib/apalache.jar"),
         ] {
             for dangling in [false, true] {
                 let root = tempfile::tempdir().unwrap();
@@ -185,7 +184,7 @@ mod tests {
                 Command::new(std::env::current_exe().unwrap())
                     .args([
                         "--exact",
-                        "installer::tests::concurrent_installers_publish_once_and_return_same_path",
+                        "apalache_install::installer::tests::concurrent_installers_publish_once_and_return_same_path",
                     ])
                     .env(CHILD_ROOT, root.path())
                     .stdout(std::process::Stdio::null())
@@ -227,13 +226,13 @@ mod tests {
             .unwrap();
         fs::set_permissions(&curl, fs::Permissions::from_mode(0o700)).unwrap();
         let log = root.path().join("curl-args");
-        fs::create_dir(root.path().join("model")).unwrap();
-        fs::write(root.path().join("model/Cargo.toml"), b"fixture repository marker").unwrap();
+        for name in ["Cargo.toml", "mise.toml", "rust-toolchain.toml"] { fs::write(root.path().join(name), b"fixture configuration").unwrap(); }
         for explicit in [false, true] {
             let mut command = Command::new(env!("CARGO_BIN_EXE_xtask"));
             command
                 .arg("fetch-apalache")
-                .current_dir(root.path().join("model"))
+                .current_dir(root.path())
+                .env("UMPIRE_TOOL_ROOT", root.path())
                 .env("PATH", &bin)
                 .env("FIXTURE_CURL_LOG", &log);
             if explicit {

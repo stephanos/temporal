@@ -1,5 +1,9 @@
 //! Native guest orchestration, prerequisite admission and artifact publication.
-use crate::{Error, Result, support};
+use crate::{
+    Error, Result,
+    context::{Context, ToolRoot},
+    support,
+};
 use serde::Deserialize;
 use std::{
     env,
@@ -76,7 +80,7 @@ fn executable(path: &Path) -> bool {
 
 /// Admit installed pinned tools and Rust source/target readiness on every freshness call.
 fn prerequisites(workspace: &Path) -> Result<()> {
-    let pins: Pins = toml::from_str(&fs::read_to_string(workspace.join("../mise.toml"))?)?;
+    let pins: Pins = toml::from_str(&fs::read_to_string(workspace.join("mise.toml"))?)?;
     let rust: ToolchainFile =
         toml::from_str(&fs::read_to_string(workspace.join("rust-toolchain.toml"))?)?;
     if pins.tools.rust != rust.toolchain.channel {
@@ -221,13 +225,14 @@ pub fn run(arguments: &[OsString], freshness: bool) -> Result<i32> {
             "usage: xtask guest <crate> <output> [--check]; guest-freshness <crate> <output>",
         ));
     }
+    let tools = ToolRoot::local()?;
     let workspace = env::current_dir()?.canonicalize()?;
     let output = absolute(PathBuf::from(&arguments[1]), &workspace);
     if freshness {
-        prerequisites(&workspace)?;
+        prerequisites(tools.path())?;
     }
-    let sysroot = text(probe(&workspace, &["exec", "--", "rustc", "--print", "sysroot"])?)?;
-    let compiler = text(probe(&workspace, &["exec", "--", "rustc", "-V"])?)?;
+    let sysroot = text(probe(tools.path(), &["exec", "--", "rustc", "--print", "sysroot"])?)?;
+    let compiler = text(probe(tools.path(), &["exec", "--", "rustc", "-V"])?)?;
     let cargo_home = env::var_os("CARGO_HOME")
         .map(PathBuf::from)
         .or_else(|| env::var_os("HOME").map(|p| PathBuf::from(p).join(".cargo")))
@@ -240,23 +245,28 @@ pub fn run(arguments: &[OsString], freshness: bool) -> Result<i32> {
     fs::create_dir_all(&target)?;
     let target = target.canonicalize()?;
     let binary = fs::read(env::current_exe()?)?;
-    let key = support::hash(&support::canonical(&(
-        support::hash(&binary),
-        support::hash(&fs::read(workspace.join("Cargo.lock"))?),
-        &compiler,
-    ))?);
+    let key = cache_key(&binary, &fs::read(workspace.join("Cargo.lock"))?, &compiler)?;
     let cache = target.join("guest-cache").join(&key);
     let wrapper = target.join("guest-wrappers").join(&key).join("guest-rustc");
     launcher(&wrapper, &binary)?;
-    let metadata = probe(
-        &workspace,
-        &["exec", "--", "cargo", "metadata", "--format-version", "1", "--locked"],
-    )?;
+    let metadata = metadata(tools.path(), &workspace)?;
     let lock = crate::lock::publish(&metadata, &workspace.join("Cargo.lock"), &cache)?;
-    let flags = guest_flags(&workspace, &cargo_home, Path::new(&sysroot), &cache)?;
     let previous =
         env::var_os("RUSTC_WRAPPER").filter(|p| p != wrapper.as_os_str()).unwrap_or_default();
-    let built = Command::new("mise")
+    let context = Context {
+        tool: tools.path().to_owned(),
+        workspace: workspace.clone(),
+        sysroot: sysroot.into(),
+        cargo_home,
+        target: cache.clone(),
+        lock,
+        compiler: compiler.into(),
+        previous,
+    };
+    let flags = guest_flags(&context)?;
+    let mut command = Command::new("mise");
+    context.encode(&mut command);
+    let built = command
         .args([
             OsStr::new("exec"),
             OsStr::new("--"),
@@ -275,17 +285,13 @@ pub fn run(arguments: &[OsString], freshness: bool) -> Result<i32> {
             "--locked",
             "--message-format=json-render-diagnostics",
         ])
+        .arg("--manifest-path")
+        .arg(workspace.join("Cargo.toml"))
         .env("MISE_AUTO_INSTALL", "false")
         .env("MISE_EXEC_AUTO_INSTALL", "false")
-        .env("UMPIRE_GUEST_COMPILER", compiler)
-        .env("UMPIRE_GUEST_WORKSPACE", &workspace)
-        .env("UMPIRE_GUEST_SYSROOT", sysroot)
-        .env("UMPIRE_GUEST_CARGO_HOME", cargo_home)
-        .env("UMPIRE_GUEST_TARGET", &cache)
-        .env("UMPIRE_GUEST_LOCK", lock)
-        .env("UMPIRE_GUEST_PREVIOUS_WRAPPER", previous)
         .env("RUSTC_WRAPPER", wrapper)
         .env("CARGO_TARGET_DIR", &cache)
+        .current_dir(tools.path())
         .env("RUSTC_BOOTSTRAP", "1")
         .env("CARGO_ENCODED_RUSTFLAGS", flags)
         .stderr(Stdio::inherit())
@@ -329,12 +335,7 @@ fn publish_artifact(stream: &[u8], output: &Path, check: bool) -> Result<i32> {
     Ok(0)
 }
 
-fn guest_flags(
-    workspace: &Path,
-    cargo_home: &Path,
-    sysroot: &Path,
-    cache: &Path,
-) -> Result<OsString> {
+fn guest_flags(context: &Context) -> Result<OsString> {
     let mut flags = env::var_os("CARGO_ENCODED_RUSTFLAGS").unwrap_or_default();
     if flags.is_empty()
         && let Some(value) = env::var_os("RUSTFLAGS")
@@ -350,16 +351,7 @@ fn guest_flags(
         }
         flags.push(value);
     };
-    for (path, logical) in [
-        (workspace, "/workspace"),
-        (cargo_home.join("registry").as_path(), "/cargo/registry"),
-        (sysroot, "/rust/sysroot"),
-        (cache, "/target"),
-    ] {
-        let mut flag = OsString::from("--remap-path-prefix=");
-        flag.push(path);
-        flag.push("=");
-        flag.push(logical);
+    for flag in context.remaps()?.flags() {
         append(flag);
     }
     for flag in [
@@ -370,4 +362,35 @@ fn guest_flags(
         append(flag.into());
     }
     Ok(flags)
+}
+
+pub(crate) fn cache_key(driver: &[u8], lock: &[u8], compiler: &str) -> Result<String> {
+    Ok(support::hash(&support::canonical(&(support::hash(driver), support::hash(lock), compiler))?))
+}
+
+fn metadata(tools: &Path, workspace: &Path) -> Result<Vec<u8>> {
+    let metadata = Command::new("mise")
+        .args([
+            "exec",
+            "--",
+            "cargo",
+            "metadata",
+            "--format-version",
+            "1",
+            "--locked",
+            "--manifest-path",
+        ])
+        .arg(workspace.join("Cargo.toml"))
+        .current_dir(tools)
+        .env("MISE_AUTO_INSTALL", "false")
+        .env("MISE_EXEC_AUTO_INSTALL", "false")
+        .output()?;
+    if !metadata.status.success() {
+        return Err(invalid(format!(
+            "Cargo metadata failed ({}): {}",
+            metadata.status,
+            String::from_utf8_lossy(&metadata.stderr)
+        )));
+    }
+    Ok(metadata.stdout)
 }

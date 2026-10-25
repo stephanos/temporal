@@ -2,13 +2,10 @@
 
 #![forbid(unsafe_code)]
 
-pub mod apalache_pins;
 pub mod compiler;
-/// SHA-pinned installer with private staging and serialized publication.
-pub mod fetch_apalache;
+pub mod context;
 pub mod guest;
 pub mod lock;
-pub mod retired_names;
 pub mod support;
 
 /// A native tool failure. Compiler exit statuses are returned separately.

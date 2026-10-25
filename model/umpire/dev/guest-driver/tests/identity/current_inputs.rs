@@ -3,12 +3,11 @@ use std::{fs, path::Path, process::Command};
 #[test]
 fn native_toml_accepts_current_documents_and_rejects_malformed_input() {
     let model = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize().unwrap();
-    let repo = model.parent().unwrap();
     for path in [
         model.join("Cargo.toml"),
         model.join("Cargo.lock"),
         model.join("rust-toolchain.toml"),
-        repo.join("mise.toml"),
+        model.join("mise.toml"),
     ] {
         let content = fs::read_to_string(&path).unwrap();
         toml::from_str::<toml::Value>(&content)

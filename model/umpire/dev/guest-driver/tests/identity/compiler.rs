@@ -8,7 +8,7 @@ use std::{
     process::Command,
     sync::atomic::{AtomicU64, Ordering},
 };
-use xtask::{
+use umpire_guest_driver::{
     compiler::{Sidecar, prepare},
     support::{SCHEMA, canonical},
 };
@@ -58,6 +58,7 @@ impl Fixture {
             "feature=\"example\"".into(),
         ];
         for (key, value) in [
+            ("UMPIRE_GUEST_TOOL_ROOT", workspace.clone()),
             ("UMPIRE_GUEST_WORKSPACE", workspace.clone()),
             ("UMPIRE_GUEST_TARGET", target.clone()),
             ("UMPIRE_GUEST_SYSROOT", home.join("rust")),
@@ -100,7 +101,7 @@ impl Fixture {
         Ok(path)
     }
     fn process(&self) -> Command {
-        let mut command = Command::new(env!("CARGO_BIN_EXE_xtask"));
+        let mut command = Command::new(env!("CARGO_BIN_EXE_umpire-guest-driver"));
         command
             .arg("guest-rustc")
             .args(&self.args)
@@ -437,7 +438,7 @@ fn inherited_jobserver_descriptor_reaches_direct_compiler_child() -> TestResult 
             OsStr::new("exec 9<\"$1\"; shift; exec \"$@\""),
             OsStr::new("fixture"),
             token.as_os_str(),
-            OsStr::new(env!("CARGO_BIN_EXE_xtask")),
+            OsStr::new(env!("CARGO_BIN_EXE_umpire-guest-driver")),
             OsStr::new("guest-rustc"),
             OsStr::new(env!("CARGO_BIN_EXE_identity-compiler-fixture")),
             OsStr::new("-V"),

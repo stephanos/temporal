@@ -1164,6 +1164,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "umpire-guest-driver"
+version = "0.0.1"
+dependencies = [
+ "libc",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "thiserror",
+ "toml",
+]
+
+[[package]]
 name = "umpire-ir"
 version = "0.0.1"
 dependencies = [
@@ -1244,93 +1257,6 @@ dependencies = [
  "umpire-checker",
  "umpire-dsl",
  "umpire-testing",
-]
-
-[[package]]
-name = "umpire-temporal"
-version = "0.0.1"
-dependencies = [
- "insta",
- "prost",
- "trybuild",
- "umpire-catalog",
- "umpire-checker",
- "umpire-dsl",
- "umpire-runtime",
- "umpire-temporal-api",
- "umpire-temporal-realization-macros",
-]
-
-[[package]]
-name = "umpire-temporal-annotate-syntax"
-version = "0.0.1"
-dependencies = [
- "darling",
- "heck",
- "prettyplease 0.3.0",
- "proc-macro2",
- "prost",
- "quote",
- "syn 3.0.9",
- "umpire-catalog-build",
- "umpire-catalog-syntax",
- "umpire-runtime",
-]
-
-[[package]]
-name = "umpire-temporal-api"
-version = "0.0.1"
-dependencies = [
- "proc-macro2",
- "prost",
- "prost-build",
- "prost-types",
- "umpire-catalog",
- "umpire-catalog-build",
- "umpire-catalog-syntax",
- "umpire-runtime",
- "umpire-temporal-annotate-syntax",
-]
-
-[[package]]
-name = "umpire-temporal-guest"
-version = "0.0.1"
-dependencies = [
- "umpire-runtime",
- "umpire-temporal",
-]
-
-[[package]]
-name = "umpire-temporal-realization-macros"
-version = "0.0.1"
-dependencies = [
- "insta",
- "prettyplease 0.3.0",
- "proc-macro-crate",
- "proc-macro2",
- "quote",
- "syn 3.0.9",
- "umpire-catalog-build",
- "umpire-temporal-annotate-syntax",
-]
-
-[[package]]
-name = "umpire-temporal-tests"
-version = "0.0.1"
-dependencies = [
- "insta",
- "prost",
- "syn 3.0.9",
- "umpire-checker",
- "umpire-dsl",
- "umpire-front",
- "umpire-runtime",
- "umpire-suite",
- "umpire-temporal",
- "umpire-temporal-api",
- "umpire-testing",
- "umpire-tla",
- "umpire-tlc",
 ]
 
 [[package]]
@@ -1453,6 +1379,7 @@ dependencies = [
  "tempfile",
  "thiserror",
  "toml",
+ "umpire-guest-driver",
 ]
 
 [[package]]

@@ -46,10 +46,10 @@ impl Fixture {
         }
     }
 
-    fn publish(&self) -> xtask::Result<PathBuf> {
+    fn publish(&self) -> umpire_guest_driver::Result<PathBuf> {
         let lockfile = self.root.join("Cargo.lock");
         fs::write(&lockfile, &self.lock).unwrap();
-        xtask::lock::publish(
+        umpire_guest_driver::lock::publish(
             &serde_json::to_vec(&self.metadata).unwrap(),
             &lockfile,
             &self.root.join("target"),
@@ -79,7 +79,7 @@ fn content_addressed_publication_is_repeatable_and_portable() {
     assert_eq!(path, first.publish().unwrap());
     assert_eq!(
         path.file_name().unwrap().to_str().unwrap(),
-        format!("umpire-lock-{}.json", xtask::support::hash(&bytes))
+        format!("umpire-lock-{}.json", umpire_guest_driver::support::hash(&bytes))
     );
     assert!(!String::from_utf8(bytes).unwrap().contains("checkout"));
     let mut relocated = Fixture::new();
@@ -234,7 +234,11 @@ fn malformed_native_documents_and_graphs_are_rejected() {
     assert!(fixture.publish().is_err());
     fs::write(baseline.root.join("Cargo.lock"), &baseline.lock).unwrap();
     assert!(
-        xtask::lock::publish(b"not json", &baseline.root.join("Cargo.lock"), &baseline.root)
-            .is_err()
+        umpire_guest_driver::lock::publish(
+            b"not json",
+            &baseline.root.join("Cargo.lock"),
+            &baseline.root
+        )
+        .is_err()
     );
 }

@@ -3,7 +3,7 @@ use std::{
     path::PathBuf,
     sync::atomic::{AtomicU64, Ordering},
 };
-use xtask::support::{SidecarLease, canonical, hash, publish};
+use umpire_guest_driver::support::{SidecarLease, canonical, hash, publish};
 
 struct Scratch(PathBuf);
 impl Scratch {

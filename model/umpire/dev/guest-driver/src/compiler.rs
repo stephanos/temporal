@@ -12,11 +12,11 @@ use std::{
         ffi::{OsStrExt, OsStringExt},
         process::ExitStatusExt,
     },
-    path::{Component, Path, PathBuf},
+    path::{Path, PathBuf},
     process::Command,
 };
 
-type Environment = BTreeMap<OsString, OsString>;
+use crate::context::{Environment, Remaps as Roots, value as environment};
 type Options = BTreeMap<&'static str, Vec<Vec<u8>>>;
 
 /// A native compiler record; all transitive host macro variants travel with it.
@@ -95,85 +95,6 @@ fn values<'a>(parsed: &'a Options, name: &str) -> &'a [Vec<u8>] {
 
 fn last<'a>(parsed: &'a Options, name: &str) -> Result<&'a [u8]> {
     values(parsed, name).last().map(Vec::as_slice).ok_or_else(|| invalid(format!("missing {name}")))
-}
-
-fn environment<'a>(env: &'a Environment, name: &str) -> Result<&'a OsStr> {
-    env.get(OsStr::new(name))
-        .map(OsString::as_os_str)
-        .ok_or_else(|| invalid(format!("missing {name}")))
-}
-
-fn lexical(path: &Path) -> Result<PathBuf> {
-    let absolute =
-        if path.is_absolute() { path.to_owned() } else { std::env::current_dir()?.join(path) };
-    let mut result = PathBuf::new();
-    for component in absolute.components() {
-        match component {
-            Component::ParentDir => {
-                result.pop();
-            }
-            Component::CurDir => (),
-            other => result.push(other.as_os_str()),
-        }
-    }
-    Ok(result)
-}
-
-struct Roots(Vec<(PathBuf, &'static [u8])>);
-impl Roots {
-    fn new(env: &Environment) -> Result<Self> {
-        let mut roots = vec![
-            (
-                lexical(Path::new(environment(env, "UMPIRE_GUEST_WORKSPACE")?))?,
-                b"/workspace".as_slice(),
-            ),
-            (
-                lexical(Path::new(environment(env, "UMPIRE_GUEST_SYSROOT")?))?,
-                b"/rust/sysroot".as_slice(),
-            ),
-            (
-                lexical(&Path::new(environment(env, "UMPIRE_GUEST_CARGO_HOME")?).join("registry"))?,
-                b"/cargo/registry".as_slice(),
-            ),
-            (lexical(Path::new(environment(env, "UMPIRE_GUEST_TARGET")?))?, b"/target".as_slice()),
-        ];
-        roots.sort_by_key(|(path, _)| std::cmp::Reverse(path.as_os_str().as_bytes().len()));
-        Ok(Self(roots))
-    }
-    fn path(&self, path: &Path) -> Result<Vec<u8>> {
-        let path = lexical(path)?;
-        for (root, logical) in &self.0 {
-            if let Ok(relative) = path.strip_prefix(root) {
-                let mut result = logical.to_vec();
-                if !relative.as_os_str().is_empty() {
-                    result.push(b'/');
-                    result.extend(relative.as_os_str().as_bytes());
-                }
-                return Ok(result);
-            }
-        }
-        Err(invalid("guest source is outside the remapped roots"))
-    }
-    fn token(&self, token: &[u8]) -> Vec<u8> {
-        let mut result = Vec::new();
-        let mut index = 0;
-        while index < token.len() {
-            let found = self.0.iter().find(|(root, _)| {
-                let root = root.as_os_str().as_bytes();
-                (index == 0 || token[index - 1] == b'=')
-                    && token[index..].starts_with(root)
-                    && (index + root.len() == token.len() || token[index + root.len()] == b'/')
-            });
-            if let Some((root, logical)) = found {
-                result.extend(*logical);
-                index += root.as_os_str().as_bytes().len();
-            } else {
-                result.push(token[index]);
-                index += 1;
-            }
-        }
-        result
-    }
 }
 
 fn identity_file(artifact: &Path) -> Result<PathBuf> {
