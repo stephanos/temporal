@@ -43,3 +43,24 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+### Focused entrypoint checkpoint — 2026-10-25
+
+Entrypoint source `2c879eb904` is integrated on `5585b11ccb89464e6ee66f7042115b371a0a1629`.
+On that integration, all eight gate-tool tests and 16 check-fast tests passed;
+scoped tooling Clippy with `-D warnings`, formatting and both workflow actionlint
+checks exited 0. The stock-Go PATH and workspace-relative JUnit rotation fixes
+have focused regression coverage.
+
+The production Go lint configuration rejected all ten active golangci rule seeds
+and the errortype seed; restored controls passed. Revive's inherited Gomad-wide
+exemption was preserved and checked.
+
+A separate Gomad copy with an explicit private target repository ran the real
+protocol-generation check and both changed architecture contracts successfully.
+The target's Makefile, lintcode and root golangci config were physically absent;
+all 68 Mise task definitions validated. The private fixtures were removed after
+retaining logs under `/home/agent/.cache/codex-build/fn253-entrypoints-logs/`.
+
+The complete standalone task sweep, broad suites and final spec acceptance remain
+pending. These checks supply no qualification result and do not resume fn-242.
