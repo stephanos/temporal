@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "type": "plan_review",
+  "id": "fn-254-fast-validation-gates-and-a-real-inner",
+  "verdict": "SHIP",
+  "session_id": "01a17463-cc60-7a40-8cc2-d72fe9970e2a",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "review": "I\u2019ll read the epic and task specs, then check the affected validation and build paths for feasibility and consistency.\nThe plan covers test preservation, cache inputs, subprocess cleanup, and resource limits explicitly. I\u2019m checking whether the workspace split supports those guarantees and whether the task dependencies serialize shared-file edits.\nTwo gaps need closer review: some tasks omit the framework tooling paths their approaches require, and several dependency-independent tasks declare overlapping files. I\u2019m also checking whether the cache rules allow the required activity cache-hit benchmark.\nVerified: the plan states a test strategy, negative controls, async timing/output and cancellation, and performance/resource/cache requirements. The workspace-to-gate dependency order is sound. No P0/P1 blocker identified.\n\nSeverity: P2\nConfidence: 100\nClassification: introduced\nFile:Line: .flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.13.md:11\nR-IDs: [R7]\nLocation: Task .13 ownership declaration; related declarations in .5 and .6\nProblem: The declared paths omit required implementation files. Task .13 must reanchor repository-root references in `backends/tlc/src/runner.rs`, `backends/tlc/tests/controls.rs`, and `backends/tla/tests/world.rs`, but none matches its Touches set. Those references currently resolve above the framework directory and would fail the standalone control if left unchanged. Tasks .5 and .6 likewise require framework xtask changes without declaring that tooling directory.\nSuggestion: Expand the Touches declarations to cover the root-resolution repairs and selected framework/Temporal tooling locations.\n\nSeverity: P2\nConfidence: 100\nClassification: introduced\nFile:Line: .flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.3.md:12\nR-IDs: [R3, R4, R5, R7, R8]\nLocation: Dependency-independent tasks with overlapping Touches sets\nProblem: These pairs overlap and therefore require serial dispatch: .2/.4, .2/.13, .3/.4, .3/.5, .3/.6, .3/.7, .3/.11, .4/.5, .4/.10, .4/.11, .4/.13, .5/.6, .5/.7, .6/.7, .6/.11, .7/.10, .7/.12, and .7/.13. Concrete overlaps include TLC tests, process support, workspace manifests, framework development files, `Makefile`, and gate scripts. This limits parallel execution despite dependency independence; the epic\u2019s serialization instruction remains necessary.\nSuggestion: Honor Touches-based serialization for these pairs. Narrow declarations only where the actual edits are demonstrably disjoint.\n\nmaintainability:\n  duplication: none identified\n  structure: none identified\n\n```json\n{\"classification_counts\":{\"introduced\":2,\"pre_existing\":0}}\n```\n\n<verdict>SHIP</verdict>",
+  "plan_review_status": "ship",
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}

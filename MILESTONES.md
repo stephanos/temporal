@@ -19,8 +19,9 @@ The Scala tree under `model/archived/` is frozen reference material.
 
 Current order: **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
-ranks a fast feedback loop among the most important properties. fn-246's in-flight tasks (.8 reopened for a stale Reset
-test, and .15) continue to their boundaries. Deliver fn-254's independent framework/gate checkpoint, resume fn-246 to closure, then finish fn-254.7/.8.
+ranks a fast feedback loop among the most important properties. fn-246.15 continues through joined validation and
+review while fn-254.1 prepares its measurement harness. Deliver fn-254's independent framework/gate checkpoint,
+resume fn-246 to closure, then finish fn-254.7/.8.
 fn-254.1 needs a quiet host; fn-254.7 waits for fn-246, and fn-254.10's workspace move lands at an
 integration boundary. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; fn-253.1, .7, .9
 and .10 edit the activity Model and wait for committed fn-246.15.
@@ -48,7 +49,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-254.1 | ⬜ todo | Baseline: per-stage, per-binary (compile vs run), per-test and TLC-launch timings in `model/design/gate-speed.md` (R1) |
+| fn-254.1 | 🔄 in progress | Prepare baseline harness; wait for quiet-host/cache release before stage/binary/test/TLC measurements (R1) |
 | fn-254.2 | ⬜ todo | After .1: TLC one batched run per check, split on failure, parallel properties; equivalence control (R3) |
 | fn-254.3 | ⬜ todo | After .10: cargo-nextest across binaries with a JVM test group; identical logical test inventory (R4) |
 | fn-254.4 | ⬜ todo | After .9: one test binary per `umpire` crate, cheaper test debuginfo, faster linker if measured (R4) |
@@ -103,7 +104,6 @@ subprocess refusal remains recorded separately.
 | Name | Status | What |
 | --- | --- | --- |
 | fn-246.15 | 🔄 in progress | Approved nonpending timeout-retry correction and native/TLC proof renewal (R5) |
-| fn-246.8 | 🔄 in progress | Reopened: migrate stale unconfigured/configured Reset program assertions found by the joined full gate (R1, R2) |
 | fn-246.13 | ⬜ todo | After committed .15: independent standalone-activity protocol Model and native/TLC invariants (R5) |
 | fn-246.9 | ⬜ todo | After .8: current-format whole-prefix Run recording, replay and presentation (R1, R5) |
 | fn-246.10 | ⬜ todo | After .9: bounded alternatives and coherent explanation publication (R1, R5) |
