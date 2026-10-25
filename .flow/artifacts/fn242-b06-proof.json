@@ -1,0 +1,592 @@
+{
+  "verified_epoch": 1792895056.3174238,
+  "source": "45286f3a0f09ad9d2fd85c08a0df7a7cbe96b6b7",
+  "source_files": 37,
+  "proof_inputs_verified": 195,
+  "proof_input_failures": [],
+  "raw_input_files": 39,
+  "raw_input_bytes": 240950223,
+  "log_executions_verified": 41,
+  "original_checks": 264,
+  "dispositions": {
+    "retained_current_guarantee_executed_via_group": 262,
+    "retired_compatibility": 2
+  },
+  "actual_execution_log_records": [
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-B06-world-focused.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "4",
+          "0",
+          "4",
+          "0",
+          "862",
+          "0.03s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-B06-lifecycle-focused.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "4",
+          "0",
+          "2",
+          "0",
+          "864",
+          "0.00s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-B03-bindings-pure.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "5",
+          "0",
+          "0",
+          "0",
+          "865",
+          "0.04s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-B03-composition-pure.log",
+      "exit": 101,
+      "counts": [
+        [
+          "FAILED",
+          "11",
+          "1",
+          "0",
+          "0",
+          "858",
+          "1.91s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-lifecycle-host.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "17",
+          "0",
+          "0",
+          "0",
+          "272",
+          "5.20s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-lifecycle-scenario-sqlite.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "2",
+          "0",
+          "0",
+          "0",
+          "868",
+          "0.01s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-lifecycle-scenario-storage.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "1",
+          "0",
+          "0",
+          "0",
+          "869",
+          "0.00s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-boot.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "1",
+          "0",
+          "0",
+          "0",
+          "288",
+          "0.00s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-world-owner.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "1",
+          "0",
+          "0",
+          "0",
+          "288",
+          "0.00s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-corpus-logs/world.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "3",
+          "0",
+          "0",
+          "0",
+          "286",
+          "0.35s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-corpus-logs/clock.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "3",
+          "0",
+          "0",
+          "0",
+          "286",
+          "0.08s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-corpus-logs/network.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "1",
+          "0",
+          "0",
+          "0",
+          "288",
+          "0.02s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-corpus-logs/broker.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "1",
+          "0",
+          "0",
+          "0",
+          "288",
+          "0.01s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-network-wire.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "3",
+          "0",
+          "0",
+          "0",
+          "286",
+          "0.02s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-measured-expanded20k.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "1",
+          "0",
+          "0",
+          "0",
+          "288",
+          "0.26s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-measured-compressed20000.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "1",
+          "0",
+          "0",
+          "0",
+          "288",
+          "0.36s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-measured-compressed200000.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "1",
+          "0",
+          "0",
+          "0",
+          "288",
+          "3.94s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-B03-current-inventory-registration.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "1",
+          "0",
+          "0",
+          "0",
+          "869",
+          "0.48s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-receive_genuine_boot_rows_and_targeted_mutations.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "1",
+          "0",
+          "0",
+          "0",
+          "869",
+          "0.02s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-receive_genuine_world_owner_and_targeted_workload_mutations.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "1",
+          "0",
+          "0",
+          "0",
+          "869",
+          "0.00s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-receive_genuine_corpora.log",
+      "exit": 101,
+      "counts": [
+        [
+          "FAILED",
+          "0",
+          "1",
+          "0",
+          "0",
+          "869",
+          "4.16s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-receive_genuine_measured_world_bytes.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "1",
+          "0",
+          "0",
+          "0",
+          "869",
+          "102.67s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-receive_genuine_lifecycle_rows_and_targeted_mutations.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "1",
+          "0",
+          "0",
+          "0",
+          "869",
+          "0.26s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-genuine_lifecycle_direct_predicate_mutations.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "1",
+          "0",
+          "0",
+          "0",
+          "869",
+          "0.12s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-corpus-null-and-inventory.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "1",
+          "0",
+          "0",
+          "0",
+          "869",
+          "0.00s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-corpus-fixed-genuine.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "1",
+          "0",
+          "0",
+          "0",
+          "869",
+          "1.87s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-final-world-focused.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "4",
+          "0",
+          "4",
+          "0",
+          "862",
+          "0.02s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-final-lifecycle-focused.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "4",
+          "0",
+          "2",
+          "0",
+          "864",
+          "0.00s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-final-corpus-genuine.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "1",
+          "0",
+          "0",
+          "0",
+          "869",
+          "2.05s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-final-lifecycle-genuine.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "1",
+          "0",
+          "0",
+          "0",
+          "869",
+          "0.03s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-final-lifecycle-direct-catch.log",
+      "exit": 0,
+      "counts": [
+        [
+          "ok",
+          "1",
+          "0",
+          "0",
+          "0",
+          "869",
+          "0.02s"
+        ]
+      ],
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/source-mutant-compile.log",
+      "exit": 0,
+      "counts": null,
+      "selected": false
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/source-mutant-genuine-control.log",
+      "exit": 0,
+      "counts": null,
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/source-mutant-catch.log",
+      "exit": 101,
+      "counts": null,
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/source-mutant-restored-green.log",
+      "exit": 0,
+      "counts": null,
+      "selected": true
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/final-clippy-fix2.log",
+      "exit": 0,
+      "counts": null,
+      "selected": null
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/final-wasmhost-clippy2.log",
+      "exit": 0,
+      "counts": null,
+      "selected": null
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/final-fmt2.log",
+      "exit": 0,
+      "counts": null,
+      "selected": null
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-clean.log",
+      "exit": 0,
+      "counts": null,
+      "selected": null
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-compile.log",
+      "exit": 0,
+      "counts": null,
+      "selected": null
+    },
+    {
+      "log": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/final-source2-compile.log",
+      "exit": 0,
+      "counts": null,
+      "selected": null
+    }
+  ],
+  "handoff_sha256": "275346429c3896bff62af4dcbd92f3fb99a69c37fb9177199550ba3d4976bfb6",
+  "proof_map_sha256": "7634840af2bbfee260ac46a81591490e21ba34653318fb0ed972fb4f408155db",
+  "source_freeze_sha256": "0b66dacd0e65f98a09393951d5bdf50a187871fe49451be1da60215d96c8281c",
+  "proof_inputs_root": "/home/agent/wt/fn242-b06-world-lifecycle",
+  "audit_correction": "Initial relative-path probe used external evidence root; corrected repository-relative corpus inventory to explicit worker tree, all195 hashes verified.",
+  "schema": "gomad.fn242-b06-conductor-proof/v1",
+  "batch": "B06",
+  "members": [
+    "fn-242-gomad-shrink-the-qualification.27",
+    "fn-242-gomad-shrink-the-qualification.36"
+  ],
+  "handoff": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/handoff.json",
+  "proof_map": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/proof-map.json",
+  "source_freeze": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/final-current-source-freeze.json",
+  "entire_tracked_rust_tree_equal_worker": true,
+  "review_scope_base": "309183420a",
+  "known_preexisting_B03": "B03 source imported provisionally as ancestor; its CandidateRoles path gap is tracked by actualNEEDS_WORK receipt423c1753496e and fix3065 in its ownworker. No B03fix/roleclosure proof is claimed by B06.",
+  "qualification_claim": false,
+  "review": "Pending one independent fresh HIGH correctness wholebatchreview; noFlowdone."
+}
