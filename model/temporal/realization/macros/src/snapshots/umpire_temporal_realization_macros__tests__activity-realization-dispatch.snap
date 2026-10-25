@@ -15,14 +15,14 @@ impl ::umpire_runtime::Realize<activity::World> for Realization {
     }
     fn matches(
         &self,
-        request: &::umpire_runtime::google::protobuf::Any,
-        observation: &::umpire_runtime::google::protobuf::Any,
+        request: &::umpire_runtime::prost_types::Any,
+        observation: &::umpire_runtime::prost_types::Any,
     ) -> Result<(), ::umpire_runtime::protocol::Refusal> {
         self.matches_proposal(request, observation)
     }
     fn continue_polling(
         &self,
-        observation: &::umpire_runtime::google::protobuf::Any,
+        observation: &::umpire_runtime::prost_types::Any,
         state: &activity::Model,
         action: Option<&<activity::World as ::umpire_dsl::Machine>::Action>,
     ) -> Result<bool, ::umpire_runtime::protocol::Refusal> {
@@ -30,7 +30,7 @@ impl ::umpire_runtime::Realize<activity::World> for Realization {
     }
     fn observe(
         &self,
-        observation: &::umpire_runtime::google::protobuf::Any,
+        observation: &::umpire_runtime::prost_types::Any,
         state: &activity::Model,
     ) -> Result<
         ::umpire_runtime::Projection<<activity::World as ::umpire_dsl::Machine>::Action>,

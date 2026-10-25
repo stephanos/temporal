@@ -155,11 +155,19 @@ mod tests {
             location,
         )?;
         let file: syn::File = syn::parse2(expanded)?;
-        let [syn::Item::Impl(authored), syn::Item::Impl(metadata), syn::Item::Impl(dispatch)] =
-            file.items.as_slice()
+        let [
+            syn::Item::Use(import),
+            syn::Item::Impl(authored),
+            syn::Item::Impl(metadata),
+            syn::Item::Impl(dispatch),
+        ] = file.items.as_slice()
         else {
             return Err("unexpected realization expansion items".into());
         };
+        let import = quote::ToTokens::to_token_stream(import).to_string();
+        if import != quote::quote!(use ::umpire_runtime::AnyMessage as _;).to_string() {
+            return Err(format!("unexpected realization import: {import}").into());
+        }
         let [syn::ImplItem::Const(contexts)] = metadata.items.as_slice() else {
             return Err("unexpected realization metadata items".into());
         };

@@ -460,7 +460,7 @@ fn answer(
         outputs.push(quote! {
             let _: fn(#ty) -> #canonical = |value| value;
             if __reply.request.type_url == <#canonical as ::prost::Name>::type_url() {
-                let __request: #canonical = __reply.request.unpack()?;
+                let __request: #canonical = <::umpire_runtime::prost_types::Any as ::umpire_runtime::AnyMessage>::unpack(&__reply.request)?;
                 #guards
                 __recognized = true;
             }
@@ -477,7 +477,7 @@ fn answer(
     let input: Type = syn::parse_str(&response.rust_type)?;
     Ok(quote! {
         if __task_any.type_url == <#input as ::prost::Name>::type_url() {
-            let __task: #input = __task_any.unpack()?;
+            let __task: #input = <::umpire_runtime::prost_types::Any as ::umpire_runtime::AnyMessage>::unpack(&__task_any)?;
             #guards
             let __reply = #called?;
             #validate
@@ -488,7 +488,7 @@ fn answer(
                     action.into()
                 }).collect();
             return Ok(::umpire_runtime::AnswerPlan::new(__delivery, __action,
-                ::umpire_runtime::prost_types::Any::pack(
+                <::umpire_runtime::prost_types::Any as ::umpire_runtime::AnyMessage>::pack(
                     &::umpire_runtime::realization::Reply {
                         request: Some(__reply.request),
                     }
@@ -954,8 +954,8 @@ fn expand_scoped(
             fn answer(&self, value: &::umpire_runtime::prost_types::Any, state: &#model::Model)
                 -> Result<::umpire_runtime::AnswerPlan<<#model::World as ::umpire_dsl::Machine>::Action>, ::umpire_runtime::protocol::Refusal> {
                 let _ = state;
-                let __callback: ::umpire_runtime::realization::Callback = value.unpack()?;
-                let __task_any = ::umpire_runtime::prost_types::Any::required(__callback.task)?;
+                let __callback: ::umpire_runtime::realization::Callback = <::umpire_runtime::prost_types::Any as ::umpire_runtime::AnyMessage>::unpack(value)?;
+                let __task_any = <::umpire_runtime::prost_types::Any as ::umpire_runtime::AnyMessage>::required(__callback.task)?;
                 if __task_any.type_url.is_empty() {
                     return Err(::umpire_runtime::protocol::Refusal::malformed("Any type URL is missing"));
                 }
@@ -964,6 +964,9 @@ fn expand_scoped(
             }
     });
     let ty = &item.self_ty;
+    // Generated calls are fully qualified. This anonymous import only keeps hand-written
+    // `Any::pack`/`unpack` in the realization module working without an author-side import,
+    // as they did when `Any` had inherent methods.
     Ok(quote! {
         use ::umpire_runtime::AnyMessage as _;
         #item

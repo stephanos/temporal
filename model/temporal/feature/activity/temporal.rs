@@ -1,6 +1,5 @@
 //! Temporal protobuf realization for the independently authored mini activity Model.
 
-use umpire_runtime::AnyMessage as _;
 // The fixture runner compiles the Model independently of this realization.
 #[path = "model.rs"]
 mod included;
