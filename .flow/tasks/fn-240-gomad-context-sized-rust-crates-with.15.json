@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-25T18:26:46.197088Z",
+  "depends_on": [
+    "fn-240-gomad-context-sized-rust-crates-with.1",
+    "fn-240-gomad-context-sized-rust-crates-with.5"
+  ],
+  "id": "fn-240-gomad-context-sized-rust-crates-with.15",
+  "priority": null,
+  "spec": "fn-240-gomad-context-sized-rust-crates-with",
+  "spec_path": ".flow/tasks/fn-240-gomad-context-sized-rust-crates-with.15.md",
+  "status": "todo",
+  "title": "gomad-process: one shared custody crate for cycle, launcher, stress, backstop and measurement",
+  "updated_at": "2026-10-25T18:26:58.888600Z"
+}

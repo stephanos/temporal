@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-25T18:21:36.090843Z",
+  "depends_on": [
+    "fn-254-gomad-deeper-rust-host-testing-mutation.1"
+  ],
+  "id": "fn-254-gomad-deeper-rust-host-testing-mutation.4",
+  "priority": null,
+  "spec": "fn-254-gomad-deeper-rust-host-testing-mutation",
+  "spec_path": ".flow/tasks/fn-254-gomad-deeper-rust-host-testing-mutation.4.md",
+  "status": "todo",
+  "title": "proptest codec and canonical-encoding properties",
+  "updated_at": "2026-10-25T18:21:36.090843Z"
+}

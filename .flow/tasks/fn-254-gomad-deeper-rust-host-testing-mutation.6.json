@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-25T18:21:36.659471Z",
+  "depends_on": [
+    "fn-254-gomad-deeper-rust-host-testing-mutation.1",
+    "fn-254-gomad-deeper-rust-host-testing-mutation.2"
+  ],
+  "id": "fn-254-gomad-deeper-rust-host-testing-mutation.6",
+  "priority": null,
+  "spec": "fn-254-gomad-deeper-rust-host-testing-mutation",
+  "spec_path": ".flow/tasks/fn-254-gomad-deeper-rust-host-testing-mutation.6.md",
+  "status": "todo",
+  "title": "Miri for unsafe and occasional ThreadSanitizer",
+  "updated_at": "2026-10-25T18:21:36.659471Z"
+}

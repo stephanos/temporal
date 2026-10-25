@@ -69,6 +69,8 @@ Validation gate speed takes priority over the remaining cleanup ladder below. Cy
 
 Workers pick fn-253 tasks ahead of any other ready task outside fn-242.
 
+[fn-254](.flow/specs/fn-254-gomad-deeper-rust-host-testing-mutation.md) (deeper testing: cargo-mutants, decoder fuzzing, shuttle/loom, proptest, Miri, ThreadSanitizer; owner-approved 2026-10-25) follows fn-253 and runs alongside the cleanup ladder without blocking it. It adds only small proptest runs to the fast loop; everything else runs in the scheduled `mise run deep` tier.
+
 ### Cleanup first (owner amendment, 2026-10-24)
 
 Finish the narrow fn-232.30 checkpoint, then complete fn-242's Rust driver implementation
@@ -548,7 +550,7 @@ CI, PR, or push authority.
 
 ## Open specs
 
-Listed by spec dependencies and the current delivery order (2026-10-25): fn-253 (∥ fn-242 where it does not touch the cycle argv) → fn-242 cutover → fn-253.2/.3 → (fn-249 ∥ fn-248) → fn-247 → fn-240 → (fn-245 ∥ fn-246) → fn-232 acceptance closeout. Deferred work follows the active ladder.
+Listed by spec dependencies and the current delivery order (2026-10-25): fn-253 (∥ fn-242 where it does not touch the cycle argv) → fn-242 cutover → fn-253.2/.3 → (fn-249 ∥ fn-248 ∥ fn-254) → fn-247 → fn-240 → (fn-245 ∥ fn-246) → fn-232 acceptance closeout. Deferred work follows the active ladder.
 
 ### Fast validation gates — [fn-253](.flow/specs/fn-253-gomad-fast-validation-gates.md)
 
@@ -563,6 +565,19 @@ Owner amendment 2026-10-25: highest priority outside fn-242. Gates get faster, n
 | [fn-253.2](.flow/tasks/fn-253-gomad-fast-validation-gates.2.md) | ⬜ Todo | Cheap stages first: measured cost classes in the cycle scheduler (after fn-242 cutover) |
 | [fn-253.3](.flow/tasks/fn-253-gomad-fast-validation-gates.3.md) | ⬜ Todo | Content-keyed stage reuse for development cycles (after .2; never in fn-246) |
 
+### Deeper Rust host testing — [fn-254](.flow/specs/fn-254-gomad-deeper-rust-host-testing-mutation.md)
+
+Owner-approved 2026-10-25 (tools rated +1 to +3). After fn-253; a scheduled deep tier, never in the fast gates or the cycle; every finding becomes a regression fixture.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-254.1](.flow/tasks/fn-254-gomad-deeper-rust-host-testing-mutation.1.md) | ⬜ Todo | Survey targets for each deep-testing tool |
+| [fn-254.2](.flow/tasks/fn-254-gomad-deeper-rust-host-testing-mutation.2.md) | ⬜ Todo | Deep tier entrypoint and cargo-mutants with triaged survivors |
+| [fn-254.3](.flow/tasks/fn-254-gomad-deeper-rust-host-testing-mutation.3.md) | ⬜ Todo | Fuzz retained-evidence and wire decoders |
+| [fn-254.4](.flow/tasks/fn-254-gomad-deeper-rust-host-testing-mutation.4.md) | ⬜ Todo | proptest codec and canonical-encoding properties |
+| [fn-254.5](.flow/tasks/fn-254-gomad-deeper-rust-host-testing-mutation.5.md) | ⬜ Todo | shuttle and loom for the host threading modules (seams land with fn-240 cuts) |
+| [fn-254.6](.flow/tasks/fn-254-gomad-deeper-rust-host-testing-mutation.6.md) | ⬜ Todo | Miri for unsafe and occasional ThreadSanitizer |
+
 ### Qualification machinery cleanup — [fn-242](.flow/specs/fn-242-gomad-shrink-the-qualification.md)
 
 Owner cleanup-first amendment 2026-10-24: starts after the narrow fn-232.30 checkpoint, before the complete fn-240 extraction. Each retained check names a failure it catches; the Python cycle driver becomes a Rust `gomad` verb. Local completion proves implementation/cutover and focused handoff. Actual full-cycle qualification remains pending in fn-246 after both cleanup specs.
@@ -571,6 +586,7 @@ Execute this spec through [16 owner-authorized batches](.flow/artifacts/fn242-ex
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
+| [fn-242.53](.flow/tasks/fn-242-gomad-shrink-the-qualification.53.md) | ⬜ Todo | Process receipt field review: keep only fields that catch a named failure (feeds fn-240.15) |
 | [fn-242.24](.flow/tasks/fn-242-gomad-shrink-the-qualification.24.md) | 🚧 Running | Validate actual guest and preparation observations |
 | [fn-242.25](.flow/tasks/fn-242-gomad-shrink-the-qualification.25.md) | ⬜ Todo | Validate inspection decoding, search and refused mappings |
 | [fn-242.35](.flow/tasks/fn-242-gomad-shrink-the-qualification.35.md) | ⬜ Todo | Validate installed inspection and recovery evidence |
@@ -652,6 +668,7 @@ Target layout fixed by the owner on 2026-10-24 (spec Amendment 4); R11 typed err
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
+| [fn-240.15](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.15.md) | ⬜ Todo | `gomad-process`: one shared custody crate for cycle, launcher, stress, backstop, measurement (after fn-242.53; before .9/.12) |
 | [fn-240.14](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.14.md) | ⬜ Todo | Adopt umpire `rustfmt.toml`: one reformat commit before the .1 baseline (after fn-242 worktrees merge) |
 | [fn-240.1](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.1.md) | ⏸ Parked | Survey done; `cargo build --timings` baseline still to record |
 | [fn-240.5](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.5.md) | ⬜ Todo | Foundations: `HostError`, identity closure with flip-byte test, inventory scanner, workspace lints and allow-list |
