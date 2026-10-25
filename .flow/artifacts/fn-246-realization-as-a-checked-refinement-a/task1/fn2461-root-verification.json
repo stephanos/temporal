@@ -1,0 +1,59 @@
+{
+  "source_commit": "028831ac2e9292bc25339335dce14d0f6a3a783f",
+  "model_tree": "7ca705577628918154a8854492f3e8e163a1a15c",
+  "stages": [
+    {
+      "stage": "rust",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "umpire-suite",
+        "-p",
+        "umpire-checker",
+        "-p",
+        "umpire-runtime",
+        "-p",
+        "umpire-reference-kettle"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model",
+      "exit_code": 0,
+      "seconds": 25.375,
+      "log": ".flow/tmp/milestones-resume-20261024/fn2461-root-rust.log",
+      "sha256": "0f711efd5964cc8997c325f6cc13ba0c002a252b1a9687ed911d44576f6c3b95"
+    },
+    {
+      "stage": "temporal-host",
+      "command": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "./..."
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/hosts/go",
+      "exit_code": 0,
+      "seconds": 29.739,
+      "log": ".flow/tmp/milestones-resume-20261024/fn2461-root-temporal-host.log",
+      "sha256": "97d1555d1bf4945582e4aeedb2d84470b8156d050a587646633ef8ec56b5cc25"
+    },
+    {
+      "stage": "generic-host",
+      "command": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "./..."
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/hosts/go",
+      "exit_code": 1,
+      "seconds": 2.687,
+      "log": ".flow/tmp/milestones-resume-20261024/fn2461-root-generic-host.log",
+      "sha256": "6b9cbe1878700135f32cd66ec794eab299c06316448ff5070c030c38423a5a44"
+    }
+  ]
+}

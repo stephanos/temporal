@@ -1,0 +1,29 @@
+{
+  "commits": [
+    "00964fe9e40f97936cfed5a13faa032ba55c8c78",
+    "a62797589f4a1b79f28a6141c309bbeca70fdf8e",
+    "1f86647cd8fb353818ebfb8c226fc4875aefe22e",
+    "fb298c06406fa6239a1905a678a0e2e9dd882db0"
+  ],
+  "base_commit": "0e88397afc3a4c8466643f058db863db0bb45932",
+  "tests": [
+    "timeout 600 mise exec -- cargo test -p umpire-suite -p umpire-checker -p umpire-runtime -p umpire-reference-kettle",
+    "timeout 600 mise exec -- cargo test -p umpire-suite -p umpire-checker -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal-annotate-syntax -p umpire-temporal-realization-macros",
+    "timeout 600 mise exec -- cargo test -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal --no-fail-fast",
+    "timeout 600 mise exec -- cargo test -p umpire-temporal --test admission --test proposal --test program_history --test realization --test declarative",
+    "timeout 600 mise exec -- cargo clippy -p umpire-checker -p umpire-suite -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal-annotate-syntax -p umpire-temporal-realization-macros -p umpire-temporal -p umpire-stock-guest -p umpire-control-guest -p umpire-kettle-guest -p umpire-temporal-guest --all-targets --all-features -- -D warnings",
+    "timeout 600 mise exec -- cargo doc -p umpire-checker -p umpire-suite -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal-annotate-syntax -p umpire-temporal-realization-macros -p umpire-temporal --all-features --no-deps --document-private-items",
+    "timeout 600 mise exec -- cargo test -p umpire-runtime --test reach",
+    "timeout 600 mise exec -- cargo clippy -p umpire-runtime --test reach --all-features -- -D warnings",
+    "timeout 600 mise exec -- cargo test -p umpire-runtime -p umpire-reference-kettle",
+    "timeout 600 mise exec -- cargo test -p umpire-reference-kettle --test realization heat_projects_reach_with_an_exact_target_and_method_owned_evidence",
+    "timeout 600 bash model/scripts/tests/build-guests.sh",
+    "timeout 600 mise exec -- go test -p 2 -v -tags test_dep -count=1 -timeout=180s ./host -run '^(TestStateful|TestGuestProfile)'",
+    "timeout 600 mise exec -- go test -p 2 -v -tags test_dep -count=1 -timeout=180s -overlay=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-temporal-overlay.json .",
+    "timeout 600 mise exec -- cargo test -p umpire-reference-kettle --test live_snapshots --locked -- --ignored",
+    "timeout 600 mise exec -- go test -p 2 -v -tags test_dep -count=1 -timeout=180s ./...",
+    "scoped rustfmt --edition 2024 --check and gofmt -l for every changed Rust/Go file (exact argv in fn2461-proof/main-verification.json)",
+    "timeout 600 mise exec -- go test -p 2 -tags test_dep -count=1 ./..."
+  ],
+  "prs": []
+}

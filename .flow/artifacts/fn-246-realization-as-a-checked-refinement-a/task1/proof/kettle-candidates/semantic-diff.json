@@ -1,0 +1,37 @@
+[
+  {
+    "file": "coverage.txt",
+    "changed": false,
+    "old_lines": 52,
+    "new_lines": 52,
+    "candidate_sha256": "6433747fc74211d590e419fec5e0ebeaeaa37ec2e51c2050867497b8bcc434ce"
+  },
+  {
+    "file": "gaps.txt",
+    "changed": false,
+    "old_lines": 411,
+    "new_lines": 411,
+    "candidate_sha256": "6e50392e4b8ee0a537b79940a77ee90ee17fd868047112aaa7cd77eaab016e50"
+  },
+  {
+    "file": "mutants.txt",
+    "changed": false,
+    "old_lines": 4,
+    "new_lines": 4,
+    "candidate_sha256": "97f9c08cad9b5221ef9d459aa7834705f6975b8f314b71cf16532a937811de6f"
+  },
+  {
+    "file": "transcript.txt",
+    "changed": true,
+    "old_lines": 253,
+    "new_lines": 253,
+    "candidate_sha256": "7eb937b9d2e94691d19e4b05156b7d16f8e44acb8cda714eae2ae52f51c47da0",
+    "changed_lines": 88,
+    "same_observed_behavior_and_judgment": true,
+    "same_poll_callback_response_order": true,
+    "explained_reports": 90,
+    "first_changed_old": "Heat: temperature=20 heating_on=false beeping=false Explained steps=[User::DepressButton] outcomes=[()]",
+    "first_changed_new": "Heat: temperature=20 heating_on=false beeping=false Explained steps=[User::PressButton User::DepressButton] outcomes=[() ()]",
+    "final_witness_steps": 84
+  }
+]

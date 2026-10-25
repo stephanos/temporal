@@ -1,0 +1,249 @@
+{
+  "task_id": "fn-246-realization-as-a-checked-refinement-a.14",
+  "status": "in_progress",
+  "phase": "earliest SDK transport proof checkpoint only",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+  "base_commit": "0e88397afc3a4c8466643f058db863db0bb45932",
+  "commits": [
+    "c5b77bf2d3dcea8a310ac576ac275bc0324253a4",
+    "f2b05ef81888cff6d7bdc1ae9a96dbea80781b38"
+  ],
+  "tests": [
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/sdk",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./...",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker/sdk -count=10",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m --new-from-patch=/tmp/fn24614-lint.patch ./reference/worker/sdk",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml reference/worker/sdk/heartbeat_test.go",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./reference/worker/sdk",
+    "env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 make lint-code-fast GOLANGCI_LINT_BASE_REV=0e88397afc3a4c8466643f058db863db0bb45932",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/sdk",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/sdk -run '^TestNativeHeartbeatStopFlushUsesOpeningContext$' -count=1 -v",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./...",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker/sdk -count=10",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m --new-from-patch=/tmp/fn24614-proofreviewfix.patch ./reference/worker/sdk",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml reference/worker/sdk/heartbeat_test.go",
+    "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./reference/worker/sdk"
+  ],
+  "prs": [],
+  "baseline": "green (focused SDK package before edits; parent integrated gates excluded by the explicit phase dispatch)",
+  "commands": [
+    {
+      "phase": "baseline",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/sdk",
+      "exit_code": 0,
+      "log": "fn24614-baseline.log",
+      "commit": "0e88397afc3a4c8466643f058db863db0bb45932"
+    },
+    {
+      "phase": "verify",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./...",
+      "exit_code": 0,
+      "log": "fn24614-host-final.log",
+      "commit": "c5b77bf2d3dcea8a310ac576ac275bc0324253a4"
+    },
+    {
+      "phase": "verify",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker/sdk -count=10",
+      "exit_code": 0,
+      "log": "fn24614-race-final.log",
+      "commit": "c5b77bf2d3dcea8a310ac576ac275bc0324253a4"
+    },
+    {
+      "phase": "verify",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m --new-from-patch=/tmp/fn24614-lint.patch ./reference/worker/sdk",
+      "exit_code": 0,
+      "log": "fn24614-lint-final.log",
+      "commit": "c5b77bf2d3dcea8a310ac576ac275bc0324253a4"
+    },
+    {
+      "phase": "verify",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml reference/worker/sdk/heartbeat_test.go",
+      "exit_code": 0,
+      "log": "fn24614-fmt-final.log",
+      "commit": "c5b77bf2d3dcea8a310ac576ac275bc0324253a4"
+    },
+    {
+      "phase": "verify",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./reference/worker/sdk",
+      "exit_code": 0,
+      "log": "fn24614-vet-final.log",
+      "commit": "c5b77bf2d3dcea8a310ac576ac275bc0324253a4"
+    },
+    {
+      "phase": "verify",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+      "command": "env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 make lint-code-fast GOLANGCI_LINT_BASE_REV=0e88397afc3a4c8466643f058db863db0bb45932",
+      "exit_code": 0,
+      "log": "fn24614-make-lint.log",
+      "note": "Root target excludes nested modules and selected no packages; actual changed-Go lint is the explicit module command above.",
+      "commit": "c5b77bf2d3dcea8a310ac576ac275bc0324253a4"
+    },
+    {
+      "phase": "identity",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go list -m go.temporal.io/sdk",
+      "exit_code": 0,
+      "output": "go.temporal.io/sdk v1.48.0",
+      "commit": "c5b77bf2d3dcea8a310ac576ac275bc0324253a4"
+    },
+    {
+      "phase": "baseline",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/sdk",
+      "exit_code": 0,
+      "log": "fn24614-proofreviewfix-baseline.log",
+      "commit": "c5b77bf2d3dcea8a310ac576ac275bc0324253a4",
+      "scope": "accepted proof review timing correction"
+    },
+    {
+      "phase": "verify",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./reference/worker/sdk -run '^TestNativeHeartbeatStopFlushUsesOpeningContext$' -count=1 -v",
+      "exit_code": 0,
+      "log": "fn24614-proofreviewfix-focused.log",
+      "commit": "f2b05ef81888cff6d7bdc1ae9a96dbea80781b38",
+      "scope": "accepted proof review timing correction"
+    },
+    {
+      "phase": "verify",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -tags test_dep ./...",
+      "exit_code": 0,
+      "log": "fn24614-proofreviewfix-host.log",
+      "commit": "f2b05ef81888cff6d7bdc1ae9a96dbea80781b38",
+      "scope": "accepted proof review timing correction"
+    },
+    {
+      "phase": "verify",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go test -race -tags test_dep ./reference/worker/sdk -count=10",
+      "exit_code": 0,
+      "log": "fn24614-proofreviewfix-race.log",
+      "commit": "f2b05ef81888cff6d7bdc1ae9a96dbea80781b38",
+      "scope": "accepted proof review timing correction"
+    },
+    {
+      "phase": "verify",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml --build-tags=test_dep --timeout=10m --new-from-patch=/tmp/fn24614-proofreviewfix.patch ./reference/worker/sdk",
+      "exit_code": 0,
+      "log": "fn24614-proofreviewfix-lint.log",
+      "commit": "f2b05ef81888cff6d7bdc1ae9a96dbea80781b38",
+      "scope": "accepted proof review timing correction"
+    },
+    {
+      "phase": "verify",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 fmt --diff --config=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/.github/.golangci.yml reference/worker/sdk/heartbeat_test.go",
+      "exit_code": 0,
+      "log": "fn24614-proofreviewfix-fmt.log",
+      "commit": "f2b05ef81888cff6d7bdc1ae9a96dbea80781b38",
+      "scope": "accepted proof review timing correction"
+    },
+    {
+      "phase": "verify",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/hosts/go",
+      "command": "timeout 600 env GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-go GOMAXPROCS=2 GOFLAGS=-p=2 go vet -tags test_dep -vettool=/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/errortype -style-check=false ./reference/worker/sdk",
+      "exit_code": 0,
+      "log": "fn24614-proofreviewfix-vet.log",
+      "commit": "f2b05ef81888cff6d7bdc1ae9a96dbea80781b38",
+      "scope": "accepted proof review timing correction"
+    }
+  ],
+  "source_hashes": {
+    "model/temporal/hosts/go/reference/worker/sdk/heartbeat_test.go": "77a494e981ab8f65a738049e8d1972e9c28a51f14ff072b042ce14ca9c88969d",
+    ".flow/specs/fn-246-realization-as-a-checked-refinement-a.md": "e60a005f2dad314f1295318647606cd7d14c35dcc77ea9836f6913c32ae22391",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.14.md": "16483750e1c8b427e3a602bbcf130a635407ce439ef1020f88440dd9fbb741a0",
+    ".flow/tasks/fn-237-activity-timeouts-heartbeat-and.4.md": "6ca79e23664ec5bbf1e738b1739ce87a0fc76ef317d866ef10e87fafd9b9faa7",
+    "/home/agent/go/pkg/mod/go.temporal.io/sdk@v1.48.0/internal/internal_activity.go": "4b5365b95f065c7c4f1a084c12c47e2049722a5c9f93b989e654d9ac0d8bd696",
+    "/home/agent/go/pkg/mod/go.temporal.io/sdk@v1.48.0/internal/internal_task_handlers.go": "ed7814dcf580e6fb6971b322e298474eb6b4bc4b26addfd97f4824bdb6b6dbbf",
+    "/home/agent/go/pkg/mod/go.temporal.io/sdk@v1.48.0/internal/internal_task_pollers.go": "f3b76b08778767d85ad46af1a3d0e11f9d449db73c7e4ca187bce376be386ba2",
+    "/home/agent/go/pkg/mod/go.temporal.io/sdk@v1.48.0/internal/grpc_dialer.go": "1fa1c88eb94618a850a305ab40a0265fdbaa26de93f1df50f5908c8a696f7ef8",
+    "/home/agent/go/pkg/mod/go.temporal.io/sdk@v1.48.0/internal/common/retry/interceptor.go": "bc797d6610d28ff24b5c31dd2ff32e6b7081a336ab7f9aca350af1a8036389d1",
+    ".flow/tmp/milestones-resume-20261024/fn24614-preparation.txt": "e0762c6acb7e5b399d0cd8d3f23c15f3c0d1b0b8fdf02daa3eeb19fa85bed52b",
+    "/home/agent/go/pkg/mod/go.temporal.io/sdk@v1.48.0/internal/internal_worker.go": "17b26c438fa9ad6a3e5f0ab8cb3b52823c6b9c4fa45123188a7554a0c18f0abc",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-sdk-proof-review.md": "7e4d2ff9e15e29323027a8820d5f247b46c771507db6ef294175900847720b3c"
+  },
+  "log_hashes": {
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-baseline.log": "2e0ec6254b8690caa5ab9e2fa3d744f40e31398eef31ac8cf8ecbbaf0ab2191c",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-proof-first.log": "4a071aa2d0e383eabacc0cfcd4124dddde6131af3074811af5f0e819220f4198",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-proof-second.log": "b7ba41758cd809cdfb53ff98f07a66f51a58f92c17ef4cac7101f1a269fc8935",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-proof-third.log": "ed11af6e95c7e905b1bfee5f3e02b8170672a17ced9320a0a65dcc20313ffdd4",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-proof-fourth.log": "92dbc1a2b697ec4b1c5cb04eacda8aefe68e6d01ae3fc2152928970828871c56",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-proof-fifth.log": "1aa4e9070c2ee22b7375a64d97d6c10972e8f33c8c73341ad437bf0f053edc75",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-proof-sixth.log": "9d8c89a8cf2bca25d48e0efdd66b7a5bbe1ea5c856d840e0406f72cc605eee06",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-proof-converter.log": "ab14db108a759e1e2d53c1b6afd6c6722c8517efd605667dab3eb9ce8cdb3b72",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-proof-seventh.log": "55a95b1beb82aaa7c896d8fe249939bdd1587a9069faa4e39255fee3f6c8e943",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-host-final.log": "1f562fae26e804982ccbd3ebfa28ffd513be350f75f6f0d0be729df6513ef8b9",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-race-final.log": "a2ff68b7c8ace892dcbdc6bfac3a21841a5f9a54a9dbe6187c4ca1abd2ea75b7",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-lint.log": "b4b6024edc2c871f9eb09a62be02553b4010687d73e4e154593da6023f750e67",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-lint-final.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-fmt-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-vet-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-make-lint.log": "189777baf01a1f7a2788fbffb301f153ab7044ff664de20c80d2c2fe0bad4fa4",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-proofreviewfix-baseline.log": "2d149ea10712852eee68586c82f99eee809cc8020b68c1d08b11fb4b8565726e",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-proofreviewfix-focused.log": "7f53bbd1612b732b0fba01c3adfd37fcd0fc4d5cbb53d2b539583c27bfd27c10",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-proofreviewfix-host.log": "993dea69f75301fe8fa17c18ab56539d905a1a587aef8e19d492089c03c6f0b2",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-proofreviewfix-race.log": "77652629031b1bd88beb264436a34154f311bdaabde401ebede04c16df585432",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-proofreviewfix-lint.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-proofreviewfix-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-proofreviewfix-vet.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-proof-evidence-before-reviewfix.json": "b64371cd3f1e585a158e9a18d4da1563083cd79a436d32d12ef5025dde4f8b7b",
+    ".flow/tmp/milestones-resume-20261024/fn24614-proof-logs/fn24614-proof-summary-before-reviewfix.md": "ceccf97c063aaf269c171bae40a332e3b038c904e85b3b73a2e814a49480abf4"
+  },
+  "failures": [
+    {
+      "log": "fn24614-proof-third.log",
+      "exit_code": 1,
+      "reason": "Characterization expected PermissionDenied to leave native context uncanceled. Actual cause is *serviceerror.PermissionDenied; final test asserts this cause and distinguishes it from temporal CanceledError."
+    },
+    {
+      "logs": [
+        "fn24614-proof-sixth.log",
+        "fn24614-proof-converter.log"
+      ],
+      "exit_code": 1,
+      "reason": "A provisional assertion required server cancellation in the RecordHeartbeat-return snapshot. Buffered API return can precede actual true completion. The final fixture represents API return as an event, separately validates actual completion and awaits real SDK cancellation. No production workaround or Model change."
+    },
+    {
+      "log": "fn24614-lint.log",
+      "exit_code": 1,
+      "reason": "Initial unfiltered package lint reported new helper/style checks plus inherited sdk.go:83 ignored type-assertion result. New checks were fixed; changed-Go lint is green; inherited production code was preserved."
+    }
+  ],
+  "remaining": [
+    "Production exact-history key/codec/bindings, admission and raw/SDK follower continuation remain unimplemented.",
+    "Production notifier rejection of crossed attempt/token/namespace, duplicated/reordered/ambiguous completion, missing continuation, finite depth/work exhaustion and unsupported fields remains unproved. Test snapshots and invocation identities are not an admission bridge.",
+    "The test exercises one assigned task at attempt 7; production token-to-poll/attempt/run reconciliation and multiple concurrent native task contexts remain open.",
+    "Terminal response validation-failure and wrong-terminal mutants must run against production continuation; these controls establish actual native RPC selection and successful empty mock acknowledgments.",
+    "Native SDK timer goroutine internals are not introspected. The fixture joins its handler, AfterFunc callbacks, delayed publishers, SDK worker Stop, client Close and loopback server Serve.",
+    "Activity-deadline expiry, custom outbound SDK worker interceptors and arbitrary converter combinations are not exhaustively covered. The tested custom converter, propagated scenario, activity info and logger survive detachment; the context retains the original deadline and Run cancellation.",
+    "No actual Temporal service or live cooperative witness ran. Every original fn-237.4 live/evidence/journal/gate obligation remains retained.",
+    "No protocol Model retry-contract conflict was resolved; that independent conflict remains conductor-owned.",
+    "Parent Rust/protobuf/guest/live final gates remain conductor-owned for the full task."
+  ],
+  "review": "deferred to conductor; no review dispatched or verdict claimed",
+  "owned_processes": "All launched command sessions exited; fixture joins owned handlers/publishers/callbacks and public SDK Stop/Close/server shutdown.",
+  "proof_review_correction": {
+    "finding": "Accepted P2 timing race in late-switch control; first true completion did not prove the 100ms batch window remained open.",
+    "review_file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24614-sdk-proof-review.md",
+    "base_commit": "c5b77bf2d3dcea8a310ac576ac275bc0324253a4",
+    "commit": "f2b05ef81888cff6d7bdc1ae9a96dbea80781b38",
+    "test": "TestNativeHeartbeatStopFlushUsesOpeningContext",
+    "mechanism": "Hour throttle under10s Run. Complete actual first true and native SDK cancellation, acknowledge queued detached heartbeat, invoke public Stop with Run alive. Original opening context yields canceled transport/no server call; detached opening context yields actual true completion. Then command Completed and join once-owned asynchronous Stop.",
+    "source_anchors": [
+      "SDK1.48.0 internal/internal_worker.go:672-675",
+      "SDK1.48.0 internal/internal_task_handlers.go:2186-2189,2201-2228"
+    ],
+    "baseline": "green via cached unchanged SDK package before edit",
+    "race_seconds": 19.443,
+    "review_verdict": "none claimed by implementer; conductor owns review",
+    "note": "No terminal-failure/invoker.Close flush used as a substitute; all fixture-owned commands and Stop goroutines joined."
+  }
+}

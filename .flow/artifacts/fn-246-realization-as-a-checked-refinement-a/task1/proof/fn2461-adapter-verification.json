@@ -1,0 +1,401 @@
+{
+  "scope": "fn-246.1 adapter worker executed verification; no review verdict or task closure",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach",
+  "command_provenance": "Inner command strings copied from the executed tool inputs; cwd and explicitly exported environment recorded separately. All shell calls unset BASH_ENV. Exit codes are observed command exits, including expected negative controls and intermediate failures. No inference of parent-run final results.",
+  "runs": [
+    {
+      "id": "adapters_compile_and_first_delta_pin_red",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model",
+      "shell": "bash",
+      "shell_preamble": "unset BASH_ENV",
+      "command": "timeout 600 mise exec -- cargo test -p umpire-runtime -p umpire-reference-kettle",
+      "environment_set": {
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+        "CARGO_PROFILE_DEV_DEBUG": "0",
+        "CARGO_PROFILE_TEST_DEBUG": "0",
+        "CARGO_INCREMENTAL": "0",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "exit_code": 101,
+      "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-adapters-compile.log",
+      "log_sha256": "fc5d5af05c71a2b49f15e6ee70d73549be84d8c8e6c45025aaba6476283e7a75",
+      "notes": "Compiled runtime and Kettle adapters; Kettle suites passed. Existing runtime proposal test read_commits_intermediate_progress_without_consuming_the_pending_request failed its old empty-delta Current assertion (actual retained Deliver). Not a green gate."
+    },
+    {
+      "id": "runtime_kettle_adapter_tests_green",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model",
+      "shell": "bash",
+      "shell_preamble": "unset BASH_ENV",
+      "command": "timeout 600 mise exec -- cargo test -p umpire-runtime -p umpire-reference-kettle",
+      "environment_set": {
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+        "CARGO_PROFILE_DEV_DEBUG": "0",
+        "CARGO_PROFILE_TEST_DEBUG": "0",
+        "CARGO_INCREMENTAL": "0",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-adapters-test.log",
+      "log_sha256": "f003e4c85416b4eb1afc3fdab70cc12175d97fe83afe9c9eb552c8e0c9a7ee6e",
+      "notes": "Passed after exact full-prefix pin migration. Later parent final gates cover subsequent runtime changes."
+    },
+    {
+      "id": "temporal_adapters_first_delta_pins_red",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model",
+      "shell": "bash",
+      "shell_preamble": "unset BASH_ENV",
+      "command": "timeout 600 mise exec -- cargo test -p umpire-temporal-annotate-syntax -p umpire-temporal-realization-macros -p umpire-temporal",
+      "environment_set": {
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+        "CARGO_PROFILE_DEV_DEBUG": "0",
+        "CARGO_PROFILE_TEST_DEBUG": "0",
+        "CARGO_INCREMENTAL": "0",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "exit_code": 101,
+      "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-temporal-adapters-test.log",
+      "log_sha256": "bf667ae93d43f06e0fee650e12ed88542157a43add2ecdf68cbf12b3704a6c58",
+      "notes": "Compiled generated/direct consumers; stopped at old Temporal admission delta pins."
+    },
+    {
+      "id": "temporal_adapters_repeated_start_defect_red",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model",
+      "shell": "bash",
+      "shell_preamble": "unset BASH_ENV",
+      "command": "timeout 600 mise exec -- cargo test -p umpire-temporal-annotate-syntax -p umpire-temporal-realization-macros -p umpire-temporal",
+      "environment_set": {
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+        "CARGO_PROFILE_DEV_DEBUG": "0",
+        "CARGO_PROFILE_TEST_DEBUG": "0",
+        "CARGO_INCREMENTAL": "0",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "exit_code": 101,
+      "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-temporal-adapters-test2.log",
+      "log_sha256": "413d91e938e9930584493639f828131909ba95f70ddfefa887404fc70b561f9e",
+      "notes": "Full-prefix assertions exposed repeated original Start facade returning an empty witness after Poll. Parent subsequently fixed the facade; these failures were not weakened."
+    },
+    {
+      "id": "temporal_adapters_all_controls_intermediate_red",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model",
+      "shell": "bash",
+      "shell_preamble": "unset BASH_ENV",
+      "command": "timeout 600 mise exec -- cargo test -p umpire-temporal-annotate-syntax -p umpire-temporal-realization-macros -p umpire-temporal --no-fail-fast",
+      "environment_set": {
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+        "CARGO_PROFILE_DEV_DEBUG": "0",
+        "CARGO_PROFILE_TEST_DEBUG": "0",
+        "CARGO_INCREMENTAL": "0",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "exit_code": 101,
+      "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-temporal-adapters-all.log",
+      "log_sha256": "742d965f86dbe8c3bb90743abeee3d7f0624b6671b3333c0770aaca90557272f",
+      "notes": "Macro dispatch snapshot, annotate controls, declarative and trybuild controls passed. Three Temporal test targets failed on repeated-Start facade and old proposal/program-history pins. Parent final green gates supersede this intermediate run."
+    },
+    {
+      "id": "kettle_reach_negative_control_red",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model",
+      "shell": "bash",
+      "shell_preamble": "unset BASH_ENV",
+      "command": "timeout 600 mise exec -- cargo test -p umpire-reference-kettle --test realization heat_projects_reach_with_an_exact_target_and_method_owned_evidence",
+      "environment_set": {
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+        "CARGO_PROFILE_DEV_DEBUG": "0",
+        "CARGO_PROFILE_TEST_DEBUG": "0",
+        "CARGO_INCREMENTAL": "0",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "exit_code": 101,
+      "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-kettle-reach-red.log",
+      "log_sha256": "7b9ec72833aaee62a6d3dc0efeeda97399a97861dd340045d658a711bde111a3",
+      "notes": "Temporarily changed only Kettle transition helper to Projection::Candidates(vec![]). One selected test failed with Heat must use Reach. Original source was restored by the EXIT trap before the green command."
+    },
+    {
+      "id": "kettle_reach_positive_control_green",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model",
+      "shell": "bash",
+      "shell_preamble": "unset BASH_ENV",
+      "command": "timeout 600 mise exec -- cargo test -p umpire-reference-kettle --test realization heat_projects_reach_with_an_exact_target_and_method_owned_evidence",
+      "environment_set": {
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+        "CARGO_PROFILE_DEV_DEBUG": "0",
+        "CARGO_PROFILE_TEST_DEBUG": "0",
+        "CARGO_INCREMENTAL": "0",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-kettle-reach-green.log",
+      "log_sha256": "95d186aafed30499ca810327344ce7e2a9140070719f2d148047188596b5892c",
+      "notes": "One selected test passed with restored actual Reach/Exact target and method-owned evidence."
+    },
+    {
+      "id": "adapter_clippy_intermediate_red",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model",
+      "shell": "bash",
+      "shell_preamble": "unset BASH_ENV",
+      "command": "timeout 600 mise exec -- cargo clippy -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal-annotate-syntax -p umpire-temporal-realization-macros -p umpire-temporal --all-targets --all-features -- -D warnings",
+      "environment_set": {
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+        "CARGO_PROFILE_DEV_DEBUG": "0",
+        "CARGO_PROFILE_TEST_DEBUG": "0",
+        "CARGO_INCREMENTAL": "0",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "exit_code": 101,
+      "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-adapters-clippy.log",
+      "log_sha256": "964c253cfdc1d5f412ea1656f16898233135e97d81c5519814788375215422d8",
+      "notes": "Stopped on three runtime lints (NoTarget doc backticks, validate_prefix length, SearchLimit needless pass by value). Reported to parent and subsequently fixed/covered by parent final strict clippy."
+    },
+    {
+      "id": "all_six_standard_guests_green",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach",
+      "shell": "bash",
+      "shell_preamble": "unset BASH_ENV",
+      "command": "timeout 600 bash model/scripts/tests/build-guests.sh",
+      "environment_set": {
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+        "CARGO_PROFILE_DEV_DEBUG": "0",
+        "CARGO_PROFILE_TEST_DEBUG": "0",
+        "CARGO_INCREMENTAL": "0",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-standard-guests.log",
+      "log_sha256": "74c07b1482f43e902bc7eabedfceacda06b4587bc0679823ba30aac0cd21e49b",
+      "notes": "Existing builder produced stock, Kettle, stateful control, task-owned Temporal, caught-panic and overflow guests plus native caught-panic reports. Native report process intentionally printed caught defect panics but exited 0. No embedded Temporal asset writes."
+    },
+    {
+      "id": "kettle_live_candidates_expected_golden_red",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model/umpire/reference/kettle",
+      "shell": "bash",
+      "shell_preamble": "unset BASH_ENV",
+      "command": "timeout 600 mise exec -- go test -p 2 -tags test_dep -count=1 -timeout=180s ./... -umpire-snapshot-candidates=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-kettle-candidates",
+      "environment_set": {
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+        "GOCACHE": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/go/build",
+        "GOMODCACHE": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/go/mod",
+        "GOMAXPROCS": "2",
+        "CGO_ENABLED": "0",
+        "UMPIRE_KETTLE_WASM": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/umpire_kettle_guest.wasm",
+        "UMPIRE_WASM": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/umpire_stock_guest.wasm"
+      },
+      "exit_code": 1,
+      "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-kettle-go-candidates.log",
+      "log_sha256": "f580253554e31cadba74ca7c55c747d0f1799eb3e2a533324f1c7c572cf98528",
+      "notes": "Only TestKettleJudgeAnswerTranscript failed the old delta snapshot. Other package tests passed. Four actual live candidates exported; coverage/gaps/mutants identical, transcript witness fields changed. No golden promoted by this worker.",
+      "elapsed_seconds_shell_SECONDS": 49
+    },
+    {
+      "id": "generic_go_stateful_old_delta_pins_red",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model/umpire/hosts/go",
+      "shell": "bash",
+      "shell_preamble": "unset BASH_ENV",
+      "command": "timeout 600 mise exec -- go test -p 2 -tags test_dep -count=1 -timeout=180s ./host -run '^TestStateful'",
+      "environment_set": {
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+        "GOCACHE": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/go/build",
+        "GOMODCACHE": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/go/mod",
+        "GOMAXPROCS": "2",
+        "CGO_ENABLED": "0",
+        "UMPIRE_STATEFUL_WASM": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/stateful_control.wasm",
+        "UMPIRE_WASM": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/umpire_stock_guest.wasm",
+        "UMPIRE_CAUGHT_PANIC_WASM": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/caught_panic_control.wasm",
+        "UMPIRE_OVERFLOW_WASM": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/overflow_control.wasm",
+        "UMPIRE_PANIC_NATIVE": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/panic-native"
+      },
+      "exit_code": 1,
+      "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-go-stateful-red.log",
+      "log_sha256": "13610ceda85de96cdc700b5d49f7a8c293dcbd46515853728bf164a8a47e7785",
+      "notes": "Actual task-built control guest exposed old empty-delta assertions after callback Deliver and failed Reset publication."
+    },
+    {
+      "id": "generic_go_stateful_and_profiles_green",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model/umpire/hosts/go",
+      "shell": "bash",
+      "shell_preamble": "unset BASH_ENV",
+      "command": "timeout 600 mise exec -- go test -p 2 -v -tags test_dep -count=1 -timeout=180s ./host -run '^(TestStateful|TestGuestProfile)'",
+      "environment_set": {
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+        "GOCACHE": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/go/build",
+        "GOMODCACHE": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/go/mod",
+        "GOMAXPROCS": "2",
+        "CGO_ENABLED": "0",
+        "UMPIRE_STATEFUL_WASM": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/stateful_control.wasm",
+        "UMPIRE_WASM": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/umpire_stock_guest.wasm",
+        "UMPIRE_CAUGHT_PANIC_WASM": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/caught_panic_control.wasm",
+        "UMPIRE_OVERFLOW_WASM": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/overflow_control.wasm",
+        "UMPIRE_PANIC_NATIVE": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/panic-native"
+      },
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-go-stateful-green.log",
+      "log_sha256": "cfecd45cf91f904d920dc65f7d1ae9cebb8c2de01335e8f9737841d3cb179f1e",
+      "notes": "Exact full-prefix pin migration passed. Also executed native/wasm caught-panic and overflow parity and uncaught-panic trap controls with task-built artifacts.",
+      "elapsed_seconds_shell_SECONDS": 1
+    },
+    {
+      "id": "temporal_go_read_only_overlay_green",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model/temporal/hosts/go",
+      "shell": "bash",
+      "shell_preamble": "unset BASH_ENV",
+      "command": "timeout 600 mise exec -- go test -p 2 -v -tags test_dep -count=1 -timeout=180s -overlay=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-temporal-overlay.json .",
+      "environment_set": {
+        "GOCACHE": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/go/build",
+        "GOMODCACHE": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/go/mod",
+        "GOMAXPROCS": "2",
+        "CGO_ENABLED": "0"
+      },
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-temporal-go-overlay.log",
+      "log_sha256": "7ec4b8fa88a6eefeb992147ba3f00644b5816daf62eb31fc0f73c9677d2ba4d8",
+      "notes": "All 26 top-level tests in Temporal root package passed using task-built guest through read-only Go overlay; this is not the root-owned joined full-module/embedded-artifact gate.",
+      "elapsed_seconds_shell_SECONDS": 20
+    },
+    {
+      "id": "root_approved_kettle_snapshot_import_green",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model",
+      "shell": "bash",
+      "shell_preamble": "unset BASH_ENV",
+      "command": "timeout 600 mise exec -- cargo test -p umpire-reference-kettle --test live_snapshots --locked -- --ignored",
+      "environment_set": {
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+        "CARGO_PROFILE_DEV_DEBUG": "0",
+        "CARGO_PROFILE_TEST_DEBUG": "0",
+        "CARGO_INCREMENTAL": "0",
+        "CARGO_BUILD_JOBS": "2",
+        "UMPIRE_SNAPSHOT_CANDIDATES": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-kettle-candidates",
+        "INSTA_UPDATE": "always"
+      },
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-kettle-approved-import.log",
+      "log_sha256": "629ccbc014f36b6b5ae2622976d9b264c3f2eb28f5d6b058cb1ae04011294eb4",
+      "notes": "ROOT explicitly authorized exact transcript candidate SHA7eb937b9d2e94691d19e4b05156b7d16f8e44acb8cda714eae2ae52f51c47da0. Hash checked first; existing ignored importer executed one test and changed only expected/transcript.txt.snap. All other Kettle golden bytes unchanged.",
+      "elapsed_seconds_shell_SECONDS": 2
+    },
+    {
+      "id": "kettle_full_go_suite_after_approved_promotion_green",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model/umpire/reference/kettle",
+      "shell": "bash",
+      "shell_preamble": "unset BASH_ENV",
+      "command": "timeout 600 mise exec -- go test -p 2 -v -tags test_dep -count=1 -timeout=180s ./...",
+      "environment_set": {
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+        "GOCACHE": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/go/build",
+        "GOMODCACHE": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/go/mod",
+        "GOMAXPROCS": "2",
+        "CGO_ENABLED": "0",
+        "UMPIRE_KETTLE_WASM": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/umpire_kettle_guest.wasm",
+        "UMPIRE_WASM": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/umpire_stock_guest.wasm"
+      },
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-kettle-go-approved-green.log",
+      "log_sha256": "0ec794851d268f950ff5f178a981e703b576b903b56ac9b205791aac80665ebf",
+      "notes": "Actual full Kettle Go module execution after approved snapshot promotion; -count=1 disables test-result reuse. Transcript, native/wasm parity, live annotation/gap checks and all four mutant witnesses passed. Test time34.351s.",
+      "elapsed_seconds_shell_SECONDS": 35
+    }
+  ],
+  "proof_files": {
+    "fn2461-standard-guests.sha256": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-standard-guests.sha256",
+      "sha256": "89e4e79b77798ceb9cd47c2b9556c091510ea2f475ccfadfe79520805f8034fb"
+    },
+    "fn2461-temporal-overlay.json": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-temporal-overlay.json",
+      "sha256": "6a70a91edc925552832ef80e1add34d483654363b2c510717642eaee20166aa0"
+    },
+    "fn2461-temporal-overlay-inputs.sha256": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-temporal-overlay-inputs.sha256",
+      "sha256": "91281b692a41240471b0485d9762cccf21a17ad342589fe2f89d14ee08da3887"
+    },
+    "fn2461-temporal-overlay-embedded-before.sha256": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-temporal-overlay-embedded-before.sha256",
+      "sha256": "ce2113fba28ab1992aa1abae57edc115d6838d08ad6d49ea1963fc174e763f6b"
+    },
+    "fn2461-temporal-overlay-embedded-after.sha256": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-temporal-overlay-embedded-after.sha256",
+      "sha256": "ce2113fba28ab1992aa1abae57edc115d6838d08ad6d49ea1963fc174e763f6b"
+    },
+    "fn2461-kettle-candidates/semantic-diff.json": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-kettle-candidates/semantic-diff.json",
+      "sha256": "ba81f4155ad5a13c5022a2a67b59b48e54a9fa650b63463dd5da525c6667a013"
+    },
+    "fn2461-kettle-candidates/transcript.txt.diff": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-kettle-candidates/transcript.txt.diff",
+      "sha256": "c3674c34e43b8b43ba92f31af52de2a9828b052d4c0fe3eed707122150414131"
+    },
+    "fn2461-kettle-goldens-before-import.json": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-kettle-goldens-before-import.json",
+      "sha256": "29c60fe8b0b05249605c81b980b62ffd6fcdb5578ee6861200363be6af67aeba"
+    },
+    "fn2461-kettle-approved-import-check.json": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-kettle-approved-import-check.json",
+      "sha256": "e0f205312167fb434c1251e670fa1e64aab5241807cc6e57614e9fea0c9b23bc"
+    }
+  },
+  "guest_hash_manifest": "b37215682ff86ae996d3d0930d7abef41832f6c444cc127c88ba225feb575e75  /home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/umpire_stock_guest.wasm\nd6f803f7159c475db503016661a46870c7f124e9fc97e15f33ff59ce9f22cbd7  /home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/umpire_kettle_guest.wasm\nc2b4594dc663205bd229afcd87889a974ea997dc16cdaceb04c5fde682461aeb  /home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/stateful_control.wasm\n517821bc59581a845d5099bd125f6a16bbcb38114e1f546a7b572d94ec3dbcba  /home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/umpire_temporal_guest.wasm\n7b86ea18350bf7db38de4699a6496be840a9b64f1aa9438c9f8d3c7c12530d8c  /home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/caught_panic_control.wasm\na4f23a7d6f4856334a352c6a8593af0478b8985e2646b83c3dce3fede40a1e1f  /home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/overflow_control.wasm\n",
+  "temporal_overlay": {
+    "json_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/.flow/tmp/fn2461-temporal-overlay.json",
+    "json_sha256": "6a70a91edc925552832ef80e1add34d483654363b2c510717642eaee20166aa0",
+    "replace": {
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model/temporal/hosts/go/umpire_temporal_guest.wasm": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/umpire_temporal_guest.wasm"
+    },
+    "task_guest_sha256": "517821bc59581a845d5099bd125f6a16bbcb38114e1f546a7b572d94ec3dbcba",
+    "embedded_before_manifest": "77dfcca0cdecfdae82907a9956833ea3911455fee61cb8674d860e22bff8f6bb  model/temporal/hosts/go/umpire_temporal_guest.wasm\n",
+    "embedded_after_manifest": "77dfcca0cdecfdae82907a9956833ea3911455fee61cb8674d860e22bff8f6bb  model/temporal/hosts/go/umpire_temporal_guest.wasm\n",
+    "cmp_exit_code": 0,
+    "embedded_unchanged": true
+  },
+  "kettle_live_semantic_diff": [
+    {
+      "file": "coverage.txt",
+      "changed": false,
+      "old_lines": 52,
+      "new_lines": 52,
+      "candidate_sha256": "6433747fc74211d590e419fec5e0ebeaeaa37ec2e51c2050867497b8bcc434ce"
+    },
+    {
+      "file": "gaps.txt",
+      "changed": false,
+      "old_lines": 411,
+      "new_lines": 411,
+      "candidate_sha256": "6e50392e4b8ee0a537b79940a77ee90ee17fd868047112aaa7cd77eaab016e50"
+    },
+    {
+      "file": "mutants.txt",
+      "changed": false,
+      "old_lines": 4,
+      "new_lines": 4,
+      "candidate_sha256": "97f9c08cad9b5221ef9d459aa7834705f6975b8f314b71cf16532a937811de6f"
+    },
+    {
+      "file": "transcript.txt",
+      "changed": true,
+      "old_lines": 253,
+      "new_lines": 253,
+      "candidate_sha256": "7eb937b9d2e94691d19e4b05156b7d16f8e44acb8cda714eae2ae52f51c47da0",
+      "changed_lines": 88,
+      "same_observed_behavior_and_judgment": true,
+      "same_poll_callback_response_order": true,
+      "explained_reports": 90,
+      "first_changed_old": "Heat: temperature=20 heating_on=false beeping=false Explained steps=[User::DepressButton] outcomes=[()]",
+      "first_changed_new": "Heat: temperature=20 heating_on=false beeping=false Explained steps=[User::PressButton User::DepressButton] outcomes=[() ()]",
+      "final_witness_steps": 84
+    }
+  ],
+  "kettle_golden_promotion": {
+    "authorization": "ROOT approval relayed by parent dispatch; exact transcript candidate only",
+    "root_review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn2461-proof/kettle-candidates/root-review.json",
+    "root_review_sha256": "11fcc0f10024d40ecdc8c156b0f545965bbaeb7f4f6fcfbe2cd61859f59feee6",
+    "approved_candidate_sha256": "7eb937b9d2e94691d19e4b05156b7d16f8e44acb8cda714eae2ae52f51c47da0",
+    "import_check": {
+      "changed_golden_files": [
+        "model/umpire/reference/kettle/expected/transcript.txt.snap"
+      ],
+      "all_other_golden_bytes_unchanged": true,
+      "transcript_payload_matches_approved_candidate": true,
+      "transcript_candidate_sha256": "7eb937b9d2e94691d19e4b05156b7d16f8e44acb8cda714eae2ae52f51c47da0",
+      "transcript_snapshot_sha256": "57bbfe14f8fc0a64b14fdc0a509f9f8993a43972557be40c5da7b193f29c0d4e"
+    },
+    "post_promotion_full_module_exit_code": 0
+  }
+}

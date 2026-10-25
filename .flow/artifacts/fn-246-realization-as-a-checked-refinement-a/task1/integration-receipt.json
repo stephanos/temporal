@@ -1,0 +1,15 @@
+{
+  "task": "fn-246.1",
+  "joined_source": "62e1c19d31a2a6f3d6e7061bd86ee179fa834cb5",
+  "rust_source_verification_commit": "028831ac2e9292bc25339335dce14d0f6a3a783f",
+  "only_model_changes_since_rust_check": [
+    "model/temporal/hosts/go/reference/worker/sdk/heartbeat_test.go",
+    "model/umpire/hosts/go/host/proposal_test.go"
+  ],
+  "embedded_guest_sha256": "517821bc59581a845d5099bd125f6a16bbcb38114e1f546a7b572d94ec3dbcba",
+  "all_three_host_modules_and_freshness": "passed",
+  "initial_generic_host_failure": "retained verbatim; missing native-profile environment corrected; missed delta pin migrated and complete module rerun green",
+  "implementation_review": "SHIP, all three fresh gpt-6.1-sol high draws; same model family as implementer",
+  "task_status": "verified for completion",
+  "review_session": "01a172c7-b8f4-7633-bfb5-a4ed8313531e"
+}

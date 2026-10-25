@@ -1,0 +1,16 @@
+?   	umpire.local/model/gen/umpire/annotations/v1	[no test files]
+?   	umpire.local/model/gen/umpire/model/v1	[no test files]
+?   	umpire.local/model/gen/umpire/realization/v1	[no test files]
+?   	umpire.local/model/gen/umpire/run/v1	[no test files]
+--- FAIL: TestGuestProfileCaughtPanicParity (0.00s)
+    --- FAIL: TestGuestProfileCaughtPanicParity/effect_panic (0.00s)
+        guest_profile_test.go:24: open effect_panic.pb: no such file or directory
+    --- FAIL: TestGuestProfileCaughtPanicParity/effect_overflow (0.00s)
+        guest_profile_test.go:24: open effect_overflow.pb: no such file or directory
+--- FAIL: TestControlProposalBootstrapPollingAndCallbackParity (0.01s)
+    proposal_test.go:109: Judge(3): explained:{steps:"Deliver" steps:"Respond" steps:"Finish" outcomes:"Outcome(1)" outcomes:"Outcome(2)" outcomes:"Outcome(3)"} <nil>, want explained steps [Finish]
+FAIL
+FAIL	umpire.local/model/host	0.280s
+ok  	umpire.local/model/runner	1.996s
+ok  	umpire.local/model/snapshot	0.003s
+FAIL

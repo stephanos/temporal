@@ -127,7 +127,6 @@ The obsolete whole-fn-243 dependency is removed; the whole-fn-247 dependency rem
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-246.1 | 🔄 in progress | After committed prerequisites: transactional bounded Reach and Kettle proof point (R1) |
 | fn-246.12 | 🔄 in progress | Descriptor-generated structural mirrors, explicit claims and exact probe accounting (R3, R4) |
 | fn-246.13 | ⛔ blocked | Owner Model-policy decision: selected retry World conflicts with pinned API; exact R5 cannot preserve both |
 | fn-246.14 | 🔄 in progress | Actual SDK transport proof integrated; production key/codec/raw-and-SDK continuation remains (R6) |

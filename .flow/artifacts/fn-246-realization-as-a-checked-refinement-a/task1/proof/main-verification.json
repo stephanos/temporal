@@ -1,0 +1,226 @@
+[
+  {
+    "id": "fresh_baseline",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model",
+    "shell_preamble": "unset BASH_ENV; cd <cwd>",
+    "command": "timeout 600 mise exec -- cargo test -p umpire-suite -p umpire-checker -p umpire-runtime -p umpire-reference-kettle",
+    "environment_set": {
+      "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+      "CARGO_PROFILE_DEV_DEBUG": "0",
+      "CARGO_PROFILE_TEST_DEBUG": "0",
+      "CARGO_INCREMENTAL": "0",
+      "CARGO_BUILD_JOBS": "2"
+    },
+    "exit_code": 0,
+    "expected_failure": false,
+    "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn2461-proof/fn2461-baseline.log",
+    "log_sha256": "0dc70082c1af4b6dd985e9349fbb334562f7c37bbf0fb454081f184e4e61260a"
+  },
+  {
+    "id": "focused_final",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model",
+    "shell_preamble": "unset BASH_ENV; cd <cwd>",
+    "command": "timeout 600 mise exec -- cargo test -p umpire-suite -p umpire-checker -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal-annotate-syntax -p umpire-temporal-realization-macros",
+    "environment_set": {
+      "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+      "CARGO_PROFILE_DEV_DEBUG": "0",
+      "CARGO_PROFILE_TEST_DEBUG": "0",
+      "CARGO_INCREMENTAL": "0",
+      "CARGO_BUILD_JOBS": "2"
+    },
+    "exit_code": 0,
+    "expected_failure": false,
+    "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn2461-proof/fn2461-focused-final.log",
+    "log_sha256": "744edd00f5b318b9723e486500d81d45c2168f29d41a4ab7ddcb5cd113d34ed3"
+  },
+  {
+    "id": "temporal_full_consumer",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model",
+    "shell_preamble": "unset BASH_ENV; cd <cwd>",
+    "command": "timeout 600 mise exec -- cargo test -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal --no-fail-fast",
+    "environment_set": {
+      "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+      "CARGO_PROFILE_DEV_DEBUG": "0",
+      "CARGO_PROFILE_TEST_DEBUG": "0",
+      "CARGO_INCREMENTAL": "0",
+      "CARGO_BUILD_JOBS": "2"
+    },
+    "exit_code": 0,
+    "expected_failure": false,
+    "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn2461-proof/fn2461-current-prefix.log",
+    "log_sha256": "9ad123a8ce6df79865c9c51617ca5c3e7f0fed5cb888d41a4c96141f67e35515"
+  },
+  {
+    "id": "temporal_final",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model",
+    "shell_preamble": "unset BASH_ENV; cd <cwd>",
+    "command": "timeout 600 mise exec -- cargo test -p umpire-temporal --test admission --test proposal --test program_history --test realization --test declarative",
+    "environment_set": {
+      "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+      "CARGO_PROFILE_DEV_DEBUG": "0",
+      "CARGO_PROFILE_TEST_DEBUG": "0",
+      "CARGO_INCREMENTAL": "0",
+      "CARGO_BUILD_JOBS": "2"
+    },
+    "exit_code": 0,
+    "expected_failure": false,
+    "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn2461-proof/fn2461-temporal-final.log",
+    "log_sha256": "1cbf98e0c35be17247cd7c9969ff9bba1d9801b2020766e9804048f3126cdf3a"
+  },
+  {
+    "id": "strict_clippy",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model",
+    "shell_preamble": "unset BASH_ENV; cd <cwd>",
+    "command": "timeout 600 mise exec -- cargo clippy -p umpire-checker -p umpire-suite -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal-annotate-syntax -p umpire-temporal-realization-macros -p umpire-temporal -p umpire-stock-guest -p umpire-control-guest -p umpire-kettle-guest -p umpire-temporal-guest --all-targets --all-features -- -D warnings",
+    "environment_set": {
+      "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+      "CARGO_PROFILE_DEV_DEBUG": "0",
+      "CARGO_PROFILE_TEST_DEBUG": "0",
+      "CARGO_INCREMENTAL": "0",
+      "CARGO_BUILD_JOBS": "2"
+    },
+    "exit_code": 0,
+    "expected_failure": false,
+    "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn2461-proof/fn2461-clippy-final.log",
+    "log_sha256": "c4ef71ca4877eaff1672faab51fb3d9efc2cc80c08e9984e459b1821bfc5044e"
+  },
+  {
+    "id": "strict_docs",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model",
+    "shell_preamble": "unset BASH_ENV; cd <cwd>",
+    "command": "timeout 600 mise exec -- cargo doc -p umpire-checker -p umpire-suite -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal-annotate-syntax -p umpire-temporal-realization-macros -p umpire-temporal --all-features --no-deps --document-private-items",
+    "environment_set": {
+      "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+      "CARGO_PROFILE_DEV_DEBUG": "0",
+      "CARGO_PROFILE_TEST_DEBUG": "0",
+      "CARGO_INCREMENTAL": "0",
+      "CARGO_BUILD_JOBS": "2",
+      "RUSTDOCFLAGS": "-D warnings"
+    },
+    "exit_code": 0,
+    "expected_failure": false,
+    "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn2461-proof/fn2461-doc-final.log",
+    "log_sha256": "55f4974a5a179fa19214e5fcaecce332c860f31e36b17d0e6f7011989a9d8602"
+  },
+  {
+    "id": "full_state_stutter_final",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model",
+    "shell_preamble": "unset BASH_ENV; cd <cwd>",
+    "command": "timeout 600 mise exec -- cargo test -p umpire-runtime --test reach",
+    "environment_set": {
+      "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+      "CARGO_PROFILE_DEV_DEBUG": "0",
+      "CARGO_PROFILE_TEST_DEBUG": "0",
+      "CARGO_INCREMENTAL": "0",
+      "CARGO_BUILD_JOBS": "2"
+    },
+    "exit_code": 0,
+    "expected_failure": false,
+    "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn2461-proof/fn2461-reach-full-state-stutter.log",
+    "log_sha256": "54978bba2a6bfc2b989a55a663d1c7bad8c7d63a31455c47a74d935e4114f134"
+  },
+  {
+    "id": "reach_test_final_clippy",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model",
+    "shell_preamble": "unset BASH_ENV; cd <cwd>",
+    "command": "timeout 600 mise exec -- cargo clippy -p umpire-runtime --test reach --all-features -- -D warnings",
+    "environment_set": {
+      "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+      "CARGO_PROFILE_DEV_DEBUG": "0",
+      "CARGO_PROFILE_TEST_DEBUG": "0",
+      "CARGO_INCREMENTAL": "0",
+      "CARGO_BUILD_JOBS": "2"
+    },
+    "exit_code": 0,
+    "expected_failure": false,
+    "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn2461-proof/fn2461-reach-final-clippy.log",
+    "log_sha256": "04682798721db857444c872ab517db9571894a6cab5ef654bad307ab73747455"
+  },
+  {
+    "id": "state_only_dedup_mutant",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model",
+    "shell_preamble": "unset BASH_ENV; cd <cwd>",
+    "command": "timeout 600 mise exec -- cargo test -p umpire-runtime --test reach equal_states_with_different_choices_outcomes_and_consumption_keep_their_continuations",
+    "environment_set": {
+      "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+      "CARGO_PROFILE_DEV_DEBUG": "0",
+      "CARGO_PROFILE_TEST_DEBUG": "0",
+      "CARGO_INCREMENTAL": "0",
+      "CARGO_BUILD_JOBS": "2"
+    },
+    "exit_code": 101,
+    "expected_failure": true,
+    "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn2461-proof/fn2461-state-dedup-mutant.log",
+    "log_sha256": "d614a3b6c11cedf2f49eefcdee59e123788b177a07cae711b24d33a208023ce0"
+  },
+  {
+    "id": "prefix_validation_bypass_mutant",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach/model",
+    "shell_preamble": "unset BASH_ENV; cd <cwd>",
+    "command": "timeout 600 mise exec -- cargo test -p umpire-runtime --test reach later_current_revalidates_retained_typed_outcome_fact_and_consumption_cursor",
+    "environment_set": {
+      "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461",
+      "CARGO_PROFILE_DEV_DEBUG": "0",
+      "CARGO_PROFILE_TEST_DEBUG": "0",
+      "CARGO_INCREMENTAL": "0",
+      "CARGO_BUILD_JOBS": "2"
+    },
+    "exit_code": 101,
+    "expected_failure": true,
+    "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn2461-proof/fn2461-prefix-validation-mutant.log",
+    "log_sha256": "46898e69bf3ffc21492abb8cad2df41e7bd207d29c2fadd92d9855e11151579e"
+  },
+  {
+    "id": "final_scoped_format",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2461-reach",
+    "commands": [
+      [
+        "mise",
+        "exec",
+        "--",
+        "rustfmt",
+        "--edition",
+        "2024",
+        "--check",
+        "model/temporal/annotate/syntax/src/realize.rs",
+        "model/temporal/realization/src/live.rs",
+        "model/temporal/realization/tests/admission.rs",
+        "model/temporal/realization/tests/admission/publication.rs",
+        "model/temporal/realization/tests/program_history.rs",
+        "model/temporal/realization/tests/proposal.rs",
+        "model/temporal/realization/tests/realization.rs",
+        "model/umpire/author/suite/src/search.rs",
+        "model/umpire/backends/native/src/lib.rs",
+        "model/umpire/backends/native/src/search.rs",
+        "model/umpire/backends/native/tests/search.rs",
+        "model/umpire/protocol/runtime/guests/stock/src/model.rs",
+        "model/umpire/protocol/runtime/src/lib.rs",
+        "model/umpire/protocol/runtime/src/runtime.rs",
+        "model/umpire/protocol/runtime/tests/catalog.rs",
+        "model/umpire/protocol/runtime/tests/prefix.rs",
+        "model/umpire/protocol/runtime/tests/proposal.rs",
+        "model/umpire/protocol/runtime/tests/reach.rs",
+        "model/umpire/protocol/runtime/tests/rejecting.rs",
+        "model/umpire/protocol/runtime/tests/selected_start.rs",
+        "model/umpire/protocol/runtime/tests/stateful.rs",
+        "model/umpire/protocol/runtime/tests/support/control.rs",
+        "model/umpire/protocol/runtime/tests/support/mod.rs",
+        "model/umpire/protocol/runtime/tests/support/panic.rs",
+        "model/umpire/reference/kettle/realization.rs",
+        "model/umpire/reference/kettle/tests/realization.rs"
+      ],
+      [
+        "gofmt",
+        "-l",
+        "model/temporal/hosts/go/allocation_test.go",
+        "model/temporal/hosts/go/parity_test.go",
+        "model/temporal/hosts/go/proposal_test.go",
+        "model/umpire/hosts/go/host/stateful_test.go",
+        "model/umpire/reference/kettle/kettle_mutants_test.go",
+        "model/umpire/reference/kettle/kettle_test.go"
+      ]
+    ],
+    "exit_code": 0,
+    "log_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn2461-proof/fn2461-fmt-complete.log"
+  }
+]

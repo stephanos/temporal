@@ -1,0 +1,77 @@
+{
+  "source_commit": "62e1c19d31a2a6f3d6e7061bd86ee179fa834cb5",
+  "stages": [
+    {
+      "stage": "generic-host",
+      "command": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./..."
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/hosts/go",
+      "exit_code": 0,
+      "seconds": 3.629,
+      "log": ".flow/tmp/milestones-resume-20261024/fn2461-joined-generic-host.log",
+      "sha256": "f23fc9b324aeab644d2b2ea61016cebfdb5c90172dce734920f0c86d28a2bac0"
+    },
+    {
+      "stage": "temporal-host",
+      "command": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./..."
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/hosts/go",
+      "exit_code": 0,
+      "seconds": 15.982,
+      "log": ".flow/tmp/milestones-resume-20261024/fn2461-joined-temporal-host.log",
+      "sha256": "de382f35cfaaea15f33b8acc2ddd2659c13ece87350e85c6a560d1710df15166"
+    },
+    {
+      "stage": "kettle-host",
+      "command": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./..."
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/reference/kettle",
+      "exit_code": 0,
+      "seconds": 35.196,
+      "log": ".flow/tmp/milestones-resume-20261024/fn2461-joined-kettle-host.log",
+      "sha256": "7ee65d3e160526b8972ff255f5b23f1db830018d34cb7fdcba77c36a49155c4b"
+    },
+    {
+      "stage": "guest-freshness",
+      "command": [
+        "/bin/bash",
+        "model/scripts/guest-freshness.sh",
+        "umpire-temporal-guest",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "exit_code": 0,
+      "seconds": 37.115,
+      "log": ".flow/tmp/milestones-resume-20261024/fn2461-joined-guest-freshness.log",
+      "sha256": "cbe8729b20021598d05241067c195abae99e463a93de4c025d00dccdacfd1b82"
+    }
+  ],
+  "rust_verification": ".flow/tmp/milestones-resume-20261024/fn2461-root-verification.json",
+  "rust_source_unchanged_since": "028831ac2e",
+  "environment": {
+    "UMPIRE_PANIC_NATIVE": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/panic-native",
+    "UMPIRE_WASM": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/umpire_stock_guest.wasm",
+    "UMPIRE_KETTLE_WASM": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/umpire_kettle_guest.wasm",
+    "UMPIRE_STATEFUL_WASM": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/stateful_control.wasm",
+    "UMPIRE_CAUGHT_PANIC_WASM": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/caught_panic_control.wasm",
+    "UMPIRE_OVERFLOW_WASM": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2461/wasm32-wasip1/guest/overflow_control.wasm"
+  }
+}

@@ -168,16 +168,52 @@
       "task": "fn-246-realization-as-a-checked-refinement-a.1",
       "timestamp": "2026-10-25T11:16:26.865810Z",
       "verdict": null
+    },
+    {
+      "artifact_sha256": "89b1c215ea1afbb91b5dd676b2d96fd0e5207cb5f86e84f7d41d640e1a080672",
+      "backend": "codex",
+      "base_sha": "be94f9df748fb6b1371e4285bce6741170b9c48a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "62e1c19d31a2a6f3d6e7061bd86ee179fa834cb5",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "7e8b63cbf511457aad29da3fc81ae100",
+      "round_consumed": true,
+      "scope": "impl:fn-246-realization-as-a-checked-refinement-a.1",
+      "superseded_by": null,
+      "task": "fn-246-realization-as-a-checked-refinement-a.1",
+      "timestamp": "2026-10-25T11:22:30.189636Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-246-realization-as-a-checked-refinement-a.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
-    "impl:fn-246-realization-as-a-checked-refinement-a.1": 1,
+    "impl:fn-246-realization-as-a-checked-refinement-a.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-246-realization-as-a-checked-refinement-a.md",
@@ -194,5 +230,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T11:16:26.866414Z"
+  "updated_at": "2026-10-25T11:22:30.192807Z"
 }

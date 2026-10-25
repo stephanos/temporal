@@ -1,0 +1,9 @@
+{
+  "observations_judgments_callback_order_unchanged": true,
+  "coverage_gaps_mutants_unchanged": true,
+  "whole_prefix_extension_and_action_outcome_lengths_verified": true,
+  "lines": 253,
+  "changed_lines": 88,
+  "reports": 90,
+  "final_steps": 84
+}
