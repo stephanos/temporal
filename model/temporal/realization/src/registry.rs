@@ -51,6 +51,8 @@ pub trait Registry<A>: Fill<A> {
     fn row(&self, action: &A) -> ActionRow;
 
     /// Decode actual RPC evidence and match the complete checked witness prefix.
+    /// Empty prefixes ask the authored predicates for root admission. Positive
+    /// admissions must agree on their kind and cursor before Reach can explore.
     ///
     /// # Errors
     /// Preserves envelope, concrete request/result and feature admission refusals.
