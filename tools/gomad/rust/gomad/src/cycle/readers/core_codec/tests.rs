@@ -627,6 +627,7 @@ fn genuine_large_context_and_selected_image_replay_all_creation_effects() {
         &recovered.state,
     )
     .unwrap();
+    probe_recovered(&input, selected.image.as_ref().unwrap(), false);
     let mut changed = selected.clone();
     let original = baseline.image.as_ref().unwrap();
     changed.image = Some(original.clone());

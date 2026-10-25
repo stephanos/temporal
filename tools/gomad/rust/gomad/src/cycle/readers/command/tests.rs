@@ -328,7 +328,7 @@ fn genuine_preparation(root: &Path) -> Result<(), String> {
     .map_err(|e| e.to_string())?;
     fs::write(
         source.join("main.go"),
-        b"package main\nimport \"os\"\nfunc main(){if len(os.Args)>1 && os.Args[1]==\"canary\" {panic(\"b04 expected canary\")};println(\"b04-current-preparation\")}\n",
+        b"package main\nimport (\"os\";\"time\")\nfunc main(){a,b:=make(chan int,1),make(chan int,1);a<-1;b<-2;select{case <-a:case <-b:};time.Sleep(time.Nanosecond);if len(os.Args)>1 && os.Args[1]==\"canary\" {panic(\"b04 expected canary\")};println(\"b04-current-preparation\")}\n",
     )
     .map_err(|e| e.to_string())?;
     let compiler = PathBuf::from(
@@ -412,7 +412,18 @@ fn genuine_preparation(root: &Path) -> Result<(), String> {
         inputs["compiler_sha256"].clone(),
     );
     frozen.insert(executable.to_string_lossy().into_owned(), json!(binary));
-    let config = json!({"root":root,"repo":root,"files":frozen,"source_sha256":digest(&custody::read_file(&source.join("main.go"),1<<20)?),"binary_sha256":binary,"binary":executable,"identity":{"host":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"),"helper":gomad_wasmhost::linked::IMPLEMENTATION_SHA256}});
+    let repository = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../../..")
+        .canonicalize()
+        .map_err(|e| e.to_string())?;
+    for name in super::result::CHOICE_SOURCES {
+        let path = repository.join("tools/gomad/internal/model").join(name);
+        frozen.insert(
+            path.to_string_lossy().into_owned(),
+            json!(digest(&custody::read_file(&path, 512 << 20)?)),
+        );
+    }
+    let config = json!({"root":root,"repo":repository,"files":frozen,"source_sha256":digest(&custody::read_file(&source.join("main.go"),1<<20)?),"binary_sha256":binary,"binary":executable,"identity":{"host":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"),"helper":gomad_wasmhost::linked::IMPLEMENTATION_SHA256}});
     let seal = json!({"source_sha256":config["source_sha256"],"binary_sha256":binary,"campaigns":[{"path":campaign,"receipt_path":sidecar.join("receipt.json"),"receipt_sha256":digest(&raw),"files":files}]});
     let row = json!({"pid":std::process::id(),"argv":[executable,"--installation",installation_path,"prepare"],"private_observations":seal});
     let control = || {
@@ -560,13 +571,56 @@ fn genuine_preparation(root: &Path) -> Result<(), String> {
         });
         fs::create_dir(&case).map_err(|e| e.to_string())?;
         fs::set_permissions(&case, fs::Permissions::from_mode(0o700)).map_err(|e| e.to_string())?;
-        genuine_result(&case, &source, &installation_path, &config, cluster, canary)?;
+        let installed = if cluster {
+            fixture_cooperative_installation(&case, root, &compiler)?
+        } else {
+            installation_path.clone()
+        };
+        genuine_result(&case, &source, &installed, &config, cluster, canary)?;
     }
     println!(
         "B04_PREPARATION_ACTUAL {}",
         json!({"control":"normal-return","guest_exit":execution.publication.record.outcome.exit_code,"row":row,"receipt":receipt,"provenance":provenance,"config":config})
     );
     Ok(())
+}
+
+fn fixture_cooperative_installation(
+    case: &Path,
+    cache_root: &Path,
+    compiler: &Path,
+) -> Result<PathBuf, String> {
+    let path = case.join("cooperative-installation.json");
+    crate::cli::install::run(
+        &[
+            "--compiler".into(),
+            compiler.to_string_lossy().into_owned(),
+            "--cache".into(),
+            cache_root.join("cache").to_string_lossy().into_owned(),
+            "--compile-cache".into(),
+            cache_root
+                .join("engine-cache")
+                .to_string_lossy()
+                .into_owned(),
+            "--go-version=go1.27.1".into(),
+            "--runtime-root".into(),
+            Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../internal/model/runtimesource")
+                .canonicalize()
+                .map_err(|e| e.to_string())?
+                .to_string_lossy()
+                .into_owned(),
+            "--profile=gomad.wasi-cooperative/v1".into(),
+            "--output".into(),
+            path.to_string_lossy().into_owned(),
+        ],
+        &mut Vec::new(),
+    )
+    .map_err(|error| error.message)?;
+    let installed: crate::install::manifest::Installation =
+        serde_json::from_slice(&custody::read_file(&path, 16 << 20)?).map_err(|e| e.to_string())?;
+    crate::install::manifest::validate(&installed)?;
+    Ok(path)
 }
 
 fn fixture_specification(
@@ -613,6 +667,13 @@ fn fixture_specification(
 #[test]
 fn actual_fixture_declarations_match_current_spec_manifest_and_scenario_schemas() {
     use crate::qualify::{cells, result, spec};
+    let fixture = Fixture::new();
+    let compiler = Path::new(
+        "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-stock-go1.27.1/bin/go",
+    )
+    .canonicalize()
+    .unwrap();
+    fixture_cooperative_installation(&fixture.root, &fixture.root, &compiler).unwrap();
     let root = Path::new("/private/b04-fixture-declaration");
     let digest = "a".repeat(64);
     for (cluster, canary) in [(false, false), (false, true), (true, false)] {
@@ -684,6 +745,21 @@ fn genuine_result(
         source_file.display()
     );
     private(&manifest_path, manifest.as_bytes());
+    let installed: crate::install::manifest::Installation =
+        serde_json::from_slice(&custody::read_file(installation, 16 << 20)?)
+            .map_err(|e| e.to_string())?;
+    crate::install::manifest::admit_build(&installed)?;
+    let mut configured = config.clone();
+    configured["source_manifest"] = json!(manifest_path);
+    configured["source_sha256"] = json!(digest(manifest.as_bytes()));
+    for (path, sha) in &installed
+        .admission
+        .as_ref()
+        .ok_or("actual installation admission absent")?
+        .compiler_inputs
+    {
+        configured["files"][path.to_str().ok_or("actual compiler path UTF8")?] = json!(sha);
+    }
     let specification = fixture_specification(
         root,
         source,
@@ -758,20 +834,68 @@ fn genuine_result(
     );
     fs::remove_file(alternate).map_err(|e| e.to_string())?;
     let reported = json!({"result":retained,"receipt":receipt,"publication":terminal});
-    let mut configured = config.clone();
-    configured["source_manifest"] = json!(manifest_path);
-    configured["source_sha256"] = json!(digest(manifest.as_bytes()));
-    let provenance = &retained.provenance;
-    for group in ["compiler", "sources"] {
-        for (path, sha) in provenance["inputs"][group]
-            .as_object()
-            .ok_or("genuine provenance inventory")?
-        {
-            configured["files"][path] = sha.clone();
-        }
-    }
     let mut session = RetainedSession::from_value(configured.clone())?;
     session.result(&published.path, &reported)?;
+    session.provenance(&retained.provenance)?;
+    let mut foreign_compiler = configured.clone();
+    let compiler_path = text(&retained.provenance["inputs"], "compiler_path")?;
+    foreign_compiler["files"][compiler_path] = json!("f".repeat(64));
+    let error = RetainedSession::from_value(foreign_compiler)?
+        .provenance(&retained.provenance)
+        .unwrap_err();
+    require(
+        error.contains("compiler path/hash not frozen"),
+        "wrong actual compiler pin predicate",
+    )?;
+    proof(
+        "actual provenance compiler not frozen",
+        &retained.provenance,
+        &error,
+    );
+    if cluster {
+        for name in super::result::CHOICE_SOURCES {
+            let path = Path::new(text(&configured, "repo")?)
+                .join("tools/gomad/internal/model")
+                .join(name);
+            let mut missing = configured.clone();
+            missing["files"]
+                .as_object_mut()
+                .ok_or("frozen files absent")?
+                .remove(path.to_str().ok_or("choice path UTF8")?);
+            let error = RetainedSession::from_value(missing)?
+                .provenance(&retained.provenance)
+                .unwrap_err();
+            require(
+                error.contains("not frozen"),
+                &format!("wrong actual choice source pin predicate: {error}"),
+            )?;
+            proof(
+                "actual cooperative choice source not frozen",
+                &json!({"path":path}),
+                &error,
+            );
+        }
+        for (field, value) in [
+            ("GOOS", json!("foreign")),
+            ("GOARCH", json!("foreign")),
+            ("ToolchainBuildKey", json!("f".repeat(64))),
+            ("TargetSHA256", json!(vec![0; 32])),
+            ("ImplementationSHA256", json!(vec![0; 32])),
+        ] {
+            let mut changed = retained.provenance.clone();
+            changed["choice_identity"][field] = value;
+            let error = session
+                .provenance(&changed)
+                .err()
+                .ok_or("actual cooperative choice mutation accepted")?;
+            proof(
+                &format!("actual cooperative choice {field}"),
+                &changed,
+                &error,
+            );
+        }
+    }
+
     let mut campaigns = Vec::new();
     for execution in &retained.report.executions {
         let campaign = Path::new(&execution.campaign_path);
@@ -873,6 +997,31 @@ fn genuine_result(
         ("/schema", json!("foreign"), "result schema"),
         ("/report/schema", json!("foreign"), "qualification report"),
         (
+            "/report/executions/0/replay",
+            Value::Null,
+            "omitted its replay",
+        ),
+        (
+            "/report/executions/0/replay/attempted",
+            json!(false),
+            "replay evidence",
+        ),
+        (
+            "/report/executions/0/replay/matched",
+            json!(false),
+            "replay evidence",
+        ),
+        (
+            "/report/executions/0/replay/divergence",
+            json!("receiver-mutant"),
+            "replay evidence",
+        ),
+        (
+            "/report/executions/0/replay/choice_replay",
+            json!("unavailable"),
+            "replay evidence",
+        ),
+        (
             "/manifest/host_arch",
             json!("foreign-arch"),
             "execution identity",
@@ -899,6 +1048,221 @@ fn genuine_result(
             "wrong shared Result inner predicate",
         )?;
         proof(&format!("actual Result {pointer}"), &changed, &error);
+    }
+    let mut duplicate = retained.clone();
+    duplicate.report.executions[1].artifact_path =
+        duplicate.report.executions[0].artifact_path.clone();
+    let duplicate_path = result::publish(
+        published.path.parent().ok_or("Result directory absent")?,
+        &duplicate,
+    )?;
+    let duplicate_raw = custody::read_file(&duplicate_path, 64 << 20)?;
+    let mut duplicate_receipt = receipt.clone();
+    duplicate_receipt.result_sha256 = digest(&duplicate_raw);
+    result::publish_receipt(&duplicate_path, &duplicate_receipt)?;
+    let duplicate_reported =
+        json!({"result":duplicate,"receipt":duplicate_receipt,"publication":terminal});
+    let error = RetainedSession::from_value(configured.clone())?
+        .result(&duplicate_path, &duplicate_reported)
+        .unwrap_err();
+    require(
+        error.contains("duplicate qualification artifact"),
+        "wrong actual duplicate artifact predicate",
+    )?;
+    proof(
+        "actual Result duplicate qualification artifact",
+        &duplicate_reported,
+        &error,
+    );
+    if !cluster && !canary {
+        for case in [
+            "missing",
+            "multiple",
+            "mode",
+            "link",
+            "bound",
+            "canonical",
+            "name",
+        ] {
+            let directory = root.join(format!("receipt-{case}"));
+            let path = result::publish(&directory, &retained)?;
+            let mut bytes = canonical(&receipt)?;
+            bytes.push(b'\n');
+            if case == "bound" {
+                bytes.resize((8 << 10) + 1, b' ');
+            }
+            if case == "canonical" {
+                bytes.push(b' ');
+            }
+            let name = format!(
+                "{}.publication-{}.json",
+                path.file_name()
+                    .ok_or("Result name absent")?
+                    .to_string_lossy(),
+                if case == "name" {
+                    "f".repeat(64)
+                } else {
+                    digest(&bytes)
+                }
+            );
+            let receipt_path = path.with_file_name(name);
+            if case != "missing" {
+                private(&receipt_path, &bytes);
+            }
+            match case {
+                "multiple" => private(
+                    &path.with_file_name(format!(
+                        "{}.publication-{}.json",
+                        path.file_name()
+                            .ok_or("Result name absent")?
+                            .to_string_lossy(),
+                        "e".repeat(64)
+                    )),
+                    &bytes,
+                ),
+                "mode" => fs::set_permissions(&receipt_path, fs::Permissions::from_mode(0o644))
+                    .map_err(|e| e.to_string())?,
+                "link" => fs::hard_link(&receipt_path, directory.join("linked-receipt"))
+                    .map_err(|e| e.to_string())?,
+                _ => {}
+            }
+            let error = result::open_receipt(&path, &retained).unwrap_err();
+            let reason = match case {
+                "missing" | "multiple" => "exactly one",
+                "canonical" => "not canonical",
+                "name" => "content identity",
+                _ => "artifact",
+            };
+            require(
+                error.contains(reason),
+                &format!("wrong actual receipt {case} predicate: {error}"),
+            )?;
+            proof(
+                &format!("actual receipt {case}"),
+                &json!({"path":path,"receipt":receipt_path,"raw_sha256":digest(&bytes)}),
+                &error,
+            );
+        }
+    }
+    let mut raw_mismatch = retained.clone();
+    for execution in &mut raw_mismatch.report.executions {
+        execution.record.arguments.push("receiver-mutant".into());
+        execution.record_sha256 = execution.record.hash()?;
+    }
+    raw_mismatch.report.record_sha256 =
+        Some(raw_mismatch.report.executions[0].record_sha256.clone());
+    let error = result::validate(&raw_mismatch).unwrap_err();
+    require(
+        error.contains("raw artifact record differs"),
+        "wrong actual record comparison predicate",
+    )?;
+    proof(
+        "actual Result coherent raw record mismatch",
+        &serde_json::to_value(&raw_mismatch).map_err(|e| e.to_string())?,
+        &error,
+    );
+    for case in ["limits", "implementation", "inputs"] {
+        if cluster && case == "inputs" {
+            continue;
+        }
+        let mut changed = retained.clone();
+        for execution in &mut changed.report.executions {
+            match case {
+                "limits" => execution.record.limits.evidence_bytes += 1,
+                "implementation" => {
+                    execution.record.identity.implementation = "f".repeat(64);
+                    execution.record.execution_identity = execution.record.identity.digest()?;
+                }
+                _ => execution.record.arguments.push("receiver-mutant".into()),
+            }
+            execution.record_sha256 = execution.record.hash()?;
+            let original = Path::new(
+                execution
+                    .artifact_path
+                    .as_deref()
+                    .ok_or("actual artifact absent")?,
+            );
+            let opened = store::Opened::open(original)?;
+            let destination = root.join(format!("mutant-{case}-{}", execution.iteration));
+            fs::create_dir(&destination).map_err(|e| e.to_string())?;
+            fs::set_permissions(&destination, fs::Permissions::from_mode(0o700))
+                .map_err(|e| e.to_string())?;
+            let mut manifest = opened.manifest().clone();
+            manifest.record = execution.record.clone();
+            manifest.record_sha256 = execution.record_sha256.clone();
+            for (name, entry) in &mut manifest.files {
+                let bytes = if name == "record.json" {
+                    let bytes = execution.record.bytes()?;
+                    entry.bytes = bytes.len() as u64;
+                    entry.sha256 = digest(&bytes);
+                    bytes
+                } else {
+                    opened.payload(name, entry.bytes)?
+                };
+                let target = destination.join(name);
+                if let Some(parent) = target.parent() {
+                    fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+                    let mut current = Some(parent);
+                    while let Some(directory) =
+                        current.filter(|path| path.starts_with(&destination))
+                    {
+                        fs::set_permissions(directory, fs::Permissions::from_mode(0o700))
+                            .map_err(|e| e.to_string())?;
+                        current = directory.parent();
+                    }
+                }
+                private(&target, &bytes);
+            }
+            private(
+                &destination.join("storage.json"),
+                &custody::read_file(&original.join("storage.json"), 1 << 20)?,
+            );
+            private(&destination.join("manifest.json"), &canonical(&manifest)?);
+            execution.artifact_path = Some(destination.to_string_lossy().into_owned());
+        }
+        changed.report.record_sha256 = Some(changed.report.executions[0].record_sha256.clone());
+        let error = result::validate(&changed).unwrap_err();
+        require(
+            error.contains("execution identity differs"),
+            "wrong coherently resealed actual Result input predicate",
+        )?;
+        proof(
+            &format!("actual Result resealed {case}"),
+            &serde_json::to_value(&changed).map_err(|e| e.to_string())?,
+            &error,
+        );
+    }
+    if cluster {
+        let record = &retained.report.executions[0].record;
+        RetainedSession::stream_owners(record)?;
+        for name in [
+            "evidence/cluster/a",
+            "evidence/cluster/a/1",
+            "evidence/cluster//1/transcript",
+        ] {
+            let mut changed = record.clone();
+            let key = changed
+                .streams
+                .keys()
+                .find(|name| name.starts_with("evidence/cluster/"))
+                .ok_or("actual cluster stream absent")?
+                .clone();
+            let stream = changed
+                .streams
+                .remove(&key)
+                .ok_or("actual cluster stream absent")?;
+            changed.streams.insert(name.into(), stream);
+            let error = RetainedSession::stream_owners(&changed).unwrap_err();
+            require(
+                error.contains("malformed cluster stream owner"),
+                "wrong cluster owner predicate",
+            )?;
+            proof(
+                "actual cluster malformed stream owner",
+                &serde_json::to_value(&changed).map_err(|e| e.to_string())?,
+                &error,
+            );
+        }
     }
     if cluster {
         let mut changed = retained.clone();
@@ -1345,6 +1709,19 @@ fn preparation_guards(
     receipt: &Value,
     campaign: &Path,
 ) -> Result<(), String> {
+    let empty = RetainedSession::from_value(config.clone())?;
+    let error = empty
+        .prepared_observation(campaign, &receipt["provenance"])
+        .unwrap_err();
+    require(
+        error.contains("lacks actual command observation seal"),
+        "wrong missing preparation seal predicate",
+    )?;
+    proof(
+        "actual preparation missing outer observation",
+        &json!({"campaign":campaign}),
+        &error,
+    );
     let sidecar = campaign.join("preparation-observations");
     let receipt_path = sidecar.join("receipt.json");
     let original = custody::read_file(&receipt_path, 16 << 20)?;
@@ -1424,6 +1801,90 @@ fn preparation_guards(
         proof(field, &json!({"row":outer,"receipt":changed}), &error);
         private(&receipt_path, &original);
     }
+    let first = receipt["files"]
+        .as_object()
+        .ok_or("actual sidecar table absent")?
+        .keys()
+        .next()
+        .ok_or("actual sidecar file absent")?
+        .clone();
+    for case in ["oversized", "unsafe", "unknown"] {
+        let mut changed = receipt.clone();
+        match case {
+            "oversized" => changed["files"][&first]["bytes"] = json!((128_u64 << 20) + 1),
+            "unsafe" => {
+                let entry = changed["files"]
+                    .as_object_mut()
+                    .ok_or("actual sidecar table absent")?
+                    .remove(&first)
+                    .ok_or("actual sidecar file absent")?;
+                changed["files"]["target/preparation-inputs/../foreign"] = entry;
+            }
+            _ => changed["files"][&first]["unexpected"] = json!(true),
+        }
+        let bytes = canonical(&changed)?;
+        private(&receipt_path, &bytes);
+        let mut outer = row.clone();
+        outer["private_observations"]["campaigns"][0]["receipt_sha256"] = json!(digest(&bytes));
+        let refused = RetainedSession::from_value(config.clone())?
+            .capture_preparations(&outer)
+            .err();
+        private(&receipt_path, &original);
+        let error = refused.ok_or("actual sidecar table mutation accepted")?;
+        require(
+            error.contains(match case {
+                "oversized" => "oversized",
+                "unsafe" => "unsafe payload",
+                _ => "unknown field",
+            }),
+            &format!("wrong sidecar table {case} predicate: {error}"),
+        )?;
+        proof(
+            &format!("actual sidecar table {case}"),
+            &json!({"receipt":changed,"row":outer}),
+            &error,
+        );
+    }
+    let blob = sidecar.join(&first);
+    let bytes = custody::read_file(&blob, 128 << 20)?;
+    for case in ["mode", "link", "hash"] {
+        let alias = campaign.join("sidecar-link");
+        match case {
+            "mode" => fs::set_permissions(&blob, fs::Permissions::from_mode(0o644))
+                .map_err(|e| e.to_string())?,
+            "link" => fs::hard_link(&blob, &alias).map_err(|e| e.to_string())?,
+            _ => {
+                let mut changed = bytes.clone();
+                if let Some(first) = changed.first_mut() {
+                    *first ^= 1;
+                } else {
+                    changed.push(1);
+                }
+                private(&blob, &changed);
+            }
+        }
+        let refused = RetainedSession::from_value(config.clone())?
+            .capture_preparations(row)
+            .err();
+        if case == "link" {
+            fs::remove_file(alias).map_err(|e| e.to_string())?;
+        }
+        private(&blob, &bytes);
+        let error = refused.ok_or("actual sidecar file mutation accepted")?;
+        require(
+            error.contains(match case {
+                "hash" => "sidecar file changed",
+                "link" => "hard link",
+                _ => "private",
+            }),
+            &format!("wrong sidecar file {case} predicate: {error}"),
+        )?;
+        proof(
+            &format!("actual sidecar file {case}"),
+            &json!({"path":blob,"original_sha256":digest(&bytes),"case":case}),
+            &error,
+        );
+    }
     let extra = sidecar.join("unsealed");
     private(&extra, b"unexpected");
     let error = RetainedSession::from_value(config.clone())?
@@ -1451,9 +1912,54 @@ fn preparation_guards(
     let replay_raw = custody::read_file(&replay_path, 16 << 20)?;
     let replay = custody::strict_json(&replay_raw)?;
     let artifact = RetainedSession::from_value(config.clone())?.artifact(&prepared)?;
+    genuine_artifact_guards(config, &prepared, &artifact.manifest)?;
     let provenance = custody::strict_json(&artifact.payloads["target/provenance.json"])?;
     let session = RetainedSession::from_value(config.clone())?;
     session.prepared_replay(&replay, &provenance)?;
+    session.prepared_record(
+        &artifact.manifest.record,
+        &provenance["configuration"],
+        text(&provenance, "module_sha256")?,
+        text(&provenance, "build_key")?,
+    )?;
+    for (pointer, value) in [
+        ("/seed", json!(1)),
+        ("/virtual_time_nanos", json!(1)),
+        ("/outcome/class", json!("success")),
+        ("/outcome/termination", json!("exit")),
+        ("/outcome/exit_code", json!(0)),
+        ("/outcome/reason", json!("foreign")),
+        ("/profile", json!("foreign")),
+        ("/arguments", json!(["foreign"])),
+        ("/environment", json!({"FOREIGN":"1"})),
+        ("/limits/output_bytes", json!(1)),
+        ("/identity/target", json!("f".repeat(64))),
+    ] {
+        let mut changed =
+            serde_json::to_value(&artifact.manifest.record).map_err(|e| e.to_string())?;
+        *changed
+            .pointer_mut(pointer)
+            .ok_or("actual prepared record field absent")? = value;
+        let typed = serde_json::from_value(changed.clone()).map_err(|e| e.to_string())?;
+        let error = session
+            .prepared_record(
+                &typed,
+                &provenance["configuration"],
+                text(&provenance, "module_sha256")?,
+                text(&provenance, "build_key")?,
+            )
+            .unwrap_err();
+        require(
+            error.contains("prepared record role/"),
+            &format!("wrong actual prepared record predicate: {error}"),
+        )?;
+        proof(
+            &format!("actual admitted prepared record {pointer}"),
+            &changed,
+            &error,
+        );
+    }
+
     for field in [
         "schema",
         "helper_sha256",
@@ -1479,6 +1985,29 @@ fn preparation_guards(
     let mut observed = RetainedSession::from_value(config.clone())?;
     observed.capture_preparations(row)?;
     observed.authenticate_prepared_artifact(campaign, &provenance)?;
+    let mut conflicting = config.clone();
+    let source = provenance["inputs"]["sources"]
+        .as_object()
+        .ok_or("actual source inventory absent")?
+        .keys()
+        .find(|path| path.ends_with("/main.go"))
+        .ok_or("actual source main.go absent")?;
+    conflicting["files"][source] = json!("f".repeat(64));
+    let mut conflict_session = RetainedSession::from_value(conflicting)?;
+    conflict_session.capture_preparations(row)?;
+    let error = conflict_session
+        .authenticate_prepared_artifact(campaign, &provenance)
+        .unwrap_err();
+    require(
+        error.contains("source/compiler membership"),
+        &format!("wrong frozen source conflict predicate: {error}"),
+    )?;
+    proof(
+        "actual preparation conflicting frozen source pin",
+        &json!({"source":source,"original":provenance["inputs"]["sources"][source],"conflicting":"f".repeat(64)}),
+        &error,
+    );
+
     let mut wrong = provenance.clone();
     wrong["build_key"] = json!("f".repeat(64));
     let error = observed.prepared_observation(campaign, &wrong).unwrap_err();
@@ -1596,6 +2125,76 @@ fn preparation_guards(
         &error,
     );
     session.artifact(&prepared)?;
+    Ok(())
+}
+
+fn genuine_artifact_guards(
+    config: &Value,
+    prepared: &Path,
+    manifest: &store::Manifest,
+) -> Result<(), String> {
+    let session = RetainedSession::from_value(config.clone())?;
+    for bound in [None, Some((512_u64 << 20) + 1)] {
+        let path = prepared
+            .parent()
+            .ok_or("prepared parent missing")?
+            .join(if bound.is_some() {
+                "oversized-module"
+            } else {
+                "missing-module"
+            });
+        fs::create_dir(&path).map_err(|e| e.to_string())?;
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o700)).map_err(|e| e.to_string())?;
+        let mut changed = manifest.clone();
+        changed.record.streams.clear();
+        changed.record_sha256 = changed.record.hash()?;
+        changed.files.clear();
+        if let Some(bytes) = bound {
+            let mut module = manifest.files["target/module.wasm"].clone();
+            module.bytes = bytes;
+            changed.files.insert("target/module.wasm".into(), module);
+            let target = path.join("target");
+            fs::create_dir(&target).map_err(|e| e.to_string())?;
+            fs::set_permissions(&target, fs::Permissions::from_mode(0o700))
+                .map_err(|e| e.to_string())?;
+            let module_path = target.join("module.wasm");
+            private(&module_path, b"");
+            fs::OpenOptions::new()
+                .write(true)
+                .open(&module_path)
+                .map_err(|e| e.to_string())?
+                .set_len(bytes)
+                .map_err(|e| e.to_string())?;
+        }
+        private(&path.join("manifest.json"), &canonical(&changed)?);
+        private(
+            &path.join("storage.json"),
+            &custody::read_file(&prepared.join("storage.json"), 1 << 20)?,
+        );
+        let error = session
+            .artifact(&path)
+            .err()
+            .ok_or("module cardinality/bound ignored")?;
+        require(
+            error.contains(if bound.is_some() {
+                "global bound"
+            } else {
+                "exactly one"
+            }),
+            &format!("wrong actual module cardinality/bound predicate: {error}"),
+        )?;
+        proof(
+            if bound.is_some() {
+                "actual module pre-read512MiB bound"
+            } else {
+                "actual module cardinality"
+            },
+            &json!({"path":path,"manifest":changed,"sparse_zero_bytes":bound}),
+            &error,
+        );
+        fs::remove_dir_all(&path).map_err(|e| e.to_string())?;
+    }
+    session.artifact(prepared)?;
     Ok(())
 }
 

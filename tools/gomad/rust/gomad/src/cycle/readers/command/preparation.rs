@@ -188,23 +188,11 @@ impl RetainedSession {
                     && digest(&canonical(&inputs["sources"])?) == receipt.sources_sha256,
                 "preparation receipt stable commitments changed",
             )?;
-            require(
-                record.seed == 0
-                    && record.virtual_time_nanos == 0
-                    && record.outcome.class == "prepared"
-                    && record.outcome.termination == "prepared"
-                    && record.outcome.exit_code.is_none()
-                    && record.outcome.reason.is_empty(),
-                "prepared record role/outcome changed",
-            )?;
-            let expected_identity = json!({"target":receipt.module_sha256,"toolchain":receipt.build_key,"configuration":digest(&canonical(configuration)?),"implementation":digest(&canonical(&self.config["identity"])?),"platform":digest(format!("{}/{}",std::env::consts::OS,std::env::consts::ARCH).as_bytes())});
-            let actual_record = serde_json::to_value(record).map_err(|e| e.to_string())?;
-            require(
-                actual_record["identity"] == expected_identity
-                    && ["profile", "arguments", "environment", "limits"]
-                        .iter()
-                        .all(|key| actual_record[key] == configuration[key]),
-                "prepared record role/configuration changed",
+            self.prepared_record(
+                record,
+                configuration,
+                &receipt.module_sha256,
+                &receipt.build_key,
             )?;
             let replay = custody::strict_json(
                 artifact
@@ -230,6 +218,33 @@ impl RetainedSession {
             admitted.push((campaign.path.clone(), value));
         }
         self.preparations.extend(admitted);
+        Ok(())
+    }
+    pub(super) fn prepared_record(
+        &self,
+        record: &crate::evidence::record::Record,
+        configuration: &Value,
+        module: &str,
+        build_key: &str,
+    ) -> Result<(), String> {
+        require(
+            record.seed == 0
+                && record.virtual_time_nanos == 0
+                && record.outcome.class == "prepared"
+                && record.outcome.termination == "prepared"
+                && record.outcome.exit_code.is_none()
+                && record.outcome.reason.is_empty(),
+            "prepared record role/outcome changed",
+        )?;
+        let expected_identity = json!({"target":module,"toolchain":build_key,"configuration":digest(&canonical(configuration)?),"implementation":digest(&canonical(&self.config["identity"])?),"platform":digest(format!("{}/{}",std::env::consts::OS,std::env::consts::ARCH).as_bytes())});
+        let actual_record = serde_json::to_value(record).map_err(|e| e.to_string())?;
+        require(
+            actual_record["identity"] == expected_identity
+                && ["profile", "arguments", "environment", "limits"]
+                    .iter()
+                    .all(|key| actual_record[key] == configuration[key]),
+            "prepared record role/configuration changed",
+        )?;
         Ok(())
     }
     pub(super) fn prepared_replay(&self, replay: &Value, provenance: &Value) -> Result<(), String> {
