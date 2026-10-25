@@ -1,8 +1,8 @@
 model/umpire/catalog/src/black_box.rs:93:pub fn probe_applicability(
+model/umpire/protocol/runtime/tests/support/mod.rs:184:pub(crate) fn decode_hex(hex: &str) -> Vec<u8> {
+model/umpire/backends/native/src/explore.rs:260:pub fn panic_message(error: &(dyn Any + Send)) -> &str {
+model/umpire/backends/native/src/rng.rs:14:        value = (value ^ (value >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
 model/umpire/dev/testing/src/source_edit.rs:2:pub fn replace_once(source: &str, from: &str, to: &str) -> String {
 model/umpire/dev/testing/src/source_edit.rs:8:pub fn replace_in(source: &str, start: &str, end: &str, from: &str, to: &str) -> String {
 model/umpire/dev/testing/src/source_edit.rs:18:pub fn replace_code(source: &str, from: &str, to: &str) -> String {
-model/umpire/backends/native/src/explore.rs:260:pub fn panic_message(error: &(dyn Any + Send)) -> &str {
-model/umpire/backends/native/src/rng.rs:14:        value = (value ^ (value >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
 model/umpire/front/src/errors.rs:2:pub(crate) struct Errors(Option<syn::Error>);
-model/umpire/protocol/runtime/tests/support/mod.rs:183:pub(crate) fn decode_hex(hex: &str) -> Vec<u8> {
