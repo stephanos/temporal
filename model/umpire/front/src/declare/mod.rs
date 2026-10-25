@@ -294,7 +294,19 @@ pub fn machine(args: &TokenStream, input: &ItemMod) -> Result<Machine> {
         }
     }
     let enums = enums(items, &idents)?;
-    let tokens = input.to_token_stream();
+    let mut semantics = input.clone();
+    if let Some((_, items)) = &mut semantics.content {
+        for item in items {
+            if let Item::Enum(actor) = item
+                && idents.contains(&actor.ident)
+            {
+                for variant in &mut actor.variants {
+                    variant.attrs.retain(|attr| !attr.path().is_ident("metadata"));
+                }
+            }
+        }
+    }
+    let tokens = semantics.to_token_stream();
     Ok(Machine {
         state,
         visibility,

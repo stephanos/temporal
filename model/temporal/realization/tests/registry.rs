@@ -273,3 +273,6 @@ fn registry_admission_uses_actual_inventory_descriptor_edges_and_rust_types() {
     tests.compile_fail("tests/ui/registry_*.rs");
     tests.pass("tests/ui-pass/registry_*.rs");
 }
+
+#[path = "registry/reach.rs"]
+mod reach;

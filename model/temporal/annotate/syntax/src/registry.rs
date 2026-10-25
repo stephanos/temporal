@@ -402,7 +402,11 @@ fn expand_scoped(
     };
     let classify = action_dispatch(model, &input.actors, &rows, &classifications);
     let fill = action_dispatch(model, &input.actors, &rows, &fills);
-    let check = action_dispatch(model, &input.actors, &rows, &evidence);
+    let predicates = evidence.iter().map(|body| quote!(|__binding, __observed, path| { #body }));
+    let selected: Vec<_> = (0..rows.len())
+        .map(|index| quote!(__predicates[#index](self, &__observed, path)))
+        .collect();
+    let check = action_dispatch(model, &input.actors, &rows, &selected);
     Ok(quote! {
         #item
         #[doc = "Typed requests constructed by this binding's admitted registry."]
@@ -426,7 +430,20 @@ fn expand_scoped(
             fn check_registered(&self, observation: &::umpire_runtime::prost_types::Any, path: &[&::umpire_runtime::Evidence<#model::World>]) -> Result<::umpire_runtime::EvidenceMatch, ::umpire_runtime::protocol::Refusal> {
                 let __observed = #runtime::support::Observed::new(observation)?;
                 #(#admission)*
-                let Some(__edge) = path.last() else { return Ok(::umpire_runtime::EvidenceMatch::Reject); };
+                let __predicates: &[fn(&Self, &#runtime::support::Observed, &[&::umpire_runtime::Evidence<#model::World>]) -> Result<::umpire_runtime::EvidenceMatch, ::umpire_runtime::protocol::Refusal>] = &[#(#predicates),*];
+                let Some(__edge) = path.last() else {
+                    let mut __root = ::umpire_runtime::EvidenceMatch::Reject;
+                    for __predicate in __predicates {
+                        let __candidate = __predicate(self, &__observed, path)?;
+                        if __candidate != ::umpire_runtime::EvidenceMatch::Reject {
+                            if __root != ::umpire_runtime::EvidenceMatch::Reject && __root != __candidate {
+                                return Err(::umpire_runtime::protocol::Refusal::new(::umpire_runtime::protocol::RefusalCode::State, "registered evidence root admissions disagree"));
+                            }
+                            __root = __candidate;
+                        }
+                    }
+                    return Ok(__root);
+                };
                 let action = &__edge.action;
                 #check
             }
@@ -528,7 +545,7 @@ fn dispatches(
             fills.push(quote!(Err(::umpire_runtime::protocol::Refusal::unsupported(
                 "environmental action has no RPC request"
             ))));
-            evidence.push(quote_spanned!(Span::call_site().located_at(check.span())=> self.#check(&__observed, path)));
+            evidence.push(quote_spanned!(Span::call_site().located_at(check.span())=> __binding.#check(&__observed, path)));
             quote!(#runtime::registry::ActionKind::Event { reason: #reason })
         } else {
             let rpc = rpc(&row.options, schema, span)?;
@@ -561,7 +578,7 @@ fn dispatches(
             request_variants.push(quote!(#[doc = #request_doc] #sum_variant(#request)));
             pack_arms.push(quote!(Self::#sum_variant(value) => <::umpire_runtime::prost_types::Any as ::umpire_runtime::AnyMessage>::pack(value)));
             let filled = quote_spanned!(Span::call_site().located_at(fill.span())=> self.#fill(__actor, world, inputs, identity)?);
-            let checked = quote_spanned!(Span::call_site().located_at(check.span())=> self.#check(__request, __response, path));
+            let checked = quote_spanned!(Span::call_site().located_at(check.span())=> __binding.#check(__request, __response, path));
             fills.push(quote! {
                 #witnesses
                 let __request: #request = #filled;

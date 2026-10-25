@@ -27,7 +27,7 @@ pub(crate) mod specimen {
         Notify { flag: bool },
         #[metadata(temporal(rpc = WorkflowService::RespondActivityTaskCompleted,
             direction = worker, request = RespondActivityTaskCompletedRequest,
-            response = RespondActivityTaskCompletedResponse, fill = complete, evidence = completed,
+            response = RespondActivityTaskCompletedResponse, fill = complete, evidence = retried,
             request_reads(namespace, task_token, identity)))]
         RetryNotify(bool),
     }
@@ -44,6 +44,10 @@ pub(crate) mod specimen {
         pub(crate) done: bool,
     }
     impl Model {
+        #[starts]
+        fn initial() -> impl IntoIterator<Item = Self> {
+            [Self { ping: false, done: false }]
+        }
         #[on(Client)]
         fn client(&mut self, _: Client) {
             self.ping = true;
@@ -79,6 +83,8 @@ pub(crate) struct Inputs {
 #[derive(Default)]
 pub(crate) struct Binding {
     pub(crate) calls: std::cell::Cell<usize>,
+    pub(crate) root_cursor: std::rc::Rc<std::cell::Cell<usize>>,
+    pub(crate) conflicting_root: std::cell::Cell<bool>,
 }
 impl Identity for Binding {
     type Id = ActualId;
@@ -122,15 +128,28 @@ specimen::action_metadata!(umpire_temporal::registry; specimen; {
             self.calls.set(self.calls.get() + 1);
             if request.namespace.is_empty() || request.activity_id.is_empty() || request.request_id.is_empty() { return Err(Refusal::malformed("required request identity missing")); }
             if request.run_id != "run" { return Err(Refusal::malformed("crossed run")); }
-            Ok(if response.is_ok() && path.last().is_some_and(|edge| !edge.source.ping && edge.target.ping && edge.choice == 0 && edge.facts.is_empty()) { umpire_runtime::EvidenceMatch::Match { cursor: path.len() } } else { umpire_runtime::EvidenceMatch::Reject })
+            if path.is_empty() { return Ok(if response.is_ok() { umpire_runtime::EvidenceMatch::Continue { cursor: self.root_cursor.get() } } else { umpire_runtime::EvidenceMatch::Reject }); }
+            Ok(if response.is_ok() && path.last().is_some_and(|edge| !edge.source.ping && edge.target.ping && edge.choice == 0 && edge.facts.is_empty()) { umpire_runtime::EvidenceMatch::Match { cursor: self.root_cursor.get() + path.len() } } else { umpire_runtime::EvidenceMatch::Reject })
         }
         fn completed(&self, request: RespondActivityTaskCompletedRequest, response: Result<RespondActivityTaskCompletedResponse, i32>, path: &[&umpire_runtime::Evidence<specimen::World>]) -> Result<umpire_runtime::EvidenceMatch, Refusal> {
             self.calls.set(self.calls.get() + 1);
             if request.task_token != [9] { return Err(Refusal::malformed("crossed worker identity")); }
-            Ok(if request.task_token == [9] && response.is_ok() && path.len() == 2 && !path[0].source.ping && path[0].target.ping && path[1].source.ping && path[1].target.done { umpire_runtime::EvidenceMatch::Match { cursor: 2 } } else { umpire_runtime::EvidenceMatch::Reject })
+            if path.is_empty() { return Ok(if response.is_ok() { umpire_runtime::EvidenceMatch::Continue { cursor: self.root_cursor.get() } } else { umpire_runtime::EvidenceMatch::Reject }); }
+            Ok(if request.task_token == [9] && response.is_ok() && path.len() == 2 && !path[0].source.ping && path[0].target.ping && path[1].source.ping && path[1].target.done { umpire_runtime::EvidenceMatch::Match { cursor: self.root_cursor.get() + 2 } } else { umpire_runtime::EvidenceMatch::Reject })
         }
-        fn refreshed(&self, _: &umpire_temporal::support::Observed, _: &[&umpire_runtime::Evidence<specimen::World>]) -> Result<umpire_runtime::EvidenceMatch, Refusal> {
-            Ok(umpire_runtime::EvidenceMatch::Reject)
+        fn retried(&self, request: RespondActivityTaskCompletedRequest, response: Result<RespondActivityTaskCompletedResponse, i32>, path: &[&umpire_runtime::Evidence<specimen::World>]) -> Result<umpire_runtime::EvidenceMatch, Refusal> {
+            let admitted = self.completed(request, response, path)?;
+            if path.is_empty() && self.conflicting_root.get() { return Ok(umpire_runtime::EvidenceMatch::Continue { cursor: self.root_cursor.get() + 1 }); }
+            Ok(admitted)
+        }
+        fn refreshed(&self, observation: &umpire_temporal::support::Observed, path: &[&umpire_runtime::Evidence<specimen::World>]) -> Result<umpire_runtime::EvidenceMatch, Refusal> {
+            use umpire_runtime::EvidenceMatch;
+            if observation.method != "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution" { return Ok(EvidenceMatch::Reject); }
+            let request: DescribeActivityExecutionRequest = observation.request()?.ok_or_else(|| Refusal::malformed("read request missing"))?;
+            let response: DescribeActivityExecutionResponse = observation.response()?;
+            if request.namespace != "ns" || request.run_id != "run" || response.run_id != "run" { return Err(Refusal::malformed("crossed refresh")); }
+            if path.is_empty() { return Ok(EvidenceMatch::Continue { cursor: 7 }); }
+            Ok(if path.len() == 1 && path[0].source.ping && !path[0].target.ping && matches!(path[0].action, specimen::Action::Environment(specimen::Environment::Refresh)) { EvidenceMatch::Match { cursor: 8 } } else { EvidenceMatch::Reject })
         }
         fn admitted(&self, request: &StartActivityExecutionRequest, response: &StartActivityExecutionResponse) -> Result<ActualId, Refusal> {
             if request.namespace.is_empty() || request.activity_id.is_empty() || request.request_id.is_empty() || response.run_id.is_empty() { return Err(Refusal::malformed("bootstrap identity missing")); }
@@ -155,14 +174,25 @@ specimen::action_metadata!(umpire_temporal::registry; specimen; {
 });
 
 impl umpire_runtime::capability::Snapshot<specimen::World> for Binding {
-    type Target = umpire_runtime::NoTarget;
+    type Target = umpire_runtime::Exact<specimen::Model>;
     fn project(
         &self,
         _: &specimen::World,
-        _: &Any,
-        _: &specimen::Model,
+        value: &Any,
+        state: &specimen::Model,
     ) -> Result<umpire_runtime::Projection<specimen::Action, (), Self::Target>, Refusal> {
-        Ok(umpire_runtime::Projection::Current)
+        let observation = umpire_temporal::support::Observed::new(value)?;
+        let mut target = state.clone();
+        match observation.method.as_str() {
+            "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution" => {
+                target.ping = true;
+            }
+            "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution" => {
+                target.ping = false;
+            }
+            _ => return Err(Refusal::unsupported("synthetic projection method unsupported")),
+        }
+        Ok(umpire_runtime::Projection::Reach(umpire_runtime::Exact(target)))
     }
 }
 impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for Binding {
