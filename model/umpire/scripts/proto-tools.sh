@@ -34,8 +34,9 @@ for specification in \
     [ ! -e "$destination" ] && [ ! -L "$destination" ]
     mv "$lock/$name" "$destination"
   fi
-  case "$("$destination" --version)" in
-    "$expected"|"$name-$version ${version#v}") ;;
+  case "$name:$("$destination" --version)" in
+    "protoc-gen-go:protoc-gen-go v1.36.6"|"protoc-gen-go:protoc-gen-go-v1.36.6 v1.36.6"|\
+    "protoc-gen-go-grpc:protoc-gen-go-grpc 1.3.0") ;;
     *) printf 'wrong pinned generator: %s\n' "$destination" >&2; exit 1 ;;
   esac
 done

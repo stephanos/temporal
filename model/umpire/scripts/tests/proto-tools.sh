@@ -16,7 +16,11 @@ case "$5" in
   google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0) name=protoc-gen-go-grpc; version='protoc-gen-go-grpc 1.3.0' ;;
   *) exit 1 ;;
 esac
-printf '#!/usr/bin/env bash\nprintf "%%s\\n" "%s"\n' "$version" > "$GOBIN/$name"
+if [ "$name" = protoc-gen-go ]; then
+  printf '#!/usr/bin/env bash\nprintf "%%s\\n" "${0##*/} v1.36.6"\n' > "$GOBIN/$name"
+else
+  printf '#!/usr/bin/env bash\nprintf "%%s\\n" "%s"\n' "$version" > "$GOBIN/$name"
+fi
 chmod +x "$GOBIN/$name"
 TOOL
 chmod +x "$scratch/bin/mise"
