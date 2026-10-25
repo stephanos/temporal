@@ -2,6 +2,7 @@
 
 pub mod compiler;
 pub mod lock;
+pub mod retired_names;
 pub mod support;
 
 /// A native tool failure. Compiler exit statuses are returned separately.
