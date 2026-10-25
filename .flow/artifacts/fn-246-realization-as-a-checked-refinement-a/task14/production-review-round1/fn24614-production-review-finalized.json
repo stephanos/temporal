@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-246-realization-as-a-checked-refinement-a.14",
+  "verdict": "NEEDS_WORK",
+  "session_id": "01a173d4-8077-7cf2-bfb2-ca35592b45aa",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: Normal raw-worker shutdown can now produce a spurious DriverFault\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: Normal raw-worker shutdown can now produce a spurious DriverFault. `close()` cancels the poll hold before canceling the worker context. If the blocked poll returns between those calls, raw `followPolls` sees its parent context still active and returns the cancellation error. `startWorker` latches that error, and this newly added code returns it from `Driver.Close`:\n- **Suggestion**: Cancel the worker context before releasing/canceling the poll hold, then join both paths. Add a synchronized regression that lets the canceled poll return before shutdown proceeds.\n- **File:Line**: common/testing/testpilot/temporal/act/act.go:433\n- **R-IDs**: R6\n\n## Issue 2\n- **Severity**: P2\n- **Title**: Shutdown can silently discard validation of an already captured terminal acknowledgment\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: Shutdown can silently discard validation of an already captured terminal acknowledgment. `Driver.Close` cancels the worker context before joining. If cancellation precedes coordinator processing, `Assignment.wait` returns cancellation despite an available completion, and `coordinateTerminals` exits without checking `TerminalResult`. Even a validation error already computed is suppressed when `run.Err() != nil`. Consequently, a mutated terminal payload or nonempty Failed acknowledgment failures can close cleanly without fault evidence. The existing mismatch tests wait for executor failure before stopping, so they do not exercise this ordering.\n- **Suggestion**: During shutdown, validate completed terminal expectations and retain substantive validation errors while allowing unfinished canceled operations to close normally. Also preserve these errors through `act.go:336`, which currently drops late Follow errors unless another worker fault already exists. Add a deterministic control that captures an invalid acknowledgment, delays coordinator processing, then closes the Driver.\n- **File:Line**: model/temporal/hosts/go/reference/worker/sdk/sdk.go:198\n- **R-IDs**: R6\n\n```json\n{\"classification_counts\": {\"introduced\": 2, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a173d4-8077-7cf2-bfb2-ca35592b45aa",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a173d4-8076-7ec3-83f0-4501296b9f78",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a173d4-8077-7c20-812c-f1a648cfcf81",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": 2,
+  "introduced_count": 2,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 1,
+  "review_rounds_cap": 8
+}

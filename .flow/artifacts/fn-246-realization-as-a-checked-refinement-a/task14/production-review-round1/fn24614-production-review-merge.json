@@ -1,0 +1,7 @@
+{
+  "keep": [
+    "correctness:1",
+    "contracts:1"
+  ],
+  "collapse": {}
+}

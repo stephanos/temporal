@@ -1,0 +1,78 @@
+{
+  "type": "impl_review_fanout",
+  "focus": null,
+  "claim_token": null,
+  "id": "fn-246-realization-as-a-checked-refinement-a.14",
+  "standalone": false,
+  "base_branch": "93a9d06479fe706b41fe77c7004cfedd7cf2ed5e",
+  "reviewed_base_sha": "93a9d06479fe706b41fe77c7004cfedd7cf2ed5e",
+  "reviewed_head_sha": "4ce3cc6005eb85a02bcd924c6517a30a8ddc61c3",
+  "artifact_sha256": "2e3498723e9170a29820a07f43c9507891fc075351e0fa876a9e92b860b7e121",
+  "reservation_id": "9ddbec7a89e04dd2a53bb1f07a222b6e",
+  "rid": "9ddbec7a89e04dd2a53bb1f07a222b6e",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a173d4-8077-7cf2-bfb2-ca35592b45aa",
+      "verdict": "NEEDS_WORK",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-25T16:11:07.946299Z",
+      "finished_at": "2026-10-25T16:15:20.933811Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/9ddbec7a89e04dd2a53bb1f07a222b6e/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/9ddbec7a89e04dd2a53bb1f07a222b6e/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a173d4-8076-7ec3-83f0-4501296b9f78",
+      "verdict": "NEEDS_WORK",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-25T16:11:07.946531Z",
+      "finished_at": "2026-10-25T16:17:28.954277Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/9ddbec7a89e04dd2a53bb1f07a222b6e/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/9ddbec7a89e04dd2a53bb1f07a222b6e/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a173d4-8077-7c20-812c-f1a648cfcf81",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-25T16:11:07.946808Z",
+      "finished_at": "2026-10-25T16:15:00.200269Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/9ddbec7a89e04dd2a53bb1f07a222b6e/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/9ddbec7a89e04dd2a53bb1f07a222b6e/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-8f37faba39e2-fn-246-realization-as-a-checked-refinement-a.14.json",
+  "created_at": "2026-10-25T16:17:28.968969Z"
+}

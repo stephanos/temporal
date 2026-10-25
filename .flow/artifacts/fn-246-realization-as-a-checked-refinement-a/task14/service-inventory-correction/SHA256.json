@@ -1,5 +1,12 @@
 {
+  "fn24614-joined-api-correction.json": "ca3dd7fa44e3a800bbd4cf7eb3e318ed5fa08437da3353347bde8c0429bb0a93",
   "fn24614-joined-api-correction.log": "39d7a419ebca36dda6252f1ccf54ce18c1233621cc1255d82ddee400cd21c763",
+  "fn24614-services-evidence.json": "37931da6081848656ff2eb47d791f65bfeacb9c88a880ef4c9706cc790206a7f",
+  "fn24614-services-evidence.sha256": "01ebcc1d75d9355956cade658c3714a446fb0dc77fe6c4dcb5f62dc2bbbc4ba6",
+  "fn24614-services-summary.md": "9bbd2bd8fc5032834600b89cc3e95cd9382e3d8ab7137e003c8f9fd6785cf6c9",
   "scope.txt": "8a0334c8d0fb53a4875fd46640ff635e54114ccb055c79cb217a18d8f8f336cc",
-  "fn24614-joined-api-correction.json": "ca3dd7fa44e3a800bbd4cf7eb3e318ed5fa08437da3353347bde8c0429bb0a93"
+  "worker-logs/fn24614-services-clippy.log": "c71fda41bd5cc39c71ab25f36dbf57d44eb303f82a971bae687a0bff14c0b6a9",
+  "worker-logs/fn24614-services-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "worker-logs/fn24614-services-full-green.log": "24312817f08aac899b56d8f69ff79f19ac9f1588f89f6cb464807d45ef5f8b26",
+  "worker-logs/fn24614-services-red.log": "cb8cace0837ad2039aca94946308c7280dd7b03647863f79c3c1b5c6225446e6"
 }

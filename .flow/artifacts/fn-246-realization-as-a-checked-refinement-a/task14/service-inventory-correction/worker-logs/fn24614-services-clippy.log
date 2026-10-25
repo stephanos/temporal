@@ -1,0 +1,27 @@
+    Checking petgraph v0.8.3
+    Checking syn v3.0.9
+    Checking umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/backends/native)
+    Checking umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/protocol/runtime)
+    Checking regex-syntax v0.8.11
+    Checking ident_case v1.0.1
+    Checking darling_core v0.24.1
+    Checking regex-automata v0.4.18
+    Checking syn v2.0.119
+    Checking once_cell v1.21.4
+    Checking either v1.19.0
+    Checking heck v0.5.0
+    Checking itertools v0.14.0
+    Checking prettyplease v0.2.37
+    Checking tempfile v3.27.0
+    Checking regex v1.13.1
+    Checking darling v0.24.1
+    Checking multimap v0.10.1
+    Checking log v0.4.34
+    Checking umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/catalog/syntax)
+    Checking prost-build v0.14.4
+    Checking prettyplease v0.3.0
+    Checking umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/catalog)
+    Checking umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/umpire/catalog/build)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/api)
+    Checking umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model/temporal/annotate/syntax)
+    Finished `dev` profile [unoptimized] target(s) in 6.67s

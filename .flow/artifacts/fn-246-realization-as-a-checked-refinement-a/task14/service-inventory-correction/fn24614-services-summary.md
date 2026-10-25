@@ -1,0 +1,8 @@
+The API service controls now match the claimed heartbeat RPC while preserving exact inventory and scope discrimination. Commit 5c7644bd566c723a9175cb545bd1bff3a5da711e changes only `model/temporal/api/tests/services.rs`; the checkout is clean and task fn-246.14 remains in_progress for the conductor.
+
+The exact ordered inventory includes all nine claimed RPCs. The dropped-claim control independently removes DescribeActivityExecution (Observed) and RecordActivityTaskHeartbeat (Action), requiring the precise generation error in both cases. The added-annotation mutant uses the still-unclaimed RecordActivityTaskHeartbeatById request and keeps its exact out-of-scope error assertion. No production implementation, Model policy, existing native proof or assertion strength was weakened.
+
+The full API pre-edit run reproduced both reported failures and exited101. After correction, `cargo test -p umpire-temporal-api -p umpire-temporal` exited0 with 132 passed tests across API and Temporal, including services6/6, wire_schema6/6, all program/history/catalog/admission/trybuild controls and doctests. Scoped Rustfmt and strict services Clippy (`-D warnings`) exited0. Exact commands, source SHA and log hashes are in fn24614-services-evidence.json (SHA-256 37931da6081848656ff2eb47d791f65bfeacb9c88a880ef4c9706cc790206a7f).
+
+Range: 44e69fe11f0b81e08ce27a492f2ce89111525cd3..5c7644bd566c723a9175cb545bd1bff3a5da711e
+All owned commands are terminal. The exclusive continuation Rust cache lease is released and its contents retained; no further source edits or builds are planned. The conductor owns joined validation, review, integration and Flow closure.

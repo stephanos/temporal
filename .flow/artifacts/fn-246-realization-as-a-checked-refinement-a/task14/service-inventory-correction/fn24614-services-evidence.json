@@ -1,0 +1,63 @@
+{
+  "task_id": "fn-246-realization-as-a-checked-refinement-a.14",
+  "status": "in_progress",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof",
+  "base_commit": "44e69fe11f0b81e08ce27a492f2ce89111525cd3",
+  "commits": [
+    "5c7644bd566c723a9175cb545bd1bff3a5da711e"
+  ],
+  "tests": [
+    "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal-api -p umpire-temporal",
+    "mise exec -- rustfmt --check --edition 2024 --config skip_children=true temporal/api/tests/services.rs",
+    "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo clippy -p umpire-temporal-api --test services -- -D warnings"
+  ],
+  "prs": [],
+  "commands": [
+    {
+      "command": "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal-api",
+      "exit_code": 101,
+      "phase": "pre-edit red reproduction",
+      "log": "fn24614-services-red.log",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model"
+    },
+    {
+      "command": "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal-api -p umpire-temporal",
+      "exit_code": 0,
+      "phase": "verify",
+      "log": "fn24614-services-full-green.log",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model"
+    },
+    {
+      "command": "mise exec -- rustfmt --check --edition 2024 --config skip_children=true temporal/api/tests/services.rs",
+      "exit_code": 0,
+      "phase": "verify",
+      "log": "fn24614-services-fmt.log",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model"
+    },
+    {
+      "command": "timeout 600 env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24614-continuation CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo clippy -p umpire-temporal-api --test services -- -D warnings",
+      "exit_code": 0,
+      "phase": "verify",
+      "log": "fn24614-services-clippy.log",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24614-sdk-proof/model"
+    }
+  ],
+  "passed_test_summary_total": 132,
+  "source_hashes": {
+    "model/temporal/api/tests/services.rs": "478b6c73ebd5a2b1764433a8586b8e415dd0240676a36eee3ffed1546a545aca"
+  },
+  "log_hashes": {
+    ".flow/tmp/milestones-resume-20261024/fn24614-services-logs/fn24614-services-red.log": "cb8cace0837ad2039aca94946308c7280dd7b03647863f79c3c1b5c6225446e6",
+    ".flow/tmp/milestones-resume-20261024/fn24614-services-logs/fn24614-services-full-green.log": "24312817f08aac899b56d8f69ff79f19ac9f1588f89f6cb464807d45ef5f8b26",
+    ".flow/tmp/milestones-resume-20261024/fn24614-services-logs/fn24614-services-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/milestones-resume-20261024/fn24614-services-logs/fn24614-services-clippy.log": "c71fda41bd5cc39c71ab25f36dbf57d44eb303f82a971bae687a0bff14c0b6a9"
+  },
+  "baseline": "Red reproduced before edit, exact stale eight-claim inventory and now-claimed heartbeat annotation assumption. Intended test expectation update for the explicit heartbeat claim addition.",
+  "assertion_changes": [
+    "Exact inventory now includes nine named methods and preserves order.",
+    "Dropped Observed Describe and dropped Action Heartbeat both require exact missing-classification diagnostic.",
+    "Newly annotated unclaimed HeartbeatById still requires exact out-of-scope diagnostic."
+  ],
+  "owned_commands": "All commands exited; private Rust cache lease released, cache contents retained.",
+  "review": "Conductor owns review and closure; no worker verdict or lifecycle mutation."
+}
