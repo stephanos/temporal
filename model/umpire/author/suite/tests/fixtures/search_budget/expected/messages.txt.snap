@@ -24,7 +24,7 @@ start: Node(0, open=true)
 zero-step answer despite start cut:
 start: Node(0, open=false)
 omitted start cannot prove absence:
-refused: waypoint 0 is not reached from Node(0, open=false) within the state budget
+refused: waypoint 0 is not reached from the admitted start Node(0, open=false) within the state budget
 shorter queued match survives a later younger arrival:
 start: Node(10, open=false)
 1: Turn choice=1 -> Node(12, open=false)

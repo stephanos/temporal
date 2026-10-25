@@ -144,6 +144,43 @@ struct Label {
     parent: Option<(usize, Option<usize>)>,
 }
 
+const EMPTY: usize = usize::MAX;
+
+/// The non-dominated label ids per (state, node) cell: one dense slot for the usual single
+/// label, spilling to a map only while a bounded gap keeps several ages alive.
+struct Nondominated {
+    one: Vec<usize>,
+    many: HashMap<usize, Vec<usize>>,
+}
+
+impl Nondominated {
+    fn new(cells: usize) -> Self {
+        Self { one: vec![EMPTY; cells], many: HashMap::new() }
+    }
+
+    fn labels(&self, cell: usize) -> impl Iterator<Item = usize> + '_ {
+        let one = self.one[cell];
+        (one != EMPTY)
+            .then_some(one)
+            .into_iter()
+            .chain(self.many.get(&cell).into_iter().flatten().copied())
+    }
+
+    /// Adds `id`, dropping every label it dominates.
+    fn insert(&mut self, cell: usize, id: usize, dominated: impl Fn(usize) -> bool) {
+        // Empty in the usual case, which then allocates nothing.
+        let mut kept: Vec<_> = self.labels(cell).filter(|old| !dominated(*old)).collect();
+        if kept.is_empty() {
+            self.one[cell] = id;
+            self.many.remove(&cell);
+            return;
+        }
+        self.one[cell] = kept.remove(0);
+        kept.push(id);
+        self.many.insert(cell, kept);
+    }
+}
+
 struct Arc {
     target: usize,
     row: Option<usize>,
@@ -260,9 +297,14 @@ impl<'a, M: Machine> Graph<'a, M> {
         Ok(next)
     }
 
-    /// The shortest path matching `alternative` from `anchor`, ties broken by start, action
-    /// catalog and choice order. A refusal names the first unmatched waypoint and the state that
-    /// matched the one before it; whether a cut leaves that answer open is `cut`.
+    /// The shortest path matching `alternative` from `anchor`. Equal-length choices are
+    /// deterministic, generally by start, catalog row, then choice order. A refusal names the
+    /// first unmatched waypoint and the state that matched the one before it; whether a cut
+    /// leaves that answer open is `cut`.
+    ///
+    /// Labels are capped by the graph, not a constant: without bounded gaps every
+    /// (state, node) cell keeps at most a first arrival and one shorter replacement, so twice
+    /// the cells always suffices; only bounded gaps' ages can need more.
     pub(crate) fn shortest(
         &self,
         alternative: &Alternative<M::State, M::Action, M::Outcome>,
@@ -270,15 +312,18 @@ impl<'a, M: Machine> Graph<'a, M> {
     ) -> Result<Witness<M>, Refusal> {
         let nodes = Self::nodes(alternative, anchor);
         let ordinals = Self::ordinals(&nodes);
+        let width = nodes.len() + 1;
+        let cells = self.states.len().checked_mul(width);
+        let limit = cells
+            .and_then(|cells| cells.checked_mul(2))
+            .ok_or(Refusal::SearchLimit { limit: SEARCH_LIMIT })?
+            .max(SEARCH_LIMIT);
+        let mut best = Nondominated::new(cells.unwrap_or_default());
         let mut labels: Vec<Label> = Vec::new();
-        let mut best: HashMap<(StateId, usize), Vec<usize>> = HashMap::new();
         let mut queue = VecDeque::new();
         for state in 0..self.explored.counts.starts {
-            if labels.len() >= SEARCH_LIMIT {
-                return Err(Refusal::SearchLimit { limit: SEARCH_LIMIT });
-            }
             let position = Position { state: StateId(state), next: 0, age: 0, depth: 0 };
-            best.insert((position.state, position.next), vec![labels.len()]);
+            best.insert(state * width, labels.len(), |_| false);
             queue.push_back(labels.len());
             labels.push(Label { position, distance: 0, parent: None });
         }
@@ -296,21 +341,19 @@ impl<'a, M: Machine> Graph<'a, M> {
                 self.successors(&nodes, &ordinals, position, distance < self.frontier)?
             {
                 let next_distance = distance + usize::from(row.is_some());
-                let nondominated = best.entry((next.state, next.next)).or_default();
-                if nondominated.iter().any(|old| {
-                    labels[*old].distance <= next_distance && labels[*old].position.age <= next.age
+                let cell = next.state.0 * width + next.next;
+                if best.labels(cell).any(|old| {
+                    labels[old].distance <= next_distance && labels[old].position.age <= next.age
                 }) {
                     continue;
                 }
-                if labels.len() >= SEARCH_LIMIT {
-                    return Err(Refusal::SearchLimit { limit: SEARCH_LIMIT });
+                if labels.len() >= limit {
+                    return Err(Refusal::SearchLimit { limit });
                 }
                 let next_id = labels.len();
-                nondominated.retain(|old| {
-                    !(next_distance <= labels[*old].distance
-                        && next.age <= labels[*old].position.age)
+                best.insert(cell, next_id, |old| {
+                    next_distance <= labels[old].distance && next.age <= labels[old].position.age
                 });
-                nondominated.push(next_id);
                 labels.push(Label {
                     position: next,
                     distance: next_distance,
@@ -325,17 +368,17 @@ impl<'a, M: Machine> Graph<'a, M> {
         }
         let reached = furthest.map_or(0, |id| labels[id].position.next);
         let waypoint = ordinals[reached];
+        // A cut may have dropped starts, so a cut search names only the admitted ones.
+        let cut = self.explored.counts.cut;
         let state = match (waypoint, furthest, self.explored.counts.starts) {
             (_, None, _) | (0, _, 0) => "no start state".into(),
+            (0, _, 1) if cut => format!("the admitted start {}", self.states[0]),
             (0, _, 1) => self.states[0].to_string(),
+            (0, _, starts) if cut => format!("the {starts} admitted starts"),
             (0, _, starts) => format!("the space's {starts} starts"),
             (_, Some(id), _) => self.states[labels[id].position.state.0].to_string(),
         };
-        Err(Refusal::Unbridged {
-            waypoint,
-            state,
-            cut: self.explored.counts.cut && !self.settled(alternative),
-        })
+        Err(Refusal::Unbridged { waypoint, state, cut: cut && !self.settled(alternative) })
     }
 
     fn settled(&self, alternative: &Alternative<M::State, M::Action, M::Outcome>) -> bool {
