@@ -112,8 +112,7 @@ Filed on 2026-10-24 from the owner's duplication review. The back ends re-derive
 Apalache. One layer replaces them (about 600–800 lines). A parallel lane after fn-248; fn-245, fn-240 and fn-211 wait for it.
 [Spec](.flow/specs/fn-250-shared-value-type-and-trace-layer-for.md).
 
-| Name | Status | What |
-| --- | --- | --- |
+All five tasks are complete locally. The parent stays open for supplemental observer-ownership review and the final joined required gate after the Activity replay follow-up.
 
 ### fn-251: One probe engine and one catalog build path for Kettle and Temporal (model, temporal)
 
@@ -127,7 +126,7 @@ before fn-246, which rewrites the same probes.
 | Name | Status | What |
 | --- | --- | --- |
 | fn-251.5 | 🔄 in progress | Generated annotation/probe transport integrated; SHIP review and focused/current guest/Go checks passed; full gate running (R5) |
-| fn-251.4 | 🔄 in progress | After committed .3: one generic probe engine for Kettle and Temporal (R4) |
+| fn-251.4 | 🔄 in progress | Shared engine implemented in isolated lane; 185 broader Rust tests passed; actual Kettle Go validation pending (R4) |
 
 ### fn-252: Quick consolidation wins in model code, tests and tooling (model)
 
@@ -141,7 +140,7 @@ Both tasks completed locally with focused checks and scoped SHIP reviews: .3 rem
 | Name | Status | What |
 | --- | --- | --- |
 | fn-252.6 | 🔄 in progress | Shared typed Activity replay integrated; 33 real-TLC policy tests and three-draw SHIP review passed; final gate pending (R6) |
-| fn-252.7 | 🔄 in progress | One proto script/wasm environment setting; shared guest lints with compiler forbids on all previously safe target roots (R7) |
+| fn-252.7 | 🔄 in progress | Scripts/Make/lints integrated with SHIP review and all 149 prior safe roots protected; full gate running (R7) |
 
 ### fn-246: Realization as a checked refinement: shared Temporal layer, action registry, Reach, derived strategies (model, temporal)
 
