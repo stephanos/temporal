@@ -34,12 +34,15 @@ pub fn world(input: proc_macro2::TokenStream) -> manyhow::Result<proc_macro2::To
 }
 
 /// Derive action value traits, Debug/Display formatting and a complete ordered catalog.
+///
+/// Variant `#[metadata(namespace(tokens))]` payloads remain opaque. The module-local
+/// `__umpire_metadata_Enum!(consumer; model; { body })` callback forwards the complete enum.
 #[manyhow::manyhow(proc_macro_derive(
     Action,
-    attributes(internal, fault, inputs, domain, __umpire_world, __umpire_values)
+    attributes(internal, fault, inputs, domain, metadata, __umpire_world, __umpire_values)
 ))]
 pub fn action(input: proc_macro2::TokenStream) -> manyhow::Result<proc_macro2::TokenStream> {
-    action::expand(&syn::parse2(input)?).map(roots::resolve)
+    action::expand(&syn::parse2(input)?)
 }
 
 /// Derive a finite value domain for a fieldless enum or a bounded integer newtype.
@@ -49,6 +52,9 @@ pub fn finite(input: proc_macro2::TokenStream) -> manyhow::Result<proc_macro2::T
 }
 
 /// Register an inline module as a world with ordered actions and grouped claims.
+///
+/// Its `action_metadata!(consumer; model; { body })` callback forwards all actor enums,
+/// including variants without metadata, under `model { .. } actors { .. } body { .. }`.
 #[manyhow::manyhow(proc_macro_attribute)]
 pub fn machine(
     args: proc_macro2::TokenStream,
@@ -60,5 +66,5 @@ pub fn machine(
     if let Some((_, items)) = &mut module.content {
         items.extend(lifted::embed(&declared, &input));
     }
-    Ok(roots::resolve(quote::quote!(#module)))
+    machine::finish(&input, &module)
 }

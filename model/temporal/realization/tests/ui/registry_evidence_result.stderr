@@ -1,0 +1,22 @@
+error[E0308]: mismatched types
+  --> tests/ui/../registry/signature_model.rs
+   |
+   |   #[umpire_dsl::machine]
+   |   ---------------------- expected `std::result::Result<EvidenceMatch, umpire_runtime::protocol::Refusal>` because of return type
+...
+   |               response = RequestCancelActivityExecutionResponse, fill = fill, evidence = evidence))]
+   |                                                                                          ^^^^^^^^ expected `Result<EvidenceMatch, Refusal>`, found `Result<bool, Refusal>`
+   |
+  ::: tests/ui/registry_evidence_result.rs:6:1
+   |
+ 6 | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+ 7 | |     #[registry(inputs = ())]
+ 8 | |     impl Binding {
+ 9 | |         fn fill(&self, _: &specimen::Client, _: &specimen::World, _: &(), _: &()) -> Result<RequestCancelActivityExecutionRequest,...
+...  |
+16 | | });
+   | |__- in this macro invocation
+   |
+   = note: expected enum `Result<EvidenceMatch, Refusal>`
+              found enum `Result<bool, Refusal>`
+   = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)

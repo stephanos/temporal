@@ -810,6 +810,22 @@ fn check_enums(
     visitor.error.map_or(Ok(()), Err)
 }
 
+pub(crate) fn check_registry_enums(
+    item: &ItemImpl,
+    schema: &Schema,
+    model: &Path,
+    source: Option<(&str, LineColumn)>,
+) -> syn::Result<()> {
+    let scope = source.map_or_else(
+        || Ok(Scope::default()),
+        |(source, location)| {
+            Scope::in_registry_source(source, location)
+                .map_err(|error| syn::Error::new(item.impl_token.span, error.to_string()))
+        },
+    )?;
+    check_enums(item, schema, scope, model)
+}
+
 /// Expand one realization impl against the admitted declaration graph. `runtime` is the
 /// system's realization crate, providing `Context`, `Field` and `support::Observed`.
 pub fn expand(

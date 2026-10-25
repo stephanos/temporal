@@ -1,0 +1,5 @@
+error: read declaration requires entity configuration
+ --> tests/ui/registry_read_without_entity.rs:4:95
+  |
+4 |     body { #[registry(inputs = ())] #[read(rpc = WorkflowService::DescribeActivityExecution)] impl Binding {} }
+  |                                                                                               ^^^^

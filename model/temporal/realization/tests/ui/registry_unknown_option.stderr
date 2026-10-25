@@ -1,0 +1,5 @@
+error: unknown temporal action option
+ --> tests/ui/registry_unknown_option.rs:3:83
+  |
+3 |     actors { enum Client { #[metadata(temporal(event = "event", evidence = event, unknown = value))] First } }
+  |                                                                                   ^^^^^^^

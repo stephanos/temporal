@@ -10,7 +10,7 @@ pub use umpire_temporal_api::temporal;
 /// Dynamic configuration context for shared catalog derives.
 pub type CatalogContext = foundation::dc::Limits;
 
-pub use umpire_temporal_realization_macros::{answer, observe, propose, realization};
+pub use umpire_temporal_realization_macros::{answer, observe, propose, realization, registry};
 
 /// One Model action and its optional expected outcome.
 pub struct Step<A> {
@@ -53,6 +53,8 @@ pub struct Field {
 }
 
 pub mod support;
+
+pub mod registry;
 
 #[path = "../../foundation/mod.rs"]
 pub mod foundation;

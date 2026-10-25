@@ -1,4 +1,4 @@
-use proc_macro2::TokenStream;
+use proc_macro2::{Group, TokenStream, TokenTree};
 use quote::{format_ident, quote};
 use syn::{Expr, Field, Generics};
 use umpire_front::declare::{self, FieldDomain};
@@ -60,7 +60,52 @@ pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
         Some(world) => world_implementations(input, &fields, internal, fault, &world, expansion),
         None => implementations(input, &fields, internal, fault, expansion),
     };
-    Ok(quote!(#implementations #exported))
+    let metadata = metadata_bridge(&format_ident!("__umpire_metadata_{name}"), &quote!(#input));
+    let implementation = crate::roots::resolve(quote!(#implementations #exported));
+    Ok(quote!(#implementation #metadata))
+}
+
+/// Forwards the declaration inventory without interpreting extension payloads.
+pub(crate) fn metadata_bridge(name: &syn::Ident, actors: &TokenStream) -> TokenStream {
+    let actors = metadata_tokens(actors.clone());
+    quote! {
+        #[doc(hidden)]
+        #[allow(unused_macros)]
+        macro_rules! #name {
+            ($consumer:path; $model:path; { $($body:tt)* }) => {
+                macro_rules! __umpire_forward_metadata {
+                    ($__umpire_consumer:path; $__umpire_model:path; $__umpire_body:tt; $__umpire_dollar:tt) => {
+                        $__umpire_consumer! {
+                            model { $__umpire_model }
+                            actors { #actors }
+                            body $__umpire_body
+                        }
+                    };
+                }
+                __umpire_forward_metadata!($consumer; $model; { $($body)* }; $);
+            };
+        }
+        #[doc(hidden)]
+        #[allow(unused_imports)]
+        pub(crate) use #name;
+    }
+}
+
+fn metadata_tokens(tokens: TokenStream) -> TokenStream {
+    tokens
+        .into_iter()
+        .flat_map(|token| match token {
+            TokenTree::Punct(punct) if punct.as_char() == '$' => {
+                quote::quote_spanned!(punct.span()=> $__umpire_dollar)
+            }
+            TokenTree::Group(group) => {
+                let mut nested = Group::new(group.delimiter(), metadata_tokens(group.stream()));
+                nested.set_span(group.span());
+                TokenStream::from(TokenTree::Group(nested))
+            }
+            token => TokenStream::from(token),
+        })
+        .collect()
 }
 
 impl Expansion {

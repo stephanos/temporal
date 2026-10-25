@@ -1,0 +1,5 @@
+error: duplicate action metadata namespace
+ --> tests/ui/action_metadata_duplicate.rs:6:16
+  |
+6 |     #[metadata(example(second))]
+  |                ^^^^^^^

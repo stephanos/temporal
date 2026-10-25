@@ -1,0 +1,254 @@
+---
+source: temporal/realization/macros/src/lib.rs
+expression: "prettyplease::unparse(&file)"
+---
+impl Binding {}
+///Typed requests constructed by this binding's admitted registry.
+pub enum BindingRequest {
+    ///Canonical descriptor request for Client::Cancel.
+    Action0(
+        ::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionRequest,
+    ),
+}
+impl ::umpire_runtime::capability::Request for BindingRequest {
+    fn pack_request(&self) -> ::umpire_runtime::prost_types::Any {
+        match self {
+            Self::Action0(value) => {
+                <::umpire_runtime::prost_types::Any as ::umpire_runtime::AnyMessage>::pack(
+                    value,
+                )
+            }
+        }
+    }
+}
+impl ::umpire_runtime::capability::Fill<specimen::Action> for Binding {
+    type World = specimen::World;
+    type Inputs = Inputs;
+    type Request = BindingRequest;
+    #[allow(
+        deprecated,
+        reason = "descriptor admission validates deprecated wire fields"
+    )]
+    fn fill(
+        &self,
+        action: &specimen::Action,
+        world: &Self::World,
+        inputs: &Self::Inputs,
+        identity: &Self::Id,
+    ) -> Result<Self::Request, ::umpire_runtime::protocol::Refusal> {
+        let _ = (world, inputs, identity);
+        match action {
+            specimen::Action::Client(__actor) => {
+                match __actor {
+                    __actor @ specimen::Client::Cancel => {
+                        let _: fn(
+                            RequestCancelActivityExecutionRequest,
+                        ) -> ::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionRequest = |
+                            value|
+                        value;
+                        let _: fn(
+                            RequestCancelActivityExecutionResponse,
+                        ) -> ::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionResponse = |
+                            value|
+                        value;
+                        let __request: ::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionRequest = self
+                            .cancel(__actor, world, inputs, identity)?;
+                        if !((__request).identity).is_empty() {
+                            return Err(
+                                ::umpire_runtime::protocol::Refusal::unsupported(
+                                    "unsupported realization field: temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest.identity",
+                                ),
+                            );
+                        }
+                        if !((__request).reason).is_empty() {
+                            return Err(
+                                ::umpire_runtime::protocol::Refusal::unsupported(
+                                    "unsupported realization field: temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest.reason",
+                                ),
+                            );
+                        }
+                        Ok(BindingRequest::Action0(__request))
+                    }
+                    __actor @ specimen::Client::Refresh => {
+                        Err(
+                            ::umpire_runtime::protocol::Refusal::unsupported(
+                                "environmental action has no RPC request",
+                            ),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+impl ::umpire_temporal::registry::Registry<specimen::Action> for Binding {
+    fn row(&self, action: &specimen::Action) -> ::umpire_temporal::registry::ActionRow {
+        match action {
+            specimen::Action::Client(__actor) => {
+                match __actor {
+                    __actor @ specimen::Client::Cancel => {
+                        ::umpire_temporal::registry::ActionRow {
+                            actor: "Client",
+                            variant: "Cancel",
+                            kind: ::umpire_temporal::registry::ActionKind::Rpc {
+                                method: "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution",
+                                direction: ::umpire_temporal::registry::Direction::Client,
+                            },
+                        }
+                    }
+                    __actor @ specimen::Client::Refresh => {
+                        ::umpire_temporal::registry::ActionRow {
+                            actor: "Client",
+                            variant: "Refresh",
+                            kind: ::umpire_temporal::registry::ActionKind::Event {
+                                reason: "explicit refresh",
+                            },
+                        }
+                    }
+                }
+            }
+        }
+    }
+    #[allow(
+        deprecated,
+        reason = "descriptor admission validates deprecated wire fields"
+    )]
+    fn check_registered(
+        &self,
+        observation: &::umpire_runtime::prost_types::Any,
+        path: &[&::umpire_runtime::Evidence<specimen::World>],
+    ) -> Result<::umpire_runtime::EvidenceMatch, ::umpire_runtime::protocol::Refusal> {
+        let __observed = ::umpire_temporal::support::Observed::new(observation)?;
+        if __observed.method
+            == "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
+        {
+            let _: ::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionRequest = __observed
+                .request()?
+                .ok_or_else(|| ::umpire_runtime::protocol::Refusal::malformed(
+                    "registered RPC evidence requires its actual request",
+                ))?;
+            if __observed.code()?.is_none() {
+                let _: ::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionResponse = __observed
+                    .response()?;
+            }
+        }
+        let Some(__edge) = path.last() else {
+            return Ok(::umpire_runtime::EvidenceMatch::Reject);
+        };
+        let action = &__edge.action;
+        match action {
+            specimen::Action::Client(__actor) => {
+                match __actor {
+                    __actor @ specimen::Client::Cancel => {
+                        let _: fn(
+                            RequestCancelActivityExecutionRequest,
+                        ) -> ::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionRequest = |
+                            value|
+                        value;
+                        let _: fn(
+                            RequestCancelActivityExecutionResponse,
+                        ) -> ::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionResponse = |
+                            value|
+                        value;
+                        if __observed.method
+                            != "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
+                        {
+                            return Ok(::umpire_runtime::EvidenceMatch::Reject);
+                        }
+                        let __request: ::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionRequest = __observed
+                            .request()?
+                            .ok_or_else(|| ::umpire_runtime::protocol::Refusal::malformed(
+                                "registered RPC evidence requires its actual request",
+                            ))?;
+                        if !((__request).identity).is_empty() {
+                            return Err(
+                                ::umpire_runtime::protocol::Refusal::unsupported(
+                                    "unsupported realization field: temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest.identity",
+                                ),
+                            );
+                        }
+                        if !((__request).reason).is_empty() {
+                            return Err(
+                                ::umpire_runtime::protocol::Refusal::unsupported(
+                                    "unsupported realization field: temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest.reason",
+                                ),
+                            );
+                        }
+                        let __response: Result<
+                            ::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionResponse,
+                            i32,
+                        > = if let Some(code) = __observed.code()? {
+                            Err(code)
+                        } else {
+                            let __response: ::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionResponse = __observed
+                                .response()?;
+                            Ok(__response)
+                        };
+                        self.canceled(__request, __response, path)
+                    }
+                    __actor @ specimen::Client::Refresh => {
+                        self.refreshed(&__observed, path)
+                    }
+                }
+            }
+        }
+    }
+}
+impl Binding {
+    pub fn entity() -> ::umpire_temporal::registry::Entity<
+        Self,
+        Receipt,
+        ::umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionRequest,
+        ::umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionResponse,
+    > {
+        let _: fn(
+            StartActivityExecutionRequest,
+        ) -> ::umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionRequest = |
+            value|
+        value;
+        let _: fn(
+            StartActivityExecutionResponse,
+        ) -> ::umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionResponse = |
+            value|
+        value;
+        ::umpire_temporal::registry::Entity {
+            bootstrap: ::umpire_temporal::registry::Rpc {
+                method: "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+                types: ::core::marker::PhantomData,
+            },
+            admit: Self::admitted,
+            receipt: Self::receipt,
+            correlate: Self::correlation,
+        }
+    }
+    pub fn read() -> ::umpire_temporal::registry::Read<
+        Self,
+        specimen::World,
+        Receipt,
+        ::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeActivityExecutionRequest,
+        ::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeActivityExecutionResponse,
+        Target,
+    > {
+        let _: fn(
+            DescribeActivityExecutionRequest,
+        ) -> ::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeActivityExecutionRequest = |
+            value|
+        value;
+        let _: fn(
+            DescribeActivityExecutionResponse,
+        ) -> ::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeActivityExecutionResponse = |
+            value|
+        value;
+        ::umpire_temporal::registry::Read {
+            rpc: ::umpire_temporal::registry::Rpc {
+                method: "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
+                types: ::core::marker::PhantomData,
+            },
+            fill: Self::read_request,
+            correlate: Self::read_correlation,
+            project: Self::read_target,
+            finality: Self::is_final,
+            continue_polling: Self::polling,
+        }
+    }
+}

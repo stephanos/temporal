@@ -1,0 +1,5 @@
+error: duplicate read declaration
+ --> tests/ui/registry_duplicate_read.rs:7:9
+  |
+7 |         #[read(rpc = WorkflowService::DescribeActivityExecution)]
+  |         ^

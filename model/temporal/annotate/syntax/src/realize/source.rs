@@ -160,17 +160,34 @@ fn modules(items: &[Item], parent: &[String], result: &mut BTreeMap<Vec<String>,
     }
 }
 
-fn enclosing(items: &[Item], location: LineColumn, parent: &[String]) -> Option<Vec<String>> {
+fn enclosing(
+    items: &[Item],
+    location: LineColumn,
+    parent: &[String],
+    registry: bool,
+) -> Option<Vec<String>> {
     for item in items {
         match item {
             Item::Impl(item) if item.impl_token.span.start() == location => {
+                return Some(parent.to_vec());
+            }
+            Item::Macro(item)
+                if registry
+                    && item
+                        .mac
+                        .path
+                        .segments
+                        .first()
+                        .is_some_and(|segment| segment.ident.span().start() <= location)
+                    && location <= item.mac.delimiter.span().close().end() =>
+            {
                 return Some(parent.to_vec());
             }
             Item::Mod(module) if module.content.is_some() => {
                 let (_, items) = module.content.as_ref()?;
                 let mut child = parent.to_vec();
                 child.push(module.ident.unraw().to_string());
-                if let Some(found) = enclosing(items, location, &child) {
+                if let Some(found) = enclosing(items, location, &child, registry) {
                     return Some(found);
                 }
             }
@@ -182,6 +199,14 @@ fn enclosing(items: &[Item], location: LineColumn, parent: &[String]) -> Option<
 
 impl Scope {
     pub(super) fn in_source(text: &str, location: LineColumn) -> syn::Result<Self> {
+        Self::read_source(text, location, false)
+    }
+
+    pub(super) fn in_registry_source(text: &str, location: LineColumn) -> syn::Result<Self> {
+        Self::read_source(text, location, true)
+    }
+
+    fn read_source(text: &str, location: LineColumn, registry: bool) -> syn::Result<Self> {
         struct RestoreCompiler;
         impl Drop for RestoreCompiler {
             fn drop(&mut self) {
@@ -193,7 +218,7 @@ impl Scope {
             let _restore = RestoreCompiler;
             syn::parse_file(text)
         }?;
-        let module = enclosing(&file.items, location, &[]).ok_or_else(|| {
+        let module = enclosing(&file.items, location, &[], registry).ok_or_else(|| {
             syn::Error::new(
                 proc_macro2::Span::call_site(),
                 "cannot locate realization impl source scope",
@@ -410,6 +435,14 @@ impl Scope {
         } else {
             kind
         }
+    }
+
+    pub(super) fn named_imported(&self, name: &str) -> bool {
+        self.frames
+            .iter()
+            .rev()
+            .chain(self.modules.get(&self.module))
+            .any(|scope| scope.bindings.get(name).is_some_and(Option::is_some))
     }
 
     pub(super) fn imported(&self, name: &str) -> bool {

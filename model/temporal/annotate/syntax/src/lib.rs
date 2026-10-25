@@ -5,3 +5,5 @@
 pub use umpire_catalog_syntax::*;
 pub mod realization;
 pub mod realize;
+
+pub mod registry;

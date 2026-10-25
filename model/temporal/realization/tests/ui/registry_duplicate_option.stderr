@@ -1,0 +1,5 @@
+error: duplicate temporal action option
+ --> tests/ui/registry_duplicate_option.rs:3:65
+  |
+3 |     actors { enum Client { #[metadata(temporal(event = "event", event = "duplicate", evidence = event))] First } }
+  |                                                                 ^^^^^

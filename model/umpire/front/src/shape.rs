@@ -295,7 +295,7 @@ pub(crate) fn parse(
                 }
             };
             if shape != Shape::Unit {
-                attrs(&variant.attrs, &["doc"])?;
+                attrs(&variant.attrs, &["doc", "metadata"])?;
                 if !parser.declared_world {
                     return Err(Diagnostic::at(
                         variant,

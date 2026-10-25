@@ -1,0 +1,13 @@
+error: action variant requires one temporal declaration
+  --> tests/ui/registry_missing_action.rs:9:9
+   |
+ 9 |           Added,
+   |           ^^^^^
+...
+23 | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+24 | |     #[registry(inputs = ())]
+25 | |     impl Binding {}
+26 | | });
+   | |__- in this macro invocation
+   |
+   = note: this error originates in the macro `__umpire_forward_metadata` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)

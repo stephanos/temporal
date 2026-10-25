@@ -568,4 +568,19 @@ mod counter {
             domains
         }
     }
+    #[doc(hidden)]
+    #[allow(unused_macros)]
+    macro_rules! action_metadata {
+        ($consumer:path; $model:path; { $($body:tt)* }) => {
+            macro_rules! __umpire_forward_metadata { ($__umpire_consumer : path;
+            $__umpire_model : path; $__umpire_body : tt; $__umpire_dollar : tt) => {
+            $__umpire_consumer ! { model { $__umpire_model } actors { #[derive(Action,
+            Copy)] pub enum User { Increment, Reset, MutateRestore } #[derive(Action,
+            Copy)] #[internal] pub enum Clock { Tick } } body $__umpire_body } }; }
+            __umpire_forward_metadata!($consumer; $model; { $($body)* }; $);
+        };
+    }
+    #[doc(hidden)]
+    #[allow(unused_imports)]
+    pub(crate) use action_metadata;
 }

@@ -26,6 +26,7 @@ mod counter {
 
     #[derive(Action, Copy)]
     pub(crate) enum User {
+        #[metadata(example(direction = ::umpire_dsl::arbitrary::Up; $($opaque)*))]
         Increment { direction: Direction },
     }
 
@@ -241,4 +242,24 @@ mod capabilities {
         check::<u16>();
         check::<u32>();
     }
+}
+
+macro_rules! inventory {
+    (model { $model:path } actors {
+        $(#[$attr:meta])* pub(crate) enum User {
+            #[metadata(example(direction = ::umpire_dsl::arbitrary::Up; $dollar:tt ($nested_dollar:tt opaque)*))]
+            Increment { direction: Direction },
+        }
+    } body { $name:ident }) => {
+        const $name: (&str, &str, usize) = (stringify!($dollar), stringify!($nested_dollar), 1);
+    };
+}
+
+counter::action_metadata!(inventory; counter; { DECLARED_ACTORS });
+counter::__umpire_metadata_User!(inventory; counter; { DECLARED_VARIANTS });
+
+#[test]
+fn forwards_opaque_metadata_through_renamed_facade() {
+    assert_eq!(DECLARED_ACTORS, ("$", "$", 1));
+    assert_eq!(DECLARED_VARIANTS, ("$", "$", 1));
 }

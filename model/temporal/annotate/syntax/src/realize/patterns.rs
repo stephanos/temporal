@@ -31,7 +31,11 @@ pub(super) fn positions(
         syn::Pat::Path(path) => {
             merge_position(result, prefix, scope.kind(&path.path, schema, true));
         }
-        syn::Pat::Ident(binding) if scope.imported(&binding.ident.to_string()) => {
+        syn::Pat::Ident(binding)
+            if scope.named_imported(&binding.ident.to_string())
+                || scope.kind(&Path::from(binding.ident.clone()), schema, true)
+                    == EnumKind::Generated =>
+        {
             merge_position(
                 result,
                 prefix,

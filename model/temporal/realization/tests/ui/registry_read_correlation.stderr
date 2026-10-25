@@ -1,0 +1,9 @@
+error[E0308]: mismatched types
+  --> tests/ui/registry_read_correlation.rs:14:70
+   |
+14 |         finality = finality, continue_polling = polling, correlate = read_correlate)]
+   |                                                                      ^^^^^^^^^^^^^^ expected fn pointer, found fn item
+   |
+   = note: expected fn pointer `for<'a, 'b, 'c, 'd> fn(&'a Binding, &'b (), &'c DescribeActivityExecutionRequest, &'d DescribeActivityExecutionResponse) -> Result<(), Refusal>`
+                 found fn item `for<'a, 'b, 'c, 'd> fn(&'a Binding, &'b (), &'c DescribeActivityExecutionRequest, &'d DescribeActivityExecutionResponse) -> Result<bool, Refusal> {<impl Binding>::read_correlate}`
+   = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -1,5 +1,6 @@
 use super::fields::integer;
 use crate::Errors;
+use std::collections::BTreeSet;
 use syn::{Expr, Field};
 
 /// Where an action input field's values come from.
@@ -47,6 +48,9 @@ pub fn action_enum(input: &syn::DeriveInput, world: bool) -> syn::Result<ActionE
             "#[domain] belongs on one variant field, not the action enum",
         ));
     }
+    for attr in input.attrs.iter().filter(|attr| attr.path().is_ident("metadata")) {
+        errors.push(syn::Error::new_spanned(attr, "#[metadata] belongs on an action variant"));
+    }
     let [internal, fault] = flags;
     let mut variants = Vec::new();
     for variant in &data.variants {
@@ -67,8 +71,25 @@ pub fn action_enum(input: &syn::DeriveInput, world: bool) -> syn::Result<ActionE
                 ));
             }
         }
+        let mut namespaces = BTreeSet::new();
+        for attr in variant.attrs.iter().filter(|attr| attr.path().is_ident("metadata")) {
+            match attr.parse_args::<Metadata>() {
+                Ok(metadata) if namespaces.insert(metadata.namespace.to_string()) => {}
+                Ok(metadata) => errors.push(syn::Error::new_spanned(
+                    metadata.namespace,
+                    "duplicate action metadata namespace",
+                )),
+                Err(error) => errors.push(error),
+            }
+        }
         let mut domains = Vec::new();
         for (index, field) in variant.fields.iter().enumerate() {
+            for attr in field.attrs.iter().filter(|attr| attr.path().is_ident("metadata")) {
+                errors.push(syn::Error::new_spanned(
+                    attr,
+                    "#[metadata] belongs on an action variant",
+                ));
+            }
             match domain(field, &format!("{name}::{ident}"), index, world) {
                 Ok(domain) => domains.push(domain),
                 Err(error) => errors.push(error),
@@ -126,5 +147,22 @@ fn domain(field: &Field, action: &str, index: usize, world: bool) -> syn::Result
                 "{context} #[inputs] requires a bounded range or finite list, such as 0..=3 or [false, true]"
             ),
         )),
+    }
+}
+
+struct Metadata {
+    namespace: syn::Ident,
+}
+
+impl syn::parse::Parse for Metadata {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        let namespace = input.parse()?;
+        let payload;
+        syn::parenthesized!(payload in input);
+        let _: proc_macro2::TokenStream = payload.parse()?;
+        if !input.is_empty() {
+            return Err(input.error("one metadata namespace and opaque payload required"));
+        }
+        Ok(Self { namespace })
     }
 }

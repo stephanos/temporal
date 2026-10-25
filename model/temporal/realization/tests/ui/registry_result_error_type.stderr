@@ -1,0 +1,27 @@
+error[E0308]: mismatched types
+  --> tests/ui/../registry/signature_model.rs
+   |
+   |               response = RequestCancelActivityExecutionResponse, fill = fill, evidence = evidence))]
+   |                                                                                          ^^^^^^^^
+   |                                                                                          |
+   |                                                                                          expected `Result<_, u16>`, found `Result<_, i32>`
+   |                                                                                          arguments to this method are incorrect
+   |
+  ::: tests/ui/registry_result_error_type.rs:6:1
+   |
+ 6 | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+ 7 | |     #[registry(inputs = ())]
+ 8 | |     impl Binding {
+ 9 | |         fn fill(&self, _: &specimen::Client, _: &specimen::World, _: &(), _: &()) -> Result<RequestCancelActivityExecutionRequest,...
+...  |
+12 | | });
+   | |__- in this macro invocation
+   |
+   = note: expected enum `Result<RequestCancelActivityExecutionResponse, u16>`
+              found enum `Result<RequestCancelActivityExecutionResponse, i32>`
+note: method defined here
+  --> tests/ui/registry_result_error_type.rs:10:12
+   |
+10 | ...   fn evidence(&self, _: RequestCancelActivityExecutionRequest, _: Result<RequestCancelActivityExecutionResponse, u16>, _: &[&Evi...
+   |          ^^^^^^^^                                                  ------------------------------------------------------
+   = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -1,0 +1,13 @@
+error: generated enum matches must name every variant; wildcard arm is forbidden
+  --> tests/ui/registry_nested_result_enum.rs:10:73
+   |
+10 |                     Ok(status) => match status { Status::Running => (), _ => () },
+   |                                                                         ^
+
+warning: unused import: `umpire_temporal_api::temporal::api::enums::v1::ActivityExecutionStatus as Status`
+ --> tests/ui/registry_nested_result_enum.rs:1:5
+  |
+1 | use umpire_temporal_api::temporal::api::enums::v1::ActivityExecutionStatus as Status;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default

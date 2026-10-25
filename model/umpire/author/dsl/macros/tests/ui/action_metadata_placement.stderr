@@ -1,0 +1,11 @@
+error: #[metadata] belongs on an action variant
+ --> tests/ui/action_metadata_placement.rs:4:1
+  |
+4 | #[metadata(example(enum_value))]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: #[metadata] belongs on an action variant
+ --> tests/ui/action_metadata_placement.rs:6:12
+  |
+6 |     Toggle(#[metadata(example(field_value))] bool),
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
