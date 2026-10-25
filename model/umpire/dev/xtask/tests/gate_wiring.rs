@@ -96,14 +96,19 @@ impl Fixture {
 shift 2
 case "$1 $2" in
  'cargo metadata') label=source-boundary ;;
- 'cargo fmt') label=fmt ;;
- 'cargo doc') label=docs; [ "$RUSTDOCFLAGS" = '-D warnings' ] ;;
+ 'cargo fmt') label=fmt; [ "$*" = "${CONTROL_EXPECT_FMT:-cargo fmt --all --check}" ] ;;
+ 'cargo doc') label=docs; [ "$*" = 'cargo doc --workspace --no-deps --quiet' ]; [ "$RUSTDOCFLAGS" = '-D warnings' ] ;;
  'cargo test') label=tests ;;
  'cargo build') label=wasm32-wasip1 ;;
- 'cargo clippy') case " $* " in *' --target '*) label=core-wasm-clippy ;; *) label=clippy ;; esac ;;
+ 'cargo clippy') case " $* " in *' --target '*) label=core-wasm-clippy ;; *) label=clippy; [ "$*" = 'cargo clippy --workspace --all-targets --all-features -- -D warnings' ] ;; esac ;;
  'go -C') [ "$CGO_ENABLED" = 0 ]; case "$3" in "$CONTROL_ROOT/hosts/go") label=go-host ;; "$CONTROL_ROOT/reference/kettle") label=kettle-go-host ;; *) exit 91 ;; esac
- [ "$UMPIRE_WASM" = "$CONTROL_CALLER/relative target/wasm32-wasip1/guest/umpire_stock_guest.wasm" ]
- [ "$UMPIRE_CURRENT_CONTRACT_NATIVE" = "$CONTROL_CALLER/relative target/current-contract-native" ] ;;
+ [ "$UMPIRE_WASM" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/umpire_stock_guest.wasm" ]
+ [ "$UMPIRE_KETTLE_WASM" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/umpire_kettle_guest.wasm" ]
+ [ "$UMPIRE_STATEFUL_WASM" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/stateful_control.wasm" ]
+ [ "$UMPIRE_CAUGHT_PANIC_WASM" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/caught_panic_control.wasm" ]
+ [ "$UMPIRE_OVERFLOW_WASM" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/overflow_control.wasm" ]
+ [ "$UMPIRE_PANIC_NATIVE" = "$CONTROL_EXPECT_TARGET/panic-native" ]
+ [ "$UMPIRE_CURRENT_CONTRACT_NATIVE" = "$CONTROL_EXPECT_TARGET/current-contract-native" ] ;;
  *) exit 92 ;;
 esac
 "#,
@@ -119,7 +124,7 @@ esac
 set -euo pipefail
 {body}
 [ "$PWD" = "$CONTROL_ROOT" ]
-[ "$CARGO_TARGET_DIR" = "$CONTROL_CALLER/relative target" ]
+[ "$CARGO_TARGET_DIR" = "$CONTROL_EXPECT_TARGET" ]
 [ "$CARGO_HOME" = "$CONTROL_CALLER/real home" ]
 [ "$UMPIRE_QUICK_CACHE" = 0 ] && [ "$UMPIRE_CACHE_DISABLE" = 1 ]
 [ "$MISE_AUTO_INSTALL" = false ] && [ "$MISE_EXEC_AUTO_INSTALL" = false ]
@@ -146,6 +151,15 @@ fi
         fs::set_permissions(path, fs::Permissions::from_mode(0o755)).unwrap();
     }
     fn command(&self, timed: bool) -> Command {
+        self.command_target(timed, Some(Path::new("relative target")))
+    }
+    fn command_target(&self, timed: bool, target: Option<&Path>) -> Command {
+        let expected = target.map_or_else(
+            || self.root.join("target"),
+            |path| {
+                if path.is_absolute() { path.to_owned() } else { self.caller.join(path) }
+            },
+        );
         let mut command = Command::new(env!("CARGO_BIN_EXE_xtask"));
         command
             .current_dir(&self.caller)
@@ -157,11 +171,16 @@ fi
             .env("CONTROL_ROOT", &self.root)
             .env("CONTROL_CALLER", &self.caller)
             .env("CONTROL_LOG", &self.log)
-            .env("CARGO_TARGET_DIR", "relative target")
+            .env("CONTROL_EXPECT_TARGET", expected)
             .env("CARGO_HOME", "cargo home")
             .env("UMPIRE_TIME_STEPS", if timed { "1" } else { "0" })
             .env("UMPIRE_QUICK_CACHE", "1")
             .env("UMPIRE_CACHE_DISABLE", "0");
+        if let Some(target) = target {
+            command.env("CARGO_TARGET_DIR", target);
+        } else {
+            command.env_remove("CARGO_TARGET_DIR");
+        }
         command
     }
     fn labels(&self) -> Vec<String> {
@@ -378,6 +397,8 @@ fn convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status() 
         command.arg(entry);
         if entry == "update" {
             command.env("CONTROL_EXPECT_UPDATE", "1");
+        } else {
+            command.env("CONTROL_EXPECT_FMT", expected);
         }
         let output = command.output().unwrap();
         assert_status(&output, 0);
@@ -436,6 +457,40 @@ fn signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch() {
                 vec!["capability-controls"]
             };
             assert_eq!(fixture.labels(), expected);
+        }
+    }
+}
+
+#[test]
+fn guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths() {
+    let fixture = Fixture::new();
+    let absolute = fixture.caller.join("absolute target");
+    for target in [None, Some(Path::new("relative target")), Some(absolute.as_path())] {
+        let expected = target.map_or_else(
+            || fixture.root.join("target"),
+            |path| {
+                if path.is_absolute() { path.to_owned() } else { fixture.caller.join(path) }
+            },
+        );
+        for timed in [false, true] {
+            for stage in ["wasm-guest", "go-host", "kettle-go-host"] {
+                fixture.clear();
+                let output = fixture
+                    .command_target(timed, target)
+                    .args(["gate", "--stage", stage])
+                    .output()
+                    .unwrap();
+                assert_status(&output, 0);
+                assert_eq!(fixture.labels(), [stage]);
+                let log = fs::read_to_string(&fixture.log).unwrap();
+                let fields = log.trim_end().split('|').collect::<Vec<_>>();
+                assert_eq!(fields[1], fixture.root.to_str().unwrap());
+                assert_eq!(fields[2], expected.to_str().unwrap());
+                assert_eq!(fields[3], fixture.caller.join("real home").to_str().unwrap());
+                if stage != "wasm-guest" {
+                    assert!(fields[7].ends_with("test -tags test_dep -count=1 ./..."));
+                }
+            }
         }
     }
 }
