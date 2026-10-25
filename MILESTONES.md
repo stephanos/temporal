@@ -227,6 +227,8 @@ semantics and proves restored admission. This parent stays open until that follo
 
 ### fn-245: Finite collections: sets, maps and bounded lists in Models (model)
 
+The refreshed four-task plan passed fresh primary review after correcting collection projection, read-only captures, ordered short-circuit validity, empty sequence guards and shared testing consumers. Its committed-prerequisite admission remains unchanged.
+
 Captured on 2026-10-24 after the owner answered four questions one at a time: shared fixtures are the
 consumer now and the workflow Model later; finite element domains now with the IR shaped so unbounded
 forms are additive later (Apalache or SMT arrays own those); authors write `imbl::OrdSet`, `imbl::OrdMap`
