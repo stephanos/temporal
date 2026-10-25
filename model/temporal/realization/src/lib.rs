@@ -2,6 +2,12 @@
 
 extern crate self as umpire_temporal;
 
+/// Generated upstream API namespace used by catalog mirrors.
+pub use umpire_temporal_api::temporal;
+
+/// Dynamic configuration context for shared catalog derives.
+pub type CatalogContext = foundation::dc::Limits;
+
 pub use umpire_temporal_realization_macros::{answer, observe, propose, realization};
 
 /// One Model action and its optional expected outcome.
@@ -57,7 +63,7 @@ mod annotations;
 pub mod probes;
 
 #[path = "../../feature/activity/temporal.rs"]
-mod temporal;
+mod activity_realization;
 
+pub use activity_realization::{Realization, SCENARIO_HEADER, activity, runtime};
 pub use annotations::{AnnotationRuntime, annotation_runtime};
-pub use temporal::{Realization, SCENARIO_HEADER, activity, runtime};

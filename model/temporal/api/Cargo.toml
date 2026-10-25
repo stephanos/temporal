@@ -25,7 +25,7 @@ umpire-temporal-annotate-syntax.workspace = true
 
 [[test]]
 name = "descriptor"
-path = "../annotate/syntax/tests/descriptor.rs"
+path = "tests/descriptor.rs"
 
 [lints]
 workspace = true

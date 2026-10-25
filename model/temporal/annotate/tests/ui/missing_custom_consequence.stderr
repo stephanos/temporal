@@ -1,5 +1,0 @@
-error: unexpected end of input, expected identifier
- --> tests/ui/missing_custom_consequence.rs:3:42
-  |
-3 |     tag Visibility { kinds: [Timestamp]; }
-  |                                          ^

@@ -31,8 +31,6 @@ members = [
     "umpire/dev/testing",
     "umpire/dev/fixtures",
     "temporal/api",
-    "temporal/annotate",
-    "temporal/annotate/macros",
     "temporal/annotate/syntax",
     "temporal/realization",
     "temporal/realization/macros",
@@ -68,8 +66,6 @@ umpire-apalache = { version = "0.0.1", path = "umpire/backends/apalache" }
 umpire-tlc = { version = "0.0.1", path = "umpire/backends/tlc" }
 umpire-runtime = { version = "0.0.1", path = "umpire/protocol/runtime" }
 umpire-temporal-api = { version = "0.0.1", path = "temporal/api" }
-umpire-temporal-annotate = { version = "0.0.1", path = "temporal/annotate" }
-umpire-temporal-annotate-macros = { version = "0.0.1", path = "temporal/annotate/macros" }
 umpire-temporal-annotate-syntax = { version = "0.0.1", path = "temporal/annotate/syntax" }
 umpire-temporal = { version = "0.0.1", path = "temporal/realization" }
 umpire-temporal-realization-macros = { version = "0.0.1", path = "temporal/realization/macros" }

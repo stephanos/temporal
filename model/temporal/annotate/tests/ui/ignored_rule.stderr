@@ -1,5 +1,0 @@
-error: ignored fields cannot appear in rules
- --> tests/ui/ignored_rule.rs:8:17
-  |
-8 | #[rule(required(opaque))]
-  |                 ^^^^^^
