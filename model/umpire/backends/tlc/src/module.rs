@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use umpire_tla::{Literal, Module, Type as LiftType};
+use umpire_tla::{Literal, Module, Type as LiftType, identifier};
 
 use crate::{Refusal, Schema, Type, Value, runner::split_cfg};
 
@@ -101,16 +101,6 @@ fn variant(name: &str) -> Result<(), Refusal> {
         Some((variant, payload)) => identifier(variant).and_then(|()| identifier(payload)),
         None => identifier(name),
     }
-}
-
-fn identifier(name: &str) -> Result<(), Refusal> {
-    let mut bytes = name.bytes();
-    if !bytes.next().is_some_and(|byte| byte.is_ascii_alphabetic() || byte == b'_')
-        || !bytes.all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
-    {
-        return Err(Refusal(format!("invalid declared TLA+ identifier {name:?}")));
-    }
-    Ok(())
 }
 
 fn binding_value(ty: &LiftType, literal: &Literal) -> Result<Value, Refusal> {

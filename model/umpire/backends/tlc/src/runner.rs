@@ -2,7 +2,6 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     fs,
     path::{Path, PathBuf},
-    process::Command,
 };
 
 use crate::{
@@ -14,7 +13,8 @@ pub const JAR_VERSION: &str = "1.7.4";
 /// SHA-256 of the official v1.7.4 release asset.
 pub const JAR_SHA256: &str = "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88";
 const TLC_VERSION: &str = "Version 2.19 of 08 August 2024";
-use umpire_backend_process::{Scratch, bounded_text, java_command, pinned_java, run_process};
+const CACHE: &str = "model/build/tlc";
+use umpire_backend_process::{PinnedJar, Scratch, bounded_text, java_command, run_process};
 
 /// An admitted property result.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -102,42 +102,24 @@ impl Tlc {
 
     /// Admit the exact jar and mise-pinned Temurin JDK before any model check.
     pub fn discover(root: &Path) -> Result<Self, Refusal> {
-        let root = root.canonicalize()?;
-        let jar = root.join(format!("model/build/tlc/tla2tools-{JAR_VERSION}.jar"));
-        if !jar.is_file() {
+        let jar = format!("tla2tools-{JAR_VERSION}.jar");
+        if !root.join(CACHE).join(&jar).is_file() {
             return Err(Refusal(format!(
-                "missing pinned jar {}; run bash model/scripts/fetch-tlc.sh",
-                jar.display()
+                "missing pinned jar {CACHE}/{jar}; run bash model/scripts/fetch-tlc.sh"
             )));
         }
-        let jar = jar.canonicalize()?;
-        let cache = root.join("model/build/tlc").canonicalize()?;
-        if !cache.starts_with(&root) || !jar.starts_with(&cache) {
-            return Err(Refusal("pinned jar escapes the repository cache".into()));
-        }
-        let scratch = Scratch::new(&root)?;
-        let admitted = (|| {
-            let mut digest = Command::new("shasum");
-            digest.args(["-a", "256"]).arg(&jar).current_dir(&root);
-            let (status, output) =
-                run_process(&mut digest, scratch.path(), "digest", Limits::default(), None)?;
-            if !status.success() || output.split_whitespace().next() != Some(JAR_SHA256) {
-                return Err(Refusal(format!(
-                    "pinned jar integrity/version mismatch: {}",
-                    jar.display()
-                )));
-            }
-            let java = pinned_java(&root, scratch.path())?;
-            let mut version = java_command(&java);
-            version.args(["-cp"]).arg(&jar).args(["tlc2.TLC", "-h"]).current_dir(&root);
-            let (status, output) =
-                run_process(&mut version, scratch.path(), "tlc-version", Limits::default(), None)?;
-            if status.code() != Some(1) || !output.contains(TLC_VERSION) {
-                return Err(Refusal(format!("wrong TLC version: {output}")));
-            }
-            Ok(Self { root, jar, java, limits: Limits::default() })
-        })();
-        scratch.finish(admitted)
+        let PinnedJar { root, jar, java } =
+            PinnedJar::admit(root, CACHE, &jar, JAR_SHA256, |tool, scratch| {
+                let mut version = java_command(&tool.java);
+                version.args(["-cp"]).arg(&tool.jar).args(["tlc2.TLC", "-h"]).current_dir(scratch);
+                let (status, output) =
+                    run_process(&mut version, scratch, "tlc-version", Limits::default(), None)?;
+                if status.code() != Some(1) || !output.contains(TLC_VERSION) {
+                    return Err(Refusal(format!("wrong TLC version: {output}")));
+                }
+                Ok(())
+            })?;
+        Ok(Self { root, jar, java, limits: Limits::default() })
     }
 
     /// Explore without claims first, then independently check every inline PROPERTY/INVARIANT.
@@ -152,9 +134,7 @@ impl Tlc {
         schema: &Schema,
     ) -> Result<TlcResult, Error> {
         schema.validate()?;
-        if name.is_empty() || !name.bytes().all(|c| c.is_ascii_alphanumeric() || c == b'_') {
-            return Err(Refusal("module name must be one TLA+ identifier".into()).into());
-        }
+        umpire_tla::identifier(name)?;
         if self.limits.timeout.is_zero()
             || self.limits.output_bytes == 0
             || self.limits.dump_bytes == 0
@@ -547,7 +527,7 @@ fn decode_trace(messages: &[(u32, String)], schema: &Schema) -> Result<Trace, Re
 mod tests {
     use super::*;
     use crate::{Type, Value};
-    use std::time::Duration;
+    use std::{process::Command, time::Duration};
 
     #[test]
     fn located_property_invariants_name_only_the_selected_operator() -> Result<(), Refusal> {
@@ -817,7 +797,7 @@ mod tests {
             let error = Tlc::discover(scratch.path())
                 .err()
                 .ok_or_else(|| Refusal("wrong jar admitted".into()))?;
-            assert!(error.0.contains("integrity/version mismatch"));
+            assert!(error.0.contains("integrity mismatch"));
             let mut command = Command::new("sleep");
             command.arg("2");
             let limits = Limits { timeout: Duration::from_millis(5), ..Limits::default() };

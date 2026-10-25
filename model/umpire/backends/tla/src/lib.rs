@@ -17,6 +17,17 @@ mod snowcat;
 use umpire_front::Source;
 pub use umpire_front::{CATALOG_LIMIT, Embedded, Type};
 
+/// Admit one plain TLA+ identifier, the only name form either checker is handed.
+pub fn identifier(name: &str) -> Result<(), Refusal> {
+    let mut bytes = name.bytes();
+    if !bytes.next().is_some_and(|byte| byte.is_ascii_alphabetic() || byte == b'_')
+        || !bytes.all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
+    {
+        return Err(Refusal(format!("invalid TLA+ identifier {name:?}")));
+    }
+    Ok(())
+}
+
 /// An admitted Model, the source file it was read from, and what binding selects.
 #[derive(Clone, Debug)]
 pub struct Lifted {
