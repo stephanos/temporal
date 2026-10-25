@@ -1,0 +1,3 @@
+fixture scheduling hook: directory metadata succeeded; remove directory before read_dir
+original within_budget body returned Err(Os { code: 2, kind: NotFound, message: "No such file or directory" })
+production caller unwrap_or(false) yields allowed=false

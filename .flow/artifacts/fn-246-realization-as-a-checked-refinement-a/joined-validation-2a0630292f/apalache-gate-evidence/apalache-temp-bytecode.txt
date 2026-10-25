@@ -1,0 +1,1257 @@
+Compiled from "FileUtil.java"
+public class util.FileUtil {
+  public static final char separatorChar;
+
+  public static final java.lang.String separator;
+
+  public static final java.lang.String pathSeparator;
+
+  public util.FileUtil();
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: return
+
+  public static java.lang.String parseDirname(java.lang.String);
+    Code:
+         0: aload_0
+         1: getstatic     #7                  // Field separatorChar:C
+         4: invokevirtual #13                 // Method java/lang/String.lastIndexOf:(I)I
+         7: istore_1
+         8: iload_1
+         9: iconst_m1
+        10: if_icmpne     16
+        13: ldc           #19                 // String
+        15: areturn
+        16: aload_0
+        17: iconst_0
+        18: iload_1
+        19: iconst_1
+        20: iadd
+        21: invokevirtual #21                 // Method java/lang/String.substring:(II)Ljava/lang/String;
+        24: areturn
+
+  public static boolean deleteDir(java.io.File, boolean);
+    Code:
+         0: aload_0
+         1: iload_1
+         2: invokestatic  #25                 // Method doDeleteDir:(Ljava/io/File;Z)Z
+         5: ireturn
+
+  public static boolean deleteDir(java.lang.String, boolean);
+    Code:
+         0: new           #29                 // class java/io/File
+         3: dup
+         4: aload_0
+         5: invokespecial #31                 // Method java/io/File."<init>":(Ljava/lang/String;)V
+         8: iload_1
+         9: invokestatic  #25                 // Method doDeleteDir:(Ljava/io/File;Z)Z
+        12: ireturn
+
+  private static boolean doDeleteDir(java.io.File, boolean);
+    Code:
+         0: aload_0
+         1: ifnull        78
+         4: aload_0
+         5: invokevirtual #34                 // Method java/io/File.exists:()Z
+         8: ifeq          78
+        11: aload_0
+        12: invokevirtual #38                 // Method java/io/File.isFile:()Z
+        15: ifne          22
+        18: iload_1
+        19: ifne          27
+        22: aload_0
+        23: invokevirtual #41                 // Method java/io/File.delete:()Z
+        26: ireturn
+        27: aload_0
+        28: invokevirtual #44                 // Method java/io/File.list:()[Ljava/lang/String;
+        31: astore_2
+        32: aconst_null
+        33: astore_3
+        34: iconst_0
+        35: istore        4
+        37: iload         4
+        39: aload_2
+        40: arraylength
+        41: if_icmpge     73
+        44: new           #29                 // class java/io/File
+        47: dup
+        48: aload_0
+        49: aload_2
+        50: iload         4
+        52: aaload
+        53: invokespecial #48                 // Method java/io/File."<init>":(Ljava/io/File;Ljava/lang/String;)V
+        56: astore_3
+        57: aload_3
+        58: iload_1
+        59: invokestatic  #25                 // Method doDeleteDir:(Ljava/io/File;Z)Z
+        62: ifne          67
+        65: iconst_0
+        66: ireturn
+        67: iinc          4, 1
+        70: goto          37
+        73: aload_0
+        74: invokevirtual #41                 // Method java/io/File.delete:()Z
+        77: ireturn
+        78: iconst_1
+        79: ireturn
+
+  public static java.io.InputStream newBZFileInputStream(java.lang.String, boolean, boolean, int) throws java.io.IOException;
+    Code:
+         0: iload_1
+         1: ifeq          21
+         4: new           #51                 // class java/util/zip/GZIPInputStream
+         7: dup
+         8: new           #53                 // class java/io/FileInputStream
+        11: dup
+        12: aload_0
+        13: invokespecial #55                 // Method java/io/FileInputStream."<init>":(Ljava/lang/String;)V
+        16: iload_3
+        17: invokespecial #56                 // Method java/util/zip/GZIPInputStream."<init>":(Ljava/io/InputStream;I)V
+        20: areturn
+        21: iload_2
+        22: ifeq          42
+        25: new           #59                 // class java/io/BufferedInputStream
+        28: dup
+        29: new           #53                 // class java/io/FileInputStream
+        32: dup
+        33: aload_0
+        34: invokespecial #55                 // Method java/io/FileInputStream."<init>":(Ljava/lang/String;)V
+        37: iload_3
+        38: invokespecial #61                 // Method java/io/BufferedInputStream."<init>":(Ljava/io/InputStream;I)V
+        41: areturn
+        42: new           #53                 // class java/io/FileInputStream
+        45: dup
+        46: aload_0
+        47: invokespecial #55                 // Method java/io/FileInputStream."<init>":(Ljava/lang/String;)V
+        50: areturn
+
+  public static java.io.InputStream newZFileInputStream(java.lang.String) throws java.io.FileNotFoundException, java.io.IOException;
+    Code:
+         0: new           #51                 // class java/util/zip/GZIPInputStream
+         3: dup
+         4: new           #53                 // class java/io/FileInputStream
+         7: dup
+         8: aload_0
+         9: invokespecial #55                 // Method java/io/FileInputStream."<init>":(Ljava/lang/String;)V
+        12: invokespecial #62                 // Method java/util/zip/GZIPInputStream."<init>":(Ljava/io/InputStream;)V
+        15: areturn
+
+  public static java.io.OutputStream newBZFileOutputStream(java.lang.String, boolean, boolean, int) throws java.io.IOException;
+    Code:
+         0: aload_0
+         1: iload_1
+         2: iload_2
+         3: iload_3
+         4: iconst_0
+         5: invokestatic  #65                 // Method newBZFileOutputStream:(Ljava/lang/String;ZZIZ)Ljava/io/OutputStream;
+         8: areturn
+
+  public static java.io.OutputStream newBZFileOutputStream(java.lang.String, boolean, boolean, int, boolean) throws java.io.IOException;
+    Code:
+         0: iload_1
+         1: ifeq          23
+         4: new           #69                 // class java/util/zip/GZIPOutputStream
+         7: dup
+         8: new           #71                 // class java/io/FileOutputStream
+        11: dup
+        12: aload_0
+        13: iload         4
+        15: invokespecial #73                 // Method java/io/FileOutputStream."<init>":(Ljava/lang/String;Z)V
+        18: iload_3
+        19: invokespecial #76                 // Method java/util/zip/GZIPOutputStream."<init>":(Ljava/io/OutputStream;I)V
+        22: areturn
+        23: iload_2
+        24: ifeq          46
+        27: new           #79                 // class java/io/BufferedOutputStream
+        30: dup
+        31: new           #71                 // class java/io/FileOutputStream
+        34: dup
+        35: aload_0
+        36: iload         4
+        38: invokespecial #73                 // Method java/io/FileOutputStream."<init>":(Ljava/lang/String;Z)V
+        41: iload_3
+        42: invokespecial #81                 // Method java/io/BufferedOutputStream."<init>":(Ljava/io/OutputStream;I)V
+        45: areturn
+        46: new           #71                 // class java/io/FileOutputStream
+        49: dup
+        50: aload_0
+        51: iload         4
+        53: invokespecial #73                 // Method java/io/FileOutputStream."<init>":(Ljava/lang/String;Z)V
+        56: areturn
+
+  public static void printArrayOfBigInts(java.io.InputStream) throws java.io.IOException;
+    Code:
+         0: aload_0
+         1: invokestatic  #82                 // Method tlc2/util/ByteUtils.readSizeArrayOfSizeBigInts:(Ljava/io/InputStream;)[Ltlc2/util/BigInt;
+         4: astore_1
+         5: iconst_0
+         6: istore_2
+         7: iload_2
+         8: aload_1
+         9: arraylength
+        10: if_icmpge     28
+        13: getstatic     #88                 // Field util/ToolIO.out:Ljava/io/PrintStream;
+        16: aload_1
+        17: iload_2
+        18: aaload
+        19: invokevirtual #94                 // Method java/io/PrintStream.println:(Ljava/lang/Object;)V
+        22: iinc          2, 1
+        25: goto          7
+        28: return
+
+  public static void printSizeArrayOfSizeBigIntegers(java.io.InputStream) throws java.io.IOException;
+    Code:
+         0: aload_0
+         1: invokestatic  #82                 // Method tlc2/util/ByteUtils.readSizeArrayOfSizeBigInts:(Ljava/io/InputStream;)[Ltlc2/util/BigInt;
+         4: astore_1
+         5: iconst_0
+         6: istore_2
+         7: iload_2
+         8: aload_1
+         9: arraylength
+        10: if_icmpge     28
+        13: getstatic     #88                 // Field util/ToolIO.out:Ljava/io/PrintStream;
+        16: aload_1
+        17: iload_2
+        18: aaload
+        19: invokevirtual #94                 // Method java/io/PrintStream.println:(Ljava/lang/Object;)V
+        22: iinc          2, 1
+        25: goto          7
+        28: return
+
+  public static void copyFile(java.lang.String, java.lang.String) throws java.io.IOException;
+    Code:
+         0: new           #29                 // class java/io/File
+         3: dup
+         4: aload_0
+         5: invokespecial #31                 // Method java/io/File."<init>":(Ljava/lang/String;)V
+         8: new           #29                 // class java/io/File
+        11: dup
+        12: aload_1
+        13: invokespecial #31                 // Method java/io/File."<init>":(Ljava/lang/String;)V
+        16: invokestatic  #100                // Method copyFile:(Ljava/io/File;Ljava/io/File;)V
+        19: return
+
+  public static void copyFile(java.io.File, java.io.File) throws java.io.IOException;
+    Code:
+         0: aload_0
+         1: invokevirtual #104                // Method java/io/File.toPath:()Ljava/nio/file/Path;
+         4: aload_1
+         5: invokevirtual #104                // Method java/io/File.toPath:()Ljava/nio/file/Path;
+         8: iconst_1
+         9: anewarray     #108                // class java/nio/file/CopyOption
+        12: dup
+        13: iconst_0
+        14: getstatic     #110                // Field java/nio/file/StandardCopyOption.REPLACE_EXISTING:Ljava/nio/file/StandardCopyOption;
+        17: aastore
+        18: invokestatic  #116                // Method java/nio/file/Files.copy:(Ljava/nio/file/Path;Ljava/nio/file/Path;[Ljava/nio/file/CopyOption;)Ljava/nio/file/Path;
+        21: pop
+        22: return
+
+  public static void replaceFile(java.lang.String, java.lang.String) throws java.io.IOException;
+    Code:
+         0: new           #29                 // class java/io/File
+         3: dup
+         4: aload_0
+         5: invokespecial #31                 // Method java/io/File."<init>":(Ljava/lang/String;)V
+         8: invokevirtual #104                // Method java/io/File.toPath:()Ljava/nio/file/Path;
+        11: new           #29                 // class java/io/File
+        14: dup
+        15: aload_1
+        16: invokespecial #31                 // Method java/io/File."<init>":(Ljava/lang/String;)V
+        19: invokevirtual #104                // Method java/io/File.toPath:()Ljava/nio/file/Path;
+        22: iconst_1
+        23: anewarray     #108                // class java/nio/file/CopyOption
+        26: dup
+        27: iconst_0
+        28: getstatic     #110                // Field java/nio/file/StandardCopyOption.REPLACE_EXISTING:Ljava/nio/file/StandardCopyOption;
+        31: aastore
+        32: invokestatic  #122                // Method java/nio/file/Files.move:(Ljava/nio/file/Path;Ljava/nio/file/Path;[Ljava/nio/file/CopyOption;)Ljava/nio/file/Path;
+        35: pop
+        36: return
+
+  public static java.lang.String makeMetaDir(java.lang.String, java.lang.String);
+    Code:
+         0: new           #125                // class java/util/Date
+         3: dup
+         4: invokespecial #127                // Method java/util/Date."<init>":()V
+         7: aload_0
+         8: aload_1
+         9: invokestatic  #128                // Method makeMetaDir:(Ljava/util/Date;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+        12: areturn
+
+  public static java.lang.String makeMetaDir(java.util.Date, java.lang.String, java.lang.String);
+    Code:
+         0: aload_2
+         1: ifnull        6
+         4: aload_2
+         5: areturn
+         6: getstatic     #132                // Field tlc2/TLCGlobals.metaDir:Ljava/lang/String;
+         9: ifnull        26
+        12: getstatic     #132                // Field tlc2/TLCGlobals.metaDir:Ljava/lang/String;
+        15: iconst_0
+        16: anewarray     #14                 // class java/lang/String
+        19: invokestatic  #138                // Method java/nio/file/Paths.get:(Ljava/lang/String;[Ljava/lang/String;)Ljava/nio/file/Path;
+        22: astore_3
+        23: goto          42
+        26: aload_1
+        27: iconst_0
+        28: anewarray     #14                 // class java/lang/String
+        31: invokestatic  #138                // Method java/nio/file/Paths.get:(Ljava/lang/String;[Ljava/lang/String;)Ljava/nio/file/Path;
+        34: ldc           #144                // String states
+        36: invokeinterface #146,  2          // InterfaceMethod java/nio/file/Path.resolve:(Ljava/lang/String;)Ljava/nio/file/Path;
+        41: astore_3
+        42: ldc           #8                  // class util/FileUtil
+        44: invokevirtual #152                // Method java/lang/Class.getName:()Ljava/lang/String;
+        47: invokedynamic #158,  0            // InvokeDynamic #0:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+        52: ldc           #162                // String true
+        54: invokestatic  #164                // Method java/lang/System.getProperty:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+        57: astore        5
+        59: aload         5
+        61: invokestatic  #170                // Method java/lang/Boolean.valueOf:(Ljava/lang/String;)Ljava/lang/Boolean;
+        64: invokevirtual #176                // Method java/lang/Boolean.booleanValue:()Z
+        67: ifeq          84
+        70: new           #179                // class java/text/SimpleDateFormat
+        73: dup
+        74: ldc           #181                // String yy-MM-dd-HH-mm-ss.SSS
+        76: invokespecial #183                // Method java/text/SimpleDateFormat."<init>":(Ljava/lang/String;)V
+        79: astore        4
+        81: goto          95
+        84: new           #179                // class java/text/SimpleDateFormat
+        87: dup
+        88: ldc           #184                // String yy-MM-dd-HH-mm-ss
+        90: invokespecial #183                // Method java/text/SimpleDateFormat."<init>":(Ljava/lang/String;)V
+        93: astore        4
+        95: aload_3
+        96: aload         4
+        98: aload_0
+        99: invokevirtual #186                // Method java/text/SimpleDateFormat.format:(Ljava/util/Date;)Ljava/lang/String;
+       102: invokeinterface #146,  2          // InterfaceMethod java/nio/file/Path.resolve:(Ljava/lang/String;)Ljava/nio/file/Path;
+       107: astore_3
+       108: aload_3
+       109: invokestatic  #190                // Method createExclusiveDirectoryWithApproximateName:(Ljava/nio/file/Path;)Ljava/nio/file/Path;
+       112: astore_3
+       113: goto          130
+       116: astore        6
+       118: sipush        2163
+       121: aload_3
+       122: invokeinterface #198,  1          // InterfaceMethod java/nio/file/Path.toString:()Ljava/lang/String;
+       127: invokestatic  #201                // Method util/Assert.fail:(ILjava/lang/String;)V
+       130: aload_3
+       131: invokeinterface #198,  1          // InterfaceMethod java/nio/file/Path.toString:()Ljava/lang/String;
+       136: areturn
+      Exception table:
+         from    to  target type
+           108   113   116   Class java/io/IOException
+
+  public static void createExclusiveDirectory(java.nio.file.Path) throws java.io.IOException;
+    Code:
+         0: aload_0
+         1: invokeinterface #207,  1          // InterfaceMethod java/nio/file/Path.toAbsolutePath:()Ljava/nio/file/Path;
+         6: astore_0
+         7: aload_0
+         8: invokeinterface #210,  1          // InterfaceMethod java/nio/file/Path.getParent:()Ljava/nio/file/Path;
+        13: iconst_0
+        14: anewarray     #213                // class java/nio/file/attribute/FileAttribute
+        17: invokestatic  #215                // Method java/nio/file/Files.createDirectories:(Ljava/nio/file/Path;[Ljava/nio/file/attribute/FileAttribute;)Ljava/nio/file/Path;
+        20: pop
+        21: aload_0
+        22: iconst_0
+        23: anewarray     #213                // class java/nio/file/attribute/FileAttribute
+        26: invokestatic  #219                // Method java/nio/file/Files.createDirectory:(Ljava/nio/file/Path;[Ljava/nio/file/attribute/FileAttribute;)Ljava/nio/file/Path;
+        29: pop
+        30: return
+
+  public static java.nio.file.Path createExclusiveDirectoryWithApproximateName(java.nio.file.Path) throws java.io.IOException;
+    Code:
+         0: aload_0
+         1: invokestatic  #222                // Method createExclusiveDirectory:(Ljava/nio/file/Path;)V
+         4: aload_0
+         5: areturn
+         6: astore_1
+         7: aload_0
+         8: invokeinterface #207,  1          // InterfaceMethod java/nio/file/Path.toAbsolutePath:()Ljava/nio/file/Path;
+        13: astore_0
+        14: aload_0
+        15: invokeinterface #210,  1          // InterfaceMethod java/nio/file/Path.getParent:()Ljava/nio/file/Path;
+        20: aload_0
+        21: invokeinterface #228,  1          // InterfaceMethod java/nio/file/Path.getFileName:()Ljava/nio/file/Path;
+        26: invokeinterface #198,  1          // InterfaceMethod java/nio/file/Path.toString:()Ljava/lang/String;
+        31: iconst_0
+        32: anewarray     #213                // class java/nio/file/attribute/FileAttribute
+        35: invokestatic  #231                // Method java/nio/file/Files.createTempDirectory:(Ljava/nio/file/Path;Ljava/lang/String;[Ljava/nio/file/attribute/FileAttribute;)Ljava/nio/file/Path;
+        38: areturn
+      Exception table:
+         from    to  target type
+             0     5     6   Class java/nio/file/FileAlreadyExistsException
+
+  public static util.NamedInputStream createNamedInputStream(java.lang.String, util.FilenameToStream);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: aconst_null
+         3: invokestatic  #235                // Method createNamedInputStream:(Ljava/lang/String;Lutil/FilenameToStream;Lutil/NamedInputStream;)Lutil/NamedInputStream;
+         6: areturn
+
+  public static util.NamedInputStream createNamedInputStream(java.lang.String, util.FilenameToStream, util.NamedInputStream);
+    Code:
+         0: aload_0
+         1: bipush        10
+         3: invokevirtual #239                // Method java/lang/String.indexOf:(I)I
+         6: istore_3
+         7: iload_3
+         8: iflt          30
+        11: getstatic     #88                 // Field util/ToolIO.out:Ljava/io/PrintStream;
+        14: aload_0
+        15: invokedynamic #242,  0            // InvokeDynamic #1:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+        20: invokevirtual #243                // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+        23: aload_0
+        24: iconst_0
+        25: iload_3
+        26: invokevirtual #21                 // Method java/lang/String.substring:(II)Ljava/lang/String;
+        29: astore_0
+        30: aload_0
+        31: invokevirtual #245                // Method java/lang/String.toLowerCase:()Ljava/lang/String;
+        34: ldc           #250                // String .tla
+        36: invokevirtual #252                // Method java/lang/String.endsWith:(Ljava/lang/String;)Z
+        39: ifeq          58
+        42: aload_0
+        43: iconst_0
+        44: aload_0
+        45: invokevirtual #256                // Method java/lang/String.length:()I
+        48: ldc           #250                // String .tla
+        50: invokevirtual #256                // Method java/lang/String.length:()I
+        53: isub
+        54: invokevirtual #21                 // Method java/lang/String.substring:(II)Ljava/lang/String;
+        57: astore_0
+        58: aload_0
+        59: invokedynamic #260,  0            // InvokeDynamic #2:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+        64: astore        4
+        66: aload_0
+        67: aload_0
+        68: getstatic     #261                // Field separator:Ljava/lang/String;
+        71: invokevirtual #264                // Method java/lang/String.lastIndexOf:(Ljava/lang/String;)I
+        74: iconst_1
+        75: iadd
+        76: invokevirtual #267                // Method java/lang/String.substring:(I)Ljava/lang/String;
+        79: astore        5
+        81: aload_1
+        82: aload         4
+        84: iconst_1
+        85: invokeinterface #270,  3          // InterfaceMethod util/FilenameToStream.resolve:(Ljava/lang/String;Z)Ljava/io/File;
+        90: astore        6
+        92: aload         6
+        94: ifnull        134
+        97: aload         6
+        99: invokevirtual #34                 // Method java/io/File.exists:()Z
+       102: ifeq          134
+       105: new           #275                // class util/NamedInputStream
+       108: dup
+       109: aload         4
+       111: aload         5
+       113: aload         6
+       115: invokespecial #277                // Method util/NamedInputStream."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/io/File;)V
+       118: astore        7
+       120: aload         7
+       122: areturn
+       123: astore        7
+       125: getstatic     #88                 // Field util/ToolIO.out:Ljava/io/PrintStream;
+       128: ldc_w         #282                // String ***Internal error: Unable to create NamedInputStream in toIStream method
+       131: invokevirtual #243                // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+       134: aload_2
+       135: ifnull        165
+       138: aload_2
+       139: invokevirtual #284                // Method util/NamedInputStream.sourceFile:()Ljava/io/File;
+       142: astore        7
+       144: aload         7
+       146: ifnull        162
+       149: aload         7
+       151: aload_0
+       152: invokestatic  #288                // Method util/MonolithSpecExtractor.module:(Ljava/io/File;Ljava/lang/String;)Lutil/NamedInputStream;
+       155: astore        8
+       157: aload         8
+       159: areturn
+       160: astore        8
+       162: goto          214
+       165: aload         6
+       167: ifnull        195
+       170: getstatic     #294                // Field util/ToolIO.err:Ljava/io/PrintStream;
+       173: aload         6
+       175: invokevirtual #297                // Method java/io/File.getAbsolutePath:()Ljava/lang/String;
+       178: aload_1
+       179: invokeinterface #300,  1          // InterfaceMethod util/FilenameToStream.getFullPath:()Ljava/lang/String;
+       184: invokedynamic #303,  0            // InvokeDynamic #3:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+       189: invokevirtual #243                // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+       192: goto          214
+       195: getstatic     #294                // Field util/ToolIO.err:Ljava/io/PrintStream;
+       198: aload         4
+       200: aload_1
+       201: invokeinterface #300,  1          // InterfaceMethod util/FilenameToStream.getFullPath:()Ljava/lang/String;
+       206: invokedynamic #305,  0            // InvokeDynamic #4:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+       211: invokevirtual #243                // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+       214: aconst_null
+       215: areturn
+      Exception table:
+         from    to  target type
+           105   122   123   Class java/io/FileNotFoundException
+           149   159   160   Class java/io/IOException
+
+  public static java.io.FileInputStream newFIS(java.io.File);
+    Code:
+         0: aload_0
+         1: ifnull        32
+         4: aload_0
+         5: invokevirtual #34                 // Method java/io/File.exists:()Z
+         8: ifeq          32
+        11: new           #53                 // class java/io/FileInputStream
+        14: dup
+        15: aload_0
+        16: invokespecial #306                // Method java/io/FileInputStream."<init>":(Ljava/io/File;)V
+        19: astore_1
+        20: aload_1
+        21: areturn
+        22: astore_1
+        23: getstatic     #88                 // Field util/ToolIO.out:Ljava/io/PrintStream;
+        26: ldc_w         #309                // String ***Internal error: Unable to create FileInputStream
+        29: invokevirtual #243                // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+        32: aconst_null
+        33: areturn
+      Exception table:
+         from    to  target type
+            11    21    22   Class java/io/FileNotFoundException
+
+  public static java.io.FileOutputStream newFOS(java.io.File);
+    Code:
+         0: aload_0
+         1: ifnull        32
+         4: aload_0
+         5: invokevirtual #34                 // Method java/io/File.exists:()Z
+         8: ifeq          32
+        11: new           #71                 // class java/io/FileOutputStream
+        14: dup
+        15: aload_0
+        16: invokespecial #311                // Method java/io/FileOutputStream."<init>":(Ljava/io/File;)V
+        19: astore_1
+        20: aload_1
+        21: areturn
+        22: astore_1
+        23: getstatic     #88                 // Field util/ToolIO.out:Ljava/io/PrintStream;
+        26: ldc_w         #312                // String ***Internal error: Unable to create FileOutStream
+        29: invokevirtual #243                // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+        32: aconst_null
+        33: areturn
+      Exception table:
+         from    to  target type
+            11    21    22   Class java/io/FileNotFoundException
+
+  public static java.io.OutputStream newBFOS(java.lang.String) throws java.io.FileNotFoundException;
+    Code:
+         0: new           #71                 // class java/io/FileOutputStream
+         3: dup
+         4: new           #29                 // class java/io/File
+         7: dup
+         8: aload_0
+         9: invokespecial #31                 // Method java/io/File."<init>":(Ljava/lang/String;)V
+        12: invokespecial #311                // Method java/io/FileOutputStream."<init>":(Ljava/io/File;)V
+        15: areturn
+        16: astore_1
+        17: getstatic     #88                 // Field util/ToolIO.out:Ljava/io/PrintStream;
+        20: aload_0
+        21: invokedynamic #314,  0            // InvokeDynamic #5:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+        26: invokevirtual #243                // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+        29: aload_1
+        30: athrow
+      Exception table:
+         from    to  target type
+             0    15    16   Class java/io/FileNotFoundException
+
+  public static util.BufferedDataInputStream newBdFIS(boolean, java.io.File) throws java.io.IOException;
+    Code:
+         0: iload_0
+         1: ifeq          27
+         4: new           #315                // class util/BufferedDataInputStream
+         7: dup
+         8: new           #51                 // class java/util/zip/GZIPInputStream
+        11: dup
+        12: new           #53                 // class java/io/FileInputStream
+        15: dup
+        16: aload_1
+        17: invokespecial #306                // Method java/io/FileInputStream."<init>":(Ljava/io/File;)V
+        20: invokespecial #62                 // Method java/util/zip/GZIPInputStream."<init>":(Ljava/io/InputStream;)V
+        23: invokespecial #317                // Method util/BufferedDataInputStream."<init>":(Ljava/io/InputStream;)V
+        26: areturn
+        27: new           #315                // class util/BufferedDataInputStream
+        30: dup
+        31: new           #53                 // class java/io/FileInputStream
+        34: dup
+        35: aload_1
+        36: invokespecial #306                // Method java/io/FileInputStream."<init>":(Ljava/io/File;)V
+        39: invokespecial #317                // Method util/BufferedDataInputStream."<init>":(Ljava/io/InputStream;)V
+        42: areturn
+
+  public static util.BufferedDataInputStream newBdFIS(boolean, java.lang.String) throws java.io.IOException;
+    Code:
+         0: iload_0
+         1: new           #29                 // class java/io/File
+         4: dup
+         5: aload_1
+         6: invokespecial #31                 // Method java/io/File."<init>":(Ljava/lang/String;)V
+         9: invokestatic  #318                // Method newBdFIS:(ZLjava/io/File;)Lutil/BufferedDataInputStream;
+        12: areturn
+
+  public static util.BufferedDataOutputStream newBdFOS(boolean, java.io.File) throws java.io.FileNotFoundException, java.io.IOException;
+    Code:
+         0: iload_0
+         1: ifeq          27
+         4: new           #322                // class util/BufferedDataOutputStream
+         7: dup
+         8: new           #69                 // class java/util/zip/GZIPOutputStream
+        11: dup
+        12: new           #71                 // class java/io/FileOutputStream
+        15: dup
+        16: aload_1
+        17: invokespecial #311                // Method java/io/FileOutputStream."<init>":(Ljava/io/File;)V
+        20: invokespecial #324                // Method java/util/zip/GZIPOutputStream."<init>":(Ljava/io/OutputStream;)V
+        23: invokespecial #327                // Method util/BufferedDataOutputStream."<init>":(Ljava/io/OutputStream;)V
+        26: areturn
+        27: new           #322                // class util/BufferedDataOutputStream
+        30: dup
+        31: new           #71                 // class java/io/FileOutputStream
+        34: dup
+        35: aload_1
+        36: invokespecial #311                // Method java/io/FileOutputStream."<init>":(Ljava/io/File;)V
+        39: invokespecial #327                // Method util/BufferedDataOutputStream."<init>":(Ljava/io/OutputStream;)V
+        42: areturn
+
+  public static util.BufferedDataOutputStream newBdFOS(boolean, java.lang.String) throws java.io.IOException;
+    Code:
+         0: iload_0
+         1: new           #29                 // class java/io/File
+         4: dup
+         5: aload_1
+         6: invokespecial #31                 // Method java/io/File."<init>":(Ljava/lang/String;)V
+         9: invokestatic  #328                // Method newBdFOS:(ZLjava/io/File;)Lutil/BufferedDataOutputStream;
+        12: areturn
+
+  public static java.io.ObjectInputStream newOBFIS(java.io.File) throws java.io.FileNotFoundException, java.io.IOException;
+    Code:
+         0: new           #332                // class java/io/ObjectInputStream
+         3: dup
+         4: new           #59                 // class java/io/BufferedInputStream
+         7: dup
+         8: new           #53                 // class java/io/FileInputStream
+        11: dup
+        12: aload_0
+        13: invokespecial #306                // Method java/io/FileInputStream."<init>":(Ljava/io/File;)V
+        16: invokespecial #334                // Method java/io/BufferedInputStream."<init>":(Ljava/io/InputStream;)V
+        19: invokespecial #335                // Method java/io/ObjectInputStream."<init>":(Ljava/io/InputStream;)V
+        22: areturn
+
+  public static java.io.ObjectInputStream newOBFIS(java.lang.String) throws java.io.FileNotFoundException, java.io.IOException;
+    Code:
+         0: new           #29                 // class java/io/File
+         3: dup
+         4: aload_0
+         5: invokespecial #31                 // Method java/io/File."<init>":(Ljava/lang/String;)V
+         8: invokestatic  #336                // Method newOBFIS:(Ljava/io/File;)Ljava/io/ObjectInputStream;
+        11: areturn
+
+  public static java.io.ObjectOutputStream newOBFOS(java.io.File) throws java.io.FileNotFoundException, java.io.IOException;
+    Code:
+         0: new           #340                // class java/io/ObjectOutputStream
+         3: dup
+         4: new           #79                 // class java/io/BufferedOutputStream
+         7: dup
+         8: new           #71                 // class java/io/FileOutputStream
+        11: dup
+        12: aload_0
+        13: invokespecial #311                // Method java/io/FileOutputStream."<init>":(Ljava/io/File;)V
+        16: invokespecial #342                // Method java/io/BufferedOutputStream."<init>":(Ljava/io/OutputStream;)V
+        19: invokespecial #343                // Method java/io/ObjectOutputStream."<init>":(Ljava/io/OutputStream;)V
+        22: areturn
+
+  public static java.io.ObjectOutputStream newOBFOS(java.lang.String) throws java.io.FileNotFoundException, java.io.IOException;
+    Code:
+         0: new           #29                 // class java/io/File
+         3: dup
+         4: aload_0
+         5: invokespecial #31                 // Method java/io/File."<init>":(Ljava/lang/String;)V
+         8: invokestatic  #344                // Method newOBFOS:(Ljava/io/File;)Ljava/io/ObjectOutputStream;
+        11: areturn
+
+  public static java.io.DataInputStream newDFIS(java.lang.String) throws java.io.FileNotFoundException;
+    Code:
+         0: new           #348                // class java/io/DataInputStream
+         3: dup
+         4: new           #53                 // class java/io/FileInputStream
+         7: dup
+         8: new           #29                 // class java/io/File
+        11: dup
+        12: aload_0
+        13: invokespecial #31                 // Method java/io/File."<init>":(Ljava/lang/String;)V
+        16: invokespecial #306                // Method java/io/FileInputStream."<init>":(Ljava/io/File;)V
+        19: invokespecial #350                // Method java/io/DataInputStream."<init>":(Ljava/io/InputStream;)V
+        22: areturn
+
+  public static java.io.DataOutputStream newDFOS(java.lang.String) throws java.io.FileNotFoundException;
+    Code:
+         0: new           #351                // class java/io/DataOutputStream
+         3: dup
+         4: new           #71                 // class java/io/FileOutputStream
+         7: dup
+         8: new           #29                 // class java/io/File
+        11: dup
+        12: aload_0
+        13: invokespecial #31                 // Method java/io/File."<init>":(Ljava/lang/String;)V
+        16: invokespecial #311                // Method java/io/FileOutputStream."<init>":(Ljava/io/File;)V
+        19: invokespecial #353                // Method java/io/DataOutputStream."<init>":(Ljava/io/OutputStream;)V
+        22: areturn
+
+  public static java.io.File createTempFile(java.lang.String) throws java.io.IOException;
+    Code:
+         0: getstatic     #132                // Field tlc2/TLCGlobals.metaDir:Ljava/lang/String;
+         3: ifnull        33
+         6: getstatic     #132                // Field tlc2/TLCGlobals.metaDir:Ljava/lang/String;
+         9: iconst_0
+        10: anewarray     #14                 // class java/lang/String
+        13: invokestatic  #138                // Method java/nio/file/Paths.get:(Ljava/lang/String;[Ljava/lang/String;)Ljava/nio/file/Path;
+        16: aconst_null
+        17: iconst_0
+        18: anewarray     #213                // class java/nio/file/attribute/FileAttribute
+        21: invokestatic  #231                // Method java/nio/file/Files.createTempDirectory:(Ljava/nio/file/Path;Ljava/lang/String;[Ljava/nio/file/attribute/FileAttribute;)Ljava/nio/file/Path;
+        24: invokeinterface #354,  1          // InterfaceMethod java/nio/file/Path.toFile:()Ljava/io/File;
+        29: astore_1
+        30: goto          47
+        33: aconst_null
+        34: iconst_0
+        35: anewarray     #213                // class java/nio/file/attribute/FileAttribute
+        38: invokestatic  #357                // Method java/nio/file/Files.createTempDirectory:(Ljava/lang/String;[Ljava/nio/file/attribute/FileAttribute;)Ljava/nio/file/Path;
+        41: invokeinterface #354,  1          // InterfaceMethod java/nio/file/Path.toFile:()Ljava/io/File;
+        46: astore_1
+        47: new           #29                 // class java/io/File
+        50: dup
+        51: aload_1
+        52: aload_0
+        53: invokespecial #48                 // Method java/io/File."<init>":(Ljava/io/File;Ljava/lang/String;)V
+        56: astore_2
+        57: aload_1
+        58: invokevirtual #360                // Method java/io/File.deleteOnExit:()V
+        61: aload_2
+        62: invokevirtual #360                // Method java/io/File.deleteOnExit:()V
+        65: aload_2
+        66: areturn
+
+  public static long copyStream(java.io.InputStream, java.io.OutputStream) throws java.io.IOException;
+    Code:
+         0: sipush        4096
+         3: newarray       byte
+         5: astore_2
+         6: lconst_0
+         7: lstore_3
+         8: aload_0
+         9: instanceof    #59                 // class java/io/BufferedInputStream
+        12: ifeq          22
+        15: aload_0
+        16: checkcast     #59                 // class java/io/BufferedInputStream
+        19: goto          30
+        22: new           #59                 // class java/io/BufferedInputStream
+        25: dup
+        26: aload_0
+        27: invokespecial #334                // Method java/io/BufferedInputStream."<init>":(Ljava/io/InputStream;)V
+        30: astore        6
+        32: aload_1
+        33: instanceof    #79                 // class java/io/BufferedOutputStream
+        36: ifeq          46
+        39: aload_1
+        40: checkcast     #79                 // class java/io/BufferedOutputStream
+        43: goto          54
+        46: new           #79                 // class java/io/BufferedOutputStream
+        49: dup
+        50: aload_1
+        51: invokespecial #342                // Method java/io/BufferedOutputStream."<init>":(Ljava/io/OutputStream;)V
+        54: astore        7
+        56: aload         6
+        58: aload_2
+        59: invokevirtual #363                // Method java/io/BufferedInputStream.read:([B)I
+        62: dup
+        63: istore        5
+        65: iconst_m1
+        66: if_icmpeq     87
+        69: aload         7
+        71: aload_2
+        72: iconst_0
+        73: iload         5
+        75: invokevirtual #367                // Method java/io/BufferedOutputStream.write:([BII)V
+        78: lload_3
+        79: iload         5
+        81: i2l
+        82: ladd
+        83: lstore_3
+        84: goto          56
+        87: aload         7
+        89: invokevirtual #371                // Method java/io/BufferedOutputStream.flush:()V
+        92: lload_3
+        93: lreturn
+
+  static {};
+    Code:
+         0: getstatic     #374                // Field java/io/File.separatorChar:C
+         3: putstatic     #7                  // Field separatorChar:C
+         6: getstatic     #375                // Field java/io/File.separator:Ljava/lang/String;
+         9: putstatic     #261                // Field separator:Ljava/lang/String;
+        12: getstatic     #376                // Field java/io/File.pathSeparator:Ljava/lang/String;
+        15: putstatic     #379                // Field pathSeparator:Ljava/lang/String;
+        18: return
+}
+Compiled from "Utilities.java"
+final class tools.aqua.turnkey.support.Utilities {
+  private tools.aqua.turnkey.support.Utilities();
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: new           #2                  // class java/lang/AssertionError
+         7: dup
+         8: invokespecial #3                  // Method java/lang/AssertionError."<init>":()V
+        11: athrow
+
+  static java.util.List<java.lang.String> getListProperty(java.util.Properties, java.lang.String);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: new           #4                  // class java/util/ArrayList
+         5: dup
+         6: invokespecial #5                  // Method java/util/ArrayList."<init>":()V
+         9: invokestatic  #6                  // Method getCollectionProperty:(Ljava/util/Properties;Ljava/lang/String;Ljava/util/Collection;)Ljava/util/Collection;
+        12: checkcast     #7                  // class java/util/List
+        15: areturn
+
+  static java.util.Set<java.lang.String> getSetProperty(java.util.Properties, java.lang.String);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: new           #8                  // class java/util/LinkedHashSet
+         5: dup
+         6: invokespecial #9                  // Method java/util/LinkedHashSet."<init>":()V
+         9: invokestatic  #6                  // Method getCollectionProperty:(Ljava/util/Properties;Ljava/lang/String;Ljava/util/Collection;)Ljava/util/Collection;
+        12: checkcast     #10                 // class java/util/Set
+        15: areturn
+
+  private static <T extends java.util.Collection<java.lang.String>> T getCollectionProperty(java.util.Properties, java.lang.String, T);
+    Code:
+         0: iconst_0
+         1: istore_3
+         2: aload_0
+         3: new           #11                 // class java/lang/StringBuilder
+         6: dup
+         7: invokespecial #12                 // Method java/lang/StringBuilder."<init>":()V
+        10: aload_1
+        11: invokevirtual #13                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        14: ldc           #14                 // String .
+        16: invokevirtual #13                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        19: iload_3
+        20: invokevirtual #15                 // Method java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+        23: invokevirtual #16                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+        26: invokevirtual #17                 // Method java/util/Properties.containsKey:(Ljava/lang/Object;)Z
+        29: ifeq          72
+        32: aload_2
+        33: aload_0
+        34: new           #11                 // class java/lang/StringBuilder
+        37: dup
+        38: invokespecial #12                 // Method java/lang/StringBuilder."<init>":()V
+        41: aload_1
+        42: invokevirtual #13                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        45: ldc           #14                 // String .
+        47: invokevirtual #13                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        50: iload_3
+        51: invokevirtual #15                 // Method java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+        54: invokevirtual #16                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+        57: invokevirtual #18                 // Method java/util/Properties.getProperty:(Ljava/lang/String;)Ljava/lang/String;
+        60: invokeinterface #19,  2           // InterfaceMethod java/util/Collection.add:(Ljava/lang/Object;)Z
+        65: pop
+        66: iinc          3, 1
+        69: goto          2
+        72: aload_2
+        73: areturn
+
+  static void setIterableProperty(java.util.Properties, java.lang.String, java.lang.Iterable<java.lang.String>);
+    Code:
+         0: iconst_0
+         1: istore_3
+         2: aload_2
+         3: invokeinterface #20,  1           // InterfaceMethod java/lang/Iterable.iterator:()Ljava/util/Iterator;
+         8: astore        4
+        10: aload         4
+        12: invokeinterface #21,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+        17: ifeq          68
+        20: aload         4
+        22: invokeinterface #22,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+        27: checkcast     #23                 // class java/lang/String
+        30: astore        5
+        32: aload_0
+        33: new           #11                 // class java/lang/StringBuilder
+        36: dup
+        37: invokespecial #12                 // Method java/lang/StringBuilder."<init>":()V
+        40: aload_1
+        41: invokevirtual #13                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        44: ldc           #14                 // String .
+        46: invokevirtual #13                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        49: iload_3
+        50: iinc          3, 1
+        53: invokevirtual #15                 // Method java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+        56: invokevirtual #16                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+        59: aload         5
+        61: invokevirtual #24                 // Method java/util/Properties.setProperty:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;
+        64: pop
+        65: goto          10
+        68: return
+
+  static void copy(java.io.InputStream, java.io.OutputStream) throws java.io.IOException;
+    Code:
+         0: sipush        8192
+         3: newarray       byte
+         5: astore_2
+         6: aload_0
+         7: aload_2
+         8: iconst_0
+         9: aload_2
+        10: arraylength
+        11: invokevirtual #25                 // Method java/io/InputStream.read:([BII)I
+        14: dup
+        15: istore_3
+        16: iflt          29
+        19: aload_1
+        20: aload_2
+        21: iconst_0
+        22: iload_3
+        23: invokevirtual #26                 // Method java/io/OutputStream.write:([BII)V
+        26: goto          6
+        29: return
+}
+Compiled from "TurnKey.java"
+public final class tools.aqua.turnkey.support.TurnKey {
+  public static final java.lang.String TURNKEY_FILE_NAME;
+
+  private tools.aqua.turnkey.support.TurnKey();
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: new           #2                  // class java/lang/AssertionError
+         7: dup
+         8: invokespecial #3                  // Method java/lang/AssertionError."<init>":()V
+        11: athrow
+
+  public static void load(java.lang.String, java.util.function.Function<java.lang.String, java.io.InputStream>);
+    Code:
+         0: invokestatic  #4                  // Method tools/aqua/turnkey/support/OperatingSystem.identify:()Ltools/aqua/turnkey/support/OperatingSystem;
+         3: astore_2
+         4: invokestatic  #5                  // Method tools/aqua/turnkey/support/CPUArchitecture.identify:()Ltools/aqua/turnkey/support/CPUArchitecture;
+         7: astore_3
+         8: new           #6                  // class tools/aqua/turnkey/support/PlatformPrefix
+        11: dup
+        12: aload_0
+        13: aload_2
+        14: aload_3
+        15: invokespecial #7                  // Method tools/aqua/turnkey/support/PlatformPrefix."<init>":(Ljava/lang/String;Ltools/aqua/turnkey/support/OperatingSystem;Ltools/aqua/turnkey/support/CPUArchitecture;)V
+        18: astore        4
+        20: aload         4
+        22: ldc           #9                  // String turnkey.xml
+        24: invokevirtual #10                 // Method tools/aqua/turnkey/support/PlatformPrefix.resolve:(Ljava/lang/String;)Ljava/lang/String;
+        27: aload_1
+        28: invokestatic  #11                 // Method getMetadata:(Ljava/lang/String;Ljava/util/function/Function;)Ltools/aqua/turnkey/support/TurnKeyMetadata;
+        31: astore        5
+        33: invokestatic  #12                 // Method getTemporaryLibraryDir:()Ljava/nio/file/Path;
+        36: astore        6
+        38: aload         5
+        40: getfield      #13                 // Field tools/aqua/turnkey/support/TurnKeyMetadata.bundledLibraries:Ljava/util/Set;
+        43: invokeinterface #14,  1           // InterfaceMethod java/util/Set.iterator:()Ljava/util/Iterator;
+        48: astore        7
+        50: aload         7
+        52: invokeinterface #15,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+        57: ifeq          95
+        60: aload         7
+        62: invokeinterface #16,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+        67: checkcast     #17                 // class java/lang/String
+        70: astore        8
+        72: aload         4
+        74: aload         8
+        76: invokevirtual #10                 // Method tools/aqua/turnkey/support/PlatformPrefix.resolve:(Ljava/lang/String;)Ljava/lang/String;
+        79: aload         6
+        81: aload         8
+        83: invokeinterface #18,  2           // InterfaceMethod java/nio/file/Path.resolve:(Ljava/lang/String;)Ljava/nio/file/Path;
+        88: aload_1
+        89: invokestatic  #19                 // Method unpackFile:(Ljava/lang/String;Ljava/nio/file/Path;Ljava/util/function/Function;)V
+        92: goto          50
+        95: aload         5
+        97: getfield      #20                 // Field tools/aqua/turnkey/support/TurnKeyMetadata.loadCommands:Ljava/util/List;
+       100: invokeinterface #21,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+       105: astore        7
+       107: aload         7
+       109: invokeinterface #15,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+       114: ifeq          154
+       117: aload         7
+       119: invokeinterface #16,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+       124: checkcast     #17                 // class java/lang/String
+       127: astore        8
+       129: aload         6
+       131: aload         8
+       133: invokeinterface #18,  2           // InterfaceMethod java/nio/file/Path.resolve:(Ljava/lang/String;)Ljava/nio/file/Path;
+       138: invokeinterface #22,  1           // InterfaceMethod java/nio/file/Path.toAbsolutePath:()Ljava/nio/file/Path;
+       143: invokeinterface #23,  1           // InterfaceMethod java/nio/file/Path.toString:()Ljava/lang/String;
+       148: invokestatic  #24                 // Method java/lang/System.load:(Ljava/lang/String;)V
+       151: goto          107
+       154: return
+
+  private static tools.aqua.turnkey.support.TurnKeyMetadata getMetadata(java.lang.String, java.util.function.Function<java.lang.String, java.io.InputStream>);
+    Code:
+         0: aload_1
+         1: aload_0
+         2: invokeinterface #25,  2           // InterfaceMethod java/util/function/Function.apply:(Ljava/lang/Object;)Ljava/lang/Object;
+         7: checkcast     #26                 // class java/io/InputStream
+        10: astore_2
+        11: aconst_null
+        12: astore_3
+        13: aload_2
+        14: ifnonnull     44
+        17: new           #27                 // class tools/aqua/turnkey/support/UnsupportedPlatformException
+        20: dup
+        21: new           #28                 // class java/lang/StringBuilder
+        24: dup
+        25: invokespecial #29                 // Method java/lang/StringBuilder."<init>":()V
+        28: ldc           #30                 // String No file found at
+        30: invokevirtual #31                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        33: aload_0
+        34: invokevirtual #31                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        37: invokevirtual #32                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+        40: invokespecial #33                 // Method tools/aqua/turnkey/support/UnsupportedPlatformException."<init>":(Ljava/lang/String;)V
+        43: athrow
+        44: aload_2
+        45: invokestatic  #34                 // Method tools/aqua/turnkey/support/TurnKeyMetadata.loadFrom:(Ljava/io/InputStream;)Ltools/aqua/turnkey/support/TurnKeyMetadata;
+        48: astore        4
+        50: aload_2
+        51: ifnull        80
+        54: aload_3
+        55: ifnull        76
+        58: aload_2
+        59: invokevirtual #35                 // Method java/io/InputStream.close:()V
+        62: goto          80
+        65: astore        5
+        67: aload_3
+        68: aload         5
+        70: invokevirtual #37                 // Method java/lang/Throwable.addSuppressed:(Ljava/lang/Throwable;)V
+        73: goto          80
+        76: aload_2
+        77: invokevirtual #35                 // Method java/io/InputStream.close:()V
+        80: aload         4
+        82: areturn
+        83: astore        4
+        85: aload         4
+        87: astore_3
+        88: aload         4
+        90: athrow
+        91: astore        6
+        93: aload_2
+        94: ifnull        123
+        97: aload_3
+        98: ifnull        119
+       101: aload_2
+       102: invokevirtual #35                 // Method java/io/InputStream.close:()V
+       105: goto          123
+       108: astore        7
+       110: aload_3
+       111: aload         7
+       113: invokevirtual #37                 // Method java/lang/Throwable.addSuppressed:(Ljava/lang/Throwable;)V
+       116: goto          123
+       119: aload_2
+       120: invokevirtual #35                 // Method java/io/InputStream.close:()V
+       123: aload         6
+       125: athrow
+       126: astore_2
+       127: new           #39                 // class tools/aqua/turnkey/support/TurnkeyException
+       130: dup
+       131: new           #28                 // class java/lang/StringBuilder
+       134: dup
+       135: invokespecial #29                 // Method java/lang/StringBuilder."<init>":()V
+       138: ldc           #40                 // String Failed to load metadata from
+       140: invokevirtual #31                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       143: aload_0
+       144: invokevirtual #31                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       147: invokevirtual #32                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+       150: aload_2
+       151: invokespecial #41                 // Method tools/aqua/turnkey/support/TurnkeyException."<init>":(Ljava/lang/String;Ljava/lang/Throwable;)V
+       154: athrow
+      Exception table:
+         from    to  target type
+            58    62    65   Class java/lang/Throwable
+            13    50    83   Class java/lang/Throwable
+            13    50    91   any
+           101   105   108   Class java/lang/Throwable
+            83    93    91   any
+             0    80   126   Class java/io/IOException
+            83   126   126   Class java/io/IOException
+
+  private static java.nio.file.Path getTemporaryLibraryDir();
+    Code:
+         0: ldc           #42                 // String turnkey
+         2: iconst_0
+         3: anewarray     #43                 // class java/nio/file/attribute/FileAttribute
+         6: invokestatic  #44                 // Method java/nio/file/Files.createTempDirectory:(Ljava/lang/String;[Ljava/nio/file/attribute/FileAttribute;)Ljava/nio/file/Path;
+         9: astore_0
+        10: aload_0
+        11: invokeinterface #45,  1           // InterfaceMethod java/nio/file/Path.toFile:()Ljava/io/File;
+        16: invokevirtual #46                 // Method java/io/File.deleteOnExit:()V
+        19: aload_0
+        20: areturn
+        21: astore_0
+        22: new           #39                 // class tools/aqua/turnkey/support/TurnkeyException
+        25: dup
+        26: ldc           #47                 // String Failed to create temporary directory
+        28: aload_0
+        29: invokespecial #41                 // Method tools/aqua/turnkey/support/TurnkeyException."<init>":(Ljava/lang/String;Ljava/lang/Throwable;)V
+        32: athrow
+      Exception table:
+         from    to  target type
+             0    20    21   Class java/io/IOException
+
+  private static void unpackFile(java.lang.String, java.nio.file.Path, java.util.function.Function<java.lang.String, java.io.InputStream>);
+    Code:
+         0: aload_1
+         1: invokeinterface #45,  1           // InterfaceMethod java/nio/file/Path.toFile:()Ljava/io/File;
+         6: invokevirtual #46                 // Method java/io/File.deleteOnExit:()V
+         9: aload_2
+        10: aload_0
+        11: invokeinterface #25,  2           // InterfaceMethod java/util/function/Function.apply:(Ljava/lang/Object;)Ljava/lang/Object;
+        16: checkcast     #26                 // class java/io/InputStream
+        19: astore_3
+        20: aconst_null
+        21: astore        4
+        23: aload_3
+        24: ifnonnull     59
+        27: new           #39                 // class tools/aqua/turnkey/support/TurnkeyException
+        30: dup
+        31: new           #28                 // class java/lang/StringBuilder
+        34: dup
+        35: invokespecial #29                 // Method java/lang/StringBuilder."<init>":()V
+        38: ldc           #48                 // String Missing file at
+        40: invokevirtual #31                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        43: aload_0
+        44: invokevirtual #31                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        47: ldc           #49                 // String , packaging error!
+        49: invokevirtual #31                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        52: invokevirtual #32                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+        55: invokespecial #50                 // Method tools/aqua/turnkey/support/TurnkeyException."<init>":(Ljava/lang/String;)V
+        58: athrow
+        59: aload_1
+        60: iconst_0
+        61: anewarray     #51                 // class java/nio/file/OpenOption
+        64: invokestatic  #52                 // Method java/nio/file/Files.newOutputStream:(Ljava/nio/file/Path;[Ljava/nio/file/OpenOption;)Ljava/io/OutputStream;
+        67: astore        5
+        69: aconst_null
+        70: astore        6
+        72: aload_3
+        73: aload         5
+        75: invokestatic  #53                 // Method tools/aqua/turnkey/support/Utilities.copy:(Ljava/io/InputStream;Ljava/io/OutputStream;)V
+        78: aload         5
+        80: ifnull        165
+        83: aload         6
+        85: ifnull        108
+        88: aload         5
+        90: invokevirtual #54                 // Method java/io/OutputStream.close:()V
+        93: goto          165
+        96: astore        7
+        98: aload         6
+       100: aload         7
+       102: invokevirtual #37                 // Method java/lang/Throwable.addSuppressed:(Ljava/lang/Throwable;)V
+       105: goto          165
+       108: aload         5
+       110: invokevirtual #54                 // Method java/io/OutputStream.close:()V
+       113: goto          165
+       116: astore        7
+       118: aload         7
+       120: astore        6
+       122: aload         7
+       124: athrow
+       125: astore        8
+       127: aload         5
+       129: ifnull        162
+       132: aload         6
+       134: ifnull        157
+       137: aload         5
+       139: invokevirtual #54                 // Method java/io/OutputStream.close:()V
+       142: goto          162
+       145: astore        9
+       147: aload         6
+       149: aload         9
+       151: invokevirtual #37                 // Method java/lang/Throwable.addSuppressed:(Ljava/lang/Throwable;)V
+       154: goto          162
+       157: aload         5
+       159: invokevirtual #54                 // Method java/io/OutputStream.close:()V
+       162: aload         8
+       164: athrow
+       165: aload_3
+       166: ifnull        246
+       169: aload         4
+       171: ifnull        193
+       174: aload_3
+       175: invokevirtual #35                 // Method java/io/InputStream.close:()V
+       178: goto          246
+       181: astore        5
+       183: aload         4
+       185: aload         5
+       187: invokevirtual #37                 // Method java/lang/Throwable.addSuppressed:(Ljava/lang/Throwable;)V
+       190: goto          246
+       193: aload_3
+       194: invokevirtual #35                 // Method java/io/InputStream.close:()V
+       197: goto          246
+       200: astore        5
+       202: aload         5
+       204: astore        4
+       206: aload         5
+       208: athrow
+       209: astore        10
+       211: aload_3
+       212: ifnull        243
+       215: aload         4
+       217: ifnull        239
+       220: aload_3
+       221: invokevirtual #35                 // Method java/io/InputStream.close:()V
+       224: goto          243
+       227: astore        11
+       229: aload         4
+       231: aload         11
+       233: invokevirtual #37                 // Method java/lang/Throwable.addSuppressed:(Ljava/lang/Throwable;)V
+       236: goto          243
+       239: aload_3
+       240: invokevirtual #35                 // Method java/io/InputStream.close:()V
+       243: aload         10
+       245: athrow
+       246: goto          278
+       249: astore_3
+       250: new           #39                 // class tools/aqua/turnkey/support/TurnkeyException
+       253: dup
+       254: new           #28                 // class java/lang/StringBuilder
+       257: dup
+       258: invokespecial #29                 // Method java/lang/StringBuilder."<init>":()V
+       261: ldc           #55                 // String Failed to unpack
+       263: invokevirtual #31                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       266: aload_0
+       267: invokevirtual #31                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       270: invokevirtual #32                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+       273: aload_3
+       274: invokespecial #41                 // Method tools/aqua/turnkey/support/TurnkeyException."<init>":(Ljava/lang/String;Ljava/lang/Throwable;)V
+       277: athrow
+       278: return
+      Exception table:
+         from    to  target type
+            88    93    96   Class java/lang/Throwable
+            72    78   116   Class java/lang/Throwable
+            72    78   125   any
+           137   142   145   Class java/lang/Throwable
+           116   127   125   any
+           174   178   181   Class java/lang/Throwable
+            23   165   200   Class java/lang/Throwable
+            23   165   209   any
+           220   224   227   Class java/lang/Throwable
+           200   211   209   any
+             9   246   249   Class java/io/IOException
+}

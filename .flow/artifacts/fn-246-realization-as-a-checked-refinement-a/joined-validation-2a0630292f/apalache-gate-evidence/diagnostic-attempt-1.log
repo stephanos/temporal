@@ -1,0 +1,29 @@
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-apalache-diagnosis/model/umpire/ir/derive)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-apalache-diagnosis/model/umpire/author/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-apalache-diagnosis/model/umpire/author/dsl)
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-apalache-diagnosis/model/umpire/ir)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-apalache-diagnosis/model/umpire/backends/native)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-apalache-diagnosis/model/umpire/protocol/runtime)
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-apalache-diagnosis/model/umpire/front)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-apalache-diagnosis/model/umpire/author/suite)
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-apalache-diagnosis/model/umpire/backends/process)
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-apalache-diagnosis/model/umpire/backends/tla)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-apalache-diagnosis/model/umpire/catalog/syntax)
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-apalache-diagnosis/model/umpire/backends/apalache)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-apalache-diagnosis/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-apalache-diagnosis/model/umpire/catalog)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-apalache-diagnosis/model/umpire/author/umpire)
+    Finished `test` profile [unoptimized] target(s) in 6.25s
+     Running tests/controls.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2467/debug/deps/controls-30497a3c45085e25)
+
+running 1 test
+Apalache History property=Post_fails bound=2 start
+Apalache History property=Post_fails bound=2 finish bound=2 Violation
+Apalache History property=Post_fails bound=2 start
+Apalache History property=Post_fails bound=2 finish bound=2 NoViolation
+Apalache History property=Post_fails bound=2 start
+Apalache History property=Post_fails bound=2 finish bound=2 Violation
+test real_postcondition_filter_excludes_unrelated_actions ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 17 filtered out; finished in 6.25s
+

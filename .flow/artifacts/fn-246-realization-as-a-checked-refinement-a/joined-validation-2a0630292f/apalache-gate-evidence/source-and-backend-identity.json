@@ -1,0 +1,15 @@
+{
+  "commit": "2a0630292f1d609c7382869172f608ea6adf55ac",
+  "model_tree": "fd5da182cb7181932a32896bca95c35b18c963f4",
+  "sources": {
+    "model/umpire/backends/process/src/support.rs": "4f8f2b1409b916b5c94419faa29b16b3767916a45bae078e4ea682aee3264bc4",
+    "model/umpire/backends/process/src/syscall.rs": "195b054420b14d273049aeb82f1e60501d876e36ebf07170c691ca0a818e8a90",
+    "model/umpire/backends/apalache/src/lib.rs": "85cb2203034e4aa9400e41e6d69b481513ecee394ff10561bc14efbf5dc04430",
+    "model/umpire/backends/apalache/tests/controls.rs": "54d8c0a7bde779ffd159e98158441053504cfb1115275c236c420543d2fca695"
+  },
+  "java": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+  "jar_sha256": "e5223915507b65cc5f1638bd037ede60f8a4fc1644aff46355779f9b05df9262",
+  "git_status": " M .flow/specs/fn-246-realization-as-a-checked-refinement-a.json\n",
+  "uid": 1000,
+  "checked_at": "2026-10-25T13:37:33.040624+00:00"
+}

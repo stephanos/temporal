@@ -1,0 +1,63 @@
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+[1;36mTime the model feedback loop (fn-210 R30)...[0m
+step (warm)                         time
+backend modes: UMPIRE_BACKENDS=require UMPIRE_APALACHE=require
+gate command: UMPIRE_TIME_STEPS=1 make -C .. model-check
+make[2]: Entering directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+[1;36mCheck model (fmt, clippy, docs, workspace and native-tool tests)...[0m
+TLC backend required: real source-lifted agreement and semantic controls
+Apalache backend required: real bounded checks and replay controls
+    Finished `dev` profile [unoptimized] target(s) in 0.04s
+/Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/apalache/apalache-0.62.4/lib/apalache.jar
+temporal-guest-freshness         33.002s
+retired-names                     0.728s
+timing-controls                   0.295s
+capability-controls               0.250s
+source-boundary                   7.808s
+protobuf-controls                 0.228s
+protobuf-freshness                0.083s
+kettle-protobuf-freshness         0.076s
+temporal-protobuf-freshness       0.054s
+fmt                               0.724s
+clippy                           13.447s
+docs                             11.225s
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+.......
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+
+running 18 tests
+......... 9/18
+real_postcondition_filter_excludes_unrelated_actions --- FAILED
+......test real_kettle_checks_source_safety_and_history has been running for over 60 seconds
+test real_kettle_negative_is_replayed_and_tampering_fails has been running for over 60 seconds
+..
+failures:
+
+---- real_postcondition_filter_excludes_unrelated_actions stdout ----
+Apalache History property=Post_fails bound=2 start
+Apalache History property=Post_fails bound=2 finish bound=2 Violation
+Apalache History property=Post_fails bound=2 start
+Apalache History property=Post_fails bound=2 finish bound=2 NoViolation
+Apalache History property=Post_fails bound=2 start
+Apalache History property=Post_fails bound=2 failure
+Error: Refusal("subprocess limit or unsafe output (check)")
+
+
+failures:
+    real_postcondition_filter_excludes_unrelated_actions
+
+test result: FAILED. 17 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 296.58s
+
+error: test failed, to rerun pass `-p umpire-apalache --test controls`
+make[2]: *** [Makefile:1291: model-check] Error 101
+make[2]: Leaving directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+make[1]: *** [Makefile:1308: model-time] Error 2
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+make: *** [Makefile:1311: model-validate] Error 2

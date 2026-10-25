@@ -1,0 +1,34 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "test",
+    "--manifest-path",
+    "model/Cargo.toml",
+    "-p",
+    "umpire-apalache",
+    "--test",
+    "controls",
+    "--locked",
+    "real_postcondition_filter_excludes_unrelated_actions",
+    "--",
+    "--exact",
+    "--nocapture"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+  "environment": {
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2467",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "2",
+    "UMPIRE_BACKENDS": "require",
+    "UMPIRE_APALACHE": "require"
+  },
+  "started_at": "2026-10-25T13:36:38.276897+00:00",
+  "uid": 1000,
+  "source_commit": "2a0630292f1d609c7382869172f608ea6adf55ac",
+  "model_tree": "fd5da182cb7181932a32896bca95c35b18c963f4"
+}

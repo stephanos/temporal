@@ -9,13 +9,13 @@ Establish one current default whole-prefix proof contract across generic guest e
 
 **Size:** M
 **Files:** ordinary Model protocol/Reset response, generic guest export/runtime, Go Host admission and generated bindings, focused current-contract fixtures and protocol/build documentation.
-**Touches:** [model/umpire/protocol/**, model/umpire/hosts/go/{host,gen}/**, model/umpire/reference/kettle/**, model/temporal/guest/**, model/dev/xtask/**, model/GUEST_BUILDS.md]
+**Touches:** [model/umpire/protocol/**, model/umpire/hosts/go/host/**, model/umpire/hosts/go/gen/**, model/umpire/hosts/go/runner/**, model/umpire/reference/kettle/**, model/temporal/realization/src/live.rs, model/temporal/hosts/go/**, model/temporal/guest/**, model/dev/xtask/**, model/GUEST_BUILDS.md]
 
 ## Approach
 
 1. Reanchor prerequisite source/build owners and verify .1/.7's actual bounded singleton prefix retention/publication before advertising the contract. Make whole-observation-prefix witnesses the ordinary current framework contract for all current guests, including Exact/Kettle. Complete-state matching remains supported; old delta presentation and old readers are not maintained.
 2. Declare the single current proof-contract revision in the ordinary recorded Reset response, using a required admission value in the new protocol. The framework guest produces it from its real runtime contract; Host validates the actual response before Driver effects. Update native/wasm exports, Host and generated bindings together. No separate version export, hidden probe, opt-in mode, Wasm custom-section carrier, unmarked fallback or fat-LTO marker-retention obligation remains.
-3. Fail explicitly for malformed or incompatible current-contract responses; never silently reinterpret an old delta guest as a whole-prefix guest. Historical guest/Run formats need no reader or migration. Current model_hash still binds exact loaded guest bytes, and production source/guest freshness remains required.
+3. Preserve ownership of the loaded guest bytes so caller mutation cannot separate the loaded module from its recorded model_hash. Fail explicitly for malformed or incompatible current-contract responses; never silently reinterpret an old delta guest as a whole-prefix guest. Historical guest/Run formats need no reader or migration. Current model_hash still binds exact loaded guest bytes, and production source/guest freshness remains required.
 4. Demonstrate current-contract Reset and ordinary calls through the production guest builder and generic Host. Use .1/.7's independently working runtime for ordinary multi-observation controls, including Current after a nonempty witness and callback delivery; actual responses must already be whole-prefix before this task closes. .9 records this supported singleton behavior. .10 later extends compatible alternatives and changed-canonical-past selection; those controls do not gate .8 and cannot excuse delta responses here. Document the format break and regenerate current fixtures/goldens; arbitrary old-byte equivalence is not a gate.
 
 ## Investigation targets

@@ -1,0 +1,6 @@
+{
+  "path": ".flow/tmp/milestones-resume-20261024/apalache-gate-evidence/scanner-removal-fixture",
+  "bytes": 4721368,
+  "sha256": "206249a65d47a4a8aeb990be91ab28106f3659d2284553f5582837f0ebf88e35",
+  "reason": "Compiled fixture retained in local evidence; tracked source and command receipts reproduce it."
+}

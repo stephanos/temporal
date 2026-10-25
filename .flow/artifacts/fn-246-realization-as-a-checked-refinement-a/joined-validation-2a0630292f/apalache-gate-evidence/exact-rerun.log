@@ -1,0 +1,22 @@
+   Compiling serde_core v1.0.229
+   Compiling tempfile v3.27.0
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tla)
+   Compiling serde_json v1.0.154
+   Compiling serde v1.0.229
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/umpire)
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/apalache)
+    Finished `test` profile [unoptimized] target(s) in 3.13s
+     Running tests/controls.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2467/debug/deps/controls-30497a3c45085e25)
+
+running 1 test
+Apalache History property=Post_fails bound=2 start
+Apalache History property=Post_fails bound=2 finish bound=2 Violation
+Apalache History property=Post_fails bound=2 start
+Apalache History property=Post_fails bound=2 finish bound=2 NoViolation
+Apalache History property=Post_fails bound=2 start
+Apalache History property=Post_fails bound=2 finish bound=2 Violation
+test real_postcondition_filter_excludes_unrelated_actions ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 17 filtered out; finished in 5.85s
+

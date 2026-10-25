@@ -14,8 +14,8 @@
   "id": "fn-246-realization-as-a-checked-refinement-a",
   "impl_review_rounds": {
     "fn-246-realization-as-a-checked-refinement-a.1": 0,
-    "fn-246-realization-as-a-checked-refinement-a.12": 0,
-    "fn-246-realization-as-a-checked-refinement-a.7": 1
+    "fn-246-realization-as-a-checked-refinement-a.12": 1,
+    "fn-246-realization-as-a-checked-refinement-a.7": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -353,11 +353,124 @@
       "task": "fn-246-realization-as-a-checked-refinement-a.7",
       "timestamp": "2026-10-25T12:52:11.970367Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "a484e3f05bc56b2f8a42091eb9111a3a09ca9fc7dd834feb9276ac7942027f42",
+      "backend": "codex",
+      "base_sha": "ac984f912f7da7d0ded1c77a78029380aac95d34",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-419d7c635e572d36f83c7f5769ba5053",
+            "classification": "introduced",
+            "findingId": "finding-419d7c635e572d36f83c7f5769ba5053",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2a0630292f1d609c7382869172f608ea6adf55ac",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1427,
+      "output_sha256": "ee19c366462ea7aa96a88cfc42e602b30549653cb5ccc591d8ee859d304ee5d9",
+      "reservation_id": "75b6a24b72ac49d78590d1ad4fa5cf30",
+      "round_consumed": true,
+      "scope": "impl:fn-246-realization-as-a-checked-refinement-a.7",
+      "superseded_by": null,
+      "task": "fn-246-realization-as-a-checked-refinement-a.7",
+      "timestamp": "2026-10-25T13:17:16.199534Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "1f6a0f94b0c2f83896de6b94445d73d08609bfedd36453ce3fa380911411f58c",
+      "backend": "codex",
+      "base_sha": "046922c29e1355824cc989575dfe24b42e622bca",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-47342e5fe6b84fc668f70ab976119c65",
+            "classification": "introduced",
+            "findingId": "finding-47342e5fe6b84fc668f70ab976119c65",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-0653ac602a4baccc77d47c15b2297551",
+            "classification": "introduced",
+            "findingId": "finding-0653ac602a4baccc77d47c15b2297551",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-004ea96bd708b57a632a5dcd6c790067",
+            "classification": "introduced",
+            "findingId": "finding-004ea96bd708b57a632a5dcd6c790067",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a31823a060a97884fa1774eda289285e",
+            "classification": "introduced",
+            "findingId": "finding-a31823a060a97884fa1774eda289285e",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "2a0630292f1d609c7382869172f608ea6adf55ac",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 2430,
+      "output_sha256": "af29758a9872a4493efee8ff7aad7b7922ab3493b93b4169626e80f127e8380b",
+      "reservation_id": "230752f515064bf9a9235a9deb969e3c",
+      "round_consumed": true,
+      "scope": "impl:fn-246-realization-as-a-checked-refinement-a.12",
+      "superseded_by": null,
+      "task": "fn-246-realization-as-a-checked-refinement-a.12",
+      "timestamp": "2026-10-25T13:34:13.324058Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-246-realization-as-a-checked-refinement-a.1": 1,
     "impl:fn-246-realization-as-a-checked-refinement-a.12": 1,
+    "impl:fn-246-realization-as-a-checked-refinement-a.7": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -383,5 +496,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T12:52:11.973815Z"
+  "updated_at": "2026-10-25T13:34:13.328543Z"
 }

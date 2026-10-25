@@ -1,0 +1,12 @@
+{
+  "status": "terminal",
+  "source_commit": "2a0630292f1d609c7382869172f608ea6adf55ac",
+  "model_tree": "fd5da182cb7181932a32896bca95c35b18c963f4",
+  "command": "UMPIRE_APALACHE=require make model-validate",
+  "log": ".flow/tmp/milestones-resume-20261024/capability-catalog-final-model-validate.log",
+  "started_at": "2026-10-25T13:16:39.702361+00:00",
+  "exit_code": 2,
+  "seconds": 411.859,
+  "log_sha256": "4df78138c8604859130df184ba88418423b450d8311d522e3e6978eae086959e",
+  "current_model_tree": "fd5da182cb7181932a32896bca95c35b18c963f4"
+}

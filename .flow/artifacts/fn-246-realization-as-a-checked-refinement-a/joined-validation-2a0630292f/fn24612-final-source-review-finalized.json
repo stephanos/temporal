@@ -1,0 +1,44 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-246-realization-as-a-checked-refinement-a.12",
+  "verdict": "NEEDS_WORK",
+  "session_id": "01a17334-6fe9-7291-80d1-36915da0a5ce",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: `DescribeActivityExecutionRequest` omits claims for `include_outcome` and `include_last_failure`, although production proposals explicitly fill both with `true` (`temporal\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: `DescribeActivityExecutionRequest` omits claims for `include_outcome` and `include_last_failure`, although production proposals explicitly fill both with `true` (`temporal.rs:138\u2013139`). Generation therefore labels them \u201cno semantic read or fill is declared,\u201d and the new suppression removes all twelve corresponding probe cases. The accounting manifest confirms these removals. Previously, descriptor-driven cases survived the ignored classification; this change introduces control loss under an invalid unclaimed-field justification.\n- **Suggestion**: Claim both fields as `Flag`, restore their probe cases, update reconciliation counts, and add a regression checking that fields explicitly filled by production proposals remain claimed.\n- **File:Line**: model/temporal/feature/activity/claims.rs:228\n- **R-IDs**: R3, R4\n\n## Issue 2\n- **Severity**: P2\n- **Title**: Retry ordering compares raw durations, bypassing the existing `View<kinds::Duration>` normalization\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: Retry ordering compares raw durations, bypassing the existing `View<kinds::Duration>` normalization. Reproduced through the committed guest: initial interval `3153600001s`, maximum `3153600000s`, and two attempts produces an ordering violation, although the shared projection and existing retry validator cap both intervals to 100 years. Conversely, initial `{seconds:1,nanos:2000000000}` versus maximum `2s` produces no violation, although the shared projection normalizes the initial interval to `3s`. The new rule therefore produces false positives and misses violations for inputs admitted by existing validation.\n- **Suggestion**: Compare intervals through the shared duration projection, preserving disabled/default applicability. Add regression controls for capped and noncanonical durations, and ensure generated inversion witnesses remain inverted after normalization.\n- **File:Line**: model/temporal/foundation/views.rs:125\n- **R-IDs**: R4\n\n```json\n{\"classification_counts\": {\"introduced\": 2, \"pre_existing\": 0}, \"unaddressed\": [\"R4\"], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17334-6fe9-7291-80d1-36915da0a5ce",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17334-6fef-7ba1-89aa-218f523531b0",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17334-6feb-7b60-9b94-ff02974f0f03",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": 2,
+  "introduced_count": 2,
+  "pre_existing_count": 0,
+  "unaddressed": [
+    "R4"
+  ],
+  "review_rounds": 1,
+  "review_rounds_cap": 8
+}

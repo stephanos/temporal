@@ -1,0 +1,31 @@
+{
+  "scope": "deterministic artificial scheduling fixture only; does not attribute original gate failure",
+  "original_function_sha256": "d092d8f2ec8554dd75fe69cf1c39fa5a3e1813fb73853df21d943f1b3449de83",
+  "function_body_copied_byte_for_byte": true,
+  "runs": [
+    {
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "rustc",
+        "--edition=2024",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/apalache-gate-evidence/scanner-removal-fixture.rs",
+        "-o",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/apalache-gate-evidence/scanner-removal-fixture"
+      ],
+      "exit_code": 0,
+      "seconds": 0.126
+    },
+    {
+      "command": [
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/apalache-gate-evidence/scanner-removal-fixture",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/apalache-gate-evidence/scanner-removal-fixture-scratch"
+      ],
+      "exit_code": 0,
+      "seconds": 0.001
+    }
+  ],
+  "source_sha256": "fc23648fe30e290977742c6a813a97f93f3e4e035fe406bc50f6d21a19117587",
+  "recorded_at": "2026-10-25T13:41:57.109605+00:00"
+}

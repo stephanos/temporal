@@ -1,0 +1,77 @@
+diff --git a/model/umpire/backends/process/src/support.rs b/model/umpire/backends/process/src/support.rs
+index ead1947153..4db03dbeeb 100644
+--- a/model/umpire/backends/process/src/support.rs
++++ b/model/umpire/backends/process/src/support.rs
+@@ -193,15 +193,24 @@ pub fn run_process_cancelled(
+     let mut child = crate::syscall::Running::spawn(command, directory, &out, &err)
+         .map_err(|error| Refusal(format!("cannot spawn {label}: {error}")))?;
+     let start = Instant::now();
++    let diagnose = |predicate: &str, failed: bool| {
++        if failed {
++            eprintln!("UMPIRE_DIAG predicate={predicate} label={label} elapsed={:?} scratch={}", start.elapsed(), directory.display());
++        }
++        failed
++    };
+     let result = (|| loop {
+         if cancelled.load(Ordering::Relaxed) {
+             return Err(Refusal(format!("subprocess cancelled ({label})")));
+         }
+-        if start.elapsed() >= limits.timeout
+-            || out.metadata()?.len().saturating_add(err.metadata()?.len()) > limits.output_bytes
+-            || !same_file(&stdout, &out)?
+-            || !same_file(&stderr, &err)?
+-            || dump.is_some_and(|path| !within_budget(path, limits.dump_bytes).unwrap_or(false))
++        if diagnose("timeout", start.elapsed() >= limits.timeout)
++            || diagnose("output-bytes", out.metadata()?.len().saturating_add(err.metadata()?.len()) > limits.output_bytes)
++            || diagnose("stdout-identity", !same_file(&stdout, &out)?)
++            || diagnose("stderr-identity", !same_file(&stderr, &err)?)
++            || diagnose("dump-budget-or-safety", dump.is_some_and(|path| !within_budget(path, limits.dump_bytes).unwrap_or_else(|error| {
++                eprintln!("UMPIRE_DIAG dump-error path={} error={error:?}", path.display());
++                false
++            })))
+         {
+             return Err(Refusal(format!("subprocess limit or unsafe output ({label})")));
+         }
+@@ -265,26 +274,39 @@ fn within_budget(path: &Path, limit: u64) -> Result<bool, Refusal> {
+         depth: usize,
+     ) -> Result<bool, Refusal> {
+         if depth > 64 || *entries == 0 {
++            eprintln!("UMPIRE_DIAG tree-depth-or-entries path={} depth={depth} entries={entries}", path.display());
+             return Ok(false);
+         }
+         *entries -= 1;
+         let meta = match fs::symlink_metadata(path) {
+             Ok(meta) => meta,
+             Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(true),
+-            Err(error) => return Err(error.into()),
++            Err(error) => {
++                eprintln!("UMPIRE_DIAG tree-metadata path={} error={error:?}", path.display());
++                return Err(error.into());
++            }
+         };
+         if meta.is_symlink() {
++            eprintln!("UMPIRE_DIAG tree-symlink path={}", path.display());
+             return Ok(false);
+         }
+         if meta.is_dir() {
+-            for entry in fs::read_dir(path)? {
+-                if !size(&entry?.path(), remaining, entries, depth + 1)? {
++            for entry in fs::read_dir(path).map_err(|error| {
++                eprintln!("UMPIRE_DIAG tree-read-dir path={} error={error:?}", path.display());
++                error
++            })? {
++                let entry = entry.map_err(|error| {
++                    eprintln!("UMPIRE_DIAG tree-read-entry path={} error={error:?}", path.display());
++                    error
++                })?;
++                if !size(&entry.path(), remaining, entries, depth + 1)? {
+                     return Ok(false);
+                 }
+             }
+         } else if meta.is_file() && meta.len() <= *remaining {
+             *remaining -= meta.len();
+         } else {
++            eprintln!("UMPIRE_DIAG tree-file-budget-or-type path={} bytes={} remaining={} type={:?}", path.display(), meta.len(), remaining, meta.file_type());
+             return Ok(false);
+         }
+         Ok(true)

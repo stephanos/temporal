@@ -1,0 +1,10 @@
+{
+  "base_commit": "2a0630292f1d609c7382869172f608ea6adf55ac",
+  "branch": "work/fn2467-apalache-diagnosis",
+  "worktree_status": " M model/umpire/backends/process/src/support.rs\n",
+  "original_support_sha256": "4f8f2b1409b916b5c94419faa29b16b3767916a45bae078e4ea682aee3264bc4",
+  "diagnostic_support_sha256": "c821becae15bb5ff0e20ff450394d20571575a3a49f68019d19da0284bfee590",
+  "diagnostic_patch_sha256": "574d86829bca819ed4070662fd4db45fbcbb1f26e9c85e172f50c436e25f35c3",
+  "limits_or_acceptance_changed": false,
+  "diagnostics_only": true
+}
