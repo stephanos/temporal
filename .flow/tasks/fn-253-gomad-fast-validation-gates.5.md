@@ -38,3 +38,19 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+### Independent core checkpoint — 2026-10-25
+
+The positive core-only cut (`90a84feb4b`, `3fd3032951`) is integrated on
+`5585b11ccb89464e6ee66f7042115b371a0a1629`, without the parked fn-242 cycle hooks.
+Its 13 selected production-core tests passed under pinned Nextest: four blob,
+five managed-store and four retention tests. The original-tree-removal,
+private-mutation and external-pin restoration fixture passed. Compilation took
+1m01s; test bodies took 0.151s. The other 875 libtest cases were filtered out.
+
+Raw invocation, environment, source binding, results and terminal receipt:
+`/home/agent/wt/evidence/fn253-evidence-independent/warm-5585b11-20261025/`.
+
+This proves the independent core only. Worktree/cache ownership planning, full
+producer/reader uptake, genuine retained-role verification, two-cycle payload
+censuses and owner-approved pruning remain pending. No real pruning ran.
