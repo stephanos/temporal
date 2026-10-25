@@ -1,6 +1,6 @@
 //! Descriptor-backed service method and annotation dispatch generation.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -25,16 +25,18 @@ pub fn generate(
     let service_name = system.service;
     let annotated: BTreeSet<_> =
         coverage.messages.iter().map(|message| message.name.trim_start_matches('.')).collect();
-    let out_of_scope: BTreeSet<_> = classifications
+    let out_of_scope: BTreeMap<_, _> = classifications
         .iter()
         .flat_map(|classification| &classification.coverage.methods)
-        .filter(|method| matches!(method.disposition, Disposition::OutOfScope(_)))
-        .map(|method| method.name.as_str())
+        .filter_map(|method| match &method.disposition {
+            Disposition::OutOfScope(reason) => Some((method.name.as_str(), reason)),
+            _ => None,
+        })
         .collect();
     // A mirrored message means some feature validates this RPC, so it must claim it.
     for method in service {
         let name = method.name.as_str();
-        if out_of_scope.contains(name)
+        if out_of_scope.contains_key(name)
             && [&method.input, &method.output]
                 .into_iter()
                 .any(|message| annotated.contains(message.as_str()))
@@ -48,7 +50,7 @@ pub fn generate(
     let method_enum = identifier(&system.method_enum())?;
     let method_info = identifier(&format!("{method_enum}Info"))?;
     let methods_const = identifier(&system.methods_const())?;
-    let dispatch_macro = identifier(&format!("dispatch_{}_annotations", system.prefix))?;
+    let rpc_prefix = format!("/{service_name}/");
     let requests = request_dispatch(graph, &annotated, system)?;
     let bindings = bindings(classifications, system)?;
     let macro_root = system.macro_root();
@@ -56,6 +58,12 @@ pub fn generate(
     let mut names = Vec::new();
     let mut infos = Vec::new();
     let mut dispatch = Vec::new();
+    let scope_arms = out_of_scope
+        .iter()
+        .map(|(name, reason)| {
+            identifier(name).map(|variant| quote! { Self::#variant => Some(#reason) })
+        })
+        .collect::<Result<Vec<_>, _>>()?;
     for method in service {
         let name = method.name.as_str();
         let variant = identifier(name)?;
@@ -74,11 +82,14 @@ pub fn generate(
                 let path: TokenStream =
                     path.parse().map_err(|error: proc_macro2::LexError| error.to_string())?;
                 dispatch.push(quote! {
-                    ($crate::#method_enum::#variant, #response) => { type $ty = #path; $body }
+                    ($crate::#method_enum::#variant, #response) => {
+                        ::umpire_catalog::annotate_message::<#path, _>(bytes, response, seed, &limits)
+                    }
                 });
             }
         }
     }
+    let annotations = annotation_dispatch(&method_enum, &dispatch, system)?;
     let name_arms = names.iter().map(|(variant, name)| quote! { Self::#variant => #name });
     let parse_arms = names.iter().map(|(variant, name)| quote! { #name => Some(Self::#variant) });
     let output = quote! {
@@ -90,6 +101,16 @@ pub fn generate(
             pub const fn name(self) -> &'static str { match self { #(#name_arms),* } }
             /// Parse an original protobuf method name.
             pub fn parse(name: &str) -> Option<Self> { match name { #(#parse_arms,)* _ => None } }
+            /// Parse an exact service RPC path or a bare protobuf method name.
+            pub fn parse_rpc(method: &str) -> Option<Self> {
+                method.strip_prefix(#rpc_prefix)
+                    .or_else(|| (!method.contains('/') && !method.contains('.')).then_some(method))
+                    .and_then(Self::parse)
+            }
+            /// Declared reason this RPC is outside the catalog owner's Model.
+            pub const fn out_of_scope(self) -> Option<&'static str> {
+                match self { #(#scope_arms,)* _ => None }
+            }
         }
         /// One upstream method and its generated Rust message types.
         #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -105,16 +126,44 @@ pub fn generate(
         pub const #methods_const: &[#method_info] = &[#(#infos),*];
         #bindings
         #requests
-        /// Dispatch only declared annotation message types.
-        #[macro_export]
-        macro_rules! #dispatch_macro {
-            ($method:expr, $response:expr, $ty:ident, $body:block, $fallback:expr) => {
-                match ($method, $response) { #(#dispatch,)* _ => $fallback }
-            };
-        }
+        #annotations
     };
     let file = syn::parse2(output).map_err(|error| error.to_string())?;
     Ok(prettyplease::unparse(&file))
+}
+
+fn annotation_dispatch(
+    method_enum: &syn::Ident,
+    dispatch: &[TokenStream],
+    system: &System<'_>,
+) -> Result<TokenStream, String> {
+    let annotate_macro = identifier(&format!("annotate_{}", system.prefix))?;
+    Ok(quote! {
+        /// Annotate a classified RPC with a consumer-owned context factory.
+        /// The factory receives the parsed method, direction and unchanged wire bytes.
+        #[macro_export]
+        macro_rules! #annotate_macro {
+            ($method:expr, $response:expr, $bytes:expr, $seed:expr, $limits:expr) => {{
+                (|| -> Result<::umpire_catalog::AnnotationResult, ::umpire_runtime::protocol::Refusal> {
+                    let method = $crate::#method_enum::parse_rpc($method)
+                        .ok_or_else(|| ::umpire_runtime::protocol::Refusal::unsupported("annotation RPC is not classified"))?;
+                    let response = $response;
+                    let bytes: &[u8] = $bytes;
+                    let seed = $seed;
+                    if let Some(reason) = method.out_of_scope() {
+                        return Ok(::umpire_catalog::AnnotationResult {
+                            bytes: bytes.to_vec(), violations: Vec::new(), out_of_scope: Some(reason.into()),
+                        });
+                    }
+                    let limits = ($limits)(method, response, bytes)?;
+                    match (method, response) {
+                        #(#dispatch,)*
+                        _ => Err(::umpire_runtime::protocol::Refusal::unsupported("classified RPC has no annotation message")),
+                    }
+                })()
+            }};
+        }
+    })
 }
 
 fn request_dispatch(

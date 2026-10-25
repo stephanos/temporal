@@ -15,6 +15,16 @@ pub struct AnnotationResult {
     pub out_of_scope: Option<String>,
 }
 
+impl From<AnnotationResult> for umpire_runtime::annotations::AnnotationResponse {
+    fn from(result: AnnotationResult) -> Self {
+        Self {
+            message: result.bytes,
+            violations: result.violations,
+            out_of_scope: result.out_of_scope.unwrap_or_default(),
+        }
+    }
+}
+
 /// Decode, fill absent request identifiers and inspect a typed wire message.
 /// Response bytes remain unchanged, including unknown fields.
 pub fn annotate_message<M: Message + Default + Inspect<C>, C>(

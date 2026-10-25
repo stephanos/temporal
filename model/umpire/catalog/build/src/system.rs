@@ -14,10 +14,12 @@ use crate::{coverage, services, wire_schema};
 ///
 /// Generated names derive from `service` and `prefix`: for `pkg.KettleService` and `kettle`,
 /// `KettleServiceMethod`, `KettleServiceMethodInfo`, `KETTLE_SERVICE_METHODS`,
-/// `dispatch_kettle_annotations!`, `bind_kettle_action!`, `kettle_request_fields` and
+/// `annotate_kettle!`, `bind_kettle_action!`, `kettle_request_fields` and
 /// `mutate_kettle_request`, `kettle_request_findings!` and `dispatch_kettle_request!`.
 /// Request inspection expands in the catalog owner so its `Inspect` implementations and
-/// supplemental hooks stay downstream of the generated API.
+/// supplemental hooks stay downstream of the generated API. `annotate_<prefix>!` takes
+/// `(method, response, bytes, seed, limits)`; `limits` is a context factory called with the
+/// parsed method, direction and unchanged bytes only for in-scope RPCs.
 #[derive(Clone, Debug)]
 pub struct System<'a> {
     /// Fully qualified protobuf service name.

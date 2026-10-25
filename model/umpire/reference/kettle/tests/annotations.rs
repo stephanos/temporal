@@ -12,22 +12,76 @@ use umpire_runtime::{
 type Result<T = ()> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 fn annotate(method: &str, response: bool, message: Vec<u8>) -> Result<AnnotationResponse> {
-    let runtime = annotation_runtime();
-    let request = protocol::AnnotateRequest {
-        input: Some(Any::pack(&AnnotationRequest {
-            method: format!("/umpire.reference.kettle.v1.KettleService/{method}"),
-            response,
-            message,
-            seed: 233,
-        })),
-    };
-    let (result, _) = runtime.prepare(7, &request.encode_to_vec());
+    let result = call(&AnnotationRequest {
+        method: format!("/umpire.reference.kettle.v1.KettleService/{method}"),
+        response,
+        message,
+        seed: 233,
+    });
     match result.outcome {
         Some(Outcome::Annotate(result)) => {
             result.output.ok_or("missing output")?.unpack().map_err(|error| error.message.into())
         }
         other => panic!("unexpected annotation response: {other:?}"),
     }
+}
+
+fn call(request: &AnnotationRequest) -> protocol::Response {
+    let request = protocol::AnnotateRequest { input: Some(Any::pack(request)) };
+    let (response, transaction) =
+        annotation_runtime().prepare(protocol::Method::Annotate as u32, &request.encode_to_vec());
+    assert!(transaction.is_none());
+    response
+}
+
+#[test]
+fn generated_dispatch_refuses_unknown_routes_and_preserves_out_of_scope_bytes() -> Result {
+    use protocol::RefusalCode;
+    for prefix in ["", "/umpire.reference.kettle.v1.KettleService/"] {
+        for response in [false, true] {
+            let result = call(&AnnotationRequest {
+                method: format!("{prefix}ListKettles"),
+                response,
+                message: vec![255, 1, 2],
+                seed: 233,
+            });
+            let Some(Outcome::Annotate(output)) = result.outcome else { panic!("expected output") };
+            let output: AnnotationResponse =
+                output.output.ok_or("missing output")?.unpack().map_err(|error| error.message)?;
+            assert_eq!(output.message, [255, 1, 2]);
+            assert_eq!(output.violations, [] as [String; 0]);
+            assert_eq!(
+                output.out_of_scope,
+                "enumerating resources is outside the single-kettle Model"
+            );
+        }
+        let result =
+            call(&AnnotationRequest { method: format!("{prefix}Fill"), ..Default::default() });
+        assert!(matches!(result.outcome, Some(Outcome::Annotate(_))));
+    }
+    for method in [
+        "Unknown",
+        "/umpire.reference.kettle.v1.KettleService/Unknown",
+        "/other.Service/Fill",
+        "umpire.reference.kettle.v1.KettleService.Fill",
+        "umpire.reference.kettle.v1.KettleService/Fill",
+        "/umpire.reference.kettle.v1.KettleService/Fill/extra",
+    ] {
+        let result = call(&AnnotationRequest { method: method.into(), ..Default::default() });
+        assert!(
+            matches!(result.outcome, Some(Outcome::Refusal(r)) if r.code() == RefusalCode::Unsupported),
+            "{method}"
+        );
+    }
+    let malformed = call(&AnnotationRequest {
+        method: "Fill".into(),
+        message: vec![255],
+        ..Default::default()
+    });
+    assert!(
+        matches!(malformed.outcome, Some(Outcome::Refusal(r)) if r.code() == RefusalCode::MalformedRequest)
+    );
+    Ok(())
 }
 
 #[test]
