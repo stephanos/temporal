@@ -162,7 +162,7 @@ umpire.reference.kettle.v1.FillRequest.options.tags: mutation.negative: Unverifi
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tags:mutation.undefined_enum
 umpire.reference.kettle.v1.FillRequest.options.tags: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to Repeated]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tap:mutation.absent
-umpire.reference.kettle.v1.FillRequest.FillOptions: any_of (umpire.reference.kettle.v1.FillRequest.FillOptions.tap, umpire.reference.kettle.v1.FillRequest.FillOptions.cartridge): Confirmed
+umpire.reference.kettle.v1.FillRequest.FillOptions: any_of (umpire.reference.kettle.v1.FillRequest.FillOptions.cartridge, umpire.reference.kettle.v1.FillRequest.FillOptions.tap): Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tap:mutation.empty
 umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind: enum.defined_only: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tap:mutation.limit_plus_one(2)
