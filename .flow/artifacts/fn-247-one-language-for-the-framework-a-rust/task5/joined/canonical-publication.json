@@ -1,0 +1,14 @@
+{
+  "production_source_commit": "523d131d2cf992b04a43b4d595ea0f1a434f44b6",
+  "prepublication_head": "a7071670854876c1949b92582fc77c295d2af2a2",
+  "asset": "model/temporal/hosts/go/umpire_temporal_guest.wasm",
+  "prior_sha256": "eaf6efd637e0e33b1a9f1e02b24cd8595c1f73706b5695fcde86151e884515f0",
+  "published_sha256": "bc27af7d5b6b1ed8fa5c524015046f3a8b7c12d2d488e9ce7cb3df3ea9217872",
+  "bytes": 3507265,
+  "cause": "Native guest compiler/identity/cache orchestration migration; current-input clean outputs agree across two different checkout paths",
+  "publication_and_two_checks_exit": 0,
+  "command": "BASH_ENV=/dev/null bash .flow/tmp/fn2475-joined-proof.MstS6i/publication-commands.sh",
+  "log_sha256": "491a1930a3cbabfd40117d8860962c4188564c481c959f6afcc6c7d6de94264a",
+  "semantic_go_suites": "final3 single required pipeline before parent closure; not claimed by this asset proof",
+  "source_equivalence": "prepublication git diff523d131..HEAD for model/Makefile/modulemap empty, exact prior asset SHA checked before copying"
+}

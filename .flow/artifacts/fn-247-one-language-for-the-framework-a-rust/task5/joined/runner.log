@@ -1,0 +1,19 @@
+rustc-version rc=0 expected=0
+cargo-version rc=0 expected=0
+go-version rc=0 expected=0
+protoc-version rc=0 expected=0
+mise-version rc=0 expected=0
+clone-source-a rc=0 expected=0
+checkout-source-a rc=0 expected=0
+clone-different-source-b rc=0 expected=0
+checkout-different-source-b rc=0 expected=0
+stock-a-build rc=0 expected=0
+temporal-a-build rc=0 expected=0
+temporal-b-cold-freshness rc=0 expected=0
+stock-b-build rc=0 expected=0
+temporal-b-publish-disposable rc=0 expected=0
+compare-stock rc=0 expected=0
+compare-temporal rc=0 expected=0
+temporal-a-cached-freshness rc=0 expected=0
+old-asset-stale-readonly rc=2 expected=2
+PROOF_PASSED /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-joined-proof.MstS6i

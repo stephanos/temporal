@@ -1,0 +1,58 @@
+{
+  "source_commit": "523d131d2cf992b04a43b4d595ea0f1a434f44b6",
+  "platform": "Linux dev-build 7.0.14 #1 SMP PREEMPT Mon Oct 12 09:57:44 UTC 2026 aarch64 GNU/Linux",
+  "started_at": "2026-10-25T00:12:15Z",
+  "finished_at": "2026-10-25T00:16:21Z",
+  "steps": {
+    "checkout-source-a": 0,
+    "compare-temporal": 0,
+    "temporal-a-build": 0,
+    "temporal-b-cold-freshness": 0,
+    "clone-different-source-b": 0,
+    "protoc-version": 0,
+    "compare-stock": 0,
+    "temporal-a-cached-freshness": 0,
+    "old-asset-stale-readonly": 2,
+    "stock-b-build": 0,
+    "stock-a-build": 0,
+    "temporal-b-publish-disposable": 0,
+    "cargo-version": 0,
+    "checkout-different-source-b": 0,
+    "mise-version": 0,
+    "rustc-version": 0,
+    "clone-source-a": 0,
+    "go-version": 0
+  },
+  "outputs": {
+    "stock-b.wasm": {
+      "sha256": "ec63674058db551a8a966e6ea4ede20a1880b6d8281f4f017be5eb9e38e48633",
+      "bytes": 196508
+    },
+    "temporal-b.wasm": {
+      "sha256": "bc27af7d5b6b1ed8fa5c524015046f3a8b7c12d2d488e9ce7cb3df3ea9217872",
+      "bytes": 3507265
+    },
+    "stock-a.wasm": {
+      "sha256": "ec63674058db551a8a966e6ea4ede20a1880b6d8281f4f017be5eb9e38e48633",
+      "bytes": 196508
+    },
+    "temporal-a.wasm": {
+      "sha256": "bc27af7d5b6b1ed8fa5c524015046f3a8b7c12d2d488e9ce7cb3df3ea9217872",
+      "bytes": 3507265
+    }
+  },
+  "old_canonical_sha256": "eaf6efd637e0e33b1a9f1e02b24cd8595c1f73706b5695fcde86151e884515f0",
+  "canonical_modified": false,
+  "source_clones_clean": true,
+  "proven_temporal_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-joined-proof.MstS6i/temporal-a.wasm",
+  "stock_comparison_exit": 0,
+  "temporal_comparison_exit": 0,
+  "cold_freshness_exit": 0,
+  "cached_freshness_exit": 0,
+  "old_asset_stale_exit": 2,
+  "command_log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-joined-proof.MstS6i/commands.log",
+  "publication_commands": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-joined-proof.MstS6i/publication-commands.sh",
+  "semantic_host_parity": "deferred to task3 single complete Model gate by conductor direction",
+  "canonical_publication": "deferred to conductor after immutable review window",
+  "dependency_cache_policy": "separate initially absent Cargo targets; registry source downloads shared, no compiled artifact cache shared"
+}
