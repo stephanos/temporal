@@ -1,0 +1,830 @@
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+[1;36mTime the model feedback loop (fn-210 R30)...[0m
+step (warm)                         time
+backend modes: UMPIRE_BACKENDS=require UMPIRE_APALACHE=skip
+gate command: UMPIRE_TIME_STEPS=1 make -C .. model-check
+make[2]: Entering directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+[1;36mCheck model (fmt, clippy, docs, workspace and native-tool tests)...[0m
+TLC backend required: real source-lifted agreement and semantic controls
+Apalache backend skipped until fn-211 resumes; use UMPIRE_APALACHE=require
+temporal-guest-freshness         39.864s
+retired-names                     0.881s
+timing-controls                   0.335s
+capability-controls               0.299s
+source-boundary                   9.263s
+protobuf-controls                 0.241s
+protobuf-freshness                0.170s
+kettle-protobuf-freshness         0.090s
+temporal-protobuf-freshness       0.055s
+fmt                               0.797s
+clippy                           28.688s
+docs                             39.702s
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+.......
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+
+running 18 tests
+..................
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+
+running 5 tests
+.....
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 6 tests
+......
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 12 tests
+............
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s
+
+
+running 20 tests
+....................
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.06s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+    Checking umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/macros)
+    Checking umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+    Checking umpire-catalog-tests v0.0.0 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/tests/trybuild/umpire-catalog)
+    Finished `dev` profile [unoptimized] target(s) in 3.98s
+
+
+test tests/admission-ui/added_action.rs ... ok
+test tests/admission-ui/added_actor.rs ... ok
+test tests/admission-ui/added_oneof_variant.rs ... ok
+test tests/admission-ui/invalid_response_checks.rs ... ok
+test tests/admission-ui/kind_type_mismatch.rs ... ok
+test tests/admission-ui/repeated_bytes_scalar.rs ... ok
+test tests/admission-ui/repeated_text_scalar.rs ... ok
+
+
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.04s
+
+
+running 6 tests
+......
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 15 tests
+...............
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+
+running 4 tests
+....
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+
+running 6 tests
+......
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 10 tests
+..........
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 2 tests
+..
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+....
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+.......
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 5 tests
+.....
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+   Compiling umpire-catalog-tests v0.0.0 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/tests/trybuild/umpire-catalog)
+    Finished `dev` profile [unoptimized] target(s) in 1.04s
+
+
+test tests/ui/added_enum_variant.rs [should fail to compile] ... ok
+test tests/ui/omitted_field.rs [should fail to compile] ... ok
+test tests/ui/wrong_message_map.rs [should fail to compile] ... ok
+test tests/pass/prost_names.rs [should pass] ... ok
+
+
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.62s
+
+
+running 6 tests
+......
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+..
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 7 tests
+.......
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+
+running 2 tests
+..
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 20 tests
+....................
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 15 tests
+...............
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+.......
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 5 tests
+.....
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.70s
+
+
+running 12 tests
+............
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+..
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+....
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 8 tests
+........
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 6 tests
+......
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 6 tests
+......
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+....
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+....
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 13 tests
+.............
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+..
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 5 tests
+.....
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+    Checking prettyplease v0.3.0
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl/macros)
+    Checking umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+    Checking umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tla)
+    Checking umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+    Checking umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+    Checking umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+    Checking umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/testing)
+    Checking umpire-dsl-tests v0.0.0 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/tests/trybuild/umpire-dsl)
+    Finished `dev` profile [unoptimized] target(s) in 1.54s
+
+
+test tests/ui/missing_display_action.rs ... ok
+test tests/ui/missing_display_state.rs ... ok
+
+
+.    Checking umpire-dsl-tests v0.0.0 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/tests/trybuild/umpire-dsl)
+    Finished `dev` profile [unoptimized] target(s) in 0.03s
+
+
+test tests/ui/path_language_claim_no_gap.rs ... ok
+test tests/ui/path_language_claims.rs ... ok
+test tests/ui/path_language_duplicate_fields.rs ... ok
+test tests/ui/path_language_malformed.rs ... ok
+test tests/ui/path_language_outcome_state.rs ... ok
+test tests/ui/path_language_unknown_fields.rs ... ok
+test tests/ui/path_leading_gap.rs ... ok
+test tests/ui/path_no_gap.rs ... ok
+test tests/ui/path_one_waypoint.rs ... ok
+test tests/ui/path_trailing_gap.rs ... ok
+test tests/ui/path_two_gaps.rs ... ok
+
+
+.
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.71s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 6 tests
+...   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+.   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tla)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/testing)
+   Compiling umpire-dsl-macros-tests v0.0.0 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/tests/trybuild/umpire-dsl-macros)
+    Finished `dev` profile [unoptimized] target(s) in 1.53s
+
+
+test tests/pass/action_metadata.rs ... ok
+test tests/pass/optional_facts.rs ... ok
+test tests/pass/private_state.rs ... ok
+test tests/pass/public_actor_private_state.rs ... ok
+
+
+.    Checking umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+    Checking umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tla)
+    Checking umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+    Checking umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/testing)
+    Checking umpire-dsl-macros-tests v0.0.0 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/tests/trybuild/umpire-dsl-macros)
+    Finished `dev` profile [unoptimized] target(s) in 0.72s
+
+
+test tests/ui/action_domain_conflict.rs ... ok
+test tests/ui/action_domain_duplicate.rs ... ok
+test tests/ui/action_domain_item_type.rs ... ok
+test tests/ui/action_domain_unbound.rs ... ok
+test tests/ui/action_domain_variant.rs ... ok
+test tests/ui/action_domain_without_world.rs ... ok
+test tests/ui/action_domain_world_mismatch.rs ... ok
+test tests/ui/action_finite_missing.rs ... ok
+test tests/ui/action_inputs_duplicate.rs ... ok
+test tests/ui/action_inputs_invalid.rs ... ok
+test tests/ui/action_inputs_missing.rs ... ok
+test tests/ui/action_inputs_variant_fault.rs ... ok
+test tests/ui/action_metadata_duplicate.rs ... ok
+test tests/ui/action_metadata_namespace.rs ... ok
+test tests/ui/action_metadata_placement.rs ... ok
+test tests/ui/finite_shape.rs ... ok
+test tests/ui/machine_actor_arity.rs ... ok
+test tests/ui/machine_actor_mismatch.rs ... ok
+test tests/ui/machine_actor_receiver.rs ... ok
+test tests/ui/machine_after_inputs.rs ... ok
+test tests/ui/machine_claim_async.rs ... ok
+test tests/ui/machine_claim_returns.rs ... ok
+test tests/ui/machine_duplicate_actor.rs ... ok
+test tests/ui/machine_duplicate_kind.rs ... ok
+test tests/ui/machine_effect_arguments.rs ... ok
+test tests/ui/machine_generic.rs ... ok
+test tests/ui/machine_handler_async.rs ... ok
+test tests/ui/machine_handler_returns.rs ... ok
+test tests/ui/machine_invariant_parameters.rs ... ok
+test tests/ui/machine_legacy_effects.rs ... ok
+test tests/ui/machine_legacy_invariants.rs ... ok
+test tests/ui/machine_legacy_scopes.rs ... ok
+test tests/ui/machine_legacy_transitions.rs ... ok
+test tests/ui/machine_marker_trait.rs ... ok
+test tests/ui/machine_misplaced_effect.rs ... ok
+test tests/ui/machine_missing_actor.rs ... ok
+test tests/ui/machine_mutable_aliased_helper.rs ... ok
+test tests/ui/machine_mutable_const_helper.rs ... ok
+test tests/ui/machine_mutable_helper.rs ... ok
+test tests/ui/machine_mutable_invariant.rs ... ok
+test tests/ui/machine_mutable_local_helper.rs ... ok
+test tests/ui/machine_mutable_local_projection.rs ... ok
+test tests/ui/machine_mutable_nested_helper.rs ... ok
+test tests/ui/machine_mutable_qualified_helper.rs ... ok
+test tests/ui/machine_mutable_typed_helper.rs ... ok
+test tests/ui/machine_nonactor_parameter.rs ... ok
+test tests/ui/machine_noncontiguous_kind.rs ... ok
+test tests/ui/machine_nonexhaustive_actor.rs ... ok
+test tests/ui/machine_out_of_order.rs ... ok
+test tests/ui/machine_path_builders.rs ... ok
+test tests/ui/machine_post_async.rs ... ok
+test tests/ui/machine_post_returns_unit.rs ... ok
+test tests/ui/machine_progress_chain.rs ... ok
+test tests/ui/machine_progress_gap.rs ... ok
+test tests/ui/machine_scope_actor.rs ... ok
+test tests/ui/machine_starts_without_world.rs ... ok
+test tests/ui/machine_stay_effect.rs ... ok
+test tests/ui/machine_stay_helper.rs ... ok
+test tests/ui/machine_unknown_actor.rs ... ok
+test tests/ui/machine_unknown_after.rs ... ok
+test tests/ui/machine_unknown_scope.rs ... ok
+test tests/ui/machine_unsafe_allowed.rs ... ok
+test tests/ui/machine_within_bare.rs ... ok
+test tests/ui/non_range_starts.rs ... ok
+test tests/ui/non_unit_internal.rs ... ok
+test tests/ui/optional_facts_direct_reject.rs ... ok
+test tests/ui/optional_facts_payload.rs ... ok
+test tests/ui/stay_outside_machine.rs ... ok
+test tests/ui/variant_internal.rs ... ok
+test tests/ui/world_duplicate.rs ... ok
+test tests/ui/world_parameter_duplicate.rs ... ok
+test tests/ui/world_parameter_mutable.rs ... ok
+test tests/ui/world_parameter_position.rs ... ok
+test tests/ui/world_starts_empty_mixed.rs ... ok
+test tests/ui/world_starts_impl_block.rs ... ok
+test tests/ui/world_starts_mixed.rs ... ok
+test tests/ui/world_starts_receiver.rs ... ok
+test tests/ui/world_starts_return.rs ... ok
+test tests/ui/world_starts_twice.rs ... ok
+
+
+.
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.65s
+
+
+running 2 tests
+..
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 47 tests
+..............................................test fixtures has been running for over 60 seconds
+.
+test result: ok. 47 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 146.03s
+
+
+running 14 tests
+..i...........
+test result: ok. 13 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 3.17s
+
+
+running 7 tests
+.......
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 6 tests
+......
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 6 tests
+......
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 1 test
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/build)
+    Checking umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+   Compiling umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/reference/kettle)
+    Checking umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/suite)
+    Checking umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/umpire)
+    Checking umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+    Checking umpire-reference-kettle-tests v0.0.0 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/tests/trybuild/umpire-reference-kettle)
+    Finished `dev` profile [unoptimized] target(s) in 1.37s
+
+
+test tests/ui/omitted_action.rs ... ok
+test tests/ui/omitted_method.rs ... ok
+
+
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.45s
+
+
+running 1 test
+i
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+test: import_live_candidates, ignore_message: requires explicitly exported live Go candidates
+
+
+running 5 tests
+.....
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+
+running 7 tests
+.......
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+..
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.56s
+
+
+running 2 tests
+..
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 5 tests
+.....
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 8 tests
+........
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+..
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 11 tests
+...........
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 9 tests
+.........
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 10 tests
+..........
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+..
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 11 tests
+...........
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+
+running 5 tests
+.....
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.60s
+
+
+running 4 tests
+....
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+..
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+.......
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.84s
+
+
+running 8 tests
+........
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.30s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+....
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.22s
+
+
+running 16 tests
+................
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 5 tests
+.....
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/annotate/syntax)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/realization/macros)
+    Checking umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/realization)
+    Checking umpire-temporal-tests v0.0.0 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/tests/trybuild/umpire-temporal)
+    Finished `dev` profile [unoptimized] target(s) in 6.35s
+
+
+test tests/ui/phase_enum_addition.rs ... ok
+
+
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 16.89s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.40s
+
+
+running 15 tests
+...............
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.47s
+
+
+running 5 tests
+.. 2/5
+configured_reset_issues_a_deterministic_program_and_unconfigured_reset_does_not --- FAILED
+..
+failures:
+
+---- configured_reset_issues_a_deterministic_program_and_unconfigured_reset_does_not stdout ----
+
+thread 'configured_reset_issues_a_deterministic_program_and_unconfigured_reset_does_not' (3703507) panicked at temporal/realization/tests/program.rs:22:5:
+assertion `left == right` failed
+  left: [16, 1]
+ right: []
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    configured_reset_issues_a_deterministic_program_and_unconfigured_reset_does_not
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-temporal --test program`
+make[2]: *** [Makefile:1292: model-check] Error 101
+make[2]: Leaving directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+make[1]: *** [Makefile:1309: model-time] Error 2
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+make: *** [Makefile:1312: model-validate] Error 2

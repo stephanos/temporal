@@ -50,7 +50,7 @@ Findings this spec acts on (verified 2026-10-25):
 - `make model-check` / `make model-validate`: same stages and meaning; faster.
 - `make model-check-changed`: removed (dead Scala target).
 - `umpire-tlc` runner: same public result types (`TlcResult`, `PropertyResult`, `Verdict`); batching and parallelism are internal, with a limit setting.
-- `model/scripts/time-gate.sh`: times a realistic Model-edit inner loop (touch `temporal/feature/activity/model.rs`, run `model-quick`) beside the framework-crate one.
+- The gate timer measures a reversible content edit to `temporal/feature/activity/model.rs`, asserts that the activity was selected, and runs `model-quick` beside the framework-crate benchmark. Record emission-preserving/cache-hit and changed-emission/fresh-TLC measurements separately; an mtime-only touch is insufficient.
 
 ## Edge Cases & Constraints
 
@@ -58,7 +58,7 @@ Findings this spec acts on (verified 2026-10-25):
 
 - **Exact verdicts.** Batched TLC must produce the same verdict and the same counterexample trace for every property as separate runs, including when several properties are violated in one module and for liveness with fairness. If TLC cannot report a property in a batch exactly, that property keeps its own run.
 - **Cache trust.** The cache only serves `model-quick`. A key misses on any change to the emitted module, cfg, jar, Java version or runner. `model-validate` never reads it, consistent with "no old receipt proves new semantics". Cache entries are local scratch under the target or `.flow/tmp`, never committed.
-- **No lost tests.** Changing the test runner or merging binaries must keep the exact test set. Compare full test lists before and after, including ignored tests; counts alone are not enough.
+- **No lost tests.** Compare package, target, full test name and ignored status under matching features/backend modes, including doctests separately. Consolidation may rename targets/module paths only through a checked, durable one-to-one identity mapping. Converted UI cases retain an explicit case-to-replacement mapping and diagnostic coverage. Missing, duplicate and unmatched cases fail; counts alone are insufficient.
 - **Memory.** Parallel TLC and test execution must stay within the host; TLC/JVM tests get a concurrency group. The fn-248 lesson applies: per-lane full targets of about 24 GB filled the disk twice, so measure in the main checkout against the shared target.
 - **Determinism.** Parallelism must not change outputs, snapshot bytes or report order.
 - **Concurrent owners.** fn-246 lanes edit `temporal/realization` and activity tests. Merging test binaries in `model/temporal/**` waits for fn-246's committed closure; `model/umpire/**` can go first.
@@ -77,7 +77,7 @@ Findings this spec acts on (verified 2026-10-25):
   Errors: any unmeasured cost is listed as unknown with its reason, never estimated as measured.
 - **R2:** `make model-quick` exists. After an edit to `temporal/feature/activity/model.rs` it re-checks the activity natively and through the interpreter. It runs TLC only when the emitted TLA+ changed, and finishes in under 60 s warm. Errors: a changed emitted module always runs TLC fresh; a cache hit is labelled as such; `model-validate` never uses the cache; a planted stale entry with a different key is ignored.
 - **R3:** The TLC runner checks all properties of a module in one batched run and splits only on failure, with optional parallel property runs. Errors: an equivalence control over every TLC fixture and mutant shows identical verdicts and traces to per-property runs, including a module with two violated properties and a liveness violation under fairness.
-- **R4:** Tests run in parallel across binaries, with integration tests consolidated to one binary per crate where that cuts link time, and a cheaper test debuginfo profile. Errors: the full test list, including ignored tests, is identical before and after; JVM-backed tests run in a bounded concurrency group.
+- **R4:** Tests run in parallel across binaries, with integration tests consolidated to one binary per crate where that cuts link time, and a cheaper test debuginfo profile. Errors: the full logical test inventory, including ignored status, is identical before and after under the checked identity mapping above; JVM-backed tests run in a bounded concurrency group.
 - **R5:** Gate composition:
   - Apalache is out of routine gates while fn-211 is deferred;
   - non-cargo stages run beside the Rust stages;
@@ -122,7 +122,15 @@ Rejected options:
 
 2026-10-25, owner: new testing steps (fn-255) must be bounded and must not undo the fast-gate goal. R8 adds committed per-stage budgets that every later stage must declare. Work counts are enforced hard; wall time is enforced with a tolerance and a repeat, to avoid flaky failures on a shared host.
 
-Placement: first in the current order (owner, 2026-10-25). fn-246's in-flight tasks continue to their boundaries. The `umpire/**`, Makefile, scripts and TLC-runner files are disjoint from fn-246's. Test-binary consolidation in `temporal/**` waits for fn-246's committed closure.
+Placement: first in the current order (owner, 2026-10-25). fn-246's in-flight tasks continue to their boundaries. Shared runtime/front/Host source owners and workspace/generated assets require an integration boundary; disjoint implementation lanes may run in parallel. Test-binary consolidation in `temporal/**` waits for fn-246's committed closure.
+
+2026-10-25, execution refinement under the owner's instruction to follow recommendations autonomously:
+- Deliver the independent framework/gate checkpoint first. Then resume fn-246 to committed spec closure, perform .7, and finish .8. fn-255's independent lanes may interleave within their stated ownership. Whole-spec priority is not a waiver of .7's existing closure requirement.
+- Flow only supports same-spec task dependencies. Keep .7 explicitly blocked in Flow with the external prerequisite and release it only after verifying fn-246's committed spec closure; do not block the whole fn-254 spec on fn-246.
+- Task .9 settles the entry point and workspace using its inventory; adopt the recommended framework-owned Rust xtask and separate Cargo workspace unless evidence identifies a smaller design satisfying the directory-only control. This is delegated implementation judgment, not a new request for approval.
+- Split the former oversized .10: .13 separates workspace/tool roots, paths and identity inputs; .10 composes the framework gate and Temporal delegation. Serialize shared-file writers and reanchor after the integration boundary; framework paths overlap fn-246's runtime/front/Host owners.
+- .12 uses one immediate retry of a slow stage after competing owned work drains, on identical source/tool/budget/tier inputs. Count both attempts in tier wall time; only a second over-tolerance run fails. Interruptions are incomplete evidence, never a pass. Every later stage/count change updates its budget entry.
+- Proposed R6 targets and R8's 25% tolerance are the execution defaults under delegated judgment; report misses honestly.
 
 ## Requirement coverage
 
@@ -134,7 +142,7 @@ Placement: first in the current order (owner, 2026-10-25). fn-246's in-flight ta
 | R4 | Tests run in parallel across binaries, with integration tests consolidated to one binary per crate where that cuts link time, and a cheaper test debuginfo profile. Errors: the full test list, including ignored tests, is identical before and after; JVM-backed tests run in a bounded concurrency group. | fn-254-fast-validation-gates-and-a-real-inner.3, fn-254-fast-validation-gates-and-a-real-inner.4, fn-254-fast-validation-gates-and-a-real-inner.7 | — |
 | R5 | Gate composition: | fn-254-fast-validation-gates-and-a-real-inner.5 | — |
 | R6 | Final measurement against R1's baseline, recorded in `model/design/gate-speed.md`. `time-gate.sh` gains the realistic Model-edit inner loop. Targets (proposed; owner to confirm): `model-quick` under 60 s for an activity edit, `model-check` under 3 min, TLC-required `model-validate` under 10 min, all warm. Errors: a missed target is reported with its cause, not relabelled as met. | fn-254-fast-validation-gates-and-a-real-inner.8 | — |
-| R7 | The framework's checks live in `model/umpire` and run without the Temporal tree. One framework entry point (decided in task .9) runs every framework stage: fmt, clippy, docs and tests of `umpire` crates; the stock, control and Kettle guests; core and Kettle protobuf; the generic and Kettle Go hosts; framework controls. The root `Makefile` keeps only Temporal steps and calls that entry point. Framework tools, pins and caches (TLC/Apalache jars, protoc generators, xtask modules) resolve relative to `model/umpire`, not the Temporal repository root. Errors: a control runs the framework entry point on a copy of `model/umpire` alone, with no `model/temporal` and no root `Makefile`, and it passes; a planted dependency from an `umpire` crate on a Temporal crate, or a Temporal name in `model/umpire`, fails the framework gate. | fn-254-fast-validation-gates-and-a-real-inner.10, fn-254-fast-validation-gates-and-a-real-inner.11, fn-254-fast-validation-gates-and-a-real-inner.9 | — |
+| R7 | The framework's checks live in `model/umpire` and run without the Temporal tree. One framework entry point (decided in task .9) runs every framework stage: fmt, clippy, docs and tests of `umpire` crates; the stock, control and Kettle guests; core and Kettle protobuf; the generic and Kettle Go hosts; framework controls. The root `Makefile` keeps only Temporal steps and calls that entry point. Framework tools, pins and caches (TLC/Apalache jars, protoc generators, xtask modules) resolve relative to `model/umpire`, not the Temporal repository root. Errors: a control runs the framework entry point on a copy of `model/umpire` alone, with no `model/temporal` and no root `Makefile`, and it passes; a planted dependency from an `umpire` crate on a Temporal crate, or a Temporal name in `model/umpire`, fails the framework gate. | fn-254-fast-validation-gates-and-a-real-inner.10, fn-254-fast-validation-gates-and-a-real-inner.11, fn-254-fast-validation-gates-and-a-real-inner.9, fn-254-fast-validation-gates-and-a-real-inner.13 | — |
 | R8 | Each gate stage has a committed budget in one table under `model/umpire` (plus a Temporal-side table for Temporal stages): | fn-254-fast-validation-gates-and-a-real-inner.12 | — |
 
 ## Parked unknowns

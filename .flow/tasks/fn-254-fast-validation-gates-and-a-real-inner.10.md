@@ -3,21 +3,21 @@ satisfies: [R7]
 ---
 # fn-254-fast-validation-gates-and-a-real-inner.10 Move the framework gate into model/umpire; root Makefile keeps Temporal steps only
 
-Touches: [model/umpire/**, model/dev/xtask/**, model/scripts/**, model/Cargo.toml, model/Cargo.lock, Makefile, model/README.md, model/umpire/README.md]
 
 ## Description
-Implement .9's layout: framework stages run from `model/umpire`, and framework paths, pins and caches resolve there (spec R7).
+Compose the framework gate and Temporal delegation on .13's independently buildable workspace/tool roots (spec R7). Workspace separation, pins/cache-root migration and guest identity primitives belong to .13; this task owns stage orchestration, mixed controls and generated producer/consumer wiring.
 
 **Cross-spec gate:** coordinate with in-flight fn-246 lanes; workspace and lockfile moves touch every crate's build. Land at an integration boundary when no lane has uncommitted Cargo changes.
 
 **Size:** M
-**Files:** framework entry point (xtask or Makefile per .9), framework xtask modules moved under `model/umpire`, `model/Cargo.toml`/`Cargo.lock` (or a new `model/umpire` workspace), cache roots in `umpire/backends/process` and `apalache`, `scripts/proto-go.sh` split, root `Makefile`, READMEs.
-**Touches:** [model/umpire/**, model/dev/xtask/**, model/scripts/**, model/Cargo.toml, model/Cargo.lock, Makefile, model/README.md, model/umpire/README.md]
+**Files:** framework entry point and moved tooling controls, core/Kettle protobuf and guest orchestration, root Makefile's Temporal stages, host parity controls and current generated assets.
+**Touches:** [model/umpire/dev/**, model/umpire/protocol/**, model/umpire/hosts/go/**, model/umpire/reference/kettle/**, model/dev/xtask/**, model/scripts/**, model/temporal/hosts/go/**, model/temporal/guest/**, Makefile, model/README.md, model/umpire/README.md, model/GUEST_BUILDS.md]
 
 ### Approach
-- Replace repo-root-relative framework paths with paths relative to the framework root, or a single framework-root resolver. TLC and Apalache caches move under the framework root (or a `CARGO_TARGET_DIR`-relative location); keep pin and SHA admission unchanged.
+- Consume .13's root resolution, tool/pin/cache migration and guest identity contract; do not repeat that migration.
 - Framework protobuf generation and checks use framework-owned pinned generators, not the root `.bin/`.
-- The root `Makefile` `model-check`/`model-validate` call the framework entry point first, then run only Temporal steps: Temporal guest freshness, source boundary, Temporal protobuf, Temporal Go host, Temporal crate tests.
+- Root `model-check`/`model-validate` delegate framework work and retain only Temporal guest freshness, source boundary, Temporal protobuf/API prerequisite, Temporal Go host and Temporal crate checks. Expose stage dependency information so .5 may overlap independent work; do not mandate all framework work precede all Temporal work. Full gates override inherited quick-cache enablement.
+- Split mixed guest/protobuf/retired-name controls: stock/control/Kettle/panic/overflow and core/Kettle stay framework-owned; Temporal guest/protobuf/API and deny-vocabulary policy stay Temporal-owned. Preserve all old logical tests exactly once. Regenerate affected current guest bytes through .13's identity primitives and prove source freshness/native-Wasm-Host parity, including possible Temporal embedded guest publication.
 - Stage names, fail-fast behaviour and `UMPIRE_TIME_STEPS` timing are preserved across both halves.
 - **Equivalence pin:** the combined stage list and the full test list (with ignored tests) are identical before and after; the TLC-required run passes.
 
@@ -28,13 +28,10 @@ Implement .9's layout: framework stages run from `model/umpire`, and framework p
 - `model/scripts/proto-go.sh` — core/kettle/temporal modes
 - `Makefile:1270-1315`
 
-### Acceptance
-- [ ] The framework entry point runs every framework stage from `model/umpire`; the root `Makefile` contains no framework stage.
-- [ ] No framework path reaches above the framework root; caches and pins resolve under it.
-- [ ] Stage list and test list unchanged in sum; `make model-check` and TLC-required `make model-validate` pass.
-
 ## Acceptance
-- [ ] TBD
+- [ ] The framework entry point runs every framework stage from `model/umpire`; the root `Makefile` contains no framework stage.
+- [ ] .13's standalone path/tool contract remains intact; every split mixed control and generated producer/consumer has one owner. All affected guests reproduce, are fresh and pass Host/native-Wasm parity.
+- [ ] Stage list and test list unchanged in sum; `make model-check` and TLC-required `make model-validate` pass.
 
 ## Done summary
 TBD

@@ -1,0 +1,33 @@
+diff --git a/model/temporal/realization/tests/program.rs b/model/temporal/realization/tests/program.rs
+index daeb35a8ac..b72e179d32 100644
+--- a/model/temporal/realization/tests/program.rs
++++ b/model/temporal/realization/tests/program.rs
+@@ -16,10 +16,13 @@ mod common;
+ 
+ #[test]
+ fn configured_reset_issues_a_deterministic_program_and_unconfigured_reset_does_not() {
++    use umpire_temporal_api::umpire::temporal::v1::WorkerProgram;
++
+     let runtime = annotation_runtime();
+     let (empty, _) = runtime.prepare(3, &[]);
+     let Some(Outcome::Reset(empty)) = empty.outcome else { panic!("Reset") };
+-    assert_eq!(empty.encode_to_vec(), [] as [u8; 0]);
++    assert!(empty.program.is_none());
++    assert_eq!(empty.proof_contract, protocol::ProofContract::WholePrefixV1 as i32);
+     let start: StartActivityExecutionRequest = common::start(3)
+         .request
+         .unwrap_or_else(|| panic!("request"))
+@@ -30,7 +33,12 @@ fn configured_reset_issues_a_deterministic_program_and_unconfigured_reset_does_n
+     let (second, _) = runtime.prepare(3, &configuration.encode_to_vec());
+     assert_eq!(first, second);
+     let Some(Outcome::Reset(reset)) = first.outcome else { panic!("Reset") };
+-    assert!(!reset.encode_to_vec().is_empty(), "configured Reset must issue the worker program");
++    assert_eq!(reset.proof_contract, protocol::ProofContract::WholePrefixV1 as i32);
++    let _: WorkerProgram = reset
++        .program
++        .unwrap_or_else(|| panic!("configured Reset must issue the worker program"))
++        .unpack()
++        .unwrap_or_else(|error| panic!("{error:?}"));
+ }
+ 
+ #[test]

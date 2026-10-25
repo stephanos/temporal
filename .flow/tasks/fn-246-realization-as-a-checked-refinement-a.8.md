@@ -9,7 +9,7 @@ Establish one current default whole-prefix proof contract across generic guest e
 
 **Size:** M
 **Files:** ordinary Model protocol/Reset response, generic guest export/runtime, Go Host admission and generated bindings, focused current-contract fixtures and protocol/build documentation.
-**Touches:** [model/umpire/protocol/**, model/umpire/hosts/go/host/**, model/umpire/hosts/go/gen/**, model/umpire/hosts/go/runner/**, model/umpire/reference/kettle/**, model/temporal/realization/src/live.rs, model/temporal/hosts/go/**, model/temporal/guest/**, model/dev/xtask/**, model/GUEST_BUILDS.md, model/scripts/tests/build-guests.sh]
+**Touches:** [model/umpire/protocol/**, model/umpire/hosts/go/host/**, model/umpire/hosts/go/gen/**, model/umpire/hosts/go/runner/**, model/umpire/reference/kettle/**, model/temporal/realization/src/live.rs, model/temporal/realization/tests/program.rs, model/temporal/hosts/go/**, model/temporal/guest/**, model/dev/xtask/**, model/GUEST_BUILDS.md, model/scripts/tests/build-guests.sh]
 
 ## Approach
 
@@ -29,6 +29,8 @@ Establish one current default whole-prefix proof contract across generic guest e
 - .1/.7's singleton whole-prefix runtime, .9 Run/replay integration and .10 compatible-frontier extension.
 
 ## Verification
+
+2026-10-25 joined-gate amendment: the first full gate found the program test still asserting an empty unconfigured Reset. Preserve the no-program assertion separately from the required proof-contract identity, and strengthen the configured assertion so the contract field alone cannot satisfy program issuance. Reopen .8, run the cohesive Temporal realization crate suite, renew review, then rerun the required joined gate. The failing gate and earlier SHIP/closure remain historical evidence.
 
 The existing `model/scripts/tests/build-guests.sh` owner wires the native current-contract transcript alongside existing native proof assets, so ordinary model validation exercises production native/wasm parity. Reuse its current builder rather than introducing another harness.
 
@@ -53,6 +55,6 @@ stage: impl-review - SHIP (three-axis fanout, rid 1d1cabe246be4ad6930f3ae59ab0fa
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 0fa9a9ab24225d40f1de29319b9051369b1f0a3d
-- Tests: bash model/scripts/guest-freshness.sh umpire-temporal-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2468-current-contract/model/temporal/hosts/go/umpire_temporal_guest.wasm, bash model/scripts/guest-freshness.sh umpire-temporal-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm, bash model/scripts/guest.sh umpire-temporal-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm, bash model/scripts/proto-go.sh core --check, bash model/scripts/proto-go.sh kettle --check, bash model/scripts/proto-go.sh temporal --check, bash model/scripts/tests/build-guests.sh, go test -tags test_dep -count=1 ./host ./runner -run TestCurrentContractNativeWasmPublishedResponsesAgree|TestResetContractAdmissionPrecedesDriver|TestRunnerOwnsLoadedGuestBytes|TestResetProofContractRefusesMissingAndUnknown -v, go test -tags test_dep -count=1 ./host ./runner -run TestCurrentContractNativeWasmPublishedResponsesAgree|TestResetContractAdmissionPrecedesDriver|TestRunnerOwnsLoadedGuestBytes|TestResetProofContractRefusesMissingAndUnknown|TestCoreProtocolWireCompatibility|TestProposalWireContract -v, mise exec -- cargo clippy -p umpire-runtime -p umpire-control-guest -p umpire-reference-kettle -p umpire-temporal --all-targets --all-features -- -D warnings, mise exec -- cargo fmt --all --check, mise exec -- cargo run --locked --profile guest -p umpire-control-guest --bin current-contract-reports -- /home/agent/.cache/codex-build/umpire-milestones-20261024/fn2468-current-contract/current-contract-native, mise exec -- cargo test -p umpire-control-guest --bin current-contract-reports, mise exec -- cargo test -p umpire-reference-kettle -p umpire-temporal --test realization, mise exec -- cargo test -p umpire-runtime, mise exec -- cargo test -p umpire-runtime --test core_protocol --test proposal_wire --locked, mise exec -- go -C temporal/hosts/go test -tags test_dep -count=1 ./..., mise exec -- go -C umpire/hosts/go test -tags test_dep -count=1 ./..., mise exec -- go -C umpire/hosts/go test -tags test_dep -count=1 ./host -run '^TestCurrentContractNativeWasmPublishedResponsesAgree$' -v, mise exec -- go -C umpire/reference/kettle test -tags test_dep -count=1 ./...
+- Commits:
+- Tests:
 - PRs:

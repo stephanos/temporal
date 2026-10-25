@@ -1,0 +1,17 @@
+{
+  "source_commit": "f85d9399c48c09cc2dc8db08ee3cbe1fae071b9d",
+  "model_tree": "551255c0ed28dc8e5c3e79f539c8b3cf81362460",
+  "command": [
+    "make",
+    "model-validate"
+  ],
+  "started_at": "2026-10-25T18:35:23.001252+00:00",
+  "status": "terminal",
+  "cache_state": "warm root target, prior joined native and guest builds",
+  "pid": 3666230,
+  "exit_code": 2,
+  "seconds": 415.12,
+  "finished_at": "2026-10-25T18:42:18.180375+00:00",
+  "log": ".flow/tmp/milestones-resume-20261024/fn246-joined-required-validation.log",
+  "log_sha256": "d07d41486a7dd1c19af7932d6c8b23f4ef775470d38db8300c47d545603d2d70"
+}

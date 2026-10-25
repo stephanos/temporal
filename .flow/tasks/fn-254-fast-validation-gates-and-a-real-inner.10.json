@@ -4,7 +4,8 @@
   "claimed_at": null,
   "created_at": "2026-10-25T18:09:38.638179Z",
   "depends_on": [
-    "fn-254-fast-validation-gates-and-a-real-inner.9"
+    "fn-254-fast-validation-gates-and-a-real-inner.9",
+    "fn-254-fast-validation-gates-and-a-real-inner.13"
   ],
   "id": "fn-254-fast-validation-gates-and-a-real-inner.10",
   "priority": null,
@@ -12,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.10.md",
   "status": "todo",
   "title": "Move the framework gate into model/umpire; root Makefile keeps Temporal steps only",
-  "updated_at": "2026-10-25T18:09:38.638179Z"
+  "updated_at": "2026-10-25T18:44:37.725143Z"
 }

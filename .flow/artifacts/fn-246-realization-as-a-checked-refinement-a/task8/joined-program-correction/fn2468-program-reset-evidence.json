@@ -1,0 +1,54 @@
+{
+  "task": "fn-246-realization-as-a-checked-refinement-a.8",
+  "status": "in_progress",
+  "commits": [],
+  "prs": [],
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+  "base_commit": "e3a7742fafd25c62b6a46bae3b85bd9e75fc5dcd",
+  "owned_file": "model/temporal/realization/tests/program.rs",
+  "owned_file_before_sha256": "97f618060a67cd5f4feaf60519cd7e92fd3765db1e61c5487978684cba559e59",
+  "owned_file_after_sha256": "beb1f009c53be9b1d647026f630e1b230578cdb71fe4febda34094927b9bd24a",
+  "diff": "fn2468-program-reset.patch",
+  "diff_sha256": "99560dfe50b7920c64b7429090b13f161ea86b0f128ce0435df5f2e2e1a9a867",
+  "change": "Replace Reset-byte emptiness proxies with unconfigured program absence, exact actual whole-prefix contract for both Reset paths, and required typed WorkerProgram decoding for configured Reset; retain determinism.",
+  "comparable_search": "rg across temporal realization, generic runtime and Kettle tests found both stale Reset-byte assertions in program.rs; comparable runtime tests already check program.is_none() and actual program values.",
+  "red": {
+    "command": "make model-validate",
+    "source_commit": "f85d9399c48c09cc2dc8db08ee3cbe1fae071b9d",
+    "exit_code": 2,
+    "seconds": 415.12,
+    "reason": "program.rs:22 asserted empty Reset encoding; actual correct WHOLE_PREFIX_V1 response encoded [16,1]",
+    "metadata": "fn2468-program-reset-red-gate.json",
+    "log": "fn2468-program-reset-red-gate.log",
+    "log_sha256": "d07d41486a7dd1c19af7932d6c8b23f4ef775470d38db8300c47d545603d2d70"
+  },
+  "tests": [
+    "mise exec -- cargo test -p umpire-temporal",
+    "mise exec -- rustfmt --check --edition 2024 model/temporal/realization/tests/program.rs",
+    "mise exec -- cargo clippy -p umpire-temporal --test program -- -D warnings"
+  ],
+  "environment": {
+    "shell_prefix": "unset BASH_ENV; cd /Users/stephan/Workspace/skunkworks/umpire/temporal",
+    "cargo_cwd": "model/",
+    "timeout_seconds": 600,
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "2",
+    "UMPIRE_BACKENDS": "skip"
+  },
+  "observations": [
+    {"command": "mise exec -- cargo test -p umpire-temporal", "exit_code": 0, "log": "fn2468-program-reset-tests.log", "log_sha256": "c72a0895c458d87d669088ac03ae932049b772d8fbf162aff56555c63481bb07", "passed": 116, "failed": 0, "ignored": 0, "suite_summaries": 19, "elapsed_seconds_approx": 311, "timing_method": "sampled ps lstart (2026-10-25 11:47:02 -0700) to final log mtime (2026-10-25 11:52:13.389908465 -0700); approximate second precision, no timing rerun"},
+    {"command": "mise exec -- rustfmt --check --edition 2024 model/temporal/realization/tests/program.rs", "exit_code": 0, "log": "fn2468-program-reset-fmt.log", "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+    {"command": "/usr/bin/time -p timeout 600s env ... mise exec -- cargo clippy -p umpire-temporal --test program -- -D warnings", "exit_code": 127, "log": "fn2468-program-reset-clippy.log", "meaning": "inconclusive prelaunch: /usr/bin/time absent; compiler did not run"},
+    {"command": "TIMEFORMAT='real %R'; time timeout 600s env ... mise exec -- cargo clippy -p umpire-temporal --test program -- -D warnings", "exit_code": 0, "log": "fn2468-program-reset-clippy-final.log", "elapsed_seconds": 10.943}
+  ],
+  "manifest": "fn2468-program-reset-manifest.sha256",
+  "all_owned_commands_terminal": true,
+  "cache_lease": "released on return; no further worker builds",
+  "conductor_owned": ["commit", "review renewal", "joined required gate retry", "Flow state and closure"],
+  "review_verdict": null,
+  "full_gate_pass": false,
+  "TLC_execution_claimed": false
+}

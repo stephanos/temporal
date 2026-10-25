@@ -1,7 +1,4 @@
 {
-  "assignee": null,
-  "claim_note": "",
-  "claimed_at": null,
   "created_at": "2026-10-24T19:06:07.447466Z",
   "depends_on": [
     "fn-246-realization-as-a-checked-refinement-a.7"
@@ -12,5 +9,5 @@
   "spec_path": ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.8.md",
   "status": "todo",
   "title": "Default whole-prefix guest protocol and current Host admission",
-  "updated_at": "2026-10-25T17:14:34.512965Z"
+  "updated_at": "2026-10-25T18:46:20.239180Z"
 }

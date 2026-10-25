@@ -3,7 +3,6 @@ satisfies: [R7]
 ---
 # fn-254-fast-validation-gates-and-a-real-inner.9 Framework/Temporal split: inventory gate steps and couplings, decide the framework entry point
 
-Touches: [model/design/gate-speed.md, model/design/framework-gate.md]
 
 ## Description
 Decide where the framework's gate lives and how it stands alone (spec R7), before .3, .5 and .6 build on the Makefile. A short design note; no code moves here.
@@ -15,10 +14,12 @@ Decide where the framework's gate lives and how it stands alone (spec R7), befor
 ### Approach
 - Classify every model step in `Makefile:1270-1315`, every script in `model/scripts/`, every `model/dev/xtask` module and the `model/build/` caches as framework or Temporal. Examples: `temporal-guest-freshness`, `source-boundary`, `temporal-protobuf-freshness` and `temporal-go-host` are Temporal; `retired-names` is mixed, since it excludes a Temporal path.
 - List the couplings with file:line: the 45 `"../../../.."` repo-root paths in `model/umpire`, `Scratch::new_in(root, "model/build/tlc")` (`backends/process/src/support.rs:52`) and the Apalache equivalents, the framework include of `dev/xtask/src/apalache_pins.rs`, protoc generators from the root `.bin/` (`scripts/proto-go.sh:31,41`), and `model-check`'s `$(API_BINPB)` prerequisite.
-- **Owner decisions (ask, record in the spec's Decision Context):**
+- **Delegated decisions (record evidence and the selection in the spec's Decision Context; the owner directs following recommendations without another approval):**
   1. Entry point: an `umpire` xtask subcommand (`cargo xtask gate`, one-language rule from fn-247) or a `model/umpire/Makefile`. Recommend the xtask.
   2. Workspace: `model/umpire` as its own Cargo workspace with its own lockfile, with the Temporal workspace depending on it by path (strongest standalone proof), or one shared workspace with the framework gate selecting `umpire` packages. Recommend its own workspace.
 - Name where shared repo files go: `rust-toolchain.toml`, `rustfmt.toml`, `clippy.toml`, `deny.toml`, `mise` pins, `.config/nextest.toml`.
+- Adopt the recommended framework-owned Rust xtask and separate workspace unless the inventory proves a smaller directory-only solution. Classify generic structural agnosticism separately from Temporal's existing deny-vocabulary policy (`temporal/testing/boundary.rs:8-25`); keep Temporal vocabulary outside framework source and state how planted-name/dependency controls avoid rejecting their own literals. The generic scanner can accept externally supplied policy; do not introduce Temporal knowledge into it.
+- Name .13's workspace/tools/pins/identity migration boundary separately from .10's orchestration/protobuf/guest split. Include filesystem-based hygiene without Git, lockfile closure, explicit test targets, guest source remapping and which worker owns refreshed Temporal guest bytes.
 
 ### Investigation targets
 **Required:**
@@ -27,13 +28,10 @@ Decide where the framework's gate lives and how it stands alone (spec R7), befor
 - `model/umpire/backends/process/src/support.rs:40-60` — cache root
 - `.flow/specs/fn-247-one-language-for-the-framework-a-rust.md` — xtask conventions
 
-### Acceptance
-- [ ] Every gate step, script, xtask module and cache is classified framework or Temporal, with each coupling listed by file:line.
-- [ ] Both owner decisions recorded in the fn-254 Decision Context.
-- [ ] The note names the target layout that .10 implements, and what .3, .5 and .6 must place in it.
-
 ## Acceptance
-- [ ] TBD
+- [ ] Every gate step, script, xtask module and cache is classified framework or Temporal, with each coupling listed by file:line.
+- [ ] Entry point/workspace selections and the no-Temporal policy ownership are recorded with evidence under delegated judgment.
+- [ ] The note names the target layout that .10 implements, and what .3, .5 and .6 must place in it.
 
 ## Done summary
 TBD
