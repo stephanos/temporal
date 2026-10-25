@@ -135,7 +135,7 @@ func followWithOptions(ctx context.Context, conn client.Client, program []byte, 
 	}
 	terminals := make(chan terminalExpectation, capacity)
 	coordinatorDone := make(chan struct{})
-	go func() { defer close(coordinatorDone); coordinateTerminals(run, bridge, terminals, fail) }()
+	go func() { defer close(coordinatorDone); coordinateTerminals(run, ctx, bridge, terminals, fail) }()
 	options.DisableWorkflowWorker = true
 	options.WorkerStopTimeout = time.Second
 	options.BackgroundActivityContext = run
@@ -151,7 +151,7 @@ func followWithOptions(ctx context.Context, conn client.Client, program []byte, 
 		defer handlers.Done()
 		result, err := followTask(run, activityCtx, table, bridge, terminals, fail)
 		if err != nil {
-			if run.Err() == nil {
+			if !shutdownCancellation(run, ctx, err) {
 				fail(err)
 			}
 			return converter.RawValue{}, err
@@ -160,6 +160,7 @@ func followWithOptions(ctx context.Context, conn client.Client, program []byte, 
 	}, activity.DynamicRegisterOptions{})
 	if err := w.Start(); err != nil {
 		cancel()
+		close(terminals)
 		<-coordinatorDone
 		return err
 	}
@@ -178,39 +179,68 @@ func followWithOptions(ctx context.Context, conn client.Client, program []byte, 
 	cancel()
 	w.Stop()
 	handlers.Wait()
+	close(terminals)
 	<-coordinatorDone
 	stateMu.Lock()
 	defer stateMu.Unlock()
 	return failure
 }
 
-func coordinateTerminals(run context.Context, bridge *worker.Bridge, terminals <-chan terminalExpectation, fail func(error)) {
+func shutdownCancellation(run, owner context.Context, err error) bool {
+	return (run.Err() != nil || owner.Err() != nil) && cancellationOnly(err)
+}
 
+func cancellationOnly(err error) bool {
+	if err == context.Canceled || err == context.DeadlineExceeded {
+		return true
+	}
+	switch wrapped := err.(type) {
+	case interface{ Unwrap() []error }:
+		causes := wrapped.Unwrap()
+		if len(causes) == 0 {
+			return false
+		}
+		for _, cause := range causes {
+			if !cancellationOnly(cause) {
+				return false
+			}
+		}
+		return true
+	case interface{ Unwrap() error }:
+		return cancellationOnly(wrapped.Unwrap())
+	default:
+		return false
+	}
+}
+
+func coordinateTerminals(run, owner context.Context, bridge *worker.Bridge, terminals <-chan terminalExpectation, fail func(error)) {
+	failed, closed := bridge.Failed(), bridge.Done()
 	for {
 		select {
-		case terminal := <-terminals:
+		case terminal, ok := <-terminals:
+			if !ok {
+				return
+			}
 			terminalCtx, terminalCancel := context.WithDeadline(run, terminal.deadline)
 			completion, err := terminal.wait.Wait(terminalCtx)
 			terminalCancel()
+			if err != nil && shutdownCancellation(run, owner, err) {
+				continue
+			}
 			if err == nil {
 				err = worker.TerminalResult(terminal.expected, completion.RPC())
 			}
 			if err != nil {
-				if run.Err() == nil {
-					fail(fmt.Errorf("SDK terminal completion: %w", err))
-				}
-				return
+				fail(fmt.Errorf("SDK terminal completion: %w", err))
 			}
-		case <-run.Done():
-			return
-		case <-bridge.Failed():
+		case <-failed:
 			fail(bridge.Err())
-			return
-		case <-bridge.Done():
-			if run.Err() == nil {
+			failed = nil
+		case <-closed:
+			if run.Err() == nil && owner.Err() == nil {
 				fail(errors.New("SDK transport bridge closed"))
 			}
-			return
+			closed = nil
 		}
 	}
 }

@@ -286,3 +286,52 @@ func TestBridgeDelayedCompletionPublicationCanFollowIndependentPoll(t *testing.T
 	require.NoError(t, err)
 	require.Equal(t, completion.Invocation, got.RPC().Invocation)
 }
+
+func TestBridgeShutdownRetainsTerminalButCannotAdvanceHeartbeat(t *testing.T) {
+	for _, operation := range []string{"heartbeat", "terminal", "failed-terminal"} {
+		t.Run(operation, func(t *testing.T) {
+			terminal := operation != "heartbeat"
+			run, cancel := context.WithCancel(t.Context())
+			defer cancel()
+			f := newBridgeFixture(t)
+			f.bridge = NewBridge(run)
+			identity := f.poll("shutdown", 7)
+			a, err := f.bridge.Bind(identity)
+			require.NoError(t, err)
+			var wait interface {
+				Wait(context.Context) (ActualCompletion, error)
+			}
+			method := workflowservice.WorkflowService_RecordActivityTaskHeartbeat_FullMethodName
+			var request proto.Message = &workflowservice.RecordActivityTaskHeartbeatRequest{Namespace: identity.Namespace, TaskToken: identity.Token}
+			var response proto.Message = &workflowservice.RecordActivityTaskHeartbeatResponse{CancelRequested: true}
+			if terminal {
+				method = workflowservice.WorkflowService_RespondActivityTaskCompleted_FullMethodName
+				request = &workflowservice.RespondActivityTaskCompletedRequest{Namespace: identity.Namespace, TaskToken: identity.Token}
+				response = &workflowservice.RespondActivityTaskCompletedResponse{}
+				wait, err = a.BeginTerminal(method)
+			} else {
+				wait, err = a.BeginHeartbeat()
+			}
+			require.NoError(t, err)
+			rpc := f.start(a.HeartbeatContext(run), method, request)
+			transportError := ""
+			if operation == "failed-terminal" {
+				transportError, response = "actual-unavailable", nil
+			}
+			completed := f.complete(run, rpc, response, transportError)
+			cancel()
+			got, err := wait.Wait(run)
+			if terminal {
+				require.NoError(t, err)
+				require.Equal(t, completed.Invocation, got.RPC().Invocation)
+				require.Equal(t, completed.TransportError, got.RPC().TransportError)
+				require.True(t, proto.Equal(completed.Request, got.RPC().Request))
+				require.True(t, proto.Equal(completed.Response, got.RPC().Response))
+			} else {
+				require.ErrorIs(t, err, context.Canceled)
+				require.Zero(t, got.RPC().Invocation)
+			}
+			require.NoError(t, f.bridge.Close())
+		})
+	}
+}
