@@ -256,7 +256,8 @@ pub(crate) fn unchecked<S, A>(name: &str) -> ClaimResult<S, A> {
     }
 }
 
-pub(crate) fn panic_message(error: &(dyn Any + Send)) -> &str {
+/// Borrows a string panic payload, or one shared description for other payloads.
+pub fn panic_message(error: &(dyn Any + Send)) -> &str {
     error
         .downcast_ref::<&str>()
         .copied()

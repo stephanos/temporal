@@ -1,0 +1,27 @@
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/protocol/runtime)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.97s
+     Running tests/core_protocol.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2482-target/debug/deps/core_protocol-f22c676d5df46a69)
+
+running 4 tests
+test explanation_outcomes_are_additive_at_tag_two ... ok
+test explained_zero_steps_is_present_and_distinct_from_unexplained ... ok
+test new_core_messages_match_shared_literal_bytes ... ok
+test new_requests_round_trip_opaque_payloads_and_dispatch_honest_refusals ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/proposal_wire.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2482-target/debug/deps/proposal_wire-b8c5f7de9ba8c6ba)
+
+running 1 test
+test proposal_method_kind_and_poll_wire_contract ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/wire.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2482-target/debug/deps/wire-4fca70a129c8644a)
+
+running 2 tests
+test original_wire_bytes_and_values_are_stable ... ok
+test shared_hex_decoder_preserves_literal_bytes_and_refuses_malformed_vectors ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,0 +1,45 @@
+{
+  "production_acyclic": true,
+  "nodes_checked": 152,
+  "selected_packages": {
+    "umpire-catalog": {
+      "normal_build_dependencies": [
+        "prost",
+        "umpire-catalog-macros",
+        "umpire-checker",
+        "umpire-runtime"
+      ],
+      "resolved_features": []
+    },
+    "umpire-checker": {
+      "normal_build_dependencies": [
+        "fixedbitset",
+        "indexmap",
+        "petgraph",
+        "rustc-hash",
+        "thiserror",
+        "umpire-dsl"
+      ],
+      "resolved_features": []
+    },
+    "umpire-dsl": {
+      "normal_build_dependencies": [
+        "enum-iterator",
+        "imbl",
+        "smallvec",
+        "umpire-dsl-macros",
+        "umpire-ir"
+      ],
+      "resolved_features": []
+    },
+    "umpire-runtime": {
+      "normal_build_dependencies": [
+        "prost",
+        "prost-build",
+        "umpire-checker",
+        "umpire-dsl"
+      ],
+      "resolved_features": []
+    }
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "task": "fn-248-off-the-shelf-crates-and-consolidation.2",
+  "base_commit": "0a1a733c72b91054ca0a4ee3d21378c56c26abef",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers",
+  "branch": "work/fn2482-helpers",
+  "cargo_target_dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2482-target",
+  "baseline": "green; both mandatory focused commands exited 0 before edits",
+  "source_hashes": {
+    ".plans/UMPIRE_MODULES.md": "3718f9879acd526ab8271bbc11efa2507f8d6149481824abe22e219ccd870959",
+    "model/Cargo.lock": "39a5302ad0d38f3b077fff4b30334339833526fc364f7eb509a1e02fb01306e6",
+    "model/temporal/feature/activity/policy_checks.rs": "84634448599f3eb454d39102f4e22e36e435212275ee2cbc1da7dc16e9cae4f6",
+    "model/temporal/feature/activity/proof_checks.rs": "8155a0dec6adc2eda69e67bc9095fe3497ea22e937dd2283d9f9e5327486d74f",
+    "model/temporal/realization/src/probes/generic.rs": "95a2d16bbfa8ea18475b0ca2c8b0e886b336666ae8541511b6dbd6b0c47a449d",
+    "model/umpire/author/suite/src/coverage.rs": "5819b553e653251eda94061a8fb32b82f0a7e8354869fad3ce1158b4e3f4677e",
+    "model/umpire/author/suite/src/pattern_search.rs": "c073eeb94e3c1bb3b0e9609fe532568802882ce0b82e6706d399b4958cf9aaa4",
+    "model/umpire/author/suite/src/search.rs": "aa2dff478f6910839d862aa3a68018c966818aad4d902a46db81dc2cc85bdebb",
+    "model/umpire/backends/apalache/src/replay.rs": "422a5672adb3febefa0eee11421f35b5191dc01e46570a75b03d55a2475d539b",
+    "model/umpire/backends/native/src/explore.rs": "064e2f91f6ff064835b98c6eb8ab69ca68ff4d7cd169c1ecb3b1b9bb54dee00c",
+    "model/umpire/backends/native/src/lib.rs": "39a916e78b2d4b8bf25ac7d424dc48d97f8d0485f010455507524367b86bde3a",
+    "model/umpire/backends/native/src/rng.rs": "e78cf1780bd8389ef66d4af4ecee23b215f90f606e19b6baecdb4ca2d24ca232",
+    "model/umpire/catalog/Cargo.toml": "ca588f19fc37e45496e32caba957871cefbb3c8725aa25e9584370645a2d3d2d",
+    "model/umpire/catalog/src/black_box.rs": "ad741df3e3d3b26b76529bf42bba4fab896a73575ac7b804b948821fc64f1766",
+    "model/umpire/catalog/src/value.rs": "b68f7e319d9b2e5e1db78c9a22a7653157c74d3fb768bd12ced61c6254bcc8a7",
+    "model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs": "262c528157491ee795626cf80f5df996921e16417f58e338c31ea62a518fb4f1",
+    "model/umpire/dev/testing/src/interpreted.rs": "07c232496bd3ecc108490ddedc2987aeca6494a37fa84430e53a8e43f33fb112",
+    "model/umpire/dev/testing/src/lib.rs": "01830f958eb6f3eb4f140f00c53790d7f94f839d49c5936776053e0343b02cb4",
+    "model/umpire/dev/testing/src/source_edit.rs": "cb6721a7b8aa504bc9415849d626785885e3d4e297d60477949022c1a6d41af4",
+    "model/umpire/dev/testing/src/source_edit_tests.rs": "9c099a303b6abfe54665e3ad937e5a963b27c857d1dab97f911772b89b413938",
+    "model/umpire/front/src/declare/action.rs": "bdbf62808697c1a2751f555dc3dbc47526274d27acd6be2199e8d422b6e44914",
+    "model/umpire/front/src/declare/fields.rs": "b5b660ef25c54fe5fb752a1592fac18cdfee1830c1f143d736e7e9c72ac069f7",
+    "model/umpire/front/src/declare/mod.rs": "b0a4fa3b2b932afe2234ec55152ad083f6b8248c14c9ccd328e9b3963a48f9e6",
+    "model/umpire/front/src/errors.rs": "14563f4dccc643e3056fbe0d15c518c82585154317a4271e9097027bddd997e3",
+    "model/umpire/front/src/lib.rs": "d5a45cb8dfa61dda616f234951da4ed8b8e09d0ee0db664150c663105677ab97",
+    "model/umpire/protocol/runtime/tests/core_protocol.rs": "0cec46e2d7c6740113ded94c5c7dfa2b049a0f54868aa94b0de53b41a0535856",
+    "model/umpire/protocol/runtime/tests/proposal_wire.rs": "2743184f650a0bf27b0e1fdec6927291e85077eabca7197a3b1be2e0b49c99d4",
+    "model/umpire/protocol/runtime/tests/support/mod.rs": "bb676de7ea86325dd4dbbe1ad25a0f9407f6c4dcb921cdb3a2a63ba1c1dcc328",
+    "model/umpire/protocol/runtime/tests/wire.rs": "5d736fa8138e824d736511b4e9cc23cacac1c8afc8d65eed181d33de728b1b81",
+    "model/umpire/reference/kettle/probes.rs": "fcdf31fc6b1bcdf3b0175e9268a7c426a6423accc0588dd67fe27d909d947114"
+  },
+  "commands": [
+    {
+      "command": "cd model && mise exec -- cargo test -p umpire-checker -p umpire-suite -p umpire-catalog -p umpire-front --lib --locked",
+      "exit_code": 0,
+      "log": "baseline-lib.log",
+      "stage": "baseline",
+      "passed_tests": 22
+    },
+    {
+      "command": "cd model && mise exec -- cargo test -p umpire-runtime --test wire --test core_protocol --test proposal_wire --locked",
+      "exit_code": 0,
+      "log": "baseline-wire.log",
+      "stage": "baseline",
+      "passed_tests": 6
+    },
+    {
+      "command": "cd model && mise exec -- cargo test -p umpire-checker -p umpire-front -p umpire-testing --lib --locked",
+      "exit_code": 101,
+      "expected": "red control; crate-level Errors does not exist at baseline",
+      "log": "new-controls-red.log"
+    },
+    {
+      "command": "mise exec -- rustc --edition 2024 --test --crate-name original_source_edits .flow/tmp/fn2482-original-source-edits.rs -o .flow/tmp/fn2482-original-source-edits && .flow/tmp/fn2482-original-source-edits source_edits_refuse_missing_duplicate_and_empty_anchors",
+      "exit_code": 101,
+      "expected": "base helper accepts duplicate region end; original source bodies extracted from base commit",
+      "log": "original-source-edit-red.log"
+    },
+    {
+      "command": "cd model && mise exec -- cargo test -p umpire-checker -p umpire-suite -p umpire-catalog -p umpire-front --lib --locked",
+      "exit_code": 0,
+      "log": "verify-lib.log",
+      "stage": "verify",
+      "passed_tests": 27
+    },
+    {
+      "command": "cd model && mise exec -- cargo test -p umpire-testing --lib source_edit_tests --locked",
+      "exit_code": 0,
+      "log": "verify-source-edit.log",
+      "passed_tests": 2
+    },
+    {
+      "command": "cd model && mise exec -- cargo test -p umpire-runtime --test wire --test core_protocol --test proposal_wire --locked",
+      "exit_code": 0,
+      "log": "verify-wire-final.log",
+      "passed_tests": 7
+    },
+    {
+      "command": "cd model && mise exec -- cargo test -p umpire-catalog --test generation --test black_box --locked",
+      "exit_code": 0,
+      "log": "verify-generation.log",
+      "passed_tests": 16
+    },
+    {
+      "command": "cd model && mise exec -- cargo test -p umpire-suite --test fixtures --locked",
+      "exit_code": 0,
+      "log": "verify-suite-goldens.log",
+      "passed_tests": 1
+    },
+    {
+      "command": "cd model && mise exec -- cargo test -p umpire-reference-kettle --test probes --locked",
+      "exit_code": 0,
+      "log": "verify-kettle-probes.log",
+      "passed_tests": 4
+    },
+    {
+      "command": "cd model && mise exec -- cargo test -p umpire-temporal --lib probes::generic::tests --locked",
+      "exit_code": 0,
+      "log": "verify-generic-probes.log",
+      "passed_tests": 1
+    },
+    {
+      "command": "cd model && mise exec -- cargo test -p umpire-fixtures --test fixtures world_fairness_source_only_selectors_and_leaves_discriminate --locked",
+      "exit_code": 0,
+      "log": "verify-world-source-edits.log",
+      "passed_tests": 1
+    },
+    {
+      "command": "cd model && mise exec -- cargo test -p umpire-temporal-tests --test fixtures source_only_global_budget_controls_keep_laws_and_discriminate --locked",
+      "exit_code": 0,
+      "log": "verify-activity-source-edits.log",
+      "passed_tests": 1
+    },
+    {
+      "command": "cd model && mise exec -- cargo clippy -p umpire-checker -p umpire-suite -p umpire-catalog -p umpire-front -p umpire-testing -p umpire-apalache -p umpire-reference-kettle -p umpire-temporal --all-targets --locked -- -D warnings",
+      "exit_code": 101,
+      "expected": false,
+      "resolved": "explicit Applicable variant replaces single-variant wildcard",
+      "log": "verify-clippy.log"
+    },
+    {
+      "command": "cd model && mise exec -- cargo clippy -p umpire-checker -p umpire-suite -p umpire-catalog -p umpire-front -p umpire-testing -p umpire-apalache -p umpire-reference-kettle -p umpire-temporal -p umpire-temporal-tests -p umpire-fixtures --all-targets --locked -- -D warnings",
+      "exit_code": 0,
+      "log": "verify-clippy-final.log"
+    },
+    {
+      "command": "cd model && mise exec -- cargo clippy -p umpire-runtime --all-targets --locked -- -D warnings",
+      "exit_code": 0,
+      "log": "verify-runtime-clippy.log"
+    },
+    {
+      "command": "cd model && mise exec -- cargo test -p umpire-catalog --test catalog --locked",
+      "exit_code": 0,
+      "log": "verify-catalog-goldens.log",
+      "passed_tests": 15
+    },
+    {
+      "command": "cd model && mise exec -- cargo test -p umpire-reference-kettle --test probes --locked",
+      "exit_code": 0,
+      "log": "verify-kettle-final.log",
+      "passed_tests": 4
+    },
+    {
+      "command": "cd model && mise exec -- cargo fmt --all --check",
+      "exit_code": 0,
+      "log": "verify-fmt.log"
+    }
+  ],
+  "joined_validation": "task7 conductor owns full Model validation, guest publication and snapshot acceptance"
+}

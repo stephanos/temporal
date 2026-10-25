@@ -3,24 +3,7 @@
 use crate::{BytesRules, Kind, NumberRules, RepeatedRules, StringRules, kind::number_name};
 use std::fmt;
 
-/// Stable `SplitMix64` stream; no operating-system randomness is consulted.
-#[derive(Clone, Debug)]
-pub struct Rng(u64);
-
-impl Rng {
-    /// Starts a deterministic stream.
-    pub const fn new(seed: u64) -> Self {
-        Self(seed)
-    }
-    /// Draws the next integer.
-    pub fn next_u64(&mut self) -> u64 {
-        self.0 = self.0.wrapping_add(0x9e37_79b9_7f4a_7c15);
-        let mut value = self.0;
-        value = (value ^ (value >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
-        value = (value ^ (value >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);
-        value ^ (value >> 31)
-    }
-}
+pub use umpire_checker::SplitMix64 as Rng;
 
 /// Refusal to construct a conforming typed value.
 #[derive(Clone, Debug, PartialEq, Eq)]

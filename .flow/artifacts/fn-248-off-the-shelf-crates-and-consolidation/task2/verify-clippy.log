@@ -1,0 +1,121 @@
+   Compiling unicode-ident v1.0.27
+   Compiling equivalent v1.0.3
+   Compiling hashbrown v0.17.1
+   Compiling smallvec v1.16.3
+   Compiling serde_core v1.0.229
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/backends/native)
+    Checking bytemuck v1.25.2
+    Checking rand_core v0.9.5
+    Checking imbl-sized-chunks v0.2.0
+    Checking proc-macro2 v1.0.107
+    Checking rand_xoshiro v0.7.0
+    Checking safe_arch v0.7.4
+    Checking foldhash v0.1.5
+    Checking wide v0.7.33
+    Checking archery v1.2.3
+    Checking hashbrown v0.15.5
+    Checking indexmap v2.14.2
+    Checking quote v1.0.47
+   Compiling libc v0.2.191
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling proc-macro-utils v0.10.0
+   Compiling linux-raw-sys v0.12.1
+    Checking imbl v7.0.2
+   Compiling bytes v1.12.1
+   Compiling rand_core v0.10.1
+   Compiling regex-syntax v0.8.11
+   Compiling fixedbitset v0.5.7
+   Compiling cfg-if v1.0.5
+   Compiling rustix v1.1.5
+   Compiling once_cell v1.21.4
+   Compiling manyhow-macros v0.14.1
+   Compiling getrandom v0.4.3
+    Checking petgraph v0.8.3
+    Checking rustc-hash v2.1.3
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling toml_edit v0.25.17+spec-1.1.0
+    Checking bitflags v2.13.2
+    Checking fastrand v2.5.0
+   Compiling proc-macro-crate v3.5.0
+   Compiling regex-automata v0.4.18
+   Compiling prettyplease v0.2.37
+   Compiling prettyplease v0.3.0
+   Compiling manyhow v0.14.1
+    Checking zmij v1.0.23
+    Checking memchr v2.8.3
+   Compiling tempfile v3.27.0
+    Checking itoa v1.0.18
+    Checking winnow v1.0.4
+    Checking toml_writer v1.1.3+spec-1.1.0
+    Checking target-tuple v1.0.2
+    Checking termcolor v1.4.1
+    Checking glob v0.3.4
+    Checking console v0.16.6
+    Checking similar v2.7.0
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/suite)
+    Checking toml_parser v1.1.5+spec-1.1.0
+    Checking wait-timeout v0.2.1
+    Checking bit-vec v0.10.1
+    Checking serde_json v1.0.154
+    Checking serde v1.0.229
+    Checking serde_spanned v1.1.2
+    Checking quick-error v1.2.3
+    Checking fnv v1.0.7
+    Checking bit-set v0.11.1
+    Checking num-traits v0.2.19
+    Checking rand v0.10.3
+    Checking toml v1.1.8+spec-1.1.0
+    Checking chacha20 v0.10.2
+   Compiling regex v1.13.1
+    Checking insta v1.49.0
+    Checking rusty-fork v0.3.1
+   Compiling enum-iterator-derive v1.5.0
+   Compiling prost-derive v0.14.4
+    Checking rand_xorshift v0.5.0
+    Checking unarray v0.1.4
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/ir/derive)
+   Compiling thiserror-impl v2.0.21
+   Compiling serde_derive v1.0.229
+    Checking core_detect v1.0.0
+    Checking enum-iterator v2.3.0
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/ir)
+    Checking proptest v1.12.0
+    Checking thiserror v2.0.21
+   Compiling prost v0.14.4
+    Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/backends/process)
+    Checking umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/front)
+   Compiling prost-types v0.14.4
+    Checking umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/backends/tla)
+   Compiling prost-build v0.14.4
+    Checking trybuild v1.0.122
+    Checking umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/backends/tlc)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/protocol/runtime)
+    Checking umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/dev/testing)
+    Checking umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/backends/apalache)
+    Checking umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/temporal/annotate/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog/macros)
+   Compiling umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/reference/kettle)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/temporal/realization/macros)
+   Compiling umpire-temporal-annotate-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/temporal/annotate/macros)
+    Checking umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog)
+    Checking umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/umpire)
+    Checking umpire-temporal-annotate v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/temporal/annotate)
+error: wildcard matches only a single variant and will also match any future added variants
+   --> umpire/reference/kettle/probes.rs:139:17
+    |
+139 |                 _ => return Err("unknown applicability".into()),
+    |                 ^ help: try: `ProbeApplicability::Applicable`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#match_wildcard_for_single_variants
+    = note: `-D clippy::match-wildcard-for-single-variants` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::match_wildcard_for_single_variants)]`
+
+error: could not compile `umpire-reference-kettle` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `umpire-reference-kettle` (lib test) due to 1 previous error

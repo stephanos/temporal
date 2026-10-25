@@ -8,6 +8,8 @@ mod bound;
 mod interpreted;
 mod render;
 mod runner;
+mod source_edit;
+pub use source_edit::{replace_code, replace_in, replace_once};
 
 pub use bound::{Bound, Declared, bound};
 #[doc(hidden)]
@@ -221,3 +223,6 @@ macro_rules! fixture {
 
 #[doc(hidden)]
 pub use umpire_checker::Checker;
+
+#[cfg(test)]
+mod source_edit_tests;

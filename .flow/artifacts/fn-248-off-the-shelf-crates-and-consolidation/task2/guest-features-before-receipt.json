@@ -1,0 +1,12 @@
+{
+  "source_commit": "0a1a733c72b91054ca0a4ee3d21378c56c26abef",
+  "command": "cd model && mise exec -- cargo tree -p umpire-kettle-guest -p umpire-temporal-guest --target wasm32-wasip1 -e features --locked",
+  "exit": 0,
+  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2482-before-guest-features.log",
+  "sha256": "5a938b90908e2497f7da4cbba643e7310a85c74e2a8f7d2df798f25b05b725ec",
+  "source_sha256": {
+    "model/Cargo.toml": "b542ece56408c2fca813396382f0c3a478bc93a725d860632afb9ecc54192f8c",
+    "model/Cargo.lock": "0eea0a3a9f36feb826c4cbdedd614c1c0ae73b99b17632e26a6dea57a98e083a",
+    "model/umpire/catalog/Cargo.toml": "87870944d4a376364e8e573067a030ead73b53f9428f4d610fbd78a381ddc426"
+  }
+}

@@ -1,4 +1,5 @@
 use super::fields::integer;
+use crate::Errors;
 use syn::{Expr, Field};
 
 /// Where an action input field's values come from.
@@ -30,7 +31,7 @@ pub fn action_enum(input: &syn::DeriveInput, world: bool) -> syn::Result<ActionE
         bail!(input, "Action requires an enum");
     };
     let name = &input.ident;
-    let mut errors = Errors(None);
+    let mut errors = Errors::default();
     let mut flags = [false; 2];
     for (flag, enabled) in ["internal", "fault"].into_iter().zip(&mut flags) {
         for attr in input.attrs.iter().filter(|attr| attr.path().is_ident(flag)) {
@@ -75,21 +76,7 @@ pub fn action_enum(input: &syn::DeriveInput, world: bool) -> syn::Result<ActionE
         }
         variants.push(domains);
     }
-    errors.finish()?;
-    Ok(ActionEnum { internal, fault, variants })
-}
-
-struct Errors(Option<syn::Error>);
-impl Errors {
-    fn push(&mut self, error: syn::Error) {
-        match &mut self.0 {
-            Some(previous) => previous.combine(error),
-            None => self.0 = Some(error),
-        }
-    }
-    fn finish(self) -> syn::Result<()> {
-        self.0.map_or(Ok(()), Err)
-    }
+    errors.finish(ActionEnum { internal, fault, variants })
 }
 
 fn domain(field: &Field, action: &str, index: usize, world: bool) -> syn::Result<FieldDomain> {

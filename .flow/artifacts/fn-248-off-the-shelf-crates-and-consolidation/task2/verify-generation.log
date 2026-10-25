@@ -1,0 +1,41 @@
+   Compiling rustix v1.1.5
+   Compiling linux-raw-sys v0.12.1
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/dsl/macros)
+   Compiling tempfile v3.27.0
+   Compiling insta v1.49.0
+   Compiling prost-build v0.14.4
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/protocol/runtime)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/backends/native)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 14.30s
+     Running tests/black_box.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2482-target/debug/deps/black_box-f035cd19bc42fd88)
+
+running 6 tests
+test crossed_actual_status_cannot_confirm_a_predicted_rejection ... ok
+test mutation_admission_preserves_distinct_diagnostic_matches_and_refusals ... ok
+test independent_mutations_include_unannotated_fields_and_explicit_refusals ... ok
+test generic_cases_need_any_rejection_explanation_but_keep_unexplained_failures ... ok
+test only_actual_unpredicted_rejections_are_unannotated_failures ... ok
+test typed_scalar_mutations_are_independent_of_catalog_constraints ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/generation.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2482-target/debug/deps/generation-b55d81334fcea9d3)
+
+running 10 tests
+test generated_text_satisfies_byte_and_scalar_bounds_together ... ok
+test exact_length_anchors_preserve_partial_overlap ... ok
+test unique_strings_use_the_permitted_scalar_and_byte_domains ... ok
+test required_substring_can_be_supplied_by_the_suffix ... ok
+test zero_maximum_repeated_length_is_fillable ... ok
+test presence_filling_uses_present_scalar_candidates ... ok
+test unique_repeated_times_sample_the_allowed_domain ... ok
+test numeric_range_semantics_match_protovalidate_endpoint_combinations ... ok
+test anchored_generation_matches_small_exhaustive_string_domains ... ok
+test bounded_unique_sampling_refuses_without_claiming_unsatisfiability ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

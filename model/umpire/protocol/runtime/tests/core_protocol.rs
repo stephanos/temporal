@@ -1,5 +1,8 @@
 //! Generic operation encoding and staged dispatch contract.
 
+#[allow(dead_code, reason = "wire vectors use only the shared hex decoder")]
+mod support;
+
 use prost::Message;
 use umpire_runtime::{
     Model,
@@ -53,15 +56,7 @@ fn new_core_messages_match_shared_literal_bytes() {
                 protocol::Response { outcome: Some(outcome) }.encode_to_vec()
             }
         };
-        let (pairs, remainder) = hex.as_bytes().as_chunks::<2>();
-        assert_eq!(remainder, []);
-        let expected: Vec<u8> = pairs
-            .iter()
-            .map(|pair| {
-                u8::from_str_radix(std::str::from_utf8(pair).unwrap_or_else(|e| panic!("{e}")), 16)
-                    .unwrap_or_else(|e| panic!("{e}"))
-            })
-            .collect();
+        let expected = support::decode_hex(hex);
         assert_eq!(actual, expected, "{name}");
     }
 }
