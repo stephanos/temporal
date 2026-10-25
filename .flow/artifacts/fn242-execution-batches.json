@@ -11605,11 +11605,9 @@
     "risk_policy": "Larger coherent batches, provisional APIs, boundary integration fixes, shared fixture/build evidence, retire legacy-only work; preserve current behavior/custody/bounds/classification/replay.",
     "shared_files": "Conductor serializes Cargo and exclusive-owner fixture integration; provisional workers own only declared producer subtrees.",
     "current_allocation": {
-      "B04": 1,
-      "B07": 1,
-      "B08": 1,
-      "B09": 1,
-      "B12": 1
+      "B03": 1,
+      "B05": 1,
+      "B14": 3
     },
     "risk_followthrough_2026_10_24": {
       "authority": "Owner repeated: can we take more risks, too?",
@@ -11642,7 +11640,8 @@
       "excluded": "Production timing, broad stress/soak, full qualification and acceptance-budget dispatch. Existing final qualification contracts remain unchanged.",
       "lease": "Conductor assigns and returns diagnostic slot3; no worker self-admission.",
       "overlay_reserve_rationale": "Observed same-worktree project outputs122.3MiB plus95MiB retained testbinary;2GiB reserve above unchanged20GiB normal overlayfloor suffices for one bounded diagnostic. Memory8GiB and host60GiB thresholds unchanged; actual taskfloors remain."
-    }
+    },
+    "allocation_observed_2026_10_25": "B14 three total includes leader and two disjoint delegates; B06/B13 frozen and released. Six global source writers maximum."
   },
   "aggressive_verification_amendment": {
     "authority": "Owner: can we speed up verification for each batch; aggressively speed things up, 2026-10-24",
@@ -11656,6 +11655,7 @@
     "existing_owner_reuse": "Existing meaningful Rust tests may discharge multiple original check IDs for the same guarantee. Map exact executed evidence and dependencies. New thin wrappers test new behavior, parameter forwarding, absence of dropped inputs and actual delegation with normal/refusal controls; do not duplicate all upstream parser/corruption matrices or create a new test per original Python predicate. Test existence or ancestor-only refusal alone earns no proof.",
     "optimization": "Opt-level0 release-profile correctness harnesses are sufficient final functional evidence if relevant cfg/features/source dependencies match. No additional optimized owner rebuild solely for optimization. Actual production role identities, native profiles, timing/resource budgets and final qualification retain genuine required profile/configuration and original gates.",
     "cache": "Keep target owned by its worktree through a diagnostic fix loop. Narrowclean only on foreign provenance/stale embedded source or actual build need. Preserve every still-referenced generated binding/compiler input before cleanup; regenerate honestly if already removed, without rewriting old receipts.",
-    "raw_inventory": "Preserve all original IDs and explicit guarantee/retirement mappings; no fabricated PASS or blanket retirement. Final behavior/identity/custody/replay/resource requirements stay binding."
+    "raw_inventory": "Preserve all original IDs and explicit guarantee/retirement mappings; no fabricated PASS or blanket retirement. Final behavior/identity/custody/replay/resource requirements stay binding.",
+    "pure_preparation_boundary": "B05 pure preparation receiving reuses existing Snapshot::observe of freshly committed source, independently verified unchanged stock Go/compiler-only Inventory rows with exact paths/hashes/phases, actual current Cargo artifact/.d/embedded-source provenance, and recorded producer PID/executable SHA. Caller independently chooses family roots/compiler/role/PID; receipt cannot choose authority. Use existing exclusive owner and Inventory APIs, no new authority format or fabricated Configured/CandidateRoles. Regenerate changed source-bound guest preparation inputs. This pure boundary does not require nine full role builds; actual Configured/installation/report consuming stages still require genuine same-candidate roots and final qualification."
   }
 }
