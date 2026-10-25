@@ -330,3 +330,10 @@ pub(crate) fn request(input: &Value) -> Result<linked::Request, String> {
         storage: Some(serde_json::from_value(decode("storage")?).map_err(|e| e.to_string())?),
     })
 }
+
+pub(crate) fn validate_recovered_state(
+    state: &codec::StateObservation<'_>,
+    image: &codec::RecoveryObservation,
+) -> Result<(), String> {
+    effects::recovered(image, state)
+}

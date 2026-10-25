@@ -14,15 +14,20 @@ impl RetainedSession {
             "prepared provenance belongs to foreign release/helper",
         )?;
         let compiler = text(inputs, "compiler_path")?;
+        let frozen = self.config["files"].get(compiler).and_then(Value::as_str);
+        let alias = self.private_inputs.get(compiler);
+        let expected = frozen.or_else(|| alias.map(|value| value.sha256.as_str()));
         require(
-            self.config["files"].get(compiler) == inputs.get("compiler_sha256"),
+            expected == Some(text(inputs, "compiler_sha256")?),
             "qualification compiler path/hash not frozen",
         )?;
-        require(
-            digest(&custody::read_file(Path::new(compiler), 512 << 20)?)
-                == text(inputs, "compiler_sha256")?,
-            "actual frozen compiler changed",
-        )?;
+        if frozen.is_some() || !alias.is_some_and(|value| value.detached) {
+            require(
+                digest(&custody::read_file(Path::new(compiler), 512 << 20)?)
+                    == text(inputs, "compiler_sha256")?,
+                "actual frozen compiler changed",
+            )?;
+        }
         let manifest = Manifest {
             schema: result::MANIFEST_SCHEMA.into(),
             provisional: false,
@@ -85,6 +90,10 @@ impl RetainedSession {
         )?;
         self.provenance(&retained.provenance)?;
         let report = &retained.report;
+        let success = report
+            .executions
+            .iter()
+            .all(|row| row.record.outcome.class == "success");
         require(
             report.executions.len() == 2
                 && report.executions.iter().map(|row| row.iteration).eq([1, 2])
@@ -93,8 +102,8 @@ impl RetainedSession {
                 && !report.command.is_empty()
                 && report.failure.is_none()
                 && report.deterministic
-                && report.qualified
-                && report.target_success
+                && report.qualified == success
+                && report.target_success == success
                 && report.first_divergence.is_none(),
             "Result lacks complete deterministic final outcomes",
         )?;
@@ -120,6 +129,25 @@ impl RetainedSession {
         }
         Ok(())
     }
+    pub(super) fn final_publication(
+        retained: &QualificationResult,
+        receipt: &result::Receipt,
+        terminal: &crate::qualify::cost::Terminal,
+    ) -> Result<(), String> {
+        require(
+            receipt.linked_after.is_some()
+                && receipt.operator_peak_rss_bytes.is_some_and(|peak| {
+                    peak > 0
+                        && peak <= 2 << 30
+                        && retained
+                            .observations
+                            .operator_peak_rss_bytes
+                            .is_some_and(|before| before > 0 && before <= peak)
+                })
+                && terminal.status == "within",
+            "final Result publication lacks attributed within-budget measurement",
+        )
+    }
     #[expect(
         clippy::too_many_lines,
         reason = "One Result transaction independently reopens all execution and journal owners"
@@ -138,9 +166,10 @@ impl RetainedSession {
                 && reported["receipt"]
                     == serde_json::to_value(&receipt).map_err(|e| e.to_string())?
                 && reported["publication"]
-                    == serde_json::to_value(terminal).map_err(|e| e.to_string())?,
+                    == serde_json::to_value(&terminal).map_err(|e| e.to_string())?,
             "public report differs from raw Result/receipt/publication",
         )?;
+        Self::final_publication(&retained, &receipt, &terminal)?;
         self.final_contract(&retained)?;
         let manifest = &retained.manifest;
         let report = &retained.report;
