@@ -66,6 +66,10 @@ pub(crate) fn lexical(path: &Path) -> Result<PathBuf> {
     Ok(normalized)
 }
 
+pub(crate) fn caller_path(path: PathBuf, base: &Path) -> PathBuf {
+    if path.is_absolute() { path } else { base.join(path) }
+}
+
 fn physical(path: &Path) -> Result<PathBuf> {
     if path.exists() { Ok(fs::canonicalize(path)?) } else { lexical(path) }
 }
@@ -184,6 +188,15 @@ impl Remaps {
 mod tests {
     use super::*;
     use std::os::unix::ffi::OsStringExt;
+
+    #[test]
+    fn caller_paths_preserve_relative_and_absolute_os_bytes() {
+        let base = PathBuf::from(OsString::from_vec(b"/caller-\xff".to_vec()));
+        let relative = PathBuf::from(OsString::from_vec(b"out-\xfe".to_vec()));
+        assert_eq!(caller_path(relative.clone(), &base), base.join(&relative));
+        let absolute = PathBuf::from(OsString::from_vec(b"/target-\xfd".to_vec()));
+        assert_eq!(caller_path(absolute.clone(), &base), absolute);
+    }
 
     #[test]
     fn raw_context_roundtrips_and_longest_root_drives_flags_and_identity() {

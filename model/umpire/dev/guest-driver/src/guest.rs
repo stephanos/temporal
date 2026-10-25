@@ -1,7 +1,7 @@
 //! Native guest orchestration, prerequisite admission and artifact publication.
 use crate::{
     Error, Result,
-    context::{Context, ToolRoot},
+    context::{Context, ToolRoot, caller_path},
     support,
 };
 use serde::Deserialize;
@@ -154,10 +154,6 @@ fn prerequisites(workspace: &Path) -> Result<()> {
     Ok(())
 }
 
-fn absolute(path: PathBuf, base: &Path) -> PathBuf {
-    if path.is_absolute() { path } else { base.join(path) }
-}
-
 fn launcher(path: &Path, binary: &[u8]) -> Result<()> {
     use std::fs::OpenOptions;
     let parent = path.parent().ok_or_else(|| invalid("launcher needs parent"))?;
@@ -227,7 +223,7 @@ pub fn run(arguments: &[OsString], freshness: bool) -> Result<i32> {
     }
     let tools = ToolRoot::local()?;
     let workspace = env::current_dir()?.canonicalize()?;
-    let output = absolute(PathBuf::from(&arguments[1]), &workspace);
+    let output = caller_path(PathBuf::from(&arguments[1]), &workspace);
     if freshness {
         prerequisites(tools.path())?;
     }
@@ -237,8 +233,8 @@ pub fn run(arguments: &[OsString], freshness: bool) -> Result<i32> {
         .map(PathBuf::from)
         .or_else(|| env::var_os("HOME").map(|p| PathBuf::from(p).join(".cargo")))
         .ok_or_else(|| invalid("missing CARGO_HOME/HOME"))?;
-    let cargo_home = absolute(cargo_home, &workspace);
-    let target = absolute(
+    let cargo_home = caller_path(cargo_home, &workspace);
+    let target = caller_path(
         env::var_os("CARGO_TARGET_DIR").map_or_else(|| workspace.join("target"), PathBuf::from),
         &workspace,
     );
