@@ -18,6 +18,10 @@ The bounded pre-implementation survey found no removed package in the retained c
 
 The required broad vet command exposes pre-existing QueueInfo protobuf mutex copies in `tools/tdbg/dlq_v2_service.go`. Repair that small retained-tool issue in this lane using pointer-preserving collection/iteration; preserve sorted JSON/table behavior. Run existing DLQ list controls and broad vet in the declared modes, retaining the original failure as baseline evidence. This exact file is admitted so the required gate can pass without suppressing copylocks or excluding unrelated packages.
 
+### Deleted-directory lint selection
+
+The removal exposes `lint-code-fast` returning a failure when its final changed directory no longer exists. Its Makefile directory-selection loop is admitted for a minimal fix that skips deleted directories successfully while retaining actual linter failures. Verify the wrapper against this task baseline and run the retained changed-package lint; no broad lint-policy rewrite.
+
 ## Acceptance
 - [ ] The six packages and the backends targets are gone; A source-only tracked-file search finds no live imports/build hooks/current documentation referring to removed packages or backend targets. Preserve references in `model/archived`, historical `.flow`/`.plans` records and the Testpilot dependency-boundary negative fixture; record these explicit exemptions. Confirm the retained production and test dependency closures with `go list -mod=readonly -deps -test -tags 'test_dep integration canary_harness'` rather than treating text matches as imports.
 - [ ] `go build ./...`, `go vet` on the remaining tools, `go test -tags test_dep ./tools/umpire/... ./common/testing/testpilot/...` and `make canary-build` pass. Execute `make umpire-check-live-tests` (not merely its dry run), plus retained canary/workflow tests for the CI edit. Keep production build and `test_dep` test/vet modes explicit.
