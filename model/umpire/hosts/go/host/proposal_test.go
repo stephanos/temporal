@@ -106,7 +106,7 @@ func TestControlProposalBootstrapPollingAndCallbackParity(t *testing.T) {
 	if err != nil || next.GetAction() != "Finish" {
 		t.Fatalf("next: %v %v", next, err)
 	}
-	controlJudge(t, host, 3, "Finish")
+	controlJudge(t, host, 3, "Deliver", "Respond", "Finish")
 	_, err = host.Propose(ctx, request)
 	if !errors.As(err, &refusal) || refusal.Code != modelv1.RefusalCode_REFUSAL_CODE_QUIESCENT {
 		t.Fatalf("quiescent: %v", err)
