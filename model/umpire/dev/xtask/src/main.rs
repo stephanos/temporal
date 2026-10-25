@@ -62,6 +62,16 @@ fn guest(arguments: Vec<OsString>) -> xtask::Result<i32> {
 fn run() -> xtask::Result<i32> {
     let mut arguments = env::args_os().skip(1);
     match arguments.next().as_deref() {
+        Some(command)
+            if ["gate", "fmt", "update", "time", "validate"]
+                .iter()
+                .any(|name| command == OsStr::new(name)) =>
+        {
+            xtask::gate::run(
+                command.to_str().ok_or_else(|| xtask::Error::Invalid("command must be UTF-8".into()))?,
+                arguments.collect(),
+            )
+        }
         Some(command) if command == OsStr::new("fetch-apalache") => {
             let root = arguments.next();
             if arguments.next().is_some() {
@@ -98,7 +108,7 @@ fn run() -> xtask::Result<i32> {
             ))
         }
         _ => Err(xtask::Error::Invalid(
-            "commands: fetch-apalache, guest, guest-freshness, guest-lock, retired-names".into(),
+            "commands: gate, fmt, update, time, validate, fetch-apalache, guest, guest-freshness, guest-lock, retired-names".into(),
         )),
     }
 }

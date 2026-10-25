@@ -43,16 +43,31 @@ fn actual_make_freshness_recipe_propagates_stale_failure() {
     let makefile = fs::read_to_string(source.join("Makefile")).unwrap();
     let recipe = makefile
         .lines()
-        .find(|line| line.starts_with('\t') && line.contains("temporal-guest-freshness"))
+        .find(|line| line.starts_with('\t') && line.contains("$(RUST_MODEL_CARGO) xtask gate"))
         .unwrap();
     fs::write(
         f.model.join("../freshness-control.mk"),
-        format!(".PHONY: freshness-control\nfreshness-control:\n{recipe}\n"),
+        format!("RUST_MODEL_CARGO := cd model && mise exec -- cargo\n.PHONY: freshness-control\nfreshness-control:\n{recipe}\n"),
     )
     .unwrap();
     let output = f.model.join("temporal/hosts/go/umpire_temporal_guest.wasm");
     fs::create_dir_all(output.parent().unwrap()).unwrap();
     fs::write(&output, b"keep").unwrap();
+    fs::rename(f.root.join("bin/mise"), f.root.join("bin/real-mise")).unwrap();
+    support::executable(
+        &f.root.join("bin/mise"),
+        r#"#!/bin/bash
+set -euo pipefail
+if [ "$*" = 'exec -- cargo xtask gate' ]; then
+  printf 'temporal gate freshness delegation\n' >> "$FIXTURE/gate-called"
+  if "$NATIVE_DRIVER" guest-freshness umpire-temporal-guest "$PWD/temporal/hosts/go/umpire_temporal_guest.wasm"; then
+    exit 0
+  fi
+  exit 37
+fi
+exec "$FIXTURE/bin/real-mise" "$@"
+"#,
+    );
     let environment = f.command(true, true);
     let mut command = Command::new("make");
     command.current_dir(f.model.parent().unwrap()).args([
@@ -69,12 +84,17 @@ fn actual_make_freshness_recipe_propagates_stale_failure() {
         }
     }
     let result = command.output().unwrap();
-    assert!(!result.status.success());
+    assert_eq!(result.status.code(), Some(2));
+    assert_eq!(
+        fs::read_to_string(f.root.join("gate-called")).unwrap(),
+        "temporal gate freshness delegation\n"
+    );
     assert!(
         String::from_utf8_lossy(&result.stderr).contains("stale"),
         "{}",
         String::from_utf8_lossy(&result.stderr)
     );
+    assert!(String::from_utf8_lossy(&result.stderr).contains("Error 37"));
     assert_eq!(fs::read(&output).unwrap(), b"keep");
 }
 

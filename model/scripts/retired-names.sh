@@ -7,7 +7,7 @@ if [ -z "$helper" ]; then
   helper=$(bash "$workspace/scripts/xtask.sh")
 fi
 historical=(
-  ':!model/archived' ':!.flow'
+  ':!model/archived' ':!.flow' ':!model/umpire'
   ':!.plans/umpire-migration-audit.json' ':!.plans/umpire-migration-manifest.json'
   ':!model/design/rust-verdict-measurements.md'
 )

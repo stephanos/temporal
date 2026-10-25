@@ -12,8 +12,17 @@ use std::{
     process::{Command, Stdio},
 };
 
+mod gate;
+mod test_run;
+
 fn run() -> io::Result<i32> {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+    if env::args_os().nth(1).is_some_and(|command| command == "gate") {
+        if env::args_os().len() != 2 {
+            return Err(io::Error::other("usage: cargo xtask gate"));
+        }
+        return gate::run(&root);
+    }
     let caller = env::current_dir()?;
     let cargo_home = umpire_guest_driver::context::cargo_home(&caller).map_err(io::Error::other)?;
     let mut arguments: Vec<_> = env::args_os().skip(1).collect();

@@ -1,0 +1,21 @@
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/dev/xtask/src/lib.rs:4:
+ pub mod apalache_pins;
+ /// SHA-pinned installer with private staging and serialized publication.
+ pub mod fetch_apalache;
+-pub mod retired_names;
+ pub mod gate;
++pub mod retired_names;
+ pub mod test_run;
+ 
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/dev/xtask/tests/main.rs:1:
+ //! Native CLI controls.
+ #![forbid(unsafe_code)]
+-#[path = "gate_wiring.rs"]
+-mod gate_wiring;
+ #[path = "apalache_install.rs"]
+ mod apalache_install;
++#[path = "gate_wiring.rs"]
++mod gate_wiring;
+ #[path = "retired_names.rs"]
+ mod retired_names;
+ pub use xtask::{Error, Result, apalache_pins, support};

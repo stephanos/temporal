@@ -3,9 +3,8 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 scratch=$(mktemp -d)
 trap 'rm -rf "${scratch:?}"' EXIT
-mkdir -p "$scratch/repo/model/scripts" "$scratch/repo/model/umpire/scripts" "$scratch/repo/model/umpire/.bin" "$scratch/repo/.bin" "$scratch/bin" "$scratch/tmp"
+mkdir -p "$scratch/repo/model/scripts" "$scratch/repo/.bin" "$scratch/bin" "$scratch/tmp"
 cp scripts/proto-go.sh "$scratch/repo/model/scripts/"
-cp umpire/scripts/proto-go.sh "$scratch/repo/model/umpire/scripts/"
 export TMPDIR="$scratch/tmp" PROTO_LOG="$scratch/protoc.log"
 export PATH="$scratch/bin:$PATH"
 cat > "$scratch/bin/mise" <<'TOOL'
@@ -29,12 +28,7 @@ cat > "$scratch/repo/.bin/protoc-gen-go-v1.36.6" <<'TOOL'
 #!/usr/bin/env bash
 printf '%s\n' "${GO_VERSION:-protoc-gen-go v1.36.6}"
 TOOL
-cat > "$scratch/repo/.bin/protoc-gen-go-grpc-v1.3.0" <<'TOOL'
-#!/usr/bin/env bash
-printf '%s\n' "${GRPC_VERSION:-protoc-gen-go-grpc 1.3.0}"
-TOOL
 chmod +x "$scratch/bin/mise" "$scratch/repo/.bin/"*
-cp "$scratch/repo/.bin/"* "$scratch/repo/model/umpire/.bin/"
 script="$scratch/repo/model/scripts/proto-go.sh"
 refuse() {
   local expected=$1
@@ -45,48 +39,23 @@ refuse() {
   fi
   grep -F "$expected" "$scratch/refusal.log" >/dev/null || { cat "$scratch/refusal.log" >&2; exit 1; }
 }
-for module in core kettle temporal; do
-  case "$module" in
-    core) tree=umpire/hosts/go/gen; input=protocol/proto/umpire/run/v1/run.proto ;;
-    kettle) tree=umpire/reference/kettle/gen; input=reference/kettle/proto/kettle/v1/probe.proto ;;
-    temporal) tree=temporal/hosts/go; input=temporal/proto/umpire/temporal/v1/activity.proto ;;
-  esac
-  bash "$script" "$module"
-  grep -Fx "$input" "$PROTO_LOG" >/dev/null
-  if [ "$module" = kettle ]; then
-    grep -F -- '--go-grpc_out=' "$PROTO_LOG" >/dev/null
-  elif grep -F -- '--go-grpc_out=' "$PROTO_LOG" >/dev/null; then
-    exit 1
-  fi
-  destination="$scratch/repo/model/$tree"
-  if [ "$module" = temporal ]; then
-    printf 'handwritten\n' > "$destination/host.go"
-    destination="$destination/umpire"
-  fi
-  bash "$script" "$module" --check
-  printf 'stale\n' > "$destination/stale.go"
-  refuse 'stale.go' bash "$script" "$module" --check
-  rm "$destination/stale.go"
-  ln -s /dev/null "$destination/link.go"
-  refuse 'not generated:' bash "$script" "$module" --check
-  rm "$destination/link.go"
-  bash "$script" "$module" --check
-done
+bash "$script" temporal
+grep -Fx 'temporal/proto/umpire/temporal/v1/activity.proto' "$PROTO_LOG" >/dev/null
+if grep -F -- '--go-grpc_out=' "$PROTO_LOG" >/dev/null; then exit 1; fi
+destination="$scratch/repo/model/temporal/hosts/go"
+printf 'handwritten\n' > "$destination/host.go"
+bash "$script" temporal --check
+printf 'stale\n' > "$destination/umpire/stale.go"
+refuse 'stale.go' bash "$script" temporal --check
+rm "$destination/umpire/stale.go"
+ln -s /dev/null "$destination/umpire/link.go"
+refuse 'not generated:' bash "$script" temporal --check
+rm "$destination/umpire/link.go"
+bash "$script" temporal --check
+[ "$(cat "$destination/host.go")" = handwritten ]
 rm "$PROTO_LOG"
-for args in '' unknown 'core --bogus' 'core --check surplus'; do
-  # Intentional splitting exercises the public argument vector.
+for args in core kettle 'temporal --bogus' 'temporal --check surplus'; do
   refuse 'usage:' bash "$script" $args
 done
 [ ! -e "$PROTO_LOG" ]
-refuse 'wrong protoc-gen-go version' env GO_VERSION=wrong bash "$script" core --check
-refuse 'wrong protoc-gen-go-grpc version' env GRPC_VERSION=wrong bash "$script" kettle --check
-refuse 'wrong protoc version' env PROTO_VERSION=wrong bash "$script" temporal --check
-mv "$scratch/repo/model/umpire/.bin/protoc-gen-go-grpc-v1.3.0" "$scratch/grpc"
-bash "$script" core --check
-refuse 'scripts/proto-tools.sh' bash "$script" kettle --check
-mv "$scratch/repo/model/umpire/.bin/protoc-gen-go-v1.36.6" "$scratch/go"
-refuse 'scripts/proto-tools.sh' bash "$script" core --check
-mv "$scratch/go" "$scratch/repo/model/umpire/.bin/protoc-gen-go-v1.36.6"
-if PROTO_FAIL=1 bash "$script" core --check; then exit 1; else [ "$?" = 42 ]; fi
-[ -z "$(find "$scratch/tmp" -mindepth 1 -print -quit)" ]
-printf 'proto-go controls: selectors, pins, freshness, symlinks, failures and cleanup passed\n'
+printf 'Temporal proto controls: selector, handwritten host, freshness and symlink refusal passed (fake protoc)\n'

@@ -1269,47 +1269,22 @@ endif
 
 ##### model: Umpire in Rust (fn-210) #####
 RUST_MODEL_CARGO := cd model && mise exec -- cargo
-RUST_MODEL_STEP = $(if $(filter 1,$(UMPIRE_TIME_STEPS)),/bin/bash $(CURDIR)/model/scripts/time-gate.sh --step $(1),)
-RUST_MODEL_WASM_ENV = UMPIRE_WASM="$$target/wasm32-wasip1/guest/umpire_stock_guest.wasm" UMPIRE_KETTLE_WASM="$$target/wasm32-wasip1/guest/umpire_kettle_guest.wasm" UMPIRE_STATEFUL_WASM="$$target/wasm32-wasip1/guest/stateful_control.wasm" UMPIRE_CAUGHT_PANIC_WASM="$$target/wasm32-wasip1/guest/caught_panic_control.wasm" UMPIRE_OVERFLOW_WASM="$$target/wasm32-wasip1/guest/overflow_control.wasm" UMPIRE_PANIC_NATIVE="$$target/panic-native" UMPIRE_CURRENT_CONTRACT_NATIVE="$$target/current-contract-native"
+RUST_MODEL_FRAMEWORK = cd model/umpire && helper=$$(/bin/bash scripts/xtask.sh) && "$$helper"
 
 .PHONY: model-check model-fmt model-update model-time model-validate
+model-check: override export UMPIRE_QUICK_CACHE = 0
+model-check: override export UMPIRE_CACHE_DISABLE = 1
 model-check: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(API_BINPB)
-	@/bin/bash "$(CURDIR)/model/umpire/scripts/proto-tools.sh"
-	@printf $(COLOR) "Check model (fmt, clippy, docs, workspace and native-tool tests)..."
-	@if [ "$${UMPIRE_BACKENDS:-}" = require ]; then printf '%s\n' 'TLC backend required: real source-lifted agreement and semantic controls'; else printf '%s\n' 'TLC backend skipped: no execution/agreement evidence; use UMPIRE_BACKENDS=require'; fi
-	@if [ "$${UMPIRE_APALACHE:-}" = require ]; then printf '%s\n' 'Apalache backend required: real bounded checks and replay controls'; helper=$$(/bin/bash "$(CURDIR)/model/scripts/xtask.sh") && "$$helper" fetch-apalache "$(CURDIR)/model/umpire"; else printf '%s\n' 'Apalache backend skipped until fn-211 resumes; use UMPIRE_APALACHE=require'; fi
-	@$(call RUST_MODEL_STEP,temporal-guest-freshness) /bin/bash "$(CURDIR)/model/scripts/guest-freshness.sh" umpire-temporal-guest "$(CURDIR)/model/temporal/hosts/go/umpire_temporal_guest.wasm"
-	@$(call RUST_MODEL_STEP,retired-names) /bin/bash $(CURDIR)/model/scripts/retired-names.sh
-	@$(call RUST_MODEL_STEP,timing-controls) /bin/bash $(CURDIR)/model/scripts/test-time-gate.sh
-	@$(call RUST_MODEL_STEP,capability-controls) /bin/bash $(CURDIR)/model/scripts/test-capabilities.sh
-	@cd model && $(call RUST_MODEL_STEP,source-boundary) mise exec -- cargo test -p umpire-temporal-tests --test boundary --quiet
-	@$(call RUST_MODEL_STEP,protobuf-controls) /bin/bash $(CURDIR)/model/scripts/tests/proto-go.sh
-	@$(call RUST_MODEL_STEP,protobuf-freshness) /bin/bash $(CURDIR)/model/scripts/proto-go.sh core --check
-	@$(call RUST_MODEL_STEP,kettle-protobuf-freshness) /bin/bash $(CURDIR)/model/scripts/proto-go.sh kettle --check
-	@$(call RUST_MODEL_STEP,temporal-protobuf-freshness) /bin/bash $(CURDIR)/model/scripts/proto-go.sh temporal --check
-	@cd model && $(call RUST_MODEL_STEP,fmt) mise exec -- cargo fmt --all --check
-	@cd model/umpire && $(call RUST_MODEL_STEP,fmt-framework) mise exec -- cargo fmt --all --check
-	@cd model && $(call RUST_MODEL_STEP,clippy) mise exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings
-	@cd model/umpire && $(call RUST_MODEL_STEP,clippy-framework) mise exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings
-	@cd model && $(call RUST_MODEL_STEP,docs) env RUSTDOCFLAGS="-D warnings" mise exec -- cargo doc --workspace --no-deps --quiet
-	@cd model/umpire && $(call RUST_MODEL_STEP,docs-framework) env RUSTDOCFLAGS="-D warnings" mise exec -- cargo doc --workspace --no-deps --quiet
-	@cd model && $(call RUST_MODEL_STEP,tests) mise exec -- cargo test --workspace --locked --quiet
-	@cd model/umpire && $(call RUST_MODEL_STEP,tests-framework) mise exec -- cargo test --workspace --locked --quiet
-	@cd model/umpire && $(call RUST_MODEL_STEP,wasm32-wasip1) mise exec -- cargo build --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --quiet
-	@cd model/umpire && $(call RUST_MODEL_STEP,core-wasm-clippy) mise exec -- cargo clippy --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --lib --locked -- -D warnings
-	@$(call RUST_MODEL_STEP,wasm-guest) /bin/bash $(CURDIR)/model/scripts/tests/build-guests.sh
-	@target="$${CARGO_TARGET_DIR:-$(CURDIR)/model/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && cd model && $(RUST_MODEL_WASM_ENV) CGO_ENABLED=0 $(call RUST_MODEL_STEP,go-host) mise exec -- go -C "$$PWD/umpire/hosts/go" test -tags test_dep -count=1 ./...
-	@target="$${CARGO_TARGET_DIR:-$(CURDIR)/model/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && cd model && $(RUST_MODEL_WASM_ENV) CGO_ENABLED=0 $(call RUST_MODEL_STEP,kettle-go-host) mise exec -- go -C "$$PWD/umpire/reference/kettle" test -tags test_dep -count=1 ./...
-	@cd model && CGO_ENABLED=0 $(call RUST_MODEL_STEP,temporal-go-host) mise exec -- go -C "$$PWD/temporal/hosts/go" test -tags test_dep -count=1 ./...
+	@$(RUST_MODEL_FRAMEWORK) gate
+	@$(RUST_MODEL_CARGO) xtask gate
 
 model-fmt:
+	@$(RUST_MODEL_FRAMEWORK) fmt
 	@$(RUST_MODEL_CARGO) fmt --all
-	@cd model/umpire && mise exec -- cargo fmt --all
 
 model-update:
-	@printf $(COLOR) "Update model golden files (insta, trybuild)..."
+	@$(RUST_MODEL_FRAMEWORK) update
 	@cd model && INSTA_UPDATE=always TRYBUILD=overwrite mise exec -- cargo test --workspace --quiet
-	@cd model/umpire && INSTA_UPDATE=always TRYBUILD=overwrite mise exec -- cargo test --workspace --quiet
 
 model-time:
 	@printf $(COLOR) "Time the model feedback loop (fn-210 R30)..."

@@ -57,3 +57,8 @@ for expected in 0 37; do
   fi
 done
 
+framework="$PWD"
+(cd "$diagnostic_directory" && bash "$framework/scripts/time-gate.sh" --step caller-directory /bin/bash -c '[ "$PWD" = "$1" ]' -- "$diagnostic_directory") >/dev/null
+status=0
+(cd "$diagnostic_directory" && bash "$framework/scripts/time-gate.sh" --step child-status /bin/bash -c 'exit 37') >/dev/null 2>&1 || status=$?
+[ "$status" -eq 37 ]

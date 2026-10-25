@@ -95,9 +95,14 @@ The gate, from the repository root (`temporal/`):
 ```
 make model-validate # one TLC-required full gate, then one edited-checker benchmark
 make model-check   # same full gate, TLC skipped by default; no benchmark
-make model-fmt     # rustfmt the workspace
+make model-fmt     # rustfmt both workspaces
 make model-time    # time the actual gate; note overruns of 10 s inner-loop / 60 s gate soft targets (R30)
 ```
+
+Root Make delegates framework checks once to `model/umpire` and retains the Temporal
+checks. For framework-only feedback, run `mise exec -- cargo xtask gate` from
+`model/umpire`; see its [gate commands](umpire/README.md). Both full gates disable
+quick-cache reads before starting stage children.
 
 The gate rejects retired crate names in active files, preserving archived source and historical
 evidence. It also checks resolved core capability restrictions and their negative controls,
@@ -165,7 +170,7 @@ negative controls for missing, unexpected and mis-typed exports.
 The ABI crate keeps the workspace lint rules with `unsafe_code = deny` and local
 exceptions only on the three named export attributes. DSL/checker retain `forbid`.
 
-From either workspace, `cargo check-all` and `cargo doc-all` are aliases for its clippy and doc steps. The root Make stages invoke both workspaces.
+From either workspace, `cargo check-all` and `cargo doc-all` are aliases for its clippy and doc steps. The combined gate covers both workspaces.
 `model-validate` forces TLC-required `model-time` through environment/Make conflicts; add
 `UMPIRE_APALACHE=require` for both. Legacy modes remain; required timings are separate from historical defaults.
 `model-time` measures every `model-check` stage, then touches `umpire/backends/native/src/lib.rs` and tests

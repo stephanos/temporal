@@ -1,0 +1,115 @@
+{
+  "commands": [
+    {
+      "label": "framework-proto-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/umpire/scripts/tests/proto-go.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.4414972909999051
+    },
+    {
+      "label": "outer-proto-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/scripts/tests/proto-go.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.14718462499968155
+    },
+    {
+      "label": "framework-timer-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/umpire/scripts/test-time-gate.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.06176412500008155
+    },
+    {
+      "label": "framework-proto-tools-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/umpire/scripts/tests/proto-tools.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.2777212499995585
+    },
+    {
+      "label": "framework-bootstrap-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/umpire/scripts/tests/bootstrap.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.11872850000054314
+    },
+    {
+      "label": "framework-build-guest-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/umpire/scripts/tests/build-guests-controls.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.052024749999873166
+    },
+    {
+      "label": "root-timer-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/scripts/test-time-gate.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.2763437920002616
+    },
+    {
+      "label": "framework-native-tests",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "xtask",
+        "--lib",
+        "--test",
+        "main"
+      ],
+      "exit": 0,
+      "seconds": 5.018917211000371
+    },
+    {
+      "label": "outer-native-tests",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "temporal-xtask"
+      ],
+      "exit": 101,
+      "seconds": 7.763408046000222
+    }
+  ],
+  "env": {
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent",
+    "CARGO_BUILD_JOBS": "2",
+    "RUST_TEST_THREADS": "2",
+    "CARGO_INCREMENTAL": "0"
+  }
+}

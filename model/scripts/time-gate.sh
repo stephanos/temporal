@@ -47,9 +47,10 @@ total=$({ time UMPIRE_TIME_STEPS=1 make -C .. model-check >"$gate_log" 2>&1; } 2
 cat "$gate_log"
 
 test -f "$inner_file"
-printf 'inner source: %s\ninner command: mise exec -- cargo test -p %s --quiet\n' "$inner_file" "$inner_crate"
+printf 'inner source: %s\ninner command: cd umpire && mise exec -- cargo test -p %s --quiet\n' "$inner_file" "$inner_crate"
 touch "$inner_file"
-out=$(step "inner loop (edit+test)" mise exec -- cargo test -p "$inner_crate" --quiet); echo "${out%$'\n'*}"; inner=${out##*$'\n'}
+framework_inner() (cd umpire && mise exec -- cargo test -p "$inner_crate" --quiet)
+out=$(step "inner loop (edit+test)" framework_inner); echo "${out%$'\n'*}"; inner=${out##*$'\n'}
 
 printf '%-32s %6ss  (soft target %ss)\n' "gate total" "$total" "$GATE_BUDGET"
 printf '%-32s %6ss  (soft target %ss)\n' "inner loop" "$inner" "$INNER_BUDGET"
