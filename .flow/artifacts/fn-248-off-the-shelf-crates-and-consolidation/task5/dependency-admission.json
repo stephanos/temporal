@@ -1,0 +1,24 @@
+[
+  {
+    "crate": "thiserror",
+    "version": "2.0.21",
+    "latest": "2.0.21",
+    "released": "2026-09-23T20:24:07.771104Z",
+    "license": "MIT OR Apache-2.0",
+    "rust_version": "1.77",
+    "yanked": false,
+    "source": "https://crates.io/api/v1/crates/thiserror",
+    "admission": ".flow/specs/fn-210-rust-prototype-kettle-on-a-trait-engine.md:59"
+  },
+  {
+    "crate": "prost-types",
+    "version": "0.14.4",
+    "latest": "0.14.4",
+    "released": "2026-06-07T10:13:51.361558Z",
+    "license": "Apache-2.0",
+    "rust_version": "1.85",
+    "yanked": false,
+    "source": "https://crates.io/api/v1/crates/prost-types",
+    "admission": ".flow/specs/fn-210-rust-prototype-kettle-on-a-trait-engine.md:176"
+  }
+]

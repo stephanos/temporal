@@ -1,8 +1,9 @@
 //! Programmed worker judgments use server result and failure evidence.
 use prost::Message;
+use umpire_runtime::AnyMessage as _;
 use umpire_runtime::{
     Dispatch,
-    google::protobuf::Any,
+    prost_types::Any,
     protocol::{self, response::Outcome},
     realization::{Observation, observation::Result as ResultValue},
 };

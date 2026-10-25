@@ -1,0 +1,22 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/temporal/api)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.02s
+     Running tests/wire_schema.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/wire_schema-9e2325c6581d201f)
+
+running 1 test
+test descriptor_changes_drive_inventory_and_unsupported_shapes_refuse ... FAILED
+
+failures:
+
+---- descriptor_changes_drive_inventory_and_unsupported_shapes_refuse stdout ----
+
+thread 'descriptor_changes_drive_inventory_and_unsupported_shapes_refuse' (1153321) panicked at temporal/api/tests/wire_schema.rs:136:5:
+assertion failed: changed.parse::<proc_macro2::TokenStream>()?.to_string().contains(&expected)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    descriptor_changes_drive_inventory_and_unsupported_shapes_refuse
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.52s
+
+error: test failed, to rerun pass `-p umpire-temporal-api --test wire_schema`

@@ -1,0 +1,9 @@
+[
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax --locked",
+    "exit": 101,
+    "seconds": 0.067,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/combined-1792895290653846794-0.log",
+    "source_hashes": "combined-1792895290653846794-source-hashes.json"
+  }
+]

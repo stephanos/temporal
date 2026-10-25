@@ -1,0 +1,25 @@
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/front)
+   Compiling prost-build v0.14.4
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/protocol/runtime)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/author/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/backends/native)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/temporal/annotate/syntax)
+error[E0603]: module `derive` is private
+   --> temporal/annotate/syntax/tests/admission.rs:240:44
+    |
+240 |         let error = umpire_catalog_syntax::derive::DeriveCatalog::parse(&input)
+    |                                            ^^^^^^  ------------- struct `DeriveCatalog` is not publicly re-exported
+    |                                            |
+    |                                            private module
+    |
+note: the module `derive` is defined here
+   --> umpire/catalog/syntax/src/lib.rs:3:1
+    |
+  3 | mod derive;
+    | ^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0603`.
+error: could not compile `umpire-temporal-annotate-syntax` (test "admission") due to 1 previous error

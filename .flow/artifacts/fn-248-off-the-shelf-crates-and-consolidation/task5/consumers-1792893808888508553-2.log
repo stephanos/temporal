@@ -1,0 +1,37 @@
+   Compiling prost-build v0.14.4
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/author/suite)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/protocol/runtime)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/build)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/macros)
+   Compiling umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/reference/kettle)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/author/umpire)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.02s
+     Running tests/annotations.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/annotations-8036b3886247d6ca)
+
+running 2 tests
+test generic_fill_preserves_supplied_keys_and_response_wire_bytes ... ok
+test scoped_limits_and_nested_predicates_inspect_actual_wire_values ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/descriptor.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/descriptor-aef22f3cf9e0dad8)
+
+running 1 test
+test descriptor_additions_name_the_unreviewed_field_enum_and_method ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/realization.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/realization-d1eee0996053106c)
+
+running 6 tests
+test describe_never_infers_a_transition ... ok
+test exact_receipts_reject_wrong_state_or_action ... ok
+test malformed_evidence_refuses_without_advancing ... ok
+test callback_requires_exact_state_identity_and_enabled_action ... ok
+test explore_retains_canonical_report ... ok
+test healthy_trace_answer_does_not_commit_and_receipt_commits_once ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

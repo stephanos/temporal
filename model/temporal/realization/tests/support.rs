@@ -1,5 +1,6 @@
 //! Controls for shared Temporal helpers and realization-only phase decoding.
 
+use umpire_runtime::AnyMessage as _;
 use umpire_runtime::realization::Callback;
 use umpire_runtime::realization::Error;
 use umpire_runtime::realization::Observation;
@@ -10,7 +11,7 @@ use std::collections::BTreeMap;
 
 use umpire_dsl::Rejection;
 use umpire_runtime::{
-    google::protobuf::Any,
+    prost_types::Any,
     protocol::{Refusal, RefusalCode},
 };
 use umpire_temporal::support::{

@@ -1,0 +1,42 @@
+[
+  {
+    "command": [
+      "rg",
+      "-n",
+      "enum-iterator",
+      "model",
+      "--glob",
+      "Cargo.toml",
+      "--glob",
+      "deny.toml"
+    ],
+    "exit": 1,
+    "meaning": "expected no matches"
+  },
+  {
+    "command": [
+      "rg",
+      "-n",
+      "compile_well_known_types",
+      "model/umpire",
+      "model/temporal",
+      "--glob",
+      "*.rs"
+    ],
+    "exit": 1,
+    "meaning": "expected no matches"
+  },
+  {
+    "command": [
+      "rg",
+      "-n",
+      "umpire_runtime::google",
+      "model/umpire",
+      "model/temporal",
+      "--glob",
+      "*.rs"
+    ],
+    "exit": 1,
+    "meaning": "expected no matches"
+  }
+]

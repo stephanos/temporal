@@ -1,10 +1,11 @@
 use crate::activity_api;
+use umpire_runtime::AnyMessage as _;
 
 #[path = "live.rs"]
 mod live;
 use umpire_runtime::{
     annotations::{AnnotationRequest, AnnotationResponse},
-    google::protobuf::Any,
+    prost_types::Any,
     protocol,
 };
 use umpire_temporal_api::umpire::temporal::v1::ProbeRequest;

@@ -1,6 +1,7 @@
+use crate::AnyMessage as _;
 use prost::Message;
 
-use crate::{Dispatch, google::protobuf::Any, protocol};
+use crate::{Dispatch, prost_types::Any, protocol};
 
 /// A dispatcher with an independent, stateless annotation extension.
 pub struct AnnotationRuntime<D, A> {

@@ -1,7 +1,7 @@
 //! Additive proposal wire contract, preserving the existing vectors.
 use prost::Message;
 use umpire_runtime::{
-    google::protobuf::Any,
+    prost_types::Any,
     protocol::{self, response::Outcome},
 };
 #[test]

@@ -1,9 +1,10 @@
 //! Generic operation encoding and staged dispatch contract.
 
 use prost::Message;
+use umpire_runtime::AnyMessage as _;
 use umpire_runtime::{
     Model,
-    google::protobuf::Any,
+    prost_types::Any,
     protocol::{self, response::Outcome},
 };
 
@@ -132,4 +133,33 @@ fn new_requests_round_trip_opaque_payloads_and_dispatch_honest_refusals() {
         };
         assert_eq!(refusal.code, protocol::RefusalCode::MalformedRequest as i32);
     }
+}
+
+#[test]
+fn any_admits_only_canonical_urls_and_distinguishes_refusals() {
+    use prost::Name;
+    use protocol::RefusalCode::{MalformedRequest, Unsupported};
+    let message = protocol::ResetRequest::default();
+    let valid = Any::pack(&message);
+    assert_eq!(
+        valid.unpack::<protocol::ResetRequest>().unwrap_or_else(|error| panic!("{error:?}")),
+        message
+    );
+    for (type_url, bytes, code) in [
+        (String::new(), vec![], MalformedRequest),
+        (protocol::RowsRequest::type_url(), vec![], Unsupported),
+        (format!("other.example/{}", protocol::ResetRequest::full_name()), vec![], Unsupported),
+        (protocol::ResetRequest::full_name(), vec![], Unsupported),
+        (protocol::ResetRequest::type_url(), vec![0xff], MalformedRequest),
+    ] {
+        let error = Any { type_url, value: bytes }
+            .unpack::<protocol::ResetRequest>()
+            .err()
+            .unwrap_or_else(|| panic!("invalid Any must refuse"));
+        assert_eq!(error.code, code as i32);
+    }
+    assert_eq!(
+        Any::required(None).err().unwrap_or_else(|| panic!("missing payload")).code,
+        MalformedRequest as i32
+    );
 }

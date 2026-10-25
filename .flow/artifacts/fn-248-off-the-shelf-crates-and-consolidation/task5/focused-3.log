@@ -1,0 +1,50 @@
+   Compiling tempfile v3.27.0
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/backends/native)
+   Compiling prost-build v0.14.4
+   Compiling insta v1.49.0
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/protocol/runtime)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.29s
+     Running tests/black_box.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/black_box-6d18d1adc8a63e93)
+
+running 6 tests
+test crossed_actual_status_cannot_confirm_a_predicted_rejection ... ok
+test generic_cases_need_any_rejection_explanation_but_keep_unexplained_failures ... ok
+test independent_mutations_include_unannotated_fields_and_explicit_refusals ... ok
+test mutation_admission_preserves_distinct_diagnostic_matches_and_refusals ... ok
+test only_actual_unpredicted_rejections_are_unannotated_failures ... ok
+test typed_scalar_mutations_are_independent_of_catalog_constraints ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/generation.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/generation-ba6660365a621108)
+
+running 10 tests
+test generated_text_satisfies_byte_and_scalar_bounds_together ... ok
+test required_substring_can_be_supplied_by_the_suffix ... ok
+test presence_filling_uses_present_scalar_candidates ... ok
+test unique_strings_use_the_permitted_scalar_and_byte_domains ... ok
+test exact_length_anchors_preserve_partial_overlap ... ok
+test zero_maximum_repeated_length_is_fillable ... ok
+test unique_repeated_times_sample_the_allowed_domain ... ok
+test numeric_range_semantics_match_protovalidate_endpoint_combinations ... ok
+test anchored_generation_matches_small_exhaustive_string_domains ... ok
+test bounded_unique_sampling_refuses_without_claiming_unsatisfiability ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/probe.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/probe-5415566c13ad5389)
+
+running 7 tests
+test live_result_checks_each_expected_diagnostic_independently ... ok
+test any_of_attributes_each_field_but_every_probe_omits_all_alternatives ... ok
+test witnesses_cover_presence_algebra_and_required_variant ... ok
+test enumerates_each_omission_and_verifies_real_negative_witnesses ... ok
+test refuses_invalid_baselines_forged_cases_and_ineffective_mutation ... ok
+test coverage_requires_each_unique_identity_and_observable_results ... ok
+test witnesses_cover_typed_kinds_and_repeated_constraints ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,12 +1,13 @@
 //! Generated handler conversion and contextual reply controls.
 
+use umpire_runtime::AnyMessage as _;
 use umpire_runtime::realization::Observation;
 use umpire_runtime::realization::observation::Result as ObservationResult;
 
 use umpire_dsl::{Machine, Outcome};
 use umpire_runtime::{
     Projection, Realize,
-    google::protobuf::Any,
+    prost_types::Any,
     protocol::{Refusal, RefusalCode},
 };
 use umpire_temporal::{Step, activity, realization};

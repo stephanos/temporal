@@ -1,0 +1,47 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/temporal/api)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.75s
+     Running tests/codegen.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/codegen-3e155e73d52c8ad1)
+
+running 3 tests
+test empty_oneof_uses_unit_and_preserves_presence ... ok
+test double_wrapper_uses_scalar_and_preserves_presence ... ok
+test descriptor_file_permutations_generate_identical_rust ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.93s
+
+     Running ../annotate/syntax/tests/descriptor.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/descriptor-5b9c271c5b580ae8)
+
+running 5 tests
+test executable_generated_api_declaration_matches_real_descriptors ... ok
+test declaration_order_names_the_first_out_of_place_symbol ... ok
+test nested_message_requires_coverage_and_refuses_added_fields ... ok
+test real_descriptor_additions_are_independently_refused ... ok
+test stale_duplicates_and_empty_dispositions_are_refused ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+     Running tests/services.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/services-e92324c2d848c415)
+
+running 7 tests
+test dispatch_selects_the_actual_annotated_type_and_direction ... ok
+test generated_method_table_follows_the_actual_descriptor ... ok
+test the_service_table_classifies_every_rpc_and_the_activity_feature_claims_eight ... ok
+test duplicate_claims_and_unclassified_rpcs_are_named ... ok
+test generation_uses_annotations_for_dispatch_and_source_match_for_bindings ... ok
+test a_dropped_claim_or_an_unclaimed_annotated_rpc_fails_generation ... ok
+test service_table_and_bindings_refuse_new_rpc_and_model_action ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running tests/wire_schema.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/wire_schema-9e2325c6581d201f)
+
+running 6 tests
+test invalid_input_unknown_routes_and_unbounded_collections_refuse ... ok
+test double_wrapper_descriptor_value_mutates_the_native_scalar ... ok
+test nested_absence_does_not_materialize_an_ancestor ... ok
+test ignored_fields_and_descriptor_shapes_remain_mutable ... ok
+test every_applicable_descriptor_case_constructs_a_typed_request ... ok
+test descriptor_changes_drive_inventory_and_unsupported_shapes_refuse ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.58s
+

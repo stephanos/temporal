@@ -8,7 +8,7 @@ use support::any;
 use umpire_dsl::{ActionCatalog, CatalogError, Machine, Steps};
 use umpire_runtime::{
     AnswerPlan, Projection, Realize, Runtime,
-    google::protobuf::Any,
+    prost_types::Any,
     protocol::{self, response::Outcome},
 };
 

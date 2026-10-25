@@ -1,0 +1,13 @@
+[
+  "cd model && mise exec -- cargo clippy -p umpire-runtime -p umpire-catalog -p umpire-dsl -p umpire-catalog-build -p umpire-catalog-syntax -p umpire-reference-kettle -p umpire-temporal-api -p umpire-temporal-annotate-syntax -p umpire-temporal --all-targets --locked -- -D warnings",
+  "cd model && mise exec -- cargo test -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax --locked",
+  "cd model && mise exec -- cargo test -p umpire-temporal-api --test codegen --test wire_schema --test descriptor --test services --locked",
+  "cd model && mise exec -- cargo test -p umpire-catalog --test ui --locked",
+  "cd model && mise exec -- cargo test -p umpire-runtime --test wire --test core_protocol --test proposal_wire --test dispatch --locked",
+  "cd model && mise exec -- cargo test -p umpire-catalog --test generation --test probe --test black_box --locked",
+  "cd model && mise exec -- cargo test -p umpire-reference-kettle --test annotations --test realization --test descriptor --locked",
+  "cd model && mise exec -- cargo test -p umpire-temporal --test admission --test support --test declarative --locked",
+  "cd model && mise exec -- cargo test -p umpire-temporal-annotate --test ui --locked",
+  "mise exec -- cargo fmt --manifest-path model/Cargo.toml --all -- --check",
+  "git diff --check"
+]

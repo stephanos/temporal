@@ -90,7 +90,7 @@ fn runtime_formats_unit_outcomes_with_debug() {
     impl Realize<UnitWorld> for support::Realization {
         fn observe(
             &self,
-            observation: &umpire_runtime::google::protobuf::Any,
+            observation: &prost_types::Any,
             state: &support::State,
         ) -> Result<Projection<support::Action, ()>, protocol::Refusal> {
             match <Self as Realize<support::World>>::observe(self, observation, state)? {
@@ -102,7 +102,7 @@ fn runtime_formats_unit_outcomes_with_debug() {
         }
         fn answer(
             &self,
-            callback: &umpire_runtime::google::protobuf::Any,
+            callback: &prost_types::Any,
             state: &support::State,
         ) -> Result<AnswerPlan<support::Action>, protocol::Refusal> {
             <Self as Realize<support::World>>::answer(self, callback, state)
@@ -143,17 +143,11 @@ fn malformed_and_unknown_requests_preserve_the_current_run() {
         refusal(runtime.dispatch(method, &[]), protocol::RefusalCode::MalformedRequest);
         for (value, code) in [
             (
-                umpire_runtime::google::protobuf::Any {
-                    type_url: "unknown".into(),
-                    value: vec![1],
-                },
+                prost_types::Any { type_url: "unknown".into(), value: vec![1] },
                 protocol::RefusalCode::Unsupported,
             ),
             (
-                umpire_runtime::google::protobuf::Any {
-                    type_url: support::TYPE.into(),
-                    value: Vec::new(),
-                },
+                prost_types::Any { type_url: support::TYPE.into(), value: Vec::new() },
                 protocol::RefusalCode::MalformedRequest,
             ),
         ] {
@@ -188,10 +182,7 @@ fn invalid_candidates_freeze_the_first_enabled_actions_until_reset() {
         refusal(runtime.dispatch(4, &[0xff]), protocol::RefusalCode::MalformedRequest);
         refusal(runtime.dispatch(999, &[]), protocol::RefusalCode::UnknownMethod);
         let unknown = protocol::JudgeRequest {
-            observation: Some(umpire_runtime::google::protobuf::Any {
-                type_url: "unknown".into(),
-                value: vec![1],
-            }),
+            observation: Some(prost_types::Any { type_url: "unknown".into(), value: vec![1] }),
         }
         .encode_to_vec();
         refusal(runtime.dispatch(4, &unknown), protocol::RefusalCode::Unsupported);

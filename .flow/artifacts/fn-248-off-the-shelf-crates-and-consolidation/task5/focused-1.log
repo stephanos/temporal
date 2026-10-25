@@ -1,0 +1,21 @@
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/author/dsl)
+   Compiling prost-build v0.14.4
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/backends/native)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/dev/testing)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/protocol/runtime)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.31s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/umpire_catalog-7617ee6d4c5211b3)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/umpire_dsl-a3ddf69df854925d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

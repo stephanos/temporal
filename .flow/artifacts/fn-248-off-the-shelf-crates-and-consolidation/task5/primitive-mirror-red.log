@@ -1,0 +1,24 @@
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/temporal/annotate/syntax)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.34s
+     Running tests/admission.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/admission-b04babbef21f5883)
+
+running 1 test
+test native_primitive_wkt_mirrors_refuse_named_field_access ... FAILED
+
+failures:
+
+---- native_primitive_wkt_mirrors_refuse_named_field_access stdout ----
+
+thread 'native_primitive_wkt_mirrors_refuse_named_field_access' (1089495) panicked at temporal/annotate/syntax/tests/admission.rs:242:32:
+native primitive must not generate a named-field mirror
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    native_primitive_wkt_mirrors_refuse_named_field_access
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-temporal-annotate-syntax --test admission`

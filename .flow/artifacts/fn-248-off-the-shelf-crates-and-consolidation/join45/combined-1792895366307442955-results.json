@@ -1,0 +1,9 @@
+[
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-temporal-api --test codegen --test wire_schema --test descriptor --test services --locked",
+    "exit": 101,
+    "seconds": 8.306,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/combined-1792895366307442955-0.log",
+    "source_hashes": "combined-1792895366307442955-source-hashes.json"
+  }
+]

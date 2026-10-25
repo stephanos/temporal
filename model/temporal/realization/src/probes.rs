@@ -15,7 +15,7 @@ use umpire_catalog::{
     Catalog, Expectation, FieldDescriptor, FieldValue, Kind, ProbeCase as Target, Rng, Violation,
     validate,
 };
-use umpire_runtime::google::protobuf::Duration;
+use umpire_runtime::prost_types::Duration;
 use umpire_temporal_api::{
     temporal::api::{
         common::v1::{ActivityType, Payload, Payloads, RetryPolicy},

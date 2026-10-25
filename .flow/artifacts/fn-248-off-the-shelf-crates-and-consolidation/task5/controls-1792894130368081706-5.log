@@ -1,0 +1,14 @@
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/protocol/runtime)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/temporal/annotate/syntax)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.51s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/umpire_temporal_annotate_syntax-57ac4649d14c0e29)
+
+running 3 tests
+test realization::tests::graph_retains_decoded_optional_presence_and_opaque_catalog_reason ... ok
+test realization::tests::contexts_follow_rpc_input_output_edges_instead_of_message_admission ... ok
+test realization::tests::catalog_discovery_tracks_empty_directories_and_only_admitted_filenames ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

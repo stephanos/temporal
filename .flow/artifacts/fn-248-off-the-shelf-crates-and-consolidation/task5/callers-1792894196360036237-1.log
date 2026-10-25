@@ -1,0 +1,44 @@
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/protocol/runtime)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/temporal/annotate/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/macros)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/temporal/api)
+   Compiling umpire-temporal-annotate-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/temporal/annotate/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog)
+   Compiling umpire-temporal-annotate v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/temporal/annotate)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 19.78s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/umpire_temporal_annotate-bb33e0355dc152c5)
+
+running 9 tests
+test view_tests::malformed_message_projection_is_a_value_free_refusal_without_mutation ... ok
+test view_tests::message_setters_decode_projected_bytes ... ok
+test view_tests::time_views_preserve_raw_values_and_write_back ... ok
+test view_tests::map_setters_decode_entries_and_projection_is_order_independent ... ok
+test view_tests::conditional_retry_setter_produces_a_real_invalid_coefficient ... ok
+test view_tests::generated_payload_map_round_trips_through_its_actual_carrier ... ok
+test view_tests::malformed_generated_message_bytes_propagate_through_catalog_fill ... ok
+test foundation::tests::worker_failure_presence_probe_mutates_the_actual_oneof ... ok
+test foundation::tests::shared_factories_admit_and_preserve_private_payload_roles ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/derive_catalog.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/derive_catalog-9b551d610b0d7c30)
+
+running 6 tests
+test disabled_enum_constraint_accepts_unknown_values_and_needs_no_request_expectation ... ok
+test enum_raw_duration_and_scalar_repeated_views_keep_their_semantics ... ok
+test factories_validate_typed_attributes_and_keep_supplemental_intents ... ok
+test generated_identifier_fill_is_stable_and_preserves_supplied_values ... ok
+test repeated_constraints_retain_request_and_response_expectations ... ok
+test nested_inspection_visits_repeated_and_oneof_messages ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/response_checks.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/response_checks-12e9c21ed3b887e4)
+
+running 1 test
+test raw_checks_run_for_responses_after_request_normalization ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

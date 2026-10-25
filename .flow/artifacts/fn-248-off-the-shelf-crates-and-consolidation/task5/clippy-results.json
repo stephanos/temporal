@@ -1,0 +1,8 @@
+[
+  {
+    "command": "cd model && mise exec -- cargo clippy -p umpire-runtime -p umpire-catalog -p umpire-dsl -p umpire-catalog-build -p umpire-catalog-syntax -p umpire-reference-kettle -p umpire-temporal-api -p umpire-temporal-annotate-syntax -p umpire-temporal --all-targets --locked -- -D warnings",
+    "exit": 0,
+    "seconds": 7.716,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task5/clippy-1792894106580202361-0.log"
+  }
+]

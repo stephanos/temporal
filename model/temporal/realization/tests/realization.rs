@@ -1,5 +1,6 @@
 //! Native realization controls against the independently fixed activity Model.
 
+use umpire_runtime::AnyMessage as _;
 use umpire_runtime::realization::Error;
 use umpire_runtime::realization::Observation;
 use umpire_runtime::realization::observation::Result as ObservationResult;
@@ -8,7 +9,7 @@ use prost::Message;
 use umpire_dsl::{Machine, Outcome as StepOutcome, Rejection};
 use umpire_runtime::{
     Dispatch, Guest, Projection, Realize,
-    google::protobuf::Any,
+    prost_types::Any,
     protocol::{self, response::Outcome},
 };
 use umpire_temporal::{Realization, activity, runtime};

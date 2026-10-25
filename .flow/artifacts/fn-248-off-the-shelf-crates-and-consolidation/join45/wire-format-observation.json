@@ -1,0 +1,4 @@
+{
+  "command": "cd model && mise exec -- cargo test -p umpire-temporal-api --test wire_schema descriptor_changes_drive_inventory_and_unsupported_shapes_refuse --locked",
+  "exit": 101
+}

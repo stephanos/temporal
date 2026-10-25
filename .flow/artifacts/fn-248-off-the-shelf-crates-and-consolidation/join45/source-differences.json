@@ -1,0 +1,28 @@
+{
+  "ui-1792895548847889959-source-hashes.json": [],
+  "combined-1792895302391893466-source-hashes.json": [
+    "model/temporal/api/tests/wire_schema.rs"
+  ],
+  "combined-1792895290653846794-source-hashes.json": [
+    "model/Cargo.lock",
+    "model/temporal/api/tests/wire_schema.rs"
+  ],
+  "combined-1792895118548611212-source-hashes.json": [
+    "model/Cargo.lock",
+    "model/temporal/api/Cargo.toml",
+    "model/temporal/api/tests/services.rs",
+    "model/temporal/api/tests/wire_schema.rs",
+    "model/umpire/catalog/build/tests/wire_generated.rs"
+  ],
+  "combined-1792895153019957187-source-hashes.json": [
+    "model/Cargo.lock",
+    "model/temporal/api/Cargo.toml",
+    "model/temporal/api/tests/services.rs",
+    "model/temporal/api/tests/wire_schema.rs"
+  ],
+  "combined-1792895366307442955-source-hashes.json": [
+    "model/temporal/api/tests/wire_schema.rs"
+  ],
+  "clippy-1792895690032952234-source-hashes.json": [],
+  "combined-1792895449443973328-source-hashes.json": []
+}

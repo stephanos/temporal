@@ -1,0 +1,15 @@
+{
+  "baseline": "green: all four task Quick commands exited 0 before edits; catalog/dsl --lib collected zero tests, so affected integration tests were added to verification",
+  "wkt_red": "new Empty/unit and DoubleValue/f64 compile controls failed at E0308 against old generated Empty/DoubleValue structs; original shell exit was not retained, so no numeric exit is claimed",
+  "resolved_iteration_failures": [
+    "first-check.log: exit 101; exploratory Type widening encountered existing Path contracts; the widening was removed, and primitive named-field mirrors now refuse explicitly",
+    "second-check.log: exit 101; removed the obsolete Kettle google namespace reexport",
+    "first focused runtime invocation: exit 101; test attempted ? conversion from protocol::Refusal into std::error::Error; corrected test handling",
+    "focused-6.log: exit 101; descriptor is an API-owned test target, not an annotate-syntax target; corrected command passed separately",
+    "primitive-mirror-inconclusive-private-import.log: exit 101 due to a private-module test import; corrected to the public reexport before the genuine assertion-red run",
+    "clippy-1792894029973356200-0.log: exit 101; removed unnecessary Result return from the new runtime test",
+    "clippy-1792894068687689176-0.log: exit 101; simplified native type qualifications in direct prost-types consumers; final all-targets clippy passed"
+  ],
+  "snapshots": "No snapshot payload changes or .snap.new candidates; affected expansion and Temporal realization suites pass existing snapshots",
+  "publication": "No canonical guest publication, full model gate, tracker/review lifecycle or remote operation in this lane"
+}

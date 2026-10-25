@@ -3,7 +3,7 @@
 use std::{fs, path::Path, process::Command};
 
 use prost::Message;
-use umpire_runtime::google::protobuf::{
+use umpire_runtime::prost_types::{
     FieldDescriptorProto, FileDescriptorSet, field_descriptor_proto,
 };
 

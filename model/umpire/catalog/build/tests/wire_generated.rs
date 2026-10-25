@@ -1,7 +1,7 @@
 //! Generated wire setters compile against prost-shaped message and collection carriers.
 use prost::Message;
 use umpire_catalog_build::wire_schema;
-use umpire_runtime::google::protobuf::{
+use umpire_runtime::prost_types::{
     DescriptorProto, FieldDescriptorProto, FileDescriptorProto, FileDescriptorSet, MessageOptions,
     MethodDescriptorProto, OneofDescriptorProto, ServiceDescriptorProto,
     field_descriptor_proto::{Label, Type},

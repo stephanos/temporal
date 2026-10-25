@@ -488,7 +488,7 @@ fn answer(
                     action.into()
                 }).collect();
             return Ok(::umpire_runtime::AnswerPlan::new(__delivery, __action,
-                ::umpire_runtime::google::protobuf::Any::pack(
+                ::umpire_runtime::prost_types::Any::pack(
                     &::umpire_runtime::realization::Reply {
                         request: Some(__reply.request),
                     }
@@ -850,11 +850,11 @@ fn proposal_handler(name: &Ident, attribute: &Attribute) -> syn::Result<Proposal
 fn proposal_dispatch(model: &Path, handler: &ProposalHandler) -> TokenStream {
     let name = &handler.name;
     let matches = handler.matches.as_ref().map(|name| quote! {
-        fn matches(&self, request: &::umpire_runtime::google::protobuf::Any, observation: &::umpire_runtime::google::protobuf::Any)
+        fn matches(&self, request: &::umpire_runtime::prost_types::Any, observation: &::umpire_runtime::prost_types::Any)
             -> Result<(), ::umpire_runtime::protocol::Refusal> { self.#name(request, observation) }
     });
     let polling = handler.polling.as_ref().map(|name| quote! {
-        fn continue_polling(&self, observation: &::umpire_runtime::google::protobuf::Any, state: &#model::Model, action: Option<&<#model::World as ::umpire_dsl::Machine>::Action>)
+        fn continue_polling(&self, observation: &::umpire_runtime::prost_types::Any, state: &#model::Model, action: Option<&<#model::World as ::umpire_dsl::Machine>::Action>)
             -> Result<bool, ::umpire_runtime::protocol::Refusal> { self.#name(observation, state, action) }
     });
     quote! {
@@ -951,11 +951,11 @@ fn expand_scoped(
     }
     let proposal = proposal.as_ref().map(|name| proposal_dispatch(model, name));
     let answer_dispatch = (!answers.is_empty()).then(|| quote! {
-            fn answer(&self, value: &::umpire_runtime::google::protobuf::Any, state: &#model::Model)
+            fn answer(&self, value: &::umpire_runtime::prost_types::Any, state: &#model::Model)
                 -> Result<::umpire_runtime::AnswerPlan<<#model::World as ::umpire_dsl::Machine>::Action>, ::umpire_runtime::protocol::Refusal> {
                 let _ = state;
                 let __callback: ::umpire_runtime::realization::Callback = value.unpack()?;
-                let __task_any = ::umpire_runtime::google::protobuf::Any::required(__callback.task)?;
+                let __task_any = ::umpire_runtime::prost_types::Any::required(__callback.task)?;
                 if __task_any.type_url.is_empty() {
                     return Err(::umpire_runtime::protocol::Refusal::malformed("Any type URL is missing"));
                 }
@@ -965,6 +965,7 @@ fn expand_scoped(
     });
     let ty = &item.self_ty;
     Ok(quote! {
+        use ::umpire_runtime::AnyMessage as _;
         #item
         impl #ty {
             /// Declared coverage in each incoming and outgoing protobuf context.
@@ -972,7 +973,7 @@ fn expand_scoped(
         }
         impl ::umpire_runtime::Realize<#model::World> for #ty {
             #proposal
-            fn observe(&self, observation: &::umpire_runtime::google::protobuf::Any, state: &#model::Model)
+            fn observe(&self, observation: &::umpire_runtime::prost_types::Any, state: &#model::Model)
                 -> Result<::umpire_runtime::Projection<<#model::World as ::umpire_dsl::Machine>::Action>, ::umpire_runtime::protocol::Refusal> {
                 let _ = state;
                 let __observed = ::umpire_temporal::support::Observed::new(observation)?;

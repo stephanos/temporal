@@ -1,0 +1,44 @@
+[
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-temporal-api --test codegen --test wire_schema --test descriptor --test services --locked",
+    "exit": 0,
+    "seconds": 10.69,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/combined-1792895449443973328-0.log",
+    "source_hashes": "combined-1792895449443973328-source-hashes.json"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-catalog --test ui --locked",
+    "exit": 0,
+    "seconds": 16.632,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/combined-1792895449443973328-1.log",
+    "source_hashes": "combined-1792895449443973328-source-hashes.json"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-runtime --test wire --test core_protocol --test proposal_wire --test dispatch --locked",
+    "exit": 0,
+    "seconds": 4.994,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/combined-1792895449443973328-2.log",
+    "source_hashes": "combined-1792895449443973328-source-hashes.json"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-catalog --test generation --test probe --test black_box --locked",
+    "exit": 0,
+    "seconds": 2.046,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/combined-1792895449443973328-3.log",
+    "source_hashes": "combined-1792895449443973328-source-hashes.json"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-reference-kettle --test annotations --test realization --test descriptor --locked",
+    "exit": 0,
+    "seconds": 10.049,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/combined-1792895449443973328-4.log",
+    "source_hashes": "combined-1792895449443973328-source-hashes.json"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-temporal --test admission --test support --test declarative --locked",
+    "exit": 0,
+    "seconds": 23.376,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/combined-1792895449443973328-5.log",
+    "source_hashes": "combined-1792895449443973328-source-hashes.json"
+  }
+]

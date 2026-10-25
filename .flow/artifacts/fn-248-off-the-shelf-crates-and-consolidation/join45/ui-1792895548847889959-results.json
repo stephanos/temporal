@@ -1,0 +1,9 @@
+[
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-temporal-annotate --test ui --locked",
+    "exit": 0,
+    "seconds": 140.98,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/ui-1792895548847889959-0.log",
+    "source_hashes": "ui-1792895548847889959-source-hashes.json"
+  }
+]

@@ -1,0 +1,23 @@
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/ir/derive)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/author/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/author/dsl)
+   Compiling ident_case v1.0.1
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/backends/native)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/protocol/runtime)
+   Compiling darling_core v0.24.1
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/ir)
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/front)
+   Compiling darling_macro v0.24.1
+   Compiling darling v0.24.1
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/temporal/annotate/syntax)
+error[E0433]: cannot find `google` in `umpire_runtime`
+ --> umpire/catalog/build/tests/wire_generated.rs:4:21
+  |
+4 | use umpire_runtime::google::protobuf::{
+  |                     ^^^^^^ could not find `google` in `umpire_runtime`
+
+For more information about this error, try `rustc --explain E0433`.
+error: could not compile `umpire-catalog-build` (test "wire_generated") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...

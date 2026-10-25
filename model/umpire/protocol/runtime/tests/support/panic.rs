@@ -2,7 +2,7 @@
 #[allow(dead_code)]
 pub(crate) mod support;
 
-use umpire_runtime::{AnswerPlan, Projection, Realize, Runtime, google::protobuf::Any, protocol};
+use umpire_runtime::{AnswerPlan, Projection, Realize, Runtime, prost_types::Any, protocol};
 
 pub(crate) struct Unsupported;
 

@@ -11,7 +11,7 @@ mod refusal;
 mod runtime;
 mod stock;
 
-/// Generated core contract and shared well-known types.
+/// Generated core contract.
 #[allow(missing_docs, unreachable_pub, clippy::all, clippy::pedantic)]
 mod generated {
     include!(concat!(env!("OUT_DIR"), "/protocol.rs"));
@@ -19,13 +19,12 @@ mod generated {
 
 pub use abi::Guest;
 pub use annotation_dispatch::{AnnotationRuntime, probe_recipe};
+pub use any::AnyMessage;
 pub use envelopes::{Observed, callback, reply};
-pub use generated::{
-    google,
-    umpire::{
-        annotations::v1 as annotations, model::v1 as protocol, realization::v1 as realization,
-    },
+pub use generated::umpire::{
+    annotations::v1 as annotations, model::v1 as protocol, realization::v1 as realization,
 };
+pub use prost_types;
 pub use runtime::{
     AnswerPlan, Candidate, Projection, Proposal, Realize, Runtime, Transaction, Transition,
 };

@@ -108,7 +108,7 @@ fn authors_a_machine_path_suite_and_catalog_through_one_dependency()
         ],
     )?;
     assert_eq!(run.state().value, 2);
-    let duration = author_kit::runtime::google::protobuf::Duration { seconds: 2, nanos: 0 };
+    let duration = author_kit::runtime::prost_types::Duration { seconds: 2, nanos: 0 };
     let catalog = DurationCatalog::catalog(&Limits)?;
     assert_eq!(author_kit::catalog::validate(&duration, &catalog), []);
     Ok(())

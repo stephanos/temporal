@@ -1,0 +1,97 @@
+{
+  "baseline": "956c017c32e0f009a475c9d0fa664b06f74d9e0a",
+  "merge_a": "f9507adf06378fb9d4af80f6e7ebd88088da4673",
+  "original_source_refs": {
+    "HEAD": "956c017c32e0f009a475c9d0fa664b06f74d9e0a",
+    "work/fn2484-macros": "7ef93ed5e2b03af50e588f1898b6219e07aa43ba",
+    "work/fn2485-types": "8d7f14273476a5af9050673a2fc77c0f015b774d"
+  },
+  "accepted_checks": [
+    {
+      "receipt": "clippy-1792895690032952234-results.json",
+      "command": "cd model && mise exec -- cargo clippy -p umpire-runtime -p umpire-catalog -p umpire-dsl -p umpire-catalog-build -p umpire-catalog-syntax -p umpire-reference-kettle -p umpire-temporal-api -p umpire-temporal-annotate-syntax -p umpire-temporal --all-targets --locked -- -D warnings",
+      "exit": 0,
+      "seconds": 30.326,
+      "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/clippy-1792895690032952234-0.log",
+      "source_hashes": "clippy-1792895690032952234-source-hashes.json"
+    },
+    {
+      "receipt": "combined-1792895302391893466-results.json",
+      "command": "cd model && mise exec -- cargo test -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax --locked",
+      "exit": 0,
+      "seconds": 0.777,
+      "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/combined-1792895302391893466-0.log",
+      "source_hashes": "combined-1792895302391893466-source-hashes.json"
+    },
+    {
+      "receipt": "combined-1792895449443973328-results.json",
+      "command": "cd model && mise exec -- cargo test -p umpire-temporal-api --test codegen --test wire_schema --test descriptor --test services --locked",
+      "exit": 0,
+      "seconds": 10.69,
+      "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/combined-1792895449443973328-0.log",
+      "source_hashes": "combined-1792895449443973328-source-hashes.json"
+    },
+    {
+      "receipt": "combined-1792895449443973328-results.json",
+      "command": "cd model && mise exec -- cargo test -p umpire-catalog --test ui --locked",
+      "exit": 0,
+      "seconds": 16.632,
+      "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/combined-1792895449443973328-1.log",
+      "source_hashes": "combined-1792895449443973328-source-hashes.json"
+    },
+    {
+      "receipt": "combined-1792895449443973328-results.json",
+      "command": "cd model && mise exec -- cargo test -p umpire-runtime --test wire --test core_protocol --test proposal_wire --test dispatch --locked",
+      "exit": 0,
+      "seconds": 4.994,
+      "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/combined-1792895449443973328-2.log",
+      "source_hashes": "combined-1792895449443973328-source-hashes.json"
+    },
+    {
+      "receipt": "combined-1792895449443973328-results.json",
+      "command": "cd model && mise exec -- cargo test -p umpire-catalog --test generation --test probe --test black_box --locked",
+      "exit": 0,
+      "seconds": 2.046,
+      "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/combined-1792895449443973328-3.log",
+      "source_hashes": "combined-1792895449443973328-source-hashes.json"
+    },
+    {
+      "receipt": "combined-1792895449443973328-results.json",
+      "command": "cd model && mise exec -- cargo test -p umpire-reference-kettle --test annotations --test realization --test descriptor --locked",
+      "exit": 0,
+      "seconds": 10.049,
+      "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/combined-1792895449443973328-4.log",
+      "source_hashes": "combined-1792895449443973328-source-hashes.json"
+    },
+    {
+      "receipt": "combined-1792895449443973328-results.json",
+      "command": "cd model && mise exec -- cargo test -p umpire-temporal --test admission --test support --test declarative --locked",
+      "exit": 0,
+      "seconds": 23.376,
+      "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/combined-1792895449443973328-5.log",
+      "source_hashes": "combined-1792895449443973328-source-hashes.json"
+    },
+    {
+      "receipt": "ui-1792895548847889959-results.json",
+      "command": "cd model && mise exec -- cargo test -p umpire-temporal-annotate --test ui --locked",
+      "exit": 0,
+      "seconds": 140.98,
+      "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/ui-1792895548847889959-0.log",
+      "source_hashes": "ui-1792895548847889959-source-hashes.json"
+    }
+  ],
+  "format": {
+    "command": "mise exec -- cargo fmt --manifest-path model/Cargo.toml --all -- --check",
+    "exit": 0,
+    "log": "format.log"
+  },
+  "diff_check": {
+    "command": "git diff --check",
+    "exit": 0
+  },
+  "source_hashes": "final-source-hashes.json",
+  "source_differences": "source-differences.json",
+  "new_ui_or_snapshot_payload_changes": [],
+  "wasm": "not rerun: original task5 all-six-guest build evidence retained; final7 owns joined wasm/current publication",
+  "flow_lifecycle_or_review_calls": false
+}
