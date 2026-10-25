@@ -2,7 +2,11 @@
 //!
 //! The admitted subset, including the `imbl::Vector<T>` method table, is `umpire-front`'s.
 use proc_macro2::Span;
-use std::{collections::BTreeMap, fmt, path::Path};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    fmt,
+    path::Path,
+};
 use syn::spanned::Spanned;
 #[doc(hidden)]
 pub use umpire_backend_process as process;
@@ -224,7 +228,7 @@ impl Module {
                 return Err(Refusal(format!("duplicate authored field {}", field.name)));
             }
         }
-        let mut observers = std::collections::BTreeSet::new();
+        let mut observers = BTreeSet::new();
         for name in &meta.observer_fields {
             identifier(name)?;
             if !observers.insert(name) {

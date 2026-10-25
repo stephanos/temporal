@@ -201,7 +201,9 @@ pub fn decode_itf(
                 .or_else(|| schema.fields.get(name))
                 .or_else(|| schema.observers.get(name))
                 .ok_or_else(|| refuse(format!("undeclared state field {name}")))?;
-            let value = value(raw, kind)?;
+            let value = value(raw, kind).map_err(|Refusal(error)| {
+                Refusal(format!("{error} (state {index}, field {name})"))
+            })?;
             if parameters.contains_key(name) {
                 selected.insert(name.clone(), value);
             } else {

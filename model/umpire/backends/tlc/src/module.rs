@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use umpire_tla::{Literal, Module, Type, identifier};
+use umpire_tla::{Literal, Module, Type, identifier, values::accepts};
 
 use crate::{Refusal, Schema, Value, runner::split_cfg};
 
@@ -18,7 +18,9 @@ fn binding_value(ty: &Type, literal: &Literal) -> Result<Value, Refusal> {
         Refusal(format!("selected World literal differs from its declared type: {error}"))
     })?;
     let value = Value::admitted(&admitted, ty);
-    if matches!(&value, Value::Int(raw) if !(0..=i128::from(i32::MAX)).contains(raw)) {
+    if !accepts(ty, &value)
+        || matches!(&value, Value::Int(raw) if !(0..=i128::from(i32::MAX)).contains(raw))
+    {
         return Err(Refusal("selected World value is outside its declared CFG domain".into()));
     }
     Ok(value)

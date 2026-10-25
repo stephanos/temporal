@@ -27,22 +27,21 @@ impl Value {
     /// If `value` is not a value of `ty`, as [`Literal::admit`](crate::Literal::admit) ensures.
     #[must_use]
     pub fn admitted(value: &umpire_front::value::Value, ty: &Type) -> Self {
-        use Type as Source;
         use umpire_front::value::Value as Admitted;
         match (value, ty) {
             (Admitted::Bool(value), _) => Self::Bool(*value),
             (Admitted::Int(value), _) => Self::Int(*value),
             (Admitted::Text(value), _) => Self::Text(value.clone()),
-            (Admitted::Enum(index), Source::Enum { variants, .. }) if *index < variants.len() => {
+            (Admitted::Enum(index), Type::Enum { variants, .. }) if *index < variants.len() => {
                 Self::Text(variants[*index].clone())
             }
             (Admitted::Unit, _) => Self::Seq(Vec::new()),
-            (Admitted::Tuple(values), Source::Tuple(types)) if values.len() == types.len() => {
+            (Admitted::Tuple(values), Type::Tuple(types)) if values.len() == types.len() => {
                 Self::Seq(
                     types.iter().zip(values).map(|(ty, value)| Self::admitted(value, ty)).collect(),
                 )
             }
-            (Admitted::Seq(values), Source::Seq(inner)) => {
+            (Admitted::Seq(values), Type::Seq(inner)) => {
                 Self::Seq(values.iter().map(|value| Self::admitted(value, inner)).collect())
             }
             _ => panic!("{value:?} is not a value of {ty:?}"),
@@ -163,15 +162,15 @@ fn nested(ty: &Type, depth: usize) -> Result<(), Refusal> {
                 return Err(Refusal("invalid declared integer bounds".into()));
             }
         }
-        Type::Bounded(bound) | Type::Optional(bound) => {
-            identifier(&bound.name)?;
-            if let Some(field) = &bound.field {
-                identifier(field)?;
-            }
-            if matches!(ty, Type::Bounded(_)) && !bound.valid() {
+        Type::Bounded(bound) => {
+            descriptor_names(bound)?;
+            if !bound.valid() {
                 return Err(Refusal("invalid declared bounded integer".into()));
             }
-            if matches!(ty, Type::Optional(_)) && !bound.optional_valid() {
+        }
+        Type::Optional(bound) => {
+            descriptor_names(bound)?;
+            if !bound.optional_valid() {
                 return Err(Refusal("invalid declared optional integer".into()));
             }
         }
@@ -189,6 +188,9 @@ fn nested(ty: &Type, depth: usize) -> Result<(), Refusal> {
                 return Err(Refusal(format!("invalid declared enum variants for {name}")));
             }
         }
+        Type::Tuple(types) if types.is_empty() => {
+            return Err(Refusal("an empty tuple is declared as unit".into()));
+        }
         Type::Tuple(types) => {
             for ty in types {
                 nested(ty, depth + 1)?;
@@ -197,6 +199,11 @@ fn nested(ty: &Type, depth: usize) -> Result<(), Refusal> {
         Type::Seq(inner) => nested(inner, depth + 1)?,
     }
     Ok(())
+}
+
+fn descriptor_names(bound: &crate::Bounded) -> Result<(), Refusal> {
+    identifier(&bound.name)?;
+    bound.field.as_deref().map_or(Ok(()), identifier)
 }
 
 /// A variant name, or a variant carrying one fieldless variant, such as `Rejected(NotFound)`.
@@ -279,6 +286,8 @@ mod tests {
         let empty = Type::Enum { name: "Empty".into(), variants: Vec::new() };
         assert!(validate_type(&empty).is_err());
         assert!(validate_type(&Type::Int { min: 3, max: 2 }).is_err());
+        assert!(validate_type(&Type::Tuple(Vec::new())).is_err());
+        assert!(validate_type(&Type::Unit).is_ok());
     }
 
     #[test]

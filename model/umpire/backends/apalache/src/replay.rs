@@ -109,6 +109,7 @@ where
         let meta = &module.metadata;
         let (category, selected) = selected_property(module, property)?;
         let schema = module.safety_schema().map_err(|Refusal(error)| reject(error))?;
+        unit_facts(module)?;
         let parameters: BTreeMap<_, _> =
             meta.parameters.iter().map(|p| (p.symbol.clone(), p.ty.clone())).collect();
         if parameters.len() != meta.parameters.len()
@@ -578,6 +579,17 @@ fn arithmetic_reason(reason: String) -> Result<String, Refusal> {
         Ok(reason)
     }
 }
+/// Refuses a Model whose edges carry facts: their replay has no Apalache control yet.
+fn unit_facts(module: &Module) -> Result<(), Refusal> {
+    let fact = fact_type(module)?;
+    if *fact != SourceType::Unit {
+        return Err(reject(format!(
+            "Apalache replay does not yet confirm edge facts; the Model declares facts of {fact:?}"
+        )));
+    }
+    Ok(())
+}
+/// An exported native value as the wire value of its admitted type.
 fn admitted(value: umpire_dsl::Value, ty: &SourceType) -> Result<Value, Refusal> {
     let admitted = Literal::from(value).admit(ty).map_err(|error| reject(error.to_string()))?;
     Ok(Value::admitted(&admitted, ty))
@@ -707,4 +719,38 @@ fn stutter(before: &TraceState, after: &TraceState) -> Result<(), Refusal> {
         return Err(reject("tagged stutter changes state or event/history"));
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod fact_tests {
+    use super::{SourceType, unit_facts};
+
+    #[test]
+    fn models_with_edge_facts_are_refused_until_their_replay_is_controlled()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let source = r"
+            use umpire_dsl::machine;
+            #[machine] mod plain {
+                use umpire_dsl::{State, Action};
+                #[derive(State)] struct Model { done: bool }
+                #[derive(Action)] enum User { Finish }
+                impl Model {
+                    #[on(User)] fn user(&mut self, action: User) {
+                        match action { User::Finish => self.done = true }
+                    }
+                }
+            }
+        ";
+        let mut module = umpire_tla::Tla::safety(&umpire_tla::Lift::parse("plain.rs", source)?)?;
+        unit_facts(&module)?;
+        module
+            .metadata
+            .observer_types
+            .insert("__umpire_facts".into(), SourceType::Seq(Box::new(SourceType::Bool)));
+        let error = unit_facts(&module).err().ok_or("non-unit facts were admitted")?;
+        assert!(error.0.contains("does not yet confirm edge facts"), "{error}");
+        module.metadata.observer_types.remove("__umpire_facts");
+        assert!(unit_facts(&module).is_err());
+        Ok(())
+    }
 }
