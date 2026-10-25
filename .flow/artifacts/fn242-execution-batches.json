@@ -11609,8 +11609,7 @@
       "B04": 1,
       "B07": 1,
       "B08": 1,
-      "B09": 1,
-      "B09/module-cache-helper": 1
+      "B09": 1
     },
     "risk_followthrough_2026_10_24": {
       "authority": "Owner repeated: can we take more risks, too?",
@@ -11631,6 +11630,14 @@
       "deferred_proof": "B13 must supply actual module-cache integrity authority; B09 source may depend on it provisionally, no integrity waiver.",
       "role_fixture": "B11 selected current roles use existing DryRun/build, compose, authenticate, freeze/open APIs; no second builder or stale donor sourcepins."
     },
-    "shared_target_provenance": "Before crediting a cross-worktree target run, verify actual emitted executable, correct package/worktree manifest provenance and nonzero named test selection. Cargo relative dep paths/mtime reused B04 libtest in B06 and selected0: no proof. On foreign provenance, preserve copied evidence and rebuild only gomad/gomad-wasmhost packages under exclusive lease; no blanket cache wipe or live-command restart."
+    "shared_target_provenance": "Before crediting a cross-worktree target run, verify actual emitted executable, correct package/worktree manifest provenance and nonzero named test selection. Cargo relative dep paths/mtime reused B04 libtest in B06 and selected0: no proof. On foreign provenance, preserve copied evidence and rebuild only gomad/gomad-wasmhost packages under exclusive lease; no blanket cache wipe or live-command restart.",
+    "additional_short_diagnostic_slot": {
+      "maximum": 1,
+      "authority": "Repeated owner requests to accept more risk and parallelize; inspected host has12logicalCPUs, ~12GiB availableRAM,90GiBhost/39GiBoverlay free",
+      "scope": "Single-job opt-level0 host diagnostics and directly focused tests only; isolated target, no shared mutable artifacts",
+      "admission": "At dispatch require MemAvailable>=8GiB, hostfree>=60GiB, overlayfree>=24GiB and existing task-specific floors; no new dispatch when below. Preserve evidence/active targets. Copy/reflink only idle donor caches with distinct inodes; clean only local gomad/wasmhost packages when foreign provenance.",
+      "excluded": "Production timing, broad stress/soak, full qualification and acceptance-budget dispatch. Existing final qualification contracts remain unchanged.",
+      "lease": "Conductor assigns and returns diagnostic slot3; no worker self-admission."
+    }
   }
 }
