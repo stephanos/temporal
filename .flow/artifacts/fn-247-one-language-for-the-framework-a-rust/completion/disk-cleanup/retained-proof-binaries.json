@@ -1,0 +1,176 @@
+[
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn247-toml-probe-target/debug/fn247-toml-probe",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/8f4757daee46ced6ca05f7a2952afa7c3d6bd1dac88523766253ceb8d78bc965.bin",
+    "sha256": "8f4757daee46ced6ca05f7a2952afa7c3d6bd1dac88523766253ceb8d78bc965",
+    "bytes": 8184304
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2474-cold-target/debug/process-cold-consumer",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/c1cda8a6c70ad641098b5183fc115923c6ac8cbebf02ac92bc72f047eeb07191.bin",
+    "sha256": "c1cda8a6c70ad641098b5183fc115923c6ac8cbebf02ac92bc72f047eeb07191",
+    "bytes": 5795680
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2474-lazy-consumer-target/debug/process-cold-consumer",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/85d2913a234b566dbd508f1b28c1739268e23436ac6c7f8db15bfeec4cbeb468.bin",
+    "sha256": "85d2913a234b566dbd508f1b28c1739268e23436ac6c7f8db15bfeec4cbeb468",
+    "bytes": 7112560
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2474-final-target/debug/umpire-process-fixture",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/01550332b5c46930c4b9da633b9a1c0ddfae71b3f785499f469081046dac5b7c.bin",
+    "sha256": "01550332b5c46930c4b9da633b9a1c0ddfae71b3f785499f469081046dac5b7c",
+    "bytes": 7704664
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2474-focused-target/debug/umpire-process-fixture",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/826def7f9a1b2f49e9f4ad2ab02ea169ae21db7ed1be2ddee6f4761b558a9939.bin",
+    "sha256": "826def7f9a1b2f49e9f4ad2ab02ea169ae21db7ed1be2ddee6f4761b558a9939",
+    "bytes": 7638288
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2474-reviewed-target/debug/umpire-process-fixture",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/14382e55a85df83e016f7d0a4dc1b0a50f1f3162f176388a05bc64d7239d158d.bin",
+    "sha256": "14382e55a85df83e016f7d0a4dc1b0a50f1f3162f176388a05bc64d7239d158d",
+    "bytes": 7772912
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2472-lock-target/debug/xtask",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/10183a58ed6efd284c99a1746f431c37df1aefef8571b5e693d2dddb493ff777.bin",
+    "sha256": "10183a58ed6efd284c99a1746f431c37df1aefef8571b5e693d2dddb493ff777",
+    "bytes": 15838024
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2472-compiler-target/debug/identity-compiler-fixture",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/4a032f17aacf1c157ef22a70fe91dc305a8756aa7905c8cb55e73f5762c4e750.bin",
+    "sha256": "4a032f17aacf1c157ef22a70fe91dc305a8756aa7905c8cb55e73f5762c4e750",
+    "bytes": 7154840
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2472-compiler-target/debug/xtask",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/160bf7ad0e4ce423b146aa8df61fdc3310fc790831bfaa7f7cd1e206edf6b73d.bin",
+    "sha256": "160bf7ad0e4ce423b146aa8df61fdc3310fc790831bfaa7f7cd1e206edf6b73d",
+    "bytes": 16228656
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2472-target/debug/identity-compiler-fixture",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/9f102b44d8cb1229912458ca963b602145066702aae64fb3b133a8f9160fe669.bin",
+    "sha256": "9f102b44d8cb1229912458ca963b602145066702aae64fb3b133a8f9160fe669",
+    "bytes": 7154808
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2472-target/debug/xtask",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/e7e5ab8976d487560533e9501d53fd674c465ce8d9c6d8df20f79c02c120cbd7.bin",
+    "sha256": "e7e5ab8976d487560533e9501d53fd674c465ce8d9c6d8df20f79c02c120cbd7",
+    "bytes": 19288008
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-target/debug/identity-compiler-fixture",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/4e1b011c1ee8486a23e46b39803fd397ded9cd5293851d092e6c2feb5a9319dc.bin",
+    "sha256": "4e1b011c1ee8486a23e46b39803fd397ded9cd5293851d092e6c2feb5a9319dc",
+    "bytes": 7162056
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-target/debug/xtask",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/dae83c5ed07596d20aeaa5192484e20b10cc83d1884ecaf8a9e7f294c0453a28.bin",
+    "sha256": "dae83c5ed07596d20aeaa5192484e20b10cc83d1884ecaf8a9e7f294c0453a28",
+    "bytes": 24894880
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/debug/identity-compiler-fixture",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/5f50b07ffd01c65dd6843abd02cb8ebbda2d1b1f39af77788319fd8625c3bd25.bin",
+    "sha256": "5f50b07ffd01c65dd6843abd02cb8ebbda2d1b1f39af77788319fd8625c3bd25",
+    "bytes": 7154800
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/debug/xtask",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/af7b5c2767e6734212996c2494c13a0d25b00b03b636e0215e4fac06b33c58ae.bin",
+    "sha256": "af7b5c2767e6734212996c2494c13a0d25b00b03b636e0215e4fac06b33c58ae",
+    "bytes": 25261360
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/xtask-bootstrap/debug/xtask",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/dae83c5ed07596d20aeaa5192484e20b10cc83d1884ecaf8a9e7f294c0453a28.bin",
+    "sha256": "dae83c5ed07596d20aeaa5192484e20b10cc83d1884ecaf8a9e7f294c0453a28",
+    "bytes": 24894880
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2477-target/debug/identity-compiler-fixture",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/5293a9693bab1f1ca9a336fa3f9caca3e3435856d9407db346c64b2c3e5b940d.bin",
+    "sha256": "5293a9693bab1f1ca9a336fa3f9caca3e3435856d9407db346c64b2c3e5b940d",
+    "bytes": 7153632
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2477-target/debug/xtask",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/dae83c5ed07596d20aeaa5192484e20b10cc83d1884ecaf8a9e7f294c0453a28.bin",
+    "sha256": "dae83c5ed07596d20aeaa5192484e20b10cc83d1884ecaf8a9e7f294c0453a28",
+    "bytes": 24894880
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target/debug/identity-compiler-fixture",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/5ff80088e80cfaedc68da0e2ccb5ae10f228c0e1df8807f6d7925ac256080cf2.bin",
+    "sha256": "5ff80088e80cfaedc68da0e2ccb5ae10f228c0e1df8807f6d7925ac256080cf2",
+    "bytes": 7154800
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target/debug/umpire-process-fixture",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/6a63cf75a63f94f3930121a348224e88e3d667db32de647fbd7425a1285bb43a.bin",
+    "sha256": "6a63cf75a63f94f3930121a348224e88e3d667db32de647fbd7425a1285bb43a",
+    "bytes": 9622752
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target/debug/xtask",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/8acd28dd666c3928430ef35c07786e329fdf91050fcdfa84fd81015744965d93.bin",
+    "sha256": "8acd28dd666c3928430ef35c07786e329fdf91050fcdfa84fd81015744965d93",
+    "bytes": 19277360
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-joined-proof.MstS6i/clean-target-a/xtask-bootstrap/debug/xtask",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/20faaf8397e5c59dc574cef9bf3959e9fee7fbd62b3a1762cec6c2d629d44ba6.bin",
+    "sha256": "20faaf8397e5c59dc574cef9bf3959e9fee7fbd62b3a1762cec6c2d629d44ba6",
+    "bytes": 24894928
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-joined-proof.MstS6i/clean-target-a/guest-cache/dcf356b74fdffbd99ddf99fd772dfbb5870623b33a0f11145206661021bd4cdd/wasm32-wasip1/guest/umpire_stock_guest.wasm",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/ec63674058db551a8a966e6ea4ede20a1880b6d8281f4f017be5eb9e38e48633.wasm",
+    "sha256": "ec63674058db551a8a966e6ea4ede20a1880b6d8281f4f017be5eb9e38e48633",
+    "bytes": 196508
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-joined-proof.MstS6i/clean-target-a/guest-cache/dcf356b74fdffbd99ddf99fd772dfbb5870623b33a0f11145206661021bd4cdd/wasm32-wasip1/guest/umpire_temporal_guest.wasm",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/bc27af7d5b6b1ed8fa5c524015046f3a8b7c12d2d488e9ce7cb3df3ea9217872.wasm",
+    "sha256": "bc27af7d5b6b1ed8fa5c524015046f3a8b7c12d2d488e9ce7cb3df3ea9217872",
+    "bytes": 3507265
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-joined-proof.MstS6i/clean-target-b/xtask-bootstrap/debug/xtask",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/eba510da691e977c73f2d77e875b807a909a305aecc9ea36f096f33fc5bae527.bin",
+    "sha256": "eba510da691e977c73f2d77e875b807a909a305aecc9ea36f096f33fc5bae527",
+    "bytes": 24894936
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-joined-proof.MstS6i/clean-target-b/guest-cache/c5be9e186320d6d6cb4948034855e0d7cedd2c1d95a75f7279d60c542503f3f9/wasm32-wasip1/guest/umpire_stock_guest.wasm",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/ec63674058db551a8a966e6ea4ede20a1880b6d8281f4f017be5eb9e38e48633.wasm",
+    "sha256": "ec63674058db551a8a966e6ea4ede20a1880b6d8281f4f017be5eb9e38e48633",
+    "bytes": 196508
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-joined-proof.MstS6i/clean-target-b/guest-cache/c5be9e186320d6d6cb4948034855e0d7cedd2c1d95a75f7279d60c542503f3f9/wasm32-wasip1/guest/umpire_temporal_guest.wasm",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/bc27af7d5b6b1ed8fa5c524015046f3a8b7c12d2d488e9ce7cb3df3ea9217872.wasm",
+    "sha256": "bc27af7d5b6b1ed8fa5c524015046f3a8b7c12d2d488e9ce7cb3df3ea9217872",
+    "bytes": 3507265
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-joined-proof.MstS6i/clean-target-a/guest-wrappers/dcf356b74fdffbd99ddf99fd772dfbb5870623b33a0f11145206661021bd4cdd/guest-rustc",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/20faaf8397e5c59dc574cef9bf3959e9fee7fbd62b3a1762cec6c2d629d44ba6.bin",
+    "sha256": "20faaf8397e5c59dc574cef9bf3959e9fee7fbd62b3a1762cec6c2d629d44ba6",
+    "bytes": 24894928
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-joined-proof.MstS6i/clean-target-b/guest-wrappers/c5be9e186320d6d6cb4948034855e0d7cedd2c1d95a75f7279d60c542503f3f9/guest-rustc",
+    "retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/retained-proof-binaries/eba510da691e977c73f2d77e875b807a909a305aecc9ea36f096f33fc5bae527.bin",
+    "sha256": "eba510da691e977c73f2d77e875b807a909a305aecc9ea36f096f33fc5bae527",
+    "bytes": 24894936
+  }
+]

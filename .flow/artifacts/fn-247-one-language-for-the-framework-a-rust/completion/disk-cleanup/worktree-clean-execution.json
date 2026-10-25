@@ -1,0 +1,26 @@
+[
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2475-port",
+    "head": "c21571b8acf881892309ffc6cb63b56ba716ffab",
+    "branch": "work/fn2475-port",
+    "allocated_bytes_before": 222928896,
+    "worktree_removed": true,
+    "integrated_branch_deleted": true
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2476-port",
+    "head": "17bce75e1cbd28bb7e6939a869ee961c0df784a7",
+    "branch": "work/fn2476-port",
+    "allocated_bytes_before": 224538624,
+    "worktree_removed": true,
+    "integrated_branch_deleted": true
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2477-port",
+    "head": "e4899e270f052ff24e864fe4617e18911fb348de",
+    "branch": "work/fn2477-port",
+    "allocated_bytes_before": 223145984,
+    "worktree_removed": true,
+    "integrated_branch_deleted": true
+  }
+]

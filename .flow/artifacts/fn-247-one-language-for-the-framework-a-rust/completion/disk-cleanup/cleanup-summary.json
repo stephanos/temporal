@@ -1,0 +1,20 @@
+{
+  "removed_cache_roots": 19,
+  "removed_integrated_worktrees": 3,
+  "gross_removed_allocated_bytes": 26319069184,
+  "retained_binary_allocated_bytes": 271085568,
+  "removed_output_gib_approx": 24.26,
+  "available_gib": 85.03,
+  "preserved_protected_roots": [
+    "/home/agent/.cache/codex-build/cargo-target",
+    "/home/agent/.cache/codex-build/tmp",
+    "/home/agent/.cache/go-build",
+    "/home/agent/go/pkg/mod",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/build",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/apalache-controls"
+  ],
+  "proof_outputs_and_binary_hashes_verified": true,
+  "tracked_source_unchanged": true,
+  "worktrees": "/Users/stephan/Workspace/skunkworks/umpire/temporal b7534cd9cb [umpire]\n",
+  "df": "Filesystem      Size  Used Avail Use% Mounted on\nhost            927G  842G   86G  91% /Users/stephan/Workspace/skunkworks\n"
+}

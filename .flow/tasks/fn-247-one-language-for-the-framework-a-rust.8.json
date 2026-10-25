@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-247-one-language-for-the-framework-a-rust",
   "spec_path": ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Consolidate required Model validation and timing into one canonical pipeline",
   "updated_at": "2026-10-24T20:27:31.430463Z"
 }

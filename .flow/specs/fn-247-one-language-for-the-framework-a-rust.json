@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-247-one-language-for-the-framework-a-rust",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-25T01:38:49.972157Z",
   "created_at": "2026-10-24T16:42:25.537897Z",
   "default_impl": null,
   "default_review": null,
@@ -744,6 +744,42 @@
       "task": "fn-247-one-language-for-the-framework-a-rust.3",
       "timestamp": "2026-10-25T01:28:43.593619Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "185b3cf065dceb318742878e7e3f7a4e4f4aa26bc71a8e9dac06f3d801a3ddf8",
+      "backend": "codex",
+      "base_sha": "cf339e835809cca4ce3cc06a9dda5d66948e02eb",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "eaaed0a271fc11a4dacca6bf84d155981996ba6d",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1107006,
+      "output_sha256": "d2134feb53f2c9ea45c06c1e8f8def56cb4dc3daf9a8e91ce4ccbc7c0fc60cb4",
+      "reservation_id": "4091d20cdb624de4bdd3d77d020d6846",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-25T01:38:49.943192Z",
+      "tool_calls": 42,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -757,11 +793,12 @@
     "impl:fn-247-one-language-for-the-framework-a-rust.8": 1,
     "impl:fn-247-one-language-for-the-framework-a-rust.9": 1,
     "plan": 4,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-247-one-language-for-the-framework-a-rust.1": 0,
     "impl:fn-247-one-language-for-the-framework-a-rust.2": 0,
     "impl:fn-247-one-language-for-the-framework-a-rust.3": 0,
@@ -774,7 +811,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-247-one-language-for-the-framework-a-rust.md",
-  "status": "open",
+  "status": "done",
   "title": "One language for the framework: a Rust process supervisor and an xtask crate replace the Python helpers (model)",
   "tracker": {
     "baseHashFlow": null,
@@ -787,5 +824,10 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T01:28:43.599906Z"
+  "updated_at": "2026-10-25T01:40:26.812277Z",
+  "validation_review": {
+    "path": ".flow/artifacts/fn-247-one-language-for-the-framework-a-rust/validation-cost-review-df2eafdb534a41d2cdcfde4ecfbff5e7fa453b17a9cf3eb690ae6fad97c1f4b6.json",
+    "schema_version": 1,
+    "sha256": "df2eafdb534a41d2cdcfde4ecfbff5e7fa453b17a9cf3eb690ae6fad97c1f4b6"
+  }
 }

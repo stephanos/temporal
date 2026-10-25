@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-247-one-language-for-the-framework-a-rust",
   "spec_path": ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Replace the extracted supervisor and process controls with allocation-free Rust ownership",
   "updated_at": "2026-10-24T20:27:31.752657Z"
 }

@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "spec_id": "fn-247-one-language-for-the-framework-a-rust",
+  "source_basis": "Native source523d131 and publishedguest8cbe8ee453, reviewed shellfixc0a76a4749/test-only56a195491b; final executable/docs source0925064e4fe346191addf0c79b534e78fc7d6ab6,3337 input hashes matched. Component and final reviews have real independent backend receipts; authentic completion review SHIP with allR1\u2013R6 met; closure will bind exact assessment bytes.",
+  "gates": [
+    {
+      "command": "Joined xtask/Apalache tests, lifecycle controls, Clippy and actual cold shared bootstrap scan",
+      "mode": "focused joined native validation",
+      "cost": {
+        "kind": "unknown",
+        "reason": "Individual outputs retained; aggregate wall-clock was not instrumented"
+      },
+      "coverage": "81 joined tests plus two real lifecycle controls before the review-added shell case; later affected shell suite verifies the fix",
+      "evidence": [
+        ".flow/artifacts/fn-247-one-language-for-the-framework-a-rust/integration/joined-validation.json",
+        ".flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task7"
+      ]
+    },
+    {
+      "command": "Two clean different-path stock+Temporal guest builds and actual cold/cached freshness, then canonical publication checks",
+      "mode": "current-input reproduction; independent clean targets",
+      "cost": {
+        "kind": "measured",
+        "seconds": 246
+      },
+      "coverage": "Both guest pairs equal, pinned cold admission, stale refusal/check-mode never-write; publication checks measured separately and not included in246seconds",
+      "evidence": [
+        ".flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task5/joined/proof-manifest.json",
+        ".flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task5/joined/canonical-publication.json"
+      ]
+    },
+    {
+      "command": "Native bootstrap + immutable pinned Apalache installation + cached reuse + joined Cargo/guest identity maps",
+      "mode": "real download/install; source-bound inventory",
+      "cost": {
+        "kind": "unknown",
+        "reason": "Commands/exits and artifacts retained; total elapsed not instrumented"
+      },
+      "coverage": "Archive/member hash admission, actual release installation, cached no-download reuse, seven admitted host packages and six unchanged native guest identities",
+      "evidence": [
+        ".flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task6/joined/execution-receipt.json"
+      ]
+    },
+    {
+      "command": "BASH_ENV=/dev/null UMPIRE_APALACHE=require make model-validate",
+      "mode": "one complete TLC/Apalache-required pipeline then existing benchmark",
+      "cost": {
+        "kind": "measured",
+        "seconds": 2092.924
+      },
+      "coverage": "All18 current stages passed with TLC+Apalache required; workspace recorded790passed/0failed/4inheritedignored, wasm and all generic/Kettle/Temporal Go hosts; benchmark ranonce10.813s. Gate2081.715s and benchmark exceed60s/10s soft targets, reported without failure relabelling.",
+      "evidence": [
+        ".flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task3/validation.json",
+        ".flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task3/model-validate.log",
+        ".flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task3/workspace-results.json"
+      ]
+    },
+    {
+      "command": "flowctl codex completion-review fn-247-one-language-for-the-framework-a-rust --base cf339e835809cca4ce3cc06a9dda5d66948e02eb --spec codex:gpt-6.1-sol:high",
+      "mode": "independent read-only requirement coverage review",
+      "cost": {
+        "kind": "unknown",
+        "reason": "Actual backend transcript/session retained; end-to-end review wall time not separately instrumented"
+      },
+      "coverage": "All9tasks and R1\u2013R6 met; no qualifying gaps or unaddressed requirements; unrelated goal-owned changes classified without discarding them",
+      "evidence": [
+        ".flow/artifacts/fn-247-one-language-for-the-framework-a-rust/completion/receipt.json",
+        ".flow/artifacts/fn-247-one-language-for-the-framework-a-rust/completion/review.md"
+      ]
+    }
+  ],
+  "speedup_decisions": [
+    {
+      "opportunity": "Repeated default/required/timing workspace validation",
+      "decision": "Applied: one canonical model-validate invocation in finaltask3",
+      "rationale": "Its covering required gate and existing benchmark replace repeated default/full/timing runs",
+      "coverage_preserved": "All existing required stages and semantic/negative controls remain; no stage failure relabelled"
+    },
+    {
+      "opportunity": "Python helper tests followed by duplicate Rust package tests",
+      "decision": "Applied: remove retired Python stage; workspace Cargo tests own native controls once",
+      "rationale": "Useful responsibilities were ported to real native tests, so parallel old implementation assertions add no current-contract proof",
+      "coverage_preserved": "Native compiler/lock/guest/installer/filter and process controls run within existing workspace stage"
+    },
+    {
+      "opportunity": "Serializing guest/installer/filter source lanes on shared files",
+      "decision": "Applied: three isolated lanes, central join and one current guest publication/reproduction",
+      "rationale": "Shared Cargo/dispatcher/Makefile contention was handled through integration, avoiding serial implementation and repeated regenerated assets",
+      "coverage_preserved": "Joined native checks, real pinned installation, actual cold bootstrap and cross-path reproduction"
+    },
+    {
+      "opportunity": "Separate semantic Go host pass for guest component before final full pipeline",
+      "decision": "Applied: semantic Go/TLC/Apalache execution belongs to final3 before parent closure",
+      "rationale": "Avoid duplicate covering host tests and a component/final-task completion cycle",
+      "coverage_preserved": "The final required pipeline must prove all host/semantic/negative controls before parent close"
+    },
+    {
+      "opportunity": "Rerun all guest proofs after unrelated review fixes",
+      "decision": "Applied source-bound reuse for shell/test-only fixes",
+      "rationale": "Guest compiler/identity/Cargo/bootstrap inputs and published asset remain unchanged; rerun affected controls instead",
+      "coverage_preserved": "Actual regression controls for changed code plus explicit proof-input continuity; build-input changes would require renewed proof"
+    },
+    {
+      "opportunity": "Remove independent per-task implementation reviews",
+      "decision": "Retained authentic task-specific reviews; no receipt aliases",
+      "rationale": "Required task review gates caught a real status propagation defect and a test portability issue",
+      "coverage_preserved": "Independent backend verdicts and actual fix-loop receipts retained"
+    },
+    {
+      "opportunity": "Treat longer combined-mode runtime as proof of a native process serialization regression",
+      "decision": "No lock-removal change: source audit found no global execution lock; retain actual required backend coverage",
+      "rationale": "Historical1017.380s pipeline requiredTLC but skippedAP; current mode adds396.35s realAP. Per-call private supervisors preserve concurrency; current shared47suite213.52s vs153.52s andTemporal581.72s vs349.01s are unisolated observations, not causal regression proof.",
+      "coverage_preserved": "Actual both-required pipeline and source-ownership controls; no interrupted/repeated validation or removed scientific oracle"
+    },
+    {
+      "opportunity": "Large completion-review context includes unrelated planning/tooling files from the same current-branch goal",
+      "decision": "Record for prospective review-context refinement; retain actual complete requirement review and truthful evidence now",
+      "rationale": "The primary spent substantial file inventory on unrelated future plans and tooling. Do not retroactively scope away real code or fabricate a smaller review base; future exact ownership filters should preserve complete requirement coverage.",
+      "coverage_preserved": "This completed review covered every R-ID with the real whole-spec base and source-backed evidence"
+    }
+  ],
+  "follow_ups": [
+    "Use the final validation.json stage timings: workspace tests dominate1707.092s; future savings must preserve actual changed-backend coverage and independent oracle controls",
+    "Future consolidation specs should run one joined canonical pipeline, use focused per-lane tests and avoid repeating whole workspace validation",
+    "ReportLinux/aarch64 scope and four inherited ignored Cargo entries; nativeDarwin evidence remains unclaimed"
+  ]
+}

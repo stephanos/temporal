@@ -1,0 +1,160 @@
+[
+  {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn247-toml-probe-target",
+    "allocated_bytes_before": 52850688,
+    "exit": 0,
+    "seconds": 0.329,
+    "absent": true,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/clean-00-fn247-toml-probe-target.log"
+  },
+  {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2474-cold-target",
+    "allocated_bytes_before": 63094784,
+    "exit": 0,
+    "seconds": 0.123,
+    "absent": true,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/clean-01-fn2474-cold-target.log"
+  },
+  {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2474-lazy-consumer-target",
+    "allocated_bytes_before": 80740352,
+    "exit": 0,
+    "seconds": 0.176,
+    "absent": true,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/clean-02-fn2474-lazy-consumer-target.log"
+  },
+  {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2474-final-target",
+    "allocated_bytes_before": 116789248,
+    "exit": 0,
+    "seconds": 0.193,
+    "absent": true,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/clean-03-fn2474-final-target.log"
+  },
+  {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2474-focused-target",
+    "allocated_bytes_before": 134230016,
+    "exit": 0,
+    "seconds": 0.277,
+    "absent": true,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/clean-04-fn2474-focused-target.log"
+  },
+  {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2474-reviewed-target",
+    "allocated_bytes_before": 134606848,
+    "exit": 0,
+    "seconds": 0.423,
+    "absent": true,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/clean-05-fn2474-reviewed-target.log"
+  },
+  {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2472-lock-target",
+    "allocated_bytes_before": 234442752,
+    "exit": 0,
+    "seconds": 0.406,
+    "absent": true,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/clean-06-fn2472-lock-target.log"
+  },
+  {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2472-compiler-target",
+    "allocated_bytes_before": 274415616,
+    "exit": 0,
+    "seconds": 0.55,
+    "absent": true,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/clean-07-fn2472-compiler-target.log"
+  },
+  {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2472-target",
+    "allocated_bytes_before": 285388800,
+    "exit": 0,
+    "seconds": 0.949,
+    "absent": true,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/clean-08-fn2472-target.log"
+  },
+  {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-target",
+    "allocated_bytes_before": 679849984,
+    "exit": 0,
+    "seconds": 0.942,
+    "absent": true,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/clean-09-fn2475-target.log"
+  },
+  {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target",
+    "allocated_bytes_before": 3155197952,
+    "exit": 0,
+    "seconds": 4.395,
+    "absent": true,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/clean-10-fn2476-target.log"
+  },
+  {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2477-target",
+    "allocated_bytes_before": 3037171712,
+    "exit": 0,
+    "seconds": 9.578,
+    "absent": true,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/clean-11-fn2477-target.log"
+  },
+  {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target",
+    "allocated_bytes_before": 2606718976,
+    "exit": 0,
+    "seconds": 4.842,
+    "absent": true,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/clean-12-fn2479-target.log"
+  },
+  {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-joined-proof.MstS6i/clean-target-a",
+    "allocated_bytes_before": 839614464,
+    "exit": 101,
+    "seconds": 0.026,
+    "absent": false,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/clean-13-clean-target-a.log"
+  },
+  {
+    "target": "/home/agent/.cache/codex-build/fn2373-compat",
+    "allocated_bytes_before": 2226937856,
+    "exit": 0,
+    "seconds": 0.094,
+    "absent": true,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/clean-fn2373-compat.log"
+  },
+  {
+    "target": "/home/agent/.cache/codex-build/fn2373-policy",
+    "allocated_bytes_before": 2976268288,
+    "exit": 0,
+    "seconds": 0.118,
+    "absent": true,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/clean-fn2373-policy.log"
+  },
+  {
+    "target": "/home/agent/.cache/codex-build/fn2373-proof",
+    "allocated_bytes_before": 3238797312,
+    "exit": 0,
+    "seconds": 0.11,
+    "absent": true,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/clean-fn2373-proof.log"
+  },
+  {
+    "target": "/home/agent/.cache/codex-build/fn2373-realization",
+    "allocated_bytes_before": 4671709184,
+    "exit": 0,
+    "seconds": 0.125,
+    "absent": true,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/disk-cleanup-20261025/clean-fn2373-realization.log"
+  },
+  {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-joined-proof.MstS6i/clean-target-a",
+    "allocated_bytes_before": 839614464,
+    "exit": 0,
+    "absent": true,
+    "method": "Cargo cleaned tagged child roots; exact audited generated-only wrapper/host-cache container removed after proof binary+metadata retention"
+  },
+  {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-joined-proof.MstS6i/clean-target-b",
+    "allocated_bytes_before": 839630848,
+    "exit": 0,
+    "absent": true,
+    "method": "Cargo cleaned tagged child roots; exact audited generated-only wrapper/host-cache container removed after proof binary+metadata retention"
+  }
+]

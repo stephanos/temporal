@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-247-one-language-for-the-framework-a-rust",
   "spec_path": ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Extract shared process support and retain the post-predecessor equivalence baseline",
   "updated_at": "2026-10-24T18:51:24.133796Z"
 }
