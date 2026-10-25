@@ -13,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-245-finite-collections-sets-maps-and.4.md",
   "status": "todo",
   "title": "Shared fixtures finite_sets, finite_maps and bounded_queue with goldens, differential and TLC agreement, the fn-238.6 sets measurement, and the DESIGN/README write-up",
-  "updated_at": "2026-10-24T22:04:05.387421Z"
+  "updated_at": "2026-10-25T08:37:53.668188Z"
 }

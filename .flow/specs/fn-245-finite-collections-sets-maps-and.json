@@ -14,9 +14,173 @@
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": "2026-10-24T22:12:13.339958Z",
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-25T08:38:47.974860Z",
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "1c4c513ea41d11e7a68cfede8c19bd8abaa6ed362b7737ea4a875d91f819dc28",
+      "backend": "codex",
+      "base_sha": "db86b9db7c3be3dc6c5171ff0c687faeab2a5f54",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-40b41ca81bfdf004ec43bd26ab377145",
+            "classification": "introduced",
+            "findingId": "finding-40b41ca81bfdf004ec43bd26ab377145",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-91de406370c3e01533bb29b207661ccf",
+            "classification": "introduced",
+            "findingId": "finding-91de406370c3e01533bb29b207661ccf",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-541550dee1af89552e3ece29c8da4c4f",
+            "classification": "introduced",
+            "findingId": "finding-541550dee1af89552e3ece29c8da4c4f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-7712f25fcd817db75a461ea059271ee0",
+            "classification": "introduced",
+            "findingId": "finding-7712f25fcd817db75a461ea059271ee0",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-bd4cb911c5de8acc1e3ab234bb0484ff",
+            "classification": "introduced",
+            "findingId": "finding-bd4cb911c5de8acc1e3ab234bb0484ff",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "db86b9db7c3be3dc6c5171ff0c687faeab2a5f54",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 454223,
+      "output_sha256": "998ddafee4c14af19f3d22fa04960bc3fd3ffbba9c1f7b24a1ab90719098c2b6",
+      "reservation_id": "2669d56a492a4fd7a65b8240e15608b6",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-25T08:35:27.654358Z",
+      "tool_calls": 25,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "1ce7aa6aeadf391fc26418a8a63430a1922bd01c7b8df1b2eed17e965ffaae8c",
+      "backend": "codex",
+      "base_sha": "db86b9db7c3be3dc6c5171ff0c687faeab2a5f54",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-40b41ca81bfdf004ec43bd26ab377145",
+            "classification": "introduced",
+            "findingId": "finding-40b41ca81bfdf004ec43bd26ab377145",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-91de406370c3e01533bb29b207661ccf",
+            "classification": "introduced",
+            "findingId": "finding-91de406370c3e01533bb29b207661ccf",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-541550dee1af89552e3ece29c8da4c4f",
+            "classification": "introduced",
+            "findingId": "finding-541550dee1af89552e3ece29c8da4c4f",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-7712f25fcd817db75a461ea059271ee0",
+            "classification": "introduced",
+            "findingId": "finding-7712f25fcd817db75a461ea059271ee0",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-bd4cb911c5de8acc1e3ab234bb0484ff",
+            "classification": "introduced",
+            "findingId": "finding-bd4cb911c5de8acc1e3ab234bb0484ff",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "db86b9db7c3be3dc6c5171ff0c687faeab2a5f54",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1160,
+      "output_sha256": "97e2211e7964c949d9bc7abece0ad6186875e524679ff1e1f80bcddff5a3513d",
+      "reservation_id": "8a5cde3b7e0e42afa09fb917c5bbfcdf",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-25T08:38:47.939525Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-245-finite-collections-sets-maps-and.md",
   "status": "open",
   "title": "Finite collections: sets, maps and bounded lists in Models, admitted across native, interpreted and TLC checking (model)",
@@ -31,5 +195,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T22:12:34.006504Z"
+  "updated_at": "2026-10-25T08:38:47.976325Z"
 }
