@@ -41,9 +41,9 @@ subprocess refusal remains recorded separately.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-246.15 | ⬜ todo | Approved nonpending timeout-retry correction and native/TLC proof renewal (R5) |
+| fn-246.15 | 🔄 in progress | Approved nonpending timeout-retry correction and native/TLC proof renewal (R5) |
 | fn-246.13 | ⬜ todo | After committed .15: independent standalone-activity protocol Model and native/TLC invariants (R5) |
-| fn-246.8 | ⬜ todo | Current default whole-prefix guest/Host contract (R1, R2) |
+| fn-246.8 | 🔄 in progress | Current default whole-prefix guest/Host contract (R1, R2) |
 | fn-246.11 | 🔄 in progress | Variant metadata and synthetic typed registry integrated; joined validation and review remain (R2, R3) |
 | fn-246.9 | ⬜ todo | After .8: current-format whole-prefix Run recording, replay and presentation (R1, R5) |
 | fn-246.10 | ⬜ todo | After .9: bounded alternatives and coherent explanation publication (R1, R5) |
