@@ -51,4 +51,3 @@ test activity_tests::proof_checks::selected_worlds_have_exact_poll_and_completio
 test activity_tests::policy_checks::configured_deadlines_reject_zero_and_binding_bypass ... ok
 
 test result: ok. 33 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.89s
-

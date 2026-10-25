@@ -140,4 +140,3 @@ test checker_and_suite_share_one_fixture_producer ... ok
 test suite_snapshots_update_compare_and_reject_orphans ... ok
 
 test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.44s
-

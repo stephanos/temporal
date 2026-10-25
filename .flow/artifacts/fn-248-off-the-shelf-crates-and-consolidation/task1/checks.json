@@ -137,6 +137,13 @@
       "kind": "test",
       "log": "temporal-reader.log",
       "observed": "1 selected native adapter test; independent report and ordered rows snapshot assertions passed. No wasm execution claim."
+    },
+    {
+      "cwd": ".",
+      "command": "git diff --check <base_commit>",
+      "exit": 0,
+      "kind": "whitespace",
+      "observed": "Source and normalized evidence logs have no whitespace errors."
     }
   ],
   "source_sha256": {
@@ -183,5 +190,6 @@
   "native_outputs": {
     "effect_panic.pb": "57e9cbe2fa91e1476b75eb392b7fb8a00cd723adc0a2fe5be4852605d0836c53",
     "effect_overflow.pb": "a6676ea2fe6667eda4b26ea04419c3f7802e377aeb466e72b81399670b378cef"
-  }
+  },
+  "log_format": "Captured logs retain substantive command output; trailing empty lines removed for repository whitespace checks. Initial diff whitespace findings were limited to those log endings."
 }

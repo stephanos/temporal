@@ -15,4 +15,3 @@ running 1 test
 test named_guest_adapter_preserves_the_independent_report_and_ordered_rows ... ok
 
 test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.07s
-

@@ -37,4 +37,3 @@ test successful_explore_replaces_graph_and_refusal_preserves_it ... ok
 test generated_dispatch_matches_trait_kettle_goldens ... ok
 
 test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-

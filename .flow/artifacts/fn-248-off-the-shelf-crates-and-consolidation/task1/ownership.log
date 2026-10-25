@@ -11,4 +11,3 @@ test nonfixture_orphan_pending_and_missing_reader_refuse ... ok
 test current_snapshots_have_explicit_owners ... ok
 
 test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
-
