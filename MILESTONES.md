@@ -125,7 +125,7 @@ before fn-246, which rewrites the same probes.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-251.4 | 🔄 in progress | Shared engine integrated; 185 Rust tests and complete Kettle Go suite passed; guest fix/review/final gate pending (R4) |
+| fn-251.4 | 🔄 in progress | Shared engine integrated and reviewed SHIP; Rust/current guest/Kettle/Temporal checks passed; final gate running (R4) |
 
 ### fn-252: Quick consolidation wins in model code, tests and tooling (model)
 
