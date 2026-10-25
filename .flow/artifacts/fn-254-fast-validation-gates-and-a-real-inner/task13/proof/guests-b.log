@@ -1,0 +1,9 @@
+error: failed to load manifest for workspace member `/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/reproduction/source-b/model/umpire/catalog/build`
+referenced by workspace at `/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/reproduction/source-b/model/umpire/Cargo.toml`
+
+Caused by:
+  failed to read `/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/reproduction/source-b/model/umpire/catalog/build/Cargo.toml`
+
+Caused by:
+  No such file or directory (os error 2)
+xtask bootstrap failed: installed pinned Rust/Cargo are required

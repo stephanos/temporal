@@ -167,9 +167,9 @@ fn real_tlc_maximality_fairness_bounds_and_action_properties() -> Result<(), Err
         eprintln!("TLC controls skipped: no TLC evidence (set UMPIRE_BACKENDS=require)");
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tlc = Tlc::discover(&root)?;
-    let evidence = root.join(".flow/tmp/tlc-controls");
+    let evidence = root.join("build/evidence/tlc-controls");
     fs::create_dir_all(&evidence)?;
     for (name, edges, fair, bound, property, expected) in controls() {
         let (trigger, target, allowed) = match name {
@@ -217,7 +217,7 @@ fn real_tlc_initial_invariant_has_a_typed_counterexample() -> Result<(), Error> 
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tlc = Tlc::discover(&root)?;
     let result = tlc.check(
         "Control",
@@ -238,7 +238,7 @@ fn real_tlc_keeps_deadlock_checks_and_refuses_tool_errors() -> Result<(), Error>
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tlc = Tlc::discover(&root)?;
     let source = module(&[(0, 1, "A")], None, None, 0, 2, None);
     let deadlock = source
@@ -269,7 +269,7 @@ fn real_tlc_evaluation_errors_are_typed_and_located() -> Result<(), Error> {
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tlc = Tlc::discover(&root)?;
     let schema = Schema {
         fields: BTreeMap::from([("x".into(), Type::Int { min: 0, max: 3 })]),
@@ -304,7 +304,7 @@ fn real_tlc_evaluation_errors_are_typed_and_located() -> Result<(), Error> {
     let initial = evaluation(&module("x = 3 * 1000000000", "x' = x"), "SPECIFICATION Spec\n")?;
     assert!(initial.trace.is_none(), "{initial}");
     assert!(initial.to_string().starts_with("TLC evaluation error in the initial predicate"));
-    let evidence = root.join(".flow/tmp/tlc-controls");
+    let evidence = root.join("build/evidence/tlc-controls");
     fs::create_dir_all(&evidence)?;
     fs::write(evidence.join("evaluation_errors.txt"), format!("{wide}\n\n{next}\n\n{initial}\n"))?;
     Ok(())
@@ -315,7 +315,7 @@ fn real_tlc_healthy_batches_use_at_most_two_model_launches() -> Result<(), Error
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tlc = Tlc::discover(&root)?;
     let source = module(&[(0, 1, "A"), (1, 2, "A")], None, None, 0, 2, None)
         .replace("====", "Safe == x <= 3\n====");
@@ -337,7 +337,7 @@ fn real_tlc_failed_batches_preserve_independent_traces() -> Result<(), Error> {
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tlc = Tlc::discover(&root)?;
     let cases = [
         (
@@ -439,7 +439,7 @@ fn real_tlc_batch_evaluation_recovers_original_property_order() -> Result<(), Er
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tlc = Tlc::discover(&root)?;
     let schema = Schema {
         fields: BTreeMap::from([("x".into(), Type::Int { min: 0, max: 3 })]),

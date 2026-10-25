@@ -20,7 +20,7 @@ func statefulHost(t *testing.T) *Host {
 	if path == "" {
 		target := os.Getenv("CARGO_TARGET_DIR")
 		if target == "" {
-			target = "../../../../target"
+			target = "../../../target"
 		}
 		path = filepath.Join(target, "wasm32-wasip1", "guest", "stateful_control.wasm")
 	}

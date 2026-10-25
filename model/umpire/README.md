@@ -6,8 +6,24 @@ contracts and guest dispatch, `catalog/` for typed annotation catalogs, and `dev
 fixture tooling and shared Models. `hosts/go/` contains the host, Runner and generated
 protocol packages; `reference/kettle/` contains the independent Kettle integration.
 
-See [the crate map](../README.md#crate-map) for each crate's job and author-facing surface,
-and [the workspace guide](../README.md) for authoring and verification commands.
+The framework is an independent Cargo workspace with local tool pins, lockfile,
+lint and arithmetic policies. From this directory, use the installed pinned tools:
+
+```sh
+mise exec -- cargo build --workspace --locked
+mise exec -- cargo test --workspace --locked
+mise exec -- cargo fmt --all -- --check
+mise exec -- cargo check-all
+mise exec -- cargo doc-all
+```
+
+The native [xtask](dev/xtask/README.md) provides pinned tool installation and development
+commands. Guest builds execute the independent [guest driver](dev/guest-driver/README.md).
+`bash scripts/tests/build-guests.sh` builds the five generic guests and native parity reports;
+the [Go host](hosts/go/README.md) and [Kettle reference](reference/kettle/README.md) describe
+how to consume them. `bash scripts/proto-go.sh core --check` and the `kettle` selector
+verify local generated Go protocol sources. Tools, generators and backend caches stay
+under this workspace; explicit Cargo target overrides remain supported.
 
 ## World-selected assumptions
 
@@ -69,3 +85,83 @@ configuration and starts by field. `World::new` remains an infallible ownership 
 Native exploration does not automatically validate a wrapper's finite domain: directly
 forged values bypass the factory, source binding refuses them, and an authored bounds
 invariant refutes invalid native starts or updates.
+
+## Model authoring
+
+### Fixed parameters and computed starts
+
+A module may declare one named-field `#[derive(World)] struct World`. Its fields stay fixed
+through an exploration. Like `State`, the derive supplies conditional Clone/Eq/Hash and
+Debug/Display implementations; it adds `World::new` with arguments in field order and the
+struct's visibility. It requires neither Copy nor Default. The declared World is the Machine;
+there is no implicit `world()` constructor for its parameters.
+
+```rust
+#[umpire_dsl::machine]
+mod counter {
+    use umpire_dsl::{Action, State, World, check};
+
+    #[derive(World)]
+    pub(super) struct World {
+        initial: u8,
+        limit: u8,
+    }
+
+    #[derive(State)]
+    pub(super) struct Model {
+        value: u8,
+    }
+
+    fn targets(world: &World) -> impl Iterator<Item = u8> {
+        world.initial..=world.limit
+    }
+
+    #[derive(Action, Copy)]
+    pub(super) enum User {
+        Set {
+            #[domain(targets)]
+            value: u8,
+            #[inputs([true])]
+            enabled: bool,
+        },
+    }
+
+    impl Model {
+        #[starts]
+        fn starts(world: &World) -> impl IntoIterator<Item = Self> {
+            [Self { value: world.initial }]
+        }
+
+        #[on(User)]
+        fn user(&mut self, action: User, world: &World) {
+            match action {
+                User::Set { value, enabled: true } if value <= world.limit => self.value = value,
+                User::Set { .. } => {}
+            }
+        }
+
+        #[invariant]
+        fn bounded(&self, world: &World) {
+            check!(self.value <= world.limit);
+        }
+    }
+}
+
+use counter::World;
+
+umpire_testing::fixture!(World = World::new(1, 3), 64);
+
+#[test]
+fn selected_world() -> umpire_testing::TestResult {
+    let files = bound().run()?;
+    assert_eq!(files["states.txt"].lines().count(), 3);
+    let smaller = bound_for(World::new(2, 3)).run()?;
+    assert_eq!(smaller["states.txt"].lines().count(), 2);
+    Ok(())
+}
+```
+
+This exact block compiles as [the DSL README fixture](author/dsl/tests/readme/parameterized.rs),
+checked against the README by `mise exec -- cargo test -p umpire-dsl --test main readme::` from
+this directory. The fixture binds one selected World explicitly; `bound_for` selects another without
+fabricating defaults. `World::new` assigns fields and does not validate their ranges or starts.

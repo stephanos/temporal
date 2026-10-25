@@ -63,7 +63,7 @@ fn selected_native_run() -> umpire_testing::RunResult {
 fn lifted_values_select_typed_backend_hook() -> umpire_testing::TestResult {
     if std::env::var_os("UMPIRE_TYPED_BACKEND_CHILD").is_none() {
         let output = std::process::Command::new(std::env::current_exe()?)
-            .current_dir(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.."))
+            .current_dir(Path::new(env!("CARGO_MANIFEST_DIR")).join("../.."))
             .env("UMPIRE_TYPED_BACKEND_CHILD", "1")
             .args(["--exact", "lifted_values_select_typed_backend_hook"])
             .output()?;

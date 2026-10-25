@@ -13,7 +13,7 @@ use std::{
     time::Duration,
 };
 use umpire_backend_process::{Limits, PinnedJar, Refusal, Scratch, java_command, run_process};
-#[path = "../../../../dev/xtask/src/apalache_pins.rs"]
+#[path = "../../../dev/xtask/src/apalache_pins.rs"]
 mod pins;
 pub use pins::{ARCHIVE_SHA256, JAR_SHA256, VERSION};
 
@@ -123,7 +123,7 @@ impl Apalache {
     pub fn discover(root: &Path) -> Result<Self, Refusal> {
         let limits = Limits { timeout: CHECK_TIMEOUT, ..Limits::default() };
         let jar = format!("apalache-{VERSION}/lib/apalache.jar");
-        PinnedJar::admit(root, "model/build/apalache", &jar, JAR_SHA256, |admitted, scratch| {
+        PinnedJar::admit(root, "build/apalache", &jar, JAR_SHA256, |admitted, scratch| {
             let PinnedJar { root, jar, java } = admitted;
             let tool = Self { root, jar, java, limits };
             let mut command = tool.command(scratch);
@@ -179,7 +179,7 @@ impl Apalache {
             {
                 return Err(Refusal(format!("undeclared Apalache safety property {invariant}")));
             }
-            let scratch = Scratch::new_in(&self.root, "model/build/apalache")?;
+            let scratch = Scratch::new_in(&self.root, "build/apalache")?;
             let checked = (|| {
                 let file = scratch.path().join(format!("{}.tla", module.name));
                 fs::write(&file, &module.tla)?;
@@ -364,8 +364,8 @@ mod tests {
     use std::os::unix::fs::PermissionsExt;
 
     fn fake(script: &str) -> Result<(Scratch, Apalache), Refusal> {
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
-        let scratch = Scratch::new_in(&root, "model/build/apalache")?;
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+        let scratch = Scratch::new_in(&root, "build/apalache")?;
         let java = scratch.path().join("java");
         fs::write(&java, format!("#!/bin/sh\n{script}\n"))?;
         fs::set_permissions(&java, fs::Permissions::from_mode(0o700))?;
@@ -396,8 +396,8 @@ mod tests {
 
     #[test]
     fn traces_have_one_aggregate_budget_and_deterministic_order() -> Result<(), Refusal> {
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
-        let scratch = Scratch::new_in(&root, "model/build/apalache")?;
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+        let scratch = Scratch::new_in(&root, "build/apalache")?;
         fs::write(scratch.path().join("z.itf.json"), "zz")?;
         fs::write(scratch.path().join("a.itf.json"), "aa")?;
         assert!(collect_itf(scratch.path(), &mut Vec::new(), 3).is_err());
@@ -490,7 +490,7 @@ mod tests {
             };
             let answer = tool.check(&module, "ArithmeticSafe", 1)?;
             assert!(matches!(answer, Bounded::NotRun { .. }), "{script}: {answer:?}");
-            let cache = scratch.path().join("model/build/apalache");
+            let cache = scratch.path().join("build/apalache");
             assert_eq!(fs::read_dir(cache)?.count(), 0);
             assert!(tool.check(&module, "undeclared", 1).is_err());
             assert!(tool.check(&module, "ArithmeticSafe", usize::MAX).is_err());

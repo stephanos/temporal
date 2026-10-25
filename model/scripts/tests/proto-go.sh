@@ -3,8 +3,9 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 scratch=$(mktemp -d)
 trap 'rm -rf "${scratch:?}"' EXIT
-mkdir -p "$scratch/repo/model/scripts" "$scratch/repo/.bin" "$scratch/bin" "$scratch/tmp"
+mkdir -p "$scratch/repo/model/scripts" "$scratch/repo/model/umpire/scripts" "$scratch/repo/model/umpire/.bin" "$scratch/repo/.bin" "$scratch/bin" "$scratch/tmp"
 cp scripts/proto-go.sh "$scratch/repo/model/scripts/"
+cp umpire/scripts/proto-go.sh "$scratch/repo/model/umpire/scripts/"
 export TMPDIR="$scratch/tmp" PROTO_LOG="$scratch/protoc.log"
 export PATH="$scratch/bin:$PATH"
 cat > "$scratch/bin/mise" <<'TOOL'
@@ -33,6 +34,7 @@ cat > "$scratch/repo/.bin/protoc-gen-go-grpc-v1.3.0" <<'TOOL'
 printf '%s\n' "${GRPC_VERSION:-protoc-gen-go-grpc 1.3.0}"
 TOOL
 chmod +x "$scratch/bin/mise" "$scratch/repo/.bin/"*
+cp "$scratch/repo/.bin/"* "$scratch/repo/model/umpire/.bin/"
 script="$scratch/repo/model/scripts/proto-go.sh"
 refuse() {
   local expected=$1
@@ -45,8 +47,8 @@ refuse() {
 }
 for module in core kettle temporal; do
   case "$module" in
-    core) tree=umpire/hosts/go/gen; input=umpire/protocol/proto/umpire/run/v1/run.proto ;;
-    kettle) tree=umpire/reference/kettle/gen; input=umpire/reference/kettle/proto/kettle/v1/probe.proto ;;
+    core) tree=umpire/hosts/go/gen; input=protocol/proto/umpire/run/v1/run.proto ;;
+    kettle) tree=umpire/reference/kettle/gen; input=reference/kettle/proto/kettle/v1/probe.proto ;;
     temporal) tree=temporal/hosts/go; input=temporal/proto/umpire/temporal/v1/activity.proto ;;
   esac
   bash "$script" "$module"
@@ -79,12 +81,12 @@ done
 refuse 'wrong protoc-gen-go version' env GO_VERSION=wrong bash "$script" core --check
 refuse 'wrong protoc-gen-go-grpc version' env GRPC_VERSION=wrong bash "$script" kettle --check
 refuse 'wrong protoc version' env PROTO_VERSION=wrong bash "$script" temporal --check
-mv "$scratch/repo/.bin/protoc-gen-go-grpc-v1.3.0" "$scratch/grpc"
+mv "$scratch/repo/model/umpire/.bin/protoc-gen-go-grpc-v1.3.0" "$scratch/grpc"
 bash "$script" core --check
-refuse 'make .bin/protoc-gen-go-grpc-v1.3.0' bash "$script" kettle --check
-mv "$scratch/repo/.bin/protoc-gen-go-v1.36.6" "$scratch/go"
-refuse 'make .bin/protoc-gen-go-v1.36.6' bash "$script" core --check
-mv "$scratch/go" "$scratch/repo/.bin/protoc-gen-go-v1.36.6"
+refuse 'scripts/proto-tools.sh' bash "$script" kettle --check
+mv "$scratch/repo/model/umpire/.bin/protoc-gen-go-v1.36.6" "$scratch/go"
+refuse 'scripts/proto-tools.sh' bash "$script" core --check
+mv "$scratch/go" "$scratch/repo/model/umpire/.bin/protoc-gen-go-v1.36.6"
 if PROTO_FAIL=1 bash "$script" core --check; then exit 1; else [ "$?" = 42 ]; fi
 [ -z "$(find "$scratch/tmp" -mindepth 1 -print -quit)" ]
 printf 'proto-go controls: selectors, pins, freshness, symlinks, failures and cleanup passed\n'

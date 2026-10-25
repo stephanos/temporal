@@ -1,0 +1,47 @@
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-driver/model/dev/xtask)
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-driver/model/umpire/dev/xtask)
+warning: unused import: `code`
+  --> dev/xtask/tests/main.rs:12:24
+   |
+12 | use support::{Fixture, code};
+   |                        ^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `code` is never used
+   --> dev/xtask/tests/../../../umpire/dev/guest-driver/tests/pipeline/support.rs:163:15
+    |
+163 | pub(crate) fn code(output: &Output, expected: i32) {
+    |               ^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `temporal-xtask` (test "main") generated 2 warnings (run `cargo fix --test "main" -p temporal-xtask` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.34s
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/driver-lane/debug/deps/main-b20433e8c969ed63)
+
+running 5 tests
+test actual_make_freshness_recipe_propagates_stale_failure ... FAILED
+test absent_embedded_guest_fails_go_compilation ... ok
+test retired_names::shell_preserves_filter_failure_when_git_grep_gets_sigpipe ... ok
+test retired_names::tool_failures_never_report_clean ... ok
+test retired_names::active_spellings_and_historical_exclusions ... ok
+
+failures:
+
+---- actual_make_freshness_recipe_propagates_stale_failure stdout ----
+
+thread 'actual_make_freshness_recipe_propagates_stale_failure' (72929) panicked at dev/xtask/tests/main.rs:58:5:
+{"reason":"compiler-artifact","target":{"name":"xtask","kind":["bin"],"crate_types":["bin"]},"executable":"/home/agent/.cache/codex-build/tmp/native guest controls 72927 1/custom target/debug/xtask","filenames":[]}
+umpire-guest-driver: No such file or directory (os error 2)
+make: *** [freshness-control.mk:3: freshness-control] Error 1
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    actual_make_freshness_recipe_propagates_stale_failure
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.60s
+
+error: test failed, to rerun pass `-p temporal-xtask --test main`

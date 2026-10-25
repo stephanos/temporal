@@ -20,13 +20,13 @@ fn failed_check_does_not_hide_a_later_division_failure() -> Result<(), Box<dyn s
         "sequential_checks.rs",
         include_str!("../fixtures/sequential_checks.rs"),
     )?)?;
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let error = Tlc::discover(&root)?
         .check_module(&module)
         .err()
         .ok_or("a failed check skipped the later division failure")?;
     assert!(error.to_string().contains("division by zero"), "{error}");
-    let evidence = root.join(".flow/tmp/tlc-controls");
+    let evidence = root.join("build/evidence/tlc-controls");
     fs::create_dir_all(&evidence)?;
     fs::write(evidence.join("sequential_checks.txt"), error.to_string())?;
     Ok(())

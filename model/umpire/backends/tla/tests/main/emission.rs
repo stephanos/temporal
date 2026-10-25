@@ -15,7 +15,7 @@ fn real_tlc_preserves_ordered_mutations_and_reports_checked_overflow()
         );
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tlc = Tlc::discover(&root)?;
     let source = r"
         use umpire_dsl::machine;
@@ -68,7 +68,7 @@ fn real_tlc_signed_division_and_remainder_use_rust_rounding()
         );
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tlc = Tlc::discover(&root)?;
     let source = r"
         use umpire_dsl::machine;
@@ -118,7 +118,7 @@ fn real_tlc_empty_half_open_starts_have_no_checked_underflow()
         eprintln!("Empty-start control skipped: no TLC evidence (set UMPIRE_BACKENDS=require)");
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tlc = Tlc::discover(&root)?;
     let source = r"
         use umpire_dsl::machine;

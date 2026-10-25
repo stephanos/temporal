@@ -1,0 +1,9 @@
+{
+  "control": "both general CLI Rust roots replaced with compile_error in isolated copy; dedicated driver builds with identical command/features before and after",
+  "exit": 0,
+  "driver_sha256_before": "ea09151d640b7391f145ecfb9a39f11ec72b2c278204e6f42f29174e262f29b0",
+  "driver_sha256_after": "ea09151d640b7391f145ecfb9a39f11ec72b2c278204e6f42f29174e262f29b0",
+  "cli_files_restored": true,
+  "initial_observation": "inconclusive hash comparison: whole-workspace baseline had different feature selection from dedicated-driver invocation; reused cached dedicated build for same-command comparison",
+  "compiled_cli_mutation_control_claimed": false
+}

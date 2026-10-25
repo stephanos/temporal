@@ -1,86 +1,75 @@
-//! Native development command dispatcher.
+//! System workspace command bridge to the independent framework tools.
 #![forbid(unsafe_code)]
-
 use std::{
     env,
-    ffi::OsStr,
-    io::{self, Read, Write},
-    path::Path,
+    ffi::OsString,
+    io::{self, Write},
+    os::unix::{
+        ffi::OsStringExt,
+        process::{CommandExt, ExitStatusExt},
+    },
+    path::{Path, PathBuf},
+    process::{Command, Stdio},
 };
 
-fn run() -> xtask::Result<i32> {
-    let mut argv = env::args_os();
-    if argv.next().as_deref().and_then(|p| Path::new(p).file_name())
-        == Some(OsStr::new("guest-rustc"))
-    {
-        return xtask::compiler::run(argv.collect());
+fn run() -> io::Result<i32> {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+    let caller = env::current_dir()?;
+    let mut arguments: Vec<_> = env::args_os().skip(1).collect();
+    let guest =
+        arguments.first().is_some_and(|command| command == "guest" || command == "guest-freshness");
+    let mut workspace = caller.clone();
+    if guest {
+        workspace.clone_from(&root);
+        if arguments.get(1).is_some_and(|package| {
+            [
+                "umpire-stock-guest",
+                "umpire-kettle-guest",
+                "umpire-control-guest",
+                "umpire-caught-panic-guest",
+                "umpire-overflow-guest",
+            ]
+            .iter()
+            .any(|known| package == known)
+        }) {
+            workspace.push("umpire");
+        }
+        if let Some(output) = arguments.get_mut(2) {
+            let path = Path::new(output);
+            if path.is_relative() {
+                *output = caller.join(path).into_os_string();
+            }
+        }
     }
-    let mut arguments = argv;
-    match arguments.next().as_deref() {
-        Some(command) if command == OsStr::new("fetch-apalache") => {
-            let root = if let Some(root) = arguments.next() {
-                std::path::PathBuf::from(root)
-            } else {
-                let current = env::current_dir()?;
-                current
-                    .ancestors()
-                    .find(|path| path.join("model/Cargo.toml").is_file())
-                    .unwrap_or(&current)
-                    .to_owned()
-            };
-            if arguments.next().is_some() {
-                return Err(xtask::Error::Invalid(
-                    "usage: cargo xtask fetch-apalache [workspace-root]".into(),
-                ));
-            }
-            let path = xtask::fetch_apalache::install(Path::new(&root))?;
-            io::stdout().write_all(path.as_os_str().as_encoded_bytes())?;
-            io::stdout().write_all(b"\n")?;
-            Ok(0)
-        }
-        Some(command) if command == OsStr::new("guest") => {
-            xtask::guest::run(&arguments.collect::<Vec<_>>(), false)
-        }
-        Some(command) if command == OsStr::new("guest-freshness") => {
-            xtask::guest::run(&arguments.collect::<Vec<_>>(), true)
-        }
-        Some(command) if command == OsStr::new("guest-lock") => {
-            let paths: Vec<_> = arguments.collect();
-            if paths.len() != 2 {
-                return Err(xtask::Error::Invalid("usage: cargo xtask guest-lock <Cargo.lock> <directory> (metadata JSON on stdin)".into()));
-            }
-            let mut metadata = Vec::new();
-            io::stdin().read_to_end(&mut metadata)?;
-            let path = xtask::lock::publish(&metadata, Path::new(&paths[0]), Path::new(&paths[1]))?;
-            io::stdout().write_all(path.as_os_str().as_encoded_bytes())?;
-            io::stdout().write_all(b"\n")?;
-            Ok(0)
-        }
-        Some(command) if command == OsStr::new("guest-rustc") => {
-            xtask::compiler::run(arguments.collect())
-        }
-        Some(command) if command == OsStr::new("retired-names") => {
-            let pattern = arguments.next();
-            if pattern.is_none() || arguments.next().is_some() {
-                return Ok(2);
-            }
-            Ok(xtask::retired_names::run(
-                pattern.as_deref().unwrap_or_default(),
-                io::stdin().lock(),
-                io::stdout().lock(),
-            ))
-        }
-        _ => Err(xtask::Error::Invalid(
-            "commands: fetch-apalache, guest, guest-freshness, guest-lock, guest-rustc, retired-names".into(),
-        )),
+    let output = Command::new("/bin/bash")
+        .arg(root.join("scripts/xtask.sh"))
+        .stderr(Stdio::inherit())
+        .output()?;
+    if !output.status.success() {
+        return Ok(output
+            .status
+            .code()
+            .unwrap_or_else(|| 128 + output.status.signal().unwrap_or(0)));
     }
+    let path = output.stdout.strip_suffix(b"\n").unwrap_or(&output.stdout);
+    let tool = PathBuf::from(OsString::from_vec(path.to_owned()));
+    let mut command = Command::new(tool);
+    command.args(arguments).current_dir(workspace);
+    if guest && let Some(target) = env::var_os("CARGO_TARGET_DIR") {
+        let target = PathBuf::from(target);
+        command.env(
+            "CARGO_TARGET_DIR",
+            if target.is_absolute() { target } else { caller.join(target) },
+        );
+    }
+    Err(command.exec())
 }
 
 fn main() {
     let status = match run() {
         Ok(status) => status,
         Err(error) => {
-            let _ = writeln!(io::stderr(), "xtask: {error}");
+            let _ = writeln!(io::stderr(), "temporal-xtask: {error}");
             1
         }
     };

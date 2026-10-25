@@ -1,7 +1,7 @@
 # model: Umpire in Rust
 
-The Cargo workspace contains the system-independent framework under `umpire/` and the
-Temporal extension under `temporal/`. The Kettle fixtures establish the generic authoring
+Two Cargo workspaces separate the independent framework under `umpire/` from the
+Temporal extension under `temporal/`. Each owns its lockfile, configuration and build profiles. The Kettle fixtures establish the generic authoring
 and checker surface; the activity slice additionally hosts one real SDK run through a Model.
 See [DESIGN.md](DESIGN.md) for the scope, measurements and retained authoring decisions.
 
@@ -9,11 +9,13 @@ See [DESIGN.md](DESIGN.md) for the scope, measurements and retained authoring de
 caches. Its internal paths describe the old layout, and its Scala targets are unmaintained and
 not expected to build. The Cargo workspace and Rust gate do not build the archive.
 
-The toolchain is pinned in the repository's `mise.toml` (`rust = "1.99.1"`); run through mise:
+Each workspace owns its `mise.toml` toolchain pins (`rust = "1.99.1"`); run through mise:
 
 ```
-mise exec -- cargo build --workspace
-mise exec -- cargo test --workspace
+mise exec -- cargo build --workspace --locked
+mise exec -- cargo test --workspace --locked
+(cd umpire && mise exec -- cargo build --workspace --locked)
+(cd umpire && mise exec -- cargo test --workspace --locked)
 ```
 
 ## Crate map
@@ -63,14 +65,18 @@ refuse. Apalache remains opt-in with `UMPIRE_APALACHE=require`; TLC requires `UM
 `protocol/runtime/guests` contains stock/control guest packages; `reference/kettle/guest`
 contains the reference guest. The Temporal guest and extension remain under `model/temporal/`.
 
-The host-only `model/dev/xtask` crate owns guest/identity/freshness tools, pinned Apalache
-installation and retired-name filtering. Bash bootstraps/orchestrates it; active Model tools
-need no Python. Its controls and process controls run once in the workspace Rust test stage.
-See [GUEST_BUILDS.md](GUEST_BUILDS.md) and [native tool contracts](dev/xtask/README.md).
+The host-only `umpire/dev/xtask` command front door owns pinned Apalache installation
+and retired-name filtering. Guest commands execute the independent
+`umpire/dev/guest-driver` executable, which owns guest builds, compiler wrapping,
+lock admission and the shared admitted tool/caller context. `model/dev/xtask`
+retains the thin system workspace command bridge and its entry-point controls.
+Existing root scripts and `cargo xtask` delegate to the framework tools.
+See [GUEST_BUILDS.md](GUEST_BUILDS.md) and
+[native tool contracts](umpire/dev/xtask/README.md).
 
 ## Hygiene
 
-One lint policy for all crates lives in the workspace `Cargo.toml` (`[workspace.lints]`: clippy
+Matching lint policies for all crates live in each workspace `Cargo.toml` (`[workspace.lints]`: clippy
 `all` and `pedantic` at warn, a few pedantic lints that fight the Model style allowed, `unwrap_used`,
 `expect_used`, `dbg_macro`, `todo` and `print_*` warned, `unsafe_code` denied, `missing_docs` and
 `unreachable_pub` warned). Each crate opts in with `[lints] workspace = true`. Thresholds are in
@@ -159,7 +165,7 @@ negative controls for missing, unexpected and mis-typed exports.
 The ABI crate keeps the workspace lint rules with `unsafe_code = deny` and local
 exceptions only on the three named export attributes. DSL/checker retain `forbid`.
 
-From inside `model/`, `cargo check-all` and `cargo doc-all` are aliases for the clippy and doc steps.
+From either workspace, `cargo check-all` and `cargo doc-all` are aliases for its clippy and doc steps. The root Make stages invoke both workspaces.
 `model-validate` forces TLC-required `model-time` through environment/Make conflicts; add
 `UMPIRE_APALACHE=require` for both. Legacy modes remain; required timings are separate from historical defaults.
 `model-time` measures every `model-check` stage, then touches `umpire/backends/native/src/lib.rs` and tests

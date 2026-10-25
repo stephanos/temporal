@@ -1,0 +1,346 @@
+   Compiling syn v3.0.9
+   Compiling once_cell v1.21.4
+   Compiling getrandom v0.4.3
+   Compiling winnow v1.0.4
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling tempfile v3.27.0
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling prettyplease v0.3.0
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/ir/derive)
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/ir)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/author/dsl/macros)
+   Compiling manyhow v0.14.1
+   Compiling thiserror v2.0.21
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/front)
+   Compiling proc-macro-crate v3.5.0
+   Compiling rustix v1.1.5
+   Compiling serde_derive v1.0.229
+   Compiling regex-syntax v0.8.11
+   Compiling linux-raw-sys v0.12.1
+   Compiling prettyplease v0.2.37
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/author/dsl)
+   Compiling regex-automata v0.4.18
+   Compiling serde v1.0.229
+   Compiling petgraph v0.8.3
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/backends/native)
+   Compiling regex v1.13.1
+   Compiling multimap v0.10.1
+   Compiling log v0.4.34
+   Compiling prost-build v0.14.4
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/protocol/runtime)
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/backends/process)
+   Compiling ident_case v1.0.1
+   Compiling darling_core v0.24.1
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/backends/tla)
+   Compiling darling_macro v0.24.1
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/dev/guest-driver)
+   Compiling darling v0.24.1
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/catalog/syntax)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/author/suite)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/backends/tlc)
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/dev/xtask)
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/backends/apalache)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/catalog)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/author/umpire)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 18.81s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/framework-native/debug/deps/umpire_apalache-74f1cee23913d60c)
+
+running 7 tests
+test tests::native_depth_is_checked_and_truncation_never_establishes_a_bound ... ok
+test tests::pinned_outcomes_require_consistent_property_bound_exit_and_completion ... ok
+test tests::successful_substring_is_not_a_bounded_proof ... ok
+test tests::traces_have_one_aggregate_budget_and_deterministic_order ... ok
+test tests::unchanged_monitor_can_omit_redundant_per_state_checks ... ok
+test tests::version_admission_rejects_missing_wrong_and_failed_release_output ... ok
+test tests::fake_execution_failures_never_pass_and_scratch_is_removed ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/framework-native/debug/deps/main-97f577a6205b71e1)
+
+running 29 tests
+test controls::pinned_installer_and_runner_agree ... ok
+test controls::real_arithmetic_refusal_follows_a_replayed_valid_prefix ... ok
+test controls::real_discarded_condition_keeps_its_evaluation_guard ... ok
+test controls::real_arithmetic_faults_are_reachable_and_guards_remain_total ... ok
+test controls::real_evaluated_start_failure_cannot_disappear_into_an_empty_range ... ok
+test controls::real_kettle_checks_source_safety_and_history ... ok
+test controls::real_fact_witnesses_replay_exact_vectors_and_stutters ... ok
+test controls::real_kettle_negative_is_replayed_and_tampering_fails ... ok
+test controls::real_payload_identity_and_outcome_history_are_typed ... ok
+test controls::real_later_start_fault_preserves_partial_binding ... ok
+test controls::real_postcondition_filter_excludes_unrelated_actions ... ok
+test controls::real_start_evaluation_respects_field_order_before_empty_domains ... ok
+test controls::real_typed_payload_rejection_and_after_claims_replay ... ok
+test controls::real_typed_vector_projection_keeps_eager_fallback_errors ... ok
+test controls::real_vector_witness_replays_typed_sequence ... ok
+test controls::strict_envelope_presence_and_object_controls ... ok
+test controls::strict_envelope_world_and_state_bounds ... ok
+test decode::declared_wire_types_must_match_the_source_schema ... ok
+test decode::observer_only_safety_assignment_keeps_strict_schema_empty_state_refusal ... ok
+test decode::optional_integer_itf_uses_the_exact_declared_code_set ... ok
+test decode::typed_itf_checks_declarations_shapes_and_limits ... ok
+test decode::typed_itf_preserves_composites_and_refuses_retired_set_shapes ... ok
+test replay::arithmetic_refusal_is_distinct_and_requires_the_exact_native_boundary ... ok
+test replay::colliding_renderings_cannot_replace_typed_replay_or_reenumerate_native_inputs ... ok
+test replay::exact_payload_outcome_history_and_specific_claim_are_replayed ... ok
+test replay::replay_refuses_an_undeclared_property_before_reading_a_witness ... ok
+test replay::retained_pinned_kettle_witness_replays_deterministically ... ok
+test replay::selected_property_category_cannot_alias_authored_names ... ok
+test controls::strict_envelope_resource_controls ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/framework-native/debug/deps/umpire_backend_process-014515ac4440a4a8)
+
+running 12 tests
+test jar::tests::digest_is_in_process_sha256 ... ok
+test jar::tests::wrong_digest_wrong_java_and_cache_escape_refuse_before_use ... ok
+test support::tests::wrong_java_version_vendor_and_failed_launch_are_refused ... ok
+test syscall::supported::tests::close_limit_retains_descriptors_above_lowered_soft_limit ... ok
+test syscall::supported::tests::duplicated_descriptors_are_private_and_close_on_exec ... ok
+test syscall::supported::tests::raw_clone_normalizes_sparc_child_identity ... ok
+test syscall::supported::tests::raw_clone_prefix_preserves_flags_and_null_stack ... ok
+test syscall::supported::tests::supervisor_owner_eof_returns_125 ... ok
+test syscall::supported::tests::supervisor_retains_first_stop_signal ... ok
+test syscall::tests::all_darwin_helpers_prevent_process_creation ... ok
+test syscall::tests::unsupported_platform_is_an_explicit_refusal ... ok
+test jar::tests::exact_jar_and_pinned_java_reach_the_probe ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/framework-native/debug/deps/umpire_guest_driver-9856f090d369958d)
+
+running 4 tests
+test context::tests::caller_paths_preserve_relative_and_absolute_os_bytes ... ok
+test context::tests::driver_lock_and_compiler_each_invalidate_cache ... ok
+test context::tests::raw_context_roundtrips_and_longest_root_drives_flags_and_identity ... ok
+test context::tests::local_tool_admission_refuses_missing_configuration_and_escaping_links ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/framework-native/debug/deps/main-e1d9f15a4d100b4e)
+
+running 32 tests
+test guest_identity::compiler::build_std_requires_wasm_marker_and_trusted_source_or_rust_src_coordinate ... ok
+test guest_identity::compiler::dependency_identity_and_transitive_variants_propagate ... ok
+test guest_identity::compiler::inherited_jobserver_descriptor_reaches_direct_compiler_child ... ok
+test guest_identity::compiler::invalid_or_missing_dependency_sidecars_and_macro_collisions_refuse ... ok
+test guest_identity::compiler::missing_ambiguous_and_malformed_lock_maps_refuse ... ok
+test guest_identity::compiler::missing_required_inputs_and_option_values_refuse ... ok
+test guest_identity::compiler::native_macro_identity_ignores_host_configuration_but_retains_argv_and_collisions ... ok
+test guest_identity::compiler::os_bytes_and_lexical_root_boundaries_are_preserved ... ok
+test guest_identity::compiler::package_features_profile_compiler_and_closure_remain_distinct ... ok
+test guest_identity::compiler::portable_identity_replaces_guest_metadata_and_remaps_generated_paths ... ok
+test guest_identity::compiler::previous_wrapper_and_loader_environment_keep_raw_os_bytes ... ok
+test guest_identity::compiler::probes_pass_through_without_guest_environment ... ok
+test guest_identity::compiler::sidecar_precedes_child_and_cleanup_preserves_exit_launch_and_signal_outcomes ... ok
+test guest_identity::current_inputs::native_toml_accepts_current_documents_and_rejects_malformed_input ... ok
+test guest_identity::lock::ambiguous_name_version_coordinates_are_marked_unavailable ... ok
+test guest_identity::lock::checksum_changes_propagate_through_normal_and_all_platform_build_edges ... ok
+test guest_identity::lock::content_addressed_publication_is_repeatable_and_portable ... ok
+test guest_identity::lock::malformed_native_documents_and_graphs_are_rejected ... ok
+test guest_identity::lock::sourced_entries_are_required_but_git_checksums_are_optional ... ok
+test guest_identity::lock::unified_edges_and_edge_topology_change_ancestor_identity ... ok
+test guest_identity::lock::unrelated_and_dev_only_dependencies_do_not_change_guest_closures ... ok
+test guest_identity::support::canonical_hash_uses_sorted_json_and_known_sha256 ... ok
+test guest_identity::support::publication_is_complete_under_concurrent_writers_and_cleans_rename_failure ... ok
+test guest_identity::support::sidecar_lease_serializes_failure_cleanup_and_refuses_symlink ... ok
+test guest_pipeline::cold_bootstrap_failures_never_build_or_publish ... ok
+test guest_pipeline::cold_shell_bootstrap_and_cached_native_validation ... ok
+test guest_identity::compiler::actual_rustc_compiles_portable_native_macro_sidecars ... ok
+test guest_pipeline::loader_inheritance_survives_orchestration_environment_purge ... ok
+test guest_pipeline::native_prerequisite_failures_stop_before_guest_build ... ok
+test guest_pipeline::rust_toolchain_metadata_and_rustup_failures_refuse ... ok
+test guest_pipeline::shell_caller_relative_paths_and_changed_inputs_select_new_cache ... ok
+test guest_pipeline::guest_build_check_and_artifact_refusals ... ok
+
+test result: ok. 32 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.47s
+
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/framework-native/debug/deps/umpire_tla-92c016fd221ff8ab)
+
+running 15 tests
+test bind::tests::cfg_representation_looks_inside_tuples_and_sequences ... ok
+test emit::optional_tests::optional_default_forces_eager_checked_fallback_in_main_emission ... ok
+test emit::optional_tests::priming_recurses_through_nested_vectors_and_three_children_without_changing_other_leaves ... ok
+test emit::optional_tests::priming_visits_each_nominal_child_and_keeps_world_identity ... ok
+test emit::optional_tests::signed_remainder_asserts_overflow_and_divides_parenthesised_operands ... ok
+test emit::optional_tests::unsigned_division_has_no_overflow_guard ... ok
+test names::optional_tests::rename_visits_nominal_construction_projection_and_both_default_children ... ok
+test names::traversal_tests::rename_override_stops_before_replacement_children ... ok
+test safety::value::optional_tests::negative_literal_divisor_is_parenthesised_in_the_remainder ... ok
+test safety::value::optional_tests::present_optional_requires_fallback_validity_and_checks_some_encoding ... ok
+test safety::value::optional_tests::signed_remainder_requires_nonzero_divisor_and_no_overflow ... ok
+test safety::value::optional_tests::unsigned_division_has_no_overflow_guard ... ok
+test values::tests::composite_values_accept_exact_shapes_only ... ok
+test values::tests::enum_variants_admit_one_fieldless_payload_only ... ok
+test values::tests::nominal_types_validate_descriptor_and_accept_exact_codes ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/framework-native/debug/deps/main-63c29116174f2fb3)
+
+running 96 tests
+test emission::real_tlc_empty_half_open_starts_have_no_checked_underflow ... ok
+test emission::real_tlc_preserves_ordered_mutations_and_reports_checked_overflow ... ok
+test emission::real_tlc_signed_division_and_remainder_use_rust_rounding ... ok
+test inputs::a_fair_unit_variant_named_like_a_fair_position_refuses ... ok
+test inputs::catalog_values_outside_their_admitted_types_refuse_at_the_source_declaration ... ok
+test inputs::assumptions_naming_values_outside_the_selected_catalog_refuse_as_natively ... ok
+test inputs::exact_payload_scopes_and_fairness_specialize_the_variant_relation ... ok
+test inputs::inputs_without_a_declared_world_refuse_at_the_variant ... ok
+test inputs::inputs_bind_in_declaration_product_order_keeping_duplicates_and_empty_variants ... ok
+test inputs::internal_payload_actors_keep_their_classification ... ok
+test inputs::native_domain_forms_lift_from_the_bound_catalog ... ok
+test inputs::payload_patterns_resolve_lexically_through_their_typed_identities ... ok
+test inputs::the_source_limit_is_the_native_catalog_limit ... ok
+test inputs::unsupported_input_sources_refuse_by_location ... ok
+test narrow_remainder::i16_min_remainder_negative_one_refuses ... ok
+test narrow_remainder::i8_min_remainder_negative_one_refuses ... ok
+test optional_facts::canonical_option_constructor_paths_are_admitted ... ok
+test optional_facts::canonical_optional_imports_preserve_the_existing_fact_carrier ... ok
+test optional_facts::disabled_handler_tail_arithmetic_is_checked_by_both_emitters ... ok
+test optional_facts::fact_tail_world_and_input_references_receive_emitted_names ... ok
+test optional_facts::legacy_unit_fact_metadata_remains_exact ... ok
+test optional_facts::mixed_unit_handler_clears_the_previous_fact_on_every_real_edge ... ok
+test optional_facts::overlapping_action_guards_keep_the_first_matching_fact ... ok
+test optional_facts::prefix_effects_and_locals_feed_the_tail_in_ssa_order ... ok
+test optional_facts::source_only_constructor_swap_changes_both_emitters ... ok
+test optional_facts::unsupported_tail_results_refuse_at_the_source ... ok
+test optional_source::canonical_optional_imports_preserve_builtin_identity ... ok
+test optional_source::canonical_optional_paths_and_nominal_operations ... ok
+test optional_source::option_remains_an_ordinary_fieldless_enum_without_bounded_types ... ok
+test optional_source::optional_spellings_remain_ordinary_scalar_names_without_bounded_types ... ok
+test optional_source::unsupported_optional_sources_refuse_at_source_locations ... ok
+test optional_ticks::binding_preserves_nominal_identity_and_refuses_malformed_fields ... ok
+test optional_ticks::exact_optional_decode_includes_before_observers_and_rejects_wrong_kinds ... ok
+test optional_ticks::optional_complete_starts_keep_whole_row_correlation_and_empty_selection ... ok
+test optional_ticks::present_optional_keeps_eager_errors_in_guard_assignment_and_claim ... ok
+test optional_ticks::shared_countdown_keeps_selected_codes_in_all_cfgs_and_before_metadata ... ok
+test optional_ticks::source_local_optional_ticks_are_admitted ... ok
+test inputs::the_catalog_limit_boundary_binds_and_emits ... ok
+test phased::emitted_size_is_linear_in_sequential_conditional_returns ... ok
+test phased::large_handlers_compile_with_their_admitted_data ... ok
+test phased::rejections_lower_to_typed_outcomes_and_kept_self_loops ... ok
+test phased::shared_definitions_never_take_an_authored_name ... ok
+test phased::admitted_tree_and_constructor_data_grow_linearly ... ok
+test safety::initialization_growth_stays_linear_in_declared_fields ... ok
+test safety::safety_definition_growth_stays_linear ... ok
+test safety::safety_has_typed_history_and_preserving_stutter ... ok
+test phased::unsupported_phase_rejection_and_law_forms_refuse_at_their_location ... ok
+test safety::safety_history_names_refuse_collisions_and_temporaries_are_hygienic ... ok
+test safety::unsupported_source_type_refuses_at_its_declaration ... ok
+test sequential_checks::failed_check_does_not_hide_a_later_division_failure ... ok
+test safety::tlc_declarations_carry_snowcat_types ... ok
+test shadowing::nested_blocks_and_effect_helpers_preserve_caller_locals ... ok
+test source::a_hook_claim_name_collision_refuses_in_tests_rs ... ok
+test source::a_world_of_another_machine_refuses_at_this_source ... ok
+test source::enum_helper_and_terminal_postcondition_are_admitted ... ok
+test source::admission_refuses_type_cfg_resolution_and_observer_collisions ... ok
+test source::hand_written_machine_refusal_prints_the_type_as_written ... ok
+test source::hook_refusal_in_tests_rs_names_tests_rs ... ok
+test source::generated_tla_names_refuse_authored_namespace_collisions ... ok
+test source::inherent_enum_into_is_resolved_before_primitive_conversion ... ok
+test source::integer_literal_types_follow_field_context_on_either_side ... ok
+test source::imports_that_can_rebind_a_macro_read_by_name_refuse ... ok
+test source::kettle_source_lifts_registered_properties_and_explicit_assumptions ... ok
+test source::path_claims_refuse_builders_chains_and_other_gaps ... ok
+test source::pure_same_impl_helper_is_typed_and_lifted ... ok
+test source::progress_bounds_are_fail_closed ... ok
+test source::repeated_progress_builders_refuse_instead_of_reversing_rust_order ... ok
+test source::unsupported_control_characters_refuse_at_the_authored_literal ... ok
+test source::unsupported_expression_refuses_with_source_location ... ok
+test source::the_state_struct_keeps_its_authored_name ... ok
+test vector::bounded_vector_operations_are_lifted_with_safe_defaulted_get ... ok
+test vector::conditional_guards_preserve_common_bound_facts ... ok
+test vector::real_vector_native_and_tlc_states_and_properties_agree ... ok
+test vector::length_sums_and_products_refuse_at_their_span ... ok
+test vector::unrelated_conditionals_preserve_vector_length_identity ... ok
+test vector::shared_boolean_guards_keep_vector_admission_linear ... ok
+test vector::vector_get_keeps_eager_default_failures_when_element_is_present ... ok
+test vector::unsupported_vector_operations_and_unbounded_growth_refuse ... ok
+test world::bare_world_and_before_parameters_do_not_resolve_as_source_constants ... ok
+test world::binding_refuses_malformed_world_and_complete_state_values ... ok
+test world::complete_starts_preserve_correlation_deduplicate_and_keep_empty ... ok
+test world::declared_world_computed_starts_admit_before_value_binding ... ok
+test world::real_tlc_executes_each_cfg_family_with_both_world_bindings ... ok
+test world::scalar_enum_world_and_sequence_starts_use_the_admitted_types ... ok
+test world::generated_world_constants_avoid_synthesized_action_names ... ok
+test world::world_free_starts_of_any_name_admit_and_bind ... ok
+test world_fairness_binding::empty_selected_restrictions_keep_existing_refusal_and_empty_fair_lists ... ok
+test world_fairness_binding::every_selected_registration_and_progress_leaf_is_catalog_checked ... ok
+test world::typed_world_signatures_and_outcome_fields_refuse_by_source_location ... ok
+test world_fairness_binding::native_interpretation_selects_before_converting_exact_actions ... ok
+test world_fairness_binding::possible_leaf_names_and_post_selection_aliases_are_reserved ... ok
+test world_fairness_binding::rebinding_reselects_original_conditional_branches_and_preserves_flat_scopes ... ok
+test world_fairness_binding::selected_leaves_keep_authored_world_identity_and_exact_fairness ... ok
+test world_fairness_binding::source_plans_resolve_before_any_action_conversion ... ok
+test world_fairness_binding::unresolved_embedded_plan_cannot_emit_as_an_empty_scope ... ok
+test world_fairness_binding::world_shape_validation_precedes_selection ... ok
+
+test result: ok. 96 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.39s
+
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/framework-native/debug/deps/umpire_tlc-193e039ea26e2b79)
+
+running 15 tests
+test decode::tests::observer_only_safety_assignment_keeps_empty_state_refusal ... ok
+test decode::tests::string_and_collection_values_preserve_authored_contents ... ok
+test decode::tests::typed_dump_rejects_missing_extra_wrong_type_and_truncation ... ok
+test runner::batch_tests::batch_resource_refusal_does_not_launch_singleton_recovery ... ok
+test runner::batch_tests::singleton_evaluation_stops_recovery_after_current_wave ... ok
+test runner::batch_tests::singleton_output_budget_precedes_later_evaluation_and_stops_new_waves ... ok
+test runner::batch_tests::batch_protocol_requires_complete_selected_evidence ... ok
+test runner::tests::counterexample_requires_consecutive_states_and_a_valid_lasso ... ok
+test runner::tests::escaping_cache_symlinks_are_refused_before_creating_files ... ok
+test runner::tests::evaluation_errors_name_the_property_and_state ... ok
+test runner::tests::incomplete_messages_and_exploration_are_refused ... ok
+test runner::tests::located_property_invariants_name_only_the_selected_operator ... ok
+test runner::batch_tests::singleton_recovery_measures_worker_peak_and_owns_each_scratch ... ok
+test runner::tests::typed_module_refuses_inconsistent_declarations_before_spawning ... ok
+test runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/framework-native/debug/deps/main-43b2ec43b0cd7421)
+
+running 8 tests
+test controls::real_tlc_batch_evaluation_recovers_original_property_order ... ok
+test controls::real_tlc_evaluation_errors_are_typed_and_located ... ok
+test controls::real_tlc_failed_batches_preserve_independent_traces ... ok
+test controls::real_tlc_healthy_batches_use_at_most_two_model_launches ... ok
+test controls::real_tlc_initial_invariant_has_a_typed_counterexample ... ok
+test controls::real_tlc_keeps_deadlock_checks_and_refuses_tool_errors ... ok
+test controls::real_tlc_maximality_fairness_bounds_and_action_properties ... ok
+test scaling::typed_module_completes_independently_of_a_cut_native_reference ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/framework-native/debug/deps/xtask-de94b9ef5c0a284e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/framework-native/debug/deps/main-9a39ce92732c15e9)
+
+running 12 tests
+test apalache_install::installer::tests::download_failure_cleans_private_staging_and_never_publishes ... ok
+test apalache_install::installer::tests::hash_before_parse_and_exact_regular_member_before_publication ... ok
+test apalache_install::installer::tests::malicious_lock_types_refuse_without_following_or_blocking ... ok
+test apalache_install::installer::tests::native_curl_contract_and_download_failure_cleanup ... ok
+test apalache_install::installer::tests::native_dispatch_usage_failure_is_nonzero_and_structured ... ok
+test apalache_install::installer::tests::partial_wrong_and_nonregular_installations_never_download ... ok
+test apalache_install::installer::tests::symlinks_in_every_component_including_dangling_are_refused ... ok
+retired-name filtering failed: control
+test retired_names::io_and_missing_grep_errors_fail_closed ... ok
+test apalache_install::installer::tests::concurrent_installers_publish_once_and_return_same_path ... ok
+test retired_names::malformed_records_fail_closed ... ok
+test retired_names::posix_ere_recheck_and_grep_failure_propagate ... ok
+test retired_names::raw_records_exempt_only_author_facade_tokens ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

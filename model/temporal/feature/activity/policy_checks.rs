@@ -542,8 +542,7 @@ fn required_tlc_replays_both_pending_failure_payloads_at_every_attempt() -> Test
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
         return Ok(());
     }
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
-    let tlc = umpire_tlc::Tlc::discover(&root)?;
+    let tlc = umpire_tlc::Tlc::discover(&super::framework_root())?;
     for maximum in [1, 3] {
         for number in 1..=maximum {
             for retryable in [false, true] {
@@ -621,8 +620,7 @@ fn required_tlc_replays_timeout_retries_with_exact_cause_and_budget() -> TestRes
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
         return Ok(());
     }
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
-    let tlc = umpire_tlc::Tlc::discover(&root)?;
+    let tlc = umpire_tlc::Tlc::discover(&super::framework_root())?;
     for (index, fact) in [(1, ExpiredDeadline::StartToClose), (3, ExpiredDeadline::Heartbeat)] {
         for (global, number) in [(None, 2), (Some(3), 1)] {
             let mut deadlines = [Some(3), None, global, None];
@@ -685,8 +683,7 @@ fn required_tlc_replays_both_canceled_attempt_expiry_facts() -> TestResult {
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
         return Ok(());
     }
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
-    let tlc = umpire_tlc::Tlc::discover(&root)?;
+    let tlc = umpire_tlc::Tlc::discover(&super::framework_root())?;
     let source = extra_method(
         r"
         #[postcondition(after = Deadline::Tick)]
@@ -753,8 +750,7 @@ fn required_tlc_refutes_source_only_boundary_policy_mutants() -> TestResult {
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
         return Ok(());
     }
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
-    let tlc = umpire_tlc::Tlc::discover(&root)?;
+    let tlc = umpire_tlc::Tlc::discover(&super::framework_root())?;
     let pending_at_cap = replace_once(
         SOURCE,
         "if retryable && self.cancel_requested {",

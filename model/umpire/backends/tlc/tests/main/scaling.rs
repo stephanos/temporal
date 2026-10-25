@@ -22,10 +22,10 @@ fn typed_module_completes_independently_of_a_cut_native_reference()
 
     let lifted = Lift::parse("scaling_model.rs", include_str!("../fixtures/scaling_model.rs"))?;
     let module = Tla::emit(&lifted)?;
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tlc = Tlc::discover(&root)?;
     let result = tlc.check_module(&module)?;
-    let evidence = root.join(".flow/tmp/tlc-controls");
+    let evidence = root.join("build/evidence/tlc-controls");
     fs::create_dir_all(&evidence)?;
     fs::write(
         evidence.join("source_scaling.txt"),

@@ -355,7 +355,7 @@ fn real_tlc_executes_each_cfg_family_with_both_world_bindings()
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tlc = Tlc::discover(&root)?;
     let lifted = Lift::parse("counter/model.rs", WORLD)?;
     for (start, limit, count, negative) in

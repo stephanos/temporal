@@ -1,35 +1,8 @@
-# model: the Umpire framework in Rust. Current scope: what model/archived/framework/samples/Kettle.scala
-# uses today. Shared Models and their end-to-end goldens live in umpire/dev/fixtures.
+# System Model workspace; reusable framework dependencies point inward.
 [workspace]
 resolver = "3"
 members = [
     "dev/xtask",
-    "umpire/author/umpire",
-    "umpire/author/umpire/tests/consumer",
-    "umpire/author/dsl",
-    "umpire/author/dsl/macros",
-    "umpire/author/suite",
-    "umpire/front",
-    "umpire/ir",
-    "umpire/ir/derive",
-    "umpire/backends/native",
-    "umpire/backends/process",
-    "umpire/backends/tla",
-    "umpire/backends/tlc",
-    "umpire/backends/apalache",
-    "umpire/protocol/runtime",
-    "umpire/protocol/runtime/guests/stock",
-    "umpire/protocol/runtime/guests/control",
-    "umpire/protocol/runtime/guests/caught-panic",
-    "umpire/protocol/runtime/guests/overflow",
-    "umpire/catalog",
-    "umpire/catalog/syntax",
-    "umpire/catalog/macros",
-    "umpire/catalog/build",
-    "umpire/reference/kettle",
-    "umpire/reference/kettle/guest",
-    "umpire/dev/testing",
-    "umpire/dev/fixtures",
     "temporal/api",
     "temporal/annotate/syntax",
     "temporal/realization",
@@ -37,6 +10,7 @@ members = [
     "temporal/guest",
     "temporal/testing",
 ]
+exclude = ["umpire"]
 
 [workspace.package]
 version = "0.0.1"
@@ -46,6 +20,7 @@ publish = false
 license = "MIT"
 
 [workspace.dependencies]
+umpire-guest-driver = { version = "0.0.1", path = "umpire/dev/guest-driver" }
 umpire = { version = "0.0.1", path = "umpire/author/umpire" }
 umpire-reference-kettle = { version = "0.0.1", path = "umpire/reference/kettle" }
 umpire-catalog = { version = "0.0.1", path = "umpire/catalog" }

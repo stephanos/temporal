@@ -1,0 +1,5 @@
+[tools]
+go = "1.27.0"
+protoc = "29.5"
+java = "temurin-27"
+rust = "1.99.1"

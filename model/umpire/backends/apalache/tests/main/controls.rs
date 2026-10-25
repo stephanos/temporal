@@ -15,7 +15,7 @@ fn required() -> bool {
     std::env::var("UMPIRE_APALACHE").as_deref() == Ok("require")
 }
 fn evidence_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").join(".flow/tmp/apalache-controls")
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").join("build/evidence/apalache-controls")
 }
 fn retain(
     label: &str,
@@ -36,7 +36,7 @@ fn real_kettle_checks_source_safety_and_history() -> Result<(), Box<dyn std::err
     if !required() {
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tool = Apalache::discover(&root)?;
     let native = umpire_checker::Checker::explore(
         &selected_kettle::kettle::world(),
@@ -76,7 +76,7 @@ mod authored;
 fn real_arithmetic_faults_are_reachable_and_guards_remain_total()
 -> Result<(), Box<dyn std::error::Error>> {
     use umpire_tla::{Binding, Concrete, Literal};
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tool = if required() { Some(Apalache::discover(&root)?) } else { None };
     for (mode, start, divisor, fails) in [
         (0, 127, 1, true),
@@ -154,8 +154,11 @@ fn real_arithmetic_faults_are_reachable_and_guards_remain_total()
                 }
             }
         }
-        fs::create_dir_all(root.join(".flow/tmp/apalache-controls"))?;
-        fs::write(root.join(format!(".flow/tmp/apalache-controls/native-{mode}.txt")), native)?;
+        fs::create_dir_all(root.join("build/evidence/apalache-controls"))?;
+        fs::write(
+            root.join(format!("build/evidence/apalache-controls/native-{mode}.txt")),
+            native,
+        )?;
     }
     Ok(())
 }
@@ -180,7 +183,7 @@ fn real_postcondition_filter_excludes_unrelated_actions() -> Result<(), Box<dyn 
           #[postcondition(AFTER)] fn fails(&self,before:&Self){check!(self.done==before.done);}
         }
       }";
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tool = Apalache::discover(&root)?;
     for (label, enable, after, expected) in [
         ("post-fails", "true", "after=User::A", true),
@@ -211,7 +214,7 @@ fn real_evaluated_start_failure_cannot_disappear_into_an_empty_range()
         #[derive(Action)] enum User {Idle}
         impl Model {#[on(User)] fn step(&mut self,a:User){match a {User::Idle=>{}}}}
       }";
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tool = Apalache::discover(&root)?;
     let module = Tla::safety(&Lift::parse("starts.rs", source)?)?;
     let result = tool.check(&module, "ArithmeticSafe", 0)?;
@@ -226,7 +229,7 @@ fn real_typed_vector_projection_keeps_eager_fallback_errors()
     if !required() {
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tool = Apalache::discover(&root)?;
     let source = include_str!("../../../tla/tests/fixtures/vector.rs");
     let module = Tla::safety(&Lift::parse("vector.rs", source)?)?;
@@ -247,7 +250,7 @@ fn real_typed_vector_projection_keeps_eager_fallback_errors()
 
 #[test]
 fn pinned_installer_and_runner_agree() {
-    let script = include_str!("../../../../../dev/xtask/src/apalache_pins.rs");
+    let script = include_str!("../../../../dev/xtask/src/apalache_pins.rs");
     for pin in
         [umpire_apalache::VERSION, umpire_apalache::ARCHIVE_SHA256, umpire_apalache::JAR_SHA256]
     {
@@ -290,7 +293,7 @@ fn real_payload_identity_and_outcome_history_are_typed() -> Result<(), Box<dyn s
             })
             .collect(),
     };
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tool = Apalache::discover(&root)?;
     let module = Tla::safety(&Lift::parse("inputs.rs", source)?.bind(&binding)?)?;
     assert_eq!(module.metadata.catalog, binding.actions);
@@ -326,7 +329,7 @@ fn real_start_evaluation_respects_field_order_before_empty_domains()
     if !required() {
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tool = Apalache::discover(&root)?;
     for (label, source, fails) in [
         ("start-fault-first", include_str!("../fixtures/start_fault_first.rs"), true),
@@ -359,7 +362,7 @@ fn real_start_evaluation_respects_field_order_before_empty_domains()
 #[test]
 fn real_discarded_condition_keeps_its_evaluation_guard() -> Result<(), Box<dyn std::error::Error>> {
     use umpire_tla::{Binding, Concrete, Literal};
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tool = if required() { Some(Apalache::discover(&root)?) } else { None };
     for enabled in [true, false] {
         let world = empty_body_fixture::empty_condition::World::new(0, enabled);
@@ -407,7 +410,7 @@ fn real_kettle_negative_is_replayed_and_tampering_fails() -> Result<(), Box<dyn 
     if !required() {
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tool = Apalache::discover(&root)?;
     let world = selected_kettle::kettle::world();
     let starts = world.starts();
@@ -463,7 +466,7 @@ fn real_arithmetic_refusal_follows_a_replayed_valid_prefix()
     if !required() {
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tool = Apalache::discover(&root)?;
     let world = prefix_fixture::prefix::World;
     let starts = world.starts();
@@ -490,7 +493,7 @@ fn real_typed_payload_rejection_and_after_claims_replay() -> Result<(), Box<dyn 
     if !required() {
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tool = Apalache::discover(&root)?;
     let world = replay_fixture::inputs::World::new(2);
     let starts = world.starts();
@@ -550,7 +553,7 @@ fn real_later_start_fault_preserves_partial_binding() -> Result<(), Box<dyn std:
     if !required() {
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tool = Apalache::discover(&root)?;
     let module =
         Tla::safety(&Lift::parse("later.rs", include_str!("../fixtures/start_later_fault.rs"))?)?;
@@ -588,7 +591,7 @@ fn real_vector_witness_replays_typed_sequence() -> Result<(), Box<dyn std::error
     if !required() {
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tool = Apalache::discover(&root)?;
     let module = Tla::safety(&Lift::parse(
         "vector.rs",
@@ -769,7 +772,7 @@ fn real_fact_witnesses_replay_exact_vectors_and_stutters() -> Result<(), Box<dyn
     if !required() {
         return Ok(());
     }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tool = Apalache::discover(&root)?;
     let world = fact_fixture::facts::World::new(false);
     let starts = world.starts();

@@ -1,7 +1,7 @@
-use umpire_tla::observers::PENDING;
-use umpire_testing::replace_once;
 use crate::world_fairness::retry::{Model, World};
 use umpire::dsl::{__lifted::Lifts, CATALOG_LIMIT, Claim, Machine};
+use umpire_testing::replace_once;
+use umpire_tla::observers::PENDING;
 
 umpire_testing::fixture!(
     World = World::new(3),
@@ -34,7 +34,6 @@ fn world_fairness_selected_worlds_agree_compiled_and_embedded() -> umpire_testin
 fn readmitted_source() -> String {
     format!("{SOURCE}\n{}", include_str!("tests.rs"))
 }
-
 
 #[test]
 fn world_fairness_exact_selected_values_ordinals_and_wf_obligations() -> umpire_testing::TestResult
@@ -264,7 +263,7 @@ fn world_fairness_required_tlc_mutants_replay_heartbeat_and_starvation()
         &all_polls,
         format!(" /\\ WF_vars(({PENDING} = 1) /\\ Worker_Poll /\\ Monitor_closes)").as_str(),
     );
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tlc = umpire_tlc::Tlc::discover(&root)?;
     for (name, mutant, witness) in [
         ("missing_close", missing_close, Some("Worker::Heartbeat")),
@@ -306,7 +305,9 @@ fn assert_cycle(trace: &umpire_tlc::Trace, action: &str) -> umpire_testing::Test
     }
     let edge = cycle
         .iter()
-        .find(|state| state.observers.get(umpire_tla::observers::ACTION) == Some(&Value::Text(action.into())))
+        .find(|state| {
+            state.observers.get(umpire_tla::observers::ACTION) == Some(&Value::Text(action.into()))
+        })
         .ok_or("cycle lacks the expected concrete action")?;
     assert_eq!(edge.observers[umpire_tla::observers::CHOICE], Value::Int(0));
     assert_eq!(edge.observers[umpire_tla::observers::OUTCOME], Value::Seq(Vec::new()));

@@ -18,7 +18,7 @@ func TestCurrentContractNativeWasmPublishedResponsesAgree(t *testing.T) {
 	if directory == "" {
 		target := os.Getenv("CARGO_TARGET_DIR")
 		if target == "" {
-			target = "../../../../target"
+			target = "../../../target"
 		}
 		directory = filepath.Join(target, "current-contract-native")
 	}

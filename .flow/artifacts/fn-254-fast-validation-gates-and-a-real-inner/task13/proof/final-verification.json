@@ -1,0 +1,38 @@
+{
+  "source_commit": "4be121922082387261e717523b7afa3e64095c1d",
+  "standalone_1162_input_hashes_match_current": true,
+  "task4_563_snapshot_ui_hashes_match_current": true,
+  "all_20_frozen_driver_lock_inputs_match_current": true,
+  "outer_build_current_exit": 0,
+  "outer_fmt_current_exit": 0,
+  "outer_bridge_tests_current": {
+    "passed": 5,
+    "failed": 0
+  },
+  "root_script_route_controls_current_exit": 0,
+  "framework_tlc_root_commit_is_ancestor": "f2d247a5c3",
+  "final_environment": {
+    "CARGO_BUILD_JOBS": "2",
+    "RUST_TEST_THREADS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "unset": [
+      "BASH_ENV",
+      "RUSTFLAGS",
+      "CARGO_ENCODED_RUSTFLAGS",
+      "CARGO_PROFILE_DEV_DEBUG",
+      "CARGO_PROFILE_TEST_DEBUG",
+      "CARGO_BUILD_TARGET",
+      "RUSTC_WRAPPER",
+      "RUSTC_WORKSPACE_WRAPPER"
+    ]
+  },
+  "reproduction_input_deltas": {
+    "model/README.md": "documentation only",
+    "model/.cargo/config.toml": "outer command bridge alias; independent guest runs use the builder directly",
+    "model/scripts/guest.sh": "outer routing corrected and separately exercised for framework and Temporal guests",
+    "model/scripts/guest-freshness.sh": "outer routing corrected and separately exercised including stale refusal",
+    "model/dev/xtask/README.md": "documentation only",
+    "model/dev/xtask/src/main.rs": "new outer command bridge; outside guest compiler closure; separately built and run",
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm": "published output replaced by the reproduced Temporal artifact; outside Rust guest source closure"
+  }
+}

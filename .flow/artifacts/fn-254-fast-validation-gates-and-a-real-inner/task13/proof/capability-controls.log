@@ -1,0 +1,2 @@
+capability controls: both core policies reject filesystem, clock and thread APIs/types
+unsafe controls: safe target roots reject overrides; deny requires a local allowance

@@ -1,0 +1,55 @@
+    Checking umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-driver/model/umpire/dev/guest-driver)
+    Checking xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-driver/model/umpire/dev/xtask)
+error: unused imports: `Error`, `Result`, `apalache_pins`, and `support`
+ --> dev/xtask/tests/apalache_install.rs:4:17
+  |
+4 | pub use xtask::{Error, Result, apalache_pins, support};
+  |                 ^^^^^  ^^^^^^  ^^^^^^^^^^^^^  ^^^^^^^
+  |
+  = note: `-D unused-imports` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(unused_imports)]`
+
+error: unreachable `pub` item
+ --> dev/xtask/tests/apalache_install.rs:4:17
+  |
+4 | pub use xtask::{Error, Result, apalache_pins, support};
+  | ---             ^^^^^
+  | |
+  | help: consider restricting its visibility: `pub(crate)`
+  |
+  = help: or consider exporting it for use by other crates
+  = note: `-D unreachable-pub` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(unreachable_pub)]`
+
+error: unreachable `pub` item
+ --> dev/xtask/tests/apalache_install.rs:4:24
+  |
+4 | pub use xtask::{Error, Result, apalache_pins, support};
+  | ---                    ^^^^^^
+  | |
+  | help: consider restricting its visibility: `pub(crate)`
+  |
+  = help: or consider exporting it for use by other crates
+
+error: unreachable `pub` item
+ --> dev/xtask/tests/apalache_install.rs:4:32
+  |
+4 | pub use xtask::{Error, Result, apalache_pins, support};
+  | ---                            ^^^^^^^^^^^^^
+  | |
+  | help: consider restricting its visibility: `pub(crate)`
+  |
+  = help: or consider exporting it for use by other crates
+
+error: unreachable `pub` item
+ --> dev/xtask/tests/apalache_install.rs:4:47
+  |
+4 | pub use xtask::{Error, Result, apalache_pins, support};
+  | ---                                           ^^^^^^^
+  | |
+  | help: consider restricting its visibility: `pub(crate)`
+  |
+  = help: or consider exporting it for use by other crates
+
+error: could not compile `xtask` (test "main") due to 5 previous errors
+warning: build failed, waiting for other jobs to finish...

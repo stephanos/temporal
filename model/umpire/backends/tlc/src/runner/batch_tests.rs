@@ -10,7 +10,7 @@ fn quoted(text: &str) -> String {
 }
 
 fn owner() -> Result<Scratch, Refusal> {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
     Scratch::new(&root)
 }
 
@@ -24,7 +24,7 @@ fn fake_tlc(directory: &Path, body: &str) -> Result<Tlc, Refusal> {
     )?;
     fs::set_permissions(&java, fs::Permissions::from_mode(0o700))?;
     Ok(Tlc {
-        root: Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?,
+        root: Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?,
         java,
         jar: directory.join("unused.jar"),
         limits: Limits::default(),
@@ -42,7 +42,7 @@ fn batch_protocol_requires_complete_selected_evidence() -> Result<(), Error> {
         let properties = vec![("INVARIANT".into(), "A".into()), ("PROPERTY".into(), "B".into())];
         let selected = message(2110, true, "Invariant A is violated.");
         let unknown = message(2110, true, "Invariant Unknown is violated.");
-        let liveness = message(2116, true, "Temporal properties were violated.");
+        let liveness = message(2116, true, "Liveness properties were violated.");
         let located = message(
             2110,
             true,

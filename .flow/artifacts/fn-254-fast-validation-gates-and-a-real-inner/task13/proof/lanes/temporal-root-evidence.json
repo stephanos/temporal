@@ -1,0 +1,13 @@
+{
+  "source_base": "94bc3df84f7e1ce1b8dbb99d18479006a8f443cd",
+  "updated_tlc_roots": 7,
+  "shared_accessor": "tests::framework_root",
+  "exact_replacement_only": true,
+  "preserved_test_declarations": 36,
+  "scope": [
+    "model/temporal/feature/activity/policy_checks.rs",
+    "model/temporal/feature/activity/proof_checks.rs",
+    "model/temporal/feature/activity/tests.rs"
+  ],
+  "resolved_root": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-paths/model/umpire"
+}

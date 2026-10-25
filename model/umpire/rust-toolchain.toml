@@ -1,0 +1,5 @@
+# Matches the mise pin in ../mise.toml; rustup users get the same toolchain and components.
+[toolchain]
+channel = "1.99.1"
+components = ["rustfmt", "clippy", "rust-src", "rust-analyzer"]
+targets = ["wasm32-wasip1"]  # fn-210 R32: core wasm hosted by wazero; no GC or component proposals

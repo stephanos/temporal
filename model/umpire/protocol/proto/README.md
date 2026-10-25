@@ -57,13 +57,11 @@ Rust generates into Cargo's OUT_DIR with prost-build 0.14 and mise's protoc 29.5
 Standard well-known types are not generated: prost-build's default mapping uses `prost-types`,
 which `umpire_runtime::prost_types` re-exports for realizations and generated code. Strict
 `Any` admission stays in `umpire_runtime::AnyMessage`.
-Go uses the repository's pinned protoc-gen-go v1.36.6 and protobuf runtime v1.36.11.
-The separate Go host module and generated Go messages live at `../hosts/go/`;
-regenerate from the repository root with `bash model/scripts/proto-go.sh core`.
-Use `--check` for byte-for-byte freshness; `make model-check` provisions the pinned
-generator and runs freshness, native controls, both guests and both Go modules.
-The system extension and its reproduction commands are documented in `model/README.md`
-relative to the server root; its upstream schemas never become generic protocol inputs.
+Go uses the framework's pinned protoc-gen-go v1.36.6 and protobuf runtime v1.36.11.
+The separate Go host module and generated Go messages live at `../../hosts/go/`;
+regenerate from the framework root with `bash scripts/proto-go.sh core`.
+Use `--check` for byte-for-byte freshness with the pinned local generator.
+System extensions own their upstream schemas; those never become generic protocol inputs.
 
 The sibling `umpire.realization.v1` package owns Observation, Error, Callback and
 Reply. Observation carries its RPC method, one response or error, and an optional
@@ -71,7 +69,7 @@ actual-request Any at tag 4; absent requests retain their original encoding.
 Callback carries a task Any and Reply a request Any. `umpire.annotations.v1`
 owns stateless annotation and generic probe metadata, results and recipe transport.
 System-specific controls remain in their owner's protocol. Regenerate these Go
-messages together with the core contract using `bash model/scripts/proto-go.sh core`.
+messages together with the core contract using `bash scripts/proto-go.sh core`.
 
 Propose (6) returns a deterministic fully filled request and its typed kind at Response
 tag 9: ACTION (1) names an enabled external Model action; BOOTSTRAP (2) has an empty

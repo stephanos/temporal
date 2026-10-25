@@ -1,0 +1,9 @@
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/backends/tlc)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.26s
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/framework-native/debug/deps/main-f1453c5d4fa63eab)
+
+running 1 test
+test controls::real_tlc_initial_invariant_has_a_typed_counterexample ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 1.43s
+

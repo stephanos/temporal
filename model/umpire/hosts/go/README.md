@@ -10,10 +10,10 @@ generated Go under `gen/umpire/` uses protoc 29.5, protoc-gen-go v1.36.6 and pro
 Build the stock and generic control guests with the unwind profile before running:
 
 ```sh
-# From model/:
+# From the framework root:
 bash scripts/tests/build-guests.sh
-# From model/umpire/hosts/go:
-target="${CARGO_TARGET_DIR:-$(cd ../../.. && pwd)/target}"
+# From hosts/go:
+target="${CARGO_TARGET_DIR:-$(cd ../.. && pwd)/target}"
 UMPIRE_CAUGHT_PANIC_WASM="$target/wasm32-wasip1/guest/caught_panic_control.wasm" \
 UMPIRE_OVERFLOW_WASM="$target/wasm32-wasip1/guest/overflow_control.wasm" \
 UMPIRE_PANIC_NATIVE="$target/panic-native" \
@@ -24,7 +24,7 @@ CGO_ENABLED=0 mise exec -- go test -run '^$' -bench '^BenchmarkRows$' -benchtime
 
 Tests resolve `UMPIRE_WASM` first, then
 `$CARGO_TARGET_DIR/wasm32-wasip1/guest/umpire_stock_guest.wasm`, then the same path
-under `../../../../target` relative to `host/`. A missing artifact is an error.
+under `../../../target` relative to `host/`. A missing artifact is an error.
 Kettle parity and live service tests live in the separate module at
 `../../reference/kettle`; the default model gate runs both modules.
 Stateful controls resolve `UMPIRE_STATEFUL_WASM` first, then
@@ -32,11 +32,9 @@ Stateful controls resolve `UMPIRE_STATEFUL_WASM` first, then
 local-target fallback. Both guest crates link the export-free `umpire-runtime` library.
 
 Umpire ships no prebuilt wasm; these generic guests stay source-built and uncommitted.
-Temporal separately commits `model/temporal/hosts/go/umpire_temporal_guest.wasm` and
-exports its bytes as `temporal.Guest()`, so Temporal Go consumers need no Rust.
-`make model-check` checks those bytes with the generic builder; `make umpire-guest`
-refreshes them. Wasm is a binary Git asset without LFS. See
-[`GUEST_BUILDS.md`](../../../GUEST_BUILDS.md) for the build and freshness contract.
+Guest source, caller lockfile, compiler and the dedicated driver determine the admitted
+build; freshness compares current reproduced bytes with a caller-selected artifact.
+See the [guest driver](../../dev/guest-driver/README.md) for the build contract.
 
 Rust directly exports `umpire_buffer_alloc(u32) -> u32`,
 `umpire_buffer_release(u32, u32)` and `umpire_call(u32, u32, u32) -> u64`.
@@ -68,8 +66,8 @@ The reusable runtime and ABI live in the export-free `umpire-runtime` crate. A s
 guest supplies its own Model and realization through `export_guest!`; this Go host
 transports their opaque Any payloads without importing their schemas. Native and Go
 controls pin old message bytes, refusal codes, independent instances and publication
-rollback. Run the complete reproduction from the server root with `make model-check`;
-`bash model/scripts/proto-go.sh core --check` independently checks pinned Go generation.
+rollback. From the framework root, `bash scripts/proto-go.sh core --check` independently
+checks pinned Go generation.
 
 The Rows benchmark includes protobuf marshal, guest allocation, memory write,
 call, copy, free and protobuf unmarshal. It cycles state IDs modulo 283 and
@@ -137,8 +135,7 @@ canonical bytes and, under a digest name, the matching digest. Batch modes write
 progress per proposal and per Run to stderr, naming only the mode, iteration, seed, event
 position and verdict.
 
-The `umpire` command (`tools/umpire/cmd/umpire`, `make umpire`) runs `runner.Main` over the
-Drivers its build registers:
+A consumer command can run `runner.Main` over the Drivers its build registers:
 
 ```sh
 umpire program --model <guest.wasm> --world <any.binpb> --out <program.binpb>
@@ -153,4 +150,4 @@ if Reset refuses or returns no program. A successful extraction exits 0; errors 
 The loop exits 0 when the deciding Run is Explained, 1 when Unexplained, 2 when Refused, and 3 when
 the loop could not run. Explore, reduce and repeat need a Driver and `--store`. The tests drive
 the stateful control guest through a fake Driver; stock Kettle refuses Propose. The command
-registers the Drivers its build links (`tools/umpire/README.md`).
+registers the Drivers its build links.

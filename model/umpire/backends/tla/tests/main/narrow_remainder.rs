@@ -22,9 +22,9 @@ fn overflow<M: Machine>(
         return Ok(());
     }
     let module = Tla::emit(&Lift::parse(name, source)?)?;
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let result = Tlc::discover(&root)?.check_module(&module);
-    let evidence = root.join(".flow/tmp/tlc-controls");
+    let evidence = root.join("build/evidence/tlc-controls");
     fs::create_dir_all(&evidence)?;
     fs::write(
         evidence.join(format!("narrow_remainder_{name}.txt")),

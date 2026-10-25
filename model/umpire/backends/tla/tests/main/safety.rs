@@ -31,7 +31,7 @@ fn safety_has_typed_history_and_preserving_stutter() -> Result<(), Box<dyn std::
     assert_eq!(module.metadata.postconditions.len(), tlc.metadata.postconditions.len());
     assert_eq!(module.metadata.arithmetic[0].operator, "ArithmeticSafe");
     let root =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../build/apalache/projection");
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../build/apalache/projection");
     std::fs::create_dir_all(&root)?;
     std::fs::write(root.join("Kettle.tla"), &module.tla)?;
     Ok(())

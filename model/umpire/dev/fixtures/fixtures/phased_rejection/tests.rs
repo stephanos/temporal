@@ -1,6 +1,6 @@
-use umpire_tla::observers::{ACTION, CHOICE, FACTS, INPUT, OUTCOME, PENDING};
 use crate::phased_rejection::job;
 use job::World;
+use umpire_tla::observers::{ACTION, CHOICE, FACTS, INPUT, OUTCOME, PENDING};
 
 // Two attempts, so every Queued state has one current and one stale claim.
 umpire_testing::fixture!(World = World::new(2), 64);
@@ -47,9 +47,14 @@ fn closure_laws_keep_source_order_and_the_stock_outcome() -> umpire_testing::Tes
         module.tla.lines().find(|line| line.starts_with(&format!("Post_{name} =="))).unwrap_or("")
     };
     // closed_rejects judges the edge's outcome and whole state; terminal_remains only the phase.
-    assert!(law("closed_rejects").contains(format!("({OUTCOME}') = (\"Outcome::Rejected(NotFound)\")").as_str()));
+    assert!(
+        law("closed_rejects")
+            .contains(format!("({OUTCOME}') = (\"Outcome::Rejected(NotFound)\")").as_str())
+    );
     assert!(law("closed_rejects").contains("(attempt') = (attempt)"));
-    assert!(!law("terminal_remains").contains(OUTCOME) && !law("terminal_remains").contains("attempt"));
+    assert!(
+        !law("terminal_remains").contains(OUTCOME) && !law("terminal_remains").contains("attempt")
+    );
     Ok(())
 }
 
@@ -100,13 +105,16 @@ fn a_stale_rejecting_claim_cannot_discharge_current_claim_fairness() -> umpire_t
         return Ok(());
     }
     let union = " /\\ WF_vars(Fair_queued_job_runs_Worker_Claim_1) /\\ WF_vars(Fair_queued_job_runs_Worker_Claim_2)";
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     for (edits, verdict) in [
         (vec![], Verified),
         (
             vec![(
                 union,
-                format!(" /\\ WF_vars(({PENDING} = 1) /\\ Worker_Claim /\\ Monitor_queued_job_runs)").as_str(),
+                format!(
+                    " /\\ WF_vars(({PENDING} = 1) /\\ Worker_Claim /\\ Monitor_queued_job_runs)"
+                )
+                .as_str(),
             )],
             Refuted,
         ),
@@ -139,7 +147,7 @@ fn rejecting_after_a_mutation_fails_in_tlc() -> umpire_testing::TestResult {
     if !required() {
         return Ok(());
     }
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let error = umpire_tlc::Tlc::discover(&root)?
         .check_module(&module)
         .err()
@@ -186,15 +194,12 @@ fn the_steps_accept_counterexample_is_a_rejected_payload_edge() -> umpire_testin
         .filter(|line| !line.starts_with("PROPERTY") || *line == "PROPERTY Post_steps_accept")
         .flat_map(|line| [line, "\n"])
         .collect();
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let result = umpire_tlc::Tlc::discover(&root)?.check_module(&module)?;
     let trace = result.properties["Post_steps_accept"].trace.as_ref().ok_or("no counterexample")?;
     let [_, edge] = &trace.states[..] else { return Err("expected one edge".into()) };
     assert_eq!(edge.observers[ACTION], Text("Worker::Claim".into()));
     assert_eq!(edge.observers[INPUT], Int(1));
-    assert_eq!(
-        edge.observers[OUTCOME],
-        Text("Outcome::Rejected(FailedPrecondition)".into())
-    );
+    assert_eq!(edge.observers[OUTCOME], Text("Outcome::Rejected(FailedPrecondition)".into()));
     Ok(())
 }

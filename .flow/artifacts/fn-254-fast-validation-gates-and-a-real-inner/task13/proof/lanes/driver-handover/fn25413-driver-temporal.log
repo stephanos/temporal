@@ -1,0 +1,37 @@
+     Locking 1 package to highest Rust 1.99 compatible version
+      Adding umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-driver/model/umpire/dev/guest-driver)
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-driver/model/umpire/dev/guest-driver)
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-driver/model/dev/xtask)
+error[E0433]: cannot find module or crate `serde_json` in this scope
+  --> dev/xtask/../../umpire/dev/guest-driver/tests/identity/compiler_fixture.rs:42:33
+   |
+42 |             serde_json::to_vec(&serde_json::json!({"argv":argv,"loader":loader,"raw":raw}))?,
+   |                                 ^^^^^^^^^^ use of unresolved module or unlinked crate `serde_json`
+
+error[E0433]: cannot find module or crate `serde_json` in this scope
+  --> dev/xtask/../../umpire/dev/guest-driver/tests/identity/compiler_fixture.rs:29:41
+   |
+29 |         let record: serde_json::Value = serde_json::from_slice(&fs::read(sidecar)?)?;
+   |                                         ^^^^^^^^^^ use of unresolved module or unlinked crate `serde_json`
+   |
+   = help: if you wanted to use a crate named `serde_json`, use `cargo add serde_json` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `serde_json` in this scope
+  --> dev/xtask/../../umpire/dev/guest-driver/tests/identity/compiler_fixture.rs:42:13
+   |
+42 |             serde_json::to_vec(&serde_json::json!({"argv":argv,"loader":loader,"raw":raw}))?,
+   |             ^^^^^^^^^^ use of unresolved module or unlinked crate `serde_json`
+   |
+   = help: if you wanted to use a crate named `serde_json`, use `cargo add serde_json` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `serde_json` in this scope
+  --> dev/xtask/../../umpire/dev/guest-driver/tests/identity/compiler_fixture.rs:29:21
+   |
+29 |         let record: serde_json::Value = serde_json::from_slice(&fs::read(sidecar)?)?;
+   |                     ^^^^^^^^^^ use of unresolved module or unlinked crate `serde_json`
+   |
+   = help: if you wanted to use a crate named `serde_json`, use `cargo add serde_json` to add it to your `Cargo.toml`
+
+For more information about this error, try `rustc --explain E0433`.
+error: could not compile `temporal-xtask` (bin "identity-compiler-fixture") due to 4 previous errors
+warning: build failed, waiting for other jobs to finish...

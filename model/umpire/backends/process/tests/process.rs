@@ -18,7 +18,7 @@ use umpire_backend_process::{
 const FIXTURE: &str = env!("CARGO_BIN_EXE_umpire-process-fixture");
 
 fn root() -> Result<PathBuf, Refusal> {
-    Ok(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?)
+    Ok(Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?)
 }
 fn fixture(mode: &str) -> Command {
     let mut command = Command::new(FIXTURE);
@@ -389,13 +389,13 @@ fn installer_containment_preflight_requires_no_descendants() -> Result<(), Refus
     }
     let scratch = Scratch::new(&root()?)?;
     let workspace = scratch.path().join("workspace");
-    let scripts = workspace.join("model/scripts");
+    let scripts = workspace.join("scripts");
     fs::create_dir_all(&scripts)?;
     let script = scripts.join("fetch-tlc.sh");
-    fs::copy(root()?.join("model/scripts/fetch-tlc.sh"), &script)?;
+    fs::copy(root()?.join("scripts/fetch-tlc.sh"), &script)?;
     let outside = scratch.path().join("outside");
     fs::create_dir(&outside)?;
-    std::os::unix::fs::symlink(&outside, workspace.join("model/build"))?;
+    std::os::unix::fs::symlink(&outside, workspace.join("build"))?;
     let (status, output) = run_process(
         &mut restricted(&script),
         scratch.path(),

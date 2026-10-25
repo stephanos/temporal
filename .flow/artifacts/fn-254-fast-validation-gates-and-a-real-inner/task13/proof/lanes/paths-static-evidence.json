@@ -1,0 +1,780 @@
+{
+  "old_repository_joins_removed": 50,
+  "remaining_old_repository_joins": 0,
+  "changed_rust_files": 26,
+  "preserved_test_declarations_in_changed_files": 154,
+  "tests": [
+    {
+      "file": "model/umpire/author/dsl/tests/main/readme.rs",
+      "name": "readme_matches_compiled_parameterized_example",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/src/lib.rs",
+      "name": "successful_substring_is_not_a_bounded_proof",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/src/lib.rs",
+      "name": "traces_have_one_aggregate_budget_and_deterministic_order",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/src/lib.rs",
+      "name": "native_depth_is_checked_and_truncation_never_establishes_a_bound",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/src/lib.rs",
+      "name": "unchanged_monitor_can_omit_redundant_per_state_checks",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/src/lib.rs",
+      "name": "pinned_outcomes_require_consistent_property_bound_exit_and_completion",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/src/lib.rs",
+      "name": "fake_execution_failures_never_pass_and_scratch_is_removed",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/src/lib.rs",
+      "name": "version_admission_rejects_missing_wrong_and_failed_release_output",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "name": "real_kettle_checks_source_safety_and_history",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "name": "real_arithmetic_faults_are_reachable_and_guards_remain_total",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "name": "real_postcondition_filter_excludes_unrelated_actions",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "name": "real_evaluated_start_failure_cannot_disappear_into_an_empty_range",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "name": "real_typed_vector_projection_keeps_eager_fallback_errors",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "name": "pinned_installer_and_runner_agree",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "name": "real_payload_identity_and_outcome_history_are_typed",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "name": "real_start_evaluation_respects_field_order_before_empty_domains",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "name": "real_discarded_condition_keeps_its_evaluation_guard",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "name": "real_kettle_negative_is_replayed_and_tampering_fails",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "name": "real_arithmetic_refusal_follows_a_replayed_valid_prefix",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "name": "real_typed_payload_rejection_and_after_claims_replay",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "name": "real_later_start_fault_preserves_partial_binding",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "name": "real_vector_witness_replays_typed_sequence",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "name": "strict_envelope_presence_and_object_controls",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "name": "strict_envelope_world_and_state_bounds",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "name": "strict_envelope_resource_controls",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/apalache/tests/main/controls.rs",
+      "name": "real_fact_witnesses_replay_exact_vectors_and_stutters",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/src/jar.rs",
+      "name": "digest_is_in_process_sha256",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/src/jar.rs",
+      "name": "wrong_digest_wrong_java_and_cache_escape_refuse_before_use",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/src/jar.rs",
+      "name": "exact_jar_and_pinned_java_reach_the_probe",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "cold_native_execution_does_not_need_python_or_a_sibling_supervisor",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "direct_helper_timeout_retains_output_and_cleans_scratch",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "timeout_cleans_descendants_before_return",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "java_environment_is_clean_and_supervisor_group_is_private",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "substituted_log_symlink_cannot_modify_an_external_file",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "substituted_log_fifo_returns_without_waiting_for_a_reader",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "parent_allocator_threads_do_not_deadlock_forked_supervisors",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "bounded_reads_dump_and_scratch_fail_closed",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "simulated_darwin_helper_cannot_start_an_escaped_descendant",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "installer_containment_preflight_requires_no_descendants",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "diagnostic_text_cannot_make_a_hung_preflight_pass",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "owner_group_and_direct_supervisor_termination_reap_owned_tree",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "owner_death_terminates_and_reaps_separate_session_descendants",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "launch_status_and_prepared_command_contracts_are_preserved",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "pthread_atfork_handlers_do_not_run_in_supervisor_or_target",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "path_search_tries_candidates_after_exec_errors",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "scratch_owns_private_unique_directories_and_preserves_finish_results",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/process/tests/process.rs",
+      "name": "owned_child_reaping_includes_other_process_groups",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/emission.rs",
+      "name": "real_tlc_preserves_ordered_mutations_and_reports_checked_overflow",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/emission.rs",
+      "name": "real_tlc_signed_division_and_remainder_use_rust_rounding",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/emission.rs",
+      "name": "real_tlc_empty_half_open_starts_have_no_checked_underflow",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/narrow_remainder.rs",
+      "name": "i8_min_remainder_negative_one_refuses",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/narrow_remainder.rs",
+      "name": "i16_min_remainder_negative_one_refuses",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/optional_ticks.rs",
+      "name": "source_local_optional_ticks_are_admitted",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/optional_ticks.rs",
+      "name": "binding_preserves_nominal_identity_and_refuses_malformed_fields",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/optional_ticks.rs",
+      "name": "optional_complete_starts_keep_whole_row_correlation_and_empty_selection",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/optional_ticks.rs",
+      "name": "exact_optional_decode_includes_before_observers_and_rejects_wrong_kinds",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/optional_ticks.rs",
+      "name": "shared_countdown_keeps_selected_codes_in_all_cfgs_and_before_metadata",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/optional_ticks.rs",
+      "name": "present_optional_keeps_eager_errors_in_guard_assignment_and_claim",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/phased.rs",
+      "name": "unsupported_phase_rejection_and_law_forms_refuse_at_their_location",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/phased.rs",
+      "name": "rejections_lower_to_typed_outcomes_and_kept_self_loops",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/phased.rs",
+      "name": "emitted_size_is_linear_in_sequential_conditional_returns",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/phased.rs",
+      "name": "shared_definitions_never_take_an_authored_name",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/phased.rs",
+      "name": "large_handlers_compile_with_their_admitted_data",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/phased.rs",
+      "name": "admitted_tree_and_constructor_data_grow_linearly",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/safety.rs",
+      "name": "tlc_declarations_carry_snowcat_types",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/safety.rs",
+      "name": "safety_has_typed_history_and_preserving_stutter",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/safety.rs",
+      "name": "unsupported_source_type_refuses_at_its_declaration",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/safety.rs",
+      "name": "safety_definition_growth_stays_linear",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/safety.rs",
+      "name": "safety_history_names_refuse_collisions_and_temporaries_are_hygienic",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/safety.rs",
+      "name": "initialization_growth_stays_linear_in_declared_fields",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/sequential_checks.rs",
+      "name": "failed_check_does_not_hide_a_later_division_failure",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/shadowing.rs",
+      "name": "nested_blocks_and_effect_helpers_preserve_caller_locals",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/vector.rs",
+      "name": "bounded_vector_operations_are_lifted_with_safe_defaulted_get",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/vector.rs",
+      "name": "length_sums_and_products_refuse_at_their_span",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/vector.rs",
+      "name": "real_vector_native_and_tlc_states_and_properties_agree",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/vector.rs",
+      "name": "unrelated_conditionals_preserve_vector_length_identity",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/vector.rs",
+      "name": "conditional_guards_preserve_common_bound_facts",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/vector.rs",
+      "name": "unsupported_vector_operations_and_unbounded_growth_refuse",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/vector.rs",
+      "name": "vector_get_keeps_eager_default_failures_when_element_is_present",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/vector.rs",
+      "name": "shared_boolean_guards_keep_vector_admission_linear",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/world.rs",
+      "name": "declared_world_computed_starts_admit_before_value_binding",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/world.rs",
+      "name": "binding_refuses_malformed_world_and_complete_state_values",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/world.rs",
+      "name": "complete_starts_preserve_correlation_deduplicate_and_keep_empty",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/world.rs",
+      "name": "world_free_starts_of_any_name_admit_and_bind",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/world.rs",
+      "name": "typed_world_signatures_and_outcome_fields_refuse_by_source_location",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/world.rs",
+      "name": "bare_world_and_before_parameters_do_not_resolve_as_source_constants",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/world.rs",
+      "name": "scalar_enum_world_and_sequence_starts_use_the_admitted_types",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/world.rs",
+      "name": "generated_world_constants_avoid_synthesized_action_names",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tla/tests/main/world.rs",
+      "name": "real_tlc_executes_each_cfg_family_with_both_world_bindings",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/src/runner.rs",
+      "name": "located_property_invariants_name_only_the_selected_operator",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/src/runner.rs",
+      "name": "typed_module_refuses_inconsistent_declarations_before_spawning",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/src/runner.rs",
+      "name": "counterexample_requires_consecutive_states_and_a_valid_lasso",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/src/runner.rs",
+      "name": "incomplete_messages_and_exploration_are_refused",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/src/runner.rs",
+      "name": "evaluation_errors_name_the_property_and_state",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/src/runner.rs",
+      "name": "escaping_cache_symlinks_are_refused_before_creating_files",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/src/runner.rs",
+      "name": "process_limits_kill_and_reap_and_jar_admission_fails_closed",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/src/runner/batch_tests.rs",
+      "name": "batch_protocol_requires_complete_selected_evidence",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/src/runner/batch_tests.rs",
+      "name": "batch_resource_refusal_does_not_launch_singleton_recovery",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/src/runner/batch_tests.rs",
+      "name": "singleton_recovery_measures_worker_peak_and_owns_each_scratch",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/src/runner/batch_tests.rs",
+      "name": "singleton_output_budget_precedes_later_evaluation_and_stops_new_waves",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/src/runner/batch_tests.rs",
+      "name": "singleton_evaluation_stops_recovery_after_current_wave",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/tests/main/controls.rs",
+      "name": "real_tlc_maximality_fairness_bounds_and_action_properties",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/tests/main/controls.rs",
+      "name": "real_tlc_initial_invariant_has_a_typed_counterexample",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/tests/main/controls.rs",
+      "name": "real_tlc_keeps_deadlock_checks_and_refuses_tool_errors",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/tests/main/controls.rs",
+      "name": "real_tlc_evaluation_errors_are_typed_and_located",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/tests/main/controls.rs",
+      "name": "real_tlc_healthy_batches_use_at_most_two_model_launches",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/tests/main/controls.rs",
+      "name": "real_tlc_failed_batches_preserve_independent_traces",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/tests/main/controls.rs",
+      "name": "real_tlc_batch_evaluation_recovers_original_property_order",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/backends/tlc/tests/main/scaling.rs",
+      "name": "typed_module_completes_independently_of_a_cut_native_reference",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/fixtures/action_inputs/tests.rs",
+      "name": "two_selected_worlds_differ_in_domains_counts_transitions_and_verdicts",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/fixtures/action_inputs/tests.rs",
+      "name": "each_source_binding_carries_its_selected_catalog_into_every_configuration",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/fixtures/action_inputs/tests.rs",
+      "name": "bounded_claims_carry_no_fairness_obligation",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/fixtures/action_inputs/tests.rs",
+      "name": "actual_tlc_agrees_and_replays_in_both_selected_worlds",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/fixtures/action_inputs/tests.rs",
+      "name": "exact_payload_fairness_mutations_disagree_with_the_native_verdicts",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/fixtures/phased_rejection/tests.rs",
+      "name": "closure_laws_keep_source_order_and_the_stock_outcome",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/fixtures/phased_rejection/tests.rs",
+      "name": "emitted_outcome_and_action_mutations_fail_agreement",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/fixtures/phased_rejection/tests.rs",
+      "name": "a_stale_rejecting_claim_cannot_discharge_current_claim_fairness",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/fixtures/phased_rejection/tests.rs",
+      "name": "rejecting_after_a_mutation_fails_in_tlc",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/fixtures/phased_rejection/tests.rs",
+      "name": "a_computed_rejection_agrees_with_the_literal",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/fixtures/phased_rejection/tests.rs",
+      "name": "the_steps_accept_counterexample_is_a_rejected_payload_edge",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs",
+      "name": "world_fairness_selected_worlds_agree_compiled_and_embedded",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs",
+      "name": "world_fairness_exact_selected_values_ordinals_and_wf_obligations",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs",
+      "name": "world_fairness_source_only_selectors_and_leaves_discriminate",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs",
+      "name": "world_fairness_metadata_only_mutations_refuse_before_tlc",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs",
+      "name": "world_fairness_legal_world_swaps_refuse_in_all_five_cfg_families",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs",
+      "name": "world_fairness_required_tlc_agrees_and_replays_at_each_maximum",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs",
+      "name": "world_fairness_required_tlc_mutants_replay_heartbeat_and_starvation",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/interpreted.rs",
+      "name": "lifter_controls_agree",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/interpreted.rs",
+      "name": "backend_controls_agree",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/interpreted.rs",
+      "name": "start_domains_evaluate_lazily",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/interpreted.rs",
+      "name": "length_sums_and_products_are_refused",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/interpreted.rs",
+      "name": "length_differences_agree_on_every_back_end",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/interpreted.rs",
+      "name": "checked_arithmetic_fails_as_compiled",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/interpreted.rs",
+      "name": "interpreted_facts_fail_closed",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/interpreted.rs",
+      "name": "interpreted_facts_evaluate_disabled_tail",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/interpreted.rs",
+      "name": "interpreted_fact_decoder_checks_admitted_values",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/interpreted.rs",
+      "name": "fact_only_tree_mutant_disagrees",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/interpreted.rs",
+      "name": "seeded_mutant_trees_disagree",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/interpreted.rs",
+      "name": "every_claim_has_its_own_callback",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/interpreted.rs",
+      "name": "timing",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/fixtures/interpreted.rs",
+      "name": "rewrite_visits_replacement_children_in_preorder",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/testing/src/backend_tests.rs",
+      "name": "nominal_debug_preserves_authored_shapes_and_exact_optional_codes",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/testing/src/backend_tests.rs",
+      "name": "replay_uses_checked_steps_without_panicking",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/testing/src/backend_tests.rs",
+      "name": "replay_uses_retained_starts_without_enumerating_again",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/testing/src/backend_tests.rs",
+      "name": "typed_replay_identifies_the_exact_catalog_payload_without_display_identity",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/testing/src/backend_tests.rs",
+      "name": "replay_compares_the_typed_outcome_of_a_rejected_self_loop",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/testing/src/backend_tests.rs",
+      "name": "actual_tlc_fact_traces_replay_exact_vectors",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/testing/src/backend_tests.rs",
+      "name": "nonempty_facts_are_typed_and_preserved_on_observer_activation",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/testing/src/backend_tests.rs",
+      "name": "agreement_compares_complete_sets_and_every_verdict",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/testing/src/backend_tests.rs",
+      "name": "projection_refuses_state_or_edge_changes_without_a_real_edge",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/testing/tests/native_backend.rs",
+      "name": "manual_values_keep_native_formatting_and_refuse_symbolic_hooks",
+      "identity": "unchanged"
+    },
+    {
+      "file": "model/umpire/dev/testing/tests/native_backend.rs",
+      "name": "lifted_values_select_typed_backend_hook",
+      "identity": "unchanged"
+    }
+  ],
+  "readme_example_sha256": "b465531218a5b1ddfd99ff9c4c706bcb03e9851ce1aab4a0380c171f35c1fea8",
+  "snapshots_or_guest_assets_changed": false
+}

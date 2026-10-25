@@ -1,0 +1,5 @@
+[alias]
+# The same gate `make model-check` runs, for use from inside model/.
+check-all = "clippy --workspace --all-targets --all-features -- -D warnings"
+doc-all = "doc --workspace --no-deps --document-private-items"
+xtask = "run --package xtask --bin xtask --profile dev --"

@@ -8,14 +8,8 @@ fi
 module=$1
 includes=(--proto_path=umpire/protocol/proto)
 case "$module" in
-  core)
-    destination=umpire/hosts/go/gen
-    inputs=(umpire/protocol/proto/umpire/{model/v1/model,realization/v1/realization,annotations/v1/annotations,run/v1/run}.proto)
-    ;;
-  kettle)
-    destination=umpire/reference/kettle/gen
-    includes=(--proto_path=umpire/reference/kettle/proto "${includes[@]}")
-    inputs=(umpire/reference/kettle/proto/kettle/v1/{kettle,probe}.proto)
+  core|kettle)
+    exec /bin/bash "$PWD/umpire/scripts/proto-go.sh" "$@"
     ;;
   temporal)
     destination=temporal/hosts/go

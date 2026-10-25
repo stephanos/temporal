@@ -101,15 +101,15 @@ mod tests {
     const EMPTY: &str = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 
     fn workspace() -> Result<Scratch, Refusal> {
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
         let scratch = Scratch::new(&root)?;
-        fs::create_dir_all(scratch.path().join("model/build/tool"))?;
-        fs::write(scratch.path().join("model/build/tool/tool.jar"), "")?;
+        fs::create_dir_all(scratch.path().join("build/tool"))?;
+        fs::write(scratch.path().join("build/tool/tool.jar"), "")?;
         Ok(scratch)
     }
 
     fn admit(root: &Path, jar: &str, sha: &str, probed: &Cell<bool>) -> Result<PinnedJar, Refusal> {
-        PinnedJar::admit(root, "model/build/tool", jar, sha, |admitted, _| {
+        PinnedJar::admit(root, "build/tool", jar, sha, |admitted, _| {
             probed.set(true);
             Ok(admitted)
         })
@@ -118,7 +118,7 @@ mod tests {
     #[test]
     fn digest_is_in_process_sha256() -> Result<(), Refusal> {
         let scratch = workspace()?;
-        assert_eq!(digest(&scratch.path().join("model/build/tool/tool.jar"))?, EMPTY);
+        assert_eq!(digest(&scratch.path().join("build/tool/tool.jar"))?, EMPTY);
         scratch.finish(Ok(()))
     }
 
@@ -135,21 +135,15 @@ mod tests {
         let error = admit(root, "tool.jar", EMPTY, &probed).err();
         assert!(error.is_some_and(|e| e.0.contains("Java pin")));
 
-        fs::write(root.join("model/outside.jar"), "")?;
+        fs::write(root.join("outside.jar"), "")?;
         let error = admit(root, "../../outside.jar", EMPTY, &probed).err();
         assert!(error.is_some_and(|e| e.0.contains("escapes")));
-        std::os::unix::fs::symlink(
-            root.join("model/outside.jar"),
-            root.join("model/build/tool/link.jar"),
-        )?;
+        std::os::unix::fs::symlink(root.join("outside.jar"), root.join("build/tool/link.jar"))?;
         let error = admit(root, "link.jar", EMPTY, &probed).err();
         assert!(error.is_some_and(|e| e.0.contains("symlink")));
-        fs::create_dir_all(root.join("model/build/tool/elsewhere"))?;
-        fs::write(root.join("model/build/tool/elsewhere/tool.jar"), "")?;
-        std::os::unix::fs::symlink(
-            root.join("model/build/tool/elsewhere"),
-            root.join("model/build/tool/lib"),
-        )?;
+        fs::create_dir_all(root.join("build/tool/elsewhere"))?;
+        fs::write(root.join("build/tool/elsewhere/tool.jar"), "")?;
+        std::os::unix::fs::symlink(root.join("build/tool/elsewhere"), root.join("build/tool/lib"))?;
         let error = admit(root, "lib/tool.jar", EMPTY, &probed).err();
         assert!(error.is_some_and(|e| e.0.contains("symlink")));
         let error = admit(root, "absent.jar", EMPTY, &probed).err();
@@ -161,7 +155,7 @@ mod tests {
 
     #[test]
     fn exact_jar_and_pinned_java_reach_the_probe() -> Result<(), Refusal> {
-        let workspace_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+        let workspace_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let scratch = workspace()?;
         // Pinned Java is a backend prerequisite; without it only the refusals above are evidence.
         if let Err(error) = pinned_java(&workspace_root.canonicalize()?, scratch.path()) {
@@ -173,8 +167,8 @@ mod tests {
         let probed = Cell::new(false);
         let admitted = admit(root, "tool.jar", EMPTY, &probed)?;
         assert!(probed.get());
-        assert_eq!(admitted.jar, root.canonicalize()?.join("model/build/tool/tool.jar"));
-        let error = PinnedJar::admit(root, "model/build/tool", "tool.jar", EMPTY, |_, _| {
+        assert_eq!(admitted.jar, root.canonicalize()?.join("build/tool/tool.jar"));
+        let error = PinnedJar::admit(root, "build/tool", "tool.jar", EMPTY, |_, _| {
             Err::<(), _>(Refusal("wrong version".into()))
         })
         .err();
