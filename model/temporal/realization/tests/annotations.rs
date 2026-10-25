@@ -1,4 +1,6 @@
 //! Typed transport annotation controls preserve the independent Model run.
+use umpire_runtime::protocol::{Method, RefusalCode};
+use umpire_runtime::testing::GuestExt;
 
 use umpire_runtime::AnyMessage as _;
 use umpire_runtime::annotations::AnnotationRequest;
@@ -43,7 +45,7 @@ fn annotate(
     response: bool,
     bytes: &[u8],
 ) -> AnnotationResponse {
-    let value = call(guest, 7, &request(method, response, bytes));
+    let value = GuestExt::call(guest, Method::Annotate, &request(method, response, bytes));
     let Some(protocol::response::Outcome::Annotate(value)) = value.outcome else {
         panic!("expected annotation response: {value:?}");
     };
@@ -57,19 +59,19 @@ fn annotate(
 #[test]
 fn annotation_findings_preserve_server_bytes_and_do_not_change_frozen_judgment() {
     let mut guest = Guest::new(annotation_runtime());
-    call(
+    GuestExt::call(
         &mut guest,
-        4,
+        Method::Judge,
         &protocol::JudgeRequest { observation: Some(Any::pack(&common::start(3))) },
     );
-    call(
+    GuestExt::call(
         &mut guest,
-        4,
+        Method::Judge,
         &protocol::JudgeRequest { observation: Some(Any::pack(&common::describe(1, 2, 0))) },
     );
     let observation =
         protocol::JudgeRequest { observation: Some(Any::pack(&common::describe(1, 3, 0))) };
-    let frozen = call(&mut guest, 4, &observation);
+    let frozen = GuestExt::call(&mut guest, Method::Judge, &observation);
     assert!(
         matches!(&frozen.outcome, Some(protocol::response::Outcome::Judge(value)) if matches!(&value.judgment, Some(protocol::judge_response::Judgment::Unexplained(_))))
     );
@@ -82,9 +84,9 @@ fn annotation_findings_preserve_server_bytes_and_do_not_change_frozen_judgment()
     assert!(output.message.eq(&invalid_response));
     assert_ne!(output.violations, [] as [String; 0]);
     annotate(&mut guest, "PollActivityTaskQueue", true, &[]);
-    let probes = call(
+    let probes = GuestExt::call(
         &mut guest,
-        7,
+        Method::Annotate,
         &protocol::AnnotateRequest { input: Some(Any::pack(&ProbeRequest::default())) },
     );
     let Some(protocol::response::Outcome::Annotate(probes)) = probes.outcome else {
@@ -96,11 +98,11 @@ fn annotation_findings_preserve_server_bytes_and_do_not_change_frozen_judgment()
         .unpack()
         .unwrap_or_else(|error| panic!("{error:?}"));
     assert_ne!(inventory.cases.len(), 0);
-    assert_eq!(call(&mut guest, 4, &observation), frozen);
+    assert_eq!(GuestExt::call(&mut guest, Method::Judge, &observation), frozen);
     let bytes = request("PollActivityTaskQueue", true, &[]).encode_to_vec();
     assert!(!guest.dispatch_to(7, &bytes, |_| false));
-    assert_eq!(call(&mut guest, 4, &observation), frozen);
-    call(&mut guest, 3, &protocol::ResetRequest::default());
+    assert_eq!(GuestExt::call(&mut guest, Method::Judge, &observation), frozen);
+    guest.reset(None);
     annotate(&mut guest, "PollActivityTaskQueue", true, &[]);
 }
 
@@ -108,14 +110,11 @@ fn annotation_findings_preserve_server_bytes_and_do_not_change_frozen_judgment()
 fn annotation_envelope_and_unknown_traffic_refuse_without_payload_diagnostics() {
     let mut guest = Guest::new(annotation_runtime());
     let cases = [
-        (protocol::AnnotateRequest::default(), protocol::RefusalCode::MalformedRequest),
-        (
-            protocol::AnnotateRequest { input: Some(Any::default()) },
-            protocol::RefusalCode::MalformedRequest,
-        ),
+        (protocol::AnnotateRequest::default(), RefusalCode::MalformedRequest),
+        (protocol::AnnotateRequest { input: Some(Any::default()) }, RefusalCode::MalformedRequest),
         (
             protocol::AnnotateRequest { input: Some(Any::pack(&AnnotationResponse::default())) },
-            protocol::RefusalCode::Unsupported,
+            RefusalCode::Unsupported,
         ),
         (
             protocol::AnnotateRequest {
@@ -124,13 +123,13 @@ fn annotation_envelope_and_unknown_traffic_refuse_without_payload_diagnostics() 
                     value: vec![255],
                 }),
             },
-            protocol::RefusalCode::MalformedRequest,
+            RefusalCode::MalformedRequest,
         ),
-        (request("UnknownRpc", false, b"private-task-token"), protocol::RefusalCode::Unsupported),
-        (request("PollActivityTaskQueue", true, &[255]), protocol::RefusalCode::MalformedRequest),
+        (request("UnknownRpc", false, b"private-task-token"), RefusalCode::Unsupported),
+        (request("PollActivityTaskQueue", true, &[255]), RefusalCode::MalformedRequest),
     ];
     for (request, code) in cases {
-        let response = call(&mut guest, 7, &request);
+        let response = GuestExt::call(&mut guest, Method::Annotate, &request);
         let Some(protocol::response::Outcome::Refusal(refusal)) = response.outcome else {
             panic!("expected refusal")
         };
@@ -138,17 +137,4 @@ fn annotation_envelope_and_unknown_traffic_refuse_without_payload_diagnostics() 
         assert!(!refusal.message.contains("private-task-token"));
     }
     annotate(&mut guest, "PollActivityTaskQueue", true, &[]);
-}
-
-fn call(
-    guest: &mut Guest<impl Dispatch>,
-    method: u32,
-    request: &impl Message,
-) -> protocol::Response {
-    let mut response = None;
-    assert!(guest.dispatch_to(method, &request.encode_to_vec(), |bytes| {
-        response = Some(protocol::Response::decode(bytes).unwrap_or_else(|e| panic!("{e}")));
-        true
-    }));
-    response.unwrap_or_else(|| panic!("missing response"))
 }

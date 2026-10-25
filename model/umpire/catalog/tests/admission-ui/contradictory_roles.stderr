@@ -1,5 +1,0 @@
-error: contradictory roles or kind/tag pair
- --> tests/admission-ui/contradictory_roles.rs:9:46
-  |
-9 | struct Mirror { #[mirror(decided, observed)] id: Uuid }
-  |                                              ^^

@@ -10,6 +10,9 @@ mod envelopes;
 mod refusal;
 mod runtime;
 
+#[cfg(feature = "testing")]
+pub mod testing;
+
 /// Generated core contract.
 #[allow(missing_docs, unreachable_pub, clippy::all, clippy::pedantic)]
 mod generated {

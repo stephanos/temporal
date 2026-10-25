@@ -20,4 +20,5 @@ umpire-runtime.workspace = true
 prost.workspace = true
 
 [dev-dependencies]
+insta.workspace = true
 prettyplease.workspace = true

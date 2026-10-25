@@ -1,5 +1,0 @@
-error: unknown catalog attribute
- --> tests/ui/supplemental_missing_covers.rs:7:39
-  |
-7 | struct Supplemental { #[rule(accepts, covers = "retired")] value: Uuid }
-  |                                       ^^^^^^

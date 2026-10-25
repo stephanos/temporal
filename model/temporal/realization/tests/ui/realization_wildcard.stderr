@@ -1,5 +1,0 @@
-error: generated enum matches must name every variant; wildcard arm is forbidden
-  --> tests/ui/realization_wildcard.rs:10:13
-   |
-10 |             _ => (),
-   |             ^

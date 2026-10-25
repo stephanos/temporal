@@ -1,5 +1,0 @@
-error: duplicate observation handler
- --> tests/ui/realization_duplicate.rs:9:5
-  |
-9 |     #[observe(temporal::api::workflowservice::v1::WorkflowService::DescribeActivityExecution)]
-  |     ^

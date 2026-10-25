@@ -9,14 +9,6 @@ rust-version.workspace = true
 autotests = false
 
 [[test]]
-name = "admission"
-path = "tests/admission.rs"
-
-[[test]]
-name = "expansion"
-path = "tests/expansion.rs"
-
-[[test]]
 name = "realize"
 path = "tests/realize.rs"
 
@@ -35,6 +27,5 @@ umpire-runtime.workspace = true
 prost.workspace = true
 
 [dev-dependencies]
-insta.workspace = true
 prettyplease.workspace = true
 

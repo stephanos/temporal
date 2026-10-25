@@ -1,5 +1,5 @@
 ---
-source: temporal/annotate/syntax/tests/expansion.rs
+source: umpire/catalog/syntax/tests/expansion.rs
 assertion_line: 20
 expression: "prettyplease::unparse(&file)"
 ---

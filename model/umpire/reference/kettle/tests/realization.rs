@@ -1,13 +1,18 @@
 //! Exact Kettle observation and callback controls.
-use prost::{Message, Name};
+use prost::Name;
 use umpire_reference_kettle::{
-    runtime,
+    runtime as kettle_runtime,
     wire::umpire::reference::kettle::v1::{
         DescribeResponse, HeatRequest, HeatResponse, HeatingAction, PollHeatingResponse,
         RespondHeatingRequest, RespondHeatingResponse, State,
     },
 };
 use umpire_runtime::AnyMessage as _;
+use umpire_runtime::protocol::Method;
+use umpire_runtime::{
+    Guest,
+    testing::{GuestExt, ResponseExt},
+};
 use umpire_runtime::{
     prost_types::Any,
     protocol::{self, response::Outcome},
@@ -25,32 +30,23 @@ fn observe(method: &str, response: &impl Name, request: Option<Any>) -> Any {
         request,
     })
 }
-fn judge(runtime: &mut umpire_reference_kettle::KettleRuntime, value: Any) -> protocol::Response {
-    runtime.dispatch(4, &protocol::JudgeRequest { observation: Some(value) }.encode_to_vec())
-}
 fn steps(response: protocol::Response, expected: &[&str]) {
-    let Some(Outcome::Judge(value)) = response.outcome else { panic!("not Judge") };
-    let Some(protocol::judge_response::Judgment::Explained(value)) = value.judgment else {
-        panic!("not explained")
-    };
+    let value = response.explanation();
     assert_eq!(value.steps, expected);
 }
-fn heat(runtime: &mut umpire_reference_kettle::KettleRuntime) {
+fn heat(runtime: &mut Guest<umpire_reference_kettle::KettleRuntime>) {
     steps(
-        judge(
-            runtime,
-            observe(
-                "Heat",
-                &HeatResponse { state: Some(state(20, true, false)) },
-                Some(Any::pack(&HeatRequest { kettle_id: "k".into(), enabled: true })),
-            ),
-        ),
+        runtime.judge(observe(
+            "Heat",
+            &HeatResponse { state: Some(state(20, true, false)) },
+            Some(Any::pack(&HeatRequest { kettle_id: "k".into(), enabled: true })),
+        )),
         &["User::PressButton"],
     );
 }
 #[test]
 fn healthy_trace_answer_does_not_commit_and_receipt_commits_once() {
-    let mut runtime = runtime();
+    let mut runtime = Guest::new(kettle_runtime());
     heat(&mut runtime);
     for temperature in 20..=100 {
         let action = if temperature < 100 { HeatingAction::Heat } else { HeatingAction::Failover };
@@ -59,16 +55,16 @@ fn healthy_trace_answer_does_not_commit_and_receipt_commits_once() {
             action: action as i32,
             kettle_id: "k".into(),
         };
-        let response = runtime.dispatch(
-            5,
+        let response = GuestExt::call(
+            &mut runtime,
+            Method::Answer,
             &protocol::AnswerRequest {
                 callback: Some(Any::pack(&Callback { task: Some(Any::pack(&task)) })),
-            }
-            .encode_to_vec(),
+            },
         );
         assert!(matches!(response.outcome, Some(Outcome::Answer(_))));
         steps(
-            judge(&mut runtime, observe("Describe", &DescribeResponse { state: task.state }, None)),
+            runtime.judge(observe("Describe", &DescribeResponse { state: task.state }, None)),
             &[],
         );
         let next = if temperature < 100 {
@@ -77,28 +73,26 @@ fn healthy_trace_answer_does_not_commit_and_receipt_commits_once() {
             state(100, false, true)
         };
         steps(
-            judge(
-                &mut runtime,
-                observe(
-                    "RespondHeating",
-                    &RespondHeatingResponse { state: Some(next), action: action as i32 },
-                    Some(Any::pack(&RespondHeatingRequest {
-                        kettle_id: "k".into(),
-                        action: action as i32,
-                    })),
-                ),
-            ),
+            runtime.judge(observe(
+                "RespondHeating",
+                &RespondHeatingResponse { state: Some(next), action: action as i32 },
+                Some(Any::pack(&RespondHeatingRequest {
+                    kettle_id: "k".into(),
+                    action: action as i32,
+                })),
+            )),
             &[if temperature < 100 { "Heater::Heat" } else { "Heater::Failover" }],
         );
     }
 }
 #[test]
 fn describe_never_infers_a_transition() {
-    let mut runtime = runtime();
-    let response = judge(
-        &mut runtime,
-        observe("Describe", &DescribeResponse { state: Some(state(20, true, false)) }, None),
-    );
+    let mut runtime = Guest::new(kettle_runtime());
+    let response = runtime.judge(observe(
+        "Describe",
+        &DescribeResponse { state: Some(state(20, true, false)) },
+        None,
+    ));
     let Some(Outcome::Judge(value)) = response.outcome else { panic!("not Judge") };
     assert!(matches!(value.judgment, Some(protocol::judge_response::Judgment::Unexplained(_))));
 }
@@ -109,16 +103,13 @@ fn exact_receipts_reject_wrong_state_or_action() {
         (HeatingAction::Failover, state(21, true, false)),
         (HeatingAction::Unspecified, state(21, true, false)),
     ] {
-        let mut runtime = runtime();
+        let mut runtime = Guest::new(kettle_runtime());
         heat(&mut runtime);
-        let response = judge(
-            &mut runtime,
-            observe(
-                "RespondHeating",
-                &RespondHeatingResponse { state: Some(next), action: action as i32 },
-                None,
-            ),
-        );
+        let response = runtime.judge(observe(
+            "RespondHeating",
+            &RespondHeatingResponse { state: Some(next), action: action as i32 },
+            None,
+        ));
         assert!(!matches!(
             response.outcome,
             Some(Outcome::Judge(protocol::JudgeResponse {
@@ -134,8 +125,11 @@ fn explore_retains_canonical_report() {
         DescribeResponse::type_url(),
         "type.googleapis.com/umpire.reference.kettle.v1.DescribeResponse"
     );
-    let response =
-        runtime().dispatch(1, &protocol::ExploreRequest { budget: 10000 }.encode_to_vec());
+    let response = GuestExt::call(
+        &mut Guest::new(kettle_runtime()),
+        Method::Explore,
+        &protocol::ExploreRequest { budget: 10000 },
+    );
     let Some(Outcome::Explore(value)) = response.outcome else { panic!("not Explore") };
     let mut settings = insta::Settings::clone_current();
     settings.set_snapshot_path("../expected");
@@ -146,7 +140,7 @@ fn explore_retains_canonical_report() {
 
 #[test]
 fn malformed_evidence_refuses_without_advancing() {
-    let mut runtime = runtime();
+    let mut runtime = Guest::new(kettle_runtime());
     heat(&mut runtime);
     for request in [
         None,
@@ -162,16 +156,13 @@ fn malformed_evidence_refuses_without_advancing() {
         } else {
             observe("Heat", &HeatResponse { state: Some(state(20, false, false)) }, None)
         };
-        assert!(matches!(judge(&mut runtime, value).outcome, Some(Outcome::Refusal(_))));
+        assert!(matches!(runtime.judge(value).outcome, Some(Outcome::Refusal(_))));
         steps(
-            judge(
-                &mut runtime,
-                observe(
-                    "Describe",
-                    &DescribeResponse { state: Some(state(20, true, false)) },
-                    None,
-                ),
-            ),
+            runtime.judge(observe(
+                "Describe",
+                &DescribeResponse { state: Some(state(20, true, false)) },
+                None,
+            )),
             &[],
         );
     }
@@ -179,7 +170,7 @@ fn malformed_evidence_refuses_without_advancing() {
 
 #[test]
 fn callback_requires_exact_state_identity_and_enabled_action() {
-    let mut runtime = runtime();
+    let mut runtime = Guest::new(kettle_runtime());
     heat(&mut runtime);
     for task in [
         PollHeatingResponse {
@@ -199,23 +190,20 @@ fn callback_requires_exact_state_identity_and_enabled_action() {
         },
         PollHeatingResponse { state: None, action: 1, kettle_id: "k".into() },
     ] {
-        let response = runtime.dispatch(
-            5,
+        let response = GuestExt::call(
+            &mut runtime,
+            Method::Answer,
             &protocol::AnswerRequest {
                 callback: Some(Any::pack(&Callback { task: Some(Any::pack(&task)) })),
-            }
-            .encode_to_vec(),
+            },
         );
         assert!(matches!(response.outcome, Some(Outcome::Refusal(_))));
         steps(
-            judge(
-                &mut runtime,
-                observe(
-                    "Describe",
-                    &DescribeResponse { state: Some(state(20, true, false)) },
-                    None,
-                ),
-            ),
+            runtime.judge(observe(
+                "Describe",
+                &DescribeResponse { state: Some(state(20, true, false)) },
+                None,
+            )),
             &[],
         );
     }

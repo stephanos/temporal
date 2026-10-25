@@ -1,5 +1,0 @@
-error: request rule requires an expectation
- --> tests/ui/supplemental_presence_missing_expectation.rs:7:8
-  |
-7 | #[rule(required(value))]
-  |        ^^^^^^^^

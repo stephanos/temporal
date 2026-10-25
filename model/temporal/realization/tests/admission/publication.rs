@@ -35,13 +35,17 @@ fn success_freeze_and_composed_reset_roll_back_false_panic_and_oversize() {
             });
             let captured = start(if operation.ends_with("freeze") { 4 } else { 1 });
             if operation == "reset live" {
-                explained(judge(&mut guest, &captured));
-                advanced(judge(&mut guest, &describe(1, 1, 2)), &["Worker::Poll(1)"]);
+                explained(guest.judge(Any::pack(&captured)));
+                advanced(guest.judge(Any::pack(&describe(1, 1, 2))), &["Worker::Poll(1)"]);
             } else if operation == "reset freeze" {
-                refused(judge(&mut guest, &captured), protocol::RefusalCode::Unsupported);
+                guest.judge(Any::pack(&captured)).refusal(RefusalCode::Unsupported);
             }
-            let Some(Outcome::Explore(exploration)) =
-                call(&mut guest, 1, &protocol::ExploreRequest { budget: 64 }).outcome
+            let Some(Outcome::Explore(exploration)) = GuestExt::call(
+                &mut guest,
+                Method::Explore,
+                &protocol::ExploreRequest { budget: 64 },
+            )
+            .outcome
             else {
                 panic!("explore")
             };
@@ -71,43 +75,48 @@ fn success_freeze_and_composed_reset_roll_back_false_panic_and_oversize() {
             assert_eq!(all_rows(&mut guest, exploration.reached), old_rows);
             match operation {
                 "reset live" => {
-                    explained(judge(&mut guest, &captured));
-                    explained(judge(&mut guest, &describe(1, 1, 2)));
-                    call(&mut guest, 3, &protocol::ResetRequest::default());
-                    explained(judge(&mut guest, &captured));
-                    explained(judge(&mut guest, &describe(1, 1, 1)));
+                    explained(guest.judge(Any::pack(&captured)));
+                    explained(guest.judge(Any::pack(&describe(1, 1, 2))));
+                    guest.reset(None);
+                    explained(guest.judge(Any::pack(&captured)));
+                    explained(guest.judge(Any::pack(&describe(1, 1, 1))));
                     assert_eq!(all_rows(&mut guest, exploration.reached), old_rows);
                 }
                 "reset freeze" => {
-                    refused(judge(&mut guest, &captured), protocol::RefusalCode::Unsupported);
-                    call(&mut guest, 3, &protocol::ResetRequest::default());
-                    refused(judge(&mut guest, &captured), protocol::RefusalCode::State);
-                    refused(judge(&mut guest, &start(1)), protocol::RefusalCode::State);
-                    refused(judge(&mut guest, &describe(1, 1, 1)), protocol::RefusalCode::State);
+                    guest.judge(Any::pack(&captured)).refusal(RefusalCode::Unsupported);
+                    guest.reset(None);
+                    guest.judge(Any::pack(&captured)).refusal(RefusalCode::State);
+                    guest.judge(Any::pack(&start(1))).refusal(RefusalCode::State);
+                    guest.judge(Any::pack(&describe(1, 1, 1))).refusal(RefusalCode::State);
                     assert_eq!(all_rows(&mut guest, exploration.reached), old_rows);
                 }
                 "success" => {
-                    refused(judge(&mut guest, &describe(1, 1, 1)), protocol::RefusalCode::State);
-                    explained(judge(&mut guest, &captured));
-                    explained(judge(&mut guest, &captured));
-                    refused(
-                        call(&mut guest, 2, &protocol::RowsRequest { state_id: 0 }),
-                        protocol::RefusalCode::NotExplored,
-                    );
-                    let Some(Outcome::Explore(result)) =
-                        call(&mut guest, 1, &protocol::ExploreRequest { budget: 64 }).outcome
+                    guest.judge(Any::pack(&describe(1, 1, 1))).refusal(RefusalCode::State);
+                    explained(guest.judge(Any::pack(&captured)));
+                    explained(guest.judge(Any::pack(&captured)));
+                    GuestExt::call(
+                        &mut guest,
+                        Method::Rows,
+                        &protocol::RowsRequest { state_id: 0 },
+                    )
+                    .refusal(RefusalCode::NotExplored);
+                    let Some(Outcome::Explore(result)) = GuestExt::call(
+                        &mut guest,
+                        Method::Explore,
+                        &protocol::ExploreRequest { budget: 64 },
+                    )
+                    .outcome
                     else {
                         panic!("explore")
                     };
                     assert_eq!(result.reached, 5);
                 }
                 "freeze" => {
-                    refused(judge(&mut guest, &describe(1, 1, 1)), protocol::RefusalCode::State);
-                    let first =
-                        refused(judge(&mut guest, &captured), protocol::RefusalCode::Unsupported);
+                    guest.judge(Any::pack(&describe(1, 1, 1))).refusal(RefusalCode::State);
+                    let first = guest.judge(Any::pack(&captured)).refusal(RefusalCode::Unsupported);
                     assert_eq!(
                         first,
-                        refused(judge(&mut guest, &captured), protocol::RefusalCode::Unsupported)
+                        guest.judge(Any::pack(&captured)).refusal(RefusalCode::Unsupported)
                     );
                     assert_eq!(all_rows(&mut guest, exploration.reached), old_rows);
                 }
@@ -118,5 +127,7 @@ fn success_freeze_and_composed_reset_roll_back_false_panic_and_oversize() {
 }
 
 fn all_rows(guest: &mut Guest<impl Dispatch>, reached: u32) -> Vec<protocol::Response> {
-    (0..reached).map(|state_id| call(guest, 2, &protocol::RowsRequest { state_id })).collect()
+    (0..reached)
+        .map(|state_id| GuestExt::call(guest, Method::Rows, &protocol::RowsRequest { state_id }))
+        .collect()
 }

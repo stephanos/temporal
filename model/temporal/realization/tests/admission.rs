@@ -1,4 +1,6 @@
 //! Actual-request admission and publication controls for the Temporal facade.
+use umpire_runtime::protocol::{Method, RefusalCode};
+use umpire_runtime::testing::{GuestExt, ResponseExt};
 
 use prost::Message;
 use std::panic::AssertUnwindSafe;
@@ -18,63 +20,36 @@ use umpire_temporal_api::temporal::api::workflowservice::v1::{
 mod common;
 use common::{RUN, describe, start};
 
-fn call(
-    guest: &mut Guest<impl Dispatch>,
-    method: u32,
-    request: &impl Message,
-) -> protocol::Response {
-    let mut response = None;
-    assert!(guest.dispatch_to(method, &request.encode_to_vec(), |bytes| {
-        response = Some(protocol::Response::decode(bytes).unwrap_or_else(|e| panic!("{e}")));
-        true
-    }));
-    response.unwrap_or_else(|| panic!("response"))
-}
-fn judge(guest: &mut Guest<impl Dispatch>, value: &Observation) -> protocol::Response {
-    call(guest, 4, &protocol::JudgeRequest { observation: Some(Any::pack(value)) })
-}
 fn explained(response: protocol::Response) {
-    let Some(Outcome::Judge(value)) = response.outcome else {
-        panic!("expected Judge: {response:?}")
-    };
-    let Some(protocol::judge_response::Judgment::Explained(value)) = value.judgment else {
-        panic!("expected Explained")
-    };
-    assert_eq!(value.steps, [] as [String; 0]);
-}
-fn refused(response: protocol::Response, code: protocol::RefusalCode) -> protocol::Refusal {
-    let Some(Outcome::Refusal(value)) = response.outcome else {
-        panic!("expected refusal: {response:?}")
-    };
-    assert_eq!(value.code(), code);
-    value
+    assert_eq!(response.explanation().steps, [] as [String; 0]);
 }
 
 #[test]
 fn start_selects_world_and_original_replay_never_resets_progress() {
     let mut guest = Guest::new(annotation_runtime());
-    refused(judge(&mut guest, &describe(1, 1, 1)), protocol::RefusalCode::State);
+    guest.judge(Any::pack(&describe(1, 1, 1))).refusal(RefusalCode::State);
     let captured = start(1);
-    explained(judge(&mut guest, &captured));
+    explained(guest.judge(Any::pack(&captured)));
     let Some(Outcome::Explore(explore)) =
-        call(&mut guest, 1, &protocol::ExploreRequest { budget: 64 }).outcome
+        GuestExt::call(&mut guest, Method::Explore, &protocol::ExploreRequest { budget: 64 })
+            .outcome
     else {
         panic!("explore")
     };
     assert_eq!(explore.reached, 5);
-    advanced(judge(&mut guest, &describe(1, 1, 2)), &["Worker::Poll(1)"]);
-    explained(judge(&mut guest, &captured));
-    explained(judge(&mut guest, &describe(1, 1, 2)));
+    advanced(guest.judge(Any::pack(&describe(1, 1, 2))), &["Worker::Poll(1)"]);
+    explained(guest.judge(Any::pack(&captured)));
+    explained(guest.judge(Any::pack(&describe(1, 1, 2))));
     let mut replay = captured.clone();
     replay.result = Some(ResultValue::Response(Any::pack(&StartActivityExecutionResponse {
         run_id: RUN.into(),
         started: false,
         ..Default::default()
     })));
-    explained(judge(&mut guest, &replay));
-    call(&mut guest, 3, &protocol::ResetRequest::default());
-    explained(judge(&mut guest, &replay));
-    explained(judge(&mut guest, &describe(1, 1, 1)));
+    explained(guest.judge(Any::pack(&replay)));
+    guest.reset(None);
+    explained(guest.judge(Any::pack(&replay)));
+    explained(guest.judge(Any::pack(&describe(1, 1, 1))));
 }
 
 #[test]
@@ -82,8 +57,9 @@ fn admission_and_first_domain_freeze_publish_atomically() {
     for attempts in [1, 4] {
         for panic in [false, true] {
             let mut guest = Guest::new(annotation_runtime());
-            call(&mut guest, 1, &protocol::ExploreRequest { budget: 64 });
-            let before = call(&mut guest, 2, &protocol::RowsRequest { state_id: 0 });
+            GuestExt::call(&mut guest, Method::Explore, &protocol::ExploreRequest { budget: 64 });
+            let before =
+                GuestExt::call(&mut guest, Method::Rows, &protocol::RowsRequest { state_id: 0 });
             let captured = start(attempts);
             let bytes =
                 protocol::JudgeRequest { observation: Some(Any::pack(&captured)) }.encode_to_vec();
@@ -94,26 +70,33 @@ fn admission_and_first_domain_freeze_publish_atomically() {
                 })
             }));
             assert_eq!(result.is_err(), panic);
-            assert_eq!(before, call(&mut guest, 2, &protocol::RowsRequest { state_id: 0 }));
-            refused(judge(&mut guest, &describe(1, 1, 1)), protocol::RefusalCode::State);
+            assert_eq!(
+                before,
+                GuestExt::call(&mut guest, Method::Rows, &protocol::RowsRequest { state_id: 0 })
+            );
+            guest.judge(Any::pack(&describe(1, 1, 1))).refusal(RefusalCode::State);
             if attempts == 1 {
-                explained(judge(&mut guest, &captured));
-                refused(
-                    call(&mut guest, 2, &protocol::RowsRequest { state_id: 0 }),
-                    protocol::RefusalCode::NotExplored,
-                );
+                explained(guest.judge(Any::pack(&captured)));
+                GuestExt::call(&mut guest, Method::Rows, &protocol::RowsRequest { state_id: 0 })
+                    .refusal(RefusalCode::NotExplored);
             } else {
-                let first =
-                    refused(judge(&mut guest, &captured), protocol::RefusalCode::Unsupported);
+                let first = guest.judge(Any::pack(&captured)).refusal(RefusalCode::Unsupported);
                 assert!(first.message.contains("maximum_attempts"));
-                assert_eq!(before, call(&mut guest, 2, &protocol::RowsRequest { state_id: 0 }));
+                assert_eq!(
+                    before,
+                    GuestExt::call(
+                        &mut guest,
+                        Method::Rows,
+                        &protocol::RowsRequest { state_id: 0 }
+                    )
+                );
                 assert_eq!(
                     first,
-                    refused(judge(&mut guest, &captured), protocol::RefusalCode::Unsupported)
+                    guest.judge(Any::pack(&captured)).refusal(RefusalCode::Unsupported)
                 );
-                call(&mut guest, 3, &protocol::ResetRequest::default());
-                refused(judge(&mut guest, &describe(1, 1, 1)), protocol::RefusalCode::State);
-                refused(judge(&mut guest, &start(1)), protocol::RefusalCode::State);
+                guest.reset(None);
+                guest.judge(Any::pack(&describe(1, 1, 1))).refusal(RefusalCode::State);
+                guest.judge(Any::pack(&start(1))).refusal(RefusalCode::State);
             }
         }
     }
@@ -142,12 +125,12 @@ fn identity_and_result_validation_precede_domains_and_never_replace_first_freeze
     for initial in [false, true] {
         let mut guest = Guest::new(annotation_runtime());
         let freeze = if initial {
-            Some(refused(judge(&mut guest, &start(4)), protocol::RefusalCode::Unsupported))
+            Some(guest.judge(Any::pack(&start(4))).refusal(RefusalCode::Unsupported))
         } else {
             None
         };
         for value in &malformed {
-            let response = judge(&mut guest, value);
+            let response = guest.judge(Any::pack(value));
             let Some(Outcome::Refusal(refusal)) = response.outcome else {
                 panic!("invalid evidence admitted")
             };
@@ -159,17 +142,17 @@ fn identity_and_result_validation_precede_domains_and_never_replace_first_freeze
             if let Some(first) = &freeze {
                 assert_eq!(
                     *first,
-                    refused(judge(&mut guest, &start(4)), protocol::RefusalCode::Unsupported)
+                    guest.judge(Any::pack(&start(4))).refusal(RefusalCode::Unsupported)
                 );
             }
         }
         if !initial {
-            explained(judge(&mut guest, &start(1)));
+            explained(guest.judge(Any::pack(&start(1))));
         }
     }
     let mut guest = Guest::new(annotation_runtime());
     let captured = start(2);
-    explained(judge(&mut guest, &captured));
+    explained(guest.judge(Any::pack(&captured)));
     for edit in [
         |r: &mut StartActivityExecutionRequest| r.namespace = "crossed".into(),
         |r: &mut StartActivityExecutionRequest| r.activity_id = "crossed".into(),
@@ -180,7 +163,7 @@ fn identity_and_result_validation_precede_domains_and_never_replace_first_freeze
     ] {
         let mut crossed = captured.clone();
         request(&mut crossed, edit);
-        refused(judge(&mut guest, &crossed), protocol::RefusalCode::State);
+        guest.judge(Any::pack(&crossed)).refusal(RefusalCode::State);
     }
     let mut unknown = captured.clone();
     unknown
@@ -189,11 +172,11 @@ fn identity_and_result_validation_precede_domains_and_never_replace_first_freeze
         .unwrap_or_else(|| panic!("request"))
         .value
         .extend_from_slice(&[0xf8, 0x07, 0x01]);
-    refused(judge(&mut guest, &unknown), protocol::RefusalCode::State);
+    guest.judge(Any::pack(&unknown)).refusal(RefusalCode::State);
     let mut crossed = captured.clone();
     response(&mut crossed, |r| r.run_id = "33333333-3333-4333-8333-333333333333".into());
-    refused(judge(&mut guest, &crossed), protocol::RefusalCode::State);
-    explained(judge(&mut guest, &describe(1, 1, 1)));
+    guest.judge(Any::pack(&crossed)).refusal(RefusalCode::State);
+    explained(guest.judge(Any::pack(&describe(1, 1, 1))));
 }
 
 fn malformed_starts(
@@ -259,7 +242,7 @@ fn malformed_starts(
 #[test]
 fn bound_rpc_identities_are_required_before_projection() {
     let mut guest = Guest::new(annotation_runtime());
-    explained(judge(&mut guest, &start(3)));
+    explained(guest.judge(Any::pack(&start(3))));
     for field in 0..8 {
         let mut value = describe(1, 1, 1);
         let mut request: DescribeActivityExecutionRequest = value
@@ -287,8 +270,8 @@ fn bound_rpc_identities_are_required_before_projection() {
         }
         value.request = Some(Any::pack(&request));
         value.result = Some(ResultValue::Response(Any::pack(&response)));
-        refused(judge(&mut guest, &value), protocol::RefusalCode::State);
-        explained(judge(&mut guest, &describe(1, 1, 1)));
+        guest.judge(Any::pack(&value)).refusal(RefusalCode::State);
+        explained(guest.judge(Any::pack(&describe(1, 1, 1))));
     }
     for field in 0..3 {
         use umpire_temporal_api::temporal::api::workflowservice::v1::{
@@ -315,20 +298,20 @@ fn bound_rpc_identities_are_required_before_projection() {
                 &RequestCancelActivityExecutionResponse {},
             ))),
         };
-        refused(judge(&mut guest, &value), protocol::RefusalCode::State);
-        explained(judge(&mut guest, &describe(1, 1, 1)));
+        guest.judge(Any::pack(&value)).refusal(RefusalCode::State);
+        explained(guest.judge(Any::pack(&describe(1, 1, 1))));
     }
 }
 
 #[test]
 fn actual_retry_describe_advances_attempt_without_worker_callbacks() {
     let mut guest = Guest::new(annotation_runtime());
-    explained(judge(&mut guest, &start(2)));
+    explained(guest.judge(Any::pack(&start(2))));
     advanced(
-        judge(&mut guest, &describe(2, 1, 1)),
+        guest.judge(Any::pack(&describe(2, 1, 1))),
         &["Worker::Poll(1)", "Worker::RespondFailed { retryable: true }"],
     );
-    advanced(judge(&mut guest, &describe(2, 1, 2)), &["Worker::Poll(2)"]);
+    advanced(guest.judge(Any::pack(&describe(2, 1, 2))), &["Worker::Poll(2)"]);
 }
 
 #[path = "admission/publication.rs"]
@@ -352,7 +335,7 @@ fn only_explicit_attempt_domain_is_admitted_while_timeouts_are_retained_exactly(
         });
         captured.request = Some(Any::pack(&request));
         let mut guest = Guest::new(annotation_runtime());
-        let refusal = refused(judge(&mut guest, &captured), protocol::RefusalCode::Unsupported);
+        let refusal = guest.judge(Any::pack(&captured)).refusal(RefusalCode::Unsupported);
         assert!(refusal.message.contains("maximum_attempts"));
         if attempts == Some(4) {
             let annotate = protocol::AnnotateRequest {
@@ -362,16 +345,22 @@ fn only_explicit_attempt_domain_is_admitted_while_timeouts_are_retained_exactly(
                     ..Default::default()
                 })),
             };
-            assert!(matches!(call(&mut guest, 7, &annotate).outcome, Some(Outcome::Annotate(_))));
+            assert!(matches!(
+                GuestExt::call(&mut guest, Method::Annotate, &annotate).outcome,
+                Some(Outcome::Annotate(_))
+            ));
             let probe = protocol::AnnotateRequest {
                 input: Some(Any::pack(
                     &umpire_temporal_api::umpire::temporal::v1::ProbeRequest::default(),
                 )),
             };
-            assert!(matches!(call(&mut guest, 7, &probe).outcome, Some(Outcome::Annotate(_))));
+            assert!(matches!(
+                GuestExt::call(&mut guest, Method::Annotate, &probe).outcome,
+                Some(Outcome::Annotate(_))
+            ));
             assert_eq!(
                 refusal,
-                refused(judge(&mut guest, &captured), protocol::RefusalCode::Unsupported)
+                guest.judge(Any::pack(&captured)).refusal(RefusalCode::Unsupported)
             );
         }
     }
@@ -389,14 +378,15 @@ fn only_explicit_attempt_domain_is_admitted_while_timeouts_are_retained_exactly(
         Some(umpire_runtime::prost_types::Duration { seconds: 1, nanos: 456_789 });
     captured.request = Some(Any::pack(&request));
     let mut guest = Guest::new(annotation_runtime());
-    explained(judge(&mut guest, &captured));
+    explained(guest.judge(Any::pack(&captured)));
     let original = captured.clone();
     request.heartbeat_timeout.as_mut().unwrap_or_else(|| panic!("heartbeat")).nanos += 1;
     captured.request = Some(Any::pack(&request));
-    refused(judge(&mut guest, &captured), protocol::RefusalCode::State);
-    explained(judge(&mut guest, &original));
+    guest.judge(Any::pack(&captured)).refusal(RefusalCode::State);
+    explained(guest.judge(Any::pack(&original)));
     let Some(Outcome::Explore(result)) =
-        call(&mut guest, 1, &protocol::ExploreRequest { budget: 64 }).outcome
+        GuestExt::call(&mut guest, Method::Explore, &protocol::ExploreRequest { budget: 64 })
+            .outcome
     else {
         panic!("explore")
     };
@@ -406,23 +396,20 @@ fn only_explicit_attempt_domain_is_admitted_while_timeouts_are_retained_exactly(
 #[test]
 fn selected_world_cap_rejects_describe_attempts_without_freezing_or_advancing() {
     let mut guest = Guest::new(annotation_runtime());
-    explained(judge(&mut guest, &start(1)));
+    explained(guest.judge(Any::pack(&start(1))));
     for attempt in [2, 3] {
-        refused(judge(&mut guest, &describe(attempt, 1, 1)), protocol::RefusalCode::State);
-        explained(judge(&mut guest, &describe(1, 1, 1)));
+        guest.judge(Any::pack(&describe(attempt, 1, 1))).refusal(RefusalCode::State);
+        explained(guest.judge(Any::pack(&describe(1, 1, 1))));
     }
-    advanced(judge(&mut guest, &describe(1, 1, 2)), &["Worker::Poll(1)"]);
+    advanced(guest.judge(Any::pack(&describe(1, 1, 2))), &["Worker::Poll(1)"]);
     for attempt in [2, 3] {
-        refused(judge(&mut guest, &describe(attempt, 1, 1)), protocol::RefusalCode::State);
-        explained(judge(&mut guest, &describe(1, 1, 2)));
+        guest.judge(Any::pack(&describe(attempt, 1, 1))).refusal(RefusalCode::State);
+        explained(guest.judge(Any::pack(&describe(1, 1, 2))));
     }
 }
 
 fn advanced(response: protocol::Response, steps: &[&str]) {
-    let Some(Outcome::Judge(value)) = response.outcome else { panic!("Judge") };
-    let Some(protocol::judge_response::Judgment::Explained(value)) = value.judgment else {
-        panic!("Explained")
-    };
+    let value = response.explanation();
     assert_eq!(value.steps, steps);
     assert_eq!(value.outcomes, vec!["Accepted"; steps.len()]);
 }

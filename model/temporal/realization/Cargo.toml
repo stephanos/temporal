@@ -16,6 +16,7 @@ umpire-temporal-realization-macros.workspace = true
 prost.workspace = true
 
 [dev-dependencies]
+umpire-runtime = { workspace = true, features = ["testing"] }
 insta.workspace = true
 trybuild.workspace = true
 

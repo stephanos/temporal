@@ -74,8 +74,8 @@ impl LiveRuntime {
     }
 
     fn prepare_method(&self, method: u32, bytes: &[u8]) -> Prepared {
-        match method {
-            3 => {
+        match i32::try_from(method).ok().and_then(|value| protocol::Method::try_from(value).ok()) {
+            Some(protocol::Method::Reset) => {
                 let request = protocol::ResetRequest::decode(bytes)
                     .map_err(|_| Refusal::malformed("malformed Reset request"))?;
                 let configuration = request.configuration.or_else(|| self.configuration.clone());
@@ -94,9 +94,11 @@ impl LiveRuntime {
                         .map(|transaction| LiveTransaction { change: Change::Reset(transaction) }),
                 ))
             }
-            4 => self.judge(bytes),
-            5 => Err(Refusal::unsupported("Temporal workers follow the Reset program")),
-            6 => self.propose(bytes),
+            Some(protocol::Method::Judge) => self.judge(bytes),
+            Some(protocol::Method::Answer) => {
+                Err(Refusal::unsupported("Temporal workers follow the Reset program"))
+            }
+            Some(protocol::Method::Propose) => self.propose(bytes),
             _ => {
                 let (response, transaction) = self.model.prepare(method, bytes);
                 Ok((

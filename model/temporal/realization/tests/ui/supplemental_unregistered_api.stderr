@@ -1,0 +1,5 @@
+error: cannot find attribute `api` in this scope
+ --> tests/ui/supplemental_unregistered_api.rs:6:25
+  |
+6 | struct Supplemental { #[api(accepts)] #[rule(accepts)] value: Uuid }
+  |                         ^^^
