@@ -181,6 +181,14 @@ different path with an independent empty target rebuilt identical bytes and pass
 freshness check. The fn-250.4/.5 back-end changes are outside the guest closure.
 Linux/aarch64 only; no macOS certification is claimed.
 
+## Consolidation lanes regeneration (fn-250.1/.2, fn-251.1/.2, fn-252.1/.2)
+
+`Path` holding only its `Pattern` (umpire-dsl) and the removed `umpire-temporal-api`
+build-dependency (it changes the generated-file path hash embedded in panic locations)
+changed the Temporal guest: 3516063 B `11c953c3…` → 3516114 B
+`b10b813547924162c9c195abc3a85d303d838b8194303a97639135580319542a`. A clean clone at a
+different path with an empty target rebuilt identical bytes. Linux/aarch64 only.
+
 ## Linux source-path independence
 
 The fn-230 source pin, matching hashes/sizes, platform and toolchain are recorded
