@@ -158,26 +158,40 @@ impl Nondominated {
         Self { one: vec![EMPTY; cells], many: HashMap::new() }
     }
 
-    fn labels(&self, cell: usize) -> impl Iterator<Item = usize> + '_ {
+    fn spilled(&self, cell: usize) -> Option<&Vec<usize>> {
+        if self.many.is_empty() { None } else { self.many.get(&cell) }
+    }
+
+    /// Whether any kept label satisfies `dominates`.
+    fn any(&self, cell: usize, dominates: impl Fn(usize) -> bool) -> bool {
         let one = self.one[cell];
-        (one != EMPTY)
-            .then_some(one)
-            .into_iter()
-            .chain(self.many.get(&cell).into_iter().flatten().copied())
+        one != EMPTY
+            && (dominates(one)
+                || self.spilled(cell).is_some_and(|ids| ids.iter().any(|id| dominates(*id))))
     }
 
     /// Adds `id`, dropping every label it dominates.
     fn insert(&mut self, cell: usize, id: usize, dominated: impl Fn(usize) -> bool) {
-        // Empty in the usual case, which then allocates nothing.
-        let mut kept: Vec<_> = self.labels(cell).filter(|old| !dominated(*old)).collect();
-        if kept.is_empty() {
-            self.one[cell] = id;
-            self.many.remove(&cell);
+        let one = self.one[cell];
+        let Some(more) = self.spilled(cell) else {
+            if one == EMPTY || dominated(one) {
+                self.one[cell] = id;
+            } else {
+                self.many.insert(cell, vec![id]);
+            }
             return;
-        }
-        self.one[cell] = kept.remove(0);
+        };
+        let mut kept: Vec<_> = std::iter::once(one)
+            .chain(more.iter().copied())
+            .filter(|old| !dominated(*old))
+            .collect();
         kept.push(id);
-        self.many.insert(cell, kept);
+        self.one[cell] = kept.remove(0);
+        if kept.is_empty() {
+            self.many.remove(&cell);
+        } else {
+            self.many.insert(cell, kept);
+        }
     }
 }
 
@@ -250,9 +264,10 @@ impl<'a, M: Machine> Graph<'a, M> {
         ordinals: &[usize],
         position: Position,
         edges: bool,
-    ) -> Result<Vec<(Position, Option<usize>)>, Refusal> {
-        let Some(node) = nodes.get(position.next) else { return Ok(Vec::new()) };
-        let mut next = Vec::new();
+        next: &mut Vec<(Position, Option<usize>)>,
+    ) -> Result<(), Refusal> {
+        next.clear();
+        let Some(node) = nodes.get(position.next) else { return Ok(()) };
         let advance = Position { next: position.next + 1, age: 0, ..position };
         let waypoint = ordinals[position.next];
         match node {
@@ -267,8 +282,8 @@ impl<'a, M: Machine> Graph<'a, M> {
                 for (ordinal, row) in self.rows[position.state.0].iter().enumerate() {
                     let Some(state) = row.target else { continue };
                     if row.action == **action
-                        && self.judge(waypoint, position.state, || {
-                            outcome.as_ref().is_none_or(|predicate| predicate(&row.emitted.0))
+                        && outcome.as_ref().map_or(Ok(true), |predicate| {
+                            self.judge(waypoint, position.state, || predicate(&row.emitted.0))
                         })?
                     {
                         next.push((Position { state, ..advance }, Some(ordinal)));
@@ -280,8 +295,8 @@ impl<'a, M: Machine> Graph<'a, M> {
                 if edges && gap.bound().is_none_or(|bound| position.age < bound) {
                     for (ordinal, row) in self.rows[position.state.0].iter().enumerate() {
                         let Some(state) = row.target else { continue };
-                        if !self.judge(waypoint, position.state, || {
-                            exclude.as_ref().is_some_and(|predicate| predicate(&row.action))
+                        if !exclude.as_ref().map_or(Ok(false), |predicate| {
+                            self.judge(waypoint, position.state, || predicate(&row.action))
                         })? {
                             let age = if gap.bound().is_some() { position.age + 1 } else { 0 };
                             next.push((Position { state, age, ..position }, Some(ordinal)));
@@ -294,7 +309,7 @@ impl<'a, M: Machine> Graph<'a, M> {
         if next.len() > SEARCH_LIMIT {
             return Err(Refusal::SearchLimit { limit: SEARCH_LIMIT });
         }
-        Ok(next)
+        Ok(())
     }
 
     /// The shortest path matching `alternative` from `anchor`. Equal-length choices are
@@ -328,6 +343,7 @@ impl<'a, M: Machine> Graph<'a, M> {
             labels.push(Label { position, distance: 0, parent: None });
         }
         let mut furthest = None;
+        let mut successors = Vec::new();
         while let Some(id) = queue.pop_front() {
             let position = labels[id].position;
             let distance = labels[id].distance;
@@ -337,12 +353,17 @@ impl<'a, M: Machine> Graph<'a, M> {
             if position.next == nodes.len() {
                 return Ok(self.witness(&labels, id));
             }
-            for (next, row) in
-                self.successors(&nodes, &ordinals, position, distance < self.frontier)?
-            {
+            self.successors(
+                &nodes,
+                &ordinals,
+                position,
+                distance < self.frontier,
+                &mut successors,
+            )?;
+            for &(next, row) in &successors {
                 let next_distance = distance + usize::from(row.is_some());
                 let cell = next.state.0 * width + next.next;
-                if best.labels(cell).any(|old| {
+                if best.any(cell, |old| {
                     labels[old].distance <= next_distance && labels[old].position.age <= next.age
                 }) {
                     continue;
@@ -456,14 +477,17 @@ impl<'a, M: Machine> Graph<'a, M> {
         let starts = positions.len();
         let mut work = positions.len();
         let mut cursor = 0;
+        let mut successors = Vec::new();
         while cursor < positions.len() {
             let position = positions[cursor];
-            for (mut next, row) in self.successors(
+            self.successors(
                 &nodes,
                 &ordinals,
                 position,
                 position.depth < horizon.min(self.frontier),
-            )? {
+                &mut successors,
+            )?;
+            for &(mut next, row) in &successors {
                 next.depth += usize::from(row.is_some());
                 work += 1;
                 if work >= SEARCH_LIMIT {
