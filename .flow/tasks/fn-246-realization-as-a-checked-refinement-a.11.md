@@ -8,7 +8,7 @@ Implement the R3 action-declaration seam after capabilities. This task owns gene
 
 **Size:** M
 **Files:** generic front/action macro metadata forwarding, Temporal annotation syntax/derive support and focused pass/fail controls.
-**Touches:** [model/umpire/front/src/**, model/umpire/author/dsl/macros/src/**, model/umpire/author/dsl/**/tests/**, model/temporal/annotate/**, model/temporal/realization/macros/**]
+**Touches:** [model/umpire/front/src/**, model/umpire/author/dsl/macros/src/**, model/umpire/author/dsl/src/action.rs, model/umpire/author/dsl/src/lib.rs, model/umpire/author/dsl/**/tests/**, model/umpire/author/umpire/tests/consumer/**, model/temporal/annotate/**, model/temporal/realization/macros/**, model/temporal/realization/src/registry.rs, model/temporal/realization/src/lib.rs, model/temporal/realization/tests/**]
 
 ### Approach
 
@@ -28,12 +28,12 @@ All source coordinates are provisional planning anchors. Reanchor final fn-237.3
 - `model/umpire/front/src` and `model/umpire/author/dsl/macros/src/action.rs` for current action admission/expansion; resolve exact owner after reanchor.
 - `model/temporal/annotate/syntax/src/realize.rs:739,845,968` for action coverage, result shape and generated dispatch.
 - `model/temporal/annotate/syntax/src/realize/patterns.rs` for existing pattern/type validation.
-- `model/temporal/annotate/macros/src/lib.rs` and `model/temporal/realization/macros/src/lib.rs` for derive entry points.
-- `model/temporal/annotate/tests/ui.rs` and `tests/ui/{added_action,wildcard_action,added_enum_variant}.rs` for diagnostics.
+- `model/temporal/realization/macros/src/lib.rs` for the actual `#[realization]` entry point, and `model/temporal/realization/src/lib.rs` for typed facade support.
+- `model/temporal/realization/tests/realization_admission.rs`, `tests/ui/**` and `model/umpire/catalog/tests/admission-ui/**` for existing descriptor/action/type diagnostics; add task-specific controls under the current realization test owner.
 
 ### Verification
 
-From model/: `mise exec -- cargo test -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal-annotate -p umpire-temporal-realization-macros`; include generic renamed-facade consumer and syntax snapshots. Run scoped fmt/strict clippy and existing generic source-boundary checks.
+From model/: `mise exec -- cargo test -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros`; include generic renamed-facade consumer and syntax snapshots. Run scoped fmt/strict clippy and existing generic source-boundary checks.
 
 ## Acceptance
 - [ ] One typed variant registry serves synthetic proposal, worker row and probe baseline/evidence consumers. Generic metadata support contains no Temporal imports or semantics.
