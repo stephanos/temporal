@@ -11,11 +11,11 @@ unknown declaration before Driver creation. This wire-format change requires reb
 guests and current records together; historical guest bytes are not preserved.
 The model hash binds an owned copy of the exact loaded guest bytes independently of
 the Reset declaration.
-`xtask.sh` builds the current native host tool in `<target>/xtask-bootstrap` before
+`xtask.sh` builds the current native front door and dedicated guest driver in `<target>/xtask-bootstrap` before
 installing guest wrappers, flags or cache settings. It prints the absolute binary
 path for shell callers. This incremental build also prevents stale cached tools
 from bypassing source changes. Whitespace in checkout and tool paths is supported.
-The atomic `guest-rustc` launcher is an executable copy of that exact native binary,
+The atomic `guest-rustc` launcher is an executable copy of the dedicated driver binary,
 selected by its executable name; it preserves macOS loader variables and inherited
 jobserver handles without a shebang, `/usr/bin/env` or recursive Cargo invocation.
 Exit 0 means built or fresh, 1 means native tool/input/output failure, and 2 means
@@ -34,7 +34,7 @@ No wasm bytes are rewritten after linking. The Temporal API generator sorts merg
 descriptor files before prost generation; otherwise Go map iteration could change
 merged Rust declaration order and the resulting guest bytes.
 
-`xtask guest-rustc` derives target symbol identities from the pinned compiler, the
+The private native compiler wrapper derives target symbol identities from the pinned compiler, the
 crate's own lockfile closure, normalized package/source paths, crate configuration
 and dependency identities. Before building, `xtask guest-lock` digests, for every
 workspace-resolved package, the lockfile coordinates and checksums of its non-dev
@@ -120,7 +120,7 @@ artifacts, rather than inferring unwind from the profile declaration.
 From the repository root:
 
 ```sh
-cd model && mise exec -- cargo test -p xtask --locked
+cd model/umpire && mise exec -- cargo test -p xtask -p umpire-guest-driver --locked
 bash -n model/scripts/guest.sh model/scripts/tests/build-guests.sh
 CARGO_TARGET_DIR=/absolute/task-owned-target bash model/scripts/tests/build-guests.sh
 CARGO_TARGET_DIR=/absolute/task-owned-target make model-validate

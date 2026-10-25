@@ -1274,6 +1274,7 @@ RUST_MODEL_WASM_ENV = UMPIRE_WASM="$$target/wasm32-wasip1/guest/umpire_stock_gue
 
 .PHONY: model-check model-fmt model-update model-time model-validate
 model-check: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(API_BINPB)
+	@/bin/bash "$(CURDIR)/model/umpire/scripts/proto-tools.sh"
 	@printf $(COLOR) "Check model (fmt, clippy, docs, workspace and native-tool tests)..."
 	@if [ "$${UMPIRE_BACKENDS:-}" = require ]; then printf '%s\n' 'TLC backend required: real source-lifted agreement and semantic controls'; else printf '%s\n' 'TLC backend skipped: no execution/agreement evidence; use UMPIRE_BACKENDS=require'; fi
 	@if [ "$${UMPIRE_APALACHE:-}" = require ]; then printf '%s\n' 'Apalache backend required: real bounded checks and replay controls'; helper=$$(/bin/bash "$(CURDIR)/model/scripts/xtask.sh") && "$$helper" fetch-apalache "$(CURDIR)/model/umpire"; else printf '%s\n' 'Apalache backend skipped until fn-211 resumes; use UMPIRE_APALACHE=require'; fi
