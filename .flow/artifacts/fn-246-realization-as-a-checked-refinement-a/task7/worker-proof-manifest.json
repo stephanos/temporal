@@ -2,9 +2,11 @@
   "task": "fn-246-realization-as-a-checked-refinement-a.7",
   "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities",
   "base_commit": "046922c29e1355824cc989575dfe24b42e622bca",
-  "head": "42e301bee485b60095395b9e4447c33fbd2caf72",
+  "head": "79beb81e4c2cf9d15dd772fa549004d8057b0902",
   "commits": [
-    "42e301bee485b60095395b9e4447c33fbd2caf72"
+    "42e301bee485b60095395b9e4447c33fbd2caf72",
+    "7911549dae0b6d3c8bdec0498ecf2fa7c57db52a",
+    "79beb81e4c2cf9d15dd772fa549004d8057b0902"
   ],
   "environment": {
     "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2467",
@@ -184,6 +186,87 @@
       "sha256": "48475a58cd9490976bb2a542db87e7709a174710f365ba12902e159be8e7eeee",
       "note": "all three original compile-fail controls green; appended explicit refusing Identity/Fill to identity fixture, original E0308 stderr unchanged",
       "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-runtime --test reach evidence_admission_refusals_preserve_pending_prefix_and_retry",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model",
+      "exit_code": 101,
+      "log": "logs/review-fix-red.log",
+      "sha256": "34935252861bfb4c60942468a9f0302150d9037cf9f2c67092a6921237f4ab79",
+      "note": "committed reproduction: Unexplained instead of original MalformedRequest",
+      "source_commit": "7911549dae0b6d3c8bdec0498ecf2fa7c57db52a"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-temporal --test declarative generated_observation_validates_actual_request_before_feature_delegation",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model",
+      "exit_code": 0,
+      "log": "logs/review-fix-characterization.log",
+      "sha256": "a96047150efb7129169b7c99c2135f9a0ec90b4b64c10341d697e47759af2ca2",
+      "note": "both Current/Candidates refusal precedence and optional transport capture before production correction",
+      "source_commit": "7911549dae0b6d3c8bdec0498ecf2fa7c57db52a"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-runtime --test reach",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model",
+      "exit_code": 0,
+      "log": "logs/review-fix-green.log",
+      "sha256": "02df8dcea75ce1e5f01c0cf8776164997507a0a37ee470e443b2f5f794fcc0ca",
+      "note": "9 Reach controls; original refusal preserved for new and retained evidence, pending/history/freeze retry intact",
+      "source_commit": "79beb81e4c2cf9d15dd772fa549004d8057b0902"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model",
+      "exit_code": 0,
+      "log": "logs/review-fix-suite.log",
+      "sha256": "55d9d34d303c6654736ce77808a2dfba8edcadd9cadda8ba18e334326091d214",
+      "note": "202 passed; 1 unchanged ignored explicit live-snapshot import",
+      "source_commit": "79beb81e4c2cf9d15dd772fa549004d8057b0902"
+    },
+    {
+      "command": "mise exec -- cargo clippy -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal-annotate-syntax -p umpire-temporal-realization-macros -p umpire-temporal -p umpire-author-consumer --all-targets --all-features -- -D warnings",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model",
+      "exit_code": 0,
+      "log": "logs/review-fix-clippy.log",
+      "sha256": "ba3779520e888217cc9b34a864ac908bef9677c127e32ea606588f7c6c6d030f",
+      "note": "strict six-crate all-targets/all-features lint",
+      "source_commit": "79beb81e4c2cf9d15dd772fa549004d8057b0902"
+    },
+    {
+      "command": "mise exec -- cargo fmt --all --check",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model",
+      "exit_code": 0,
+      "log": "logs/review-fix-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "note": "format",
+      "source_commit": "79beb81e4c2cf9d15dd772fa549004d8057b0902"
+    },
+    {
+      "command": "bash model/scripts/tests/build-guests.sh",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities",
+      "exit_code": 0,
+      "log": "logs/review-fix-guests.log",
+      "sha256": "e3ad22582aa6d57f96159fc88aec10aeee6e7527a6882fafa2100412dd4102e4",
+      "note": "six current guests plus expected caught-panic native reports",
+      "source_commit": "79beb81e4c2cf9d15dd772fa549004d8057b0902"
+    },
+    {
+      "command": "mise exec -- go test -p 2 -tags test_dep -count=1 ./...",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model/umpire/reference/kettle",
+      "exit_code": 0,
+      "log": "logs/review-fix-go-kettle.log",
+      "sha256": "7a9913a6fe4789d3b4f9eb1de003032ae0c4e3f51406df93496b2538a80befaf",
+      "note": "fresh current-guest Kettle suite 34.321s; accepted semantic goldens unchanged",
+      "source_commit": "79beb81e4c2cf9d15dd772fa549004d8057b0902"
+    },
+    {
+      "command": "flowctl gate classify --base 046922c29e1355824cc989575dfe24b42e622bca",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities",
+      "exit_code": 1,
+      "log": "logs/review-fix-classify.log",
+      "sha256": "694b684a6a8f26c0da491e2ad8a42bb2b03e97f5e989770921f4d3d28e00c169",
+      "note": "FULL classification; no docs-only skip or shared gate receipt",
+      "source_commit": "79beb81e4c2cf9d15dd772fa549004d8057b0902"
     }
   ],
   "files": {
@@ -259,27 +342,87 @@
       "sha256": "2cba6e6a2b81ae15ae1e0319452867588f5f60861806ea97f99fe1580a6bc248",
       "bytes": 900
     },
+    "compiler-controls/fixture-3153333/Cargo.lock": {
+      "sha256": "5d1996e2045b145c874ede81332c3b870fd7badf04d18ac74ee0eac165474b9f",
+      "bytes": 15777
+    },
+    "compiler-controls/fixture-3153333/Cargo.toml": {
+      "sha256": "ea17e05ca0d538fcfe426a74aed804b6132248a04f532cbe34a0455090bd3f92",
+      "bytes": 376
+    },
+    "compiler-controls/fixture-3153333/Evidence.stderr": {
+      "sha256": "bf1c3bf33fd38981b7a27120df08c8a78ee9c685ef93eedd4441e39f65612be2",
+      "bytes": 1628
+    },
+    "compiler-controls/fixture-3153333/Fill.stderr": {
+      "sha256": "37da578fe2b0a0f26134aec5f27c19a3c08a0cc34c406270e9498c7462ff9b9b",
+      "bytes": 1131
+    },
+    "compiler-controls/fixture-3153333/Identity.stderr": {
+      "sha256": "5b6892e00d49b88259361ebcdabbedd3c2f82f30ea329c74793d189480d2a23a",
+      "bytes": 1826
+    },
+    "compiler-controls/fixture-3153333/ReplyPolicy.stderr": {
+      "sha256": "8629529e3613aaab6207e49d6bde3dc5f963acfc7b6a9ec03873acc59d72f153",
+      "bytes": 1127
+    },
+    "compiler-controls/fixture-3153333/Snapshot.stderr": {
+      "sha256": "291090a285791a55888173114f27562cc5718156aba60c9dd189ee73e15ac8bc",
+      "bytes": 1641
+    },
+    "compiler-controls/fixture-3153333/complete.stderr": {
+      "sha256": "9214b9b89f70cdf0a9a549b0a4bba61d5130a88cb0f7e65d41b891307ce92fcf",
+      "bytes": 721
+    },
+    "compiler-controls/fixture-3153333/src/lib.rs": {
+      "sha256": "2cba6e6a2b81ae15ae1e0319452867588f5f60861806ea97f99fe1580a6bc248",
+      "bytes": 900
+    },
     "guests/caught_panic_control.wasm": {
-      "sha256": "46581ad9c773bd253c9a2b1c19c35621b6a13ea123e903d5824777a4778a2cb0",
+      "sha256": "5094abb3d9479c2e69eca17afb56f283e5be58496ef46ca509d7d6c4071ef53b",
       "bytes": 228447
     },
     "guests/overflow_control.wasm": {
-      "sha256": "b10a6ecc514d953d07901baae549e465d0879ae4fd55487fc023027f0f0c37a4",
+      "sha256": "1f9888d1431489c01d4c290321cbbb6716d7c164aadc36efcdfd03571cd5e9ef",
       "bytes": 228447
     },
     "guests/stateful_control.wasm": {
-      "sha256": "cb57c37d93d795d482c5296cfec31c797a33d1b6e8e1d039b7cb121b4e9c2a75",
+      "sha256": "30e5866abadcd07dc459e306cef0ef43dee0017c0097034a77273145593fe721",
       "bytes": 165749
     },
     "guests/umpire_kettle_guest.wasm": {
-      "sha256": "17956646835eddcaee059e66c5ef0b86ac30103cbc7a7b75c7a2137740b106a0",
-      "bytes": 1234522
+      "sha256": "8073029609c7ef8d2cacbd7c3f2a4ce61a38a5c76c13a41f3b82c38249820167",
+      "bytes": 1235701
     },
     "guests/umpire_stock_guest.wasm": {
       "sha256": "b37215682ff86ae996d3d0930d7abef41832f6c444cc127c88ba225feb575e75",
       "bytes": 198770
     },
     "guests/umpire_temporal_guest.wasm": {
+      "sha256": "17b9b5a6a6c8dea42d695f0ea7555bf7202ef792ae33605ca5f8b67c310becda",
+      "bytes": 3568149
+    },
+    "guests-initial/caught_panic_control.wasm": {
+      "sha256": "46581ad9c773bd253c9a2b1c19c35621b6a13ea123e903d5824777a4778a2cb0",
+      "bytes": 228447
+    },
+    "guests-initial/overflow_control.wasm": {
+      "sha256": "b10a6ecc514d953d07901baae549e465d0879ae4fd55487fc023027f0f0c37a4",
+      "bytes": 228447
+    },
+    "guests-initial/stateful_control.wasm": {
+      "sha256": "cb57c37d93d795d482c5296cfec31c797a33d1b6e8e1d039b7cb121b4e9c2a75",
+      "bytes": 165749
+    },
+    "guests-initial/umpire_kettle_guest.wasm": {
+      "sha256": "17956646835eddcaee059e66c5ef0b86ac30103cbc7a7b75c7a2137740b106a0",
+      "bytes": 1234522
+    },
+    "guests-initial/umpire_stock_guest.wasm": {
+      "sha256": "b37215682ff86ae996d3d0930d7abef41832f6c444cc127c88ba225feb575e75",
+      "bytes": 198770
+    },
+    "guests-initial/umpire_temporal_guest.wasm": {
       "sha256": "0d36d7956062c311662a2bd31a2e64b4d03b813adec6f8de46eeb83e431a21ec",
       "bytes": 3568149
     },
@@ -399,6 +542,70 @@
       "sha256": "48475a58cd9490976bb2a542db87e7709a174710f365ba12902e159be8e7eeee",
       "bytes": 1682
     },
+    "logs/review-fix-all-branches.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "logs/review-fix-anchor.md": {
+      "sha256": "d34772fb77bb7ea66e7405c6fca0635468cdbda600fae05a6654e7b20a302dcd",
+      "bytes": 73050
+    },
+    "logs/review-fix-base": {
+      "sha256": "6383e0a9a3b11657f6181395ef04f880e907803bd22bdfe71fd45d205def1da4",
+      "bytes": 41
+    },
+    "logs/review-fix-characterization.log": {
+      "sha256": "a96047150efb7129169b7c99c2135f9a0ec90b4b64c10341d697e47759af2ca2",
+      "bytes": 1186
+    },
+    "logs/review-fix-characterization.md": {
+      "sha256": "0619c692c8449d1038e5c5e7ec8ede7b91ce9bd8ed0afa8da56143c9eba9bc02",
+      "bytes": 3959
+    },
+    "logs/review-fix-classify.log": {
+      "sha256": "694b684a6a8f26c0da491e2ad8a42bb2b03e97f5e989770921f4d3d28e00c169",
+      "bytes": 34
+    },
+    "logs/review-fix-clippy.log": {
+      "sha256": "ba3779520e888217cc9b34a864ac908bef9677c127e32ea606588f7c6c6d030f",
+      "bytes": 1916
+    },
+    "logs/review-fix-fmt.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "logs/review-fix-go-kettle.log": {
+      "sha256": "7a9913a6fe4789d3b4f9eb1de003032ae0c4e3f51406df93496b2538a80befaf",
+      "bytes": 88
+    },
+    "logs/review-fix-green.log": {
+      "sha256": "02df8dcea75ce1e5f01c0cf8776164997507a0a37ee470e443b2f5f794fcc0ca",
+      "bytes": 1248
+    },
+    "logs/review-fix-guests.log": {
+      "sha256": "e3ad22582aa6d57f96159fc88aec10aeee6e7527a6882fafa2100412dd4102e4",
+      "bytes": 10623
+    },
+    "logs/review-fix-memory.json": {
+      "sha256": "377f8ecea69fa10d2641de5f91df8869a824a44aa06b2d37219ad92e38eb3685",
+      "bytes": 30081
+    },
+    "logs/review-fix-prior-commits.txt": {
+      "sha256": "c652344cc5140b961b2bb47fd6819f892da8697250a9d2e3afa5acd8a638824d",
+      "bytes": 300
+    },
+    "logs/review-fix-red.log": {
+      "sha256": "34935252861bfb4c60942468a9f0302150d9037cf9f2c67092a6921237f4ab79",
+      "bytes": 1253
+    },
+    "logs/review-fix-suite.log": {
+      "sha256": "55d9d34d303c6654736ce77808a2dfba8edcadd9cadda8ba18e334326091d214",
+      "bytes": 33032
+    },
+    "logs/review-fix-task-state.json": {
+      "sha256": "bf17946ae8c1632ab5db37a84393fc91ffaf188582e3e5ad5bdf44b6229c292c",
+      "bytes": 710
+    },
     "logs/task-state.json": {
       "sha256": "bf17946ae8c1632ab5db37a84393fc91ffaf188582e3e5ad5bdf44b6229c292c",
       "bytes": 710
@@ -431,10 +638,30 @@
       "sha256": "57e9cbe2fa91e1476b75eb392b7fb8a00cd723adc0a2fe5be4852605d0836c53",
       "bytes": 387
     },
-    "source.patch": {
+    "proof-manifest-initial.json": {
+      "sha256": "cca86df8cfc76a7bb74aed35c340d8be56acc1616c7325f9b0eb865c5c03a324",
+      "bytes": 20470
+    },
+    "review-correction.patch": {
+      "sha256": "580c0a302a242a5a3c34980ae181b863fd88d65e18adf140a7b20c057ac67199",
+      "bytes": 17290
+    },
+    "source-initial.patch": {
       "sha256": "04409940d32baea948d1ba8607fd55c6577caa55993b48b7904f676d9a78bcc3",
       "bytes": 184763
+    },
+    "source.patch": {
+      "sha256": "277c8e72860b0228d669003e66a6e779a6717912e48b0a0a53ec39f1dd313544",
+      "bytes": 191682
     }
   },
-  "intermediate_failures": "All intermediate logs retained. macro-red.log/macro-callback-red.log were setup errors, not valid red controls. verify-six-macro.log exposed an incoherent manually selected rlib control; replaced with Cargo-owned isolated coherent compiler fixture. Other interim compile/lint errors are resolved by the frozen green suite and strict clippy. No red baseline or skipped full-suite receipt is claimed."
+  "intermediate_failures": "All intermediate logs retained. macro-red.log/macro-callback-red.log were setup errors, not valid red controls. verify-six-macro.log exposed an incoherent manually selected rlib control; replaced with Cargo-owned isolated coherent compiler fixture. Other interim compile/lint errors are resolved by the frozen green suite and strict clippy. No red baseline or skipped full-suite receipt is claimed.",
+  "review_correction": {
+    "base": "42e301bee485b60095395b9e4447c33fbd2caf72",
+    "reproduction_commit": "7911549dae0b6d3c8bdec0498ecf2fa7c57db52a",
+    "fix_commit": "79beb81e4c2cf9d15dd772fa549004d8057b0902",
+    "diagnosis": "logs/review-fix-characterization.md",
+    "review": "conductor-owned; no worker verdict",
+    "cache_hold": "No Cargo/guest/Go command was run until conductor explicitly released fn2467 after its terminal gate."
+  }
 }

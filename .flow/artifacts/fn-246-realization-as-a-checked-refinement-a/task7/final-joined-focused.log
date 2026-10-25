@@ -1,0 +1,106 @@
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+    Finished `test` profile [unoptimized] target(s) in 1.25s
+     Running tests/prefix.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2467/debug/deps/prefix-cea9bc68aa1072f4)
+
+running 2 tests
+test positive_current_revalidates_every_earlier_actual_observation ... ok
+test publication_and_prefix_bound_keep_witness_pending_and_prior_reports_for_retry ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/proposal.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2467/debug/deps/proposal-2cdced772f6e8d30)
+
+running 11 tests
+test disabled_proposal_refuses_without_committing_and_quiescent_is_distinct ... ok
+test proposal_is_transactional_and_pending_until_final_observation ... ok
+test bootstrap_configuration_admission_and_polling_publish_atomically ... ok
+test enabled_internal_action_is_never_a_proposal ... ok
+test read_does_not_require_enabled_external_model_action ... ok
+test read_commits_intermediate_progress_without_consuming_the_pending_request ... ok
+test reset_program_and_refusing_defaults_preserve_run_transactions ... ok
+test selected_initial_state_still_requires_declared_bootstrap ... ok
+test read_remains_pending_until_correlated_final_explanation_publishes ... ok
+test runtime_owns_quiescence_before_default_proposal_policy ... ok
+test unpublished_bootstrap_and_unexplained_pending_effects_roll_back ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/reach.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2467/debug/deps/reach-3d76cb753bed2663)
+
+running 9 tests
+test equal_states_with_different_choices_outcomes_and_consumption_keep_their_continuations ... ok
+test canonical_actions_choices_outcomes_and_ordered_facts_are_retained ... ok
+test a_short_canonical_match_survives_a_longer_cycle_but_no_match_refuses_at_cut ... ok
+test exact_depth_complete_absence_and_live_depth_or_work_frontiers_differ ... ok
+test evidence_admission_refusals_preserve_pending_prefix_and_retry ... ok
+test partial_filter_matches_distinct_checked_budgets_without_substituting_unknown_absent_or_zero ... ok
+test later_current_revalidates_retained_typed_outcome_fact_and_consumption_cursor ... ok
+test reach_catalog_and_checked_step_failures_refuse_without_advancing_or_freezing ... ok
+test positive_zero_step_model_self_loop_and_declared_stutter_require_separate_evidence ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/annotate/syntax)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/realization/macros)
+    Finished `test` profile [unoptimized] target(s) in 2.63s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2467/debug/deps/umpire_temporal_realization_macros-ec7b8866447c1a35)
+
+running 5 tests
+test roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths ... ok
+test tests::migrated_realization_refusals_retain_source_locations ... ok
+test tests::field_declarations_use_the_admitted_catalog_graph ... ok
+test tests::answer_contexts_follow_rpc_descriptor_edges ... ok
+test tests::activity_expansion ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/annotate/syntax)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/realization/macros)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/realization)
+    Finished `test` profile [unoptimized] target(s) in 10.85s
+     Running tests/catalog.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2467/debug/deps/catalog-a89719fc4deed17e)
+
+running 13 tests
+test diagnostics_exclude_tokens_and_payloads_and_unknown_traffic_refuses ... ok
+test optional_run_ids_follow_server_uuid_forms_and_long_poll_dependency ... ok
+test secret_fields_redact_report_copies_without_changing_transport ... ok
+test start_header_claim_preserves_actual_correlation_payload ... ok
+test response_findings_never_repair_bytes_and_empty_worker_polls_are_valid ... ok
+test request_duration_validation_mirrors_server_normalization_without_repair ... ok
+test normal_name_is_conditional_on_actual_queue_kind ... ok
+test enforces_start_shape_and_server_timeout_retry_normalization ... ok
+test worker_failure_requires_application_info_only_when_failure_is_supplied ... ok
+test nested_failure_discriminants_are_validated_without_response_repair ... ok
+test failure_activity_type_does_not_inherit_start_request_constraints ... ok
+test fills_only_absent_request_ids_and_keeps_retry_bytes_stable ... ok
+test explicit_retry_order_uses_actual_enabled_policy_and_nanosecond_boundaries ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/declarative.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2467/debug/deps/declarative-1ba9bf5108853521)
+
+running 5 tests
+test generated_step_converts_actor_action_and_retains_expected_outcome ... ok
+test generated_callback_fills_once_from_the_admitted_actual_identity ... ok
+test unsupported_optional_and_oneof_fields_use_decoded_presence ... ok
+test opaque_ignored_catalog_fields_still_have_real_decoded_presence ... ok
+test generated_observation_validates_actual_request_before_feature_delegation ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/probe_accounting.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2467/debug/deps/probe_accounting-17e51fa319785168)
+
+running 1 test
+test every_previous_case_is_reconciled_without_prediction_or_control_loss ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.26s
+

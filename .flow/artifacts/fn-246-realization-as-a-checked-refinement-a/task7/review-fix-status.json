@@ -1,0 +1,8 @@
+{
+  "source_fix": "79beb81e4c2cf9d15dd772fa549004d8057b0902",
+  "integrated_fix": "073f628518f9a66811fe4fc4a5bd2dbefdcd5efa",
+  "repro_commit": "7911549dae0b6d3c8bdec0498ecf2fa7c57db52a",
+  "worker_scoped_gates": "202passes, strictclippy/fmt, sixguests, freshKettleGo all exit0",
+  "joined_controls": "Reach/prefix/proposal; all5macrotests; declarative/catalog/probe_accounting all exit0",
+  "review": "Primary re-review pending; no completion claim"
+}

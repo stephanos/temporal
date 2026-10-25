@@ -1,0 +1,62 @@
+{
+  "base": "046922c29e",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "046922c29e1355824cc989575dfe24b42e622bca",
+    "headSha": "2e7d33cc63fa63c1f67bbd733170922017f020f6",
+    "items": [
+      {
+        "body": "`let kind = field.kind.to_string()` reads the coverage representation, which assigns `Bytes` to synthetic map-entry fields. Consequently, `Payload.metadata: Map<Text, Secret>` generates a `Bytes` claim for `Payload.MetadataEntry.value`. Temporal\u2019s new admission policy only suppresses bounds whose claim kind is `Secret`, so nine applicable length probes without predictions survive, including `StartActivityExecutionRequest.input.payloads.metadata.value:mutation.limit_plus_one(1000)`. This violates the required suppression of unsupported inferred Secret bounds.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-addc3c2da0975922cd81ec09fe694f3c234e23bfb001cd24680eaaf2d8ce86a3",
+        "id": "finding-47342e5fe6b84fc668f70ab976119c65",
+        "lastSeenReceiptId": "review-6005d3318be9616ebd111c0ebd74a5b55b2a94c1bdff418f9084905aa09350e4",
+        "ordinal": 2,
+        "rIds": [
+          "R3",
+          "R4"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Preserve semantic map-value kinds when generating claims. Suppress these unsupported Secret bounds while retaining mutations that trigger explicit ancestor constraints, such as Start\u2019s input-size limit. Update the reconciliation manifest and add map-value coverage.",
+        "title": "`let kind = field"
+      },
+      {
+        "body": "Expanding missing claims into Ignored fields before admission removes the previous exhaustiveness protection without checking those claims against realization reads. For example, removing `ActivityExecutionInfo.run_state` from the claims generates an Ignored field, but the existing `reads(info.run_state)` still passes: `Schema::resolve` checks opacity only when traversing further descendants. The realization can therefore consume a field that its catalog declares unclaimed and skips validating.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-addc3c2da0975922cd81ec09fe694f3c234e23bfb001cd24680eaaf2d8ce86a3",
+        "id": "finding-0653ac602a4baccc77d47c15b2297551",
+        "lastSeenReceiptId": "review-6005d3318be9616ebd111c0ebd74a5b55b2a94c1bdff418f9084905aa09350e4",
+        "ordinal": 1,
+        "rIds": [
+          "R3"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Reject mapped reads/fills of unclaimed fields, including leaf fields. Add a negative control that removes a claim while retaining its realization read.",
+        "title": "Expanding missing claims into Ignored fields before admission removes the previous exhaustiveness protection without checking those claims against realization reads"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-6005d3318be9616ebd111c0ebd74a5b55b2a94c1bdff418f9084905aa09350e4",
+    "supersedesReceiptId": "review-addc3c2da0975922cd81ec09fe694f3c234e23bfb001cd24680eaaf2d8ce86a3"
+  },
+  "id": "fn-246-realization-as-a-checked-refinement-a.12",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "Prior finding #1: fixed\nPrior finding #2: fixed\n\nMapped reads and fills now reject Ignored leaves while allowing explicit ignores. Map claims preserve semantic key/value kinds, suppress unsupported Secret bounds, and retain explicit ancestor size findings.\n\nFive focused cached regression tests passed, including claim omission, map suppression, header preservation, and complete probe reconciliation. Fresh Cargo verification remains blocked by the read-only filesystem.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | deferred | Other Reach/frontier tasks. |\n| R2 | deferred | Separate capability migration work. |\n| R3 | met | Task .12 claim admission and semantic kinds corrected; remaining lens work belongs to downstream tasks. |\n| R4 | met | Task .12 reconciliation preserves controls and applies Secret suppression; live obligations remain assigned to .3/.6. |\n| R5 | deferred | Protocol/refinement tasks. |\n| R6 | deferred | Worker-policy tasks. |\n| R7 | deferred | Measurement tasks .3/.6. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "9b9f3b11104e4e87bc218e8809558a2f",
+  "session_id": "01a172e1-97ec-78f2-9898-159a9d7d50df",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-25T12:42:22.024716Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}
