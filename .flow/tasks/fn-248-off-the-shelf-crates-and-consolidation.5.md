@@ -13,7 +13,7 @@ Isolated source lane after fn247 closure; no whole-task dependency on another fn
 Library-level crate swaps in the runtime, catalog and DSL.
 
 - `thiserror` for hand-written `Display` + `Error` impls: umpire-catalog `gap.rs` (`GapError`), `lib.rs` (`UnknownEnum`), `value.rs` (`GenerationError`), `probe.rs` (`ProbeCoverageError`, `ProbeError`); umpire-dsl `catalog.rs` (`CatalogError`), `machine.rs` (`StepError`), `path.rs` (`PatternError`). Leave `AdmissionErrors` and `FillError` (per-item line loops) and non-error types.
-- `prost-types` for the protobuf well-known types: drop `compile_well_known_types()` in `model/umpire/protocol/runtime/build.rs`; `src/any.rs` keeps a thin wrapper over `Any::from_msg`/`to_msg` that preserves the Malformed-versus-Unsupported refusal split; update the `extern_path` mappings in the Kettle and `temporal/api` build scripts to `::prost_types`.
+- Use prost-build's consistent default well-known-type mappings across runtime, Kettle and shared Temporal codegen: remove `compile_well_known_types()` and the custom package-wide google.protobuf extern mapping from `model/umpire/protocol/runtime/build.rs`, `model/umpire/reference/kettle/build.rs` and `model/umpire/catalog/build/src/codegen.rs` (called by `temporal/api/codegen.rs`). Nonprimitive WKTs use `prost-types`; `Empty` maps to `()`, scalar wrappers map to their Rust primitives (`DoubleValue` to `f64`, etc.), and string/bytes wrappers use the corresponding Rust string/byte types. Do not replace the package prefix alone. `src/any.rs` keeps a thin native wrapper over `Any::from_msg`/`to_msg` that preserves the Malformed-versus-Unsupported refusal split.
 - Remove `enum-iterator` from `model/umpire/author/dsl/Cargo.toml`, `[workspace.dependencies]`, and the `deny.toml` duplicate-version comment.
 
 After joining, both crate changes must be accounted for in wasm guest closures: every guest still builds for `wasm32-wasip1`, and the guest dependency closure inventory is updated. Update affected Go generated-type mappings, `extern_path` resolution and in-tree readers as part of the prost-types change. The integration task regenerates necessary guests and current fixtures together after shared codegen/type paths are joined; no adapter for old generated types, old guests or old wire bytes is required. Retain typed decoding and the Malformed-versus-Unsupported refusal contract.
@@ -22,11 +22,11 @@ After joining, both crate changes must be accounted for in wasm guest closures: 
 
 `prost_types::Any` is a foreign type, so the existing inherent impl cannot simply move onto it. Use a narrow local trait/free-function wrapper (or a justified local wrapper) and update all callers coherently. Keep explicit missing/canonical type-URL admission before calling `to_msg`: prost-types compares parsed full type names, so blindly delegating would accept a different URL prefix and merge failure classes. Test missing URL, wrong type/prefix, malformed payload and valid payload with the same Malformed-versus-Unsupported semantic split; old method names/aliases are unnecessary.
 
-Reanchor all generated-type owners, not only the two build.rs mappings: catalog/build `wire_schema.rs` and Temporal annotate/syntax `realization.rs` also emit `::umpire_runtime::google::protobuf` paths. Reconcile these with .4's isolated codegen edits; verify generated Rust compiles with one WKT type identity. Do not alter schemas or Go protocol meaning merely to make the crate swap easier. Keep fn248's approved in-tree producer/reader updates and current integrity; no old-guest adapters.
+Reanchor all generated-type owners, not only the two build.rs mappings: catalog/build `wire_schema.rs` and Temporal annotate/syntax `realization.rs` also emit `::umpire_runtime::google::protobuf` paths. Reconcile these with .4's isolated codegen edits; verify generated Rust compiles with one consistent WKT mapping, including descriptor-derived primitive paths rather than nonexistent `prost_types::Empty`/`DoubleValue` structs. Add focused generation/consumer controls for the current Temporal fields `PendingActivityInfo.use_workflow_build_id` (Empty/unit) and `TaskQueueMetadata.max_tasks_per_second` (DoubleValue/f64), retaining protobuf presence and wire semantics. Do not alter schemas or Go protocol meaning merely to make the crate swap easier. Keep fn248's approved in-tree producer/reader updates and current integrity; no old-guest adapters.
 
 ## Acceptance
 - [ ] The listed error types derive `thiserror::Error`; their messages are unchanged in meaning.
-- [ ] Well-known types come from `prost-types`; `any.rs` still distinguishes Malformed from Unsupported.
+- [ ] Nonprimitive well-known types come from `prost-types`; Empty/scalar/string/bytes wrappers follow prost-build's default primitive mappings consistently in every generator and descriptor-derived reader. Both current Temporal Empty/DoubleValue field controls pass; `any.rs` still distinguishes Malformed from Unsupported.
 - [ ] `enum-iterator` appears in no manifest or `deny.toml`.
 - [ ] All guests build for `wasm32-wasip1`; Focused checks below pass; joined full validation belongs to the final integration task.
 
@@ -38,6 +38,7 @@ Run from the repository root, with a lane-owned target; commands containing `cd 
 ```bash
 cd model && mise exec -- cargo test -p umpire-runtime --test wire --test core_protocol --test proposal_wire --test dispatch --locked
 cd model && mise exec -- cargo test -p umpire-catalog -p umpire-dsl --lib --locked
+cd model && mise exec -- cargo test -p umpire-temporal-api --test codegen --locked
 cd model && mise exec -- cargo build --target wasm32-wasip1 -p umpire-runtime --locked
 ```
 

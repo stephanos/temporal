@@ -6,8 +6,8 @@ satisfies: [R4]
 ## Description
 
 **Size:** M
-**Files:** model/umpire/dev/testing/**, model/**/tests/**, model/**/expected/**, model/umpire/protocol/runtime/guests/caught-panic/**, model/umpire/reference/kettle/**, model/umpire/hosts/go/**, model/temporal/testing/**, Makefile
-**Touches:** [model/umpire/dev/testing/**, model/**/tests/**, model/**/expected/**, model/umpire/protocol/runtime/guests/caught-panic/**, model/umpire/reference/kettle/**, model/umpire/hosts/go/**, model/temporal/testing/**, Makefile]
+**Files:** model/umpire/dev/fixtures/fixtures.rs, model/umpire/dev/testing/**, model/**/tests/**, model/**/expected/**, model/umpire/protocol/runtime/guests/caught-panic/**, model/umpire/reference/kettle/**, model/umpire/hosts/go/**, model/temporal/testing/**, Makefile
+**Touches:** [model/umpire/dev/fixtures/fixtures.rs, model/umpire/dev/testing/**, model/**/tests/**, model/**/expected/**, model/umpire/protocol/runtime/guests/caught-panic/**, model/umpire/reference/kettle/**, model/umpire/hosts/go/**, model/temporal/testing/**, Makefile]
 
 Isolated source lane after fn247 closure; no whole-task dependency on another fn248 source lane. Coordinate shared interfaces, accept central merge conflicts and retain private source/index/build targets. The final integration task owns snapshot reacceptance, current guest publication and the one R5 full pipeline. No local lane result claims joined validation.
 Move every hand-rolled golden comparison onto insta and move the fixture runner from binary to text snapshots.

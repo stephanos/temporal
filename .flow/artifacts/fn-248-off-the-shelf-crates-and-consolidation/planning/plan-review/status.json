@@ -1,0 +1,106 @@
+{
+  "success": true,
+  "branch_name": "fn-248-off-the-shelf-crates-and-consolidation",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-24T22:01:46.381646Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-247-one-language-for-the-framework-a-rust"
+  ],
+  "id": "fn-248-off-the-shelf-crates-and-consolidation",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-25T00:22:35.647057Z",
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-248-off-the-shelf-crates-and-consolidation.md",
+  "status": "open",
+  "title": "Off-the-shelf crates and consolidation in existing model code (model)",
+  "updated_at": "2026-10-25T00:22:35.648233Z",
+  "tasks": [
+    {
+      "id": "fn-248-off-the-shelf-crates-and-consolidation.1",
+      "title": "Goldens on insta: hand-rolled comparisons and fixture-runner text snapshots",
+      "status": "todo",
+      "status_source": "committed",
+      "implicit_owner": false,
+      "priority": 1,
+      "depends_on": []
+    },
+    {
+      "id": "fn-248-off-the-shelf-crates-and-consolidation.2",
+      "title": "One copy of each repeated helper",
+      "status": "todo",
+      "status_source": "committed",
+      "implicit_owner": false,
+      "priority": 2,
+      "depends_on": []
+    },
+    {
+      "id": "fn-248-off-the-shelf-crates-and-consolidation.3",
+      "title": "IR child traversal: ExprKind children and children_mut",
+      "status": "todo",
+      "status_source": "committed",
+      "implicit_owner": false,
+      "priority": 2,
+      "depends_on": []
+    },
+    {
+      "id": "fn-248-off-the-shelf-crates-and-consolidation.4",
+      "title": "heck, darling and quote in the macro and build crates",
+      "status": "todo",
+      "status_source": "committed",
+      "implicit_owner": false,
+      "priority": 3,
+      "depends_on": []
+    },
+    {
+      "id": "fn-248-off-the-shelf-crates-and-consolidation.5",
+      "title": "thiserror and prost-types in runtime, catalog and DSL; remove enum-iterator",
+      "status": "todo",
+      "status_source": "committed",
+      "implicit_owner": false,
+      "priority": 3,
+      "depends_on": []
+    },
+    {
+      "id": "fn-248-off-the-shelf-crates-and-consolidation.6",
+      "title": "Serde-derived ITF envelope in the Apalache back end",
+      "status": "todo",
+      "status_source": "committed",
+      "implicit_owner": false,
+      "priority": 3,
+      "depends_on": []
+    },
+    {
+      "id": "fn-248-off-the-shelf-crates-and-consolidation.7",
+      "title": "Join crate-consolidation lanes and validate current snapshots and guests once",
+      "status": "todo",
+      "status_source": "committed",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-248-off-the-shelf-crates-and-consolidation.1",
+        "fn-248-off-the-shelf-crates-and-consolidation.2",
+        "fn-248-off-the-shelf-crates-and-consolidation.3",
+        "fn-248-off-the-shelf-crates-and-consolidation.4",
+        "fn-248-off-the-shelf-crates-and-consolidation.5",
+        "fn-248-off-the-shelf-crates-and-consolidation.6"
+      ]
+    }
+  ],
+  "ready": false,
+  "no_plan": false
+}

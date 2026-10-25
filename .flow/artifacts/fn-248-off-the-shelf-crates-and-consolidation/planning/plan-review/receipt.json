@@ -1,0 +1,92 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+    "headSha": "6c4e7f39ffd285a679fc1172d5f72dc4cd006709",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+          "headSha": "6c4e7f39ffd285a679fc1172d5f72dc4cd006709",
+          "path": ".flow/tasks/fn-248-off-the-shelf-crates-and-consolidation.5.md",
+          "side": "head",
+          "startLine": 16
+        },
+        "body": "The prescribed package-wide `::prost_types` mapping omits protobuf\u2019s primitive WKT mappings. Current shared codegen enables `compile_well_known_types()`, and the Temporal descriptor closure contains `PendingActivityInfo.use_workflow_build_id: google.protobuf.Empty` and `TaskQueueMetadata.max_tasks_per_second: google.protobuf.DoubleValue`. Changing only the package mapping generates references to nonexistent `prost_types::Empty` and `prost_types::DoubleValue`, preventing the API crate from compiling.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-3ae887f527218b5b8440b743a20a2ce96db7b64d9296b233e06db1280286f629",
+        "id": "finding-7b7debd260ec7a613eae1c4db144bc8c",
+        "lastSeenReceiptId": "review-94891bf0e966914470c4a0b95529b321881115fa92387f13fbbe631f2813fc96",
+        "ordinal": 1,
+        "rIds": [
+          "R1"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Specify consistent prost-build default WKT mapping across runtime, Kettle and shared Temporal codegen, including `Empty \u2192 ()` and wrapper messages \u2192 primitives. Update descriptor-derived type paths accordingly and explicitly verify these two current fields.",
+        "title": "The prescribed package-wide `::prost_types` mapping omits protobuf\u2019s primitive WKT mappings"
+      },
+      {
+        "anchor": {
+          "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+          "headSha": "6c4e7f39ffd285a679fc1172d5f72dc4cd006709",
+          "path": ".flow/tasks/fn-248-off-the-shelf-crates-and-consolidation.1.md",
+          "side": "head",
+          "startLine": 10
+        },
+        "body": "The approach explicitly changes `model/umpire/dev/fixtures/fixtures.rs`, whose required-backend check names `expected/tlc.snap.txt`. Neither Files nor Touches covers that file.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-3ae887f527218b5b8440b743a20a2ce96db7b64d9296b233e06db1280286f629",
+        "id": "finding-3f95d006216f4b1f54097abd5270e41f",
+        "lastSeenReceiptId": "review-94891bf0e966914470c4a0b95529b321881115fa92387f13fbbe631f2813fc96",
+        "ordinal": 2,
+        "rIds": [
+          "R4"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Add the explicitly affected fixture entrypoint to Files and Touches.",
+        "title": "The approach explicitly changes `model/umpire/dev/fixtures/fixtures"
+      },
+      {
+        "anchor": {
+          "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+          "headSha": "6c4e7f39ffd285a679fc1172d5f72dc4cd006709",
+          "path": ".flow/specs/fn-248-off-the-shelf-crates-and-consolidation.md",
+          "side": "head",
+          "startLine": 53
+        },
+        "body": "FYI: declared overlaps include .1/.2 testing helpers, .1/.4 catalog tests, .1/.5 runtime tests/Kettle, .1/.6 Apalache tests, .2/.4 and .2/.5 catalog paths, .4/.5 codegen, and .4/.6 plus .5/.6 Cargo.lock. Broad test globs also intersect .1/.3. These require serial dispatch against a shared mutable tree. Isolated concurrency is a recorded owner decision and does not block this review.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-3ae887f527218b5b8440b743a20a2ce96db7b64d9296b233e06db1280286f629",
+        "id": "finding-b48901233d61afda6302d4a690129a55",
+        "lastSeenReceiptId": "review-94891bf0e966914470c4a0b95529b321881115fa92387f13fbbe631f2813fc96",
+        "ordinal": 3,
+        "rIds": [],
+        "severity": "P2",
+        "status": "withdrawn",
+        "suggestion": "Retain the specified private worktrees/indexes/targets and central .7 reconciliation.",
+        "title": "FYI: declared overlaps include"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-94891bf0e966914470c4a0b95529b321881115fa92387f13fbbe631f2813fc96",
+    "supersedesReceiptId": "review-3ae887f527218b5b8440b743a20a2ce96db7b64d9296b233e06db1280286f629"
+  },
+  "id": "fn-248-off-the-shelf-crates-and-consolidation",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "Prior finding #1: fixed\nPrior finding #2: fixed\nPrior finding #3: withdrawn\n\nThe epic and task .5 now specify prost-build\u2019s default WKT mappings across all three generators, descriptor-derived primitive paths, and controls for the current Empty/DoubleValue fields. Task .1 now includes the fixture entrypoint in Files and Touches.\n\nThe overlap observation is withdrawn as a defect: isolated worktrees, private indexes/build targets, and central reconciliation are explicitly authorized and specified.\n\nNo remaining blockers. Focused tests, final required validation, stage reporting, dependency ordering, and performance/safety constraints remain specified.\n\nmaintainability:\n  duplication: none identified\n  structure: none identified\n\n```json\n{\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "e00a8d1f085b4d30aca823ee0c01c4ec",
+  "session_id": "01a1706b-3be5-7040-97cf-63e3cd103c75",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-25T00:22:35.634593Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}

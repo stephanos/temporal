@@ -10,5 +10,5 @@
   "spec_path": ".flow/tasks/fn-248-off-the-shelf-crates-and-consolidation.5.md",
   "status": "todo",
   "title": "thiserror and prost-types in runtime, catalog and DSL; remove enum-iterator",
-  "updated_at": "2026-10-25T00:14:22.263767Z"
+  "updated_at": "2026-10-25T00:21:48.690487Z"
 }
