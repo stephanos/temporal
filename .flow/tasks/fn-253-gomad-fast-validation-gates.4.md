@@ -28,6 +28,8 @@ Ordering:
 - Coordinate with open worktrees that edit either Makefile.
 
 ## Acceptance
+
+Owner visibility extension, 2026-10-25: the real mise dependency graph and task descriptions provide the simple gate tree. Aggregate groups use actual dependency edges, not a separate hand-maintained list. Nextest supplies Rust test inventory and live results; check-fast supplies its actual changed-package command plan. Each public gate is represented and runnable; ignored/unrun checks cannot appear as passed. Keep this within existing entrypoints, without adding another orchestration or receipt framework.
 - A clone with `temporal/Makefile`, `temporal/cmd/tools/lintcode` and `temporal/.github/.golangci.yml` removed, or with the `tools/gomad` subtree copied out alongside a target tree passed through `GOMAD_TARGET_REPO`, runs every gomad mise task green from `tools/gomad`.
 - `temporal/Makefile` has no target or variable that names gomad other than the prune paths. `tools/gomad/Makefile` and `tools/gomad/internal/backends/wasm/Makefile` are deleted, or reduced to a documented one-line shim per target if CI or the cycle still needs them during the transition, with a removal task named.
 - `.github/workflows/gomad.yml` invokes only `mise run …` (or cargo) inside `tools/gomad`.

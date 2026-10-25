@@ -12,6 +12,8 @@ Build the inner loop: R1 (`make check-fast`) and R2 (dev profile with optimised 
 4. Add `make check-fast BASE=<rev>` as a transition shim to the standalone mise entrypoint. It maps changed paths to workspace packages via `cargo metadata` and runs `cargo check`, a lint phase covering the complete supported feature matrix with `clippy --all-targets -D warnings`, `cargo fmt --check`, nextest, and separate doctests for those packages. Reverse dependents are tested too; when the mapping can't decide, it falls back to the whole workspace. Preserve the intentional invalid-feature `compile_error!` guards; the spec's implementation clarification replaces the impossible literal `--all-features` invocation with all 9 host and 7 engine modes from one shared Rust table. Include engine `reference-helper` golden coverage when the engine is selected.
 5. Record the after numbers.
 
+Owner visibility extension, 2026-10-25: expose a human-readable tree from the same typed command plan that execution consumes. It shows selected packages, fallback/reverse-dependent scope, supported lint modes, nextest unit/golden passes and separate doctests. Rendering must not execute gates; every planned execution step appears exactly once, and the output is labeled as a plan rather than a passing result.
+
 There is no dependency on fn-242: this touches only the workspace `Cargo.toml` and the Makefile. Coordinate with open fn-242 worktrees on the Makefile.
 
 ## Acceptance

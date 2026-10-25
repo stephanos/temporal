@@ -10,6 +10,8 @@ The overhead inside the cycle driver (per-stage custody hashing, single-job stag
 
 ## Goal
 
+**Owner visibility request, 2026-10-25:** expose a simple list/tree of what the gates validate, generated from their execution definitions. Use mise's real task/dependency definitions for the gate-level view, the existing Rust check-fast execution plan for changed-package detail, and nextest's discovered test inventory and live results for Rust tests. Do not maintain a separate documentation checklist or invent pass statuses. Ignored, unrun and unavailable checks remain explicit. fn-242 is parked by owner; gate visibility and independent fn-253 work continue.
+
 Three loops, each fast enough for its job:
 1. **Inner loop (seconds):** after an edit, check, lint and the changed crate's tests in under about 30 s of incremental time on this 12-core host.
 2. **Pre-merge gate (minutes):** the release build, the full lint feature matrix and the Rust and Go test suites. Their failures surface before any long-running stage starts.
