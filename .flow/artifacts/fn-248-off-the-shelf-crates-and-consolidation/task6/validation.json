@@ -178,6 +178,18 @@
       "log": "host-features-after.txt",
       "source": "final manifest",
       "metadata_only": true
+    },
+    {
+      "label": "new controls by actual selectors",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model",
+      "command": "mise exec -- cargo test -p umpire-apalache --test controls strict_envelope_ --locked",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target"
+      },
+      "exit_code": 0,
+      "log": "new-selectors.log",
+      "source": "19a59be0363cf0e3a8cba2d3510e2b14f1aea8ea",
+      "tests": 3
     }
   ],
   "limits": {
@@ -216,5 +228,6 @@
     "no golden or replay expected output changed",
     "mutation failures are expected test-strength evidence, not a baseline or final failure",
     "initial failed launcher is inconclusive and was corrected before source edits"
-  ]
+  ],
+  "source_commit": "19a59be0363cf0e3a8cba2d3510e2b14f1aea8ea"
 }
