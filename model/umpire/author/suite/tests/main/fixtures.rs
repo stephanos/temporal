@@ -2,19 +2,19 @@
 
 #![forbid(unsafe_code)]
 
-#[path = "support/coin.rs"]
-mod coin;
-#[path = "support/kettle.rs"]
+#[path = "../support/coin.rs"]
+pub(super) mod coin;
+#[path = "../support/kettle.rs"]
 #[allow(unreachable_pub, clippy::module_inception)]
-mod kettle;
-#[path = "../../../dev/fixtures/fixtures/sample_kettle/model.rs"]
+pub(super) mod kettle;
+#[path = "../../../../dev/fixtures/fixtures/sample_kettle/model.rs"]
 #[allow(unreachable_pub)]
-mod sample_kettle;
+pub(super) mod sample_kettle;
 
 include!(concat!(env!("OUT_DIR"), "/fixtures.rs"));
 
 /// The panic message of a failing `expect!`.
-fn failure(test: impl FnOnce()) -> String {
+pub(super) fn failure(test: impl FnOnce()) -> String {
     std::panic::catch_unwind(std::panic::AssertUnwindSafe(test))
         .err()
         .and_then(|error| error.downcast::<String>().ok())
