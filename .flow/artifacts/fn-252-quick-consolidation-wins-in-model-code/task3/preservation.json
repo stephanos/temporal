@@ -1,0 +1,9 @@
+{
+  "verified_files": 116,
+  "durable_text_files": 114,
+  "binary_files_referenced": 2,
+  "original_manifest_sha256": "e8cacf22abb23646ebaa4f7f6933194185beb78e570dcc236c9835125fd1c0a9",
+  "source_worker": "badd05d62150406b6054c21eb98733c7bf3f62cd",
+  "integration_base": "8dfb781724d9d05a52f19bddf78da166dbe7a9d4",
+  "big_proof_limits": "Big run predates reporting-only correction. never_beeps IC3 timeout has no verdict/proof/agreement; focused corrected-reporting timeout control supersedes erroneous old final true flag. No duplicate big exploration."
+}

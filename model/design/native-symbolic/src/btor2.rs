@@ -185,7 +185,10 @@ pub fn shape(ty: &Type) -> Result<Shape, String> {
             for width in [8u32, 16, 32, 64, 128] {
                 let signed_min = -(1i128 << (width - 1));
                 let signed_max = (1i128 << (width - 1)) - 1;
-                if *min >= 0 && *max <= (if width >= 128 { i128::MAX } else { (1i128 << width) - 1 }) && *max > signed_max {
+                if *min >= 0
+                    && *max <= (if width >= 128 { i128::MAX } else { (1i128 << width) - 1 })
+                    && *max > signed_max
+                {
                     return Ok(Shape { width, signed: false });
                 }
                 if *min >= signed_min && *max <= signed_max {
@@ -246,8 +249,12 @@ impl Emitter {
                 let map = if *primed { env.current } else { env.before.unwrap_or(env.current) };
                 *map.get(name).ok_or_else(|| format!("unknown state field {name}"))?
             }
-            ExprKind::World(name) => *env.world.get(name).ok_or_else(|| format!("unknown World field {name}"))?,
-            ExprKind::Local(name) => *env.locals.get(name).ok_or_else(|| format!("unknown local {name}"))?,
+            ExprKind::World(name) => {
+                *env.world.get(name).ok_or_else(|| format!("unknown World field {name}"))?
+            }
+            ExprKind::Local(name) => {
+                *env.locals.get(name).ok_or_else(|| format!("unknown local {name}"))?
+            }
             ExprKind::Unary(Unary::Not, inner) => {
                 let v = self.expr(inner, env)?;
                 V { id: self.not(v.id), shape: BOOL, fault: v.fault }
@@ -421,12 +428,20 @@ pub fn emit(model: &Lifted, negative: &[(String, Expr)]) -> Result<System, Strin
             Start::Range(lo, hi) | Start::ExclusiveRange(lo, hi) => {
                 let lo = e.expr(lo, &env)?;
                 let hi = e.expr(hi, &env)?;
-                let (ge, le, lt) = if v.shape.signed { ("sgte", "slte", "slt") } else { ("ugte", "ulte", "ult") };
+                let (ge, le, lt) =
+                    if v.shape.signed { ("sgte", "slte", "slt") } else { ("ugte", "ulte", "ult") };
                 let above = e.op2(ge, 1, v.id, lo.id);
-                let below = e.op2(if matches!(field.start, Start::Range(..)) { le } else { lt }, 1, v.id, hi.id);
+                let below = e.op2(
+                    if matches!(field.start, Start::Range(..)) { le } else { lt },
+                    1,
+                    v.id,
+                    hi.id,
+                );
                 e.and(above, below)
             }
-            Start::Computed => return Err(format!("computed starts ({}) are outside the spike", field.name)),
+            Start::Computed => {
+                return Err(format!("computed starts ({}) are outside the spike", field.name));
+            }
         };
         let implied = e.op2("implies", 1, started, cond);
         e.constraint(implied);
@@ -457,7 +472,8 @@ pub fn emit(model: &Lifted, negative: &[(String, Expr)]) -> Result<System, Strin
         let mut enabled_terms = Vec::new();
         let mut field_next: Vec<(Id, Id)> = fields.iter().map(|(_, id, _, _)| (*id, *id)).collect();
         for branch in &action.branches {
-            let (taken, updates, changed, bfault) = emit_branch(&mut e, branch, &current, &world, &earlier_guards, &fields)?;
+            let (taken, updates, changed, bfault) =
+                emit_branch(&mut e, branch, &current, &world, &earlier_guards, &fields)?;
             earlier_guards.push(branch.guard.clone());
             let preserve = e.bool(branch.preserve_self_loop);
             let edge = e.or(changed, preserve);
@@ -497,27 +513,42 @@ pub fn emit(model: &Lifted, negative: &[(String, Expr)]) -> Result<System, Strin
     // Properties.
     let mut properties = Vec::new();
     let mut claim_faults = Vec::new();
-    let invariant_env = Env { current: &current, before: None, world: &world, locals: BTreeMap::new() };
-    for (kind, claims) in [(Kind::Invariant, &model.invariants), (Kind::Negative, &model.negative)] {
+    let invariant_env =
+        Env { current: &current, before: None, world: &world, locals: BTreeMap::new() };
+    for (kind, claims) in [(Kind::Invariant, &model.invariants), (Kind::Negative, &model.negative)]
+    {
         for claim in claims {
             let v = e.expr(&claim.expr, &invariant_env)?;
             claim_faults.push(v.fault);
             let bad = e.not(v.id);
-            properties.push(Property { name: claim.name.clone(), kind, bad: pending_bad(&mut e, bad) });
+            properties.push(Property {
+                name: claim.name.clone(),
+                kind,
+                bad: pending_bad(&mut e, bad),
+            });
         }
     }
     for (name, expr) in negative {
         let v = e.expr(expr, &invariant_env)?;
         claim_faults.push(v.fault);
         let bad = e.not(v.id);
-        properties.push(Property { name: name.clone(), kind: Kind::Negative, bad: pending_bad(&mut e, bad) });
+        properties.push(Property {
+            name: name.clone(),
+            kind: Kind::Negative,
+            bad: pending_bad(&mut e, bad),
+        });
     }
-    let post_env = Env { current: &current, before: Some(&before), world: &world, locals: BTreeMap::new() };
+    let post_env =
+        Env { current: &current, before: Some(&before), world: &world, locals: BTreeMap::new() };
     for post in &model.postconditions {
         let v = e.expr(&post.expr, &post_env)?;
         let mut cond = has_step;
         if let Some(after) = &post.after {
-            let index = model.actions.iter().position(|a| &a.name == after).ok_or_else(|| format!("unknown after action {after}"))?;
+            let index = model
+                .actions
+                .iter()
+                .position(|a| &a.name == after)
+                .ok_or_else(|| format!("unknown after action {after}"))?;
             let this = e.constant(act_shape, index as i128);
             let is_after = e.op2("eq", 1, prev_act, this);
             cond = e.and(cond, is_after);
@@ -526,14 +557,27 @@ pub fn emit(model: &Lifted, negative: &[(String, Expr)]) -> Result<System, Strin
         claim_faults.push(guarded_fault);
         let failed = e.not(v.id);
         let bad = e.and(cond, failed);
-        properties.push(Property { name: post.name.clone(), kind: Kind::Postcondition, bad: pending_bad(&mut e, bad) });
+        properties.push(Property {
+            name: post.name.clone(),
+            kind: Kind::Postcondition,
+            bad: pending_bad(&mut e, bad),
+        });
     }
     all_faults.extend(claim_faults);
     let next_fault = e.any(&all_faults);
     e.next(1, fault, next_fault);
-    properties.push(Property { name: "arithmetic".into(), kind: Kind::Arithmetic, bad: pending_bad(&mut e, fault) });
+    properties.push(Property {
+        name: "arithmetic".into(),
+        kind: Kind::Arithmetic,
+        bad: pending_bad(&mut e, fault),
+    });
 
-    let index = |ids: &[Id], id: Id| ids.iter().position(|x| *x == id).map(|i| i as Id).ok_or_else(|| format!("node {id} is not a declared state or input"));
+    let index = |ids: &[Id], id: Id| {
+        ids.iter()
+            .position(|x| *x == id)
+            .map(|i| i as Id)
+            .ok_or_else(|| format!("node {id} is not a declared state or input"))
+    };
     let mut indexed = Vec::new();
     for (name, id, s, ty) in fields {
         indexed.push((name, index(&e.states, id)?, s, ty));
@@ -547,7 +591,12 @@ pub fn emit(model: &Lifted, negative: &[(String, Expr)]) -> Result<System, Strin
         last: e.next,
         lines: e.lines,
         properties,
-        layout: Layout { fields: indexed, world: indexed_world, act, actions: model.actions.iter().map(|a| a.name.clone()).collect() },
+        layout: Layout {
+            fields: indexed,
+            world: indexed_world,
+            act,
+            actions: model.actions.iter().map(|a| a.name.clone()).collect(),
+        },
     })
 }
 

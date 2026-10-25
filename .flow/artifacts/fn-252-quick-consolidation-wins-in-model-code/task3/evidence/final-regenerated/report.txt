@@ -1,0 +1,33 @@
+== baseline
+emit: 355 shared BTOR2 lines in 66.2µs; native: 283 states, depth 62, cut=false, 125.12µs
+property                 kind           engine   verdict      time  steps  replay; agreement
+beeps_only_when_off      Invariant      ic3      safe        0.10s  -      unbounded proof; agrees
+never_beeps              Negative       ic3      unsafe      0.10s  62     replayed, native violation confirmed; agrees
+warms_only_when_on       Postcondition  ic3      safe        0.10s  -      unbounded proof; agrees
+fails_over_at_boiling    Postcondition  ic3      safe        0.10s  -      unbounded proof; agrees
+arithmetic               Arithmetic     ic3      safe        0.10s  -      unbounded proof; agrees
+all verdicts agree with the native checker: true
+observed disagreement: false; evidence incomplete: false
+
+== control claim99 (postcondition literal 100 -> 99 in the admitted tree only; expect: unsafe, replay NOT confirmed, DISAGREES)
+emit: 356 shared BTOR2 lines in 95.2µs; native: 283 states, depth 62, cut=false, 125.54µs
+property                 kind           engine   verdict      time  steps  replay; agreement
+beeps_only_when_off      Invariant      ic3      safe        0.10s  -      unbounded proof; agrees
+never_beeps              Negative       ic3      unsafe      0.10s  62     replayed, native violation confirmed; agrees
+warms_only_when_on       Postcondition  ic3      safe        0.10s  -      unbounded proof; agrees
+fails_over_at_boiling    Postcondition  ic3      unsafe      0.10s  62     replayed, NOT confirmed: native postcondition verdict Holds on the final edge; DISAGREES
+arithmetic               Arithmetic     ic3      safe        0.10s  -      unbounded proof; agrees
+all verdicts agree with the native checker: false
+observed disagreement: true; evidence incomplete: false
+
+== control heat2e9 (Heater::Heat guard 100 -> i32::MAX and adds 2e9, admitted tree only; expect: arithmetic unsafe, witnesses rejected)
+emit: 356 shared BTOR2 lines in 76.3µs; native: 283 states, depth 62, cut=false, 118.42µs
+property                 kind           engine   verdict      time  steps  replay; agreement
+beeps_only_when_off      Invariant      ic3      safe        0.11s  -      unbounded proof; agrees
+never_beeps              Negative       ic3      unsafe      0.11s  -      witness rejected: frame 2: Heater::Heat has no native edge to [("temperature", Int(1999999999)), ("heating_on", Bool(true)), ("beeping", Bool(false))]; agrees
+warms_only_when_on       Postcondition  ic3      safe        0.10s  -      unbounded proof; agrees
+fails_over_at_boiling    Postcondition  ic3      unsafe      0.10s  -      witness rejected: frame 2: Heater::Heat has no native edge to [("temperature", Int(2000000039)), ("heating_on", Bool(true)), ("beeping", Bool(false))]; DISAGREES
+arithmetic               Arithmetic     ic3      unsafe      0.10s  -      witness rejected: frame 2: Heater::Heat has no native edge to [("temperature", Int(2000000039)), ("heating_on", Bool(true)), ("beeping", Bool(false))]; DISAGREES
+all verdicts agree with the native checker: false
+observed disagreement: true; evidence incomplete: false
+

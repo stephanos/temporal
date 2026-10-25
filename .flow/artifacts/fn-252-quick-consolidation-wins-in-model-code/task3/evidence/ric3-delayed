@@ -1,0 +1,3 @@
+#!/bin/sh
+sleep 1
+exec /home/agent/.cache/codex-build/tmp/claude-1000/-Users-stephan-Workspace-skunkworks-umpire/df3b821d-b509-4611-8661-a68b981396af/scratchpad/ric3-target/release/ric3 "$@"

@@ -1,0 +1,4 @@
+    Blocking waiting for file lock on package cache
+    Updating crates.io index
+error: cannot update the lock file /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2523-spike/model/design/native-symbolic/Cargo.lock because --locked was passed to prevent this
+help: to generate the lock file without accessing the network, remove the --locked flag and use --offline instead.

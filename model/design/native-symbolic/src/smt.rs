@@ -12,7 +12,9 @@ struct Node {
 }
 
 /// Parses the emitted BTOR2 text into nodes by id; sorts resolve to widths.
-fn parse(text: &str) -> Result<(BTreeMap<u64, Node>, Vec<(u64, u64)>, Vec<(u64, u64)>, Vec<u64>, Vec<u64>), String> {
+fn parse(
+    text: &str,
+) -> Result<(BTreeMap<u64, Node>, Vec<(u64, u64)>, Vec<(u64, u64)>, Vec<u64>, Vec<u64>), String> {
     let mut sorts = BTreeMap::new();
     let mut nodes = BTreeMap::new();
     let mut inits = Vec::new();
@@ -30,13 +32,28 @@ fn parse(text: &str) -> Result<(BTreeMap<u64, Node>, Vec<(u64, u64)>, Vec<(u64, 
             "sort" => {
                 sorts.insert(id, parts[3].parse::<u32>().map_err(|_| "bad width")?);
             }
-            "init" => inits.push((parts[3].parse().map_err(|_| "init")?, parts[4].parse().map_err(|_| "init")?)),
-            "next" => nexts.push((parts[3].parse().map_err(|_| "next")?, parts[4].parse().map_err(|_| "next")?)),
+            "init" => inits.push((
+                parts[3].parse().map_err(|_| "init")?,
+                parts[4].parse().map_err(|_| "init")?,
+            )),
+            "next" => nexts.push((
+                parts[3].parse().map_err(|_| "next")?,
+                parts[4].parse().map_err(|_| "next")?,
+            )),
             "constraint" => constraints.push(parts[2].parse().map_err(|_| "constraint")?),
             "bad" => bads.push(parts[2].parse().map_err(|_| "bad")?),
             op => {
-                let width = *sorts.get(&parts[2].parse::<u64>().map_err(|_| "sort ref")?).ok_or("unknown sort")?;
-                nodes.insert(id, Node { op: op.to_owned(), width, args: parts[3..].iter().map(|s| (*s).to_owned()).collect() });
+                let width = *sorts
+                    .get(&parts[2].parse::<u64>().map_err(|_| "sort ref")?)
+                    .ok_or("unknown sort")?;
+                nodes.insert(
+                    id,
+                    Node {
+                        op: op.to_owned(),
+                        width,
+                        args: parts[3..].iter().map(|s| (*s).to_owned()).collect(),
+                    },
+                );
             }
         }
     }
@@ -93,7 +110,11 @@ fn term(node: &Node, k: usize) -> String {
 
 /// Bounded check of the single `bad` in `btor` up to `bound` steps; returns the depth of the
 /// first violation, or `None`, and the solver wall time.
-pub fn bmc(solver: &str, btor: &str, bound: usize) -> Result<(Option<usize>, std::time::Duration), String> {
+pub fn bmc(
+    solver: &str,
+    btor: &str,
+    bound: usize,
+) -> Result<(Option<usize>, std::time::Duration), String> {
     let (nodes, inits, nexts, constraints, bads) = parse(btor)?;
     let bad = *bads.first().ok_or("no bad")?;
     let mut script = String::from("(set-logic QF_BV)\n(set-option :produce-models false)\n");
@@ -104,7 +125,12 @@ pub fn bmc(solver: &str, btor: &str, bound: usize) -> Result<(Option<usize>, std
                     let _ = writeln!(script, "(declare-const n{id}_{k} (_ BitVec {}))", node.width);
                 }
                 _ => {
-                    let _ = writeln!(script, "(define-fun n{id}_{k} () (_ BitVec {}) {})", node.width, term(node, k));
+                    let _ = writeln!(
+                        script,
+                        "(define-fun n{id}_{k} () (_ BitVec {}) {})",
+                        node.width,
+                        term(node, k)
+                    );
                 }
             }
         }
@@ -126,7 +152,13 @@ pub fn bmc(solver: &str, btor: &str, bound: usize) -> Result<(Option<usize>, std
         }
     }
     let started = std::time::Instant::now();
-    let mut child = Command::new(solver).arg("-in").stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped()).spawn().map_err(|e| format!("{solver}: {e}"))?;
+    let mut child = Command::new(solver)
+        .arg("-in")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("{solver}: {e}"))?;
     child.stdin.take().ok_or("stdin")?.write_all(script.as_bytes()).map_err(|e| e.to_string())?;
     let output = child.wait_with_output().map_err(|e| e.to_string())?;
     let elapsed = started.elapsed();
@@ -139,7 +171,12 @@ pub fn bmc(solver: &str, btor: &str, bound: usize) -> Result<(Option<usize>, std
                 break;
             }
             "unsat" => {}
-            other => return Err(format!("solver said {other}: {}", String::from_utf8_lossy(&output.stderr))),
+            other => {
+                return Err(format!(
+                    "solver said {other}: {}",
+                    String::from_utf8_lossy(&output.stderr)
+                ));
+            }
         }
     }
     Ok((depth, elapsed))

@@ -1,0 +1,84 @@
+[02:56:37 INFO] the model to be checked: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2523-evidence/final-regenerated/heat2e9/arithmetic.btor
+[02:56:37 INFO] origin ts has 386 vars, 3 inputs, 36 latches, 4 constraints, 1335 clauses and 3535 lits in cnf
+[02:56:37 INFO] trivial simplified ts: 96 vars, 3 inputs, 36 latches, 4 constraints, 414 clauses and 1558 lits in cnf
+[02:56:37 INFO] scorr: eliminates 0 latchs out of 36 in 0.00s
+[02:56:37 INFO] scorr: simplified ts: 85 vars, 3 inputs, 36 latches, 4 constraints, 370 clauses and 1470 lits in cnf
+[02:56:37 INFO] frts: eliminates 0 out of 85 vars in 0.00s
+[02:56:37 INFO] frts: simplified ts: 83 vars, 3 inputs, 36 latches, 4 constraints, 368 clauses and 1477 lits in cnf
+[02:56:37 INFO] preprocessed ts has 83 vars, 3 inputs, 36 latches, 4 constraints, 368 clauses and 1477 lits in cnf
+[02:56:37 INFO] IC3 found no counterexample up to depth 0
+[02:56:37 INFO] IC3 found no counterexample up to depth 1
+[02:56:37 INFO] IC3 found a counterexample at depth 3
+[02:56:37 INFO] obligations: [1, 1, 2, 9]
+[02:56:37 INFO] frames [4]: 2 8 12 0 
+[02:56:37 INFO] SolverStatistic {
+    num_solve: 116,
+    avg_solve_time: 3.267µs,
+    avg_decide_var: 0.779946,
+    num_simplify_subsume: 0,
+    num_simplify_self_subsume: 0,
+}
+[02:56:37 INFO] Statistic {
+    time: 0.00s,
+    num_mic: 23,
+    avg_mic_cube_len: 3.347826,
+    avg_po_cube_len: 14.467742,
+    mic_drop: success: 8, fail: 68, success rate: 10.53%,
+    num_down: 76,
+    num_down_sat: 60,
+    ctp: success: 0, fail: 0, success rate: NaN%,
+    block: Block {
+        overall_time: 831.624µs,
+        get_bad_time: 3 times in 7.541000µs,
+        blocked_time: 30 times in 131.584000µs,
+        get_pred_time: 353.373µs,
+        mic_time: 480.249µs,
+        push_time: 10.206µs,
+    },
+    propagate: Propagate {
+        overall_time: 8.667µs,
+        push_inf_time: 166ns,
+    },
+    xor_gen: success: 0, fail: 0, success rate: NaN%,
+    num_auxiliary_var: 0,
+    test: success: 0, fail: 0, success rate: NaN%,
+}
+SAT
+sat
+b0
+#0
+0 00000000000000000000000000100111
+2 0
+4 0
+6 1
+8 0
+@0
+0 000
+#1
+0 00000000000000000000000000100111
+2 1
+4 0
+6 0
+8 0
+@1
+0 010
+#2
+0 01110111001101011001010000100111
+2 1
+4 0
+6 0
+8 0
+@2
+0 010
+#3
+0 11101110011010110010100000100111
+2 1
+4 0
+6 0
+8 1
+@3
+0 001
+.
+
+
+--- stderr ---

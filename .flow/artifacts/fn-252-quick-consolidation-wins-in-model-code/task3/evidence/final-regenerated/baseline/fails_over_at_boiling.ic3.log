@@ -1,0 +1,56 @@
+[02:56:36 INFO] the model to be checked: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2523-evidence/final-regenerated/baseline/fails_over_at_boiling.btor
+[02:56:36 INFO] origin ts has 372 vars, 3 inputs, 39 latches, 4 constraints, 1228 clauses and 3304 lits in cnf
+[02:56:36 INFO] trivial simplified ts: 104 vars, 3 inputs, 39 latches, 4 constraints, 476 clauses and 1864 lits in cnf
+[02:56:36 INFO] scorr: eliminates 0 latchs out of 39 in 0.00s
+[02:56:36 INFO] scorr: simplified ts: 102 vars, 3 inputs, 39 latches, 4 constraints, 471 clauses and 1856 lits in cnf
+[02:56:36 INFO] frts: eliminates 1 out of 102 vars in 0.00s
+[02:56:36 INFO] frts: simplified ts: 101 vars, 3 inputs, 39 latches, 4 constraints, 465 clauses and 1843 lits in cnf
+[02:56:36 INFO] preprocessed ts has 101 vars, 3 inputs, 39 latches, 4 constraints, 465 clauses and 1843 lits in cnf
+[02:56:36 INFO] IC3 found no counterexample up to depth 0
+[02:56:36 INFO] IC3 found no counterexample up to depth 1
+[02:56:36 INFO] IC3 found no counterexample up to depth 2
+[02:56:36 INFO] IC3 found no counterexample up to depth 3
+[02:56:36 INFO] IC3 found no counterexample up to depth 4
+[02:56:36 INFO] IC3 found no counterexample up to depth 5
+[02:56:36 INFO] IC3 found no counterexample up to depth 6
+[02:56:36 INFO] IC3 found no counterexample up to depth 7
+[02:56:36 INFO] IC3 found no counterexample up to depth 8
+[02:56:36 INFO] IC3 proved the property
+[02:56:36 INFO] obligations: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30]
+[02:56:36 INFO] frames [11]: 2 7 2 1 1 1 1 1 0 30 51 
+[02:56:36 INFO] SolverStatistic {
+    num_solve: 1476,
+    avg_solve_time: 3.612µs,
+    avg_decide_var: 0.659434,
+    num_simplify_subsume: 0,
+    num_simplify_self_subsume: 0,
+}
+[02:56:36 INFO] Statistic {
+    time: 0.01s,
+    num_mic: 156,
+    avg_mic_cube_len: 3.692308,
+    avg_po_cube_len: 5.321121,
+    mic_drop: success: 5, fail: 571, success rate: 0.87%,
+    num_down: 576,
+    num_down_sat: 471,
+    ctp: success: 0, fail: 131, success rate: 0.00%,
+    block: Block {
+        overall_time: 5.597042ms,
+        get_bad_time: 38 times in 116.375000µs,
+        blocked_time: 172 times in 550.799000µs,
+        get_pred_time: 1.82254ms,
+        mic_time: 4.182532ms,
+        push_time: 244.751µs,
+    },
+    propagate: Propagate {
+        overall_time: 728.75µs,
+        push_inf_time: 472.833µs,
+    },
+    xor_gen: success: 0, fail: 0, success rate: NaN%,
+    num_auxiliary_var: 0,
+    test: success: 0, fail: 0, success rate: NaN%,
+}
+UNSAT
+0
+
+--- stderr ---

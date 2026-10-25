@@ -1,0 +1,746 @@
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/btor2.rs:185:
+             for width in [8u32, 16, 32, 64, 128] {
+                 let signed_min = -(1i128 << (width - 1));
+                 let signed_max = (1i128 << (width - 1)) - 1;
+-                if *min >= 0 && *max <= (if width >= 128 { i128::MAX } else { (1i128 << width) - 1 }) && *max > signed_max {
++                if *min >= 0
++                    && *max <= (if width >= 128 { i128::MAX } else { (1i128 << width) - 1 })
++                    && *max > signed_max
++                {
+                     return Ok(Shape { width, signed: false });
+                 }
+                 if *min >= signed_min && *max <= signed_max {
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/btor2.rs:246:
+                 let map = if *primed { env.current } else { env.before.unwrap_or(env.current) };
+                 *map.get(name).ok_or_else(|| format!("unknown state field {name}"))?
+             }
+-            ExprKind::World(name) => *env.world.get(name).ok_or_else(|| format!("unknown World field {name}"))?,
+-            ExprKind::Local(name) => *env.locals.get(name).ok_or_else(|| format!("unknown local {name}"))?,
++            ExprKind::World(name) => {
++                *env.world.get(name).ok_or_else(|| format!("unknown World field {name}"))?
++            }
++            ExprKind::Local(name) => {
++                *env.locals.get(name).ok_or_else(|| format!("unknown local {name}"))?
++            }
+             ExprKind::Unary(Unary::Not, inner) => {
+                 let v = self.expr(inner, env)?;
+                 V { id: self.not(v.id), shape: BOOL, fault: v.fault }
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/btor2.rs:421:
+             Start::Range(lo, hi) | Start::ExclusiveRange(lo, hi) => {
+                 let lo = e.expr(lo, &env)?;
+                 let hi = e.expr(hi, &env)?;
+-                let (ge, le, lt) = if v.shape.signed { ("sgte", "slte", "slt") } else { ("ugte", "ulte", "ult") };
++                let (ge, le, lt) =
++                    if v.shape.signed { ("sgte", "slte", "slt") } else { ("ugte", "ulte", "ult") };
+                 let above = e.op2(ge, 1, v.id, lo.id);
+-                let below = e.op2(if matches!(field.start, Start::Range(..)) { le } else { lt }, 1, v.id, hi.id);
++                let below = e.op2(
++                    if matches!(field.start, Start::Range(..)) { le } else { lt },
++                    1,
++                    v.id,
++                    hi.id,
++                );
+                 e.and(above, below)
+             }
+-            Start::Computed => return Err(format!("computed starts ({}) are outside the spike", field.name)),
++            Start::Computed => {
++                return Err(format!("computed starts ({}) are outside the spike", field.name));
++            }
+         };
+         let implied = e.op2("implies", 1, started, cond);
+         e.constraint(implied);
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/btor2.rs:457:
+         let mut enabled_terms = Vec::new();
+         let mut field_next: Vec<(Id, Id)> = fields.iter().map(|(_, id, _, _)| (*id, *id)).collect();
+         for branch in &action.branches {
+-            let (taken, updates, changed, bfault) = emit_branch(&mut e, branch, &current, &world, &earlier_guards, &fields)?;
++            let (taken, updates, changed, bfault) =
++                emit_branch(&mut e, branch, &current, &world, &earlier_guards, &fields)?;
+             earlier_guards.push(branch.guard.clone());
+             let preserve = e.bool(branch.preserve_self_loop);
+             let edge = e.or(changed, preserve);
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/btor2.rs:497:
+     // Properties.
+     let mut properties = Vec::new();
+     let mut claim_faults = Vec::new();
+-    let invariant_env = Env { current: &current, before: None, world: &world, locals: BTreeMap::new() };
+-    for (kind, claims) in [(Kind::Invariant, &model.invariants), (Kind::Negative, &model.negative)] {
++    let invariant_env =
++        Env { current: &current, before: None, world: &world, locals: BTreeMap::new() };
++    for (kind, claims) in [(Kind::Invariant, &model.invariants), (Kind::Negative, &model.negative)]
++    {
+         for claim in claims {
+             let v = e.expr(&claim.expr, &invariant_env)?;
+             claim_faults.push(v.fault);
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/btor2.rs:505:
+             let bad = e.not(v.id);
+-            properties.push(Property { name: claim.name.clone(), kind, bad: pending_bad(&mut e, bad) });
++            properties.push(Property {
++                name: claim.name.clone(),
++                kind,
++                bad: pending_bad(&mut e, bad),
++            });
+         }
+     }
+     for (name, expr) in negative {
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/btor2.rs:510:
+         let v = e.expr(expr, &invariant_env)?;
+         claim_faults.push(v.fault);
+         let bad = e.not(v.id);
+-        properties.push(Property { name: name.clone(), kind: Kind::Negative, bad: pending_bad(&mut e, bad) });
++        properties.push(Property {
++            name: name.clone(),
++            kind: Kind::Negative,
++            bad: pending_bad(&mut e, bad),
++        });
+     }
+-    let post_env = Env { current: &current, before: Some(&before), world: &world, locals: BTreeMap::new() };
++    let post_env =
++        Env { current: &current, before: Some(&before), world: &world, locals: BTreeMap::new() };
+     for post in &model.postconditions {
+         let v = e.expr(&post.expr, &post_env)?;
+         let mut cond = has_step;
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/btor2.rs:519:
+         if let Some(after) = &post.after {
+-            let index = model.actions.iter().position(|a| &a.name == after).ok_or_else(|| format!("unknown after action {after}"))?;
++            let index = model
++                .actions
++                .iter()
++                .position(|a| &a.name == after)
++                .ok_or_else(|| format!("unknown after action {after}"))?;
+             let this = e.constant(act_shape, index as i128);
+             let is_after = e.op2("eq", 1, prev_act, this);
+             cond = e.and(cond, is_after);
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/btor2.rs:526:
+         claim_faults.push(guarded_fault);
+         let failed = e.not(v.id);
+         let bad = e.and(cond, failed);
+-        properties.push(Property { name: post.name.clone(), kind: Kind::Postcondition, bad: pending_bad(&mut e, bad) });
++        properties.push(Property {
++            name: post.name.clone(),
++            kind: Kind::Postcondition,
++            bad: pending_bad(&mut e, bad),
++        });
+     }
+     all_faults.extend(claim_faults);
+     let next_fault = e.any(&all_faults);
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/btor2.rs:533:
+     e.next(1, fault, next_fault);
+-    properties.push(Property { name: "arithmetic".into(), kind: Kind::Arithmetic, bad: pending_bad(&mut e, fault) });
++    properties.push(Property {
++        name: "arithmetic".into(),
++        kind: Kind::Arithmetic,
++        bad: pending_bad(&mut e, fault),
++    });
+ 
+-    let index = |ids: &[Id], id: Id| ids.iter().position(|x| *x == id).map(|i| i as Id).ok_or_else(|| format!("node {id} is not a declared state or input"));
++    let index = |ids: &[Id], id: Id| {
++        ids.iter()
++            .position(|x| *x == id)
++            .map(|i| i as Id)
++            .ok_or_else(|| format!("node {id} is not a declared state or input"))
++    };
+     let mut indexed = Vec::new();
+     for (name, id, s, ty) in fields {
+         indexed.push((name, index(&e.states, id)?, s, ty));
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/btor2.rs:547:
+         last: e.next,
+         lines: e.lines,
+         properties,
+-        layout: Layout { fields: indexed, world: indexed_world, act, actions: model.actions.iter().map(|a| a.name.clone()).collect() },
++        layout: Layout {
++            fields: indexed,
++            world: indexed_world,
++            act,
++            actions: model.actions.iter().map(|a| a.name.clone()).collect(),
++        },
+     })
+ }
+ 
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/main.rs:46:
+         out: std::env::var("OUT").unwrap_or_else(|_| "out".into()).into(),
+         timeout: std::env::var("TIMEOUT").unwrap_or_else(|_| "300".into()),
+     };
+-    let engines: Vec<String> = std::env::var("ENGINES").unwrap_or_else(|_| "ic3".into()).split(',').map(str::to_owned).collect();
++    let engines: Vec<String> = std::env::var("ENGINES")
++        .unwrap_or_else(|_| "ic3".into())
++        .split(',')
++        .map(str::to_owned)
++        .collect();
+     let which = std::env::var("RUNS").unwrap_or_else(|_| "baseline,claim99,heat2e9,big".into());
+     let mut report = String::new();
+     for name in which.split(',') {
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/main.rs:53:
+         let section = match name {
+-            "baseline" => check(name, "baseline", &sample_kettle::kettle::world(), |_| {}, &engines, umpire_checker::Checker::BUDGET, &settings)?,
++            "baseline" => check(
++                name,
++                "baseline",
++                &sample_kettle::kettle::world(),
++                |_| {},
++                &engines,
++                umpire_checker::Checker::BUDGET,
++                &settings,
++            )?,
+             "claim99" => check(
+                 name,
+                 "control claim99 (postcondition literal 100 -> 99 in the admitted tree only; expect: unsafe, replay NOT confirmed, DISAGREES)",
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/main.rs:90:
+                 umpire_checker::Checker::BUDGET,
+                 &settings,
+             )?,
+-            "big" => check(name, "big (BOILING_TEMPERATURE = 1_000_000, a real second Model)", &kettle_big::kettle::world(), |_| {}, &["ic3".to_owned()], 1 << 23, &settings)?,
++            "big" => check(
++                name,
++                "big (BOILING_TEMPERATURE = 1_000_000, a real second Model)",
++                &kettle_big::kettle::world(),
++                |_| {},
++                &["ic3".to_owned()],
++                1 << 23,
++                &settings,
++            )?,
+             other => return Err(format!("unknown run {other}").into()),
+         };
+         report.push_str(&section);
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/main.rs:114:
+ 
+ /// One Model through the whole pipeline. `M::State` must expose `beeping` for the negative
+ /// control, which both Kettles do; the closure below is the fixture's `never_beeps`.
+-fn check<M>(name: &str, label: &str, world: &M, mutate: impl FnOnce(&mut Lifted), engines: &[String], budget: usize, settings: &Settings) -> Fallible<String>
++fn check<M>(
++    name: &str,
++    label: &str,
++    world: &M,
++    mutate: impl FnOnce(&mut Lifted),
++    engines: &[String],
++    budget: usize,
++    settings: &Settings,
++) -> Fallible<String>
+ where
+     M: Machine + Lifts,
+     M::State: Values + Beeping,
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/main.rs:122:
+     let out = settings.out.join(name);
+     std::fs::create_dir_all(&out)?;
+     let embedded = M::__umpire_lifted();
+-    let mut model = embedded.model.map_err(|d| format!("{}:{}:{}: {}", embedded.file, d.line, d.column, d.message))?;
++    let mut model = embedded
++        .model
++        .map_err(|d| format!("{}:{}:{}: {}", embedded.file, d.line, d.column, d.message))?;
+     mutate(&mut model);
+     let never_beeps = ("never_beeps".to_owned(), Expr::var("beeping", Type::Bool, false).not());
+     let started = Instant::now();
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/main.rs:136:
+         .claims
+         .iter()
+         .map(|c| {
+-            (c.name.to_owned(), match c.outcome {
+-                CheckOutcome::Refuted => Some(true),
+-                CheckOutcome::Verified => Some(false),
+-                CheckOutcome::Unknown => None,
+-            })
++            (
++                c.name.to_owned(),
++                match c.outcome {
++                    CheckOutcome::Refuted => Some(true),
++                    CheckOutcome::Verified => Some(false),
++                    CheckOutcome::Unknown => None,
++                },
++            )
+         })
+         .collect();
+     expected.push(("never_beeps".into(), Some(true)));
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/main.rs:158:
+         report.counts.depth,
+         report.counts.cut
+     )?;
+-    writeln!(lines, "{:<24} {:<14} {:<8} {:<8} {:>8}  {:<6} {}", "property", "kind", "engine", "verdict", "time", "steps", "replay; agreement")?;
++    writeln!(
++        lines,
++        "{:<24} {:<14} {:<8} {:<8} {:>8}  {:<6} {}",
++        "property", "kind", "engine", "verdict", "time", "steps", "replay; agreement"
++    )?;
+     let mut observed_disagreement = false;
+     let mut incomplete = false;
+     for property in &system.properties {
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/main.rs:166:
+         std::fs::write(&file, system.file(property))?;
+         for engine in engines {
+             let mut command = Command::new("timeout");
+-            command.arg(&settings.timeout).arg(&settings.ric3).arg("check").arg(&file).arg("--cex").arg("--ui=false").arg(engine);
++            command
++                .arg(&settings.timeout)
++                .arg(&settings.ric3)
++                .arg("check")
++                .arg(&file)
++                .arg("--cex")
++                .arg("--ui=false")
++                .arg(engine);
+             if engine == "bmc" || engine == "wl-bmc" {
+                 command.arg("--end").arg((report.counts.depth + 1).to_string());
+             }
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/main.rs:175:
+             let elapsed = started.elapsed();
+             let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
+             let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
+-            std::fs::write(out.join(format!("{}.{engine}.log", property.name)), format!("{stdout}\n--- stderr ---\n{stderr}"))?;
++            std::fs::write(
++                out.join(format!("{}.{engine}.log", property.name)),
++                format!("{stdout}\n--- stderr ---\n{stderr}"),
++            )?;
+             let bounded = engine == "bmc" || engine == "wl-bmc";
+             let verdict = if stdout.contains("UNSAT") {
+                 "safe"
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/main.rs:188:
+             } else {
+                 "unknown"
+             };
+-            let native_refuted = expected.iter().find(|(n, _)| *n == property.name).and_then(|(_, r)| *r);
++            let native_refuted =
++                expected.iter().find(|(n, _)| *n == property.name).and_then(|(_, r)| *r);
+             let (steps, detail) = match verdict {
+-                "unsafe" => match witness::parse(&stdout).and_then(|frames| witness::replay(world, &system.layout, &frames, property, &negatives)) {
++                "unsafe" => match witness::parse(&stdout).and_then(|frames| {
++                    witness::replay(world, &system.layout, &frames, property, &negatives)
++                }) {
+                     Ok(confirmed) => {
+-                        std::fs::write(out.join(format!("{}.path.txt", property.name)), &confirmed.path)?;
++                        std::fs::write(
++                            out.join(format!("{}.path.txt", property.name)),
++                            &confirmed.path,
++                        )?;
+                         match confirmed.confirmed {
+-                            Ok(()) => (confirmed.steps.to_string(), "replayed, native violation confirmed".to_owned()),
+-                            Err(why) => (confirmed.steps.to_string(), format!("replayed, NOT confirmed: {why}")),
++                            Ok(()) => (
++                                confirmed.steps.to_string(),
++                                "replayed, native violation confirmed".to_owned(),
++                            ),
++                            Err(why) => (
++                                confirmed.steps.to_string(),
++                                format!("replayed, NOT confirmed: {why}"),
++                            ),
+                         }
+                     }
+                     Err(why) => ("-".into(), format!("witness rejected: {why}")),
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/main.rs:202:
+                 },
+                 "safe" => ("-".into(), "unbounded proof".to_owned()),
+-                "bounded" => ("-".into(), format!("no violation to depth {}", report.counts.depth + 1)),
++                "bounded" => {
++                    ("-".into(), format!("no violation to depth {}", report.counts.depth + 1))
++                }
+                 _ => ("-".into(), String::new()),
+             };
+-            let agreement = compare(native_refuted, verdict, &mut observed_disagreement, &mut incomplete);
+-            writeln!(lines, "{:<24} {:<14} {:<8} {:<8} {:>7.2}s  {:<6} {detail}; {agreement}", property.name, format!("{:?}", property.kind), engine, verdict, elapsed.as_secs_f64(), steps)?;
++            let agreement =
++                compare(native_refuted, verdict, &mut observed_disagreement, &mut incomplete);
++            writeln!(
++                lines,
++                "{:<24} {:<14} {:<8} {:<8} {:>7.2}s  {:<6} {detail}; {agreement}",
++                property.name,
++                format!("{:?}", property.kind),
++                engine,
++                verdict,
++                elapsed.as_secs_f64(),
++                steps
++            )?;
+         }
+     }
+     if let Ok(solver) = std::env::var("SMT_SOLVER") {
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/main.rs:212:
+-        writeln!(lines, "SMT-LIB bounded check through a pipe to {solver} (QF_BV, bound = native depth + 1 = {}):", report.counts.depth + 1)?;
++        writeln!(
++            lines,
++            "SMT-LIB bounded check through a pipe to {solver} (QF_BV, bound = native depth + 1 = {}):",
++            report.counts.depth + 1
++        )?;
+         for property in &system.properties {
+-            let (depth, elapsed) = smt::bmc(&solver, &system.file(property), report.counts.depth + 1)?;
+-            let native_refuted = expected.iter().find(|(n, _)| *n == property.name).and_then(|(_, r)| *r);
+-            let agreement = compare(native_refuted, if depth.is_some() { "unsafe" } else { "bounded" }, &mut observed_disagreement, &mut incomplete);
+-            writeln!(lines, "{:<24} {:<8} {:>7.2}s  {}; {agreement}", property.name, "smt-bmc", elapsed.as_secs_f64(), depth.map_or("no violation within the bound".to_owned(), |d| format!("violation at depth {d} (no replay on this path)")))?;
++            let (depth, elapsed) =
++                smt::bmc(&solver, &system.file(property), report.counts.depth + 1)?;
++            let native_refuted =
++                expected.iter().find(|(n, _)| *n == property.name).and_then(|(_, r)| *r);
++            let agreement = compare(
++                native_refuted,
++                if depth.is_some() { "unsafe" } else { "bounded" },
++                &mut observed_disagreement,
++                &mut incomplete,
++            );
++            writeln!(
++                lines,
++                "{:<24} {:<8} {:>7.2}s  {}; {agreement}",
++                property.name,
++                "smt-bmc",
++                elapsed.as_secs_f64(),
++                depth.map_or("no violation within the bound".to_owned(), |d| format!(
++                    "violation at depth {d} (no replay on this path)"
++                ))
++            )?;
+         }
+     }
+-    writeln!(lines, "all verdicts agree with the native checker: {}", !observed_disagreement && !incomplete)?;
+-    writeln!(lines, "observed disagreement: {observed_disagreement}; evidence incomplete: {incomplete}")?;
++    writeln!(
++        lines,
++        "all verdicts agree with the native checker: {}",
++        !observed_disagreement && !incomplete
++    )?;
++    writeln!(
++        lines,
++        "observed disagreement: {observed_disagreement}; evidence incomplete: {incomplete}"
++    )?;
+     let _ = Path::new("");
+     Ok(lines)
+ }
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/main.rs:225:
+ 
+ /// The one field the negative control reads.
+-fn compare(native_refuted: Option<bool>, verdict: &str, disagreement: &mut bool, incomplete: &mut bool) -> &'static str {
++fn compare(
++    native_refuted: Option<bool>,
++    verdict: &str,
++    disagreement: &mut bool,
++    incomplete: &mut bool,
++) -> &'static str {
+     match (native_refuted, verdict) {
+         (Some(true), "unsafe") | (Some(false), "safe" | "bounded") => "agrees",
+         (Some(_), "unsafe" | "safe" | "bounded") => {
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/main.rs:264:
+     fn missing_verdicts_are_incomplete_and_disagreement_is_separate() {
+         for verdict in ["timeout", "unknown"] {
+             let (mut disagreement, mut incomplete) = (false, false);
+-            assert_eq!(compare(Some(true), verdict, &mut disagreement, &mut incomplete), "no verdict");
++            assert_eq!(
++                compare(Some(true), verdict, &mut disagreement, &mut incomplete),
++                "no verdict"
++            );
+             assert!(!disagreement && incomplete);
+         }
+         let (mut disagreement, mut incomplete) = (false, false);
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/main.rs:282:
+         assert!(matches!(big.constants["BOILING_TEMPERATURE"].kind, ExprKind::Int(1_000_000)));
+         let baseline_btor = btor2::emit(&baseline, &[]).unwrap();
+         let big_btor = btor2::emit(&big, &[]).unwrap();
+-        assert_ne!(baseline_btor.file(&baseline_btor.properties[0]), big_btor.file(&big_btor.properties[0]));
++        assert_ne!(
++            baseline_btor.file(&baseline_btor.properties[0]),
++            big_btor.file(&big_btor.properties[0])
++        );
+     }
+ 
+     #[test]
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/main.rs:289:
+     fn claim99_changes_the_current_admitted_check_expression() {
+         let mut model = sample_kettle::kettle::World::__umpire_lifted().model.unwrap();
+         let original = btor2::emit(&model, &[]).unwrap();
+-        let post = model.postconditions.iter_mut().find(|post| post.name == "fails_over_at_boiling").unwrap();
++        let post = model
++            .postconditions
++            .iter_mut()
++            .find(|post| post.name == "fails_over_at_boiling")
++            .unwrap();
+         rewrite_ints(&mut post.expr, 100, 99);
+         let mutant = btor2::emit(&model, &[]).unwrap();
+-        let original = original.properties.iter().find(|property| property.name == "fails_over_at_boiling").map(|property| original.file(property)).unwrap();
+-        let mutant = mutant.properties.iter().find(|property| property.name == "fails_over_at_boiling").map(|property| mutant.file(property)).unwrap();
++        let original = original
++            .properties
++            .iter()
++            .find(|property| property.name == "fails_over_at_boiling")
++            .map(|property| original.file(property))
++            .unwrap();
++        let mutant = mutant
++            .properties
++            .iter()
++            .find(|property| property.name == "fails_over_at_boiling")
++            .map(|property| mutant.file(property))
++            .unwrap();
+         assert_ne!(original, mutant);
+     }
+ 
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/main.rs:302:
+         use sample_kettle::kettle::{Action, Heater, Model};
+         let world = sample_kettle::kettle::world();
+         let at = |temperature| Model { temperature, heating_on: true, beeping: false };
+-        assert_eq!(world.checked_step(&at(99), Action::Heater(Heater::Heat)).unwrap()[0].2.temperature, 100);
++        assert_eq!(
++            world.checked_step(&at(99), Action::Heater(Heater::Heat)).unwrap()[0].2.temperature,
++            100
++        );
+         assert!(world.checked_step(&at(100), Action::Heater(Heater::Heat)).unwrap().is_empty());
+-        assert!(world.checked_step(&at(100), Action::Heater(Heater::Failover)).unwrap()[0].2.beeping);
++        assert!(
++            world.checked_step(&at(100), Action::Heater(Heater::Failover)).unwrap()[0].2.beeping
++        );
+     }
+ 
+     #[test]
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/main.rs:312:
+         use kettle_big::kettle::{Action, Heater, Model};
+         let world = kettle_big::kettle::world();
+         let at = |temperature| Model { temperature, heating_on: true, beeping: false };
+-        assert_eq!(world.checked_step(&at(100), Action::Heater(Heater::Heat)).unwrap()[0].2.temperature, 101);
++        assert_eq!(
++            world.checked_step(&at(100), Action::Heater(Heater::Heat)).unwrap()[0].2.temperature,
++            101
++        );
+         assert!(world.checked_step(&at(100), Action::Heater(Heater::Failover)).unwrap().is_empty());
+-        assert_eq!(world.checked_step(&at(999_999), Action::Heater(Heater::Heat)).unwrap()[0].2.temperature, 1_000_000);
+-        assert!(world.checked_step(&at(1_000_000), Action::Heater(Heater::Heat)).unwrap().is_empty());
+-        assert!(world.checked_step(&at(1_000_000), Action::Heater(Heater::Failover)).unwrap()[0].2.beeping);
++        assert_eq!(
++            world.checked_step(&at(999_999), Action::Heater(Heater::Heat)).unwrap()[0]
++                .2
++                .temperature,
++            1_000_000
++        );
++        assert!(
++            world.checked_step(&at(1_000_000), Action::Heater(Heater::Heat)).unwrap().is_empty()
++        );
++        assert!(
++            world.checked_step(&at(1_000_000), Action::Heater(Heater::Failover)).unwrap()[0]
++                .2
++                .beeping
++        );
+     }
+ }
+ 
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/smt.rs:12:
+ }
+ 
+ /// Parses the emitted BTOR2 text into nodes by id; sorts resolve to widths.
+-fn parse(text: &str) -> Result<(BTreeMap<u64, Node>, Vec<(u64, u64)>, Vec<(u64, u64)>, Vec<u64>, Vec<u64>), String> {
++fn parse(
++    text: &str,
++) -> Result<(BTreeMap<u64, Node>, Vec<(u64, u64)>, Vec<(u64, u64)>, Vec<u64>, Vec<u64>), String> {
+     let mut sorts = BTreeMap::new();
+     let mut nodes = BTreeMap::new();
+     let mut inits = Vec::new();
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/smt.rs:30:
+             "sort" => {
+                 sorts.insert(id, parts[3].parse::<u32>().map_err(|_| "bad width")?);
+             }
+-            "init" => inits.push((parts[3].parse().map_err(|_| "init")?, parts[4].parse().map_err(|_| "init")?)),
+-            "next" => nexts.push((parts[3].parse().map_err(|_| "next")?, parts[4].parse().map_err(|_| "next")?)),
++            "init" => inits.push((
++                parts[3].parse().map_err(|_| "init")?,
++                parts[4].parse().map_err(|_| "init")?,
++            )),
++            "next" => nexts.push((
++                parts[3].parse().map_err(|_| "next")?,
++                parts[4].parse().map_err(|_| "next")?,
++            )),
+             "constraint" => constraints.push(parts[2].parse().map_err(|_| "constraint")?),
+             "bad" => bads.push(parts[2].parse().map_err(|_| "bad")?),
+             op => {
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/smt.rs:38:
+-                let width = *sorts.get(&parts[2].parse::<u64>().map_err(|_| "sort ref")?).ok_or("unknown sort")?;
+-                nodes.insert(id, Node { op: op.to_owned(), width, args: parts[3..].iter().map(|s| (*s).to_owned()).collect() });
++                let width = *sorts
++                    .get(&parts[2].parse::<u64>().map_err(|_| "sort ref")?)
++                    .ok_or("unknown sort")?;
++                nodes.insert(
++                    id,
++                    Node {
++                        op: op.to_owned(),
++                        width,
++                        args: parts[3..].iter().map(|s| (*s).to_owned()).collect(),
++                    },
++                );
+             }
+         }
+     }
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/smt.rs:93:
+ 
+ /// Bounded check of the single `bad` in `btor` up to `bound` steps; returns the depth of the
+ /// first violation, or `None`, and the solver wall time.
+-pub fn bmc(solver: &str, btor: &str, bound: usize) -> Result<(Option<usize>, std::time::Duration), String> {
++pub fn bmc(
++    solver: &str,
++    btor: &str,
++    bound: usize,
++) -> Result<(Option<usize>, std::time::Duration), String> {
+     let (nodes, inits, nexts, constraints, bads) = parse(btor)?;
+     let bad = *bads.first().ok_or("no bad")?;
+     let mut script = String::from("(set-logic QF_BV)\n(set-option :produce-models false)\n");
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/smt.rs:104:
+                     let _ = writeln!(script, "(declare-const n{id}_{k} (_ BitVec {}))", node.width);
+                 }
+                 _ => {
+-                    let _ = writeln!(script, "(define-fun n{id}_{k} () (_ BitVec {}) {})", node.width, term(node, k));
++                    let _ = writeln!(
++                        script,
++                        "(define-fun n{id}_{k} () (_ BitVec {}) {})",
++                        node.width,
++                        term(node, k)
++                    );
+                 }
+             }
+         }
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/smt.rs:126:
+         }
+     }
+     let started = std::time::Instant::now();
+-    let mut child = Command::new(solver).arg("-in").stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped()).spawn().map_err(|e| format!("{solver}: {e}"))?;
++    let mut child = Command::new(solver)
++        .arg("-in")
++        .stdin(Stdio::piped())
++        .stdout(Stdio::piped())
++        .stderr(Stdio::piped())
++        .spawn()
++        .map_err(|e| format!("{solver}: {e}"))?;
+     child.stdin.take().ok_or("stdin")?.write_all(script.as_bytes()).map_err(|e| e.to_string())?;
+     let output = child.wait_with_output().map_err(|e| e.to_string())?;
+     let elapsed = started.elapsed();
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/smt.rs:139:
+                 break;
+             }
+             "unsat" => {}
+-            other => return Err(format!("solver said {other}: {}", String::from_utf8_lossy(&output.stderr))),
++            other => {
++                return Err(format!(
++                    "solver said {other}: {}",
++                    String::from_utf8_lossy(&output.stderr)
++                ));
++            }
+         }
+     }
+     Ok((depth, elapsed))
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/witness.rs:24:
+             seen_sat = true;
+             continue;
+         }
+-        if !seen_sat || line.is_empty() || line.starts_with('b') || line.starts_with('j') || line.starts_with(';') {
++        if !seen_sat
++            || line.is_empty()
++            || line.starts_with('b')
++            || line.starts_with('j')
++            || line.starts_with(';')
++        {
+             continue;
+         }
+         if line == "." {
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/witness.rs:98:
+         Type::Bool => Lit::Bool(value != 0),
+         Type::Int { .. } => Lit::Int(value),
+         Type::Enum { variants, .. } => Lit::Enum(
+-            variants.get(usize::try_from(value).map_err(|_| "negative enum index")?).ok_or("enum index out of range")?.clone(),
++            variants
++                .get(usize::try_from(value).map_err(|_| "negative enum index")?)
++                .ok_or("enum index out of range")?
++                .clone(),
+         ),
+         other => return Err(format!("undecodable type {other:?}")),
+     })
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/witness.rs:112:
+                 Value::Bool(b) => Lit::Bool(*b),
+                 Value::Int(i) => Lit::Int(*i),
+                 Value::Enum(e) => Lit::Enum((*e).to_owned()),
+-                other => return Err(format!("unsupported native witness value for {name}: {other:?}")),
++                other => {
++                    return Err(format!("unsupported native witness value for {name}: {other:?}"));
++                }
+             };
+             Ok(((*name).to_owned(), lit))
+         })
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/witness.rs:167:
+     let mut path = format!("start: {state}\n");
+     let mut steps = 0usize;
+     let mut last_edge = None;
+-    let act_shape = Shape { width: (usize::BITS - catalog.len().leading_zeros()).max(1), signed: false };
++    let act_shape =
++        Shape { width: (usize::BITS - catalog.len().leading_zeros()).max(1), signed: false };
+     for k in 1..frames.len() {
+-        let bits = frames[k - 1].inputs.get(&layout.act).ok_or_else(|| format!("frame {} has no act input", k - 1))?;
++        let bits = frames[k - 1]
++            .inputs
++            .get(&layout.act)
++            .ok_or_else(|| format!("frame {} has no act input", k - 1))?;
+         let act = decode_bits(bits, act_shape)? as usize;
+         let decoded = frame_state(&frames[k], layout)?;
+         if act >= catalog.len() {
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/witness.rs:181:
+             continue;
+         }
+         let action = catalog[act].clone();
+-        let edges = world.checked_step(&state, action.clone()).map_err(|e| format!("frame {k}: {action}: {e}"))?;
++        let edges = world
++            .checked_step(&state, action.clone())
++            .map_err(|e| format!("frame {k}: {action}: {e}"))?;
+         if edges.is_empty() {
+             if let Some(decoded) = &decoded {
+                 if native(&state.values())? != *decoded {
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/witness.rs:188:
+-                    return Err(format!("frame {k}: {action} is disabled natively but the witness steps"));
++                    return Err(format!(
++                        "frame {k}: {action} is disabled natively but the witness steps"
++                    ));
+                 }
+             }
+             continue;
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/witness.rs:208:
+     }
+     let confirmed = match property.kind {
+         Kind::Invariant => {
+-            let claim = world.invariants().into_iter().find(|c| c.name == property.name).ok_or("no such invariant")?;
++            let claim = world
++                .invariants()
++                .into_iter()
++                .find(|c| c.name == property.name)
++                .ok_or("no such invariant")?;
+             match (claim.predicate)(world, &state) {
+                 Verdict::Fails => Ok(()),
+                 other => Err(format!("native invariant verdict {other:?} on the final state")),
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/witness.rs:215:
+             }
+         }
+         Kind::Negative => {
+-            let (_, judge) = negatives.iter().find(|(name, _)| *name == property.name).ok_or("no such negative claim")?;
+-            if judge(&state) { Err("native negative claim holds on the final state".into()) } else { Ok(()) }
++            let (_, judge) = negatives
++                .iter()
++                .find(|(name, _)| *name == property.name)
++                .ok_or("no such negative claim")?;
++            if judge(&state) {
++                Err("native negative claim holds on the final state".into())
++            } else {
++                Ok(())
++            }
+         }
+         Kind::Postcondition => {
+-            let claim = world.postconditions().into_iter().find(|c| c.name == property.name).ok_or("no such postcondition")?;
+-            let (before, action, choice, edges) = last_edge.ok_or("postcondition violation without a step")?;
++            let claim = world
++                .postconditions()
++                .into_iter()
++                .find(|c| c.name == property.name)
++                .ok_or("no such postcondition")?;
++            let (before, action, choice, edges) =
++                last_edge.ok_or("postcondition violation without a step")?;
+             match claim.holds(world, &before, &action, &edges[choice]) {
+                 Verdict::Fails => Ok(()),
+                 other => Err(format!("native postcondition verdict {other:?} on the final edge")),
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic/src/witness.rs:237:
+ 
+     #[test]
+     fn unsupported_native_values_refuse_witness_comparison() {
+-        for value in [Value::Bounded { name: "Count", raw: 1 }, Value::Optional(None), Value::Sequence(vec![])] {
+-            assert!(native(&[("field", value)]).unwrap_err().contains("unsupported native witness value for field"));
++        for value in [
++            Value::Bounded { name: "Count", raw: 1 },
++            Value::Optional(None),
++            Value::Sequence(vec![]),
++        ] {
++            assert!(
++                native(&[("field", value)])
++                    .unwrap_err()
++                    .contains("unsupported native witness value for field")
++            );
+         }
+     }
+ }

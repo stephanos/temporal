@@ -1,0 +1,11 @@
+== baseline
+emit: 355 shared BTOR2 lines in 107.2µs; native: 283 states, depth 62, cut=false, 147.58µs
+property                 kind           engine   verdict      time  steps  replay; agreement
+beeps_only_when_off      Invariant      ic3      timeout     0.11s  -      ; no verdict
+never_beeps              Negative       ic3      timeout     0.10s  -      ; no verdict
+warms_only_when_on       Postcondition  ic3      timeout     0.10s  -      ; no verdict
+fails_over_at_boiling    Postcondition  ic3      timeout     0.10s  -      ; no verdict
+arithmetic               Arithmetic     ic3      timeout     0.11s  -      ; no verdict
+all verdicts agree with the native checker: false
+observed disagreement: false; evidence incomplete: true
+

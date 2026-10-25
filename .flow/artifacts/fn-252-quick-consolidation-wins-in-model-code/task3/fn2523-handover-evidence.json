@@ -1,0 +1,34 @@
+{
+  "commits": [
+    "badd05d62150406b6054c21eb98733c7bf3f62cd"
+  ],
+  "tests": [
+    "bash -n model/design/native-symbolic/run.sh",
+    "CARGO_TARGET_DIR=<main>/.flow/tmp/fn2523-target mise exec -- cargo check --locked --offline --manifest-path model/design/native-symbolic/Cargo.toml",
+    "CARGO_TARGET_DIR=<main>/.flow/tmp/fn2523-target mise exec -- cargo test --locked --offline --manifest-path model/design/native-symbolic/Cargo.toml (6 passed)",
+    "actual run.sh RUNS=baseline,claim99,heat2e9 ENGINES=ic3 RIC3=<retained v1.5.2> SMT_SOLVER=<retained Z3v5.3.1> TIMEOUT=15 OUT=<task scratch>",
+    "actual final run.sh default selections ENGINES=ic3 TIMEOUT=15 (distinct directories and controls validated)",
+    "actual run.sh RUNS=big TIMEOUT=10 (native closed 2000083 states; negative IC3 timeout, no agreement claim)",
+    "actual final run.sh RUNS=baseline with delayed admitted rIC3 TIMEOUT=0.01 (incomplete=true, disagreement=false, full agreement=false)",
+    "build-script missing/ambiguous threshold refusal controls",
+    "git diff --check; git check-ignore; no tracked outputs; clean source worktree"
+  ],
+  "prs": [],
+  "status": "in_progress",
+  "branch": "work/fn2523-spike",
+  "base": "4c4e99ca7e89d87f6c64e7b30cdbbb764294d758",
+  "evidence_dir": ".flow/tmp/fn2523-evidence",
+  "evidence_manifest": ".flow/tmp/fn2523-evidence/manifest.json",
+  "evidence_manifest_sha256": "e8cacf22abb23646ebaa4f7f6933194185beb78e570dcc236c9835125fd1c0a9",
+  "deferred": [
+    "conductor integration and authentic review",
+    "shared final gate and Flow closure"
+  ],
+  "limitations": [
+    "Big never_beeps IC3 timed out; old pre-report-fix final agreement flag is not accepted as evidence",
+    "No duplicate full model gate or big exploration",
+    "Two existing dead-code warnings"
+  ],
+  "worktree_clean": true,
+  "commands_running": false
+}

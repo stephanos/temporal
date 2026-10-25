@@ -1,0 +1,10 @@
+== control claim99 (postcondition literal 100 -> 99 in the admitted tree only; expect: unsafe, replay NOT confirmed, DISAGREES)
+emit: 356 shared BTOR2 lines in 69.0µs; native: 283 states, depth 62, cut=false, 132.50µs
+property                 kind           engine   verdict      time  steps  replay; agreement
+beeps_only_when_off      Invariant      ic3      safe        0.10s  -      unbounded proof; agrees
+never_beeps              Negative       ic3      unsafe      0.10s  62     replayed, native violation confirmed; agrees
+warms_only_when_on       Postcondition  ic3      safe        0.10s  -      unbounded proof; agrees
+fails_over_at_boiling    Postcondition  ic3      unsafe      0.10s  62     replayed, NOT confirmed: native postcondition verdict Holds on the final edge; DISAGREES
+arithmetic               Arithmetic     ic3      safe        0.10s  -      unbounded proof; agrees
+all verdicts agree with the native checker: false
+

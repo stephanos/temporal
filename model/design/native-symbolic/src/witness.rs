@@ -24,7 +24,12 @@ pub fn parse(text: &str) -> Result<Vec<Frame>, String> {
             seen_sat = true;
             continue;
         }
-        if !seen_sat || line.is_empty() || line.starts_with('b') || line.starts_with('j') || line.starts_with(';') {
+        if !seen_sat
+            || line.is_empty()
+            || line.starts_with('b')
+            || line.starts_with('j')
+            || line.starts_with(';')
+        {
             continue;
         }
         if line == "." {
@@ -98,7 +103,10 @@ fn decode(bits: &str, shape: Shape, ty: &Type) -> Result<Lit, String> {
         Type::Bool => Lit::Bool(value != 0),
         Type::Int { .. } => Lit::Int(value),
         Type::Enum { variants, .. } => Lit::Enum(
-            variants.get(usize::try_from(value).map_err(|_| "negative enum index")?).ok_or("enum index out of range")?.clone(),
+            variants
+                .get(usize::try_from(value).map_err(|_| "negative enum index")?)
+                .ok_or("enum index out of range")?
+                .clone(),
         ),
         other => return Err(format!("undecodable type {other:?}")),
     })
@@ -112,7 +120,9 @@ fn native(values: &[(&'static str, Value)]) -> Result<Vec<(String, Lit)>, String
                 Value::Bool(b) => Lit::Bool(*b),
                 Value::Int(i) => Lit::Int(*i),
                 Value::Enum(e) => Lit::Enum((*e).to_owned()),
-                other => return Err(format!("unsupported native witness value for {name}: {other:?}")),
+                other => {
+                    return Err(format!("unsupported native witness value for {name}: {other:?}"));
+                }
             };
             Ok(((*name).to_owned(), lit))
         })
@@ -167,9 +177,13 @@ where
     let mut path = format!("start: {state}\n");
     let mut steps = 0usize;
     let mut last_edge = None;
-    let act_shape = Shape { width: (usize::BITS - catalog.len().leading_zeros()).max(1), signed: false };
+    let act_shape =
+        Shape { width: (usize::BITS - catalog.len().leading_zeros()).max(1), signed: false };
     for k in 1..frames.len() {
-        let bits = frames[k - 1].inputs.get(&layout.act).ok_or_else(|| format!("frame {} has no act input", k - 1))?;
+        let bits = frames[k - 1]
+            .inputs
+            .get(&layout.act)
+            .ok_or_else(|| format!("frame {} has no act input", k - 1))?;
         let act = decode_bits(bits, act_shape)? as usize;
         let decoded = frame_state(&frames[k], layout)?;
         if act >= catalog.len() {
@@ -181,11 +195,15 @@ where
             continue;
         }
         let action = catalog[act].clone();
-        let edges = world.checked_step(&state, action.clone()).map_err(|e| format!("frame {k}: {action}: {e}"))?;
+        let edges = world
+            .checked_step(&state, action.clone())
+            .map_err(|e| format!("frame {k}: {action}: {e}"))?;
         if edges.is_empty() {
             if let Some(decoded) = &decoded {
                 if native(&state.values())? != *decoded {
-                    return Err(format!("frame {k}: {action} is disabled natively but the witness steps"));
+                    return Err(format!(
+                        "frame {k}: {action} is disabled natively but the witness steps"
+                    ));
                 }
             }
             continue;
@@ -208,19 +226,35 @@ where
     }
     let confirmed = match property.kind {
         Kind::Invariant => {
-            let claim = world.invariants().into_iter().find(|c| c.name == property.name).ok_or("no such invariant")?;
+            let claim = world
+                .invariants()
+                .into_iter()
+                .find(|c| c.name == property.name)
+                .ok_or("no such invariant")?;
             match (claim.predicate)(world, &state) {
                 Verdict::Fails => Ok(()),
                 other => Err(format!("native invariant verdict {other:?} on the final state")),
             }
         }
         Kind::Negative => {
-            let (_, judge) = negatives.iter().find(|(name, _)| *name == property.name).ok_or("no such negative claim")?;
-            if judge(&state) { Err("native negative claim holds on the final state".into()) } else { Ok(()) }
+            let (_, judge) = negatives
+                .iter()
+                .find(|(name, _)| *name == property.name)
+                .ok_or("no such negative claim")?;
+            if judge(&state) {
+                Err("native negative claim holds on the final state".into())
+            } else {
+                Ok(())
+            }
         }
         Kind::Postcondition => {
-            let claim = world.postconditions().into_iter().find(|c| c.name == property.name).ok_or("no such postcondition")?;
-            let (before, action, choice, edges) = last_edge.ok_or("postcondition violation without a step")?;
+            let claim = world
+                .postconditions()
+                .into_iter()
+                .find(|c| c.name == property.name)
+                .ok_or("no such postcondition")?;
+            let (before, action, choice, edges) =
+                last_edge.ok_or("postcondition violation without a step")?;
             match claim.holds(world, &before, &action, &edges[choice]) {
                 Verdict::Fails => Ok(()),
                 other => Err(format!("native postcondition verdict {other:?} on the final edge")),
@@ -237,8 +271,16 @@ mod tests {
 
     #[test]
     fn unsupported_native_values_refuse_witness_comparison() {
-        for value in [Value::Bounded { name: "Count", raw: 1 }, Value::Optional(None), Value::Sequence(vec![])] {
-            assert!(native(&[("field", value)]).unwrap_err().contains("unsupported native witness value for field"));
+        for value in [
+            Value::Bounded { name: "Count", raw: 1 },
+            Value::Optional(None),
+            Value::Sequence(vec![]),
+        ] {
+            assert!(
+                native(&[("field", value)])
+                    .unwrap_err()
+                    .contains("unsupported native witness value for field")
+            );
         }
     }
 }

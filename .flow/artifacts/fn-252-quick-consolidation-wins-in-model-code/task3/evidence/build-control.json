@@ -1,0 +1,12 @@
+[
+  {
+    "name": "missing",
+    "exit_code": 1,
+    "stderr": "Error: \"shared Kettle must declare exactly one boiling threshold of 100\"\n"
+  },
+  {
+    "name": "ambiguous",
+    "exit_code": 1,
+    "stderr": "Error: \"shared Kettle must declare exactly one boiling threshold of 100\"\n"
+  }
+]

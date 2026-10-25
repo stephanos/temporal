@@ -1,0 +1,12 @@
+{
+  "default_selection_distinct_directories": true,
+  "baseline_native_confirmed_counterexample": true,
+  "claim99_native_not_confirmed": true,
+  "heat2e9_witnesses_rejected": true,
+  "timeout_incomplete_not_disagreement": true,
+  "tracked_spike_outputs": 0,
+  "big_native_states": 2000083,
+  "big_native_depth": 999962,
+  "big_native_cut": false,
+  "big_negative": "IC3 timeout at10seconds; no verdict/proof; earlier driver summary true is superseded by focused corrected-reporting control, not interpreted as agreement"
+}

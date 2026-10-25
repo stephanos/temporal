@@ -1,0 +1,54 @@
+[02:56:37 INFO] the model to be checked: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2523-evidence/final-regenerated/claim99/warms_only_when_on.btor
+[02:56:37 INFO] origin ts has 490 vars, 3 inputs, 69 latches, 4 constraints, 1428 clauses and 3662 lits in cnf
+[02:56:37 INFO] trivial simplified ts: 163 vars, 3 inputs, 69 latches, 4 constraints, 658 clauses and 2420 lits in cnf
+[02:56:37 INFO] scorr: eliminates 0 latchs out of 69 in 0.00s
+[02:56:37 INFO] scorr: simplified ts: 161 vars, 3 inputs, 69 latches, 4 constraints, 653 clauses and 2412 lits in cnf
+[02:56:37 INFO] frts: eliminates 1 out of 161 vars in 0.00s
+[02:56:37 INFO] frts: simplified ts: 160 vars, 3 inputs, 69 latches, 4 constraints, 647 clauses and 2399 lits in cnf
+[02:56:37 INFO] preprocessed ts has 160 vars, 3 inputs, 69 latches, 4 constraints, 647 clauses and 2399 lits in cnf
+[02:56:37 INFO] IC3 found no counterexample up to depth 0
+[02:56:37 INFO] IC3 found no counterexample up to depth 1
+[02:56:37 INFO] IC3 found no counterexample up to depth 2
+[02:56:37 INFO] IC3 found no counterexample up to depth 3
+[02:56:37 INFO] IC3 found no counterexample up to depth 4
+[02:56:37 INFO] IC3 found no counterexample up to depth 5
+[02:56:37 INFO] IC3 found no counterexample up to depth 6
+[02:56:37 INFO] IC3 proved the property
+[02:56:37 INFO] obligations: [0, 0, 0, 0, 0, 0, 0, 1, 1]
+[02:56:37 INFO] frames [9]: 2 100 6 2 1 1 0 1 55 
+[02:56:37 INFO] SolverStatistic {
+    num_solve: 1388,
+    avg_solve_time: 2.758µs,
+    avg_decide_var: 0.518024,
+    num_simplify_subsume: 0,
+    num_simplify_self_subsume: 0,
+}
+[02:56:37 INFO] Statistic {
+    time: 0.01s,
+    num_mic: 169,
+    avg_mic_cube_len: 3.325444,
+    avg_po_cube_len: 26.712406,
+    mic_drop: success: 6, fail: 556, success rate: 1.07%,
+    num_down: 562,
+    num_down_sat: 398,
+    ctp: success: 0, fail: 63, success rate: 0.00%,
+    block: Block {
+        overall_time: 4.67525ms,
+        get_bad_time: 134 times in 812.510000µs,
+        blocked_time: 164 times in 353.371000µs,
+        get_pred_time: 2.138342ms,
+        mic_time: 2.200711ms,
+        push_time: 2.958µs,
+    },
+    propagate: Propagate {
+        overall_time: 1.075751ms,
+        push_inf_time: 221.417µs,
+    },
+    xor_gen: success: 0, fail: 0, success rate: NaN%,
+    num_auxiliary_var: 0,
+    test: success: 0, fail: 0, success rate: NaN%,
+}
+UNSAT
+0
+
+--- stderr ---

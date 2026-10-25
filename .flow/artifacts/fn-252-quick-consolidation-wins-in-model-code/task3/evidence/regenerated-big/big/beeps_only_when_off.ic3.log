@@ -1,0 +1,50 @@
+[02:54:51 INFO] the model to be checked: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2523-evidence/regenerated-big/big/beeps_only_when_off.btor
+[02:54:51 INFO] origin ts has 322 vars, 3 inputs, 35 latches, 4 constraints, 1025 clauses and 2719 lits in cnf
+[02:54:51 INFO] trivial simplified ts: 98 vars, 3 inputs, 35 latches, 4 constraints, 429 clauses and 1653 lits in cnf
+[02:54:51 INFO] scorr: eliminates 0 latchs out of 35 in 0.00s
+[02:54:51 INFO] scorr: simplified ts: 96 vars, 3 inputs, 35 latches, 4 constraints, 422 clauses and 1638 lits in cnf
+[02:54:51 INFO] frts: eliminates 0 out of 96 vars in 0.00s
+[02:54:51 INFO] frts: simplified ts: 96 vars, 3 inputs, 35 latches, 4 constraints, 422 clauses and 1638 lits in cnf
+[02:54:51 INFO] preprocessed ts has 96 vars, 3 inputs, 35 latches, 4 constraints, 422 clauses and 1638 lits in cnf
+[02:54:51 INFO] IC3 found no counterexample up to depth 0
+[02:54:51 INFO] IC3 found no counterexample up to depth 1
+[02:54:51 INFO] IC3 found no counterexample up to depth 2
+[02:54:51 INFO] IC3 proved the property
+[02:54:51 INFO] obligations: [0, 0, 0, 0, 1]
+[02:54:51 INFO] frames [5]: 1 4 0 1 0 
+[02:54:51 INFO] SolverStatistic {
+    num_solve: 30,
+    avg_solve_time: 2.368µs,
+    avg_decide_var: 0.637487,
+    num_simplify_subsume: 0,
+    num_simplify_self_subsume: 0,
+}
+[02:54:51 INFO] Statistic {
+    time: 0.00s,
+    num_mic: 5,
+    avg_mic_cube_len: 2.600000,
+    avg_po_cube_len: 3.000000,
+    mic_drop: success: 1, fail: 12, success rate: 7.69%,
+    num_down: 13,
+    num_down_sat: 12,
+    ctp: success: 0, fail: 1, success rate: 0.00%,
+    block: Block {
+        overall_time: 121.876µs,
+        get_bad_time: 4 times in 9.124000µs,
+        blocked_time: 2 times in 2.375000µs,
+        get_pred_time: 41.917µs,
+        mic_time: 110.376µs,
+        push_time: 126ns,
+    },
+    propagate: Propagate {
+        overall_time: 19.166µs,
+        push_inf_time: 292ns,
+    },
+    xor_gen: success: 0, fail: 0, success rate: NaN%,
+    num_auxiliary_var: 0,
+    test: success: 0, fail: 0, success rate: NaN%,
+}
+UNSAT
+0
+
+--- stderr ---

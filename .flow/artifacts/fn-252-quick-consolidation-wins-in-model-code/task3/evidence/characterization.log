@@ -1,0 +1,262 @@
+   Compiling unicode-ident v1.0.27
+   Compiling equivalent v1.0.3
+   Compiling hashbrown v0.17.1
+   Compiling bytemuck v1.25.2
+   Compiling rand_core v0.9.5
+   Compiling archery v1.2.3
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling foldhash v0.1.5
+   Compiling fixedbitset v0.5.7
+   Compiling smallvec v1.16.3
+   Compiling rustc-hash v2.1.3
+   Compiling safe_arch v0.7.4
+   Compiling proc-macro2 v1.0.107
+   Compiling wide v0.7.33
+   Compiling rand_xoshiro v0.7.0
+   Compiling hashbrown v0.15.5
+   Compiling indexmap v2.14.2
+   Compiling quote v1.0.47
+   Compiling syn v3.0.9
+   Compiling proc-macro-utils v0.10.0
+   Compiling syn v2.0.119
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling petgraph v0.8.3
+   Compiling manyhow-macros v0.14.1
+   Compiling imbl v7.0.2
+   Compiling proc-macro-crate v3.5.0
+   Compiling enum-iterator-derive v1.5.0
+   Compiling prettyplease v0.3.0
+   Compiling manyhow v0.14.1
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2523-spike/model/umpire/ir/derive)
+   Compiling thiserror-impl v2.0.21
+   Compiling enum-iterator v2.3.0
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2523-spike/model/umpire/ir)
+   Compiling thiserror v2.0.21
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2523-spike/model/umpire/front)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2523-spike/model/umpire/author/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2523-spike/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2523-spike/model/umpire/backends/native)
+   Compiling umpire-native-symbolic v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2523-spike/model/design/native-symbolic)
+error: environment variable `OUT_DIR` not defined at compile time
+  --> src/main.rs:16:22
+   |
+16 |     include!(concat!(env!("OUT_DIR"), "/kettle_big.rs"));
+   |                      ^^^^^^^^^^^^^^^
+   |
+   = help: `OUT_DIR` may not be available for the current Cargo target
+   = help: Cargo sets build script variables at run time. Use `std::env::var("OUT_DIR")` instead
+
+error[E0433]: cannot find module or crate `umpire` in this scope
+ --> src/../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs:3:5
+  |
+3 | use umpire::dsl::machine;
+  |     ^^^^^^ use of unresolved module or unlinked crate `umpire`
+  |
+  = help: if you wanted to use a crate named `umpire`, use `cargo add umpire` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `kettle_big::kettle`
+   --> src/main.rs:283:25
+    |
+283 |         use kettle_big::kettle::{Action, Heater, Model};
+    |                         ^^^^^^ could not find `kettle` in `kettle_big`
+
+error[E0433]: cannot find module or crate `umpire` in this scope
+ --> src/../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs:8:9
+  |
+8 |     use umpire::dsl::{Action, State, check, path};
+  |         ^^^^^^ use of unresolved module or unlinked crate `umpire`
+  |
+  = help: if you wanted to use a crate named `umpire`, use `cargo add umpire` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `sample_kettle::kettle::Action`
+   --> src/main.rs:273:37
+    |
+273 |         use sample_kettle::kettle::{Action, Heater, Model};
+    |                                     ^^^^^^ no `Action` in `sample_kettle::kettle`
+
+error: cannot find attribute `starts` in this scope
+  --> src/../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs:17:11
+   |
+17 |         #[starts(COLDEST_TEMPERATURE..=40)]
+   |           ^^^^^^
+   |
+   = note: `starts` is an attribute that can be used by the derive macro `State`, you might be missing a `derive` attribute
+
+error: cannot find attribute `internal` in this scope
+  --> src/../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs:36:7
+   |
+36 |     #[internal]
+   |       ^^^^^^^^
+   |
+help: `internal` is an attribute that can be used by the derive macro `Action`, you might be missing a `derive` attribute
+   |
+37 +     #[derive(Action)]
+38 |     pub enum Heater {
+   |
+
+error: cannot find attribute `on` in this scope
+  --> src/../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs:45:11
+   |
+45 |         #[on(User)]
+   |           ^^
+
+error: cannot find attribute `on` in this scope
+  --> src/../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs:60:11
+   |
+60 |         #[on(Heater)]
+   |           ^^
+
+error: cannot find attribute `invariant` in this scope
+  --> src/../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs:74:11
+   |
+74 |         #[invariant]
+   |           ^^^^^^^^^
+
+error: cannot find attribute `postcondition` in this scope
+  --> src/../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs:81:11
+   |
+81 |         #[postcondition]
+   |           ^^^^^^^^^^^^^
+
+error: cannot find attribute `postcondition` in this scope
+  --> src/../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs:88:11
+   |
+88 |         #[postcondition(after = Heater::Failover)]
+   |           ^^^^^^^^^^^^^
+
+error: cannot find attribute `assumption` in this scope
+  --> src/../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs:95:11
+   |
+95 |         #[assumption]
+   |           ^^^^^^^^^^
+
+error: cannot find attribute `progress` in this scope
+   --> src/../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs:101:11
+    |
+101 |         #[progress]
+    |           ^^^^^^^^
+
+error[E0433]: cannot find `kettle` in `kettle_big`
+  --> src/main.rs:91:103
+   |
+91 | ...000, a real second Model)", &kettle_big::kettle::world(), |_| {}, &["ic3".to_owned()], 1 << 23, &settings)?,
+   |                                             ^^^^^^ could not find `kettle` in `kettle_big`
+
+error[E0433]: cannot find `World` in `kettle`
+   --> src/main.rs:262:47
+    |
+262 |         let baseline = sample_kettle::kettle::World::__umpire_lifted().model.unwrap();
+    |                                               ^^^^^ could not find `World` in `kettle`
+
+error[E0433]: cannot find `kettle` in `kettle_big`
+   --> src/main.rs:263:31
+    |
+263 |         let big = kettle_big::kettle::World::__umpire_lifted().model.unwrap();
+    |                               ^^^^^^ could not find `kettle` in `kettle_big`
+
+error[E0433]: cannot find `kettle` in `kettle_big`
+   --> src/main.rs:284:33
+    |
+284 |         let world = kettle_big::kettle::world();
+    |                                 ^^^^^^ could not find `kettle` in `kettle_big`
+
+error[E0425]: cannot find type `Assumption` in this scope
+  --> src/../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs:96:36
+   |
+96 |         fn never_switched_off() -> Assumption {
+   |                                    ^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find type `LeadsTo` in this scope
+   --> src/../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs:102:28
+    |
+102 |         fn boils(&self) -> LeadsTo {
+    |                            ^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `world` in module `sample_kettle::kettle`
+  --> src/main.rs:54:69
+   |
+54 | ...   "baseline" => check("baseline", &sample_kettle::kettle::world(), |_| {}, &engines, umpire_checker::Checker::BUDGET, &settings)?,
+   |                                                               ^^^^^ not found in `sample_kettle::kettle`
+
+error[E0425]: cannot find function `world` in module `sample_kettle::kettle`
+  --> src/main.rs:57:41
+   |
+57 |                 &sample_kettle::kettle::world(),
+   |                                         ^^^^^ not found in `sample_kettle::kettle`
+
+error[E0425]: cannot find function `world` in module `sample_kettle::kettle`
+  --> src/main.rs:71:41
+   |
+71 |                 &sample_kettle::kettle::world(),
+   |                                         ^^^^^ not found in `sample_kettle::kettle`
+
+error[E0433]: cannot find `kettle` in `kettle_big`
+   --> src/main.rs:250:30
+    |
+250 | impl Beeping for kettle_big::kettle::Model {
+    |                              ^^^^^^ could not find `kettle` in `kettle_big`
+    |
+help: consider importing this module
+    |
+ 19 + use crate::sample_kettle::kettle;
+    |
+help: if you import `kettle`, refer to it directly
+    |
+250 - impl Beeping for kettle_big::kettle::Model {
+250 + impl Beeping for kettle::Model {
+    |
+
+error[E0425]: cannot find function `world` in module `sample_kettle::kettle`
+   --> src/main.rs:274:44
+    |
+274 |         let world = sample_kettle::kettle::world();
+    |                                            ^^^^^ not found in `sample_kettle::kettle`
+
+error[E0277]: the trait bound `User: Clone` is not satisfied
+   --> src/../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs:27:14
+    |
+ 26 |     #[derive(Action, Copy)]
+    |                      ---- in this derive macro expansion
+ 27 |     pub enum User {
+    |              ^^^^ the trait `Clone` is not implemented for `User`
+    |
+note: required by a bound in `Copy`
+   --> /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/marker.rs:454:17
+    |
+454 | pub trait Copy: Clone {
+    |                 ^^^^^ required by this bound in `Copy`
+help: consider annotating `User` with `#[derive(Clone)]`
+    |
+ 27 +     #[derive(Clone)]
+ 28 |     pub enum User {
+    |
+
+error[E0277]: the trait bound `Heater: Clone` is not satisfied
+   --> src/../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs:37:14
+    |
+ 35 |     #[derive(Action, Copy)]
+    |                      ---- in this derive macro expansion
+ 36 |     #[internal]
+ 37 |     pub enum Heater {
+    |              ^^^^^^ the trait `Clone` is not implemented for `Heater`
+    |
+note: required by a bound in `Copy`
+   --> /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/marker.rs:454:17
+    |
+454 | pub trait Copy: Clone {
+    |                 ^^^^^ required by this bound in `Copy`
+help: consider annotating `Heater` with `#[derive(Clone)]`
+    |
+ 37 +     #[derive(Clone)]
+ 38 |     pub enum Heater {
+    |
+
+error[E0425]: cannot find function `without` in this scope
+  --> src/../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs:97:13
+   |
+97 |             without([User::DepressButton])
+   |             ^^^^^^^ not found in this scope
+
+Some errors have detailed explanations: E0277, E0425, E0432, E0433.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `umpire-native-symbolic` (bin "umpire-native-symbolic" test) due to 28 previous errors

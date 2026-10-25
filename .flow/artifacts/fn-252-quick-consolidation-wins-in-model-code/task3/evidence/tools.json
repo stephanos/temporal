@@ -1,0 +1,17 @@
+{
+  "source_base": "4c4e99ca7e89d87f6c64e7b30cdbbb764294d758",
+  "tools": [
+    {
+      "path": "/home/agent/.cache/codex-build/tmp/claude-1000/-Users-stephan-Workspace-skunkworks-umpire/df3b821d-b509-4611-8661-a68b981396af/scratchpad/ric3-target/release/ric3",
+      "sha256": "92289a6ccb0b905c05d71582f9cd8f9fa4cc3d323ddda7db10ec9e81bc909cb5",
+      "version": "rIC3 1.5.2"
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/tmp/claude-1000/-Users-stephan-Workspace-skunkworks-umpire/df3b821d-b509-4611-8661-a68b981396af/scratchpad/pytools/bin/z3",
+      "sha256": "6a898c9709d254df427bd5e6a524afaa3cb7b2f659b55dce0cd9a0eb920cfad7",
+      "version": "Z3 version 5.3.1 - 64 bit"
+    }
+  ],
+  "ric3_source_commit": "8c6df1b7a8c217e157215e05348a7a04b5d2fbb2",
+  "ric3_source_status": ""
+}
