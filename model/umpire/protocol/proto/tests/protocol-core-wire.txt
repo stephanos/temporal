@@ -1,4 +1,4 @@
-reset_response 2200
+reset_response 22021001
 judge_request 0a070a017812020102
 answer_request 0a070a017812020102
 judge_explained 2a020a00

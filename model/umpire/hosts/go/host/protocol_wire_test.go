@@ -112,7 +112,7 @@ func TestCoreProtocolWireCompatibility(t *testing.T) {
 	}
 	opaque := &anypb.Any{TypeUrl: "x", Value: []byte{1, 2}}
 	wants := map[string]proto.Message{
-		"reset_response":    &modelv1.Response{Outcome: &modelv1.Response_Reset_{Reset_: &modelv1.ResetResponse{}}},
+		"reset_response":    &modelv1.Response{Outcome: &modelv1.Response_Reset_{Reset_: &modelv1.ResetResponse{ProofContract: modelv1.ProofContract_PROOF_CONTRACT_WHOLE_PREFIX_V1}}},
 		"judge_request":     &modelv1.JudgeRequest{Observation: opaque},
 		"answer_request":    &modelv1.AnswerRequest{Callback: opaque},
 		"judge_explained":   &modelv1.Response{Outcome: &modelv1.Response_Judge{Judge: &modelv1.JudgeResponse{Judgment: &modelv1.JudgeResponse_Explained{Explained: &modelv1.Explanation{}}}}},

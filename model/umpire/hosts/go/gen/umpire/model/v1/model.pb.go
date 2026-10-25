@@ -156,6 +156,52 @@ func (RefusalCode) EnumDescriptor() ([]byte, []int) {
 	return file_umpire_model_v1_model_proto_rawDescGZIP(), []int{1}
 }
 
+type ProofContract int32
+
+const (
+	ProofContract_PROOF_CONTRACT_UNSPECIFIED     ProofContract = 0
+	ProofContract_PROOF_CONTRACT_WHOLE_PREFIX_V1 ProofContract = 1
+)
+
+// Enum value maps for ProofContract.
+var (
+	ProofContract_name = map[int32]string{
+		0: "PROOF_CONTRACT_UNSPECIFIED",
+		1: "PROOF_CONTRACT_WHOLE_PREFIX_V1",
+	}
+	ProofContract_value = map[string]int32{
+		"PROOF_CONTRACT_UNSPECIFIED":     0,
+		"PROOF_CONTRACT_WHOLE_PREFIX_V1": 1,
+	}
+)
+
+func (x ProofContract) Enum() *ProofContract {
+	p := new(ProofContract)
+	*p = x
+	return p
+}
+
+func (x ProofContract) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ProofContract) Descriptor() protoreflect.EnumDescriptor {
+	return file_umpire_model_v1_model_proto_enumTypes[2].Descriptor()
+}
+
+func (ProofContract) Type() protoreflect.EnumType {
+	return &file_umpire_model_v1_model_proto_enumTypes[2]
+}
+
+func (x ProofContract) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ProofContract.Descriptor instead.
+func (ProofContract) EnumDescriptor() ([]byte, []int) {
+	return file_umpire_model_v1_model_proto_rawDescGZIP(), []int{2}
+}
+
 type ProposalKind int32
 
 const (
@@ -192,11 +238,11 @@ func (x ProposalKind) String() string {
 }
 
 func (ProposalKind) Descriptor() protoreflect.EnumDescriptor {
-	return file_umpire_model_v1_model_proto_enumTypes[2].Descriptor()
+	return file_umpire_model_v1_model_proto_enumTypes[3].Descriptor()
 }
 
 func (ProposalKind) Type() protoreflect.EnumType {
-	return &file_umpire_model_v1_model_proto_enumTypes[2]
+	return &file_umpire_model_v1_model_proto_enumTypes[3]
 }
 
 func (x ProposalKind) Number() protoreflect.EnumNumber {
@@ -205,7 +251,7 @@ func (x ProposalKind) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ProposalKind.Descriptor instead.
 func (ProposalKind) EnumDescriptor() ([]byte, []int) {
-	return file_umpire_model_v1_model_proto_rawDescGZIP(), []int{2}
+	return file_umpire_model_v1_model_proto_rawDescGZIP(), []int{3}
 }
 
 type ExploreRequest struct {
@@ -539,6 +585,7 @@ func (x *ResetRequest) GetConfiguration() *anypb.Any {
 type ResetResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Program       *anypb.Any             `protobuf:"bytes,1,opt,name=program,proto3" json:"program,omitempty"`
+	ProofContract ProofContract          `protobuf:"varint,2,opt,name=proof_contract,json=proofContract,proto3,enum=umpire.model.v1.ProofContract" json:"proof_contract,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -578,6 +625,13 @@ func (x *ResetResponse) GetProgram() *anypb.Any {
 		return x.Program
 	}
 	return nil
+}
+
+func (x *ResetResponse) GetProofContract() ProofContract {
+	if x != nil {
+		return x.ProofContract
+	}
+	return ProofContract_PROOF_CONTRACT_UNSPECIFIED
 }
 
 type JudgeRequest struct {
@@ -1292,9 +1346,10 @@ const file_umpire_model_v1_model_proto_rawDesc = "" +
 	"\x04code\x18\x01 \x01(\x0e2\x1c.umpire.model.v1.RefusalCodeR\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\"J\n" +
 	"\fResetRequest\x12:\n" +
-	"\rconfiguration\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\rconfiguration\"?\n" +
+	"\rconfiguration\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\rconfiguration\"\x86\x01\n" +
 	"\rResetResponse\x12.\n" +
-	"\aprogram\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\aprogram\"F\n" +
+	"\aprogram\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\aprogram\x12E\n" +
+	"\x0eproof_contract\x18\x02 \x01(\x0e2\x1e.umpire.model.v1.ProofContractR\rproofContract\"F\n" +
 	"\fJudgeRequest\x126\n" +
 	"\vobservation\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\vobservation\"?\n" +
 	"\vExplanation\x12\x14\n" +
@@ -1351,7 +1406,10 @@ const file_umpire_model_v1_model_proto_rawDesc = "" +
 	"\x17REFUSAL_CODE_ALLOCATION\x10\x06\x12\x1d\n" +
 	"\x19REFUSAL_CODE_SCOPE_ACTION\x10\a\x12\x1c\n" +
 	"\x18REFUSAL_CODE_UNSUPPORTED\x10\b\x12\x1a\n" +
-	"\x16REFUSAL_CODE_QUIESCENT\x10\t*|\n" +
+	"\x16REFUSAL_CODE_QUIESCENT\x10\t*S\n" +
+	"\rProofContract\x12\x1e\n" +
+	"\x1aPROOF_CONTRACT_UNSPECIFIED\x10\x00\x12\"\n" +
+	"\x1ePROOF_CONTRACT_WHOLE_PREFIX_V1\x10\x01*|\n" +
 	"\fProposalKind\x12\x1d\n" +
 	"\x19PROPOSAL_KIND_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14PROPOSAL_KIND_ACTION\x10\x01\x12\x1b\n" +
@@ -1370,58 +1428,60 @@ func file_umpire_model_v1_model_proto_rawDescGZIP() []byte {
 	return file_umpire_model_v1_model_proto_rawDescData
 }
 
-var file_umpire_model_v1_model_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_umpire_model_v1_model_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
 var file_umpire_model_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_umpire_model_v1_model_proto_goTypes = []any{
 	(Method)(0),              // 0: umpire.model.v1.Method
 	(RefusalCode)(0),         // 1: umpire.model.v1.RefusalCode
-	(ProposalKind)(0),        // 2: umpire.model.v1.ProposalKind
-	(*ExploreRequest)(nil),   // 3: umpire.model.v1.ExploreRequest
-	(*ExploreResponse)(nil),  // 4: umpire.model.v1.ExploreResponse
-	(*RowsRequest)(nil),      // 5: umpire.model.v1.RowsRequest
-	(*RowsResponse)(nil),     // 6: umpire.model.v1.RowsResponse
-	(*Refusal)(nil),          // 7: umpire.model.v1.Refusal
-	(*ResetRequest)(nil),     // 8: umpire.model.v1.ResetRequest
-	(*ResetResponse)(nil),    // 9: umpire.model.v1.ResetResponse
-	(*JudgeRequest)(nil),     // 10: umpire.model.v1.JudgeRequest
-	(*Explanation)(nil),      // 11: umpire.model.v1.Explanation
-	(*Unexplained)(nil),      // 12: umpire.model.v1.Unexplained
-	(*JudgeResponse)(nil),    // 13: umpire.model.v1.JudgeResponse
-	(*AnswerRequest)(nil),    // 14: umpire.model.v1.AnswerRequest
-	(*AnswerResponse)(nil),   // 15: umpire.model.v1.AnswerResponse
-	(*ProposeRequest)(nil),   // 16: umpire.model.v1.ProposeRequest
-	(*ProposeResponse)(nil),  // 17: umpire.model.v1.ProposeResponse
-	(*AnnotateRequest)(nil),  // 18: umpire.model.v1.AnnotateRequest
-	(*AnnotateResponse)(nil), // 19: umpire.model.v1.AnnotateResponse
-	(*Response)(nil),         // 20: umpire.model.v1.Response
-	(*anypb.Any)(nil),        // 21: google.protobuf.Any
+	(ProofContract)(0),       // 2: umpire.model.v1.ProofContract
+	(ProposalKind)(0),        // 3: umpire.model.v1.ProposalKind
+	(*ExploreRequest)(nil),   // 4: umpire.model.v1.ExploreRequest
+	(*ExploreResponse)(nil),  // 5: umpire.model.v1.ExploreResponse
+	(*RowsRequest)(nil),      // 6: umpire.model.v1.RowsRequest
+	(*RowsResponse)(nil),     // 7: umpire.model.v1.RowsResponse
+	(*Refusal)(nil),          // 8: umpire.model.v1.Refusal
+	(*ResetRequest)(nil),     // 9: umpire.model.v1.ResetRequest
+	(*ResetResponse)(nil),    // 10: umpire.model.v1.ResetResponse
+	(*JudgeRequest)(nil),     // 11: umpire.model.v1.JudgeRequest
+	(*Explanation)(nil),      // 12: umpire.model.v1.Explanation
+	(*Unexplained)(nil),      // 13: umpire.model.v1.Unexplained
+	(*JudgeResponse)(nil),    // 14: umpire.model.v1.JudgeResponse
+	(*AnswerRequest)(nil),    // 15: umpire.model.v1.AnswerRequest
+	(*AnswerResponse)(nil),   // 16: umpire.model.v1.AnswerResponse
+	(*ProposeRequest)(nil),   // 17: umpire.model.v1.ProposeRequest
+	(*ProposeResponse)(nil),  // 18: umpire.model.v1.ProposeResponse
+	(*AnnotateRequest)(nil),  // 19: umpire.model.v1.AnnotateRequest
+	(*AnnotateResponse)(nil), // 20: umpire.model.v1.AnnotateResponse
+	(*Response)(nil),         // 21: umpire.model.v1.Response
+	(*anypb.Any)(nil),        // 22: google.protobuf.Any
 }
 var file_umpire_model_v1_model_proto_depIdxs = []int32{
 	1,  // 0: umpire.model.v1.Refusal.code:type_name -> umpire.model.v1.RefusalCode
-	21, // 1: umpire.model.v1.ResetRequest.configuration:type_name -> google.protobuf.Any
-	21, // 2: umpire.model.v1.ResetResponse.program:type_name -> google.protobuf.Any
-	21, // 3: umpire.model.v1.JudgeRequest.observation:type_name -> google.protobuf.Any
-	11, // 4: umpire.model.v1.JudgeResponse.explained:type_name -> umpire.model.v1.Explanation
-	12, // 5: umpire.model.v1.JudgeResponse.unexplained:type_name -> umpire.model.v1.Unexplained
-	21, // 6: umpire.model.v1.AnswerRequest.callback:type_name -> google.protobuf.Any
-	21, // 7: umpire.model.v1.AnswerResponse.reply:type_name -> google.protobuf.Any
-	21, // 8: umpire.model.v1.ProposeResponse.request:type_name -> google.protobuf.Any
-	2,  // 9: umpire.model.v1.ProposeResponse.kind:type_name -> umpire.model.v1.ProposalKind
-	21, // 10: umpire.model.v1.AnnotateRequest.input:type_name -> google.protobuf.Any
-	21, // 11: umpire.model.v1.AnnotateResponse.output:type_name -> google.protobuf.Any
-	4,  // 12: umpire.model.v1.Response.explore:type_name -> umpire.model.v1.ExploreResponse
-	6,  // 13: umpire.model.v1.Response.rows:type_name -> umpire.model.v1.RowsResponse
-	7,  // 14: umpire.model.v1.Response.refusal:type_name -> umpire.model.v1.Refusal
-	9,  // 15: umpire.model.v1.Response.reset:type_name -> umpire.model.v1.ResetResponse
-	13, // 16: umpire.model.v1.Response.judge:type_name -> umpire.model.v1.JudgeResponse
-	15, // 17: umpire.model.v1.Response.answer:type_name -> umpire.model.v1.AnswerResponse
-	19, // 18: umpire.model.v1.Response.annotate:type_name -> umpire.model.v1.AnnotateResponse
-	17, // 19: umpire.model.v1.Response.propose:type_name -> umpire.model.v1.ProposeResponse
-	20, // [20:20] is the sub-list for method output_type
-	20, // [20:20] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	22, // 1: umpire.model.v1.ResetRequest.configuration:type_name -> google.protobuf.Any
+	22, // 2: umpire.model.v1.ResetResponse.program:type_name -> google.protobuf.Any
+	2,  // 3: umpire.model.v1.ResetResponse.proof_contract:type_name -> umpire.model.v1.ProofContract
+	22, // 4: umpire.model.v1.JudgeRequest.observation:type_name -> google.protobuf.Any
+	12, // 5: umpire.model.v1.JudgeResponse.explained:type_name -> umpire.model.v1.Explanation
+	13, // 6: umpire.model.v1.JudgeResponse.unexplained:type_name -> umpire.model.v1.Unexplained
+	22, // 7: umpire.model.v1.AnswerRequest.callback:type_name -> google.protobuf.Any
+	22, // 8: umpire.model.v1.AnswerResponse.reply:type_name -> google.protobuf.Any
+	22, // 9: umpire.model.v1.ProposeResponse.request:type_name -> google.protobuf.Any
+	3,  // 10: umpire.model.v1.ProposeResponse.kind:type_name -> umpire.model.v1.ProposalKind
+	22, // 11: umpire.model.v1.AnnotateRequest.input:type_name -> google.protobuf.Any
+	22, // 12: umpire.model.v1.AnnotateResponse.output:type_name -> google.protobuf.Any
+	5,  // 13: umpire.model.v1.Response.explore:type_name -> umpire.model.v1.ExploreResponse
+	7,  // 14: umpire.model.v1.Response.rows:type_name -> umpire.model.v1.RowsResponse
+	8,  // 15: umpire.model.v1.Response.refusal:type_name -> umpire.model.v1.Refusal
+	10, // 16: umpire.model.v1.Response.reset:type_name -> umpire.model.v1.ResetResponse
+	14, // 17: umpire.model.v1.Response.judge:type_name -> umpire.model.v1.JudgeResponse
+	16, // 18: umpire.model.v1.Response.answer:type_name -> umpire.model.v1.AnswerResponse
+	20, // 19: umpire.model.v1.Response.annotate:type_name -> umpire.model.v1.AnnotateResponse
+	18, // 20: umpire.model.v1.Response.propose:type_name -> umpire.model.v1.ProposeResponse
+	21, // [21:21] is the sub-list for method output_type
+	21, // [21:21] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_umpire_model_v1_model_proto_init() }
@@ -1448,7 +1508,7 @@ func file_umpire_model_v1_model_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_umpire_model_v1_model_proto_rawDesc), len(file_umpire_model_v1_model_proto_rawDesc)),
-			NumEnums:      3,
+			NumEnums:      4,
 			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   0,

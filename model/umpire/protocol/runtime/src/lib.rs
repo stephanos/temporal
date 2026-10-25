@@ -35,6 +35,13 @@ pub use runtime::{
     ReachTarget, Realize, Runtime, Scope, SingletonTarget, Transaction, Transition,
 };
 
+impl protocol::ResetResponse {
+    /// Declares this runtime's whole-prefix proof contract, with an optional worker program.
+    pub fn current(program: Option<prost_types::Any>) -> Self {
+        Self { program, proof_contract: protocol::ProofContract::WholePrefixV1 as i32 }
+    }
+}
+
 impl protocol::Refusal {
     /// Construct a refusal with a stable protocol code.
     pub fn new(code: protocol::RefusalCode, message: impl Into<String>) -> Self {

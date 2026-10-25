@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"time"
 
 	"google.golang.org/protobuf/proto"
@@ -130,6 +131,7 @@ func wallClock(ctx context.Context, _ deadlineKind, d time.Duration) (context.Co
 // New returns a Runner for the guest bytes. The Driver factory may be nil for question and
 // replay, which make no Driver.
 func New(wasm []byte, driver NewDriver) *Runner {
+	wasm = slices.Clone(wasm)
 	sum := sha256.Sum256(wasm)
 	return &Runner{wasm: wasm, hash: hex.EncodeToString(sum[:]), newDriver: driver, newHost: model.New, deadline: wallClock}
 }

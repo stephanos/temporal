@@ -22,7 +22,7 @@ for unit outcomes. The realization matches the final replayed outcome; an initia
 witness has no outcome. The first Unexplained freezes advancement until Reset. Answer validates
 delivery and its enabled response action before committing. Failed response publication commits nothing.
 `Any::pack`/`unpack` use generated `prost::Name` canonical URLs and typed Refusal
-constructors; the registry remains system-owned. Existing method IDs and current message encodings remain pinned by host tests.
+constructors; the registry remains system-owned. Method IDs and current message encodings are pinned by host tests.
 
 Annotate (7) carries an opaque input Any and returns an opaque output Any at
 Response tag 8. Shared `umpire.annotations.v1` messages carry annotation requests,
@@ -97,7 +97,13 @@ configuration; composing system dispatchers own its validation and transactional
 ResetResponse.program (Any, tag 1) optionally carries the realization's World-bound worker
 program; Unsupported from the program hook means no program, while other refusals prevent Reset.
 The host retains this opaque value without decoding its system-owned contents.
-Replay must retain this exact Reset call and response. Existing wire vectors remain unchanged. The new
+ResetResponse.proof_contract (tag 2) must be WHOLE_PREFIX_V1 (1), declaring that every
+Explanation contains the complete witness from the accepted Reset across all observations
+and callback deliveries. The framework runtime supplies this value on configured and
+unconfigured Reset responses. Host validates the actual ordinary response before Driver
+creation; absent/zero and unknown values refuse. No separate export or probe negotiates it.
+This is a current-format break: delta guests and their records are not supported.
+Replay must retain this exact Reset call and response. The current
 Judge response with both a judgment and continue_polling has separate literal Rust/Go
 vectors: protobuf permits field ordering differences (prost writes the oneof first; Go
 writes the scalar first). Both decode to the same message.

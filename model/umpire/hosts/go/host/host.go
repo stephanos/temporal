@@ -377,8 +377,17 @@ func (h *Host) Call(ctx context.Context, method modelv1.Method, request []byte) 
 		return nil, &RefusalError{Code: refusal.Code, Message: refusal.Message}
 	}
 	if method == modelv1.Method_METHOD_EXPLORE && response.GetExplore() != nil ||
-		method == modelv1.Method_METHOD_ROWS && response.GetRows() != nil ||
-		method == modelv1.Method_METHOD_RESET && response.GetReset_() != nil {
+		method == modelv1.Method_METHOD_ROWS && response.GetRows() != nil {
+		return response, nil
+	}
+	if method == modelv1.Method_METHOD_RESET && response.GetReset_() != nil {
+		contract := response.GetReset_().GetProofContract()
+		if contract == modelv1.ProofContract_PROOF_CONTRACT_UNSPECIFIED {
+			return nil, &RefusalError{Code: modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST, Message: "Reset response requires a proof contract"}
+		}
+		if contract != modelv1.ProofContract_PROOF_CONTRACT_WHOLE_PREFIX_V1 {
+			return nil, &RefusalError{Code: modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED, Message: fmt.Sprintf("Reset proof contract %d is incompatible; require %s", contract, modelv1.ProofContract_PROOF_CONTRACT_WHOLE_PREFIX_V1)}
+		}
 		return response, nil
 	}
 	if method == modelv1.Method_METHOD_JUDGE && response.GetJudge() != nil {
