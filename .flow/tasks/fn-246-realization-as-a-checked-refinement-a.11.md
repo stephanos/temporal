@@ -45,9 +45,17 @@ From model/: `mise exec -- cargo test -p umpire-front -p umpire-dsl-macros -p um
 
 
 ## Done summary
-TBD
+Integrated typed variant metadata and the generic Temporal registry. Corrected both initial review findings: empty-path root admission now invokes the authored predicates with conflict refusal, and semantic scanning strips opaque variant metadata only from its scan clone while preserving genuine reject!/stay! behavior.
 
+The worker's cohesive six-crate suite passed 175 tests with no ignored tests, with strict clippy/fmt and boundary controls. Root renewed metadata, RegistryReach, expansion, Host parity and guest freshness checks; all source/proof manifests were verified. Final style-only semicolons received scoped lint/fmt checks without repeating the unchanged broad suite. The original primary reviewer resumed the merged findings and returned SHIP at f85d9399c4, explicitly confirming both fixes and no new blockers.
+
+The joined full gate is running, not claimed complete by this task; task .15 retains that closure requirement. Activity migration, compatible frontiers, protocol/refinement, worker policies, live gates and final counts remain assigned downstream.
+
+Tier: AGENTS implementer gpt-6.1-sol/medium; reviewer gpt-6.1-sol/high (same family).
+stage: impl-review - SHIP (original primary session 01a173e8-01cb-73d2-a411-26134e411a9e).
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e78e5aa417f483d5ae19c1314d82433b6dc116ff, 5036795dc1cafbf2872a4b80a4fe5389de19373b
+- Tests: mise exec -- cargo test -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer, mise exec -- cargo clippy -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer --all-targets -- -D warnings, mise exec -- cargo fmt -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer --check, mise exec -- cargo test -p umpire-temporal-tests --test boundary
 - PRs:

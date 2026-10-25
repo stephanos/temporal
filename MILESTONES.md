@@ -19,8 +19,9 @@ The Scala tree under `model/archived/` is frozen reference material.
 
 Current order: **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
-ranks a fast feedback loop among the most important properties. fn-246's in-flight tasks (.8, .11, .15) continue to their
-boundaries. fn-254.1 needs a quiet host; fn-254.7 waits for fn-246, and fn-254.10's workspace move lands at an
+ranks a fast feedback loop among the most important properties. fn-246's remaining in-flight task (.15) continues to its
+boundary. Deliver fn-254's independent framework/gate checkpoint, resume fn-246 to closure, then finish fn-254.7/.8.
+fn-254.1 needs a quiet host; fn-254.7 waits for fn-246, and fn-254.10's workspace move lands at an
 integration boundary. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; fn-253.1, .7, .9
 and .10 edit the activity Model and wait for committed fn-246.15.
 fn-255.1, .3 and .4 (generator spike, fuzz targets, cargo-mutants) touch no gate files and may run as lanes before fn-254 closes.
@@ -102,8 +103,6 @@ subprocess refusal remains recorded separately.
 | --- | --- | --- |
 | fn-246.15 | 🔄 in progress | Approved nonpending timeout-retry correction and native/TLC proof renewal (R5) |
 | fn-246.13 | ⬜ todo | After committed .15: independent standalone-activity protocol Model and native/TLC invariants (R5) |
-| fn-246.8 | 🔄 in progress | Current default whole-prefix guest/Host contract (R1, R2) |
-| fn-246.11 | 🔄 in progress | Variant metadata and synthetic typed registry integrated; joined validation and review remain (R2, R3) |
 | fn-246.9 | ⬜ todo | After .8: current-format whole-prefix Run recording, replay and presentation (R1, R5) |
 | fn-246.10 | ⬜ todo | After .9: bounded alternatives and coherent explanation publication (R1, R5) |
 | fn-246.2 | ⬜ todo | After .10, .11: shared entity lens and filler-driven probes with equivalence pins (R3) |
