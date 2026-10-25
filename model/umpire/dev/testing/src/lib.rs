@@ -97,6 +97,58 @@ pub mod __probe {
             None
         }
     }
+    pub trait Checks<M> {
+        fn check(
+            self,
+            world: &M,
+            embedded: Option<&Embedded>,
+            folder: &std::path::Path,
+            source: &std::path::Path,
+            run: fn() -> crate::RunResult,
+        ) -> crate::RunResult;
+    }
+    impl<M> Checks<M> for &Probe<M>
+    where
+        M: umpire_dsl::Machine<
+                State: umpire_dsl::Values,
+                Outcome: umpire_dsl::IntoValue,
+                Fact: umpire_dsl::IntoValue,
+            > + Lifts,
+    {
+        fn check(
+            self,
+            world: &M,
+            embedded: Option<&Embedded>,
+            folder: &std::path::Path,
+            source: &std::path::Path,
+            run: fn() -> crate::RunResult,
+        ) -> crate::RunResult {
+            crate::check(world, embedded, folder, source, run)
+        }
+    }
+    pub trait Uncheckable<M> {
+        fn check(
+            self,
+            world: &M,
+            embedded: Option<&Embedded>,
+            folder: &std::path::Path,
+            source: &std::path::Path,
+            run: fn() -> crate::RunResult,
+        ) -> crate::RunResult;
+    }
+    impl<M> Uncheckable<M> for &&Probe<M> {
+        fn check(
+            self,
+            _world: &M,
+            embedded: Option<&Embedded>,
+            _folder: &std::path::Path,
+            source: &std::path::Path,
+            _run: fn() -> crate::RunResult,
+        ) -> crate::RunResult {
+            crate::lift(embedded, source)?;
+            Err("typed backend replay requires exported state, outcome and fact values".into())
+        }
+    }
 }
 
 /// Define a fixture's lift hooks for `world`: `lifted(source)` emits the Model its
@@ -127,7 +179,16 @@ macro_rules! __lift_hooks {
             source: &::std::path::Path,
             run: fn() -> $crate::RunResult,
         ) -> $crate::RunResult {
-            $crate::check(&$world, $crate::__embedded!($world).as_ref(), folder, source, run)
+            #[allow(unused_imports)]
+            use $crate::__probe::{Checks as _, Uncheckable as _};
+            let world = $world;
+            (&$crate::__probe::of(&world)).check(
+                &world,
+                $crate::__embedded!(world).as_ref(),
+                folder,
+                source,
+                run,
+            )
         }
     };
 }
