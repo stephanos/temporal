@@ -280,7 +280,7 @@ func deliver(t *testing.T, h *model.Host) {
 func reset(t *testing.T, h *model.Host) {
 	t.Helper()
 	response, err := h.Reset(context.Background(), &modelv1.ResetRequest{})
-	if err != nil || response == nil {
+	if err != nil || response.GetProofContract() != modelv1.ProofContract_PROOF_CONTRACT_WHOLE_PREFIX_V1 {
 		t.Fatalf("Reset = %v, %v", response, err)
 	}
 }

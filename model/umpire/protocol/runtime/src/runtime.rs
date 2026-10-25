@@ -495,7 +495,7 @@ where
                     Err(refusal) => return Err(refusal),
                 };
                 Ok((
-                    protocol::response::Outcome::Reset(protocol::ResetResponse { program }),
+                    protocol::response::Outcome::Reset(protocol::ResetResponse::current(program)),
                     Some(Transaction {
                         change: Change::Run {
                             state,

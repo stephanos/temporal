@@ -17,3 +17,5 @@ for pair in \
 done
 mise exec -- cargo run --locked --profile guest -p umpire-caught-panic-guest \
   --bin panic-control-reports -- "$target/panic-native"
+mise exec -- cargo run --locked --profile guest -p umpire-control-guest \
+  --bin current-contract-reports -- "$target/current-contract-native"

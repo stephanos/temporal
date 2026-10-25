@@ -5,6 +5,12 @@ the mise-pinned Rust 1.99.1 compiler, `--locked`, `wasm32-wasip1` and `profile.g
 It discovers the output through Cargo's artifact messages, including custom library
 names. It requires Bash, mise, installed pinned Rust/Cargo, and the `rust-src` component;
 active guest/build helpers require no Python.
+Current guests declare WHOLE_PREFIX_V1 in their ordinary Reset response. All current
+native and wasm producers use the same runtime contract; Host refuses a missing or
+unknown declaration before Driver creation. This wire-format change requires rebuilding
+guests and current records together; historical guest bytes are not preserved.
+The model hash binds an owned copy of the exact loaded guest bytes independently of
+the Reset declaration.
 `xtask.sh` builds the current native host tool in `<target>/xtask-bootstrap` before
 installing guest wrappers, flags or cache settings. It prints the absolute binary
 path for shell callers. This incremental build also prevents stale cached tools

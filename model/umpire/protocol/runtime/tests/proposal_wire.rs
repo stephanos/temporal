@@ -1,4 +1,4 @@
-//! Additive proposal wire contract, preserving the existing vectors.
+//! Current proposal and whole-prefix Reset wire contract.
 #[allow(dead_code, reason = "wire vectors use only the shared hex decoder")]
 mod support;
 
@@ -42,7 +42,7 @@ fn proposal_method_kind_and_poll_wire_contract() {
                         })
                     }
                     "reset_program" => {
-                        Outcome::Reset(protocol::ResetResponse { program: Some(opaque.clone()) })
+                        Outcome::Reset(protocol::ResetResponse::current(Some(opaque.clone())))
                     }
                     "judge_poll" | "judge_poll_go" => Outcome::Judge(protocol::JudgeResponse {
                         judgment: Some(protocol::judge_response::Judgment::Explained(

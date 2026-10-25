@@ -15,7 +15,7 @@ func TestProtocolResponseValidation(t *testing.T) {
 	responses := []*modelv1.Response{
 		{Outcome: &modelv1.Response_Explore{Explore: &modelv1.ExploreResponse{Report: "r"}}},
 		{Outcome: &modelv1.Response_Rows{Rows: &modelv1.RowsResponse{Rows: []string{"x"}}}},
-		{Outcome: &modelv1.Response_Reset_{Reset_: &modelv1.ResetResponse{}}},
+		{Outcome: &modelv1.Response_Reset_{Reset_: &modelv1.ResetResponse{ProofContract: modelv1.ProofContract_PROOF_CONTRACT_WHOLE_PREFIX_V1}}},
 		{Outcome: &modelv1.Response_Judge{Judge: &modelv1.JudgeResponse{Judgment: &modelv1.JudgeResponse_Explained{Explained: &modelv1.Explanation{}}}}},
 		{Outcome: &modelv1.Response_Answer{Answer: &modelv1.AnswerResponse{Reply: &anypb.Any{TypeUrl: "example.test/Reply", Value: []byte{1}}}}},
 	}
@@ -78,8 +78,8 @@ func TestProtocolWrappers(t *testing.T) {
 		call     func(*Host) (proto.Message, error)
 		want     proto.Message
 	}{
-		{"reset", &modelv1.ResetRequest{}, &modelv1.Response{Outcome: &modelv1.Response_Reset_{Reset_: &modelv1.ResetResponse{}}},
-			func(h *Host) (proto.Message, error) { return h.Reset(ctx, &modelv1.ResetRequest{}) }, &modelv1.ResetResponse{}},
+		{"reset", &modelv1.ResetRequest{}, &modelv1.Response{Outcome: &modelv1.Response_Reset_{Reset_: &modelv1.ResetResponse{ProofContract: modelv1.ProofContract_PROOF_CONTRACT_WHOLE_PREFIX_V1}}},
+			func(h *Host) (proto.Message, error) { return h.Reset(ctx, &modelv1.ResetRequest{}) }, &modelv1.ResetResponse{ProofContract: modelv1.ProofContract_PROOF_CONTRACT_WHOLE_PREFIX_V1}},
 		{"explained", &modelv1.JudgeRequest{Observation: opaque}, &modelv1.Response{Outcome: &modelv1.Response_Judge{Judge: &modelv1.JudgeResponse{Judgment: &modelv1.JudgeResponse_Explained{Explained: &modelv1.Explanation{Steps: []string{"step"}}}}}},
 			func(h *Host) (proto.Message, error) { return h.Judge(ctx, &modelv1.JudgeRequest{Observation: opaque}) }, &modelv1.JudgeResponse{Judgment: &modelv1.JudgeResponse_Explained{Explained: &modelv1.Explanation{Steps: []string{"step"}}}}},
 		{"unexplained", &modelv1.JudgeRequest{Observation: opaque}, &modelv1.Response{Outcome: &modelv1.Response_Judge{Judge: &modelv1.JudgeResponse{Judgment: &modelv1.JudgeResponse_Unexplained{Unexplained: &modelv1.Unexplained{ExpectedActions: []string{"action"}}}}}},
@@ -147,4 +147,28 @@ func protocolControlHost(t *testing.T, response *modelv1.Response) *Host {
 		}
 	})
 	return h
+}
+
+func TestResetProofContractRefusesMissingAndUnknown(t *testing.T) {
+	for _, contract := range []modelv1.ProofContract{modelv1.ProofContract_PROOF_CONTRACT_UNSPECIFIED, 99} {
+		for _, direct := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%d/direct=%t", contract, direct), func(t *testing.T) {
+				h := protocolControlHost(t, &modelv1.Response{Outcome: &modelv1.Response_Reset_{Reset_: &modelv1.ResetResponse{ProofContract: contract}}})
+				var err error
+				if direct {
+					_, err = h.Call(context.Background(), modelv1.Method_METHOD_RESET, nil)
+				} else {
+					_, err = h.Reset(context.Background(), &modelv1.ResetRequest{})
+				}
+				want := modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED
+				if contract == modelv1.ProofContract_PROOF_CONTRACT_UNSPECIFIED {
+					want = modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST
+				}
+				var refusal *RefusalError
+				if !errors.As(err, &refusal) || refusal.Code != want {
+					t.Fatalf("actual proof contract %d: %v; want %s", contract, err, want)
+				}
+			})
+		}
+	}
 }

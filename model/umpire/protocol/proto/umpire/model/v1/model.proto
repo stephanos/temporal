@@ -48,7 +48,14 @@ message Refusal {
 }
 
 message ResetRequest { google.protobuf.Any configuration = 1; }
-message ResetResponse { google.protobuf.Any program = 1; }
+enum ProofContract {
+  PROOF_CONTRACT_UNSPECIFIED = 0;
+  PROOF_CONTRACT_WHOLE_PREFIX_V1 = 1;
+}
+message ResetResponse {
+  google.protobuf.Any program = 1;
+  ProofContract proof_contract = 2;
+}
 message JudgeRequest { google.protobuf.Any observation = 1; }
 message Explanation {
   repeated string steps = 1;

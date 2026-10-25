@@ -83,6 +83,10 @@ func newKettleRunWithOptions(t *testing.T, options kettle.Options) *kettleRun {
 			t.Error(err)
 		}
 	})
+	reset, err := host.Reset(ctx, &modelv1.ResetRequest{})
+	if err != nil || reset.GetProofContract() != modelv1.ProofContract_PROOF_CONTRACT_WHOLE_PREFIX_V1 {
+		t.Fatalf("Reset proof contract: %v %v", reset, err)
+	}
 	r.host, r.connection, r.client = host, conn, kettlev1.NewKettleServiceClient(conn)
 	return r
 }

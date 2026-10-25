@@ -18,7 +18,7 @@ func TestResetProgramRowsAndScenarioHeader(t *testing.T) {
 	for attempts := int32(1); attempts <= 3; attempts++ {
 		h := unboundGuest(t)
 		empty, err := h.Reset(ctx, &modelv1.ResetRequest{})
-		if err != nil || empty.GetProgram() != nil {
+		if err != nil || empty.GetProgram() != nil || empty.GetProofContract() != modelv1.ProofContract_PROOF_CONTRACT_WHOLE_PREFIX_V1 {
 			t.Fatalf("unconfigured Reset: %v %v", empty, err)
 		}
 		captured := new(realizationv1.Observation)
@@ -32,8 +32,8 @@ func TestResetProgramRowsAndScenarioHeader(t *testing.T) {
 		configured.Input = &commonpb.Payloads{Payloads: []*commonpb.Payload{{Data: []byte("application input")}}}
 		configuration := pack(t, configured)
 		reset, err := h.Reset(ctx, &modelv1.ResetRequest{Configuration: configuration})
-		if err != nil {
-			t.Fatal(err)
+		if err != nil || reset.GetProofContract() != modelv1.ProofContract_PROOF_CONTRACT_WHOLE_PREFIX_V1 {
+			t.Fatalf("configured Reset contract: %v %v", reset, err)
 		}
 		program := new(temporalv1.WorkerProgram)
 		if err := reset.GetProgram().UnmarshalTo(program); err != nil {

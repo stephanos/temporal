@@ -121,9 +121,9 @@ impl umpire_runtime::Dispatch for Control {
                     return (
                         protocol::Response {
                             outcome: Some(protocol::response::Outcome::Reset(
-                                protocol::ResetResponse {
-                                    program: (configuration == any(42)).then(|| any(42)),
-                                },
+                                protocol::ResetResponse::current(
+                                    (configuration == any(42)).then(|| any(42)),
+                                ),
                             )),
                         },
                         Some(ControlTransaction::Reset(Box::new(Runtime::new(

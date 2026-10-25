@@ -193,7 +193,7 @@ impl LiveRuntime {
                     let world = activity::World::new(maximum, None, None, None, None, false);
                     let program = Realization::worker_program(&start, &world)?;
                     return Ok((
-                        Outcome::Reset(protocol::ResetResponse { program: Some(program) }),
+                        Outcome::Reset(protocol::ResetResponse::current(Some(program))),
                         Some(LiveTransaction { change: Change::Configure(configuration) }),
                     ));
                 }
