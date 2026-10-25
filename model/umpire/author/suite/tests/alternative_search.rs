@@ -1,5 +1,7 @@
 //! A skipped effect is judged only after the global shortest alternative has been selected.
 
+#![forbid(unsafe_code)]
+
 use std::{fmt, rc::Rc};
 
 use umpire_dsl::{ActionDomain, Machine, Path, Pattern, Registered, Steps, Waypoint};

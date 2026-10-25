@@ -1,5 +1,7 @@
 //! Configured worker programs are issued before any system interaction.
 
+#![forbid(unsafe_code)]
+
 use prost::Message;
 use umpire_runtime::AnyMessage as _;
 use umpire_runtime::{

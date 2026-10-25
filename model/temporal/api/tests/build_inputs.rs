@@ -1,5 +1,7 @@
 //! Cargo input freshness after moving the bootstrap catalogs into features.
 
+#![forbid(unsafe_code)]
+
 use std::{fs, path::Path};
 
 #[test]

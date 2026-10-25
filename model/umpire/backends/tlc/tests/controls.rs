@@ -1,5 +1,7 @@
 //! Real TLC controls for native maximal emitted-edge semantics.
 
+#![forbid(unsafe_code)]
+
 use std::{collections::BTreeMap, fs, path::Path};
 use umpire_tla::observers::{ACTION, CHOICE, EDGE_TICK, FACTS, OUTCOME, PENDING, STEPS};
 

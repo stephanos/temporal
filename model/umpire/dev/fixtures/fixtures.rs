@@ -1,5 +1,7 @@
 //! Every shared Model runs through the consumers selected by its expected files.
 
+#![forbid(unsafe_code)]
+
 include!(concat!(env!("OUT_DIR"), "/fixtures.rs"));
 include!(concat!(env!("OUT_DIR"), "/lifted.rs"));
 include!(concat!(env!("OUT_DIR"), "/interpreted.rs"));

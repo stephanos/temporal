@@ -14,6 +14,8 @@
 //! nonnegative signed 32-bit domain. Other collection operations, aliases, and unchecked unwraps
 //! refuse by source location; this is a method table rather than general Rust collection
 //! interpretation.
+#![forbid(unsafe_code)]
+
 use proc_macro2::{Span, TokenStream};
 use quote::ToTokens;
 mod body;

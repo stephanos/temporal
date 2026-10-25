@@ -1,5 +1,7 @@
 //! Test-space admission, exact retained witnesses and finite seeded experiments.
 
+#![forbid(unsafe_code)]
+
 use umpire_dsl::{Action, State};
 use umpire_suite::{Cases, Refusal, Run, Space, cover, find, path, sample};
 

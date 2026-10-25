@@ -1,5 +1,7 @@
 //! Opaque ignored fields retain typed access and secret redaction.
 
+#![forbid(unsafe_code)]
+
 use std::collections::BTreeMap;
 use umpire_catalog::*;
 

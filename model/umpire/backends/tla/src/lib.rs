@@ -1,6 +1,8 @@
 //! Lift authored Rust Models, admitted by `umpire-front`, into TLA+.
 //!
 //! The admitted subset, including the `imbl::Vector<T>` method table, is `umpire-front`'s.
+#![forbid(unsafe_code)]
+
 use proc_macro2::Span;
 use std::{
     collections::{BTreeMap, BTreeSet},

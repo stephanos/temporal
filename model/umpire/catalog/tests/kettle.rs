@@ -1,4 +1,5 @@
 //! A second catalog consumer with no system-extension dependency.
+#![forbid(unsafe_code)]
 #![allow(dead_code)]
 
 use umpire_catalog::{Catalog, Inspect, kinds::*};

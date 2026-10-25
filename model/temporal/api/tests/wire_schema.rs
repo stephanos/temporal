@@ -1,5 +1,7 @@
 //! Descriptor-driven request mutations are independent of annotation mirrors.
 
+#![forbid(unsafe_code)]
+
 use prost::Message;
 use umpire_catalog::{GenerationError, MutationApplicability, WireKind, WireMutation, wire_cases};
 use umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionRequest;

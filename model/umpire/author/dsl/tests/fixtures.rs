@@ -1,5 +1,7 @@
 //! Standard formatting of DSL states and actions.
 
+#![forbid(unsafe_code)]
+
 #[path = "support/recorder.rs"]
 mod recorder;
 

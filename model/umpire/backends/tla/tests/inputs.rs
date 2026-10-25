@@ -1,4 +1,6 @@
 //! Independent finite action-input admission, typed catalog binding and exact-payload emission.
+#![forbid(unsafe_code)]
+
 use umpire_tla::observers::INPUT;
 use umpire_tla::{Binding, Concrete, Diagnostic, Lift, Literal, Tla};
 

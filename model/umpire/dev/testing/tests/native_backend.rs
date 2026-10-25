@@ -1,4 +1,6 @@
 //! Native fixture hooks require no symbolic value projection.
+#![forbid(unsafe_code)]
+
 use std::path::Path;
 use umpire_dsl::machine;
 

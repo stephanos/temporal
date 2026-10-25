@@ -1,4 +1,6 @@
 //! Declared World source admission and complete-state binding controls.
+#![forbid(unsafe_code)]
+
 use std::{collections::BTreeMap, path::Path};
 use umpire_tla::observers::OUTCOME;
 use umpire_tla::{Binding, Concrete, Diagnostic, Lift, Literal, Tla, Type};

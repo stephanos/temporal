@@ -1,5 +1,7 @@
 //! Workflow method admission and dispatch use the real linked upstream descriptor.
 
+#![forbid(unsafe_code)]
+
 use std::{
     collections::BTreeSet,
     fmt::Write,

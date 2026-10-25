@@ -1,5 +1,7 @@
 //! Import candidates produced by the live Go tests into insta's review workflow.
 
+#![forbid(unsafe_code)]
+
 #[test]
 #[ignore = "requires explicitly exported live Go candidates"]
 fn import_live_candidates() -> Result<(), Box<dyn std::error::Error>> {

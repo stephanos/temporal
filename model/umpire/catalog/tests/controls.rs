@@ -1,5 +1,6 @@
 //! Executable controls for typed annotation expansion.
 
+#![forbid(unsafe_code)]
 #![allow(dead_code)]
 
 use std::collections::BTreeMap;

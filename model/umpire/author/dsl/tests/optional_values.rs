@@ -1,4 +1,6 @@
 //! Nominal transport and scalar accessors preserve authored values without finite validation.
+#![forbid(unsafe_code)]
+
 use umpire_dsl::{IntoValue, Machine, Value, Values};
 
 #[umpire_dsl::machine]

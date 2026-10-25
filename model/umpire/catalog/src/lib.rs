@@ -1,5 +1,7 @@
 //! Typed annotation catalogs, validation, generation and inspection.
 
+#![forbid(unsafe_code)]
+
 mod black_box;
 mod catalog;
 mod gap;

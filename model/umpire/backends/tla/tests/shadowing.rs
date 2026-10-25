@@ -1,4 +1,6 @@
 //! Lexical source scopes are independently checked against compiled Rust.
+#![forbid(unsafe_code)]
+
 use std::{collections::BTreeSet, fs, path::Path};
 use umpire_tla::{Lift, Tla};
 use umpire_tlc::{State, Tlc, Value, Verdict};

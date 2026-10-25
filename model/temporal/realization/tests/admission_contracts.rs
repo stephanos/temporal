@@ -1,5 +1,7 @@
 //! Admission rules exposed by the independent raw-schema probe.
 
+#![forbid(unsafe_code)]
+
 use umpire_catalog::{Kind, validate};
 use umpire_temporal::{activity_api, foundation::dc};
 use umpire_temporal_api::temporal::api::workflowservice::v1 as wire;

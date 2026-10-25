@@ -1,5 +1,7 @@
 //! Procedural attributes for descriptor-admitted Temporal realization handlers.
 
+#![forbid(unsafe_code)]
+
 use std::path::Path;
 
 use quote::quote;

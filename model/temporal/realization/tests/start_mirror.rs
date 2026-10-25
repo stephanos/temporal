@@ -1,5 +1,7 @@
 //! The first real derive mirror retains the reviewed Start catalog.
 
+#![forbid(unsafe_code)]
+
 use umpire_catalog::validate;
 use umpire_temporal::{activity_api, foundation::dc};
 use umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionRequest;

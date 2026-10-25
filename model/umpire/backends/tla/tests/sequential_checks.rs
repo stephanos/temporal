@@ -1,4 +1,6 @@
 //! Sequential claim statements retain their independent evaluation obligations.
+#![forbid(unsafe_code)]
+
 use std::{fs, path::Path};
 use umpire_tla::{Lift, Tla};
 use umpire_tlc::Tlc;

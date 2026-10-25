@@ -1,5 +1,7 @@
 //! Synthetic checker behavior fixtures.
 
+#![forbid(unsafe_code)]
+
 #[path = "support/formatting.rs"]
 mod formatting;
 #[path = "support/progress_evaluation.rs"]

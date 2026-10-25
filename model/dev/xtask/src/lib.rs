@@ -1,5 +1,7 @@
 //! Host-only native development tools.
 
+#![forbid(unsafe_code)]
+
 pub mod apalache_pins;
 pub mod compiler;
 /// SHA-pinned installer with private staging and serialized publication.

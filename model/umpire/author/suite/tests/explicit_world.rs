@@ -1,5 +1,7 @@
 //! Selected world constants and ownership across suite queries and retained runs.
 
+#![forbid(unsafe_code)]
+
 use std::{cell::Cell, fmt, rc::Rc};
 
 use umpire_dsl::{

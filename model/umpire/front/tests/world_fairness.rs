@@ -1,4 +1,6 @@
 //! Bounded World-only assumption selection preserves the existing flat leaves.
+#![forbid(unsafe_code)]
+
 use umpire_front::{Diagnostic, Lifted, Refusal, tree::AssumptionDef};
 
 const SOURCE: &str = r"

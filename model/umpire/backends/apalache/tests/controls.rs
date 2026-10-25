@@ -1,4 +1,6 @@
 //! Actual pinned-release safety and checked-arithmetic controls, never native-edge emission.
+#![forbid(unsafe_code)]
+
 use std::{
     fs,
     path::{Path, PathBuf},

@@ -1,5 +1,7 @@
 //! A declared World's local fieldless enums export their values without `derive(Finite)`.
 
+#![forbid(unsafe_code)]
+
 #[umpire_dsl::machine]
 mod phased {
     use umpire_dsl::{Action, State, World};

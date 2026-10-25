@@ -1,4 +1,6 @@
 //! Leading structural nodes retain the owning state's closure inference.
+#![forbid(unsafe_code)]
+
 use umpire_dsl::{Machine, Path, Registered, path};
 
 #[umpire_dsl::machine]

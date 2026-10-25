@@ -1,5 +1,7 @@
 //! World arguments are typed before interpreting the existing positional callback signatures.
 
+#![forbid(unsafe_code)]
+
 use umpire_dsl::{Machine, Verdict};
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]

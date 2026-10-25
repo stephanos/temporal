@@ -1,4 +1,6 @@
 //! Programmed worker judgments use server result and failure evidence.
+#![forbid(unsafe_code)]
+
 use prost::Message;
 use umpire_runtime::AnyMessage as _;
 use umpire_runtime::{

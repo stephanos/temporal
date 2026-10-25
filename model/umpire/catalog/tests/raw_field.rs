@@ -1,5 +1,7 @@
 //! Descriptor and runtime paths keep protobuf spelling for Rust keyword fields.
 
+#![forbid(unsafe_code)]
+
 #[derive(Clone, Default)]
 struct Message {
     r#type: String,

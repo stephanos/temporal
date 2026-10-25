@@ -1,6 +1,8 @@
 //! A state-only search over a space far larger than any fixed label cap, under the default
 //! state budget.
 
+#![forbid(unsafe_code)]
+
 use std::fmt;
 
 use umpire_dsl::{Associated, Machine, Steps, path};

@@ -1,4 +1,6 @@
 //! Configured bootstrap, read correlation, and completion polling controls.
+#![forbid(unsafe_code)]
+
 use prost::Message;
 use umpire_runtime::AnyMessage as _;
 use umpire_runtime::protocol::{Method, RefusalCode};

@@ -1,5 +1,7 @@
 //! System Models use the same source-lifted backend agreement consumer.
 
+#![forbid(unsafe_code)]
+
 include!(concat!(env!("OUT_DIR"), "/fixtures.rs"));
 include!(concat!(env!("OUT_DIR"), "/lifted.rs"));
 

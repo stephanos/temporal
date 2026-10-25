@@ -1,5 +1,7 @@
 //! World-aware adapters retain ordinary, staying and rejecting enabledness.
 
+#![forbid(unsafe_code)]
+
 use umpire_dsl::{Machine, Outcome, Rejection, StepError, Verdict};
 
 #[umpire_dsl::machine]

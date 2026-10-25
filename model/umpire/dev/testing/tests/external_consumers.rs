@@ -1,5 +1,7 @@
 //! External artifact ownership preserves native golden validation.
 
+#![forbid(unsafe_code)]
+
 use std::{fs, path::Path, process::Command};
 use umpire_testing::{ExternalConsumer, Files, TestResult, run_at_skipping_with_external};
 

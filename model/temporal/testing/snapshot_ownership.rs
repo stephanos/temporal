@@ -1,5 +1,7 @@
 //! Current snapshots belong to fixture passes or named live/native readers.
 
+#![forbid(unsafe_code)]
+
 use std::{
     collections::BTreeSet,
     fs,

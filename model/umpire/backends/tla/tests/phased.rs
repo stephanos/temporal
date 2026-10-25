@@ -1,4 +1,6 @@
 //! Phase access, rejecting outcomes and closure-law admission, and their located refusals.
+#![forbid(unsafe_code)]
+
 use umpire_tla::Lift;
 
 const JOB: &str = include_str!("../../../dev/fixtures/fixtures/phased_rejection/model.rs");

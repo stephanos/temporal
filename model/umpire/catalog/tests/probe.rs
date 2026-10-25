@@ -1,5 +1,7 @@
 //! Catalog-derived negative witnesses and fail-closed probe evidence.
 
+#![forbid(unsafe_code)]
+
 use umpire_catalog::*;
 
 #[derive(Clone, Default, Debug)]

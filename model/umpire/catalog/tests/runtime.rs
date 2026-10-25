@@ -1,4 +1,6 @@
 //! New scalar and expectation behavior.
+#![forbid(unsafe_code)]
+
 use umpire_catalog::*;
 
 #[test]

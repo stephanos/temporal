@@ -1,5 +1,7 @@
 //! Complete declared metadata is independent of reached rows and path selection.
 
+#![forbid(unsafe_code)]
+
 use umpire_dsl::{ActorProjection, Machine, Outcome, OutcomeClass, Rejection};
 
 #[umpire_dsl::machine]
