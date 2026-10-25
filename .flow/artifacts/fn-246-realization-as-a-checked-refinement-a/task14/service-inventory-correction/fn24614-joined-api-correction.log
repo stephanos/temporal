@@ -1,0 +1,69 @@
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/build)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/api)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/annotate/syntax)
+    Finished `test` profile [unoptimized] target(s) in 9.08s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/debug/deps/umpire_temporal_api-8eed98114f569b40)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/build_inputs.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/debug/deps/build_inputs-f6adcb2cc35da8fa)
+
+running 1 test
+test api_build_tracks_existing_inputs_and_feature_catalogs ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/codegen.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/debug/deps/codegen-1d4c1d0cb5773553)
+
+running 3 tests
+test double_wrapper_uses_scalar_and_preserves_presence ... ok
+test empty_oneof_uses_unit_and_preserves_presence ... ok
+test descriptor_file_permutations_generate_identical_rust ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.63s
+
+     Running tests/descriptor.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/debug/deps/descriptor-99e0eb06ab6410f1)
+
+running 5 tests
+test executable_generated_api_declaration_matches_real_descriptors ... ok
+test declaration_order_names_the_first_out_of_place_symbol ... ok
+test nested_message_requires_coverage_and_refuses_added_fields ... ok
+test real_descriptor_additions_are_independently_refused ... ok
+test stale_duplicates_and_empty_dispositions_are_refused ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.74s
+
+     Running tests/services.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/debug/deps/services-dbda70ef69d04b58)
+
+running 6 tests
+test generated_method_table_follows_the_actual_descriptor ... ok
+test the_service_table_classifies_every_rpc_and_the_activity_feature_claims_nine ... ok
+test duplicate_claims_and_unclassified_rpcs_are_named ... ok
+test generation_uses_annotations_for_dispatch_and_source_match_for_bindings ... ok
+test service_table_and_bindings_refuse_new_rpc_and_model_action ... ok
+test a_dropped_claim_or_an_unclaimed_annotated_rpc_fails_generation ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+     Running tests/wire_schema.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/debug/deps/wire_schema-327e4e24237bcb29)
+
+running 6 tests
+test double_wrapper_descriptor_value_mutates_the_native_scalar ... ok
+test invalid_input_unknown_routes_and_unbounded_collections_refuse ... ok
+test ignored_fields_and_descriptor_shapes_remain_mutable ... ok
+test nested_absence_does_not_materialize_an_ancestor ... ok
+test every_applicable_descriptor_case_constructs_a_typed_request ... ok
+test descriptor_changes_drive_inventory_and_unsupported_shapes_refuse ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.59s
+
+   Doc-tests umpire_temporal_api
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
