@@ -14,6 +14,9 @@ case "${CARGO_HOME:-}" in
   ""|/*) ;;
   *) export CARGO_HOME="$PWD/$CARGO_HOME" ;;
 esac
+if [ -n "${CARGO_HOME:-}" ] && [ -d "$CARGO_HOME" ]; then
+  export CARGO_HOME=$(cd "$CARGO_HOME" && pwd -P)
+fi
 tool_root=$(cd "$(dirname "$0")/.." && pwd -P)
 export UMPIRE_TOOL_ROOT="$tool_root"
 helper=$(/bin/bash "$(dirname "$0")/xtask.sh")

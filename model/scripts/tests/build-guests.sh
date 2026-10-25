@@ -8,6 +8,9 @@ case "${CARGO_HOME:-}" in
   ""|/*) ;;
   *) export CARGO_HOME="$PWD/$CARGO_HOME" ;;
 esac
+if [ -n "${CARGO_HOME:-}" ] && [ -d "$CARGO_HOME" ]; then
+  export CARGO_HOME=$(cd "$CARGO_HOME" && pwd -P)
+fi
 cd "$(dirname "$0")/../.."
 workspace=$(pwd -P)
 target=${CARGO_TARGET_DIR:-$PWD/target}

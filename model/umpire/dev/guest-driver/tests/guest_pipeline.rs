@@ -196,14 +196,17 @@ fn relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build(
     fs::create_dir_all(caller.join("cargo home")).unwrap();
     fs::create_dir_all(f.model.join("cargo home")).unwrap();
     fs::copy(f.model.join("Cargo.lock"), caller.join("Cargo.lock")).unwrap();
+    std::os::unix::fs::symlink(caller.join("cargo home"), caller.join("cargo alias")).unwrap();
     for shell in [false, true] {
-        let result = f
-            .command(true, shell)
-            .current_dir(&caller)
-            .env("CARGO_HOME", "cargo home")
-            .env("EXPECTED_CARGO_HOME", caller.join("cargo home"))
-            .output()
-            .unwrap();
-        code(&result, 0);
+        for home in ["cargo home", "cargo alias"] {
+            let result = f
+                .command(true, shell)
+                .current_dir(&caller)
+                .env("CARGO_HOME", home)
+                .env("EXPECTED_CARGO_HOME", caller.join("cargo home"))
+                .output()
+                .unwrap();
+            code(&result, 0);
+        }
     }
 }

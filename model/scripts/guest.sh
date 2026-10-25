@@ -14,6 +14,9 @@ case "${CARGO_HOME:-}" in
   ""|/*) ;;
   *) export CARGO_HOME="$PWD/$CARGO_HOME" ;;
 esac
+if [ -n "${CARGO_HOME:-}" ] && [ -d "$CARGO_HOME" ]; then
+  export CARGO_HOME=$(cd "$CARGO_HOME" && pwd -P)
+fi
 model=$(cd "$(dirname "$0")/.." && pwd -P)
 case "${1:-}" in
   umpire-stock-guest|umpire-kettle-guest|umpire-control-guest|umpire-caught-panic-guest|umpire-overflow-guest) cd "$model/umpire" ;;
