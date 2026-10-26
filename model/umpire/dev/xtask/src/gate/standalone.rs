@@ -310,7 +310,26 @@ fn tool_versions(gate: &Gate, root: &Path, target: &Path, manifest: &Path) -> Re
             },
         ]);
         let output = command.output()?;
-        tools.insert(tool.into(), serde_json::json!({"exit": output.status.code(), "stdout": String::from_utf8_lossy(&output.stdout), "stderr": String::from_utf8_lossy(&output.stderr)}));
+        let mut which = clean_command(gate, root, target, "mise");
+        if matches!(tool, "rustc" | "cargo") {
+            which.args(["exec", "--", "rustc", "--print", "sysroot"]);
+        } else {
+            which.args(["which", tool]);
+        }
+        let selected = which.output()?;
+        if !selected.status.success() {
+            return Err(Error::Invalid(format!("standalone tool path admission failed: {tool}")));
+        }
+        let selected_path = PathBuf::from(std::ffi::OsString::from_vec(
+            selected.stdout.strip_suffix(b"\n").unwrap_or(&selected.stdout).to_vec(),
+        ));
+        let selected_path = if matches!(tool, "rustc" | "cargo") {
+            selected_path.join("bin").join(tool)
+        } else {
+            selected_path
+        };
+        let selected_path = fs::canonicalize(selected_path)?;
+        tools.insert(tool.into(), serde_json::json!({"exit": output.status.code(), "stdout": String::from_utf8_lossy(&output.stdout), "stderr": String::from_utf8_lossy(&output.stderr), "executable": selected_path, "executable_sha256": digest(&fs::read(&selected_path)?)}));
         fs::write(manifest.with_file_name("tools.json"), serde_json::to_vec_pretty(&tools)?)?;
         if !output.status.success() {
             return Err(Error::Invalid(format!("standalone pinned tool admission failed: {tool}")));
@@ -469,7 +488,7 @@ fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64
         output.join("result.json"),
         serde_json::to_vec_pretty(&serde_json::json!({
             "version": 1, "tier": "validate", "backend": "require", "apalache": env::var("UMPIRE_APALACHE").unwrap_or_else(|_| "skip (default)".into()),
-            "profile": "dev", "seconds": seconds, "child_exit": code, "complete": complete,
+            "profile": "dev", "nextest_profile": "default", "compile_jobs": env::var("CARGO_BUILD_JOBS").ok(), "test_threads": 2, "skipped_child_stages": ["standalone"], "seconds": seconds, "child_exit": code, "complete": complete,
             "manifest_sha256": digest(&fs::read(manifest)?), "stages_sha256": digest(records.as_bytes()), "binaries": binaries,
             "expected_stages": expected, "actual_stages": actual, "source_unchanged": source_unchanged, "artifacts": artifacts,
         }))?,
