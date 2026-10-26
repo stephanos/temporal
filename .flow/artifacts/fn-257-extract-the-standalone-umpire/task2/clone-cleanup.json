@@ -1,0 +1,37 @@
+{
+  "scope": "Only the two independently owned disposable exports; original Git metadata/worktrees/caches untouched",
+  "results": [
+    {
+      "clone": ".flow/tmp/fn257-export",
+      "head": "cf8bec4d6231302df54b57fccdc5bdb9d11552fc",
+      "complete_rewritten_parent_graph": true,
+      "reachable_commits": 581,
+      "reachable_objects": 10624,
+      "removed_stale_shallow_metadata_sha256": "f9c32f11e3ab324094d248c675b97f6c4db899e8db5495fc041ebdd75a28e55a",
+      "removed_origin": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.",
+      "before_object_storage": "count: 0\nsize: 0 bytes\nin-pack: 134276\npacks: 2\nsize-pack: 163.31 MiB\nprune-packable: 0\ngarbage: 0\nsize-garbage: 0 bytes\n",
+      "after_object_storage": "count: 0\nsize: 0 bytes\nin-pack: 10624\npacks: 1\nsize-pack: 3.25 MiB\nprune-packable: 0\ngarbage: 0\nsize-garbage: 0 bytes\n",
+      "fsck_exit": 0,
+      "fsck_stdout": "",
+      "fsck_stderr": "",
+      "unfiltered_source_commit_absent_after_prune": true,
+      "head_worktree_clean": true
+    },
+    {
+      "clone": ".flow/tmp/fn257-export-repro",
+      "head": "cf8bec4d6231302df54b57fccdc5bdb9d11552fc",
+      "complete_rewritten_parent_graph": true,
+      "reachable_commits": 581,
+      "reachable_objects": 10624,
+      "removed_stale_shallow_metadata_sha256": "f9c32f11e3ab324094d248c675b97f6c4db899e8db5495fc041ebdd75a28e55a",
+      "removed_origin": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.",
+      "before_object_storage": "count: 0\nsize: 0 bytes\nin-pack: 134276\npacks: 2\nsize-pack: 163.28 MiB\nprune-packable: 0\ngarbage: 0\nsize-garbage: 0 bytes\n",
+      "after_object_storage": "count: 0\nsize: 0 bytes\nin-pack: 10624\npacks: 1\nsize-pack: 3.25 MiB\nprune-packable: 0\ngarbage: 0\nsize-garbage: 0 bytes\n",
+      "fsck_exit": 0,
+      "fsck_stdout": "",
+      "fsck_stderr": "",
+      "unfiltered_source_commit_absent_after_prune": true,
+      "head_worktree_clean": true
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "source_commit": "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+  "export_head": "cf8bec4d6231302df54b57fccdc5bdb9d11552fc",
+  "commit_map_sha256": "ca451bdc256de0ecf6a2cff4383ad45cd740320e4518113070fc5c0f4d6f836a",
+  "identical_alias_observations": 0,
+  "projected_snapshot_computations": 7284,
+  "merge_tree_resets": 121,
+  "snapshot_cache": {
+    "hits": 7440,
+    "misses": 7285,
+    "maxsize": 8,
+    "currsize": 8
+  },
+  "source_identity_unchanged": true,
+  "head_tree_matches_complete_projection": true,
+  "head_index_worktree_synchronized": true,
+  "source_history_boundary": {
+    "repositories": {
+      "original": {
+        "shallow": true,
+        "boundary_entry_count": 1,
+        "unique_boundaries": [
+          "6e176bde5fc2d14241a863bb286a0d74aeafb6d9"
+        ],
+        "boundary_file_sha256": "ef7d07756cb29242403b96f2ed65951e9edd7f8e20293ed90cefb4add39740b7"
+      },
+      "clone": {
+        "shallow": true,
+        "boundary_entry_count": 213,
+        "unique_boundaries": [
+          "6e176bde5fc2d14241a863bb286a0d74aeafb6d9"
+        ],
+        "boundary_file_sha256": "f9c32f11e3ab324094d248c675b97f6c4db899e8db5495fc041ebdd75a28e55a"
+      }
+    },
+    "matching_unique_boundary_sets": true,
+    "available_ancestry_matches_recorded_H": true,
+    "cutoff_proofs": [
+      {
+        "cutoff": "6e176bde5fc2d14241a863bb286a0d74aeafb6d9",
+        "strict_ancestor_of_all_recorded_anchors": true,
+        "anchor_count": 13,
+        "inspected_prefixes": [
+          "model2/framework",
+          "model2/umpire",
+          "model/umpire",
+          "model2/hosts/go",
+          "model/hosts/go",
+          "model/dev/xtask"
+        ],
+        "selected_prefix_entries_at_cutoff": 0
+      }
+    ],
+    "limitation": "Export preserves only the supplied available source history. History before the recorded shallow cutoffs, including earlier LICENSE history, is unavailable and is not claimed as preserved. No fetching, unshallowing or shallow-file changes occur."
+  },
+  "pending": [
+    "Independent post-filter tree, ancestry and metadata verification",
+    "Clone-only origin removal, reflog expiration and unreachable-object cleanup after retained proof",
+    "Separate removal of historical support during portable-layout adaptation",
+    "All deferred build/test/guest/consumer proofs"
+  ]
+}

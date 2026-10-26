@@ -61,8 +61,9 @@ reviewed validation evidence and a committed validation-cost assessment.
 
 ### fn-257: Extract the standalone Umpire repository
 
-The independent framework workspace is ready to export as source; it still lives
-inside Temporal. Preserve its Rust history, then give Temporal an uncommitted local
+The independent framework source remains authoritative inside Temporal. Its local
+history export is verified at `cf8bec4d6`, with 581 retained commits and a recoverable
+bundle. Prepare its portable root, then give Temporal an uncommitted local
 Cargo/Go development loop against a sibling checkout. Current source checkpoint
 `c88fdc5506` has 1,177 framework files; every retained candidate stays recoverable.
 GitHub destination inspection returned HTTP 401, which establishes neither contents
@@ -74,7 +75,7 @@ the required current-pair proof. Plan review passed; build/test execution remain
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-257.2 | ⬜ todo | Source/history inventory reviewed; next is isolated history export, exact bytes/modes/symlinks and commit-map proof (R2) |
+| fn-257.2 | 🔄 in progress | Export reproduced and independently verified; 1,178 files, 581 retained commits, original candidate preservation and bundle recovery proven. Review/closure pending (R2) |
 | fn-257.3 | ⬜ todo | After .2: portable root, canonical Go identities/descriptors, focused docs/CI and command aliases (R3) |
 | fn-257.4 | ⬜ todo | After .1/.3: sibling Temporal Cargo/Go consumers and forwarding commands; disjoint provisional preparation may begin earlier (R4) |
 | fn-257.5 | ⛔ blocked | After .3/.4 and the validation hold ends: exact isolated/paired proof, guest/generator checks and uncommitted Rust/Go red-green tests (R3–R5) |

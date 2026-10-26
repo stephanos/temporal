@@ -6,6 +6,15 @@ remote creation, push, release and source removal remain separate authorization 
 The current validation hold permits source preparation, with execution proofs still pending.
 The 2026-10-26 destination probe returned HTTP 401; its contents and permissions remain unknown.
 
+The local history export is verified at `cf8bec4d6`: 1,178 selected files, 581
+retained commits and projection-neutral pruning of 6,568 other available commits.
+Two fresh clones reproduced the same commit/map, and a committed
+[recovery bundle](.flow/artifacts/fn-257-extract-the-standalone-umpire/task2/export-history.bundle)
+restores the independent checkout. See [export evidence](.flow/artifacts/fn-257-extract-the-standalone-umpire/task2/README.md).
+Portable-layout changes, actual consumer wiring, execution proof and cutover remain pending.
+The supplied history stops before February 2026, earlier than all selected Rust
+births; earlier ancestry is unavailable and is not claimed recovered.
+
 ## Outcome and decisions
 
 Umpire becomes a standalone, system-independent Rust workspace with a Go wasm host.
@@ -95,7 +104,8 @@ connection. Generic Answer remains available to other systems; the Shim was supe
 relocation-inclusive counts, and the still-open R40 cancellation proof; extraction must
 preserve that boundary rather than claim it closed.
 These local references require no publication. The post-extraction setup below preserves
-that development property; extraction and publication have not run.
+that development property. The local history export has run; consumer cutover and
+publication have not.
 
 Rust consumers use Cargo `path` dependencies pointing to the exact Umpire crate
 directories. For example, from a consumer manifest at `temporal/model/Cargo.toml`,
