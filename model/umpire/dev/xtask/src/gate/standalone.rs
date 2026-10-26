@@ -79,7 +79,13 @@ fn path(input: &Input) -> Result<PathBuf> {
 }
 fn local_configuration(root: &Path) -> Result<()> {
     ToolRoot::admit(root)?;
-    for name in ["Cargo.lock", ".cargo/config.toml", "dev/guest-driver/Cargo.toml"] {
+    for name in [
+        "Cargo.lock",
+        "mise.lock",
+        ".cargo/config.toml",
+        ".config/nextest.toml",
+        "dev/guest-driver/Cargo.toml",
+    ] {
         let file = root.join(name);
         if !file.is_file() || !fs::canonicalize(file)?.starts_with(root) {
             return Err(Error::Invalid(format!(

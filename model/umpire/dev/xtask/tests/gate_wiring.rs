@@ -40,6 +40,7 @@ const LEAVES: &[(&str, &str)] = &[
     ("clippy", "clippy"),
     ("docs", "docs"),
     ("tests", "tests"),
+    ("tests", "doctests"),
     ("wasm32-wasip1", "wasm32-wasip1"),
     ("core-wasm-clippy", "core-wasm-clippy"),
     ("wasm-guest", "wasm-guest"),
@@ -100,7 +101,8 @@ case "$1 $2" in
  'cargo metadata') label=source-boundary ;;
  'cargo fmt') label=fmt; [ "$*" = "${CONTROL_EXPECT_FMT:-cargo fmt --all --check}" ] ;;
  'cargo doc') label=docs; [ "$*" = 'cargo doc --workspace --no-deps --quiet' ]; [ "$RUSTDOCFLAGS" = '-D warnings' ] ;;
- 'cargo test') label=tests ;;
+ 'cargo nextest') label=tests ;;
+ 'cargo test') case " $* " in *' --doc '*) label=doctests ;; *) label=tests ;; esac ;;
  'cargo build') label=wasm32-wasip1 ;;
  'cargo clippy') case " $* " in *' --target '*) label=core-wasm-clippy ;; *) label=clippy; [ "$*" = 'cargo clippy --workspace --all-targets --all-features -- -D warnings' ] ;; esac ;;
  'go -C') [ "$CGO_ENABLED" = 0 ]; case "$3" in "$CONTROL_ROOT/hosts/go") label=go-host ;; "$CONTROL_ROOT/reference/kettle") label=kettle-go-host ;; *) exit 91 ;; esac
@@ -245,6 +247,8 @@ fn every_command_boundary_preserves_failure_status_and_environment_in_both_modes
             assert!(stderr(&output).contains(&format!("{leaf} child diagnostic")), "{output:?}");
             let expected = if *leaf == "guest-controls" {
                 vec!["timing-controls", *leaf]
+            } else if *leaf == "doctests" {
+                vec!["tests", "doctests"]
             } else {
                 vec![*leaf]
             };
@@ -264,7 +268,8 @@ fn full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_comm
         assert!(String::from_utf8_lossy(&output.stdout).contains("UMPIRE_APALACHE=skip (default)"));
         let log = fs::read_to_string(&fixture.log).unwrap();
         assert!(log.lines().next().unwrap().contains("|0|1|unset|"));
-        assert!(log.contains("cargo test --workspace --locked --quiet"));
+        assert!(log.contains("cargo nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final"));
+        assert!(log.contains("cargo test --doc --workspace --locked --quiet"));
         assert!(log.contains(
             "cargo build --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --quiet"
         ));
@@ -411,7 +416,7 @@ fn validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_fai
 fn convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status() {
     let fixture = Fixture::new();
     for (entry, expected) in
-        [("fmt", "cargo fmt --all"), ("update", "cargo test --workspace --locked --quiet")]
+        [("fmt", "cargo fmt --all"), ("update", "cargo test --doc --workspace --locked --quiet")]
     {
         fixture.clear();
         let mut command = fixture.command(false);
@@ -424,8 +429,14 @@ fn convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status() 
         let output = command.output().unwrap();
         assert_status(&output, 0);
         let log = fs::read_to_string(&fixture.log).unwrap();
-        assert_eq!(log.lines().count(), 1);
-        assert!(log.lines().next().unwrap().ends_with(expected), "{log}");
+        assert_eq!(log.lines().count(), if entry == "update" { 2 } else { 1 });
+        assert!(log.lines().last().unwrap().ends_with(expected), "{log}");
+        if entry == "update" {
+            assert!(
+                log.lines().next().unwrap().contains("cargo nextest run --workspace --locked"),
+                "{log}"
+            );
+        }
     }
     write(&fixture.root.join("backends/native/src/lib.rs"), "// benchmark input\n");
     for entry in ["time", "validate"] {
@@ -541,13 +552,20 @@ fn test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes() {
                 }
                 let output = command.output().unwrap();
                 assert_status(&output, code);
-                assert_eq!(fixture.labels(), ["tests"]);
+                let expected = if code == 0 { vec!["tests", "doctests"] } else { vec!["tests"] };
+                assert_eq!(fixture.labels(), expected);
                 let log = fs::read_to_string(&fixture.log).unwrap();
-                assert_eq!(log.lines().count(), 1);
-                assert!(
-                    log.trim_end().ends_with("cargo test --workspace --locked --quiet"),
-                    "{log}"
-                );
+                assert_eq!(log.lines().count(), expected.len());
+                assert!(log.lines().next().unwrap().ends_with("cargo nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final"), "{log}");
+                if code == 0 {
+                    assert!(
+                        log.lines()
+                            .last()
+                            .unwrap()
+                            .ends_with("cargo test --doc --workspace --locked --quiet"),
+                        "{log}"
+                    );
+                }
                 if code == 143 {
                     let diagnostics =
                         format!("{}{}", String::from_utf8_lossy(&output.stdout), stderr(&output));
