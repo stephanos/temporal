@@ -150,6 +150,14 @@
       "agent": "/root/paired_source_review",
       "head": "91547f57ec192d576a13056ce570c8bf47e441bf",
       "validated": false
+    },
+    {
+      "at": "2026-10-26T17:31:04.871440+00:00",
+      "type": "source_review_handoff_observed",
+      "agent": "/root/paired_source_review",
+      "head": "91547f57ec192d576a13056ce570c8bf47e441bf",
+      "findings": 0,
+      "validated": false
     }
   ],
   "measurement_limits": "Source handoffs are work-in-progress, not verified closures. Mixed scope, unknown exact worker times and validation/access blockers prevent a causal concurrency speedup estimate."

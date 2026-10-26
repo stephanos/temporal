@@ -1,0 +1,21 @@
+{
+  "review_kind": "same-family independent source-only consumer review",
+  "formal_flow_completion_receipt": false,
+  "consumer_head": "91547f57ec192d576a13056ce570c8bf47e441bf",
+  "consumer_base": "63f5c334c07c1b70139337f195cb65f07594b995",
+  "standalone_head": "f7b42ce25558344ea2d38f1e05d002259427a8f6",
+  "verdict": "no supported actionable findings",
+  "findings": [],
+  "scope": [
+    "Cargo consumer and retained native-symbolic paths under the intended sibling layout",
+    "Go module identities, local replacements and migrated imports",
+    "native forwarding commands and preservation of caller Cargo home, target and relative outputs",
+    "Temporal protobuf schema include paths and generated generic import",
+    "inactive paired-checkout composite action and activation documentation"
+  ],
+  "limits": [
+    "Source inspection only; no builds, tests, gates, generation, Git mutations or subagents were used.",
+    "The nested review worktree is not the intended executable sibling layout.",
+    "Runtime validation, publication and read authorization, admitted CI pin, actual workflow activation and current-pair generated-code evidence remain deferred obligations and are not established by this review."
+  ]
+}
