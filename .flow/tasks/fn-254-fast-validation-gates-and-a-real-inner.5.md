@@ -40,13 +40,19 @@ Keep actual changed test/runner execution, exact coverage mappings, stage-presen
 - [ ] `model-check-changed` is removed, as required by R5.
 
 ## Done summary
-TBD
+Implemented and reviewed the fixture/compiler granularity checkpoint on umpire. The old framework umbrella maps to 24 cases in the existing binary; all other identities, 119 dependency tuples and 202 protected snapshots remain intact. Required-TLC execution passed 83 cases with one existing ignored timing case, 422 fresh checks, two observed owners/four checker JVMs and 512 MiB configured checker/discovery heaps. Sampled RSS is observational, not a hard limit. Temporal activity passed native/interpreter/source-lift/TLC/realization coverage with 28 fresh checks.
 
+Compiler admission retains all six registry identities (18 negative/one positive) and both supplemental identities (one negative/one generated-API positive), with the actual Go linker. UI coverage is the original 79 negatives partitioned into 61 exact parser diagnostic/span rows and 18 rustc cases, plus four unchanged positive inputs. Full macro fixture execution passed eight cases; the restored UI glob also covers future compiler inputs. Before/after timings are recorded with cache/executor differences, without causal speedup attribution.
+
+Required profile uses at most four slots and two JVM owners per nextest invocation; explicit Apalache remains available with the temporary one-slot cap. Lower positive caller limits are preserved, native defaults retained, standalone child/receipt agree, and Temporal applies policy once. Update mode repairs active consumer snapshots without sibling fail-fast races; normal, skipped and external artifact admission remains strict. Both dead Scala-only Make targets are removed.
+
+Focused policy/wiring/standalone/consumer/compiler tests, strict affected clippy/fmt, exact source projections and snapshot/lock checks pass. Three-axis review SHIP; four valid follow-ups fixed, red/green controls retained, scoped re-review SHIP with no findings. Full joined gates/final targets stay with .8, cross-invocation admission/scheduling with .17 and budgets with .12. Read-only .17 inventories/probes/design reports were preserved in the follow-up commit as preparation only; the small fn257 throughput evidence key correction in the source checkpoint is metadata, not migration progress.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fdf115db9986e67e20b2d9c5c1fdcb1afb741aa8, 85c0a39f8a
+- Tests: Required/cache-disabled framework fixtures:83passed/1ignored,422fresh TLC checks, Required Temporal activity:1passed/40filtered,28fresh TLC checks; compiler registry6identities andsupplemental2identities, Full DSL macro fixtures8passed:61parser rows/18negative compiler/4positive inputs, Focused framework35lib+13gate_wiring+6standalone;Temporal12;consumer12, Strict affected clippy/fmt and exact manifests:119dependencytuples,2locks,202snapshots unchanged, Finalized implementation reviews81b94a664e4b4012aace6c1e0fa7d73a and6123c05d6b554f9fb57748df542d09d3:SHIP
 - PRs:
-
 ## Bounded execution parallelism
 
 Consume the source-grounded decision at `.flow/tmp/fn254-jvm-parallel-shape/decision.md`. Tune the JVM group from one to two test owners in both nextest configurations, with four global slots per admitted nextest invocation for required-backend gates and the standalone child. These slots do not cap separate nextest invocations; .17 owns their shared JVM admission. Keep backend-skipped native execution at the existing CPU-based default. Preserve fail-fast, every filter/identity/ignored case and the separate doctest phase. Keep the TLC recovery default at two processes per owner; cap the retained TLC discovery probe with the existing default heap limit so the bound includes it. Under one cross-invocation JVM lease this admits at most four checker JVMs with 2 GiB configured model heaps; JVM/native/Go overhead still needs separate resource admission. Never call sampled RSS a hard memory bound.

@@ -236,6 +236,36 @@
       "attribution": "Observed claim-to-done spans source work, validation, other sessions and review waits; not isolated worker time or causal concurrency speedup.",
       "deferred": "Maintained harness and gate/budget activation remain later tasks.",
       "integration_commit": "142f7de90cfc4c6d79427aa74e0141235c446509"
+    },
+    {
+      "at": "2026-10-26T23:49:14.245503+00:00",
+      "type": "verified_task_closure",
+      "task": "fn-254.5",
+      "status": "done",
+      "source_head": "85c0a39f8a",
+      "claimed_at": "2026-10-26T21:32:12.050233+00:00",
+      "done_at": "2026-10-26T23:48:44.483151+00:00",
+      "claim_to_done_seconds": 8192.432918,
+      "reviews": [
+        {
+          "rid": "81b94a664e4b4012aace6c1e0fa7d73a",
+          "result": "SHIP",
+          "axes": 3,
+          "max_draw_seconds": 690.6,
+          "accepted_followups": 4
+        },
+        {
+          "rid": "6123c05d6b554f9fb57748df542d09d3",
+          "result": "SHIP",
+          "axes": 1,
+          "max_draw_seconds": 214.4,
+          "introduced_findings": 0
+        }
+      ],
+      "source_rework": "Preserved lower caller thread limits and truthful standalone receipts; restored UI glob/update repair; removed duplicate Temporal policy; failing old-source controls retained.",
+      "verification": "Required framework83pass/1ignored,422fresh TLC; Temporalactivity28fresh TLC; complete compiler coverage and strict focused checks;119dependencytuples,202snapshots andbothlocks unchanged.",
+      "attribution": "Mixed source/check/review time, including read-only successor research; no causal concurrency or cache speedup attribution.",
+      "deferred": "Cross-invocation admission/DAG.17, counters/budgets.12 and finaljoined gates/measurements.8."
     }
   ],
   "measurement_limits": "Source handoffs are work-in-progress, not verified closures. Mixed scope, unknown exact worker times and validation/access blockers prevent a causal concurrency speedup estimate."
