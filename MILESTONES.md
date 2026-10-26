@@ -35,7 +35,9 @@ Parallel work requires disjoint source and code-generation ownership.
 
 The owner lifted the validation hold on 2026-10-26. Resume focused fn-254 checks
 and retain unvalidated candidates until their required evidence and reviews pass.
-Candidates for fn-254.5/.15/.16/.17 and .12 are being combined in an isolated source-assembly branch.
+The fn-254.5 source is applied on `umpire` for focused validation; its fixture/compiler
+coverage and bounded nextest controls still require execution. Candidates for .15/.16/.17
+and .12 remain in the isolated source-assembly branch.
 Remaining implementation includes actual receipt counters, budget wiring, mise compatibility and native control fixtures.
 Candidates are unvalidated and not integrated into `umpire`;
 preparation does not advance Flow dependencies or mark tasks complete. Integrate shared CLI/configuration
@@ -106,7 +108,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-254.5 | ⬜ todo | Candidates prepared: 24 fixture cases, compiler batching, 63 parser-table cases with 16 compiler cases retained, discovery heap cap and dead-target removal; integration/validation pending (R4, R5) |
+| fn-254.5 | 🔄 in progress | Source applied: 24 fixture cases, compiler batching, 63 parser-table cases with 16 compiler cases retained, discovery heap cap, dead-target removal and bounded nextest profile/receipt controls; focused validation underway (R4, R5) |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
 | fn-254.12 | ⬜ todo | Budget parser/count/retry candidate assembled; real receipt producers and native wiring underway. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
@@ -147,7 +149,7 @@ Not adopted: Kani, bolero, Loom, Shuttle (a candidate once checking goes paralle
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-255.1 | 🔄 in progress | Source spike validated at `4285914b1b`: complete graph agreement, label-only mutants, shrinking and two-Model TLC batching measured; verdict/evidence checkpoint awaits formal review and integration (R1) |
+| fn-255.1 | 🔄 in progress | Source spike validated and reviewed at `4285914b1b`: complete graph agreement, label-only mutants, shrinking and two-Model TLC batching measured; budget/provenance docs and missing-jar preflight follow-up precede closure/integration (R1) |
 | fn-255.2 | ⬜ todo | Source preparation underway: differential harness with shrinking and fixture pinning; .1 admission/evidence remain prerequisites (R1) |
 | fn-255.3 | ⬜ todo | Pinned nightly; cargo-fuzz targets for guest dispatch and TLC decoders, seeded corpora (R2) |
 | fn-255.4 | ⬜ todo | Bounded cargo-mutants smoke/control runs; scheduled campaign reports and triage, serialized source edits (R3) |
