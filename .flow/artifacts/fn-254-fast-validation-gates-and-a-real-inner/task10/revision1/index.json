@@ -454,7 +454,7 @@
     "model/umpire/Cargo.lock": true
   },
   "reused_evidence": {
-    "pointer": "../task13/current-index.json",
+    "pointer": "../../task13/current-index.json",
     "pointer_sha256": "53cf84fe4e47874a78fb5857deca160158d3916dcf831acf11737af34f733524",
     "scope": "unchanged guest/native/protobuf/three Go host input closures and published Temporal guest; actual invocation remapping checked by current compiled process/shell controls",
     "new_go_execution_claim": false,
@@ -949,5 +949,7 @@
       ],
       "result": "proto-tools registered/listed and executed once through full gate registry"
     }
-  ]
+  ],
+  "subagents_in_revision": 3,
+  "source_subagents_total": 6
 }
