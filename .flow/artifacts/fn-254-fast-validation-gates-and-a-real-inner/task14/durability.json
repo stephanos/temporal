@@ -1,0 +1,38 @@
+{
+  "tracked_proof_files": [
+    "clippy.log",
+    "driver-source-manifest.json",
+    "evidence.json",
+    "fetch-tlc.log",
+    "guest-a.log",
+    "guest-a.sha256",
+    "guest-b.log",
+    "guest-b.sha256",
+    "guest-cache-a.txt",
+    "guest-cache-b.txt",
+    "guest-old.sha256",
+    "native-driver-a.sha256",
+    "native-driver-b.sha256",
+    "native-tests.log",
+    "probe-scan.log",
+    "publication-status.txt",
+    "run-guest-proof.sh",
+    "source-manifest.json",
+    "summary.md",
+    "tlc-jar.sha256",
+    "tlc-real-smoke.log",
+    "tlc-runner-tests.log",
+    "tlc-smoke-build.log",
+    "tool-manifest.txt",
+    "proof-index.json"
+  ],
+  "protected_external_proof_files": [
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task14/temporal-a.wasm",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task14/temporal-b.wasm",
+    "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25414-probes/reproduction-a/xtask-bootstrap/debug/umpire-guest-driver",
+    "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25414-probes/reproduction-b/xtask-bootstrap/debug/umpire-guest-driver"
+  ],
+  "all_indexed_hashes_verified": true,
+  "source_hashes_match_joined_checkout": true,
+  "duplicate_guest_bytes_equal_committed": true
+}

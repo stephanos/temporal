@@ -9,7 +9,7 @@ Prove the framework stands alone and stays Temporal-agnostic (spec R7 errors), a
 
 **Size:** S
 **Files:** standalone control under .10's real framework gate module, gate-local stage/child-mode registration, exact declarative boundary policy, framework xtask integration controls. Task .8 owns consolidated README/tier documentation.
-**Touches:** [model/umpire/dev/xtask/src/gate.rs, model/umpire/dev/xtask/src/gate/**, model/umpire/dev/xtask/tests/main.rs, model/umpire/dev/xtask/tests/gate_wiring.rs, model/umpire/dev/xtask/tests/standalone/**, model/umpire/dev/gate/policy/framework-boundary.txt]
+**Touches:** [model/umpire/dev/xtask/src/gate.rs, model/umpire/dev/xtask/src/gate/**, model/umpire/dev/xtask/tests/main.rs, model/umpire/dev/xtask/tests/gate_wiring.rs, model/umpire/dev/xtask/tests/standalone/**, model/umpire/dev/gate/policy/framework-boundary.txt, model/umpire/protocol/runtime/tests/capabilities.rs]
 
 The existing compiled `gate_wiring.rs` inventory/validate fixtures are included to preserve every old leaf assertion while registering the new standalone stage. Synthetic fixtures must report the real standalone refusal; they do not earn a full-copy proof.
 
@@ -47,3 +47,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Isolated runtime-test path correction
+
+Own protocol/runtime/tests/capabilities.rs only to repair its inherited pre-move framework-root/DSL/lock paths exposed by the mandatory real isolated proof. Preserve all capability assembly/refusal assertions. Add any further actual file needs through honest ownership amendment and admission before editing.

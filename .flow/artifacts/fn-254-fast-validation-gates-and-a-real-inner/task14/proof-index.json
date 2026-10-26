@@ -1,0 +1,124 @@
+{
+  "source_commit": "5ba482b5b73ca4d85ab758568d9a25ec4c4126b4",
+  "base_commit": "234dcd5c6fd85d2d05790c87b032f26e2e8cd96d",
+  "proof_root": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task14",
+  "retained_files": {
+    "clippy.log": {
+      "sha256": "9a6b6120de1809b27dc05141496f7ab9c72fc5fce71b57f7fc5c79cd67f4bbb1",
+      "bytes": 1613
+    },
+    "driver-source-manifest.json": {
+      "sha256": "e5e2ce7e91d29ab8f2b4f5d8fc7d241df79c1901adf6b9e5dbe44c32675c58d4",
+      "bytes": 2204
+    },
+    "evidence.json": {
+      "sha256": "36e3026dadbecec4f94a294258a9bc7ddf0b281fa1e48e02c1437205895abb75",
+      "bytes": 2220
+    },
+    "fetch-tlc.log": {
+      "sha256": "31408fe75d6fd687f7d44c6c258133cda415cc173afda7cdcb324e32215ff9e8",
+      "bytes": 981
+    },
+    "guest-a.log": {
+      "sha256": "e152b9b9f3f942d782366dba4790e4996a1658822edc191265fbec0e8d1d505c",
+      "bytes": 8441
+    },
+    "guest-a.sha256": {
+      "sha256": "578ff21879469979a471c6c65786173839b19d0e2c574dbd8e6f65dd835417c2",
+      "bytes": 157
+    },
+    "guest-b.log": {
+      "sha256": "c4ffc49b6eb11e58a2786440e60108d4aad68d3f53ef692b0dbb1bb0fe8a2341",
+      "bytes": 8441
+    },
+    "guest-b.sha256": {
+      "sha256": "a5d28350204b31ec560e2fd0a769af386529714d6bfd84fb0e31145382074234",
+      "bytes": 157
+    },
+    "guest-cache-a.txt": {
+      "sha256": "0b5db9cf8f4df34c327a420fce81ded6be9cc7dac56ceda3c3385386225efda2",
+      "bytes": 165
+    },
+    "guest-cache-b.txt": {
+      "sha256": "f3ae5fc1e76194a7a558b0c9f269a57d653635a049846c44d9cee9e8877e536b",
+      "bytes": 165
+    },
+    "guest-old.sha256": {
+      "sha256": "2b86adbe5e9ebccdd0043c226b46f4d30aa58b749ba4c236f180b32503d2a590",
+      "bytes": 117
+    },
+    "native-driver-a.sha256": {
+      "sha256": "0a885893909b6e01b44fd9a28a3f5877d191a58cebf8d0144216e99b08436f98",
+      "bytes": 196
+    },
+    "native-driver-b.sha256": {
+      "sha256": "c449c888c961722a0f6f7ab27af39ba150345a08acf8bac0297314a87ce2c03d",
+      "bytes": 196
+    },
+    "native-tests.log": {
+      "sha256": "04b088f751015ac583d3a97a475a7a812890c04bebd2e325b4c0b59409285882",
+      "bytes": 12218
+    },
+    "probe-scan.log": {
+      "sha256": "53959430472091b2396fb14242a060adfd681045428e26c1606efe38fe686981",
+      "bytes": 519
+    },
+    "publication-status.txt": {
+      "sha256": "1cd263f1102656dd6b6cf1d626d1a96f9eba0406af3cb2a52560d473d4801052",
+      "bytes": 10
+    },
+    "run-guest-proof.sh": {
+      "sha256": "59f7b1585910ffa29407544acc2d319ca6771ed513b179d35b39c1af999de459",
+      "bytes": 1679
+    },
+    "source-manifest.json": {
+      "sha256": "42abc5c97134e74c8bcd80fe41b1d76b2650570bee897ea15e2ca82d1d1d023d",
+      "bytes": 2535
+    },
+    "summary.md": {
+      "sha256": "a0df354cd78956d0ace3318b92ecd0462a73641002b5e5fb9dc124f54728340c",
+      "bytes": 2700
+    },
+    "temporal-a.wasm": {
+      "sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+      "bytes": 3988334
+    },
+    "temporal-b.wasm": {
+      "sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+      "bytes": 3988334
+    },
+    "tlc-jar.sha256": {
+      "sha256": "4e52da900a15298066358511fbc5d85fbac6a553fec48304dd048d824d47bb0a",
+      "bytes": 109
+    },
+    "tlc-real-smoke.log": {
+      "sha256": "dc80a8f99240d9c20e06249f4d6a3884abe905055577e7bdee1173d489b6027e",
+      "bytes": 396
+    },
+    "tlc-runner-tests.log": {
+      "sha256": "c381a800c712b11dd3cbd889f09097163faee2b7e82bc78a8e47253067cc9081",
+      "bytes": 3229
+    },
+    "tlc-smoke-build.log": {
+      "sha256": "e01f0afabc8314344a6931d3529050beead25ad8d4e4cc109d07a9652b82a8a2",
+      "bytes": 345
+    },
+    "tool-manifest.txt": {
+      "sha256": "1a40e0e96f031bf86c2f2d4d041fe20fb65fa6e2dc4abeee6f2c924bd0c4d304",
+      "bytes": 269
+    }
+  },
+  "external_native_binaries": {
+    "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25414-probes/reproduction-a/xtask-bootstrap/debug/umpire-guest-driver": {
+      "sha256": "b1210c27a5bfe8cd30d5e238fe9ed4341f3d4fc04f98053a527e0593ad60a09c",
+      "bytes": 19758824
+    },
+    "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25414-probes/reproduction-b/xtask-bootstrap/debug/umpire-guest-driver": {
+      "sha256": "b1210c27a5bfe8cd30d5e238fe9ed4341f3d4fc04f98053a527e0593ad60a09c",
+      "bytes": 19758824
+    }
+  },
+  "assumption_scope": "Task13 source-path/remap proof reused only for unchanged mappings. Exact changed native driver identity and Temporal WASM reproduction are freshly proven in two independent targets. No old-driver freshness evidence reused.",
+  "publication": "Old committed and both rebuilt WASM exact match. No committed guest or canary policy change.",
+  "resources": "CARGO_BUILD_JOBS=2; RUST_TEST_THREADS=2; CARGO_INCREMENTAL=0; private target. All inherited Rust flags/profile overrides/wrappers cleared. Real TLC exclusive lease released to task6."
+}

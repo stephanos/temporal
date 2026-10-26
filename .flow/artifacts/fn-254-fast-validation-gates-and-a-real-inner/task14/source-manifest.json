@@ -1,0 +1,30 @@
+{
+  "commit": "5ba482b5b73ca4d85ab758568d9a25ec4c4126b4",
+  "files": {
+    "model/GUEST_BUILDS.md": "699bd434b7b05b7b35f18e2c832844b7eaf334afaad6b68d2e1d47aa6ef421a9",
+    "model/README.md": "ac8d13f5a0af118fbe2b62c0c50620c984e97f7d1d191b9543519710d728334b",
+    "model/scripts/proto-go.sh": "1ff1a39d9d5c72aa457d11f603b432ae212f36ea7fdb7e1cf3d7770933b1d9d1",
+    "model/scripts/tests/proto-go.sh": "e04c626054f51d32416dcef10628a96390bd23a61a3bd1df19fa336fd4cd0c94",
+    "model/umpire/backends/process/src/jar.rs": "872270576ae5eed7c7ad5615a2ca42809428291d154f01b2b8a55014dd806888",
+    "model/umpire/backends/process/src/support.rs": "3e21126424e68071523326a74fba264bbe5100b1a5fae13a96f5e6ad60c82d5a",
+    "model/umpire/backends/process/src/tests.rs": null,
+    "model/umpire/dev/guest-driver/README.md": "ec74e60d637b9db494c8868e307f618ad4969cb2d4e9c45e990b4e499fb6258d",
+    "model/umpire/dev/guest-driver/src/guest.rs": "ceccc7db4750e475e3fdd450bca86b1a8d6ee02105e169bc40f5443735d19ec8",
+    "model/umpire/dev/guest-driver/tests/guest_pipeline.rs": "972ffee0050dfd38b987b01fabef2941cba24a2389d46be18f4eda9edfacca51",
+    "model/umpire/dev/guest-driver/tests/pipeline/support.rs": "08b28a4e4cd23d939cc94bdfa20e0633b7c9928556980cff01df3d4985f5d049",
+    "model/umpire/scripts/proto-go.sh": "76b2309467590a11f1127adc2d99c89aff6d3d44c89671823f51c4aa1b32e161",
+    "model/umpire/scripts/tests/bootstrap.sh": "44125d7e6569da276427c0fb616df84e7b373314882328f75bbf9d1f16cf2ff6",
+    "model/umpire/scripts/tests/proto-go.sh": "11af2da62c642caa6e3c0b03a0acd9bc634d7290fa92833809991fd26c1aef7a",
+    "model/umpire/scripts/xtask.sh": "2cd2d88ec0a66f69783f7eb5d510875c7e48d2a3604c3b6a6142e31a2bf5aa82",
+    "mise.toml": "c959fbc35e982bb71dd75e1babb230899939ba8f997b3a5fc1bd0a20dbe610a1",
+    "rust-toolchain.toml": null,
+    "model/Cargo.toml": "0ab4762e6f5d045fc9f35405e77359a5670122cff03cdcbc39603dddc57796b1",
+    "model/Cargo.lock": "50d2b024555c958b02286fa6ec65976efc9fb9cd69f4d27780e9a01998d5d70f",
+    "model/mise.toml": null,
+    "model/rust-toolchain.toml": "620f5ba2c76cfec3b2e8b29ca27138401535b21919339a8aaef86f250b335b27",
+    "model/umpire/Cargo.toml": "fc6572bbc9dbea65b83708c025ac99e7ef44dff3b6a04c7ae2728b2b5be18796",
+    "model/umpire/Cargo.lock": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5",
+    "model/umpire/mise.toml": "047236435e49253d7b4ad8047fa5b7bc683fe089de9eb40a14a25581245a24bb",
+    "model/umpire/rust-toolchain.toml": "620f5ba2c76cfec3b2e8b29ca27138401535b21919339a8aaef86f250b335b27"
+  }
+}
