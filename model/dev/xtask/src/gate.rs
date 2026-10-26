@@ -175,21 +175,35 @@ printf '%s\n' "$label" >> "$UMPIRE_GATE_CONTROL_LOG"
         let mise = root.join("bin/mise");
         fs::write(&mise, format!("#!/bin/bash\nset -eu\nlabel=\"$*\"\n{body}")).unwrap();
         fs::set_permissions(&mise, fs::Permissions::from_mode(0o755)).unwrap();
-        let expected = [
-            "guest",
-            "retired",
-            "timing",
-            "exec -- cargo test -p umpire-temporal-tests --test boundary --quiet",
-            "proto-controls",
-            "proto",
-            "exec -- cargo fmt --all --check",
-            "exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings",
-            "exec -- cargo doc --workspace --no-deps --quiet",
-            "exec -- cargo test --workspace --locked --quiet",
-            "guest-build",
-            "exec -- go -C PLACEHOLDER/temporal/hosts/go test -tags test_dep -count=1 ./...",
-        ]
-        .map(|label| label.replace("PLACEHOLDER", &root.to_string_lossy()));
+        let stages = [
+            ("temporal-guest-freshness", "guest"),
+            ("retired-names", "retired"),
+            ("timing-controls", "timing"),
+            (
+                "source-boundary",
+                "exec -- cargo test -p umpire-temporal-tests --test boundary --quiet",
+            ),
+            ("protobuf-controls", "proto-controls"),
+            ("temporal-protobuf-freshness", "proto"),
+            ("fmt", "exec -- cargo fmt --all --check"),
+            (
+                "clippy",
+                "exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings",
+            ),
+            ("docs", "exec -- cargo doc --workspace --no-deps --quiet"),
+            (
+                "tests",
+                "exec -- cargo nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final",
+            ),
+            ("tests", "exec -- cargo test --doc --workspace --locked --quiet"),
+            ("wasm-guest", "guest-build"),
+            (
+                "temporal-go-host",
+                "exec -- go -C PLACEHOLDER/temporal/hosts/go test -tags test_dep -count=1 ./...",
+            ),
+        ];
+        let expected =
+            stages.map(|(_, label)| label.replace("PLACEHOLDER", &root.to_string_lossy()));
         let log = root.join("calls");
         for (timed, failure) in std::iter::once(None)
             .chain((0..expected.len()).map(Some))
@@ -219,21 +233,7 @@ printf '%s\n' "$label" >> "$UMPIRE_GATE_CONTROL_LOG"
             let output = child.output().unwrap();
             assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stdout));
             if let Some(index) = failure {
-                let names = [
-                    "temporal-guest-freshness",
-                    "retired-names",
-                    "timing-controls",
-                    "source-boundary",
-                    "protobuf-controls",
-                    "temporal-protobuf-freshness",
-                    "fmt",
-                    "clippy",
-                    "docs",
-                    "tests",
-                    "wasm-guest",
-                    "temporal-go-host",
-                ];
-                assert!(String::from_utf8_lossy(&output.stderr).contains(names[index]));
+                assert!(String::from_utf8_lossy(&output.stderr).contains(stages[index].0));
             }
             let actual = fs::read_to_string(&log).unwrap();
             let end = failure.map_or(expected.len(), |index| index + 1);
