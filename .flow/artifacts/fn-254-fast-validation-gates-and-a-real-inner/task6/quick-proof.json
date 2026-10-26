@@ -1,0 +1,477 @@
+{
+  "source": {
+    "base": "8cf15a04e60d15f63f7b0de72d1e2f933d6f2ad0",
+    "source": "7b4d3f526c94471542d736e04301246c61c9f3b9",
+    "files": {
+      "Makefile": "109121c7f49cd5713c11c94226d79b6040de300d5391779ac43d25b7f217ad16",
+      "model/dev/xtask/src/main.rs": "6dbd6a6fcfbe4f1af99023f6b392d03312b73c8fec78d0dd2e663b029fd4c119",
+      "model/dev/xtask/src/quick/mod.rs": "71953e4e4707b4efe01986d2fb3afd549a35c0ffb0b335a076d867ac023c3199",
+      "model/umpire/backends/process/src/fingerprint.rs": "73c7665b00f560b7e866faaa72484e325e5f1fcfb691351ccd879a1ad555df7a",
+      "model/umpire/backends/process/src/lib.rs": "39878aead4ac08c9fe2f311553d724b1c288f0f8b3ac230c60671257933f9fab",
+      "model/umpire/backends/tlc/src/cache.rs": "92e6d317e959f445b15a52b17d95d1c1db65a245eeeb69a2e15d7eff8cca15e8",
+      "model/umpire/backends/tlc/src/lib.rs": "a2dc35281a9fa0f2e1446ba541e97ad95341dfbde3d648e97ada687d14ffb731",
+      "model/umpire/backends/tlc/src/runner.rs": "01c407daf4584da51dfa97b8d441a3f0fcd0047fd348ae18818d56bb6fa718cc",
+      "model/umpire/backends/tlc/src/runner/batch_tests.rs": "d41e06e09bbea453b987f721d95b53ed332fc120a7037f69ca4997da2596483e",
+      "model/umpire/backends/tlc/src/runner/cache_tests.rs": "eefc26621943591c4cfbb3e26d497f0e65ef8b5d86f19f7c5c793f15ee2ac43b",
+      "model/umpire/dev/testing/src/interpreted.rs": "30a29b75ffed2984af28badb239a5207c757810f91008a579e36b41de764f08b",
+      "model/umpire/dev/xtask/src/lib.rs": "e9de36caefe2fcd486cea91008d2804f52c2b8121554271bd8befc9ac88ef7af",
+      "model/umpire/dev/xtask/src/main.rs": "8c77f9783b1aa768ee85b14f84c0a7a63130de236503983e2b449f6fcd176b38",
+      "model/umpire/dev/xtask/src/quick/mod.rs": "568cdb22adeb8fe2943a90ede775d0e3fef11fd48034768c53363ac2e66b7372",
+      "model/umpire/dev/xtask/src/quick/selection.rs": "3ae16abbc25b15a06161e516a6dd94afcbbc5309b888ea8733dfba2afe5090be",
+      "model/umpire/dev/xtask/src/quick/tests.rs": "e2c32cbd5196004b2186f7ba802649a799585dc051f0c6985b3f2e59626df061"
+    },
+    "locks": {
+      "model/Cargo.lock": "50d2b024555c958b02286fa6ec65976efc9fb9cd69f4d27780e9a01998d5d70f",
+      "model/umpire/Cargo.lock": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5"
+    }
+  },
+  "activity": {
+    "baseline": {
+      "mode": "baseline",
+      "status": 0,
+      "cache_hits": 7,
+      "cache_misses": 7,
+      "executions": 14,
+      "native_interpreter": 4,
+      "original_sha256": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767",
+      "edited_sha256": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767",
+      "tla_snapshot_sha256": "e64dd847afb1fc6990846c22f233b467f15da6fdacd2fa2d1bf47b2906162cab"
+    },
+    "preserving": {
+      "mode": "preserving",
+      "status": 0,
+      "cache_hits": 14,
+      "cache_misses": 0,
+      "executions": 0,
+      "native_interpreter": 4,
+      "original_sha256": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767",
+      "edited_sha256": "132abdf0f8d8f6ab5ada4cb72f308d250f0743faaa2bfb654dba990765e91619",
+      "tla_snapshot_sha256": "e64dd847afb1fc6990846c22f233b467f15da6fdacd2fa2d1bf47b2906162cab"
+    },
+    "emission": {
+      "mode": "emission",
+      "status": 0,
+      "cache_hits": 7,
+      "cache_misses": 7,
+      "executions": 14,
+      "native_interpreter": 4,
+      "original_sha256": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767",
+      "edited_sha256": "4a603deebad59f8a5f52050085d52eea62ce6f18a6b92a31df559172d671e876",
+      "tla_snapshot_sha256": "ff9f62accaadffb004c372551419cce965b4915a111dd58e464b0f725a475da3"
+    },
+    "bypass": {
+      "mode": "bypass",
+      "status": 0,
+      "cache_hits": 0,
+      "cache_misses": 0,
+      "executions": 28,
+      "native_interpreter": 0,
+      "original_sha256": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767",
+      "edited_sha256": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767",
+      "tla_snapshot_sha256": "e64dd847afb1fc6990846c22f233b467f15da6fdacd2fa2d1bf47b2906162cab"
+    }
+  },
+  "keys": {
+    "baseline": [
+      "144e0878667964ab693bdbd9c7940bd1e3b27359120fbe8921344cd234b96f54",
+      "463c3452d6c3a9d3489eeb4a0d1182ddee4efed6b600dff365bf355a018f1106",
+      "55f9a082cc4e356adacf9dd97f817bbcdf3525ca0e87d40927ea1a6f11b11be3",
+      "88bd1843f8901e60c74cd87214013bacc7d45aa57df97dc159d140773375ce0f",
+      "aaa790b9ecf7f61db08acea1af0af542d67c078cc2aaa62f49e4520c4fb9b3c7",
+      "ed7acc7da356eae736b7b1210a638fbe851f1f11487cd4651ed1bddf7ec4e896",
+      "ffc250ab555d037cacbea47c591abd314327fb9510f71555268ebf58e1010570"
+    ],
+    "preserving": [
+      "144e0878667964ab693bdbd9c7940bd1e3b27359120fbe8921344cd234b96f54",
+      "463c3452d6c3a9d3489eeb4a0d1182ddee4efed6b600dff365bf355a018f1106",
+      "55f9a082cc4e356adacf9dd97f817bbcdf3525ca0e87d40927ea1a6f11b11be3",
+      "88bd1843f8901e60c74cd87214013bacc7d45aa57df97dc159d140773375ce0f",
+      "aaa790b9ecf7f61db08acea1af0af542d67c078cc2aaa62f49e4520c4fb9b3c7",
+      "ed7acc7da356eae736b7b1210a638fbe851f1f11487cd4651ed1bddf7ec4e896",
+      "ffc250ab555d037cacbea47c591abd314327fb9510f71555268ebf58e1010570"
+    ],
+    "emission": [
+      "671b7d9e26d55c8d130723a5134679eb67daad5f51f7ce84b06a0d8a3df27c94",
+      "89d080f0158eb8ab78b41538b35f83cc6de1d0f02571be93d7ff95be8606a427",
+      "8cb93d1e3ef2711673663362fb96e36745b2e6719b59fa5a28ca47a7e7f20878",
+      "935af684ad1a8b32458b57d46f9a9d02e8720e67b03a0fc754e83d3ef085eefd",
+      "93f9a233567a69db0727a1de12fe152e5c9a1386ad0fa914e883f4e5552a2569",
+      "d0d348e2a343ead6bf999983dc965e010119bce5db18abfa531dd98226f0bce9",
+      "ebd52c1d7f27370ca3413aa9047309b1c6f3ee90d055845bd5b88d2300a02501"
+    ],
+    "bypass": []
+  },
+  "selection": {
+    "baseline": {
+      "base": "HEAD",
+      "changed": [],
+      "reasons": [
+        "always: umpire-temporal-tests (native/interpreter/backend fixture execution)",
+        "unchanged invocation: explicit always packages still execute"
+      ],
+      "workspaces": [
+        {
+          "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model",
+          "packages": [
+            "umpire-temporal-tests"
+          ]
+        },
+        {
+          "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire",
+          "packages": []
+        }
+      ]
+    },
+    "preserving": {
+      "base": "HEAD",
+      "changed": [
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/feature/activity/model.rs"
+      ],
+      "reasons": [
+        "always: umpire-temporal-tests (native/interpreter/backend fixture execution)",
+        "mapped source: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/feature/activity/model.rs"
+      ],
+      "workspaces": [
+        {
+          "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model",
+          "packages": [
+            "umpire-temporal-tests"
+          ]
+        },
+        {
+          "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire",
+          "packages": []
+        }
+      ]
+    },
+    "emission": {
+      "base": "HEAD",
+      "changed": [
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/feature/activity/model.rs"
+      ],
+      "reasons": [
+        "always: umpire-temporal-tests (native/interpreter/backend fixture execution)",
+        "mapped source: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/feature/activity/model.rs"
+      ],
+      "workspaces": [
+        {
+          "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model",
+          "packages": [
+            "umpire-temporal-tests"
+          ]
+        },
+        {
+          "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire",
+          "packages": []
+        }
+      ]
+    }
+  },
+  "guest": {
+    "source": "7b4d3f526c94471542d736e04301246c61c9f3b9",
+    "platform": "Linux/aarch64",
+    "files": [
+      {
+        "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/temporal-a.wasm",
+        "bytes": 3988334,
+        "sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc"
+      },
+      {
+        "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/temporal-b.wasm",
+        "bytes": 3988334,
+        "sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc"
+      },
+      {
+        "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/temporal/hosts/go/umpire_temporal_guest.wasm",
+        "bytes": 3988334,
+        "sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc"
+      }
+    ],
+    "independent_empty_targets": true,
+    "different_source_paths": true,
+    "committed_bytes_unchanged": true
+  },
+  "bypass": {
+    "inherited_full_gate_inputs": {
+      "UMPIRE_QUICK_CACHE": "1",
+      "UMPIRE_CACHE_DISABLE": "0"
+    },
+    "effective_full_gate_inputs": {
+      "UMPIRE_QUICK_CACHE": "0",
+      "UMPIRE_CACHE_DISABLE": "1"
+    },
+    "populated_configurations": 14,
+    "real_fresh_tlc_executions": 28,
+    "stage_control_logs": [
+      "framework-full-bypass-stage.log",
+      "system-full-bypass-stage.log"
+    ],
+    "actual_control_log": "activity-bypass.log"
+  },
+  "initial_attempt": {
+    "status": 2,
+    "cause": "clean isolated candidate had no installed pinned TLC jar",
+    "log": "activity-baseline-unprovisioned.log",
+    "corrected_by": "Copied task14 pinned jar and admitted exact SHA256 with existing fetch-tlc.sh before rerun"
+  },
+  "restored_source_clean": true,
+  "deferred": [
+    "Unrelated full model gates and final joined validation remain task .8 obligations."
+  ],
+  "runs": [
+    {
+      "name": "guest-a",
+      "command": [
+        "bash",
+        "model/scripts/guest.sh",
+        "umpire-temporal-guest",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/temporal-a.wasm"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate",
+      "target": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/guest-a",
+      "status": 0,
+      "seconds": 65.94,
+      "environment": {
+        "CARGO_BUILD_JOBS": "2",
+        "CARGO_INCREMENTAL": "0",
+        "RUST_TEST_THREADS": "2",
+        "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/guest-a"
+      }
+    },
+    {
+      "name": "activity-candidate-prebuild",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "model/Cargo.toml",
+        "-p",
+        "umpire-temporal-tests",
+        "--test",
+        "fixtures"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate",
+      "target": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate",
+      "status": 0,
+      "seconds": 31.955,
+      "environment": {
+        "CARGO_BUILD_JOBS": "2",
+        "CARGO_INCREMENTAL": "0",
+        "RUST_TEST_THREADS": "2",
+        "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate"
+      }
+    },
+    {
+      "name": "guest-b",
+      "command": [
+        "bash",
+        "model/scripts/guest.sh",
+        "umpire-temporal-guest",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/temporal-b.wasm"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick",
+      "target": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/guest-b",
+      "status": 0,
+      "seconds": 66.419,
+      "environment": {
+        "CARGO_BUILD_JOBS": "2",
+        "CARGO_INCREMENTAL": "0",
+        "RUST_TEST_THREADS": "2",
+        "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/guest-b"
+      }
+    },
+    {
+      "name": "activity-candidate-clippy",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "model/Cargo.toml",
+        "-p",
+        "umpire-temporal-tests",
+        "--all-targets",
+        "--all-features",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate",
+      "target": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate",
+      "status": 0,
+      "seconds": 20.1,
+      "environment": {
+        "CARGO_BUILD_JOBS": "2",
+        "CARGO_INCREMENTAL": "0",
+        "RUST_TEST_THREADS": "2",
+        "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate"
+      }
+    },
+    {
+      "name": "activity-baseline",
+      "command": [
+        "make",
+        "model-quick"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate",
+      "target": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate",
+      "status": 2,
+      "seconds": 44.093,
+      "environment": {
+        "CARGO_BUILD_JOBS": "2",
+        "CARGO_INCREMENTAL": "0",
+        "RUST_TEST_THREADS": "2",
+        "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate"
+      }
+    },
+    {
+      "name": "activity-baseline",
+      "command": [
+        "make",
+        "model-quick"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate",
+      "target": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate",
+      "status": 0,
+      "seconds": 33.674,
+      "environment": {
+        "CARGO_BUILD_JOBS": "2",
+        "CARGO_INCREMENTAL": "0",
+        "RUST_TEST_THREADS": "2",
+        "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate"
+      }
+    },
+    {
+      "name": "activity-preserving",
+      "command": [
+        "make",
+        "model-quick"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate",
+      "target": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate",
+      "status": 0,
+      "seconds": 20.265,
+      "environment": {
+        "CARGO_BUILD_JOBS": "2",
+        "CARGO_INCREMENTAL": "0",
+        "RUST_TEST_THREADS": "2",
+        "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate"
+      }
+    },
+    {
+      "name": "activity-emission",
+      "command": [
+        "make",
+        "model-quick"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate",
+      "target": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate",
+      "status": 0,
+      "seconds": 33.084,
+      "environment": {
+        "CARGO_BUILD_JOBS": "2",
+        "CARGO_INCREMENTAL": "0",
+        "RUST_TEST_THREADS": "2",
+        "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate"
+      }
+    },
+    {
+      "name": "activity-bypass",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "model/Cargo.toml",
+        "-p",
+        "umpire-temporal-tests",
+        "--test",
+        "fixtures",
+        "fixtures",
+        "--",
+        "--exact",
+        "--nocapture",
+        "--test-threads=2"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate",
+      "target": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate",
+      "status": 0,
+      "seconds": 38.653,
+      "environment": {
+        "CARGO_BUILD_JOBS": "2",
+        "CARGO_INCREMENTAL": "0",
+        "RUST_TEST_THREADS": "2",
+        "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate"
+      }
+    },
+    {
+      "name": "guest-freshness",
+      "command": [
+        "bash",
+        "model/scripts/guest.sh",
+        "umpire-temporal-guest",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/hosts/go/umpire_temporal_guest.wasm",
+        "--check"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate",
+      "target": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/guest-a",
+      "status": 0,
+      "seconds": 37.222,
+      "environment": {
+        "CARGO_BUILD_JOBS": "2",
+        "CARGO_INCREMENTAL": "0",
+        "RUST_TEST_THREADS": "2",
+        "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/guest-a"
+      }
+    }
+  ],
+  "logs": {
+    "activity-baseline-unprovisioned.log": "25009c75454a20448c1b9dc5b174d74f2406f495bd655a37c8bfefee36c27b62",
+    "activity-baseline.log": "44cafeaf859108a16f94ad9ac9a595c098ced7aa709f5db31b837cc31f8beea7",
+    "activity-bypass.log": "1eb661f4ee94a774b694f2a524151af867d06312ae146cae2f3acb35f4d68e71",
+    "activity-candidate-clippy.log": "11f6a2fc9d013055bf96fef203a14c0d11ce3addb5614ba992b294eeaf375ca1",
+    "activity-candidate-prebuild.log": "ed9895d552dd261640d4f447224603f39bf202d582e4f6891fc1cdd9bbd73efb",
+    "activity-emission.log": "cc01ff134e6a77accfb52c1f1e04a26816ef3ee3cb3f4b54eee8c028e02c18e4",
+    "activity-locked-build.log": "e95fead1402b2c73119508d23e56327fb614e2f548d694835dd906cadccd3793",
+    "activity-preserving.log": "387f60545e2eb00af61cd3b5cefb666bf76df977dec9a3dff98db02eb51b84d9",
+    "bridge-selection.log": "324cbf80b276ff6eff599ede8a6a8546eeb357c77de6c1ba21b200f85efec0ec",
+    "cache-clippy.log": "12233555f4718d914ab3ded63618f675aacbdc7c10aa5ccd00b2db80b0457151",
+    "cache-equivalence-build.log": "a13905646e2aed93ec6ea9ed6ac91490a4e01f91af0215c3965279a910612149",
+    "cache-tests.log": "15155240ae8ac2b9ae1f8eca0ee80a80a35bb86fae3b28530594e59eaafe2dd5",
+    "framework-full-bypass-stage.log": "2b8df487fdf77a772e7cf6758592d8b9735ecec3169eab6bbb4a9fbf272780b1",
+    "framework-locked-build.log": "0f5960579f109b04c654898eedb6c53aa337a47b9c2163f39311d014cc1b6432",
+    "guest-a.log": "5d43db3e30267afdbe76b9420103cdfe19fd4f77898e9bbf1be1317323338a87",
+    "guest-b.log": "0102c5cc3c8ccb273940a13a01d63ce329cde3109160d00929e0b3d263c2ea1f",
+    "guest-freshness.log": "edfb6dafd977f887c35cd46a63eb086e33e6c074dee4c2bf1b7c3996955ad0c6",
+    "jar-admission.log": "3f4283d4a64227eaf6674bc4cdcd524c39ea1f1c09c55cb3f47304763cbfd964",
+    "quick-clippy.log": "fcbcc51bcc272d881c2a8693dfa7ccf1ca850a9303dc70a85692518fbeb74b28",
+    "quick-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "quick-unit.log": "4e7fb2c4e334e4c08118db90d8c75a94d20969c973009cd04c29b07d048acb93",
+    "system-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "system-full-bypass-stage.log": "35933accea2e823d98ac58d6fe892540d90ab521b0974b986978f31a23073af9",
+    "system-locked-build.log": "e7255b034ffbff20b0d61e28d421552a89192ef316184870d5e93de3075f6179",
+    "system-quick-clippy.log": "313b234a02e9943dc5858017833f9e4dbdfc445e79d9c9ff2ed01cc9c39c712e",
+    "system-quick-test.log": "b887506b13261223f99df8ca1a09014f02bd73ee58fae417dd75c519d914a905",
+    "testing-clippy.log": "dbdf9f1082774d3d136ac942e758f42396e2d3cc4a270615f06e9536a9607a4a"
+  },
+  "supporting_input_hashes": {
+    "model/dev/xtask/src/gate.rs": "618ff8d04350d0a62451d3991ca819c82a1b15978358f74620729327aee50a00",
+    "model/umpire/dev/xtask/src/gate.rs": "d96c62a96b4a51fcf48aba15aa44152dd6ce774be8df367f634019caf00ac920",
+    "model/temporal/feature/activity/model.rs": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767",
+    "model/temporal/feature/activity/expected/Activity.tla.snap": "e64dd847afb1fc6990846c22f233b467f15da6fdacd2fa2d1bf47b2906162cab"
+  },
+  "proof_scripts": {
+    "run-proof.py": "a570851a9c060a95adf9ed599065e8a7dc1237ec71d82433ac2fcf5cc65ca0ee",
+    "activity-proof.py": "c0ea641f075e1d51cf1479a9144c066802286704e6c91724b6e2a58a7c5cd42c"
+  }
+}
