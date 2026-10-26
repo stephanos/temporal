@@ -1,0 +1,379 @@
+{
+  "commands": [
+    {
+      "name": "root",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest",
+      "argv": [
+        "mise",
+        "ls",
+        "--installed",
+        "--json",
+        "github:nextest-rs/nextest"
+      ],
+      "exit": 0,
+      "stdout": "[\n  {\n    \"version\": \"0.9.149\",\n    \"requested_version\": \"0.9.149\",\n    \"install_path\": \"/home/agent/.local/share/mise/installs/github-nextest-rs-nextest/0.9.149\",\n    \"source\": {\n      \"type\": \"mise.toml\",\n      \"path\": \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/mise.toml\"\n    },\n    \"installed\": true,\n    \"active\": true\n  }\n]\n",
+      "stderr": ""
+    },
+    {
+      "name": "root",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "nextest",
+        "--version"
+      ],
+      "exit": 0,
+      "stdout": "cargo-nextest 0.9.149 (3fe4ef319 2026-10-20)\nrelease: 0.9.149\ncommit-hash: 3fe4ef31972f24e0c94cfe291718eab0fe678260\ncommit-date: 2026-10-20\nhost: aarch64-unknown-linux-gnu\n",
+      "stderr": ""
+    },
+    {
+      "name": "framework",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "mise",
+        "ls",
+        "--installed",
+        "--json",
+        "github:nextest-rs/nextest"
+      ],
+      "exit": 0,
+      "stdout": "[\n  {\n    \"version\": \"0.9.149\",\n    \"requested_version\": \"0.9.149\",\n    \"install_path\": \"/home/agent/.local/share/mise/installs/github-nextest-rs-nextest/0.9.149\",\n    \"source\": {\n      \"type\": \"mise.toml\",\n      \"path\": \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/mise.toml\"\n    },\n    \"installed\": true,\n    \"active\": true\n  }\n]\n",
+      "stderr": ""
+    },
+    {
+      "name": "framework",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "nextest",
+        "--version"
+      ],
+      "exit": 0,
+      "stdout": "cargo-nextest 0.9.149 (3fe4ef319 2026-10-20)\nrelease: 0.9.149\ncommit-hash: 3fe4ef31972f24e0c94cfe291718eab0fe678260\ncommit-date: 2026-10-20\nhost: aarch64-unknown-linux-gnu\n",
+      "stderr": ""
+    },
+    {
+      "name": "framework-independent",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/.flow/tmp/fn2543-tool-admission/independent",
+      "argv": [
+        "mise",
+        "ls",
+        "--installed",
+        "--json",
+        "github:nextest-rs/nextest"
+      ],
+      "exit": 0,
+      "stdout": "[\n  {\n    \"version\": \"0.9.149\",\n    \"requested_version\": \"0.9.149\",\n    \"install_path\": \"/home/agent/.local/share/mise/installs/github-nextest-rs-nextest/0.9.149\",\n    \"source\": {\n      \"type\": \"mise.toml\",\n      \"path\": \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/.flow/tmp/fn2543-tool-admission/independent/mise.toml\"\n    },\n    \"installed\": true,\n    \"active\": true\n  }\n]\n",
+      "stderr": ""
+    },
+    {
+      "name": "framework-independent",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/.flow/tmp/fn2543-tool-admission/independent",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "nextest",
+        "--version"
+      ],
+      "exit": 0,
+      "stdout": "cargo-nextest 0.9.149 (3fe4ef319 2026-10-20)\nrelease: 0.9.149\ncommit-hash: 3fe4ef31972f24e0c94cfe291718eab0fe678260\ncommit-date: 2026-10-20\nhost: aarch64-unknown-linux-gnu\n",
+      "stderr": ""
+    }
+  ],
+  "locks": {
+    "mise.lock": {
+      "sha256": "83bd1e2858a4444470d4ae801111897a87160a9cac233f797999a9e4c0c99cb5",
+      "value": {
+        "lockfile_version": 3,
+        "tools": {
+          "github:nextest-rs/nextest": [
+            {
+              "version": "0.9.149",
+              "backend": "github:nextest-rs/nextest",
+              "specifiers": [
+                "0.9.149"
+              ],
+              "options": {
+                "version_prefix": "cargo-nextest-"
+              },
+              "platforms.linux-arm64": {
+                "checksum": "sha256:6f82e375187cf3a1f3e336879a51940c315a5d0ce7253f7e517ad28295b74189",
+                "url": "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-0.9.149/cargo-nextest-0.9.149-aarch64-unknown-linux-gnu.tar.gz",
+                "url_api": "https://api.github.com/repos/nextest-rs/nextest/releases/assets/660818146",
+                "provenance": "github-attestations"
+              },
+              "platforms.linux-arm64-musl": {
+                "checksum": "sha256:533c9b431c2bb1dcb216e02e474263db0cdcd556373b72cc34830fb417058a6b",
+                "url": "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-0.9.149/cargo-nextest-0.9.149-aarch64-unknown-linux-musl.tar.gz",
+                "url_api": "https://api.github.com/repos/nextest-rs/nextest/releases/assets/660820807",
+                "provenance": "github-attestations"
+              },
+              "platforms.linux-x64": {
+                "checksum": "sha256:32d1d8c0567b7a80bee2bad8bb09125c846da96bc009b2de11ec08557290c770",
+                "url": "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-0.9.149/cargo-nextest-0.9.149-x86_64-unknown-linux-gnu.tar.gz",
+                "url_api": "https://api.github.com/repos/nextest-rs/nextest/releases/assets/660814555",
+                "provenance": "github-attestations"
+              },
+              "platforms.linux-x64-musl": {
+                "checksum": "sha256:d65c7f14bcb5c1566d1ecd534c5da8dedb81ba58586e478b0ab81c877d2bd8ad",
+                "url": "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-0.9.149/cargo-nextest-0.9.149-x86_64-unknown-linux-musl.tar.gz",
+                "url_api": "https://api.github.com/repos/nextest-rs/nextest/releases/assets/660821053",
+                "provenance": "github-attestations"
+              },
+              "platforms.macos-arm64": {
+                "checksum": "sha256:47b9941765a9ff94e304a3fe5444ac1c7593da655525b8b69f8f2b31a9217507",
+                "url": "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-0.9.149/cargo-nextest-0.9.149-universal-apple-darwin.tar.gz",
+                "url_api": "https://api.github.com/repos/nextest-rs/nextest/releases/assets/660825754",
+                "provenance": "github-attestations"
+              },
+              "platforms.macos-x64": {
+                "checksum": "sha256:47b9941765a9ff94e304a3fe5444ac1c7593da655525b8b69f8f2b31a9217507",
+                "url": "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-0.9.149/cargo-nextest-0.9.149-universal-apple-darwin.tar.gz",
+                "url_api": "https://api.github.com/repos/nextest-rs/nextest/releases/assets/660825754",
+                "provenance": "github-attestations"
+              },
+              "platforms.windows-x64": {
+                "checksum": "sha256:bf904b85c7c5c2a29c340053a8d9d8e8027ff0d55a2bf7cef7d23032f8166438",
+                "url": "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-0.9.149/cargo-nextest-0.9.149-x86_64-pc-windows-msvc.zip",
+                "url_api": "https://api.github.com/repos/nextest-rs/nextest/releases/assets/660828894",
+                "provenance": "github-attestations"
+              }
+            }
+          ],
+          "go": [
+            {
+              "version": "1.27.0",
+              "backend": "core:go",
+              "specifiers": [
+                "1.27.0"
+              ],
+              "platforms.linux-arm64": {
+                "checksum": "sha256:51798d2c42d0e1c6ed7fd9f48728b4193abac9e8aad6dbac2fe96a81f5909bda",
+                "url": "https://dl.google.com/go/go1.27.0.linux-arm64.tar.gz"
+              },
+              "platforms.linux-arm64-musl": {
+                "checksum": "sha256:51798d2c42d0e1c6ed7fd9f48728b4193abac9e8aad6dbac2fe96a81f5909bda",
+                "url": "https://dl.google.com/go/go1.27.0.linux-arm64.tar.gz"
+              },
+              "platforms.linux-x64": {
+                "checksum": "sha256:675c26c449cbb18fc24b74650de1eabbae6e16f64326fd85a283fb3b58280685",
+                "url": "https://dl.google.com/go/go1.27.0.linux-amd64.tar.gz"
+              },
+              "platforms.linux-x64-musl": {
+                "checksum": "sha256:675c26c449cbb18fc24b74650de1eabbae6e16f64326fd85a283fb3b58280685",
+                "url": "https://dl.google.com/go/go1.27.0.linux-amd64.tar.gz"
+              },
+              "platforms.macos-arm64": {
+                "checksum": "sha256:90493b3bbd5e10f91d12153198bf1994fd756399b4fec93b49b0c6e2acdeeb3e",
+                "url": "https://dl.google.com/go/go1.27.0.darwin-arm64.tar.gz"
+              },
+              "platforms.macos-x64": {
+                "checksum": "sha256:d3314e25496e4381d71a5c51d2907e7af655d199f6780b549f015bd85fef4986",
+                "url": "https://dl.google.com/go/go1.27.0.darwin-amd64.tar.gz"
+              },
+              "platforms.windows-x64": {
+                "checksum": "sha256:f0c0a0d33ba94f4d2c5dbc887334ce678b21813504ddb3aafcb06e60a5a667c4",
+                "url": "https://dl.google.com/go/go1.27.0.windows-amd64.zip"
+              }
+            }
+          ],
+          "java": [
+            {
+              "version": "temurin-27.0.0+35",
+              "backend": "core:java",
+              "specifiers": [
+                "temurin-27"
+              ],
+              "platforms.linux-arm64": {
+                "checksum": "sha256:e4ec5c7276290c7bde0baecba9a29be4962f5388684296406a9799d465936087",
+                "url": "https://github.com/adoptium/temurin27-binaries/releases/download/jdk-27%2B35/OpenJDK27U-jdk_aarch64_linux_hotspot_27_35.tar.gz"
+              },
+              "platforms.linux-arm64-musl": {
+                "checksum": "sha256:440353d641e7726396dff5d9a9d0d17c05a070dc25664c20f9d7efafc2f16cf7",
+                "url": "https://github.com/adoptium/temurin27-binaries/releases/download/jdk-27%2B35/OpenJDK27U-jdk_aarch64_alpine-linux_hotspot_27_35.tar.gz"
+              },
+              "platforms.linux-x64": {
+                "checksum": "sha256:1cf69a4848ffb728b3b260dfd45206a51566ab571a02a30092271d4c580bccbc",
+                "url": "https://github.com/adoptium/temurin27-binaries/releases/download/jdk-27%2B35/OpenJDK27U-jdk_x64_linux_hotspot_27_35.tar.gz"
+              },
+              "platforms.linux-x64-musl": {
+                "checksum": "sha256:45aef7cd5ae667c6f5dd100c96a99e5a00e61c512664bb13326cf149b7d37e0f",
+                "url": "https://github.com/adoptium/temurin27-binaries/releases/download/jdk-27%2B35/OpenJDK27U-jdk_x64_alpine-linux_hotspot_27_35.tar.gz"
+              },
+              "platforms.macos-arm64": {
+                "checksum": "sha256:a59626c926f0146a286cb535fc9a46499d6c46b3d79ae72168bbf18438fe49dd",
+                "url": "https://github.com/adoptium/temurin27-binaries/releases/download/jdk-27%2B35/OpenJDK27U-jdk_aarch64_mac_hotspot_27_35.tar.gz"
+              },
+              "platforms.windows-x64": {
+                "checksum": "sha256:2031c9c5c624737ed29a0624caaf5bcc25e74235834c28b4bfa88f7ba7a40e4a",
+                "url": "https://github.com/adoptium/temurin27-binaries/releases/download/jdk-27%2B35/OpenJDK27U-jdk_x64_windows_hotspot_27_35.zip"
+              }
+            }
+          ],
+          "protoc": [
+            {
+              "version": "29.5",
+              "backend": "aqua:protocolbuffers/protobuf/protoc",
+              "specifiers": [
+                "29.5"
+              ],
+              "platforms.linux-arm64": {
+                "url": "https://github.com/protocolbuffers/protobuf/releases/download/v29.5/protoc-29.5-linux-aarch_64.zip",
+                "url_api": "https://api.github.com/repos/protocolbuffers/protobuf/releases/assets/258957740"
+              },
+              "platforms.linux-arm64-musl": {
+                "url": "https://github.com/protocolbuffers/protobuf/releases/download/v29.5/protoc-29.5-linux-aarch_64.zip",
+                "url_api": "https://api.github.com/repos/protocolbuffers/protobuf/releases/assets/258957740"
+              },
+              "platforms.linux-x64": {
+                "url": "https://github.com/protocolbuffers/protobuf/releases/download/v29.5/protoc-29.5-linux-x86_64.zip",
+                "url_api": "https://api.github.com/repos/protocolbuffers/protobuf/releases/assets/258957750"
+              },
+              "platforms.linux-x64-musl": {
+                "url": "https://github.com/protocolbuffers/protobuf/releases/download/v29.5/protoc-29.5-linux-x86_64.zip",
+                "url_api": "https://api.github.com/repos/protocolbuffers/protobuf/releases/assets/258957750"
+              },
+              "platforms.macos-arm64": {
+                "url": "https://github.com/protocolbuffers/protobuf/releases/download/v29.5/protoc-29.5-osx-aarch_64.zip",
+                "url_api": "https://api.github.com/repos/protocolbuffers/protobuf/releases/assets/258957747"
+              },
+              "platforms.macos-x64": {
+                "url": "https://github.com/protocolbuffers/protobuf/releases/download/v29.5/protoc-29.5-osx-x86_64.zip",
+                "url_api": "https://api.github.com/repos/protocolbuffers/protobuf/releases/assets/258957749"
+              },
+              "platforms.windows-x64": {
+                "url": "https://github.com/protocolbuffers/protobuf/releases/download/v29.5/protoc-29.5-win64.zip",
+                "url_api": "https://api.github.com/repos/protocolbuffers/protobuf/releases/assets/258957756"
+              }
+            }
+          ],
+          "rust": [
+            {
+              "version": "1.99.1",
+              "backend": "core:rust",
+              "specifiers": [
+                "1.99.1"
+              ]
+            }
+          ],
+          "scala-cli": [
+            {
+              "version": "1.17.1",
+              "backend": "github:VirtusLab/scala-cli",
+              "specifiers": [
+                "1.17.1"
+              ],
+              "platforms.linux-arm64": {
+                "checksum": "sha256:a12ed53f4723f3e9312a2383e47664b4beaccf2be366cff40adf6b054426156f",
+                "url": "https://github.com/VirtusLab/scala-cli/releases/download/v1.17.1/scala-cli-aarch64-pc-linux.gz",
+                "url_api": "https://api.github.com/repos/VirtusLab/scala-cli/releases/assets/570545318"
+              },
+              "platforms.linux-arm64-musl": {
+                "checksum": "sha256:a12ed53f4723f3e9312a2383e47664b4beaccf2be366cff40adf6b054426156f",
+                "url": "https://github.com/VirtusLab/scala-cli/releases/download/v1.17.1/scala-cli-aarch64-pc-linux.gz",
+                "url_api": "https://api.github.com/repos/VirtusLab/scala-cli/releases/assets/570545318"
+              },
+              "platforms.linux-x64": {
+                "checksum": "sha256:4186bfac6552097fbfd3939bdf2ecdec1cb55baafcbf6259bef5c04e08858eb3",
+                "url": "https://github.com/VirtusLab/scala-cli/releases/download/v1.17.1/scala-cli-x86_64-pc-linux.gz",
+                "url_api": "https://api.github.com/repos/VirtusLab/scala-cli/releases/assets/570545769"
+              },
+              "platforms.linux-x64-musl": {
+                "checksum": "sha256:4186bfac6552097fbfd3939bdf2ecdec1cb55baafcbf6259bef5c04e08858eb3",
+                "url": "https://github.com/VirtusLab/scala-cli/releases/download/v1.17.1/scala-cli-x86_64-pc-linux.gz",
+                "url_api": "https://api.github.com/repos/VirtusLab/scala-cli/releases/assets/570545769"
+              },
+              "platforms.macos-arm64": {
+                "checksum": "sha256:b04fa44e5ebb4243e9c6aa21b0d09dd85b11182c5197c4a3709e2527539d8647",
+                "url": "https://github.com/VirtusLab/scala-cli/releases/download/v1.17.1/scala-cli-aarch64-apple-darwin.gz",
+                "url_api": "https://api.github.com/repos/VirtusLab/scala-cli/releases/assets/570545145"
+              },
+              "platforms.macos-x64": {
+                "checksum": "sha256:d6e81f29d80f5555bc2a676087806737525f775678fba9d366cb1d3eaa317c46",
+                "url": "https://github.com/VirtusLab/scala-cli/releases/download/v1.17.1/scala-cli-x86_64-apple-darwin.gz",
+                "url_api": "https://api.github.com/repos/VirtusLab/scala-cli/releases/assets/570545410"
+              },
+              "platforms.windows-x64": {
+                "checksum": "sha256:01dbcabdccfc9b18d4c82b2b2093fd3d4dbcf66ffa9d2f735b906cf29dc6bd6c",
+                "url": "https://github.com/VirtusLab/scala-cli/releases/download/v1.17.1/scala-cli-x86_64-pc-win32.zip",
+                "url_api": "https://api.github.com/repos/VirtusLab/scala-cli/releases/assets/570546002"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "model/umpire/mise.lock": {
+      "sha256": "cbe9740d3768eca5e0d500f9aade2f4075bb6f3712ea9c6e905f5e4109555f35",
+      "value": {
+        "lockfile_version": 3,
+        "tools": {
+          "github:nextest-rs/nextest": [
+            {
+              "version": "0.9.149",
+              "backend": "github:nextest-rs/nextest",
+              "specifiers": [
+                "0.9.149"
+              ],
+              "options": {
+                "version_prefix": "cargo-nextest-"
+              },
+              "platforms.linux-arm64": {
+                "checksum": "sha256:6f82e375187cf3a1f3e336879a51940c315a5d0ce7253f7e517ad28295b74189",
+                "url": "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-0.9.149/cargo-nextest-0.9.149-aarch64-unknown-linux-gnu.tar.gz",
+                "url_api": "https://api.github.com/repos/nextest-rs/nextest/releases/assets/660818146",
+                "provenance": "github-attestations"
+              },
+              "platforms.linux-arm64-musl": {
+                "checksum": "sha256:533c9b431c2bb1dcb216e02e474263db0cdcd556373b72cc34830fb417058a6b",
+                "url": "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-0.9.149/cargo-nextest-0.9.149-aarch64-unknown-linux-musl.tar.gz",
+                "url_api": "https://api.github.com/repos/nextest-rs/nextest/releases/assets/660820807",
+                "provenance": "github-attestations"
+              },
+              "platforms.linux-x64": {
+                "checksum": "sha256:32d1d8c0567b7a80bee2bad8bb09125c846da96bc009b2de11ec08557290c770",
+                "url": "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-0.9.149/cargo-nextest-0.9.149-x86_64-unknown-linux-gnu.tar.gz",
+                "url_api": "https://api.github.com/repos/nextest-rs/nextest/releases/assets/660814555",
+                "provenance": "github-attestations"
+              },
+              "platforms.linux-x64-musl": {
+                "checksum": "sha256:d65c7f14bcb5c1566d1ecd534c5da8dedb81ba58586e478b0ab81c877d2bd8ad",
+                "url": "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-0.9.149/cargo-nextest-0.9.149-x86_64-unknown-linux-musl.tar.gz",
+                "url_api": "https://api.github.com/repos/nextest-rs/nextest/releases/assets/660821053",
+                "provenance": "github-attestations"
+              },
+              "platforms.macos-arm64": {
+                "checksum": "sha256:47b9941765a9ff94e304a3fe5444ac1c7593da655525b8b69f8f2b31a9217507",
+                "url": "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-0.9.149/cargo-nextest-0.9.149-universal-apple-darwin.tar.gz",
+                "url_api": "https://api.github.com/repos/nextest-rs/nextest/releases/assets/660825754",
+                "provenance": "github-attestations"
+              },
+              "platforms.macos-x64": {
+                "checksum": "sha256:47b9941765a9ff94e304a3fe5444ac1c7593da655525b8b69f8f2b31a9217507",
+                "url": "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-0.9.149/cargo-nextest-0.9.149-universal-apple-darwin.tar.gz",
+                "url_api": "https://api.github.com/repos/nextest-rs/nextest/releases/assets/660825754",
+                "provenance": "github-attestations"
+              },
+              "platforms.windows-x64": {
+                "checksum": "sha256:bf904b85c7c5c2a29c340053a8d9d8e8027ff0d55a2bf7cef7d23032f8166438",
+                "url": "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-0.9.149/cargo-nextest-0.9.149-x86_64-pc-windows-msvc.zip",
+                "url_api": "https://api.github.com/repos/nextest-rs/nextest/releases/assets/660828894",
+                "provenance": "github-attestations"
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "installation": "mise lock github:nextest-rs/nextest in each public config; mise install github:nextest-rs/nextest under normal root config; official precompiled Github release, no Cargo install or global Mise upgrade",
+  "guest_parser": "guest.rs Tools deserializes rust/go/protoc as String and ignores unknown nextest field; existing guest_pipeline controls executed separately"
+}

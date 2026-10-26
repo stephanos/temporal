@@ -1,0 +1,144 @@
+[
+  {
+    "label": "framework-version",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "nextest",
+      "--version"
+    ],
+    "exit": 0,
+    "seconds": 0.04661204100011673
+  },
+  {
+    "label": "framework-fmt",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 0.6432435829992755
+  },
+  {
+    "label": "framework-runner-controls",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "test",
+      "-p",
+      "xtask",
+      "--lib",
+      "--locked",
+      "test_run::"
+    ],
+    "exit": 0,
+    "seconds": 5.247936252999352
+  },
+  {
+    "label": "framework-cargo-build-list",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "test",
+      "--workspace",
+      "--locked",
+      "--no-run",
+      "--message-format=json"
+    ],
+    "exit": 0,
+    "seconds": 62.5183201130003
+  },
+  {
+    "label": "framework-metadata",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "metadata",
+      "--locked",
+      "--format-version=1",
+      "--no-deps"
+    ],
+    "exit": 0,
+    "seconds": 0.04745091600125306
+  },
+  {
+    "label": "framework-libtest-a9c340816dd0",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+    "argv": [
+      "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-dae21feb6857b356",
+      "--list",
+      "--format",
+      "terse"
+    ],
+    "exit": 0,
+    "seconds": 0.0016241250013990793
+  },
+  {
+    "label": "framework-libtest-a9c340816dd0-ignored",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+    "argv": [
+      "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-dae21feb6857b356",
+      "--ignored",
+      "--list",
+      "--format",
+      "terse"
+    ],
+    "exit": 0,
+    "seconds": 0.0006152500009193318
+  },
+  {
+    "label": "framework-libtest-7598bc42c77e",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+    "argv": [
+      "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-c4c123f0fb53ca3c",
+      "--list",
+      "--format",
+      "terse"
+    ],
+    "exit": 0,
+    "seconds": 0.0010916669998550788
+  },
+  {
+    "label": "framework-libtest-7598bc42c77e-ignored",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+    "argv": [
+      "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-c4c123f0fb53ca3c",
+      "--ignored",
+      "--list",
+      "--format",
+      "terse"
+    ],
+    "exit": 0,
+    "seconds": 0.0005587079995166278
+  },
+  {
+    "label": "framework-libtest-45b7a1f54804",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+    "argv": [
+      "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_dsl_macros-2fc9f6db1ce82f35",
+      "--list",
+      "--format",
+      "terse"
+    ],
+    "exit": 127,
+    "seconds": 0.0005346250000002328
+  }
+]

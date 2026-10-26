@@ -1,0 +1,21 @@
+{
+  "status": "upstream workspace path debt",
+  "files": [
+    {
+      "path": "model/umpire/author/dsl/macros/tests/ui/action_domain_unbound.stderr",
+      "committed_sha256": "38c821e7ba41a5b939926d48161ed655456615d902dca769506178373ec5c410",
+      "generated_sha256": "58e6723e77258497b8dc34410c4e0a379a5cbfa402c0aeba6d7f68db8527e896"
+    },
+    {
+      "path": "model/umpire/author/dsl/macros/tests/ui/action_finite_missing.stderr",
+      "committed_sha256": "3a1f13fe4c137f6cdc2d3c926a655f9098787fdc63eea28c85bef79a2e1e27e6",
+      "generated_sha256": "eb9768f02c7cd55bdb02b4fc3e4efc7beb9c4df3834fec8bcab870180405eb3f"
+    },
+    {
+      "path": "model/umpire/author/dsl/macros/tests/ui/optional_facts_direct_reject.stderr",
+      "committed_sha256": "694b669a969e58affabc5b446c47a8d53a71c4cdfae959d95552b3584464d94a",
+      "generated_sha256": "4d31a2012173a309454540439aaf2fffa371d7dc392a1aa6c03c678048a1b669"
+    }
+  ],
+  "action": "Retained generated output; restored only task3-generated changes. No golden source edit committed. producer-trybuild-comparison.json confirms identical path failures with Cargo and nextest."
+}

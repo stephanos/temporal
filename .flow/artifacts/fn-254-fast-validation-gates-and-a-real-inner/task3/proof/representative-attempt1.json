@@ -1,0 +1,4 @@
+{
+  "status": "observer failed",
+  "reason": "Nearest fork/exec launch helper mistaken for test owner; must use topmost ancestor test binary. Observed Java process count assertion <=2 did not fail; testcase completion unavailable after observer aborted. Logs retained; final run required."
+}

@@ -1,0 +1,28 @@
+warning: doc tests are not supported for crate type(s) `cdylib` in package `umpire-caught-panic-guest`
+warning: doc tests are not supported for crate type(s) `cdylib` in package `umpire-control-guest`
+warning: doc tests are not supported for crate type(s) `cdylib` in package `umpire-kettle-guest`
+warning: doc tests are not supported for crate type(s) `cdylib` in package `umpire-overflow-guest`
+warning: doc tests are not supported for crate type(s) `cdylib` in package `umpire-stock-guest`
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s
+   Doc-tests umpire
+   Doc-tests umpire_apalache
+   Doc-tests umpire_author_consumer
+   Doc-tests umpire_backend_process
+   Doc-tests umpire_catalog
+   Doc-tests umpire_catalog_build
+   Doc-tests umpire_catalog_macros
+   Doc-tests umpire_catalog_syntax
+   Doc-tests umpire_checker
+   Doc-tests umpire_dsl
+   Doc-tests umpire_dsl_macros
+   Doc-tests umpire_front
+   Doc-tests umpire_guest_driver
+   Doc-tests umpire_ir
+   Doc-tests umpire_ir_derive
+   Doc-tests umpire_reference_kettle
+   Doc-tests umpire_runtime
+   Doc-tests umpire_suite
+   Doc-tests umpire_testing
+   Doc-tests umpire_tla
+   Doc-tests umpire_tlc
+   Doc-tests xtask

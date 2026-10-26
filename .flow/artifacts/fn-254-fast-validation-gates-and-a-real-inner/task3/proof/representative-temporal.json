@@ -1,0 +1,957 @@
+{
+  "argv": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "nextest",
+    "run",
+    "--workspace",
+    "--locked",
+    "--fail-fast",
+    "--run-ignored",
+    "default",
+    "--test-threads",
+    "8",
+    "--status-level",
+    "all",
+    "--final-status-level",
+    "all",
+    "--success-output",
+    "never",
+    "--failure-output",
+    "immediate-final",
+    "-E",
+    "(package(=umpire-temporal-tests) & (test(=activity_tests::actual_tlc_rejected_outcome_counterexample_replays_in_the_activity_model) | test(=activity_tests::actual_tlc_agrees_and_replays_retry_payload_counterexamples))) | (package(=temporal-xtask) & test(test_run::tests::))"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+  "env": {
+    "CARGO_BUILD_JOBS": "2",
+    "RUST_TEST_THREADS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "UMPIRE_BACKENDS": "require",
+    "UMPIRE_APALACHE": "require",
+    "INSTA_UPDATE": "always",
+    "TRYBUILD": "overwrite"
+  },
+  "exit": 0,
+  "seconds": 68.70120920000045,
+  "java_peak": 2,
+  "jvm_test_owner_peak": 1,
+  "aggregate_jvm_rss_peak_kib": 328320,
+  "sampling_interval_seconds": 0.05,
+  "samples": 1285,
+  "events": [
+    {
+      "seconds": 0.003112833999693976,
+      "java": [],
+      "host_java_pids": []
+    },
+    {
+      "seconds": 21.974782053001036,
+      "java": [
+        {
+          "pid": 364044,
+          "rss_kib": 44288,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -h"
+        }
+      ],
+      "host_java_pids": [
+        364044
+      ]
+    },
+    {
+      "seconds": 22.02682546899996,
+      "java": [
+        {
+          "pid": 364067,
+          "rss_kib": 44272,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-UcUuRE -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-UcUuRE -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-UcUuRE/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-UcUuRE/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-UcUuRE/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        364067
+      ]
+    },
+    {
+      "seconds": 22.766854928000612,
+      "java": [
+        {
+          "pid": 364116,
+          "rss_kib": 8288,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-sKYwQ1 -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-sKYwQ1 -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-sKYwQ1/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-sKYwQ1/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-sKYwQ1/batch.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        364116
+      ]
+    },
+    {
+      "seconds": 23.561541220000436,
+      "java": [
+        {
+          "pid": 364160,
+          "rss_kib": 43472,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-QSkuUX -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-QSkuUX -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-QSkuUX/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-QSkuUX/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-QSkuUX/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        364160
+      ]
+    },
+    {
+      "seconds": 24.354576304000148,
+      "java": [
+        {
+          "pid": 364205,
+          "rss_kib": 33472,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-N2QlI1 -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-N2QlI1 -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-N2QlI1/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-N2QlI1/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-N2QlI1/Progress_eventually_closed.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        364205
+      ]
+    },
+    {
+      "seconds": 25.151677054000174,
+      "java": [
+        {
+          "pid": 364251,
+          "rss_kib": 35504,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-YkFWmA -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-YkFWmA -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-YkFWmA/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-YkFWmA/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-YkFWmA/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        364251
+      ]
+    },
+    {
+      "seconds": 25.957344054000714,
+      "java": [
+        {
+          "pid": 364296,
+          "rss_kib": 29776,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-HexWeQ -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-HexWeQ -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-HexWeQ/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-HexWeQ/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-HexWeQ/Progress_pending_retryable_failure_cancels.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        364296
+      ]
+    },
+    {
+      "seconds": 26.74980851300097,
+      "java": [
+        {
+          "pid": 364342,
+          "rss_kib": 43632,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-KGcK7s -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-KGcK7s -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-KGcK7s/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-KGcK7s/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-KGcK7s/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        364342
+      ]
+    },
+    {
+      "seconds": 27.489530471999387,
+      "java": [],
+      "host_java_pids": []
+    },
+    {
+      "seconds": 27.541950430000725,
+      "java": [
+        {
+          "pid": 364387,
+          "rss_kib": 48208,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-3blXqT -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-3blXqT -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-3blXqT/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-3blXqT/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-3blXqT/Progress_pending_nonretryable_failure_fails.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        364387
+      ]
+    },
+    {
+      "seconds": 28.28429980600049,
+      "java": [],
+      "host_java_pids": []
+    },
+    {
+      "seconds": 28.337732596999558,
+      "java": [
+        {
+          "pid": 364464,
+          "rss_kib": 49088,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-OKzwyc -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-OKzwyc -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-OKzwyc/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-OKzwyc/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-OKzwyc/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        364464
+      ]
+    },
+    {
+      "seconds": 29.07845388900023,
+      "java": [
+        {
+          "pid": 364508,
+          "rss_kib": 43072,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-kJmOrk -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-kJmOrk -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-kJmOrk/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-kJmOrk/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-kJmOrk/Progress_ordinary_retry_rearms.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        364508
+      ]
+    },
+    {
+      "seconds": 29.830859306001003,
+      "java": [],
+      "host_java_pids": []
+    },
+    {
+      "seconds": 29.885260015000313,
+      "java": [
+        {
+          "pid": 364652,
+          "rss_kib": 43472,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-LCT7Yv -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-LCT7Yv -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-LCT7Yv/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-LCT7Yv/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-LCT7Yv/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        364652
+      ]
+    },
+    {
+      "seconds": 31.14081768200049,
+      "java": [
+        {
+          "pid": 364774,
+          "rss_kib": 29424,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-IntS4w -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-IntS4w -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-IntS4w/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-IntS4w/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-IntS4w/Progress_ordinary_retry_at_cap_fails.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        364774
+      ]
+    },
+    {
+      "seconds": 32.437781766000626,
+      "java": [
+        {
+          "pid": 365254,
+          "rss_kib": 48656,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-AwfqXD -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-AwfqXD -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-AwfqXD/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-AwfqXD/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-AwfqXD/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        365254
+      ]
+    },
+    {
+      "seconds": 33.1783404329999,
+      "java": [],
+      "host_java_pids": []
+    },
+    {
+      "seconds": 33.230487099999664,
+      "java": [
+        {
+          "pid": 365323,
+          "rss_kib": 47824,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-cnc1DO -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-cnc1DO -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-cnc1DO/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-cnc1DO/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-cnc1DO/Progress_ordinary_nonretryable_failure_fails.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        365323
+      ]
+    },
+    {
+      "seconds": 33.972463432999575,
+      "java": [],
+      "host_java_pids": []
+    },
+    {
+      "seconds": 34.02550301700103,
+      "java": [
+        {
+          "pid": 365369,
+          "rss_kib": 48496,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-KlENXL -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-KlENXL -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-KlENXL/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-KlENXL/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-KlENXL/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        365369
+      ]
+    },
+    {
+      "seconds": 34.7636216840001,
+      "java": [
+        {
+          "pid": 365413,
+          "rss_kib": 43008,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-XGHT6R -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-XGHT6R -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-XGHT6R/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-XGHT6R/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-XGHT6R/Negative_never_retried.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        365413
+      ]
+    },
+    {
+      "seconds": 35.50744389200008,
+      "java": [],
+      "host_java_pids": []
+    },
+    {
+      "seconds": 35.71956639200107,
+      "java": [
+        {
+          "pid": 365514,
+          "rss_kib": 49040,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-wufvxr -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-wufvxr -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-wufvxr/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-wufvxr/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-wufvxr/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        365514
+      ]
+    },
+    {
+      "seconds": 36.56675155999983,
+      "java": [
+        {
+          "pid": 365567,
+          "rss_kib": 44096,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-4LkspX -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-4LkspX -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-4LkspX/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-4LkspX/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-4LkspX/batch.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        365567
+      ]
+    },
+    {
+      "seconds": 37.4173190599995,
+      "java": [
+        {
+          "pid": 365613,
+          "rss_kib": 40624,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-aoFCka -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-aoFCka -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-aoFCka/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-aoFCka/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-aoFCka/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        365613
+      ]
+    },
+    {
+      "seconds": 38.36956247700073,
+      "java": [],
+      "host_java_pids": []
+    },
+    {
+      "seconds": 38.422801185000935,
+      "java": [
+        {
+          "pid": 365663,
+          "rss_kib": 48288,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-K3zWfs -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-K3zWfs -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-K3zWfs/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-K3zWfs/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-K3zWfs/Progress_eventually_closed.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        365663
+      ]
+    },
+    {
+      "seconds": 39.51585093600079,
+      "java": [],
+      "host_java_pids": []
+    },
+    {
+      "seconds": 39.56848839399936,
+      "java": [
+        {
+          "pid": 365715,
+          "rss_kib": 48400,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-wbLq8S -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-wbLq8S -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-wbLq8S/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-wbLq8S/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-wbLq8S/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        365715
+      ]
+    },
+    {
+      "seconds": 40.42999510300069,
+      "java": [
+        {
+          "pid": 365761,
+          "rss_kib": 46512,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-RbatDd -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-RbatDd -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-RbatDd/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-RbatDd/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-RbatDd/Progress_pending_retryable_failure_cancels.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        365761
+      ]
+    },
+    {
+      "seconds": 41.276138270000956,
+      "java": [
+        {
+          "pid": 365815,
+          "rss_kib": 40064,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-oydwmh -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-oydwmh -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-oydwmh/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-oydwmh/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-oydwmh/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        365815
+      ]
+    },
+    {
+      "seconds": 42.123710895999466,
+      "java": [],
+      "host_java_pids": []
+    },
+    {
+      "seconds": 42.17663635400095,
+      "java": [
+        {
+          "pid": 365862,
+          "rss_kib": 48672,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-ECn48V -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-ECn48V -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-ECn48V/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-ECn48V/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-ECn48V/Progress_pending_nonretryable_failure_fails.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        365862
+      ]
+    },
+    {
+      "seconds": 43.02558181300083,
+      "java": [
+        {
+          "pid": 365909,
+          "rss_kib": 45088,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-1BRMhu -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-1BRMhu -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-1BRMhu/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-1BRMhu/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-1BRMhu/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        365909
+      ]
+    },
+    {
+      "seconds": 43.92640743800075,
+      "java": [
+        {
+          "pid": 365956,
+          "rss_kib": 10960,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-gie0Vu -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-gie0Vu -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-gie0Vu/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-gie0Vu/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-gie0Vu/Progress_ordinary_retry_rearms.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        365956
+      ]
+    },
+    {
+      "seconds": 44.88233031399977,
+      "java": [
+        {
+          "pid": 366014,
+          "rss_kib": 38064,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-lQnTiB -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-lQnTiB -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-lQnTiB/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-lQnTiB/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-lQnTiB/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        366014
+      ]
+    },
+    {
+      "seconds": 45.851799313999436,
+      "java": [
+        {
+          "pid": 366070,
+          "rss_kib": 43456,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-gSuSJq -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-gSuSJq -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-gSuSJq/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-gSuSJq/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-gSuSJq/Progress_ordinary_retry_at_cap_fails.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        366070
+      ]
+    },
+    {
+      "seconds": 46.750965188999544,
+      "java": [
+        {
+          "pid": 366139,
+          "rss_kib": 41648,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-eUshwC -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-eUshwC -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-eUshwC/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-eUshwC/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-eUshwC/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        366139
+      ]
+    },
+    {
+      "seconds": 47.6509700229999,
+      "java": [],
+      "host_java_pids": []
+    },
+    {
+      "seconds": 47.704356357000506,
+      "java": [
+        {
+          "pid": 366306,
+          "rss_kib": 47808,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-uZfqFw -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-uZfqFw -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-uZfqFw/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-uZfqFw/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-uZfqFw/Progress_ordinary_nonretryable_failure_fails.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        366306
+      ]
+    },
+    {
+      "seconds": 48.65695223200055,
+      "java": [
+        {
+          "pid": 367635,
+          "rss_kib": 43264,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-xIZ62x -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-xIZ62x -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-xIZ62x/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-xIZ62x/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-xIZ62x/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        367635
+      ]
+    },
+    {
+      "seconds": 49.49771398200028,
+      "java": [
+        {
+          "pid": 367681,
+          "rss_kib": 34272,
+          "owner": 363997,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-9P06up -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-9P06up -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-9P06up/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-9P06up/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-9P06up/Negative_never_retried.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        367681
+      ]
+    },
+    {
+      "seconds": 50.24368302400035,
+      "java": [],
+      "host_java_pids": []
+    },
+    {
+      "seconds": 50.34907277400089,
+      "java": [
+        {
+          "pid": 367763,
+          "rss_kib": 39056,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -h"
+        }
+      ],
+      "host_java_pids": [
+        367763
+      ]
+    },
+    {
+      "seconds": 50.40121369100052,
+      "java": [
+        {
+          "pid": 367786,
+          "rss_kib": 40352,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-QvT9KI -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-QvT9KI -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-QvT9KI/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-QvT9KI/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-QvT9KI/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        367786
+      ]
+    },
+    {
+      "seconds": 51.249454733000675,
+      "java": [],
+      "host_java_pids": []
+    },
+    {
+      "seconds": 51.30172515000049,
+      "java": [
+        {
+          "pid": 367833,
+          "rss_kib": 47744,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-eZN8Bv -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-eZN8Bv -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-eZN8Bv/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-eZN8Bv/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-eZN8Bv/batch.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        367833
+      ]
+    },
+    {
+      "seconds": 52.03738035900096,
+      "java": [
+        {
+          "pid": 367880,
+          "rss_kib": 47072,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-sBxYsO -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-sBxYsO -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-sBxYsO/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-sBxYsO/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-sBxYsO/Invariant_state_bounds.dump Activity"
+        },
+        {
+          "pid": 367881,
+          "rss_kib": 47232,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-H1YsZH -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-H1YsZH -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-H1YsZH/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-H1YsZH/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-H1YsZH/Invariant_deadline_arming.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        367880,
+        367881
+      ]
+    },
+    {
+      "seconds": 52.88935073399989,
+      "java": [
+        {
+          "pid": 367881,
+          "rss_kib": 0,
+          "owner": 367725,
+          "argv": "[java]"
+        }
+      ],
+      "host_java_pids": [
+        367881
+      ]
+    },
+    {
+      "seconds": 52.94209090100048,
+      "java": [
+        {
+          "pid": 367956,
+          "rss_kib": 48256,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Y5kAa9 -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Y5kAa9 -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Y5kAa9/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Y5kAa9/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Y5kAa9/Invariant_pending_is_cooperative.dump Activity"
+        },
+        {
+          "pid": 367957,
+          "rss_kib": 48032,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-GT4L9o -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-GT4L9o -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-GT4L9o/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-GT4L9o/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-GT4L9o/Post_accepts_every_step.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        367956,
+        367957
+      ]
+    },
+    {
+      "seconds": 53.68307990100038,
+      "java": [
+        {
+          "pid": 367956,
+          "rss_kib": 164032,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Y5kAa9 -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Y5kAa9 -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Y5kAa9/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Y5kAa9/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Y5kAa9/Invariant_pending_is_cooperative.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        367956
+      ]
+    },
+    {
+      "seconds": 53.84198610900057,
+      "java": [
+        {
+          "pid": 368064,
+          "rss_kib": 46000,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-3HnR0m -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-3HnR0m -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-3HnR0m/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-3HnR0m/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-3HnR0m/Post_terminal_remains.dump Activity"
+        },
+        {
+          "pid": 368066,
+          "rss_kib": 46624,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Lvw4c8 -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Lvw4c8 -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Lvw4c8/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Lvw4c8/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Lvw4c8/Post_closed_rejects.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        368064,
+        368066
+      ]
+    },
+    {
+      "seconds": 54.74977644300088,
+      "java": [
+        {
+          "pid": 368152,
+          "rss_kib": 41936,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-LeLrLU -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-LeLrLU -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-LeLrLU/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-LeLrLU/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-LeLrLU/Post_tick_descends_and_expires.dump Activity"
+        },
+        {
+          "pid": 368154,
+          "rss_kib": 41648,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-0Tt00c -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-0Tt00c -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-0Tt00c/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-0Tt00c/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-0Tt00c/Post_global_never_replenished.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        368152,
+        368154
+      ]
+    },
+    {
+      "seconds": 55.655610818999776,
+      "java": [
+        {
+          "pid": 368232,
+          "rss_kib": 25888,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-fHI3q3 -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-fHI3q3 -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-fHI3q3/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-fHI3q3/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-fHI3q3/Post_countdowns_decrement.dump Activity"
+        },
+        {
+          "pid": 368233,
+          "rss_kib": 22240,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-wP8EmP -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-wP8EmP -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-wP8EmP/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-wP8EmP/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-wP8EmP/Post_heartbeat_preserves_attempt_and_global.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        368232,
+        368233
+      ]
+    },
+    {
+      "seconds": 56.55883140200058,
+      "java": [
+        {
+          "pid": 368232,
+          "rss_kib": 0,
+          "owner": 367725,
+          "argv": "[java] <defunct>"
+        }
+      ],
+      "host_java_pids": [
+        368232
+      ]
+    },
+    {
+      "seconds": 56.61143877699942,
+      "java": [
+        {
+          "pid": 368311,
+          "rss_kib": 48240,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-ow5p98 -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-ow5p98 -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-ow5p98/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-ow5p98/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-ow5p98/Post_tick_priority.dump Activity"
+        },
+        {
+          "pid": 368313,
+          "rss_kib": 48320,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Qqo8oh -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Qqo8oh -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Qqo8oh/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Qqo8oh/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Qqo8oh/Post_attempt_changes_only_on_retry.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        368311,
+        368313
+      ]
+    },
+    {
+      "seconds": 57.514894236001055,
+      "java": [
+        {
+          "pid": 368388,
+          "rss_kib": 44784,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-9mJqde -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-9mJqde -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-9mJqde/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-9mJqde/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-9mJqde/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        368388
+      ]
+    },
+    {
+      "seconds": 58.473327112000334,
+      "java": [
+        {
+          "pid": 368436,
+          "rss_kib": 41584,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-xeNiUV -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-xeNiUV -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-xeNiUV/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-xeNiUV/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-xeNiUV/Progress_eventually_closed.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        368436
+      ]
+    },
+    {
+      "seconds": 59.58720669600007,
+      "java": [
+        {
+          "pid": 368488,
+          "rss_kib": 48416,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-6Ml2yP -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-6Ml2yP -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-6Ml2yP/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-6Ml2yP/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-6Ml2yP/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        368488
+      ]
+    },
+    {
+      "seconds": 60.436635238000235,
+      "java": [
+        {
+          "pid": 368535,
+          "rss_kib": 30816,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-qPul0W -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-qPul0W -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-qPul0W/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-qPul0W/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-qPul0W/Progress_pending_retryable_failure_cancels.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        368535
+      ]
+    },
+    {
+      "seconds": 61.33485594600097,
+      "java": [
+        {
+          "pid": 368583,
+          "rss_kib": 43648,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-lq5X2H -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-lq5X2H -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-lq5X2H/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-lq5X2H/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-lq5X2H/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        368583
+      ]
+    },
+    {
+      "seconds": 62.235932237999805,
+      "java": [
+        {
+          "pid": 368630,
+          "rss_kib": 42800,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-tThWxX -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-tThWxX -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-tThWxX/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-tThWxX/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-tThWxX/Progress_pending_nonretryable_failure_fails.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        368630
+      ]
+    },
+    {
+      "seconds": 63.08332190600049,
+      "java": [],
+      "host_java_pids": []
+    },
+    {
+      "seconds": 63.136605531000896,
+      "java": [
+        {
+          "pid": 368704,
+          "rss_kib": 48704,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-l9HH4q -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-l9HH4q -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-l9HH4q/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-l9HH4q/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-l9HH4q/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        368704
+      ]
+    },
+    {
+      "seconds": 64.04146211400075,
+      "java": [
+        {
+          "pid": 368751,
+          "rss_kib": 42400,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-VzI2ma -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-VzI2ma -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-VzI2ma/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-VzI2ma/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-VzI2ma/Progress_ordinary_retry_rearms.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        368751
+      ]
+    },
+    {
+      "seconds": 64.99711840599957,
+      "java": [
+        {
+          "pid": 368800,
+          "rss_kib": 43008,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-8iR49z -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-8iR49z -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-8iR49z/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-8iR49z/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-8iR49z/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        368800
+      ]
+    },
+    {
+      "seconds": 65.90002794900101,
+      "java": [
+        {
+          "pid": 368854,
+          "rss_kib": 42928,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-LXYpFl -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-LXYpFl -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-LXYpFl/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-LXYpFl/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-LXYpFl/Progress_ordinary_retry_at_cap_fails.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        368854
+      ]
+    },
+    {
+      "seconds": 66.80177753200041,
+      "java": [
+        {
+          "pid": 368902,
+          "rss_kib": 39648,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-rHAn5C -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-rHAn5C -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-rHAn5C/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-rHAn5C/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-rHAn5C/explore.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        368902
+      ]
+    },
+    {
+      "seconds": 67.75298303300042,
+      "java": [
+        {
+          "pid": 368950,
+          "rss_kib": 43504,
+          "owner": 367725,
+          "argv": "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java -Xmx512m -Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Kk6fps -Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Kk6fps -XX:+UseSerialGC -Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet -cp /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/tla2tools-1.7.4.jar tlc2.TLC -tool -workers 1 -fp 0 -cleanup -checkpoint 0 -config /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Kk6fps/Run.cfg -metadir /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Kk6fps/states -dump /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/build/tlc/run-Kk6fps/Progress_ordinary_nonretryable_failure_fails.dump Activity"
+        }
+      ],
+      "host_java_pids": [
+        368950
+      ]
+    }
+  ],
+  "host_budget": "Task11 yielded exclusive JVM lease; one workspace invocation at a time. Group max1 allows two nested TLC recovery JVMs, each default Xmx512m. Sampling is observed peak, source/config establish bounds."
+}

@@ -1,0 +1,50 @@
+{
+  "commands": [
+    {
+      "runner": "cargo",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "umpire-dsl-macros",
+        "--test",
+        "fixtures",
+        "--locked",
+        "refusals",
+        "--",
+        "--exact"
+      ],
+      "exit": 101,
+      "seconds": 4.621571710000353,
+      "expected_failure": true,
+      "same_three_path_mismatches": true
+    },
+    {
+      "runner": "nextest",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "nextest",
+        "run",
+        "-p",
+        "umpire-dsl-macros",
+        "--test",
+        "fixtures",
+        "--locked",
+        "-E",
+        "test(=refusals)"
+      ],
+      "exit": 100,
+      "seconds": 0.9473677509995468,
+      "expected_failure": true,
+      "same_three_path_mismatches": true
+    }
+  ],
+  "conclusion": "Original Cargo and nextest both reject the same three committed pre-move golden paths; runner migration does not introduce the path mismatch. Golden/source correction belongs to the producer, outside task3 Touches.",
+  "source_candidate": "a21f91b116748a720ff12c910b7d50b733f9ffa0"
+}

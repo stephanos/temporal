@@ -1,0 +1,69 @@
+{
+  "baseline": "task10/revision1/proof/accounting/final-inventory.json",
+  "baseline_count": 954,
+  "cargo_count": 962,
+  "nextest_count": 962,
+  "old_missing": [],
+  "new_controls": [
+    {
+      "package": "temporal-xtask",
+      "target_kind": "bin",
+      "target": "temporal-xtask",
+      "test": "test_run::tests::binaries_then_doctests_exactly_once",
+      "ignored": false
+    },
+    {
+      "package": "temporal-xtask",
+      "target_kind": "bin",
+      "target": "temporal-xtask",
+      "test": "test_run::tests::binary_failure_stops_before_doctests",
+      "ignored": false
+    },
+    {
+      "package": "temporal-xtask",
+      "target_kind": "bin",
+      "target": "temporal-xtask",
+      "test": "test_run::tests::doctest_failure_preserves_status",
+      "ignored": false
+    },
+    {
+      "package": "temporal-xtask",
+      "target_kind": "bin",
+      "target": "temporal-xtask",
+      "test": "test_run::tests::missing_runner_fails_without_fallback",
+      "ignored": false
+    },
+    {
+      "package": "xtask",
+      "target_kind": "lib",
+      "target": "xtask",
+      "test": "test_run::tests::binaries_then_doctests_exactly_once",
+      "ignored": false
+    },
+    {
+      "package": "xtask",
+      "target_kind": "lib",
+      "target": "xtask",
+      "test": "test_run::tests::binary_failure_stops_before_doctests",
+      "ignored": false
+    },
+    {
+      "package": "xtask",
+      "target_kind": "lib",
+      "target": "xtask",
+      "test": "test_run::tests::doctest_failure_preserves_status",
+      "ignored": false
+    },
+    {
+      "package": "xtask",
+      "target_kind": "lib",
+      "target": "xtask",
+      "test": "test_run::tests::missing_runner_fails_without_fallback",
+      "ignored": false
+    }
+  ],
+  "ignored": 4,
+  "parity": true,
+  "duplicates": 0,
+  "identity_mapping": "All old coordinates identical to task10 revision1 joined inventory, which carries task4 consolidation mapping; no renames in task3."
+}

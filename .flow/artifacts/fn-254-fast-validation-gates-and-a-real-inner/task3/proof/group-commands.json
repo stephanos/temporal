@@ -1,0 +1,42 @@
+[
+  {
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "nextest",
+      "show-config",
+      "test-groups",
+      "--workspace",
+      "--locked",
+      "--show-default",
+      "--no-pager",
+      "--run-ignored",
+      "all"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+    "exit": 0,
+    "seconds": 0.2782200000001467
+  },
+  {
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "nextest",
+      "show-config",
+      "test-groups",
+      "--workspace",
+      "--locked",
+      "--show-default",
+      "--no-pager",
+      "--run-ignored",
+      "all"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+    "exit": 0,
+    "seconds": 22.277055635999204
+  }
+]

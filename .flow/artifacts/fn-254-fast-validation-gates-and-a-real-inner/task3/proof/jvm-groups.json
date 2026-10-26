@@ -1,0 +1,1694 @@
+{
+  "groups": [
+    {
+      "workspace": "framework",
+      "group": "jvm",
+      "max_threads": 1,
+      "conservative_group_members": [
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::pinned_installer_and_runner_agree",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_arithmetic_faults_are_reachable_and_guards_remain_total",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_arithmetic_refusal_follows_a_replayed_valid_prefix",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_discarded_condition_keeps_its_evaluation_guard",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_evaluated_start_failure_cannot_disappear_into_an_empty_range",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_fact_witnesses_replay_exact_vectors_and_stutters",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_kettle_checks_source_safety_and_history",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_kettle_negative_is_replayed_and_tampering_fails",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_later_start_fault_preserves_partial_binding",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_payload_identity_and_outcome_history_are_typed",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_postcondition_filter_excludes_unrelated_actions",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_start_evaluation_respects_field_order_before_empty_domains",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_typed_payload_rejection_and_after_claims_replay",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_typed_vector_projection_keeps_eager_fallback_errors",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_vector_witness_replays_typed_sequence",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::strict_envelope_presence_and_object_controls",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::strict_envelope_resource_controls",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::strict_envelope_world_and_state_bounds",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "decode::declared_wire_types_must_match_the_source_schema",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "decode::observer_only_safety_assignment_keeps_strict_schema_empty_state_refusal",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "decode::optional_integer_itf_uses_the_exact_declared_code_set",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "decode::typed_itf_checks_declarations_shapes_and_limits",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "decode::typed_itf_preserves_composites_and_refuses_retired_set_shapes",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "replay::arithmetic_refusal_is_distinct_and_requires_the_exact_native_boundary",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "replay::colliding_renderings_cannot_replace_typed_replay_or_reenumerate_native_inputs",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "replay::exact_payload_outcome_history_and_specific_claim_are_replayed",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "replay::replay_refuses_an_undeclared_property_before_reading_a_witness",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "replay::retained_pinned_kettle_witness_replays_deterministically",
+          "ignored": false
+        },
+        {
+          "package": "umpire-apalache",
+          "target_kind": "test",
+          "target": "main",
+          "test": "replay::selected_property_category_cannot_alias_authored_names",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "action_inputs_tests::actual_tlc_agrees_and_replays_in_both_selected_worlds",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "action_inputs_tests::bounded_claims_carry_no_fairness_obligation",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "action_inputs_tests::each_source_binding_carries_its_selected_catalog_into_every_configuration",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "action_inputs_tests::exact_payload_fairness_mutations_disagree_with_the_native_verdicts",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "action_inputs_tests::two_selected_worlds_differ_in_domains_counts_transitions_and_verdicts",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "fixtures",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "interpreted::backend_controls_agree",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "interpreted::checked_arithmetic_fails_as_compiled",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "interpreted::every_claim_has_its_own_callback",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "interpreted::fact_only_tree_mutant_disagrees",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "interpreted::interpreted_fact_decoder_checks_admitted_values",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "interpreted::interpreted_facts_evaluate_disabled_tail",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "interpreted::interpreted_facts_fail_closed",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "interpreted::length_differences_agree_on_every_back_end",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "interpreted::length_sums_and_products_are_refused",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "interpreted::lifter_controls_agree",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "interpreted::rewrite_visits_replacement_children_in_preorder",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "interpreted::seeded_mutant_trees_disagree",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "interpreted::start_domains_evaluate_lazily",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "interpreted::timing",
+          "ignored": true
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "interpreted_agrees_with_compiled",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "optional_facts_tests::native_facts_preserve_enabledness_outcome_and_guard_priority",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "optional_facts_tests::required_tlc_replays_four_distinct_fact_witnesses_and_clearing",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "optional_facts_tests::selected_world_changes_only_the_authored_overlap_fact",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "optional_facts_tests::source_only_fact_substitution_fails_native_replay",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "optional_ticks_tests::optional_ticks_bindings_preserve_correlated_deduplicated_and_empty_starts",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "optional_ticks_tests::optional_ticks_every_cfg_carries_the_same_selected_world",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "optional_ticks_tests::optional_ticks_exact_countdown_and_interpreted_parity",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "optional_ticks_tests::optional_ticks_factory_and_native_validity_boundaries",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "optional_ticks_tests::optional_ticks_false_cross_step_claim_has_an_exact_native_witness",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "optional_ticks_tests::optional_ticks_refuses_legal_world_swaps_in_each_cfg_family",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "optional_ticks_tests::optional_ticks_required_tlc_replays_exact_countdown_witnesses",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "optional_ticks_tests::optional_ticks_selected_world_identity_rejects_another_legal_selection",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "optional_ticks_tests::optional_ticks_source_only_mutant_disagrees_with_compiled_model",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "parameterized_world_tests::actual_tlc_replays_the_false_claim_in_the_same_selected_world",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "parameterized_world_tests::each_selected_world_checks_natively",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "parameterized_world_tests::each_source_binding_preserves_selection_and_empty_starts",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "phased_rejection_tests::a_computed_rejection_agrees_with_the_literal",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "phased_rejection_tests::a_stale_rejecting_claim_cannot_discharge_current_claim_fairness",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "phased_rejection_tests::closure_laws_keep_source_order_and_the_stock_outcome",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "phased_rejection_tests::emitted_outcome_and_action_mutations_fail_agreement",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "phased_rejection_tests::rejecting_after_a_mutation_fails_in_tlc",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "phased_rejection_tests::the_steps_accept_counterexample_is_a_rejected_payload_edge",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "sample_kettle_tests::examples::archived_enabledness_table_keeps_every_positive_and_disabled_row",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "sample_kettle_tests::examples::boundary_from_99_to_100_and_the_failover_guard",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "sample_kettle_tests::examples::switched_on_at_room_temperature_beeps_after_80_heats_and_the_failover",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "sample_kettle_tests::explorations::a_budget_of_10_answers_unknown_and_a_counterexample_before_a_cut_stands",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "sample_kettle_tests::explorations::beeps_only_when_off_holds_quiet_hot_and_heating_and_a_heating_beeping_start_refutes_it",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "sample_kettle_tests::explorations::claims_hold_from_room_and_coldest_and_boils_in_81_steps_from_room",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "sample_kettle_tests::explorations::every_start_from_minus_40_to_40_boils_within_141_steps",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "sample_kettle_tests::explorations::failing_over_above_boiling_refutes_fails_over_at_boiling",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "sample_kettle_tests::explorations::never_beeps_is_refuted_by_press_80_heats_and_failover",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "sample_kettle_tests::explorations::without_the_heater_fails_over_at_boiling_is_never_triggered",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "shared_returns_tests::sequential_returns_share_definitions_in_unit_and_payload_steps",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "world_fairness_tests::world_fairness_exact_selected_values_ordinals_and_wf_obligations",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "world_fairness_tests::world_fairness_legal_world_swaps_refuse_in_all_five_cfg_families",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "world_fairness_tests::world_fairness_metadata_only_mutations_refuse_before_tlc",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "world_fairness_tests::world_fairness_required_tlc_agrees_and_replays_at_each_maximum",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "world_fairness_tests::world_fairness_required_tlc_mutants_replay_heartbeat_and_starvation",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "world_fairness_tests::world_fairness_selected_worlds_agree_compiled_and_embedded",
+          "ignored": false
+        },
+        {
+          "package": "umpire-fixtures",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "world_fairness_tests::world_fairness_source_only_selectors_and_leaves_discriminate",
+          "ignored": false
+        },
+        {
+          "package": "umpire-testing",
+          "target_kind": "lib",
+          "target": "umpire_testing",
+          "test": "backend::tests::actual_tlc_fact_traces_replay_exact_vectors",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "emission::real_tlc_empty_half_open_starts_have_no_checked_underflow",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "emission::real_tlc_preserves_ordered_mutations_and_reports_checked_overflow",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "emission::real_tlc_signed_division_and_remainder_use_rust_rounding",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "inputs::a_fair_unit_variant_named_like_a_fair_position_refuses",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "inputs::assumptions_naming_values_outside_the_selected_catalog_refuse_as_natively",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "inputs::catalog_values_outside_their_admitted_types_refuse_at_the_source_declaration",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "inputs::exact_payload_scopes_and_fairness_specialize_the_variant_relation",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "inputs::inputs_bind_in_declaration_product_order_keeping_duplicates_and_empty_variants",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "inputs::inputs_without_a_declared_world_refuse_at_the_variant",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "inputs::internal_payload_actors_keep_their_classification",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "inputs::native_domain_forms_lift_from_the_bound_catalog",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "inputs::payload_patterns_resolve_lexically_through_their_typed_identities",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "inputs::the_catalog_limit_boundary_binds_and_emits",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "inputs::the_source_limit_is_the_native_catalog_limit",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "inputs::unsupported_input_sources_refuse_by_location",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "narrow_remainder::i16_min_remainder_negative_one_refuses",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "narrow_remainder::i8_min_remainder_negative_one_refuses",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_facts::canonical_option_constructor_paths_are_admitted",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_facts::canonical_optional_imports_preserve_the_existing_fact_carrier",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_facts::disabled_handler_tail_arithmetic_is_checked_by_both_emitters",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_facts::fact_tail_world_and_input_references_receive_emitted_names",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_facts::legacy_unit_fact_metadata_remains_exact",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_facts::mixed_unit_handler_clears_the_previous_fact_on_every_real_edge",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_facts::overlapping_action_guards_keep_the_first_matching_fact",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_facts::prefix_effects_and_locals_feed_the_tail_in_ssa_order",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_facts::source_only_constructor_swap_changes_both_emitters",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_facts::unsupported_tail_results_refuse_at_the_source",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_source::canonical_optional_imports_preserve_builtin_identity",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_source::canonical_optional_paths_and_nominal_operations",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_source::option_remains_an_ordinary_fieldless_enum_without_bounded_types",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_source::optional_spellings_remain_ordinary_scalar_names_without_bounded_types",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_source::unsupported_optional_sources_refuse_at_source_locations",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_ticks::binding_preserves_nominal_identity_and_refuses_malformed_fields",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_ticks::exact_optional_decode_includes_before_observers_and_rejects_wrong_kinds",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_ticks::optional_complete_starts_keep_whole_row_correlation_and_empty_selection",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_ticks::present_optional_keeps_eager_errors_in_guard_assignment_and_claim",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_ticks::shared_countdown_keeps_selected_codes_in_all_cfgs_and_before_metadata",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "optional_ticks::source_local_optional_ticks_are_admitted",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "phased::admitted_tree_and_constructor_data_grow_linearly",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "phased::emitted_size_is_linear_in_sequential_conditional_returns",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "phased::large_handlers_compile_with_their_admitted_data",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "phased::rejections_lower_to_typed_outcomes_and_kept_self_loops",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "phased::shared_definitions_never_take_an_authored_name",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "phased::unsupported_phase_rejection_and_law_forms_refuse_at_their_location",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "safety::initialization_growth_stays_linear_in_declared_fields",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "safety::safety_definition_growth_stays_linear",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "safety::safety_has_typed_history_and_preserving_stutter",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "safety::safety_history_names_refuse_collisions_and_temporaries_are_hygienic",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "safety::tlc_declarations_carry_snowcat_types",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "safety::unsupported_source_type_refuses_at_its_declaration",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "sequential_checks::failed_check_does_not_hide_a_later_division_failure",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "shadowing::nested_blocks_and_effect_helpers_preserve_caller_locals",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "source::a_hook_claim_name_collision_refuses_in_tests_rs",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "source::a_world_of_another_machine_refuses_at_this_source",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "source::admission_refuses_type_cfg_resolution_and_observer_collisions",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "source::enum_helper_and_terminal_postcondition_are_admitted",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "source::generated_tla_names_refuse_authored_namespace_collisions",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "source::hand_written_machine_refusal_prints_the_type_as_written",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "source::hook_refusal_in_tests_rs_names_tests_rs",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "source::imports_that_can_rebind_a_macro_read_by_name_refuse",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "source::inherent_enum_into_is_resolved_before_primitive_conversion",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "source::integer_literal_types_follow_field_context_on_either_side",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "source::kettle_source_lifts_registered_properties_and_explicit_assumptions",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "source::path_claims_refuse_builders_chains_and_other_gaps",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "source::progress_bounds_are_fail_closed",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "source::pure_same_impl_helper_is_typed_and_lifted",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "source::repeated_progress_builders_refuse_instead_of_reversing_rust_order",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "source::the_state_struct_keeps_its_authored_name",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "source::unsupported_control_characters_refuse_at_the_authored_literal",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "source::unsupported_expression_refuses_with_source_location",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "vector::bounded_vector_operations_are_lifted_with_safe_defaulted_get",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "vector::conditional_guards_preserve_common_bound_facts",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "vector::length_sums_and_products_refuse_at_their_span",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "vector::real_vector_native_and_tlc_states_and_properties_agree",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "vector::shared_boolean_guards_keep_vector_admission_linear",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "vector::unrelated_conditionals_preserve_vector_length_identity",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "vector::unsupported_vector_operations_and_unbounded_growth_refuse",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "vector::vector_get_keeps_eager_default_failures_when_element_is_present",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "world::bare_world_and_before_parameters_do_not_resolve_as_source_constants",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "world::binding_refuses_malformed_world_and_complete_state_values",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "world::complete_starts_preserve_correlation_deduplicate_and_keep_empty",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "world::declared_world_computed_starts_admit_before_value_binding",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "world::generated_world_constants_avoid_synthesized_action_names",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "world::real_tlc_executes_each_cfg_family_with_both_world_bindings",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "world::scalar_enum_world_and_sequence_starts_use_the_admitted_types",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "world::typed_world_signatures_and_outcome_fields_refuse_by_source_location",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "world::world_free_starts_of_any_name_admit_and_bind",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "world_fairness_binding::empty_selected_restrictions_keep_existing_refusal_and_empty_fair_lists",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "world_fairness_binding::every_selected_registration_and_progress_leaf_is_catalog_checked",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "world_fairness_binding::native_interpretation_selects_before_converting_exact_actions",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "world_fairness_binding::possible_leaf_names_and_post_selection_aliases_are_reserved",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "world_fairness_binding::rebinding_reselects_original_conditional_branches_and_preserves_flat_scopes",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "world_fairness_binding::selected_leaves_keep_authored_world_identity_and_exact_fairness",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "world_fairness_binding::source_plans_resolve_before_any_action_conversion",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "world_fairness_binding::unresolved_embedded_plan_cannot_emit_as_an_empty_scope",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tla",
+          "target_kind": "test",
+          "target": "main",
+          "test": "world_fairness_binding::world_shape_validation_precedes_selection",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tlc",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_tlc_batch_evaluation_recovers_original_property_order",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tlc",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_tlc_evaluation_errors_are_typed_and_located",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tlc",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_tlc_failed_batches_preserve_independent_traces",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tlc",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_tlc_healthy_batches_use_at_most_two_model_launches",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tlc",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_tlc_initial_invariant_has_a_typed_counterexample",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tlc",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_tlc_keeps_deadlock_checks_and_refuses_tool_errors",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tlc",
+          "target_kind": "test",
+          "target": "main",
+          "test": "controls::real_tlc_maximality_fairness_bounds_and_action_properties",
+          "ignored": false
+        },
+        {
+          "package": "umpire-tlc",
+          "target_kind": "test",
+          "target": "main",
+          "test": "scaling::typed_module_completes_independently_of_a_cut_native_reference",
+          "ignored": false
+        }
+      ],
+      "source_routes_reference": "planning/nextest-feasibility/report.md Source-derived JVM candidates",
+      "config_parser_and_actual_membership_output": "framework-groups-all.out"
+    },
+    {
+      "workspace": "temporal",
+      "group": "jvm",
+      "max_threads": 1,
+      "conservative_group_members": [
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::actual_tlc_agrees_and_replays_retry_payload_counterexamples",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::actual_tlc_rejected_outcome_counterexample_replays_in_the_activity_model",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::closed_cancel_emits_a_rejected_self_loop",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::compatibility::changed_original_lifecycle_edge_fails_the_same_comparison",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::compatibility::retained_original_exact_lifecycle_projection",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::hypothetical_accepted_and_wrong_rejection_refute_registered_closed_rejection",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::hypothetical_reopening_and_terminal_moves_refute_registered_closure_laws",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::nonpending_attempt_expiry_retries_with_exact_timeout_fact",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::policy_checks::cancellation_and_worker_races_have_exact_reachable_results",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::policy_checks::configured_deadlines_reject_zero_and_binding_bypass",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::policy_checks::current_and_stale_worker_tokens_preserve_exact_availability",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::policy_checks::each_deadline_expires_once_with_its_exact_fact",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::policy_checks::poll_retry_and_heartbeat_reset_only_their_applicable_budgets",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::policy_checks::remaining_deadline_worlds_agree_compiled_interpreted_and_required_tlc",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::policy_checks::required_tlc_fact_only_mutants_fail_replay_on_the_same_pending_tick",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::policy_checks::required_tlc_nonexpiring_tick_fact_leak_fails_exact_replay",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::policy_checks::required_tlc_refutes_source_only_boundary_policy_mutants",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::policy_checks::required_tlc_replays_both_canceled_attempt_expiry_facts",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::policy_checks::required_tlc_replays_both_pending_failure_payloads_at_every_attempt",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::policy_checks::required_tlc_replays_timeout_retries_with_exact_cause_and_budget",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::policy_checks::selected_deadline_worlds_agree_compiled_interpreted_and_required_tlc",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::policy_checks::simultaneous_expiry_obeys_global_then_attempt_then_heartbeat_priority",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::policy_checks::timeout_retry_rearms_waiting_then_poll_and_preserves_spanning_budget",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::proof_checks::actual_tlc_global_tick_law_bundle_on_selected_worlds",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::proof_checks::actual_tlc_selected_fairness_and_starvation_lassos",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::proof_checks::forged_countdowns_refute_bounds_and_armed_zero_expires",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::proof_checks::native_fairness_omissions_expose_heartbeat_and_retry_starvation",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::proof_checks::selected_worlds_have_exact_poll_and_completion_fairness",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::proof_checks::shared_replay_checks_typed_activity_edges_and_retains_native_disagreement",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::proof_checks::source_only_global_budget_controls_keep_laws_and_discriminate",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::proof_checks::source_only_timeout_retry_controls_discriminate_exact_edges",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::proof_checks::total_tick_bound_laws_hold_on_complete_interleaving_graphs",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::registered_closure_laws_check_every_phase_action_pair",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::retry_policy_caps_and_stale_delivery",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::selected_world_registers_closure_and_failure_progress",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::six_phase_transition_matrix_includes_disabled_actions",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::terminal_classification_covers_every_phase",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "activity_tests::tlc_refutes_closure_law_mutants_of_this_source",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "fixtures",
+          "ignored": false
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "import_live_gap_candidate",
+          "ignored": true
+        },
+        {
+          "package": "umpire-temporal-tests",
+          "target_kind": "test",
+          "target": "fixtures",
+          "test": "realization_control::added_catalog_field_fails_the_real_coverage_golden",
+          "ignored": true
+        }
+      ],
+      "source_routes_reference": "planning/nextest-feasibility/report.md Source-derived JVM candidates",
+      "config_parser_and_actual_membership_output": "temporal-groups-all.out"
+    }
+  ],
+  "host_cpus": 12,
+  "host_mem_total_kib": 20744944,
+  "host_budget": "One required-backend nextest invocation at a time during task3/task11 proofs. Root combined caller currently sequences framework then Temporal. Group1 x TLC default recovery2 x 512MiB heap = at most 1GiB configured Java heaps per invocation; nonheap and native memory are additional. Separate invocations require coordinated host budget, no host semaphore claimed.",
+  "property_worker_source": "model/umpire/backends/tlc/src/runner.rs defaults min(available_parallelism,2); real backend callers do not override. Fake-Java batch controls have their own explicit worker counts.",
+  "observed_framework": {
+    "exit": 0,
+    "seconds": 62.642418862998966,
+    "java_peak": 2,
+    "jvm_test_owner_peak": 1,
+    "aggregate_jvm_rss_peak_kib": 259136,
+    "samples": 1171
+  },
+  "observed_temporal": {
+    "exit": 0,
+    "seconds": 68.70120920000045,
+    "java_peak": 2,
+    "jvm_test_owner_peak": 1,
+    "aggregate_jvm_rss_peak_kib": 328320,
+    "samples": 1285
+  }
+}

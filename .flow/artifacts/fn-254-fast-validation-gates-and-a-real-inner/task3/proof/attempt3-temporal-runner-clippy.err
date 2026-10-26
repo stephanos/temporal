@@ -1,0 +1,67 @@
+   Compiling libc v0.2.191
+    Checking cfg-if v1.0.5
+   Compiling serde_core v1.0.229
+    Checking typenum v1.20.1
+   Compiling rustix v1.1.5
+   Compiling getrandom v0.4.3
+   Compiling zmij v1.0.23
+    Checking hybrid-array v0.4.15
+    Checking const-oid v0.10.2
+    Checking winnow v1.0.4
+    Checking linux-raw-sys v0.12.1
+    Checking crypto-common v0.2.2
+    Checking block-buffer v0.12.1
+    Checking bitflags v2.13.2
+   Compiling serde_json v1.0.154
+    Checking digest v0.11.3
+    Checking toml_parser v1.1.5+spec-1.1.0
+   Compiling serde v1.0.229
+   Compiling thiserror v2.0.21
+    Checking toml_datetime v1.1.2+spec-1.1.0
+    Checking serde_spanned v1.1.2
+    Checking cpufeatures v0.3.1
+    Checking memchr v2.8.3
+    Checking itoa v1.0.18
+    Checking fastrand v2.5.0
+    Checking once_cell v1.21.4
+    Checking tempfile v3.27.0
+    Checking sha2 v0.11.1
+    Checking toml v1.1.8+spec-1.1.0
+   Compiling crc32fast v1.5.3
+    Checking simd-adler32 v0.3.10
+    Checking umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/dev/guest-driver)
+    Checking adler2 v2.0.1
+    Checking miniz_oxide v0.9.1
+    Checking filetime v0.2.29
+    Checking flate2 v1.1.10
+    Checking tar v0.4.46
+    Checking temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/dev/xtask)
+    Checking xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/dev/xtask)
+error: unnecessary qualification
+  --> dev/xtask/src/test_run.rs:89:17
+   |
+89 |             Err(std::io::Error::new(std::io::ErrorKind::NotFound, "missing runner"))
+   |                 ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D unused-qualifications` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_qualifications)]`
+help: remove the unnecessary path segments
+   |
+89 -             Err(std::io::Error::new(std::io::ErrorKind::NotFound, "missing runner"))
+89 +             Err(io::Error::new(std::io::ErrorKind::NotFound, "missing runner"))
+   |
+
+error: unnecessary qualification
+  --> dev/xtask/src/test_run.rs:89:37
+   |
+89 |             Err(std::io::Error::new(std::io::ErrorKind::NotFound, "missing runner"))
+   |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: remove the unnecessary path segments
+   |
+89 -             Err(std::io::Error::new(std::io::ErrorKind::NotFound, "missing runner"))
+89 +             Err(std::io::Error::new(io::ErrorKind::NotFound, "missing runner"))
+   |
+
+error: could not compile `temporal-xtask` (bin "temporal-xtask" test) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...

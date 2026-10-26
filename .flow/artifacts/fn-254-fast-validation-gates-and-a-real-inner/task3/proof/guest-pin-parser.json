@@ -1,0 +1,20 @@
+{
+  "argv": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "nextest",
+    "run",
+    "-p",
+    "umpire-guest-driver",
+    "--locked",
+    "--test-threads",
+    "2",
+    "-E",
+    "test(guest_pipeline::)"
+  ],
+  "exit": 0,
+  "seconds": 1.9753289590007626,
+  "scope": "Existing real guest_pipeline tests copy current framework Mise config and exercise native prerequisites; no guest-driver source edited."
+}

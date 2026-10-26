@@ -1,0 +1,5 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/temporal/api)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/temporal/realization)
+   Compiling umpire-temporal-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/temporal/guest)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/temporal/testing)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 22.12s

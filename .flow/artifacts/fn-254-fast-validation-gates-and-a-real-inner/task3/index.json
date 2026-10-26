@@ -1,0 +1,3571 @@
+{
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.3",
+  "source_commit": "a21f91b116",
+  "base_commit": "6d7cbebe21db55a55e0b9a607e1838dea54173ba",
+  "status": "source and required focused runner proofs ready for parent review; inherited producer golden failure reproduced and escalated",
+  "source_sha256": {
+    "mise.toml": "c959fbc35e982bb71dd75e1babb230899939ba8f997b3a5fc1bd0a20dbe610a1",
+    "mise.lock": "83bd1e2858a4444470d4ae801111897a87160a9cac233f797999a9e4c0c99cb5",
+    "model/umpire/mise.toml": "047236435e49253d7b4ad8047fa5b7bc683fe089de9eb40a14a25581245a24bb",
+    "model/umpire/mise.lock": "cbe9740d3768eca5e0d500f9aade2f4075bb6f3712ea9c6e905f5e4109555f35",
+    "model/.config/nextest.toml": "9170506dc6f6c152e76fd0f51ae4e0d926495750a8a629293c50536064433d93",
+    "model/umpire/.config/nextest.toml": "2a841c92bc1a2b0bac3ab4f3c701e2452e3ad37235046e82d9393b4293eb987f",
+    "model/dev/xtask/src/test_run.rs": "f4daf19a6caa62e59005cfc93243cc838a77fe4b87f983e654bfdaa3c0011ca5",
+    "model/umpire/dev/xtask/src/test_run.rs": "fad7518ddd8884e53613cdd83e80b18100a9b63e36369c7f02e6963ac51f8742"
+  },
+  "proof_sha256": {
+    "proof/account.py": "4ea48e6cb14d5a691f5bc86ceef5c8ac2e6cf391e4b6efe876c09dc9f6c70795",
+    "proof/apalache-fetch.out": "d8778fea5a5803482fbbd3f8f7570d84b222fb4bcdd0a558d2419014d62270cd",
+    "proof/attempt1-commands.json": "be56a69f7d5c1dae04723ff42987fd9fb46f26b4faae72a85b73f0cf78c620f8",
+    "proof/attempt1-framework-cargo-build-list.err": "559b2a9212161ac06ef64b6d6052b2b86d7b85da1ffafca72146d32590234d62",
+    "proof/attempt1-framework-cargo-build-list.out": "d65aeeed22098061a07039f81982ae37a9dd79e07387f97b8306b85101d12330",
+    "proof/attempt1-framework-fmt.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/attempt1-framework-fmt.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/attempt1-framework-libtest-45b7a1f54804.err": "3cde11f59654bd29a02bc44b73e6693755437ec00d846f1781f3dff4432983da",
+    "proof/attempt1-framework-libtest-45b7a1f54804.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/attempt1-framework-libtest-7598bc42c77e-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/attempt1-framework-libtest-7598bc42c77e-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/attempt1-framework-libtest-7598bc42c77e.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/attempt1-framework-libtest-7598bc42c77e.out": "67009952308f0a15da2e8a101500efcd4f54b28ae19c7819614559738b64b85f",
+    "proof/attempt1-framework-libtest-a9c340816dd0-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/attempt1-framework-libtest-a9c340816dd0-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/attempt1-framework-libtest-a9c340816dd0.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/attempt1-framework-libtest-a9c340816dd0.out": "7d48126f46099e2e6195953c6572a6d2b27dc59f20f1f24bd3742af4e2f8178e",
+    "proof/attempt1-framework-metadata.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/attempt1-framework-metadata.out": "1801bb114465c857fc51c88168b2dc2a97f937277d95b3fcfece37ed3f0f583d",
+    "proof/attempt1-framework-runner-controls.err": "d418ca8027c4665075af10bdbb1a7670f32e7c5d30582dc8fd6b2a3109bf8226",
+    "proof/attempt1-framework-runner-controls.out": "2451a215e301c9b18bfda92a41168afbb50400b5cdafd17150aed532c9a62f00",
+    "proof/attempt1-framework-version.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/attempt1-framework-version.out": "dac5c3c42f79f6b1476ff24f07637a80e055b8b0ab430a05e3ca01fc85aa835a",
+    "proof/attempt2-commands.json": "a40424d3307f88652d6f6f94014fd81b57b53056b3291b8f5a59738939fbb330",
+    "proof/attempt2-framework-runner-clippy.err": "c2dc958e988dfd23d1229aa29a61888377693b259de79a2516478703430259dd",
+    "proof/attempt2-framework-runner-clippy.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/attempt3-commands.json": "21b30da3a6e0eb2f66850389fd1f8adf50bae5b8eb09c0b68c7760e782342aac",
+    "proof/attempt3-temporal-runner-clippy.err": "458705ca9a188d49758dbdf1ea0ca2e55382d04a194a1e6c56d463e6d9d9bfba",
+    "proof/attempt3-temporal-runner-clippy.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/commands.json": "c0e56e2310b2d02433e4bf2b47cf1b52890430cacf909e0e41560ae84eb23d8a",
+    "proof/doctest-identities.json": "1f0e6f1ad1253b224603078083395b82ede76fdcf8282aaa937ccf0008063ae7",
+    "proof/doctest-inventory.py": "5782de2b26f0b08ef30fea11b16ff2bb40aa5a6f61ea58638aa919462dff9ab8",
+    "proof/framework-cargo-build-list.err": "eaa59047c2d09ace6b3b017e04f341250082856c77402ddb60c87362f7e08a94",
+    "proof/framework-cargo-build-list.out": "bf9fe660ccaefc1e549c48f9458217074f3da524724664427a6b85bfc05d6dae",
+    "proof/framework-cargo-identities.json": "864c4910cd50bec565ab4f3a4d3079748fd5d97c90136f70b3aacdecd726a357",
+    "proof/framework-doctest-ignored-list.err": "8c255b7f4946913b9fc943a9fd35ef6ea19c9de09542c520f8f7b958b8a1522b",
+    "proof/framework-doctest-ignored-list.out": "5e29e70d191735eaa1006f9a164600649bb10bef13e42ea9eed05155fbe7bbb3",
+    "proof/framework-doctest-list.err": "7ecef64cca70d39b11e65f9b6e90cb78462d1cab7fa9876989e50bf700a3f576",
+    "proof/framework-doctest-list.out": "023bce0b8c9f5215dc14ca3716194088a95161ac5c6593db1e039061c68af150",
+    "proof/framework-doctests.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-doctests.out": "1107a8a7b09d0ad19d8a745835b05de3a1171b46a396da4d39d4e8aa5cbd2075",
+    "proof/framework-fmt.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-fmt.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-groups-all.err": "84665cd69cf2ee7880b9da312b6d9f0bb8c946832af82968c8d8f3e5516808c3",
+    "proof/framework-groups-all.out": "f580a2d1d3f143297fd20ab67e559dd468916f396c1ff730061c7adbdcdbe088",
+    "proof/framework-groups.err": "3cdcc26dce290237397897dbec7cf666385f6a0ac426dbb14d6bf7b992e5a6cf",
+    "proof/framework-groups.out": "f7dcc837da93f4d986347e66e68b620319fd11a4eb0b98ecf39d4ffc2dcb98ff",
+    "proof/framework-libtest-0857d7974251-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-0857d7974251-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-0857d7974251.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-0857d7974251.out": "66368f52d6520d6e3bd3ed6806c0097ae9f0e11b6300b7c621d82ee0107a27da",
+    "proof/framework-libtest-0aa32d14fbab-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-0aa32d14fbab-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-0aa32d14fbab.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-0aa32d14fbab.out": "d080de562405c2e8ce87ef3cc0369e040cc6c3df966609be8c010aae90c756f9",
+    "proof/framework-libtest-1216ec4be46d-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-1216ec4be46d-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-1216ec4be46d.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-1216ec4be46d.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-133525fd5667-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-133525fd5667-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-133525fd5667.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-133525fd5667.out": "fd7f93b5b16e805bb24dd998eeee7943ec5b87b6aba41082237521ec2eee5fe4",
+    "proof/framework-libtest-189d81efe97c-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-189d81efe97c-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-189d81efe97c.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-189d81efe97c.out": "9cff370dea7bb10994a5f8e68895851f78ca15d0f7426dd07f33211375e5f18c",
+    "proof/framework-libtest-2004bf1fec41-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-2004bf1fec41-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-2004bf1fec41.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-2004bf1fec41.out": "894ba323f1708537ab9840180215ea03c77fb2f0b45aec2d14b58ef6f50e9d96",
+    "proof/framework-libtest-2082dcb99324-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-2082dcb99324-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-2082dcb99324.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-2082dcb99324.out": "f17183003a7f19680c3a4ee1c888f7e8876ea84d184a5a1859650d3369541ed1",
+    "proof/framework-libtest-26d8dc5e8e38-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-26d8dc5e8e38-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-26d8dc5e8e38.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-26d8dc5e8e38.out": "47c0ff0781cbee3b94f253a992c8e018cec713b61465e3a959d3fc415a2df4d8",
+    "proof/framework-libtest-2816a9a07ad0-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-2816a9a07ad0-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-2816a9a07ad0.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-2816a9a07ad0.out": "1c606673fc8c43455d47304d67ff63d97486551695dbc8c698413fc0099bbb76",
+    "proof/framework-libtest-2a6b954d92b6-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-2a6b954d92b6-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-2a6b954d92b6.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-2a6b954d92b6.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-2a9ad82e5e5d-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-2a9ad82e5e5d-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-2a9ad82e5e5d.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-2a9ad82e5e5d.out": "338f41fb0da087ba3344c50509e15bf1b0ccaa2d531aac595c3cff6a6ed59e0c",
+    "proof/framework-libtest-2de10b44d941-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-2de10b44d941-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-2de10b44d941.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-2de10b44d941.out": "fc775ad5f12d2342166e802759c59027c9df00b5610eb095fdb2ac8a5a330958",
+    "proof/framework-libtest-313ca3640528-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-313ca3640528-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-313ca3640528.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-313ca3640528.out": "2f175b77f5e64949855911b9062123cd24e1fbc1329e2296607085259fa7fdd3",
+    "proof/framework-libtest-39b81898df05-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-39b81898df05-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-39b81898df05.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-39b81898df05.out": "353781dcbceb64ff782e0900fa6a4dcd305d56ebda65c64b7e24f5412454d214",
+    "proof/framework-libtest-3ebca20258dc-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-3ebca20258dc-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-3ebca20258dc.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-3ebca20258dc.out": "10b6e07cd1ec798c605d1273c6cd70ee56aa69645a712fe6cb65e1b8c1371d42",
+    "proof/framework-libtest-43dc6124b3ae-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-43dc6124b3ae-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-43dc6124b3ae.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-43dc6124b3ae.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-45b7a1f54804-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-45b7a1f54804-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-45b7a1f54804.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-45b7a1f54804.out": "2d906027c2d2956cf24712ec8f04826a5baf7e81e9ad1c9b21c69f7029504ede",
+    "proof/framework-libtest-4a16f4507c33-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-4a16f4507c33-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-4a16f4507c33.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-4a16f4507c33.out": "ace3ca4bf1b478dfcbffa451d94f2379de9b4108d26db33463a1cd54fa1d43a3",
+    "proof/framework-libtest-4a1c37796baa-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-4a1c37796baa-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-4a1c37796baa.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-4a1c37796baa.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-4c5cb17836c6-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-4c5cb17836c6-ignored.out": "c9c406a12e0529569e229c39bc9be01b42f6b5daeb4511e0999dd6de913e437a",
+    "proof/framework-libtest-4c5cb17836c6.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-4c5cb17836c6.out": "c9c406a12e0529569e229c39bc9be01b42f6b5daeb4511e0999dd6de913e437a",
+    "proof/framework-libtest-4d1733063ac0-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-4d1733063ac0-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-4d1733063ac0.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-4d1733063ac0.out": "9adc379d316e004ccd37333e2b1a2a7b0fbe274581c0dd541befb0729aa37ab9",
+    "proof/framework-libtest-4fdb9e959d1c-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-4fdb9e959d1c-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-4fdb9e959d1c.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-4fdb9e959d1c.out": "383072593961ecc580fdc5c2ba7c2298c085b82d39feda771a55ebb3c0a95f0d",
+    "proof/framework-libtest-516ebd6a55f9-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-516ebd6a55f9-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-516ebd6a55f9.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-516ebd6a55f9.out": "80a2894dec08f58161d8a85106d30a640eea2be3de3b40326359f5d314aa342e",
+    "proof/framework-libtest-55e46c6258b4-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-55e46c6258b4-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-55e46c6258b4.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-55e46c6258b4.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-57bf64945a57-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-57bf64945a57-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-57bf64945a57.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-57bf64945a57.out": "bc5566276ebed4df49b8759e3e65e61943f743693b454c116b44b40dd04102e0",
+    "proof/framework-libtest-5c038bcd299c-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-5c038bcd299c-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-5c038bcd299c.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-5c038bcd299c.out": "71dc0f21df20b88b905db7f844528c40bb1a03282195790aae2513caad41f91a",
+    "proof/framework-libtest-627bc357fb2f-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-627bc357fb2f-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-627bc357fb2f.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-627bc357fb2f.out": "dff7c49bc0c14823941b2083f55cc1e92580bda9e12cc0ad7469372bd4c7dbfb",
+    "proof/framework-libtest-667dea59a8cb-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-667dea59a8cb-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-667dea59a8cb.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-667dea59a8cb.out": "ab74eb897cf46572d21ba1b4723cd290b2f3bf1bb3d2dbbf89d7b1153759a9cf",
+    "proof/framework-libtest-6a73ac06c2e0-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-6a73ac06c2e0-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-6a73ac06c2e0.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-6a73ac06c2e0.out": "80372cab333c84c94221469beda4bb6ff61eeeee30828dc62b36069ebfa7390d",
+    "proof/framework-libtest-6b4bae045243-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-6b4bae045243-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-6b4bae045243.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-6b4bae045243.out": "05d34abf23fb38e8190a40636eb78519da54eb1e8a50f6fab15211b7750e33fc",
+    "proof/framework-libtest-7060939e2b74-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-7060939e2b74-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-7060939e2b74.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-7060939e2b74.out": "d8a7c822e3031b31359197910f0386914802827feed302fa31fc070cae34dfad",
+    "proof/framework-libtest-732c39a346ad-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-732c39a346ad-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-732c39a346ad.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-732c39a346ad.out": "fc12ac6afce37d109f9ceba26524cff9683bea3b3becfd30001c7a0e9ce01912",
+    "proof/framework-libtest-73bc6397b7f7-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-73bc6397b7f7-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-73bc6397b7f7.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-73bc6397b7f7.out": "d53d47c1d7d1fe55990845692d61e42ca04996e0106784d32002316b997d288f",
+    "proof/framework-libtest-7598bc42c77e-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-7598bc42c77e-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-7598bc42c77e.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-7598bc42c77e.out": "67009952308f0a15da2e8a101500efcd4f54b28ae19c7819614559738b64b85f",
+    "proof/framework-libtest-7bf2969e0d79-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-7bf2969e0d79-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-7bf2969e0d79.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-7bf2969e0d79.out": "8cf9a3ad8a1ea195f4ee1d4d58ba51a06963f3e75e3c286976a2c0cba6a012cd",
+    "proof/framework-libtest-8064942bc46f-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-8064942bc46f-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-8064942bc46f.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-8064942bc46f.out": "0ff0318903adf5bcca8c6e38da40e4393ccb0c0b44551ff407d7d83a9df1376a",
+    "proof/framework-libtest-826712447fb0-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-826712447fb0-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-826712447fb0.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-826712447fb0.out": "2abb5de65b409b1857fe3d06ead873d8c29284d0d9a19a93c15fb702c1304f69",
+    "proof/framework-libtest-826b1a6d16b1-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-826b1a6d16b1-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-826b1a6d16b1.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-826b1a6d16b1.out": "2795480a0c472b34212b3e987fc5bcf7590e234f7627df3e95669a037af46eed",
+    "proof/framework-libtest-82ae98943a76-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-82ae98943a76-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-82ae98943a76.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-82ae98943a76.out": "1afaaedacf8dad3348c5c718c9b7abf2c64998b394576274b6f2e5c20b37bd66",
+    "proof/framework-libtest-8f34a471a933-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-8f34a471a933-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-8f34a471a933.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-8f34a471a933.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-9250a04922c7-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-9250a04922c7-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-9250a04922c7.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-9250a04922c7.out": "cce83755ffc1d0861fd6ba4c43151e250524d3aa06a6608bffa6cbac7aabc92d",
+    "proof/framework-libtest-9698c6074bd2-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-9698c6074bd2-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-9698c6074bd2.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-9698c6074bd2.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-99cdb70513dc-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-99cdb70513dc-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-99cdb70513dc.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-99cdb70513dc.out": "ad3f361e89e4d89e4edd2e8df635da38a7859e9a13a0497c59b492fd3a445727",
+    "proof/framework-libtest-a056501dae46-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-a056501dae46-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-a056501dae46.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-a056501dae46.out": "a7f2fbf646d5c48d8a8099b06c2381bbfa4eb3416693fd1b33d6e824c135abcf",
+    "proof/framework-libtest-a9c340816dd0-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-a9c340816dd0-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-a9c340816dd0.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-a9c340816dd0.out": "7d48126f46099e2e6195953c6572a6d2b27dc59f20f1f24bd3742af4e2f8178e",
+    "proof/framework-libtest-b1e3058e9edc-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-b1e3058e9edc-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-b1e3058e9edc.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-b1e3058e9edc.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-b36491f8187a-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-b36491f8187a-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-b36491f8187a.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-b36491f8187a.out": "340deeb1c92d2c4422e4f03c53bb2ac41a87a09225b4ec344c26d0f0356faea9",
+    "proof/framework-libtest-c5222a6040bb-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-c5222a6040bb-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-c5222a6040bb.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-c5222a6040bb.out": "492860f07a33b3f19c7d34f4c4935c3024956f4b69ff4cdc4309d787c38c413c",
+    "proof/framework-libtest-c9d9376acaf9-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-c9d9376acaf9-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-c9d9376acaf9.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-c9d9376acaf9.out": "cf3be2b0c4b98316078709cb1092329a6419803a40d665218f46662aa7af7664",
+    "proof/framework-libtest-cb1a198a7c34-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-cb1a198a7c34-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-cb1a198a7c34.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-cb1a198a7c34.out": "42a89a5f75de1786786c60903e42783e4017ef508df4561f0d244a0ee3ad3454",
+    "proof/framework-libtest-ce9f01b12263-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-ce9f01b12263-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-ce9f01b12263.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-ce9f01b12263.out": "5bd4c2dc96ef9bf4391471aca7e442744e7aca896ca82ac3ec1cb6344fa16513",
+    "proof/framework-libtest-d15cbd152d5d-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-d15cbd152d5d-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-d15cbd152d5d.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-d15cbd152d5d.out": "9a48f3a073956281ee94b471f970bedd1655b5598139ea26e1e8d6a920ddc19e",
+    "proof/framework-libtest-d7df7124de10-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-d7df7124de10-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-d7df7124de10.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-d7df7124de10.out": "b752335c68e9fc12874d3920ee50a2b28bb1b9b11e1d807fbdc4cecc93eb6b49",
+    "proof/framework-libtest-dbc4502ce4cc-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-dbc4502ce4cc-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-dbc4502ce4cc.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-dbc4502ce4cc.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-dd946d8d29ad-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-dd946d8d29ad-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-dd946d8d29ad.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-dd946d8d29ad.out": "3a54fc3df30f613edf43f91d6961200a188d99578887aec5672d561f4ed6ff95",
+    "proof/framework-libtest-df59bd44fa2e-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-df59bd44fa2e-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-df59bd44fa2e.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-df59bd44fa2e.out": "8cb0a7477804c59ed0f2d48158e08759e25979d3bdfdf17d5480f7fd15409649",
+    "proof/framework-libtest-dff740af6b05-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-dff740af6b05-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-dff740af6b05.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-dff740af6b05.out": "8f5c28e53748d50f3682839715c54b1a8dae11bc0634606255e09a4b43640e37",
+    "proof/framework-libtest-e34e2ed9c788-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-e34e2ed9c788-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-e34e2ed9c788.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-e34e2ed9c788.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-e3ed6e6697f9-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-e3ed6e6697f9-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-e3ed6e6697f9.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-e3ed6e6697f9.out": "952e4193dbb720ec813d70f4b6f2c0578aff611687c7fed19df22bdc360621d3",
+    "proof/framework-libtest-ea8fdb97789a-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-ea8fdb97789a-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-ea8fdb97789a.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-ea8fdb97789a.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-ec6e5d68d02e-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-ec6e5d68d02e-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-ec6e5d68d02e.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-ec6e5d68d02e.out": "5e396f097b0c582b56e4a78f7a3b6f2d3441ae5ad7f70189d78457daf2b4632a",
+    "proof/framework-libtest-ecdbee0a8bad-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-ecdbee0a8bad-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-ecdbee0a8bad.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-ecdbee0a8bad.out": "c3b4acbbfd1d9d76da336aead9b31f3108a687596eabc0e725a5b3278798c530",
+    "proof/framework-libtest-edc8a356fe20-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-edc8a356fe20-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-edc8a356fe20.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-edc8a356fe20.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-f1964b2c5159-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-f1964b2c5159-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-f1964b2c5159.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-f1964b2c5159.out": "883be33b13fcd185531d7fb73d89f6271a991d140794bf78b8f509d23b37460d",
+    "proof/framework-libtest-f4d57aaa3a54-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-f4d57aaa3a54-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-f4d57aaa3a54.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-f4d57aaa3a54.out": "7aaf4ac2e06161791f2f3d8bf86489baedc4d38981a4115cb745c856375e20b6",
+    "proof/framework-libtest-f50733f2a11c-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-f50733f2a11c-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-f50733f2a11c.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-f50733f2a11c.out": "db42f016b1f5da2f554afa4a025f5df477ee285bf6db92e29d5e4e86009baa9b",
+    "proof/framework-libtest-f738791e29ab-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-f738791e29ab-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-f738791e29ab.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-f738791e29ab.out": "a06922f0a09d91d7a4dea2afd33327bf95ffd113ab3ed42f598a6e8f1025f73d",
+    "proof/framework-libtest-fc3e8428ff40-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-fc3e8428ff40-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-fc3e8428ff40.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-fc3e8428ff40.out": "09a17223945c5df7b26b569420c8d8ce47625d7e1703d7f5e53648f26e9380e5",
+    "proof/framework-libtest-fec108b0855d-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-fec108b0855d-ignored.out": "74b449477a218d11d5b23c0b06acf68b2dcda587fc90c09e4dfa6ed1fe8e381e",
+    "proof/framework-libtest-fec108b0855d.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-libtest-fec108b0855d.out": "05afee11a49e040885497364237fb45a2fc515fb648f77b0ca4bd68137854c6c",
+    "proof/framework-metadata.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-metadata.out": "1801bb114465c857fc51c88168b2dc2a97f937277d95b3fcfece37ed3f0f583d",
+    "proof/framework-nextest-identities.json": "864c4910cd50bec565ab4f3a4d3079748fd5d97c90136f70b3aacdecd726a357",
+    "proof/framework-nextest-list.err": "3cdcc26dce290237397897dbec7cf666385f6a0ac426dbb14d6bf7b992e5a6cf",
+    "proof/framework-nextest-list.out": "4e3534f6d0316bed121fbe1f058dcffd7929ff1bc7c10d2ac366ceac956f6382",
+    "proof/framework-runner-clippy.err": "ee1d3fffa2022e962e63e0dbe4d35c9c198450a20c29fc09030f635dbb38bfcd",
+    "proof/framework-runner-clippy.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-runner-controls.err": "2b83285fc26652fd78c8e784dccb543d5aecd1c3aa28f3ace987ca60c68c8b77",
+    "proof/framework-runner-controls.out": "2451a215e301c9b18bfda92a41168afbb50400b5cdafd17150aed532c9a62f00",
+    "proof/framework-stage-binary-fail.err": "f25ab425488c87446e8b65662881f7773cc9d4c18f8f3d7e060effef5453c634",
+    "proof/framework-stage-doc-fail.err": "e9f9d05327d8a78a434ba3b7de68229da19d09afaa41782761fe7b08b8623f94",
+    "proof/framework-stage-missing.err": "6e60144af2debde5e342e2f5f00b5d2c21fcb5c77ed988dd4d0f140a6ebd76e1",
+    "proof/framework-stage-signal.err": "298eba56619ff6d9916d077d0561a49776ea74d2d9482f4df253c276eb33d9ed",
+    "proof/framework-stage-success.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-sysroot.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-sysroot.out": "26fb58e38757a4408afd9722d328f91efd9117450862ca1fd5fa57722d49349d",
+    "proof/framework-update-binary-fail.err": "eb4db72b94b0e1f076f56d191bb0fe3249721e7ec3563150b053ad0f8bb69647",
+    "proof/framework-update-doc-fail.err": "8ceca263de2d13b43cba46ac4c2d59434655288675bdf5f59a6e0c910221b382",
+    "proof/framework-update-missing.err": "5b708b5216982e854564aede7de6b900f9d6c83dc5f0494084663a2dd6a63c67",
+    "proof/framework-update-signal.err": "18a160fae55dd561fbe4e460457e0966151a43d468aec54cc6aff36f1c37fc43",
+    "proof/framework-update-success.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-version.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-version.out": "dac5c3c42f79f6b1476ff24f07637a80e055b8b0ab430a05e3ca01fc85aa835a",
+    "proof/generated-action_domain_unbound.stderr": "58e6723e77258497b8dc34410c4e0a379a5cbfa402c0aeba6d7f68db8527e896",
+    "proof/generated-action_finite_missing.stderr": "eb9768f02c7cd55bdb02b4fc3e4efc7beb9c4df3834fec8bcab870180405eb3f",
+    "proof/generated-optional_facts_direct_reject.stderr": "4d31a2012173a309454540439aaf2fffa371d7dc392a1aa6c03c678048a1b669",
+    "proof/group-commands.json": "ae67bcf544e2b724372de22a3b5cd730a94198f26ed852e99deb79e5f8dabce9",
+    "proof/guest-pin-parser.err": "8d0d5056dc2e3e0230e48210f15caed9dabdf2ab19c89c6ab187cd37e5e0b53e",
+    "proof/guest-pin-parser.json": "168e955e44a60d8091649022428850be95d5e1108cf07c4fd499b781e016f895",
+    "proof/guest-pin-parser.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/inventory-result.json": "f35687e46c078b11a91e95dfd1959a093980171c40ff863371fd2f8bbb526187",
+    "proof/inventory.py": "055e2c0bb9ffdfdea023f603e47b246633672f5250843d54d63d0b6e23680f6e",
+    "proof/jvm-groups.json": "e27f94aa86e247964e2cec2b418df53767410dac1f2cd5954dd1a4c44aced125",
+    "proof/make-index.py": "bfdd8296b65ce3bef05446b46409fa224dbc1843282bbe282ee00807a823533e",
+    "proof/producer-comparison.json": "60e6742e36bbe48931f0c731716bf7dd9bb6117910aa57606c4760e7a0ca9b56",
+    "proof/producer-trybuild-cargo.err": "126d32c520979c0155f452389b570f6980932db26e1faeb8d365837bc410733e",
+    "proof/producer-trybuild-cargo.out": "30ce22dd7c07c12712119ed51cc07f6e082419c1ad57bc90b9a38829c2ffdfa9",
+    "proof/producer-trybuild-comparison.json": "6c3908c23e33b8b2037cbf672dc1f063d62ba459c5c1bab85f276d4ff71b5448",
+    "proof/producer-trybuild-nextest.err": "85a8a196beaef87556bd93b5a231bd3b629664319080641f13a71f05bd820c73",
+    "proof/producer-trybuild-nextest.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/producer-trybuild-paths.diff": "325734c6f464eeb351618233ef97efa706e415df78458fb7208d4baee29f9742",
+    "proof/producer-trybuild-paths.json": "d5004dd2cf591f0ad7a6fc90fd5990dba05fcb2da3419e9084b23b4ea64de6e0",
+    "proof/representative-attempt1-representative.err": "3adbb933847ad7a18ce8812f268feadf31dbc5184403dedc644ab12b6946be4e",
+    "proof/representative-attempt1-representative.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/representative-attempt1.json": "4c177ef8168ecf6e3456f421d39e6c4fefeac9779edddb0f6b2821eeaa1d6656",
+    "proof/representative-temporal.err": "9d464e6022ee4dc5496148ac42c491a0005e9797d0cf4fc55f48c6a393d317b5",
+    "proof/representative-temporal.json": "dff7a4cd32afe8df1b039eba30a5a0cec2680b3d7c3e34ffa01ac7f929cf4bdb",
+    "proof/representative-temporal.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/representative.err": "85a6abbc35dddae41362872ad49e1f2f47bb65251fd1a5db79ffd402edb82c00",
+    "proof/representative.json": "452b71a84e260ff69e3d7036a6cbaa78ed66d400440d88ce059cb9374722daca",
+    "proof/representative.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/representative.py": "c1233c7f1ef9da2f03efac45320343e46e02e5a2728aa9b9418be18072f818d7",
+    "proof/runner-process.json": "f94038c7bc0356ef4f272c2ab9fc36f302fde294a0fba9e2c0a41085cecdc624",
+    "proof/runner-process.py": "d327f7f548077b6626ab3c9075f39e67f04bde2cab8c3d0f804365ff2a0b8637",
+    "proof/snapshot-registry-renewal.json": "6dbfe9d77d6abafceae7d724bcef8c479a91de36078cb3dcede7d0da606e056e",
+    "proof/temporal-cargo-build-list.err": "b1ad31fb12fc0ba312b6ad3c1d5eb73088de1f29ab5636628774d03fefd7c536",
+    "proof/temporal-cargo-build-list.out": "ac756207d540945982eb07111cd79cc6d24d1ca6fa29a59a316718dca97dccfa",
+    "proof/temporal-cargo-identities.json": "8c7def1468be3b730da0c434185055ed81f4bd05951da3b158e803aa05443af1",
+    "proof/temporal-doctest-ignored-list.err": "22976863d8f1df75b4db10418a270f84c0d251892296e40622c0fd0ee0570003",
+    "proof/temporal-doctest-ignored-list.out": "bbee7a63037ea8ad643a020b94228c1d4e495dc346c5e07b2e81e8f1e5b0a7c0",
+    "proof/temporal-doctest-list.err": "ba24caa84ef99738c693604dc4a7ad5accb0ab1d6a8273ac54da3aca395504a2",
+    "proof/temporal-doctest-list.out": "bbee7a63037ea8ad643a020b94228c1d4e495dc346c5e07b2e81e8f1e5b0a7c0",
+    "proof/temporal-doctests.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-doctests.out": "52e64529d3fe7bfb8771e2beee8782ae3171424375e92b1995b3d506ddb93a52",
+    "proof/temporal-fmt.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-fmt.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-groups-all.err": "610e561b51c1f613606420d5410c1801fbf274ac560189d18aa8aeb83320c850",
+    "proof/temporal-groups-all.out": "0c1232e263235f7b1cd6740e9148e9131a42f3eb566795ba64b91f03d5969264",
+    "proof/temporal-groups.err": "bfd61669c483bd8ff728fdfaed98c9c6af63104f430f1da73a90bc46d1477768",
+    "proof/temporal-groups.out": "13e9ad001dee758e005f52372d0c82c8a9c06ffdfc50847e8c147e6155fbff78",
+    "proof/temporal-leaf-binary-fail.err": "985333490fb98128287349caca1e6a786dece6720efeeba944e4f6b9acd72de3",
+    "proof/temporal-leaf-compile.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-leaf-doc-fail.err": "26e76a7c112182b3df2bbbd2fb4b5847e89f3c7a9428e2e66da2391a7b7d3ed9",
+    "proof/temporal-leaf-missing.err": "96529c4609abac32951bda358f62ca817eddb41d377d26ab05d98a4998a0391c",
+    "proof/temporal-leaf-signal.err": "87c965cb92ac95463fbb27234999cd3c8af9410a9c814d3e98ff022242bc7da7",
+    "proof/temporal-leaf-success.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-031f10e3aca4-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-031f10e3aca4-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-031f10e3aca4.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-031f10e3aca4.out": "36d8228f754fa84f29a81e03ad18bbffe2f28a572c21b28ed2facd54ab3251fd",
+    "proof/temporal-libtest-06a55e80bbdb-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-06a55e80bbdb-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-06a55e80bbdb.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-06a55e80bbdb.out": "36a90289de9809ff7391c176575aee5cbf06554bb41140c12d1cd29213dfece7",
+    "proof/temporal-libtest-14c7169c3000-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-14c7169c3000-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-14c7169c3000.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-14c7169c3000.out": "cf1ea636b4a70beeedc40693017fd13e2a4f4eff829bac75be57f7ce68c3e4a2",
+    "proof/temporal-libtest-2c2ba2242c92-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-2c2ba2242c92-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-2c2ba2242c92.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-2c2ba2242c92.out": "9a28a3c6780d2c9f642a2f8494c2a0fc3f3788de2fff4e4ba760f2183e7a7125",
+    "proof/temporal-libtest-2d0d2d5703c9-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-2d0d2d5703c9-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-2d0d2d5703c9.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-2d0d2d5703c9.out": "fbd4fa07a704ffb60968af306e35809e54b6dcf58d9cefaaafc2d75c5d261223",
+    "proof/temporal-libtest-308a25bb18f4-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-308a25bb18f4-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-308a25bb18f4.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-308a25bb18f4.out": "0b9a85fe8f3f1ea99e7229d66289112e93704864b9655148ec7d20bc4a204bff",
+    "proof/temporal-libtest-41d7e8168305-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-41d7e8168305-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-41d7e8168305.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-41d7e8168305.out": "701ba8ab55e9108e26a2e789fcd0ad0dde16faa3830be5b6771907203dc853d6",
+    "proof/temporal-libtest-496f47e1ac27-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-496f47e1ac27-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-496f47e1ac27.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-496f47e1ac27.out": "7bcf93c983fdbea0c6bdd29c28910bb9767906718200529adc9e89818a10fa00",
+    "proof/temporal-libtest-4de3fdfe2eec-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-4de3fdfe2eec-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-4de3fdfe2eec.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-4de3fdfe2eec.out": "68c2f44cfcca8c255c45a226f2b521c3af5fc7b6d3d40eceedce49682398a0fb",
+    "proof/temporal-libtest-51843040b14c-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-51843040b14c-ignored.out": "02ede613b7ee08f3db830900ef8c633b6ce7fd4b45085503c1d7e7bc35fa35f1",
+    "proof/temporal-libtest-51843040b14c.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-51843040b14c.out": "20879f39185a61c9b87fcd613a3c3a9dc49efe5beb8f0ac46e61b25d50eec61e",
+    "proof/temporal-libtest-53f606edfe10-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-53f606edfe10-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-53f606edfe10.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-53f606edfe10.out": "63377e20c674be0fa9e61f572da3463de7338ffa709354c034e1bdf291297d14",
+    "proof/temporal-libtest-608138a91b19-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-608138a91b19-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-608138a91b19.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-608138a91b19.out": "24c14ab7463c74f44ca5449366371005a7216a4230f2d11a78dd39116687712b",
+    "proof/temporal-libtest-6726b0ef8467-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-6726b0ef8467-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-6726b0ef8467.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-6726b0ef8467.out": "45216350ed7c286704352946ef06f91f86e949966fd15fc81c5ed46cf51391bc",
+    "proof/temporal-libtest-68ed4f4abec2-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-68ed4f4abec2-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-68ed4f4abec2.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-68ed4f4abec2.out": "95ca8283a37cecc54f47a881897c7538a50b4d133b66b21debd37777ba70b9ee",
+    "proof/temporal-libtest-6ba40eca7460-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-6ba40eca7460-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-6ba40eca7460.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-6ba40eca7460.out": "48b54cfe723b436e0a41be715c0ecdd737be986e1ac8bdc26f4499d57695e35f",
+    "proof/temporal-libtest-6d9648f73249-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-6d9648f73249-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-6d9648f73249.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-6d9648f73249.out": "a6c18a71d1cbd107039d7efec0a29a0e273d03cbe4b10446b13650aca726dd4c",
+    "proof/temporal-libtest-70e8333d6796-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-70e8333d6796-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-70e8333d6796.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-70e8333d6796.out": "95b4e927223f44a90bfe096afbfb0e0f354fcfcd9ec86a793eab5eb2b1d8f333",
+    "proof/temporal-libtest-891b88141e4d-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-891b88141e4d-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-891b88141e4d.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-891b88141e4d.out": "af5f372c9244cd8d4bdff207432db468ae8e5dd428ebfa842739dd3e4ece625f",
+    "proof/temporal-libtest-8b781c59a124-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-8b781c59a124-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-8b781c59a124.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-8b781c59a124.out": "083c967702e5be776f56468474bdb25525b058d211cb3bf93c2809c54d2e9403",
+    "proof/temporal-libtest-98a00108b604-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-98a00108b604-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-98a00108b604.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-98a00108b604.out": "e1f95e3fc79a3f46c7ba9c225826a856dfffb15ac2ca0bb1994001fbee1b1349",
+    "proof/temporal-libtest-9a960cc62e34-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-9a960cc62e34-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-9a960cc62e34.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-9a960cc62e34.out": "a5a0260b2732159a018920b5729a9debd0aced7f0735306a6369cd656737fce0",
+    "proof/temporal-libtest-9af8fdea5da4-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-9af8fdea5da4-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-9af8fdea5da4.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-9af8fdea5da4.out": "a80d1b48f0f82b627aa2270a339eca6dbb4f330af786ca5192c9ecac2fdbdd50",
+    "proof/temporal-libtest-a5f79e3a3113-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-a5f79e3a3113-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-a5f79e3a3113.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-a5f79e3a3113.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-abd241a3dc33-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-abd241a3dc33-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-abd241a3dc33.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-abd241a3dc33.out": "5dffc4f259b7e380f4870022b898735fb323e0ec73a2959f897d586a2ea122d5",
+    "proof/temporal-libtest-abedec291994-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-abedec291994-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-abedec291994.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-abedec291994.out": "5396fa4ab851ee8f0d1a6910b6b381df864290896828dbbae7c1d9c2514fcf00",
+    "proof/temporal-libtest-b754dcbf1177-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-b754dcbf1177-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-b754dcbf1177.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-b754dcbf1177.out": "62986cfd9f0673f7789737f4faf0f60eebe3ea102854c45e6ba9908e124ab0f9",
+    "proof/temporal-libtest-c8d352312506-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-c8d352312506-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-c8d352312506.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-c8d352312506.out": "933f43916e550965f91da8405f9de0c6eac26954eb4344d552db066b16112ecc",
+    "proof/temporal-libtest-cbe438e91051-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-cbe438e91051-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-cbe438e91051.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-cbe438e91051.out": "5a2cd404694e929827a6f06f59f4548310d42cba22ced0de32e698fb9adc4f0b",
+    "proof/temporal-libtest-cc93e38559d3-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-cc93e38559d3-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-cc93e38559d3.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-cc93e38559d3.out": "558f59740b6ac12ef7fcac77f5cb17a8e0984b4b3b37662aa4278b23af34099f",
+    "proof/temporal-libtest-d49842307335-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-d49842307335-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-d49842307335.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-d49842307335.out": "a06d5f124bcd2f8d27589a2df7e0c5da2c1982e42650adff9b802378e0e13768",
+    "proof/temporal-libtest-d5054521e5a4-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-d5054521e5a4-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-d5054521e5a4.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-d5054521e5a4.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-d807b863d6bf-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-d807b863d6bf-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-d807b863d6bf.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-d807b863d6bf.out": "ee81db5c05e7651ed5f7a3cfed7d575c2d65de830e13b04b60f41598984d1fd8",
+    "proof/temporal-libtest-f5ef421c1872-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-f5ef421c1872-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-f5ef421c1872.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-f5ef421c1872.out": "ab25b1510669f3df678f66f57df4bd4caeb01b6a784cc95a455f6463e3849d00",
+    "proof/temporal-libtest-fd308654ffc1-ignored.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-fd308654ffc1-ignored.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-fd308654ffc1.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-libtest-fd308654ffc1.out": "3bb0937ff98ebdeff884401b97bbd171858e5a9032a8887db24d05d888777927",
+    "proof/temporal-metadata.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-metadata.out": "7d8fe3abcaef57a743eb04c1fcfeeb79a68f4cc7e1af2eca8b74f14da4f7c4e5",
+    "proof/temporal-nextest-identities.json": "8c7def1468be3b730da0c434185055ed81f4bd05951da3b158e803aa05443af1",
+    "proof/temporal-nextest-list.err": "be95cfeb675f3f8f0c373c18fe1309cb045b9e8ea3f502ff569ea1126278cc62",
+    "proof/temporal-nextest-list.out": "08176558ccf29997481409ceaa7fab65932de0cd107eb651871a2aa99c4df61d",
+    "proof/temporal-runner-clippy.err": "aeb3692644343ec793df46718c7646ac267e68c93766056306dfca88d1a04470",
+    "proof/temporal-runner-clippy.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-runner-controls.err": "5f56ecce6d5346972b065c8a2bef31bb58a31255f91bc47ceb8aa358f9536ab0",
+    "proof/temporal-runner-controls.out": "0345d00fbc6938fcf98dc274ab1bdccf71c92be0ba9d33689b72d340ac2f0e73",
+    "proof/temporal-sysroot.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-sysroot.out": "26fb58e38757a4408afd9722d328f91efd9117450862ca1fd5fa57722d49349d",
+    "proof/temporal-version.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-version.out": "dac5c3c42f79f6b1476ff24f07637a80e055b8b0ab430a05e3ca01fc85aa835a",
+    "proof/tlc-fetch.out": "ee3415eee5bdfa079f8bf93ef4967fcd8a9aaef0ac0447b8bd4d750c335a050c",
+    "proof/tool-admission.json": "d63bfb3b21a964e7c47d38baa4bb6a4088a737dd530b37fe67f6278bf6c4c8cd",
+    "proof/tool-admission.py": "48b39ec9f1d44675896e1956c138f30fa0bc0db32b5295b2284a3558cd860a35"
+  },
+  "summary_sha256": "f60f34aa77068f93219be35af26f6eaa889c5d92c9e10bdbff93bfd19e6756f1",
+  "required_focused_status": {
+    "fmt": "both passed",
+    "clippy": "both affected xtask packages/all-targets passed",
+    "inline_controls": "4 per leaf passed",
+    "actual_process_controls": "15 passed",
+    "mise_admission": "root,framework,independent framework passed",
+    "guest_pin_parser_controls": "8 existing tests passed",
+    "inventory": "962 unique Cargo==nextest; 954 prior preserved; 8 new leaf controls; 4 ignored unchanged",
+    "doctests": "5 names/ignored identities identical; 4 passed/1 ignored separately via Cargo; leaf sequences Cargo --doc once",
+    "group_membership": "exact195 framework/41 Temporal members, ignored included; group1",
+    "representative": "50 framework +6 Temporal passed; real AP/TLC/TLA/testing/fixture and activity routes; JVM peak2/owner1",
+    "artifact_identity": "563 snapshot/UI hashes,119 registry tuples,both Cargo lock bytes unchanged"
+  },
+  "commands": [
+    {
+      "label": "framework-sysroot",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "rustc",
+        "--print",
+        "sysroot"
+      ],
+      "exit": 0,
+      "seconds": 0.044561958999111084
+    },
+    {
+      "label": "framework-version",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "nextest",
+        "--version"
+      ],
+      "exit": 0,
+      "seconds": 0.06499145799898542
+    },
+    {
+      "label": "framework-fmt",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.7129215840013785
+    },
+    {
+      "label": "framework-runner-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "xtask",
+        "--lib",
+        "--locked",
+        "test_run::"
+      ],
+      "exit": 0,
+      "seconds": 0.16776949999984936
+    },
+    {
+      "label": "framework-cargo-build-list",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--workspace",
+        "--locked",
+        "--no-run",
+        "--message-format=json"
+      ],
+      "exit": 0,
+      "seconds": 0.246198540999103
+    },
+    {
+      "label": "framework-metadata",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "metadata",
+        "--locked",
+        "--format-version=1",
+        "--no-deps"
+      ],
+      "exit": 0,
+      "seconds": 0.04496524999922258
+    },
+    {
+      "label": "framework-libtest-fec108b0855d",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/fixtures-44f965ac6157b4af",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.019162459000654053
+    },
+    {
+      "label": "framework-libtest-fec108b0855d-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/fixtures-44f965ac6157b4af",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0008529580009053461
+    },
+    {
+      "label": "framework-libtest-a9c340816dd0",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-dae21feb6857b356",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.009892666999803623
+    },
+    {
+      "label": "framework-libtest-a9c340816dd0-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-dae21feb6857b356",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0012058749998686835
+    },
+    {
+      "label": "framework-libtest-45b7a1f54804",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_dsl_macros-2fc9f6db1ce82f35",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.00880387500001234
+    },
+    {
+      "label": "framework-libtest-45b7a1f54804-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_dsl_macros-2fc9f6db1ce82f35",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0009583339997334406
+    },
+    {
+      "label": "framework-libtest-7598bc42c77e",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-c4c123f0fb53ca3c",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.009096083000258659
+    },
+    {
+      "label": "framework-libtest-7598bc42c77e-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-c4c123f0fb53ca3c",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006730419991072267
+    },
+    {
+      "label": "framework-libtest-627bc357fb2f",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-6c3e947f087b0630",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004695625000749715
+    },
+    {
+      "label": "framework-libtest-627bc357fb2f-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-6c3e947f087b0630",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006444999999075662
+    },
+    {
+      "label": "framework-libtest-43dc6124b3ae",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/xtask-3fb88bce1fd3e7b5",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.00405250000039814
+    },
+    {
+      "label": "framework-libtest-43dc6124b3ae-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/xtask-3fb88bce1fd3e7b5",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.000661000000036438
+    },
+    {
+      "label": "framework-libtest-b1e3058e9edc",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_catalog_build-7ccdc0a93cfd7eda",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004694792000009329
+    },
+    {
+      "label": "framework-libtest-b1e3058e9edc-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_catalog_build-7ccdc0a93cfd7eda",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0005682079990947386
+    },
+    {
+      "label": "framework-libtest-9698c6074bd2",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_kettle_guest-a144341fd1873bd8",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004114125000342028
+    },
+    {
+      "label": "framework-libtest-9698c6074bd2-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_kettle_guest-a144341fd1873bd8",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006061250005586771
+    },
+    {
+      "label": "framework-libtest-189d81efe97c",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/exhaustiveness-042654869f8ed08f",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.00450749999981781
+    },
+    {
+      "label": "framework-libtest-189d81efe97c-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/exhaustiveness-042654869f8ed08f",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0005905830003030133
+    },
+    {
+      "label": "framework-libtest-4c5cb17836c6",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/live_snapshots-5f544b3ca649029b",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.005141666000781697
+    },
+    {
+      "label": "framework-libtest-4c5cb17836c6-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/live_snapshots-5f544b3ca649029b",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007232910011225613
+    },
+    {
+      "label": "framework-libtest-dd946d8d29ad",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-3996ad80830c90de",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.009157082999081467
+    },
+    {
+      "label": "framework-libtest-dd946d8d29ad-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-3996ad80830c90de",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0008118330006254837
+    },
+    {
+      "label": "framework-libtest-516ebd6a55f9",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-7170dff3e230a4e1",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.003897459000654635
+    },
+    {
+      "label": "framework-libtest-516ebd6a55f9-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-7170dff3e230a4e1",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006399169997166609
+    },
+    {
+      "label": "framework-libtest-99cdb70513dc",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_checker-733b41a2808a3799",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004712624999228865
+    },
+    {
+      "label": "framework-libtest-99cdb70513dc-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_checker-733b41a2808a3799",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0005955830001767026
+    },
+    {
+      "label": "framework-libtest-a056501dae46",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/fixtures-d5a9fc898c63d182",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.007942749998619547
+    },
+    {
+      "label": "framework-libtest-a056501dae46-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/fixtures-d5a9fc898c63d182",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006087909987400053
+    },
+    {
+      "label": "framework-libtest-f50733f2a11c",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/catalog_admission-f419854439ae0b1d",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0037787910005135927
+    },
+    {
+      "label": "framework-libtest-f50733f2a11c-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/catalog_admission-f419854439ae0b1d",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007041669996397104
+    },
+    {
+      "label": "framework-libtest-7060939e2b74",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/xtask-29d5e1f232b8abaa",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004540459000054398
+    },
+    {
+      "label": "framework-libtest-7060939e2b74-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/xtask-29d5e1f232b8abaa",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006948749996809056
+    },
+    {
+      "label": "framework-libtest-4a1c37796baa",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_reference_kettle-63377ab99bc3bc1c",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.003867875000651111
+    },
+    {
+      "label": "framework-libtest-4a1c37796baa-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_reference_kettle-63377ab99bc3bc1c",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0005973329989501508
+    },
+    {
+      "label": "framework-libtest-2de10b44d941",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-3eae2014f8f31357",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.008586375999584561
+    },
+    {
+      "label": "framework-libtest-2de10b44d941-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-3eae2014f8f31357",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006196249996719416
+    },
+    {
+      "label": "framework-libtest-9250a04922c7",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_apalache-0e26e6205bf75b4b",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.008107749999908265
+    },
+    {
+      "label": "framework-libtest-9250a04922c7-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_apalache-0e26e6205bf75b4b",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006450000000768341
+    },
+    {
+      "label": "framework-libtest-0857d7974251",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/retained-cf35f5b4ef2a2268",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004088292000233196
+    },
+    {
+      "label": "framework-libtest-0857d7974251-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/retained-cf35f5b4ef2a2268",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0005912919987167697
+    },
+    {
+      "label": "framework-libtest-4d1733063ac0",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_author_consumer-7c2c00fb7daad10d",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.003927041998394998
+    },
+    {
+      "label": "framework-libtest-4d1733063ac0-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_author_consumer-7c2c00fb7daad10d",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006036670001776656
+    },
+    {
+      "label": "framework-libtest-cb1a198a7c34",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_suite-41ff16a7a56049e8",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.006860957999379025
+    },
+    {
+      "label": "framework-libtest-cb1a198a7c34-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_suite-41ff16a7a56049e8",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006800410010328051
+    },
+    {
+      "label": "framework-libtest-1216ec4be46d",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire-7f54012299569924",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004508791998887318
+    },
+    {
+      "label": "framework-libtest-1216ec4be46d-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire-7f54012299569924",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007037920004222542
+    },
+    {
+      "label": "framework-libtest-4fdb9e959d1c",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-206b5dca0e7d6e78",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.005017957999370992
+    },
+    {
+      "label": "framework-libtest-4fdb9e959d1c-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-206b5dca0e7d6e78",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0011589160003495635
+    },
+    {
+      "label": "framework-libtest-e34e2ed9c788",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_guest_driver-fa7bf01040b01d28",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004147249999732594
+    },
+    {
+      "label": "framework-libtest-e34e2ed9c788-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_guest_driver-fa7bf01040b01d28",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0005205000015848782
+    },
+    {
+      "label": "framework-libtest-fc3e8428ff40",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-2ef020155d672454",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.009182416999465204
+    },
+    {
+      "label": "framework-libtest-fc3e8428ff40-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-2ef020155d672454",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.000677665999319288
+    },
+    {
+      "label": "framework-libtest-f738791e29ab",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/consumers-805d01807f98c63f",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004650000000765431
+    },
+    {
+      "label": "framework-libtest-f738791e29ab-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/consumers-805d01807f98c63f",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006129579996922985
+    },
+    {
+      "label": "framework-libtest-ce9f01b12263",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/ui-7e0133bb41d56c4b",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.005264792000161833
+    },
+    {
+      "label": "framework-libtest-ce9f01b12263-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/ui-7e0133bb41d56c4b",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.000576083000851213
+    },
+    {
+      "label": "framework-libtest-5c038bcd299c",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/suite_consumers-f113e861c4cc0f8c",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004414624998389627
+    },
+    {
+      "label": "framework-libtest-5c038bcd299c-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/suite_consumers-f113e861c4cc0f8c",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0005755829988629557
+    },
+    {
+      "label": "framework-libtest-26d8dc5e8e38",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-4f94b492e18e908e",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.029193292000854854
+    },
+    {
+      "label": "framework-libtest-26d8dc5e8e38-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-4f94b492e18e908e",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0011563340012799017
+    },
+    {
+      "label": "framework-libtest-6a73ac06c2e0",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/fixture_composition-712a6015d204f206",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004466125001272303
+    },
+    {
+      "label": "framework-libtest-6a73ac06c2e0-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/fixture_composition-712a6015d204f206",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.000714707999577513
+    },
+    {
+      "label": "framework-libtest-d7df7124de10",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/admission-7cd263c8d9654e4c",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.005036415999711608
+    },
+    {
+      "label": "framework-libtest-d7df7124de10-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/admission-7cd263c8d9654e4c",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006846659998700488
+    },
+    {
+      "label": "framework-libtest-e3ed6e6697f9",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/message_map-8af8c2c87571a80f",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.005373624999265303
+    },
+    {
+      "label": "framework-libtest-e3ed6e6697f9-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/message_map-8af8c2c87571a80f",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006386660006683087
+    },
+    {
+      "label": "framework-libtest-c5222a6040bb",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/fixtures-d5860158c884b7a7",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.030708500000400818
+    },
+    {
+      "label": "framework-libtest-c5222a6040bb-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/fixtures-d5860158c884b7a7",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0008339160012837965
+    },
+    {
+      "label": "framework-libtest-2082dcb99324",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/native_backend-a5e878449100ca05",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.008676999999806867
+    },
+    {
+      "label": "framework-libtest-2082dcb99324-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/native_backend-a5e878449100ca05",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006346250011119992
+    },
+    {
+      "label": "framework-libtest-8064942bc46f",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_catalog-61f794d7791d43a1",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.003896792000887217
+    },
+    {
+      "label": "framework-libtest-8064942bc46f-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_catalog-61f794d7791d43a1",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0005877080002392177
+    },
+    {
+      "label": "framework-libtest-4a16f4507c33",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/derive_catalog-3d0681ccef287c7a",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004075082999406732
+    },
+    {
+      "label": "framework-libtest-4a16f4507c33-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/derive_catalog-3d0681ccef287c7a",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007314590002351906
+    },
+    {
+      "label": "framework-libtest-b36491f8187a",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/external_consumers-7f709c1777d3b719",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.007032999999864842
+    },
+    {
+      "label": "framework-libtest-b36491f8187a-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/external_consumers-7f709c1777d3b719",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0010415830001875293
+    },
+    {
+      "label": "framework-libtest-57bf64945a57",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/response_checks-6fd829d8c1caeafb",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004159124999205233
+    },
+    {
+      "label": "framework-libtest-57bf64945a57-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/response_checks-6fd829d8c1caeafb",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006984169995121192
+    },
+    {
+      "label": "framework-libtest-f1964b2c5159",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_dsl-3f6e6192c8401db5",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004654124999433407
+    },
+    {
+      "label": "framework-libtest-f1964b2c5159-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_dsl-3f6e6192c8401db5",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007342079989030026
+    },
+    {
+      "label": "framework-libtest-ecdbee0a8bad",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/fixtures-ff681349ef08c70b",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004519124999205815
+    },
+    {
+      "label": "framework-libtest-ecdbee0a8bad-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/fixtures-ff681349ef08c70b",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007450829998560948
+    },
+    {
+      "label": "framework-libtest-133525fd5667",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-0a99fd5c84697ddd",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.007082624999384279
+    },
+    {
+      "label": "framework-libtest-133525fd5667-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-0a99fd5c84697ddd",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006827500001236331
+    },
+    {
+      "label": "framework-libtest-0aa32d14fbab",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/ui-821b8ce02808ab16",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004657583000152954
+    },
+    {
+      "label": "framework-libtest-0aa32d14fbab-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/ui-821b8ce02808ab16",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006826250009908108
+    },
+    {
+      "label": "framework-libtest-2a9ad82e5e5d",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-fefc815897a7b894",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004067249999934575
+    },
+    {
+      "label": "framework-libtest-2a9ad82e5e5d-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-fefc815897a7b894",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006951249997655395
+    },
+    {
+      "label": "framework-libtest-39b81898df05",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-57db16537a74d3dc",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.008473207999486476
+    },
+    {
+      "label": "framework-libtest-39b81898df05-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-57db16537a74d3dc",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0008151669990184018
+    },
+    {
+      "label": "framework-libtest-dff740af6b05",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_tla-b38a7229e22864e2",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0050074589998985175
+    },
+    {
+      "label": "framework-libtest-dff740af6b05-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_tla-b38a7229e22864e2",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.000644584000838222
+    },
+    {
+      "label": "framework-libtest-313ca3640528",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-3809754083362b89",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.009270208998714224
+    },
+    {
+      "label": "framework-libtest-313ca3640528-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-3809754083362b89",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007211250012915116
+    },
+    {
+      "label": "framework-libtest-73bc6397b7f7",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_testing-0268d9f9986c0b2b",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.00795066700084135
+    },
+    {
+      "label": "framework-libtest-73bc6397b7f7-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_testing-0268d9f9986c0b2b",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.000782499999331776
+    },
+    {
+      "label": "framework-libtest-826b1a6d16b1",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_tlc-fc64ef9396eea910",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.009184375001495937
+    },
+    {
+      "label": "framework-libtest-826b1a6d16b1-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_tlc-fc64ef9396eea910",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006667500001640292
+    },
+    {
+      "label": "framework-libtest-ec6e5d68d02e",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_guest_driver-8f1df955433dc5e3",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004446958000698942
+    },
+    {
+      "label": "framework-libtest-ec6e5d68d02e-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_guest_driver-8f1df955433dc5e3",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006148750017018756
+    },
+    {
+      "label": "framework-libtest-732c39a346ad",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-3383a17d8f74545f",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.00782841700129211
+    },
+    {
+      "label": "framework-libtest-732c39a346ad-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-3383a17d8f74545f",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007699999987380579
+    },
+    {
+      "label": "framework-libtest-2004bf1fec41",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_catalog_macros-742082419ca9a1fb",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.00422075000096811
+    },
+    {
+      "label": "framework-libtest-2004bf1fec41-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_catalog_macros-742082419ca9a1fb",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007375420009338995
+    },
+    {
+      "label": "framework-libtest-2816a9a07ad0",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/process-6961920de2d14ae0",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004185458999927505
+    },
+    {
+      "label": "framework-libtest-2816a9a07ad0-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/process-6961920de2d14ae0",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006105419997766148
+    },
+    {
+      "label": "framework-libtest-f4d57aaa3a54",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_catalog_syntax-1b48638f0c0a98dc",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004996083000150975
+    },
+    {
+      "label": "framework-libtest-f4d57aaa3a54-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_catalog_syntax-1b48638f0c0a98dc",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007202500000857981
+    },
+    {
+      "label": "framework-libtest-df59bd44fa2e",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/reach-ea6f724e5fd785ce",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004274832999726641
+    },
+    {
+      "label": "framework-libtest-df59bd44fa2e-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/reach-ea6f724e5fd785ce",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007502499993279343
+    },
+    {
+      "label": "framework-libtest-6b4bae045243",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-eba09f2446d430a3",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004993000000467873
+    },
+    {
+      "label": "framework-libtest-6b4bae045243-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/main-eba09f2446d430a3",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0015656249997846317
+    },
+    {
+      "label": "framework-libtest-82ae98943a76",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/capabilities-bc1e70e36c28704c",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004626833000656916
+    },
+    {
+      "label": "framework-libtest-82ae98943a76-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/capabilities-bc1e70e36c28704c",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.000626457998805563
+    },
+    {
+      "label": "framework-libtest-dbc4502ce4cc",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_runtime-2d080777616a25c4",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004290041999411187
+    },
+    {
+      "label": "framework-libtest-dbc4502ce4cc-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_runtime-2d080777616a25c4",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006113330000516726
+    },
+    {
+      "label": "framework-libtest-ea8fdb97789a",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_stock_guest-87e489b2c478799c",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004954541998813511
+    },
+    {
+      "label": "framework-libtest-ea8fdb97789a-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_stock_guest-87e489b2c478799c",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006426250001823064
+    },
+    {
+      "label": "framework-libtest-55e46c6258b4",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/stateful_control-5ab6167a4350d205",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0068110409993096255
+    },
+    {
+      "label": "framework-libtest-55e46c6258b4-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/stateful_control-5ab6167a4350d205",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006032920009602094
+    },
+    {
+      "label": "framework-libtest-8f34a471a933",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/caught_panic_control-82d26dd8162fe1ef",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.003958917001000373
+    },
+    {
+      "label": "framework-libtest-8f34a471a933-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/caught_panic_control-82d26dd8162fe1ef",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006366670004354091
+    },
+    {
+      "label": "framework-libtest-826712447fb0",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/current_contract_reports-1bf235b2b86ef69f",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.003997375000835746
+    },
+    {
+      "label": "framework-libtest-826712447fb0-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/current_contract_reports-1bf235b2b86ef69f",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006290000001172302
+    },
+    {
+      "label": "framework-libtest-c9d9376acaf9",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/panic_control_reports-477b6f66f8c6ac74",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004096208000191837
+    },
+    {
+      "label": "framework-libtest-c9d9376acaf9-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/panic_control_reports-477b6f66f8c6ac74",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0005975840012979461
+    },
+    {
+      "label": "framework-libtest-edc8a356fe20",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/overflow_control-185486efef3d18ec",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.004396416999952635
+    },
+    {
+      "label": "framework-libtest-edc8a356fe20-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/overflow_control-185486efef3d18ec",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006883329988340847
+    },
+    {
+      "label": "framework-libtest-7bf2969e0d79",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_backend_process-9e2342a44bfb2598",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.005039499999838881
+    },
+    {
+      "label": "framework-libtest-7bf2969e0d79-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_backend_process-9e2342a44bfb2598",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007853329989302438
+    },
+    {
+      "label": "framework-libtest-667dea59a8cb",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/world_fairness-d1ea6d281be7e04c",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.008183208999980707
+    },
+    {
+      "label": "framework-libtest-667dea59a8cb-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/world_fairness-d1ea6d281be7e04c",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006324580008367775
+    },
+    {
+      "label": "framework-libtest-3ebca20258dc",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_front-ec97b00f1d959545",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.009226874999512802
+    },
+    {
+      "label": "framework-libtest-3ebca20258dc-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_front-ec97b00f1d959545",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006824169995525153
+    },
+    {
+      "label": "framework-libtest-d15cbd152d5d",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_ir-a2fa5ef4cc815d82",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.005464833000587532
+    },
+    {
+      "label": "framework-libtest-d15cbd152d5d-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_ir-a2fa5ef4cc815d82",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006329999996523838
+    },
+    {
+      "label": "framework-libtest-2a6b954d92b6",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_ir_derive-6b821cf80e7b1d92",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0031280410003091674
+    },
+    {
+      "label": "framework-libtest-2a6b954d92b6-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/umpire_ir_derive-6b821cf80e7b1d92",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007026250004855683
+    },
+    {
+      "label": "framework-nextest-list",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "nextest",
+        "list",
+        "--workspace",
+        "--locked",
+        "--message-format",
+        "json",
+        "--run-ignored",
+        "all",
+        "--ignore-default-filter"
+      ],
+      "exit": 0,
+      "seconds": 0.19457691699972202
+    },
+    {
+      "label": "framework-groups",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "nextest",
+        "show-config",
+        "test-groups",
+        "--workspace",
+        "--locked",
+        "--show-default",
+        "--no-pager"
+      ],
+      "exit": 0,
+      "seconds": 0.22136433400009992
+    },
+    {
+      "label": "framework-doctest-list",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--doc",
+        "--workspace",
+        "--locked",
+        "--",
+        "--list"
+      ],
+      "exit": 0,
+      "seconds": 1.4977550839994365
+    },
+    {
+      "label": "framework-doctests",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--doc",
+        "--workspace",
+        "--locked",
+        "--quiet"
+      ],
+      "exit": 0,
+      "seconds": 1.2350747500004218
+    },
+    {
+      "label": "framework-runner-clippy",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "-p",
+        "xtask",
+        "--all-targets",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.09713087500131223
+    },
+    {
+      "label": "temporal-sysroot",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "rustc",
+        "--print",
+        "sysroot"
+      ],
+      "exit": 0,
+      "seconds": 0.02942395900026895
+    },
+    {
+      "label": "temporal-version",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "nextest",
+        "--version"
+      ],
+      "exit": 0,
+      "seconds": 0.031475416999455774
+    },
+    {
+      "label": "temporal-fmt",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.9202736259994708
+    },
+    {
+      "label": "temporal-runner-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "temporal-xtask",
+        "--bin",
+        "temporal-xtask",
+        "--locked",
+        "test_run::"
+      ],
+      "exit": 0,
+      "seconds": 0.3660803759994451
+    },
+    {
+      "label": "temporal-cargo-build-list",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--workspace",
+        "--locked",
+        "--no-run",
+        "--message-format=json"
+      ],
+      "exit": 0,
+      "seconds": 21.536215801001163
+    },
+    {
+      "label": "temporal-metadata",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "metadata",
+        "--locked",
+        "--format-version=1",
+        "--no-deps"
+      ],
+      "exit": 0,
+      "seconds": 0.03521895899939409
+    },
+    {
+      "label": "temporal-libtest-f5ef421c1872",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/renamed-a2989c4d40109e1b",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.010142875000383356
+    },
+    {
+      "label": "temporal-libtest-f5ef421c1872-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/renamed-a2989c4d40109e1b",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007361250009125797
+    },
+    {
+      "label": "temporal-libtest-14c7169c3000",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/umpire_temporal_realization_macros-7b6a7a547360362b",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.017308583999692928
+    },
+    {
+      "label": "temporal-libtest-14c7169c3000-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/umpire_temporal_realization_macros-7b6a7a547360362b",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0009733329989103368
+    },
+    {
+      "label": "temporal-libtest-4de3fdfe2eec",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/temporal_xtask-02e9bb817f89fcd9",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0013026249998802086
+    },
+    {
+      "label": "temporal-libtest-4de3fdfe2eec-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/temporal_xtask-02e9bb817f89fcd9",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006597909996344242
+    },
+    {
+      "label": "temporal-libtest-41d7e8168305",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/main-b298f2caa17467a8",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.005412791000708239
+    },
+    {
+      "label": "temporal-libtest-41d7e8168305-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/main-b298f2caa17467a8",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0008417499993811361
+    },
+    {
+      "label": "temporal-libtest-308a25bb18f4",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/realize-ed575ddeff6ac93b",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.009312291998867295
+    },
+    {
+      "label": "temporal-libtest-308a25bb18f4-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/realize-ed575ddeff6ac93b",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007830419999663718
+    },
+    {
+      "label": "temporal-libtest-abd241a3dc33",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/umpire_temporal_annotate_syntax-bfa586a0575471eb",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.010158291999687208
+    },
+    {
+      "label": "temporal-libtest-abd241a3dc33-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/umpire_temporal_annotate_syntax-bfa586a0575471eb",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007384579985227901
+    },
+    {
+      "label": "temporal-libtest-d5054521e5a4",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/umpire_temporal_api-2b0c55d617bba3aa",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007817500008968636
+    },
+    {
+      "label": "temporal-libtest-d5054521e5a4-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/umpire_temporal_api-2b0c55d617bba3aa",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0005875419992662501
+    },
+    {
+      "label": "temporal-libtest-6ba40eca7460",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/descriptor-b574b5888feec899",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0010262499999953434
+    },
+    {
+      "label": "temporal-libtest-6ba40eca7460-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/descriptor-b574b5888feec899",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007209169998532161
+    },
+    {
+      "label": "temporal-libtest-2c2ba2242c92",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/codegen-5ac25199c0743c0c",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0011119580012746155
+    },
+    {
+      "label": "temporal-libtest-2c2ba2242c92-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/codegen-5ac25199c0743c0c",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007227080004668096
+    },
+    {
+      "label": "temporal-libtest-891b88141e4d",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/umpire_temporal-6616ff7101cf4697",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.00103629200020805
+    },
+    {
+      "label": "temporal-libtest-891b88141e4d-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/umpire_temporal-6616ff7101cf4697",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006494999997812556
+    },
+    {
+      "label": "temporal-libtest-cbe438e91051",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/probe_accounting-7db9f10a823dd27f",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0009552920000714948
+    },
+    {
+      "label": "temporal-libtest-cbe438e91051-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/probe_accounting-7db9f10a823dd27f",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007119170004443731
+    },
+    {
+      "label": "temporal-libtest-68ed4f4abec2",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/probes-3182674b9c0a0f79",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0012129169990657829
+    },
+    {
+      "label": "temporal-libtest-68ed4f4abec2-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/probes-3182674b9c0a0f79",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006332499997370178
+    },
+    {
+      "label": "temporal-libtest-6726b0ef8467",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/program-e5dd757814cfd421",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.001167625001471606
+    },
+    {
+      "label": "temporal-libtest-6726b0ef8467-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/program-e5dd757814cfd421",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0008925830006774049
+    },
+    {
+      "label": "temporal-libtest-9af8fdea5da4",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/boundary-ed65217982da8660",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.000974750000750646
+    },
+    {
+      "label": "temporal-libtest-9af8fdea5da4-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/boundary-ed65217982da8660",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006160000011732336
+    },
+    {
+      "label": "temporal-libtest-2d0d2d5703c9",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/snapshot_ownership-9ab454e49b84e8c0",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.001040166998791392
+    },
+    {
+      "label": "temporal-libtest-2d0d2d5703c9-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/snapshot_ownership-9ab454e49b84e8c0",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007096249992173398
+    },
+    {
+      "label": "temporal-libtest-cc93e38559d3",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/program_history-0cceb24354d7be90",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0012073750003764872
+    },
+    {
+      "label": "temporal-libtest-cc93e38559d3-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/program_history-0cceb24354d7be90",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.000582583001232706
+    },
+    {
+      "label": "temporal-libtest-8b781c59a124",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/admission-3a5088bb68791f2d",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.001058499999999185
+    },
+    {
+      "label": "temporal-libtest-8b781c59a124-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/admission-3a5088bb68791f2d",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006247920009627705
+    },
+    {
+      "label": "temporal-libtest-6d9648f73249",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/proposal-7bc08a13c001c286",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0009171250003419118
+    },
+    {
+      "label": "temporal-libtest-6d9648f73249-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/proposal-7bc08a13c001c286",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006488330000138376
+    },
+    {
+      "label": "temporal-libtest-fd308654ffc1",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/admission_contracts-32ba7b3237e1c4cd",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0009766250004759058
+    },
+    {
+      "label": "temporal-libtest-fd308654ffc1-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/admission_contracts-32ba7b3237e1c4cd",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.00060124999981781
+    },
+    {
+      "label": "temporal-libtest-b754dcbf1177",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/realization-b119c8902f39fff1",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0010053329988295445
+    },
+    {
+      "label": "temporal-libtest-b754dcbf1177-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/realization-b119c8902f39fff1",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.000591125000937609
+    },
+    {
+      "label": "temporal-libtest-d49842307335",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/realization_admission-b8ffa216154614c2",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0009075420002773171
+    },
+    {
+      "label": "temporal-libtest-d49842307335-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/realization_admission-b8ffa216154614c2",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006439999997382984
+    },
+    {
+      "label": "temporal-libtest-c8d352312506",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/annotations-03aeb1f3f778ea12",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0011130000002594898
+    },
+    {
+      "label": "temporal-libtest-c8d352312506-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/annotations-03aeb1f3f778ea12",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006126249991211807
+    },
+    {
+      "label": "temporal-libtest-9a960cc62e34",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/catalog-9cdfccd6a2ed8cb4",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0013211669993324904
+    },
+    {
+      "label": "temporal-libtest-9a960cc62e34-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/catalog-9cdfccd6a2ed8cb4",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007092499999998836
+    },
+    {
+      "label": "temporal-libtest-a5f79e3a3113",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/umpire_temporal_guest-317667282d5c65bd",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0008826670000416925
+    },
+    {
+      "label": "temporal-libtest-a5f79e3a3113-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/umpire_temporal_guest-317667282d5c65bd",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007181670007412322
+    },
+    {
+      "label": "temporal-libtest-abedec291994",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/registry-c7165dc5d243ab54",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0013650000000779983
+    },
+    {
+      "label": "temporal-libtest-abedec291994-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/registry-c7165dc5d243ab54",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.000693124999088468
+    },
+    {
+      "label": "temporal-libtest-031f10e3aca4",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/start_mirror-fc58bc1bd4f43afe",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0009669589999248274
+    },
+    {
+      "label": "temporal-libtest-031f10e3aca4-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/start_mirror-fc58bc1bd4f43afe",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0007806249996065162
+    },
+    {
+      "label": "temporal-libtest-98a00108b604",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/declarative-85f00433534a0d30",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0011345829989295453
+    },
+    {
+      "label": "temporal-libtest-98a00108b604-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/declarative-85f00433534a0d30",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006532080005854368
+    },
+    {
+      "label": "temporal-libtest-d807b863d6bf",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/support-ee1e32bd57669e4d",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0009228340004483471
+    },
+    {
+      "label": "temporal-libtest-d807b863d6bf-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/support-ee1e32bd57669e4d",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006482080007117474
+    },
+    {
+      "label": "temporal-libtest-06a55e80bbdb",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/phase_exhaustiveness-a24630372709aa6d",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.000893000000360189
+    },
+    {
+      "label": "temporal-libtest-06a55e80bbdb-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/phase_exhaustiveness-a24630372709aa6d",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006821249990025535
+    },
+    {
+      "label": "temporal-libtest-608138a91b19",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/supplemental_admission-184626dd1991a338",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0011287079996691318
+    },
+    {
+      "label": "temporal-libtest-608138a91b19-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/supplemental_admission-184626dd1991a338",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006360000006679911
+    },
+    {
+      "label": "temporal-libtest-496f47e1ac27",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/wire_schema-0881913f27ac525a",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0009539589991618413
+    },
+    {
+      "label": "temporal-libtest-496f47e1ac27-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/wire_schema-0881913f27ac525a",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006465830010711215
+    },
+    {
+      "label": "temporal-libtest-70e8333d6796",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/build_inputs-221577c82e6f7c8e",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0009947920007107314
+    },
+    {
+      "label": "temporal-libtest-70e8333d6796-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/build_inputs-221577c82e6f7c8e",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006284589999268064
+    },
+    {
+      "label": "temporal-libtest-53f606edfe10",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/services-2e633dc8c8491fa9",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.001179832999696373
+    },
+    {
+      "label": "temporal-libtest-53f606edfe10-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/services-2e633dc8c8491fa9",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006292919988482026
+    },
+    {
+      "label": "temporal-libtest-51843040b14c",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/fixtures-198ccb187adf2b77",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.001466874999096035
+    },
+    {
+      "label": "temporal-libtest-51843040b14c-ignored",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/fixtures-198ccb187adf2b77",
+        "--ignored",
+        "--list",
+        "--format",
+        "terse"
+      ],
+      "exit": 0,
+      "seconds": 0.0006734580001648283
+    },
+    {
+      "label": "temporal-nextest-list",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "nextest",
+        "list",
+        "--workspace",
+        "--locked",
+        "--message-format",
+        "json",
+        "--run-ignored",
+        "all",
+        "--ignore-default-filter"
+      ],
+      "exit": 0,
+      "seconds": 21.90397330199994
+    },
+    {
+      "label": "temporal-groups",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "nextest",
+        "show-config",
+        "test-groups",
+        "--workspace",
+        "--locked",
+        "--show-default",
+        "--no-pager"
+      ],
+      "exit": 0,
+      "seconds": 20.743217676001223
+    },
+    {
+      "label": "temporal-doctest-list",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--doc",
+        "--workspace",
+        "--locked",
+        "--",
+        "--list"
+      ],
+      "exit": 0,
+      "seconds": 10.51925954699982
+    },
+    {
+      "label": "temporal-doctests",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--doc",
+        "--workspace",
+        "--locked",
+        "--quiet"
+      ],
+      "exit": 0,
+      "seconds": 10.11855892099993
+    },
+    {
+      "label": "temporal-runner-clippy",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "-p",
+        "temporal-xtask",
+        "--all-targets",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.1504281670004275
+    }
+  ],
+  "failed_attempts_retained": [
+    {
+      "artifacts": "attempt1-*",
+      "status": "Direct proc-macro list lacked Cargo runtime libstd search path; corrected proof harness using pinned sysroot."
+    },
+    {
+      "artifacts": "attempt2-* / attempt3-*",
+      "status": "New unit controls failed unwrap/unnecessary-qualification lints; source corrected and both current clippy checks passed."
+    },
+    {
+      "artifacts": "representative-attempt1-*",
+      "status": "Observer incorrectly classified fork/exec launch helpers as separate testcase owners; corrected to topmost testcase ancestor; final sampling and tests passed."
+    },
+    {
+      "artifacts": "producer-trybuild-* / generated-*.stderr",
+      "status": "Inherited golden path mismatches confirmed with both original Cargo and nextest, outside declared source ownership. Generated update changes restored; not green or fixed."
+    }
+  ],
+  "deferred": [
+    "Producer correction for three pre-move trybuild diagnostic paths before full gate can pass.",
+    "Task8 unrelated full workspace, combined model-check/model-validate, joined producer reconciliation and full-stage/warm timing."
+  ],
+  "limitations": [
+    "No full stage timing, historical speedup, new cold baseline, host-wide semaphore or new guest identity claim.",
+    "Observed memory peaks are 50ms samples; configured group and default nested recovery establish conservative heap budget.",
+    "Public Mise root lock additionally resolves existing tool pins automatically; no tool pin version changed except adding nextest."
+  ],
+  "leases": {
+    "jvm": "released after sequential framework/Temporal representative runs; task11 notified",
+    "targets": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/{framework,temporal}; retain for review",
+    "checkout": "retain until parent review closure"
+  }
+}
