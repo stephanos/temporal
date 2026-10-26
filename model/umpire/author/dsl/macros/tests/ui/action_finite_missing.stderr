@@ -11,7 +11,7 @@ help: the trait `Finite` is not implemented for `Opaque`
   | ^^^^^^^^^^^^^
   = note: derive `Finite`, or give the field `#[inputs(..)]` or a World-bound `#[domain(path)]`
 help: the trait `Finite` is implemented for `bool`
- --> $WORKSPACE/umpire/author/dsl/src/finite.rs
+ --> $WORKSPACE/author/dsl/src/finite.rs
   |
   | impl Finite for bool {
   | ^^^^^^^^^^^^^^^^^^^^
