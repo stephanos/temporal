@@ -9,12 +9,18 @@ pub(crate) fn arguments(root: &Path, supplied: Vec<OsString>) -> io::Result<Vec<
         root.clone().into_os_string(),
         "--workspace".into(),
         root.join("umpire").into_os_string(),
-        "--map".into(),
     ];
-    let mut mapping = root.join("temporal/feature").into_os_string();
-    mapping.push("=umpire-temporal-tests");
+    for package in [
+        "umpire-temporal-tests",
+        "umpire-temporal",
+        "umpire-temporal-api",
+        "umpire-temporal-realization-macros",
+    ] {
+        let mut mapping = root.join("temporal/feature").into_os_string();
+        mapping.push(format!("={package}"));
+        arguments.extend(["--map".into(), mapping]);
+    }
     arguments.extend([
-        mapping,
         "--always".into(),
         "umpire-temporal-tests".into(),
         "--test-target".into(),
@@ -37,13 +43,37 @@ mod tests {
         assert_eq!(arguments[0], "quick");
         assert_eq!(arguments[2], root.as_os_str());
         assert_eq!(arguments[4], root.join("umpire").as_os_str());
-        let mut mapping = root.join("temporal/feature").into_os_string();
-        mapping.push("=umpire-temporal-tests");
-        assert_eq!(arguments[6], mapping);
-        assert_eq!(arguments[8], "umpire-temporal-tests");
-        assert_eq!(arguments[10], "umpire-temporal-tests=fixtures");
-        assert_eq!(arguments[12], "umpire-temporal-tests=fixtures");
-        assert_eq!(&arguments[13..], ["--base", "HEAD~1"]);
+        let mappings: Vec<_> = arguments
+            .windows(2)
+            .filter(|pair| pair[0] == "--map")
+            .map(|pair| pair[1].clone())
+            .collect();
+        let expected: Vec<_> = [
+            "umpire-temporal-tests",
+            "umpire-temporal",
+            "umpire-temporal-api",
+            "umpire-temporal-realization-macros",
+        ]
+        .into_iter()
+        .map(|package| {
+            let mut mapping = root.join("temporal/feature").into_os_string();
+            mapping.push(format!("={package}"));
+            mapping
+        })
+        .collect();
+        assert_eq!(mappings, expected);
+        assert!(arguments.windows(2).any(|pair| pair == ["--always", "umpire-temporal-tests"]));
+        assert!(
+            arguments
+                .windows(2)
+                .any(|pair| pair == ["--test-target", "umpire-temporal-tests=fixtures"])
+        );
+        assert!(
+            arguments
+                .windows(2)
+                .any(|pair| pair == ["--test-filter", "umpire-temporal-tests=fixtures"])
+        );
+        assert_eq!(&arguments[arguments.len() - 2..], ["--base", "HEAD~1"]);
         Ok(())
     }
 }
