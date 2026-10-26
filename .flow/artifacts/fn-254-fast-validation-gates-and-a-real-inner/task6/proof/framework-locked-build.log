@@ -1,0 +1,10 @@
+   Compiling adler2 v2.0.1
+   Compiling simd-adler32 v0.3.10
+   Compiling crc32fast v1.5.3
+   Compiling miniz_oxide v0.9.1
+   Compiling filetime v0.2.29
+   Compiling tar v0.4.46
+   Compiling flate2 v1.1.10
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/umpire/dev/guest-driver)
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/umpire/dev/xtask)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.80s

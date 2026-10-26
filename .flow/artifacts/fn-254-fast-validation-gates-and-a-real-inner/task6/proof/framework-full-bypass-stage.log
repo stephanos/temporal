@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/quick/debug/deps/xtask-77ca01b04ba72586)
+
+running 1 test
+framework stage exit-control failed (exit 37)
+test gate::tests::real_stage_child_receives_cache_bypass_and_required_mode ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.00s
+

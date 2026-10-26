@@ -1,0 +1,21 @@
+{
+  "commits": [
+    "e9a47cafac",
+    "7b4d3f526c",
+    "066ee61ad45296eb9fa86c090a3bba47c0b198db"
+  ],
+  "tests": [
+    "mise exec -- cargo metadata --locked --format-version 1 --manifest-path model/Cargo.toml",
+    "mise exec -- cargo metadata --locked --format-version 1 --manifest-path model/umpire/Cargo.toml",
+    "cargo test --locked -p xtask --lib quick:: -- --test-threads=2 (7 passed)",
+    "cargo test --locked -p umpire-tlc -p umpire-backend-process --lib -- --test-threads=2 (23 + 13 passed)",
+    "cargo test --locked -p temporal-xtask --bin temporal-xtask quick:: -- --test-threads=2 (1 passed)",
+    "full-gate stage-child override controls with inherited UMPIRE_QUICK_CACHE=1 UMPIRE_CACHE_DISABLE=0 (framework + Temporal passed)",
+    "locked affected tool and actual activity fixture builds; affected all-target clippy -D warnings; both-workspace formatting",
+    "cargo check --locked -p umpire-tlc --features strategy-equivalence",
+    "isolated make model-quick baseline, content-preserving Model edit and changed-emission Model edit (33.674 s / 20.265 s / 33.084 s)",
+    "populated-cache actual required activity fixture with full-gate effective cache-disable environment (28 fresh TLC executions, 0 hits)",
+    "Temporal guest reproduction at two source paths/independent empty targets; byte comparison with committed guest; builder --check"
+  ],
+  "prs": []
+}
