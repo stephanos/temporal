@@ -203,6 +203,8 @@ def main():
     args = parser.parse_args()
     if args.shrink_controls and not args.execute:
         parser.error("--shrink-controls requires explicit --execute")
+    if args.execute and not args.tlc_jar.is_file():
+        parser.error("--tlc-jar must name the pinned TLC 1.7.4 jar")
     destination = args.destination.resolve()
     prepare(destination, args.seed, args.cases, batch_tlc=args.batch_tlc)
     if not args.execute:
@@ -210,10 +212,9 @@ def main():
         return
     tools = HERE / "evidence/tools"
     (tools / "build/tlc").mkdir(parents=True, exist_ok=True)
-    if args.tlc_jar.is_file():
-        shutil.copyfile(args.tlc_jar, tools / "build/tlc/tla2tools-1.7.4.jar")
-    if not (tools / "build/tlc/tla2tools-1.7.4.jar").is_file():
-        parser.error("--tlc-jar must name the pinned TLC 1.7.4 jar")
+    cached_jar = tools / "build/tlc/tla2tools-1.7.4.jar"
+    if args.tlc_jar.resolve() != cached_jar.resolve():
+        shutil.copyfile(args.tlc_jar, cached_jar)
     shutil.copyfile(FRAMEWORK / "mise.toml", tools / "mise.toml")
     environment = dict(os.environ, MISE_AUTO_INSTALL="false", MISE_EXEC_AUTO_INSTALL="false",
                        UMPIRE_QUICK_CACHE="0", UMPIRE_CACHE_DISABLE="1", CARGO_BUILD_JOBS="2",

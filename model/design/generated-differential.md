@@ -13,9 +13,12 @@ probe, printed source, exact graphs, process observations and logs without build
 The README documents restoration and fresh execution. Evidence uses framework source
 at `d9a378401bbf9c9e6a7aaf60c03e121c392512f5`, the existing prep checkout, rather than
 claiming a later integrated fn254 source revision. A source projection against integrated root `0c83ab3d1e4b8593e7415d780902789d8bad7c90`
-found only the TLC runner/cache-control changes. IR, front end, DSL, native checker,
-emitter, testing support, protocol and framework dependency manifest/lock were
-identical. Every spike execution sets `UMPIRE_QUICK_CACHE=0` and
+compared all of `model/umpire` and found four changed files. Two are the TLC
+runner/cache controls; two are the quick-tool selector and its controls. The facade,
+suite and catalog source trees are identical, as are IR, front end, DSL, native
+checker, emitter, testing support, protocol and framework manifest/lock. Exact tree
+hashes and all changed paths are retained in `evidence/source-projection.json`.
+Every spike execution sets `UMPIRE_QUICK_CACHE=0` and
 `UMPIRE_CACHE_DISABLE=1`; retained runtime logs show actual execution, so the cache
 changes do not invalidate this source projection. The host was Linux aarch64, 12 CPUs
 and about 19.8 GiB RAM. Rust 1.99.1 and mise-pinned Temurin 27 ran TLC 1.7.4, with the
@@ -67,7 +70,10 @@ with identical schemas. This forms a disjoint union, avoiding a cross product.
 A conjunction guarded by the selector checks each case's invariant; any refutation
 fails the entire batch. Reachability plus invariant checking take two model JVMs.
 The same reachability dump supplies complete edge extraction, eliminating a separate
-extraction JVM for each case.
+extraction JVM for each case. This batch requires identical schemas and invariants
+that verify by construction. Batched verdicts are Verified-or-fail. In task .2,
+families with legitimately refutable claims need independently reported per-claim
+operators, or individual checks that preserve each claim verdict.
 
 For seed 255003, both starts in each Model survived exact graph comparison. Case 0
 had 10 reachable states and 30 edges; case 1 had 6 states and 16 edges. Individual
@@ -108,9 +114,21 @@ varied, so these are individual measurements rather than a speedup guarantee.
 | Shared TLC batch | 9.129 | 2.140 | 2 | 1 | 10.6 |
 | Final syntax-clean shared batch rerun | 4.109 | 1.477 | 2 | 1 | 21.5 |
 
+The paired and shrink rows used adapters SHA-256
+`450faebb28cb84e2cdc3788356f50f176d11f7075c3abf929ebdc3f401f15ca9`
+(21,450 bytes). Only `checked-batch` executed the exact current adapters
+`b8ca81d614eb5745f6c07cf0f08cdc98472d6ddcb5d0f245384f392a8edabf64`
+(21,434 bytes), without shrinking or individual-TLC mode. The sole source delta
+collapses an equivalent nested conditional into an if-let chain; the patch and
+per-run hashes are retained in `evidence/adapters-provenance.json` and its patch.
+The Python missing-jar preflight follow-up changes no generated source or Rust
+adapter. Historical measurements retain their original bytes.
+
 Runtime-only throughput was 23.0 cases/minute for individual checks and 56.1 for the
-first shared batch. Process sampling every 10 ms observed every expected JVM and a
-peak of one. Retained TLC execution records independently show six versus two model
+first shared batch. Linux `/proc` sampling every 10 ms observed every expected JVM and a
+peak of one. Sampling is Linux-only; on other platforms its empty observations
+do not establish zero launches. Retained TLC execution logs remain a separate
+launch record. Those records independently show six versus two model
 launches. The old backend's discovery probe has no explicit heap flag; model runs
 use 512 MiB and one worker. Do not extend model-heap arithmetic to that probe or total
 RSS. Later fn254 discovery caps must be retained when the harness is integrated.
@@ -136,7 +154,7 @@ additional extraction/batching workload and makes no whole-gate timing claim.
 | 290 augmented assignments per Model; 580 per two-Model batch | At most two initial assignments plus two tick copies of every edge; decoded result refuses excess |
 | Default mode, 1 source Model, 0 TLC launches | Preserve mandatory source coverage; native/control runtime measured below 0.05 s after compilation |
 | Required mode, 2 source Models, 1 shared batch | Measured two-Model batch; 2 model JVMs plus 1 discovery, property_workers=1, cache bypass enabled |
-| Default differential share at most 30 s | One warm compile and native comparison; no shrink during a successful gate |
+| Default differential share proposed at most 11 s | Compile cap 10 s plus native runtime cap 1 s, against measured final one-Model compile 3.030–3.880 s and runtime 0.012–0.041 s; leaves 19 s of the 30 s total for other fn255 additions; no shrink during a successful gate |
 | Required differential share proposed at most 45 s | Warm compile cap 30 s plus runtime cap 15 s, against observed maxima 20.871 and 7.020 s; leaves 75 s of the spec's 120 s for other techniques |
 | Per model JVM 10 s; output 8 MiB; dump 16 MiB | Limits exercised by the probe; overall spike runtime ceiling is 45 s per selected case |
 | Failure reduction at most 3 candidates | Actual measured reductions; production harness must fit reduction inside its owning stage deadline or report remaining work |

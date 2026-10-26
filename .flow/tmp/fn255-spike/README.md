@@ -6,6 +6,9 @@ and process-failure controls. The verdict and measured limits are in
 
 Run from the repository root with the existing pinned toolchain and a TLC 1.7.4 jar.
 The backend verifies the jar's SHA-256 before use. The destination must be new.
+Execute mode rejects a missing `--tlc-jar` path
+before preparing that destination, even if a previous copied jar exists. Source-only
+preparation does not require a jar.
 
 ```sh
 unset BASH_ENV
@@ -22,8 +25,13 @@ identical sources. Omit `--execute` to print source only. Counts are restricted 
 one or two Models. Dependencies build offline into the task-owned `evidence/target`;
 subsequent crates and shrink candidates reuse it. Provision dependencies before
 admitting gate timing. The runner disables quick/backend cache reads, removes
-BASH_ENV, sets two compiler jobs, and trusts only its copied task tool metadata.
-It records actual source hashes, stdout/stderr, timings and sampled Java argv.
+BASH_ENV and sets two compiler jobs. Cargo runs with the framework as its working
+directory and reads that framework's mise pins. The copied tool metadata resolves
+Java from the task tool root; its trusted-path setting does not override the
+framework configuration used by Cargo. The runner records source hashes, output,
+timings and Java argv sampled through Linux `/proc`. JVM sampling is Linux-only;
+on other platforms empty observations cannot establish zero launches, so use
+separate launch evidence such as the retained TLC execution logs.
 Each compile has a 120 s spike-only ceiling; runtime has 45 s per selected case.
 The runner cancels on less than 30 GiB free disk. Required-backend execution must
 share the conductor's JVM allocation with other active lanes.
@@ -34,7 +42,10 @@ invariant. Its declarative starts have one or two members. Compiled and interpre
 checks complete independently. TLC parses the complete printed source independently.
 Complete snapshots include starts, states, action/choice/successor/outcome/facts and
 claim verdicts. A case selector lets nested emitted modules share one TLC process
-without constructing expectations from native states.
+without constructing expectations from native states. Batch schemas must match,
+and this family's claims must verify by construction. The batch reports
+Verified-or-fail; refutable-claim families need per-claim operators or individual
+checks in the maintained task .2 harness.
 
 The complete extraction proof is limited to this generated family. Refuse is enabled
 in every state, so the probe excludes synthetic completion and has no deadlocks.
@@ -59,3 +70,12 @@ Archive entries begin with `.flow/tmp/fn255-spike/`. Restore with an empty desti
 or first inspect the paths to preserve local work. Runtime manifests contain the
 original absolute checkout paths as evidence; `run.sh` regenerates current paths for
 fresh runs. The archive manifest hashes every member and the archive itself.
+
+Paired and shrinking measurements used the exact historical adapters retained in
+those run directories. Only `checked-batch` ran the current adapters. The difference
+is the equivalent nested-if to if-let-chain cleanup; `evidence/adapters-provenance.json`
+and `adapters-provenance.patch` identify every run and the complete delta. The
+follow-up changes execute-mode Python preflight and documentation only. The previous
+committed archive and its manifest remain byte-for-byte under
+`evidence/history/4285914b1b.tar.gz` and `4285914b1b-manifest.json` inside the current
+archive, preserving the earlier top-level probe and measurements as well.
