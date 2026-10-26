@@ -50,3 +50,9 @@ validated directory is renamed into place while holding the lock. Staging is
 removed on success and failure. Installation pins live only in
 `src/apalache_pins.rs`, included by the runtime backend as well as xtask.
 The production command accepts no URL, version, archive or hash overrides.
+
+`test-run` is an internal no-argument subprocess route used by the gate's `tests`
+stage and `update`. It inherits their working directory and admitted environment,
+and currently runs exactly one `mise exec -- cargo test --workspace --locked --quiet`,
+including Cargo's doctests. Test sequencing belongs in `src/test_run.rs`; callers
+only select this route. Child exit codes and signal statuses propagate to the gate.

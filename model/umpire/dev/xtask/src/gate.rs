@@ -15,6 +15,7 @@ mod boundary;
 
 /// Ordered framework stages. Dependencies are conservative prerequisite edges.
 pub const STAGES: &[(&str, &[&str])] = &[
+    ("proto-tools", &[]),
     ("retired-names", &[]),
     ("timing-controls", &[]),
     ("capability-controls", &[]),
@@ -78,6 +79,11 @@ impl Gate {
         let mut command = self.command("mise");
         command.args(["exec", "--", "cargo"]).args(args);
         command
+    }
+    fn tests(&self) -> Result<Command> {
+        let mut command = self.command(env::current_exe()?);
+        command.arg("test-run");
+        Ok(command)
     }
     fn script(&self, path: &str, args: &[&str]) -> Command {
         let mut command = self.command("/bin/bash");
@@ -143,11 +149,7 @@ impl Gate {
                 c.env("RUSTDOCFLAGS", "-D warnings");
                 c
             }
-            "tests" => {
-                let mut c = self.cargo(&[]);
-                crate::test_run::configure(&mut c);
-                c
-            }
+            "tests" => self.tests()?,
             "wasm32-wasip1" => self.cargo(&[
                 "build",
                 "--target",
@@ -232,10 +234,6 @@ impl Gate {
                 return Ok(code);
             }
         }
-        let code = self.stage("proto-tools")?;
-        if code != 0 {
-            return Ok(code);
-        }
         for (name, _) in STAGES {
             let started = Instant::now();
             let result = self
@@ -281,8 +279,7 @@ pub fn run(command: &str, args: Vec<OsString>) -> Result<i32> {
         "gate" => gate.full(),
         "fmt" => gate.execute("fmt", gate.cargo(&["fmt", "--all"])),
         "update" => {
-            let mut c = gate.cargo(&[]);
-            crate::test_run::configure(&mut c);
+            let mut c = gate.tests()?;
             c.env("INSTA_UPDATE", "always").env("TRYBUILD", "overwrite");
             gate.execute("update", c)
         }
