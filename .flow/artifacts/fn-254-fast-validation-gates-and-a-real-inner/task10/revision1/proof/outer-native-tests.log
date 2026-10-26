@@ -1,0 +1,26 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/dev/xtask)
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.52s
+     Running unittests src/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/deps/temporal_xtask-ec453d7574f7d635)
+
+running 4 tests
+Temporal stage control failed (exit 37)
+test gate::tests::full_gate_overrides_cache_and_preserves_failure ... ok
+test gate::tests::run_control_child ... ok
+test gate::tests::spawn_failure_names_the_stage ... ok
+test gate::tests::actual_temporal_gate_wiring_and_named_failures ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.37s
+
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/deps/main-25f9f380eb62b893)
+
+running 6 tests
+test absent_embedded_guest_fails_go_compilation ... ok
+test actual_make_freshness_recipe_propagates_stale_failure ... ok
+test retired_names::active_spellings_and_historical_exclusions ... ok
+test retired_names::shell_preserves_filter_failure_when_git_grep_gets_sigpipe ... ok
+test retired_names::tool_failures_never_report_clean ... ok
+test make_paths::shipping_framework_make_bootstrap_preserves_relative_cargo_paths ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.80s
+

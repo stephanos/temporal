@@ -1,0 +1,9 @@
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-fix-paths/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.31s
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/fix-paths/debug/deps/main-25f9f380eb62b893)
+
+running 1 test
+test make_paths::shipping_framework_make_bootstrap_preserves_relative_cargo_paths ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.79s
+

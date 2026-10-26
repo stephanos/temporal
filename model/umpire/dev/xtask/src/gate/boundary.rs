@@ -17,6 +17,7 @@ struct Policy {
     retired_pattern: String,
     organization_prefix: String,
     controls: Vec<String>,
+    accepted_controls: Vec<String>,
 }
 fn policy(root: &Path) -> Result<Policy> {
     let path = root.join(POLICY);
@@ -31,6 +32,8 @@ fn policy(root: &Path) -> Result<Policy> {
         || policy.organization_prefix.is_empty()
         || policy.controls.is_empty()
         || policy.controls.iter().any(String::is_empty)
+        || policy.accepted_controls.is_empty()
+        || policy.accepted_controls.iter().any(String::is_empty)
     {
         return Err(Error::Invalid("invalid or empty framework boundary policy".into()));
     }
@@ -124,18 +127,17 @@ fn forbidden(bytes: &[u8], p: &Policy, allow: bool) -> bool {
                 return false;
             }
             if allow {
+                let path_char = |b: &u8| b.is_ascii_alphanumeric() || b"._/-@".contains(b);
+                let start = bytes[..at].iter().rposition(|b| !path_char(b)).map_or(0, |i| i + 1);
+                let end =
+                    bytes[at..].iter().position(|b| !path_char(b)).map_or(bytes.len(), |i| at + i);
                 let prefix = p.organization_prefix.as_bytes();
-                for start in 0..=at {
-                    if bytes[start..].starts_with(prefix) && at < start + prefix.len() {
-                        let end = start + prefix.len();
-                        if bytes
-                            .get(end)
-                            .is_some_and(|b| b.is_ascii_alphanumeric() || *b == b'_' || *b == b'-')
-                            && (start == 0 || !bytes[start - 1].is_ascii_alphanumeric())
-                        {
-                            return false;
-                        }
-                    }
+                if at == start + b"github.com/".len()
+                    && at < start + prefix.len()
+                    && bytes[start..end].starts_with(prefix)
+                    && end > start + prefix.len()
+                {
+                    return false;
                 }
             }
             true
@@ -235,6 +237,65 @@ enum Token {
     Literal(String),
     Punctuation(char),
 }
+fn character_end(text: &str, at: usize) -> Option<usize> {
+    let bytes = text.as_bytes();
+    let byte = bytes.get(at..at + 2) == Some(b"b'");
+    let quote = at + usize::from(byte);
+    if bytes.get(quote) != Some(&b'\'') {
+        return None;
+    }
+    let body = quote + 1;
+    let first = text.get(body..)?.chars().next()?;
+    let end = if first == '\\' {
+        let escape = *bytes.get(body + 1)?;
+        match escape {
+            b'0' | b'n' | b'r' | b't' | b'\\' | b'\'' | b'"' => body + 2,
+            b'x' => {
+                let digits = text.get(body + 2..body + 4)?;
+                if !digits.bytes().all(|b| b.is_ascii_hexdigit()) {
+                    return None;
+                }
+                let value = u8::from_str_radix(digits, 16).ok()?;
+                if !byte && !value.is_ascii() {
+                    return None;
+                }
+                body + 4
+            }
+            b'u' if !byte && bytes.get(body + 2) == Some(&b'{') => {
+                let mut end = body + 3;
+                let mut digits = 0;
+                let mut value = 0_u32;
+                while let Some(&next) = bytes.get(end) {
+                    if next == b'_' && digits > 0 {
+                        end += 1;
+                        continue;
+                    }
+                    if next == b'}' {
+                        break;
+                    }
+                    let digit = char::from(next).to_digit(16)?;
+                    digits += 1;
+                    if digits > 6 {
+                        return None;
+                    }
+                    value = value * 16 + digit;
+                    end += 1;
+                }
+                if digits == 0 || bytes.get(end) != Some(&b'}') || char::from_u32(value).is_none() {
+                    return None;
+                }
+                end + 1
+            }
+            _ => return None,
+        }
+    } else {
+        if matches!(first, '\'' | '\n' | '\r' | '\t') || (byte && !first.is_ascii()) {
+            return None;
+        }
+        body + first.len_utf8()
+    };
+    (bytes.get(end) == Some(&b'\'')).then_some(end + 1)
+}
 fn tokens(text: &str) -> Vec<Token> {
     let bytes = text.as_bytes();
     let mut result = Vec::new();
@@ -261,6 +322,10 @@ fn tokens(text: &str) -> Vec<Token> {
                     at += 1;
                 }
             }
+            continue;
+        }
+        if let Some(end) = character_end(text, at) {
+            at = end;
             continue;
         }
         if bytes[at] == b'r' {
@@ -462,6 +527,97 @@ pub(super) fn retired(root: &Path, target: &Path) -> Result<i32> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn local_policy_root() -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
+    }
+    #[test]
+    fn organization_exception_preserves_occurrence_token_boundaries() -> Result<()> {
+        let p = policy(&local_policy_root())?;
+        let directory = tempfile::tempdir()?;
+        let root = directory.path().join("root");
+        fs::create_dir_all(root.join("dev/gate/policy"))?;
+        fs::copy(local_policy_root().join(POLICY), root.join(POLICY))?;
+        for control in &p.controls {
+            assert!(forbidden(control.as_bytes(), &p, true), "accepted {control:?}");
+            fs::write(root.join("README.md"), control)?;
+            assert!(
+                check(&root, &directory.path().join("target")).is_err(),
+                "accepted {control:?}"
+            );
+        }
+        for control in &p.accepted_controls {
+            assert!(!forbidden(control.as_bytes(), &p, true), "refused {control:?}");
+            fs::write(root.join("README.md"), control)?;
+            check(&root, &directory.path().join("target"))?;
+        }
+        Ok(())
+    }
+    #[test]
+    fn character_recognition_requires_a_valid_closed_literal() {
+        for text in [
+            "'a",
+            "'static",
+            "'label:",
+            "'ab'",
+            r"'\x+1'",
+            r"'\x80'",
+            r"'\u{}'",
+            r"'\u{_22}'",
+            r"'\u{D800}'",
+            r"'\u{110000}'",
+            r"b'\u{22}'",
+            "b'é'",
+        ] {
+            assert_eq!(character_end(text, 0), None, "recognized {text:?}");
+        }
+    }
+    #[test]
+    fn character_literals_and_lifetimes_cannot_hide_source_escapes() -> Result<()> {
+        let directory = tempfile::tempdir()?;
+        let root = directory.path().join("root");
+        fs::create_dir_all(root.join("dev/gate/policy"))?;
+        fs::copy(local_policy_root().join(POLICY), root.join(POLICY))?;
+        fs::write(directory.path().join("outside"), "outside")?;
+        fs::write(root.join("inside"), "inside")?;
+        let source = root.join("source.rs");
+        let prefixes = [
+            r#"const C: char = '"';"#,
+            r#"const C: u8 = b'"';"#,
+            r#"const C: char = '\"';"#,
+            r#"const C: u8 = b'\"';"#,
+            r"const C: char = '\'';",
+            r"const C: u8 = b'\'';",
+            r"const C: char = '\\';",
+            r"const C: u8 = b'\\';",
+            r"const C: char = '\x22';",
+            r"const C: u8 = b'\x22';",
+            r"const C: char = '\u{22}';",
+            r"const C: char = '\n';",
+            r"const C: u8 = b'\0';",
+            r"const C: u8 = b'\xFF';",
+            r"const C: char = '\u{1_F980}';",
+            "const C: char = 'é';",
+            "const C: char = '🦀';",
+            "const C: char = 'a';",
+            "const C: u8 = b'a';",
+            "fn f<'a>(s: &'a str) {}",
+            "fn f(s: &'static str) {}",
+            "fn f() { 'label: loop { break 'label; } }",
+        ];
+        let mut missed = Vec::new();
+        for prefix in prefixes {
+            fs::write(&source, format!("{prefix}\ninclude_str!(\"inside\");"))?;
+            check(&root, &directory.path().join("target"))?;
+            fs::write(&source, format!("{prefix}\ninclude_str!(\"../outside\");"))?;
+            let direct = source_paths(&root, &source, &fs::read(&source)?);
+            let scanned = check(&root, &directory.path().join("target"));
+            if direct.is_ok() || scanned.is_ok() {
+                missed.push(prefix);
+            }
+        }
+        assert!(missed.is_empty(), "source escapes hidden after: {missed:?}");
+        Ok(())
+    }
     #[test]
     fn declared_unused_dependency_escape_is_refused_before_cargo() -> Result<()> {
         let directory = tempfile::tempdir()?;

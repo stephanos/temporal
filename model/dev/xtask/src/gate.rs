@@ -7,9 +7,16 @@ use std::{
 };
 
 pub(crate) fn stage(root: &Path, name: &str, mut command: Command) -> io::Result<i32> {
-    let home = umpire_guest_driver::context::cargo_home(&std::env::current_dir()?)
-        .map_err(io::Error::other)?;
+    let caller = std::env::current_dir()?;
+    let home = umpire_guest_driver::context::cargo_home(&caller).map_err(io::Error::other)?;
     command.env("CARGO_HOME", home).env("UMPIRE_QUICK_CACHE", "0").env("UMPIRE_CACHE_DISABLE", "1");
+    if let Some(target) = std::env::var_os("CARGO_TARGET_DIR") {
+        let target = std::path::PathBuf::from(target);
+        command.env(
+            "CARGO_TARGET_DIR",
+            if target.is_absolute() { target } else { caller.join(target) },
+        );
+    }
     let status = if std::env::var_os("UMPIRE_TIME_STEPS").is_some_and(|value| value == "1") {
         let mut timer = Command::new("/bin/bash");
         timer
@@ -153,7 +160,8 @@ mod tests {
         ];
         let body = r#"
 [ "$UMPIRE_QUICK_CACHE:$UMPIRE_CACHE_DISABLE" = 0:1 ] || exit 9
-[ "${CARGO_HOME#/}" != "$CARGO_HOME" ] || exit 8
+[ "$CARGO_HOME" = "$UMPIRE_GATE_CONTROL_CALLER/control-relative-home" ] || exit 8
+[ "$CARGO_TARGET_DIR" = "$UMPIRE_GATE_CONTROL_CALLER/control-relative-target" ] || exit 7
 printf '%s\n' "$label" >> "$UMPIRE_GATE_CONTROL_LOG"
 [ "$label" != "${UMPIRE_GATE_CONTROL_FAILURE:-}" ] || exit 37
 "#;
@@ -201,6 +209,8 @@ printf '%s\n' "$label" >> "$UMPIRE_GATE_CONTROL_LOG"
                 .env("UMPIRE_QUICK_CACHE", "1")
                 .env("UMPIRE_CACHE_DISABLE", "0")
                 .env("CARGO_HOME", "control-relative-home")
+                .env("CARGO_TARGET_DIR", "control-relative-target")
+                .env("UMPIRE_GATE_CONTROL_CALLER", std::env::current_dir().unwrap())
                 .env("UMPIRE_TIME_STEPS", timed)
                 .env(
                     "PATH",

@@ -1,0 +1,290 @@
+{
+  "scope": "real compiled scanner on synthetic declared inputs; not a standalone full gate",
+  "commands": [
+    {
+      "label": "actual-framework-current-inputs",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.811041834000207,
+      "output": ""
+    },
+    {
+      "label": "organization-or-source-negative-0",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-yc431r37/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0007678339998165029,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-1",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-yc431r37/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0005662909998136456,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-2",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-yc431r37/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.00048762499955046223,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-3",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-yc431r37/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.00046137499975884566,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-4",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-yc431r37/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.00048104200050147483,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-5",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-yc431r37/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0004706249992523226,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-6",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-yc431r37/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0005626249994747923,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-7",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-yc431r37/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0005157919995326665,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-8",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-yc431r37/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0005560409999816329,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-9",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-yc431r37/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0004760000001624576,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-10",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-yc431r37/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0005127090007590596,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-11",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-yc431r37/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0005430419996628189,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-12",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-yc431r37/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0007222080002975417,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-13",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-yc431r37/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0006641250001848675,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-14",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-yc431r37/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0004906670001219027,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-15",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-yc431r37/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0005081250001239823,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-16",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-yc431r37/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.000503332999869599,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-positive-0",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-yc431r37/framework",
+      "exit": 101,
+      "expected": 0,
+      "seconds": 0.01393754099990474,
+      "output": "error: manifest path `/home/agent/.cache/codex-build/tmp/fn25410-boundary-yc431r37/framework` contains no package: The manifest is virtual, and the workspace has no members.\nframework stage source-boundary failed (exit 101)\n"
+    }
+  ]
+}

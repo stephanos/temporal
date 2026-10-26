@@ -72,6 +72,12 @@ fn run() -> xtask::Result<i32> {
                 arguments.collect(),
             )
         }
+        Some(command) if command == OsStr::new("test-run") => {
+            if arguments.next().is_some() {
+                return Err(xtask::Error::Invalid("usage: cargo xtask test-run".into()));
+            }
+            xtask::test_run::run()
+        }
         Some(command) if command == OsStr::new("fetch-apalache") => {
             let root = arguments.next();
             if arguments.next().is_some() {
@@ -108,7 +114,7 @@ fn run() -> xtask::Result<i32> {
             ))
         }
         _ => Err(xtask::Error::Invalid(
-            "commands: gate, fmt, update, time, validate, fetch-apalache, guest, guest-freshness, guest-lock, retired-names".into(),
+            "commands: gate, fmt, update, time, validate, test-run, fetch-apalache, guest, guest-freshness, guest-lock, retired-names".into(),
         )),
     }
 }

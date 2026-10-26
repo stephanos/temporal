@@ -8,6 +8,7 @@ use std::{
 };
 
 const STAGES: &[&str] = &[
+    "proto-tools",
     "retired-names",
     "timing-controls",
     "capability-controls",
@@ -72,7 +73,7 @@ impl Fixture {
         write(&fixture.root.join("rust-toolchain.toml"), "[toolchain]\nchannel = 'stable'\n");
         write(
             &fixture.root.join("dev/gate/policy/framework-boundary.txt"),
-            "version = 1\nforbidden = ['forbidden_payload']\nretired_pattern = 'retired_payload'\norganization_prefix = 'github.com/acme/'\ncontrols = ['forbidden_payload']\n",
+            "version = 1\nforbidden = ['forbidden_payload']\nretired_pattern = 'retired_payload'\norganization_prefix = 'github.com/acme/'\ncontrols = ['forbidden_payload']\naccepted_controls = ['github.com/acme/project']\n",
         );
         fs::create_dir_all(fixture.caller.join("real home")).unwrap();
         symlink("real home", fixture.caller.join("cargo home")).unwrap();
@@ -134,7 +135,7 @@ if [ "${{CONTROL_SIGNAL:-}}" = "$label" ]; then
  printf 'signal stderr diagnostic\n' >&2
  kill -TERM $$
 fi
-[ "${{CONTROL_FAIL:-}}" != "$label" ] || {{ printf '%s child diagnostic\n' "$label" >&2; exit 37; }}
+[ "${{CONTROL_FAIL:-}}" != "$label" ] || {{ printf '%s child diagnostic\n' "$label" >&2; exit "${{CONTROL_EXIT:-37}}"; }}
 if [ "${{CONTROL_EXPECT_UPDATE:-0}}" = 1 ]; then
  [ "$INSTA_UPDATE" = always ] && [ "$TRYBUILD" = overwrite ]
 fi
@@ -208,6 +209,14 @@ fn compiled_stage_inventory_matches_preserved_framework_stages() {
     let text = String::from_utf8(output.stdout).unwrap();
     let names: Vec<_> = text.lines().map(|line| line.split('\t').next().unwrap()).collect();
     assert_eq!(names, STAGES);
+    let mut seen = std::collections::HashSet::new();
+    for line in text.lines() {
+        let (name, deps) = line.split_once('\t').unwrap();
+        assert!(seen.insert(name), "duplicate stage {name}");
+        for dependency in deps.split(',').filter(|dependency| !dependency.is_empty()) {
+            assert!(seen.contains(dependency), "missing or unordered dependency {dependency}");
+        }
+    }
     assert!(text.contains("protobuf-controls\tproto-tools\n"));
     assert!(text.contains("go-host\twasm-guest\n"));
     assert!(text.contains("kettle-go-host\twasm-guest,kettle-protobuf-freshness\n"));
@@ -493,4 +502,46 @@ fn guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths(
             }
         }
     }
+}
+
+#[test]
+fn test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes() {
+    let fixture = Fixture::new();
+    for timed in [false, true] {
+        for entry in [vec!["gate", "--stage", "tests"], vec!["update"]] {
+            for code in [0, 1, 37, 143] {
+                fixture.clear();
+                let mut command = fixture.command(timed);
+                command.args(&entry);
+                if entry == ["update"] {
+                    command.env("CONTROL_EXPECT_UPDATE", "1");
+                }
+                if code == 143 {
+                    command.env("CONTROL_SIGNAL", "tests");
+                } else if code != 0 {
+                    command.env("CONTROL_FAIL", "tests").env("CONTROL_EXIT", code.to_string());
+                }
+                let output = command.output().unwrap();
+                assert_status(&output, code);
+                assert_eq!(fixture.labels(), ["tests"]);
+                let log = fs::read_to_string(&fixture.log).unwrap();
+                assert_eq!(log.lines().count(), 1);
+                assert!(
+                    log.trim_end().ends_with("cargo test --workspace --locked --quiet"),
+                    "{log}"
+                );
+                if code == 143 {
+                    let diagnostics =
+                        format!("{}{}", String::from_utf8_lossy(&output.stdout), stderr(&output));
+                    assert!(diagnostics.contains("signal stdout diagnostic"));
+                    assert!(diagnostics.contains("signal stderr diagnostic"));
+                }
+            }
+        }
+    }
+    fixture.clear();
+    let output = fixture.command(false).args(["test-run", "extra"]).output().unwrap();
+    assert_status(&output, 1);
+    assert!(stderr(&output).contains("usage: cargo xtask test-run"));
+    assert_eq!(fixture.labels(), Vec::<String>::new());
 }
