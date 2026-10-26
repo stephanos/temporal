@@ -1,0 +1,77 @@
+{
+  "base": "234dcd5c6fd85d2d05790c87b032f26e2e8cd96d",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a175de-b5b7-7ec2-903f-ab2d085eb166",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a175de-b59e-7e11-aeb0-6be7a1a191d4",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a175de-b5e5-7530-93a0-f174265949b8",
+      "verdict": "SHIP"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "234dcd5c6fd85d2d05790c87b032f26e2e8cd96d",
+    "headSha": "46e96cfa5cb08c5f79deaaff1be49f7fcdcdf507",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "234dcd5c6fd85d2d05790c87b032f26e2e8cd96d",
+          "headSha": "46e96cfa5cb08c5f79deaaff1be49f7fcdcdf507",
+          "path": "Makefile",
+          "side": "head",
+          "startLine": 1276
+        },
+        "body": "With either auto-install setting enabled and a pinned tool missing, the new `model-quick` recipe\u2019s initial `mise exec` installs the tool instead of failing hard. Neither flag is disabled before this invocation. The flags set later by bootstrap and Rust commands cannot affect their parent process. This leaves task .14\u2019s explicit no-auto-install requirement incomplete.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-aad24d308346efdee3bf232d16d5eee37ae8accdcaef673aecdc8467ee5a233d",
+        "id": "finding-e96e2343c957dbd930039d036433548a",
+        "lastSeenReceiptId": "review-aad24d308346efdee3bf232d16d5eee37ae8accdcaef673aecdc8467ee5a233d",
+        "ordinal": 1,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Export `MISE_AUTO_INSTALL=false` and `MISE_EXEC_AUTO_INSTALL=false` for `model-quick` before its first mise invocation.",
+        "title": "With either auto-install setting enabled and a pinned tool missing, the new `model-quick` recipe\u2019s initial `mise exec` installs the tool instead of failing hard"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-aad24d308346efdee3bf232d16d5eee37ae8accdcaef673aecdc8467ee5a233d"
+  },
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.14",
+  "introduced_count": 1,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "I\u2019ll read the task specification first, then trace the changed code and evidence for contract and consistency issues.\nThe range also includes quick-gate and TLC-cache changes. I\u2019m tracing those alongside the tool-probe removal, focusing on cache invalidation, full-gate bypass, and standalone execution.\nThe obsolete readiness checks are removed, while auto-install remains disabled and jar integrity checks remain in place. I\u2019m checking the remaining quick-selection and cache-replay paths against the recorded proofs. The sandbox is read-only, so I can\u2019t rerun suites that create build or scratch files.\nI found one contract mismatch: `make model-quick` starts its first `mise exec` before disabling auto-install. With a pinned tool missing and mise\u2019s default settings, that call installs it instead of failing hard. The later Rust commands disable auto-install correctly. The source and proof-log hashes I checked match the checkout.\n- **Severity**: P2\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `Makefile:1276`\n- **R-IDs**: [R7]\n- **Problem**: With either auto-install setting enabled and a pinned tool missing, the new `model-quick` recipe\u2019s initial `mise exec` installs the tool instead of failing hard. Neither flag is disabled before this invocation. The flags set later by bootstrap and Rust commands cannot affect their parent process. This leaves task .14\u2019s explicit no-auto-install requirement incomplete.\n- **Suggestion**: Export `MISE_AUTO_INSTALL=false` and `MISE_EXEC_AUTO_INSTALL=false` for `model-quick` before its first mise invocation.\n\nShell syntax checks and source/log hash comparisons passed. Runtime verification relies on committed evidence because the sandbox is read-only.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n| --- | --- | --- |\n| R7 | partial | Task .14\u2019s probes and obsolete controls are removed; bootstrap refusal and unchanged guest bytes have focused evidence. The new quick entry point still permits automatic installation. |\n\nUnaddressed R-IDs: [R7]\n\nClassification counts: 1 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":1,\"pre_existing\":0},\"unaddressed\":[\"R7\"]}\n```\n\n<verdict>NEEDS_WORK</verdict> - Complete R7\u2019s required fail-hard behavior at the quick entry point.",
+  "review_reservation_id": "9955fcbf7b854b7985d5193c48a0554e",
+  "rid": "9955fcbf7b854b7985d5193c48a0554e",
+  "session_id": "01a175de-b5b7-7ec2-903f-ab2d085eb166",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-26T01:50:01.124242Z",
+  "type": "impl_review",
+  "unaddressed": [
+    "R7"
+  ],
+  "verdict": "NEEDS_WORK"
+}

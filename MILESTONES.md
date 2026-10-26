@@ -53,7 +53,6 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-254.3 | 🔄 in progress | cargo-nextest across binaries with a JVM test group; identical logical test inventory (R4) |
 | fn-254.5 | ⬜ todo | Apalache out of routine gates, overlapping stages, trybuild trim, dead `model-check-changed` removed (R5) |
 | fn-254.6 | 🔄 in progress | `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
