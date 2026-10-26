@@ -1,7 +1,10 @@
 # Extract Umpire into temporalio/umpire
 
-Status: draft execution plan. Destination: <https://github.com/temporalio/umpire>.
-This document authorizes no migration, remote creation, push, release or source deletion.
+Status: local execution preparation under [fn-257](.flow/specs/fn-257-extract-the-standalone-umpire.md).
+Destination: <https://github.com/temporalio/umpire>. The owner requested migration;
+remote creation, push, release and source removal remain separate authorization boundaries.
+The current validation hold permits source preparation, with execution proofs still pending.
+The 2026-10-26 destination probe returned HTTP 401; its contents and permissions remain unknown.
 
 ## Outcome and decisions
 
@@ -40,13 +43,13 @@ are relative to the new Umpire repository.
 | `model/umpire/dev/` | `dev/`, preserving testing tools and complete shared fixture groups |
 | `model/umpire/reference/kettle/` | `reference/kettle/`, preserving Rust reference/guest and its separate Go module |
 | `model/umpire/hosts/go/` | `hosts/go/`, including its separate Go module and generated protobuf code |
-| `model/Cargo.toml`, `model/Cargo.lock` | Root workspace files containing only generic members/dependencies; remove their `umpire/` prefix and retain a separate Temporal consumer workspace |
-| `model/{rust-toolchain,rustfmt,clippy,deny}.toml`, `model/.cargo/` | Root tooling configuration, preserving existing policies |
-| `model/scripts/` | Generic generation/capability/timing scripts become `scripts/`; Temporal generation and its boundary policy remain in Temporal |
-| `model/README.md`, `model/DESIGN.md` | Root documentation with working local links and preserved measurement provenance |
-| Rust targets in root `Makefile` | Small standalone root `Makefile`, including generator provisioning |
-| Rust, Go and protoc pins in root `mise.toml` | Standalone `mise.toml`; omit Scala/JVM tools |
-| `model/.gitignore`, necessary root ignore rules, root `LICENSE` | Standalone ignores and license/attribution; retain existing copyright notices |
+| `model/umpire/Cargo.toml`, `model/umpire/Cargo.lock` | Existing independent root workspace and lockfile; retain current member/dependency paths |
+| `model/umpire/{rust-toolchain,rustfmt,clippy,deny}.toml`, `model/umpire/.cargo/`, `model/umpire/.config/` | Framework-owned tooling and nextest policies at the extracted root |
+| `model/umpire/scripts/`, `model/umpire/dev/xtask/`, `model/umpire/dev/guest-driver/` | Existing local bootstraps, native gate, generator provisioning and guest driver; preserve their ownership |
+| `model/umpire/README.md`; selected decisions from `model/{DESIGN,GUEST_BUILDS}.md` | Keep the focused framework README and adapt selected design/guest documentation with working links and measurement provenance |
+| Existing native `cargo xtask` commands | Small root `Makefile` aliases for `check`, `fmt`, `update`, `time` and `validate`; delegate the existing gate |
+| `model/umpire/mise.toml`, `model/umpire/mise.lock` | Existing framework pins, including Java for TLC and nextest; omit Scala tooling |
+| `model/umpire/.gitignore`, necessary root ignore rules, root `LICENSE` | Standalone ignores and license/attribution; retain existing copyright notices |
 | Root `AGENTS.md` | Write Umpire-specific instructions for the extracted layout and gates; do not copy Temporal server instructions wholesale |
 
 Leave `model/temporal/` (Models/goldens, API generation, realization, guest, tests and
@@ -55,6 +58,13 @@ server, and unrelated `.flow/` history in Temporal. Preserve the decisions neede
 understand the exported interface in Umpire documentation without copying the entire
 monorepo tracker. Repair comparison-document links to Scala with source-revision
 references; the new repository must not need a sibling Scala archive to build.
+
+The current `model/Cargo.*`, `model/scripts/`, parent tool configuration and combined
+README belong to the Temporal consumer. Do not replace the framework's independent
+files with these older extraction inputs. The fixed source checkpoint is
+`c88fdc5506`; its 1,177 framework files and supplemental license are inventoried in
+[task 1's manifest](.flow/artifacts/fn-257-extract-the-standalone-umpire/task1/source-manifest.json).
+Later source candidates require explicit new inventories, not changes to this checkpoint.
 
 ## Local development contract
 
@@ -101,6 +111,9 @@ Go consumers use the parent `go.work` with `use` entries for `./temporal` and
 module identity becomes `github.com/temporalio/umpire/hosts/go`; align its imports,
 the schema's `go_package`, and regenerated Go descriptors together. That identity
 does not require fetching the module when the workspace resolves it locally. Keep
+Kettle's separate module coherent as `github.com/temporalio/umpire/reference/kettle`,
+including its schema options and generated imports. Include both framework modules
+and Temporal's host extension in the parent workspace. Keep
 the parent workspace outside either repository; scripts may create it only with
 the owner's consent when one already exists, preserving unrelated entries. Verify
 the selected workspace with `go env GOWORK`. See [Go multi-module workspaces](https://go.dev/doc/tutorial/workspaces).
@@ -117,19 +130,27 @@ produce an actionable setup error, not a silent fallback to a remote or cached c
 ### 1. Freeze a source checkpoint and inspect the destination
 
 Read the current `AGENTS.md`, `model/README.md`, `model/DESIGN.md`, workspace manifests,
-Rust Makefile section and scripts. Inspect Flow's current fn-210 state; finish its
-remaining prototype work before extraction unless the owner explicitly transfers
-that work to the new repository. Record the exact integrated source commit, dirty
+Rust Makefile section and scripts. fn-210 and the fn-247 native-tooling migration
+are closed; preserve their evidence rather than reopening them. Record the exact integrated source commit, dirty
 paths, host location, tool versions and baseline gate results.
+
+Fresh baseline measurements are waived by the owner's fn-254 amendment; retain
+historical source/mode/workload provenance and report unknowns. Current-input final
+checks remain required when validation resumes. Preserve every unintegrated candidate
+with provisional source ownership, then assign actual destination refs, tracker
+records, evidence and cross-repository prerequisites before source removal.
 
 Inspect the destination's branches, contents, license and permissions read-only.
 During planning, GitHub returned 404 and `gh` authentication failed; neither proves
 that the destination is absent or empty. Obtain working access before importing.
-If it contains commits, propose a non-destructive integration against its real
+Read-only local inventory and disposable export may proceed while destination access
+is unavailable. Its actual state must be established before any destination import
+or publication. If it contains commits, prepare a non-destructive integration against its real
 default branch; preserve those commits and stop for an owner decision on conflicts.
 
-Done when: the source revision and tracked-file inventory are fixed, unrelated local
-changes are preserved, and the destination's actual state is known.
+Local checkpoint done when: the source revision and tracked-file inventory are fixed
+and unrelated local changes are preserved. The destination gate remains open until
+its actual state is known; a failed probe does not satisfy it.
 
 ### 2. Extract history in a disposable clone
 
@@ -147,6 +168,16 @@ the revisions at which those paths became Rust support files and filter accordin
 A broad historical `model/` export is incorrect. Produce a complete extracted source
 checkpoint first, then make portable-layout adaptations as separate changes.
 
+Rust first appears under `model2/framework/` at `038ac1c6ce`; `a5040fa23b`
+renames it to `model2/umpire/`. Admit the `model/` Rust paths only on descendants
+of either `6264f11760` or `0fc76f7805`: these sibling archive moves are joined by
+`e87ee28f2d`. Before them, `model/umpire/` contains Scala. Include historical
+`model2/hosts/go/`, intermediate `model/hosts/go/` and the parent native-tool path
+before their respective moves. Preserve mixed historical support under a separate
+provenance namespace so it cannot overwrite current framework-owned root files.
+Account for mapped deletions and additions in move/merge commits; reject collisions
+and verify the full projected tree, not just renamed change records.
+
 Done when: the extracted tracked bytes, executable modes and symlink targets match
 the approved source map; representative DSL, checker, macro, fixture and host files
 retain pre-move history; unrelated Temporal/Scala content is absent from the export.
@@ -161,15 +192,15 @@ the stock guest's reference-fixture inclusion, and the schema paths used by
 and shared backend supervision and typed value admission in `backends/tla`; the
 Apalache adapter remains independent of the TLC adapter.
 
-Extract only the Rust gate recipes, exposing `make check`, `make fmt`, `make update`
-and `make time` at the new root. Carry every current check, not just Cargo tests:
+Expose `make check`, `make fmt`, `make update`, `make time` and `make validate`
+by delegating the framework's existing native commands. Carry every current check, not just Cargo tests:
 capability and timing negative controls, protobuf freshness, formatting,
 warnings-denied Clippy/rustdoc, native fixtures/UI/property tests, WASI core builds,
 wasm Clippy, the real guest-profile artifacts, and CGO-disabled Go parity. Adapt the timing
 helper's parent-Makefile call, checker source path and its own negative controls.
 
-Provision the pinned Go protobuf generator inside the new repository, replacing
-`proto-go.sh`'s dependency on Temporal's `.bin/` and Makefile. Preserve protoc and
+Retain framework-local generator provisioning in `scripts/proto-tools.sh`;
+its `.bin/` is already independent of Temporal's Makefile. Preserve protoc and
 generator version checks. Keep generated Rust output in Cargo's build output;
 regenerate the checked-in Go code rather than editing generated files manually.
 Write focused standalone documentation and a CI workflow that runs the same gate.
@@ -231,7 +262,8 @@ separate completion claims from preparing this plan.
 
 ## Verification evidence
 
-- Before extraction: the actual source `make model-check` and warm `make model-time`.
+- Before extraction: retain the historical source/mode/workload baseline evidence;
+  fresh baseline runs are waived. Source/tree/fixture inventories remain required.
 - After extraction: standalone `make check` and `make time`, plus
   `mise exec -- cargo test --workspace --release --locked`.
 - Run the standalone gate from a fresh temporary clone with a fresh target directory;
@@ -242,8 +274,11 @@ separate completion claims from preparing this plan.
   expected output. No semantic golden refresh is part of extraction.
 - Record `cargo metadata` manifest paths, `go env GOWORK` and `go list -m -json`
   resolution, then the two local-change red/green consumer proofs.
-- Preserve the current warm soft targets: 10 seconds for the inner loop and 30 seconds
-  for the full gate. Record minor noise and investigate material overruns.
+- Preserve fn-254's current execution targets: warm activity `model-quick` under
+  60 seconds, combined `model-check` under 3 minutes and required-TLC
+  `model-validate` under 10 minutes. Retain historical 10/60-second timer warnings
+  as historical context; do not revive the obsolete 30-second full-gate target.
+  Record final standalone costs separately and report misses honestly.
 - Compare archived tracked-tree identity and cache inventory before/after Temporal
   cutover. Report baseline failures separately; never relax gates to label migration
   green. Capture exact commands, revisions, results and remaining limitations.

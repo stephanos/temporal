@@ -1,0 +1,73 @@
+{
+  "branch_name": "fn-257-extract-the-standalone-umpire",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-26T15:18:23.697164Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-257-extract-the-standalone-umpire",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-26T15:22:11.868632Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "368ec494e11f764874b6dbf53a267005f7fd569f5a6c4104e7f52fb76938c179",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 165468,
+      "output_sha256": "a5a32a3156da94e106c6c2494368b270d4928ae610d0ca7eb7c4712f8c7e96c8",
+      "reservation_id": "42ee19a7235049599e14b935bde67dc6",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-26T15:22:11.861163Z",
+      "tool_calls": 15,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-257-extract-the-standalone-umpire.md",
+  "status": "open",
+  "title": "Extract the standalone Umpire repository and retain the local Temporal loop",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-26T15:23:45.703994Z"
+}

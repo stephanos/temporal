@@ -17,7 +17,12 @@ Umpire uses the Rust workspace described in [model/README.md](model/README.md).
 Its guest runs as stock WASM in a pure Go host.
 The Scala tree under `model/archived/` is frozen reference material.
 
-Current order: **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
+Repository extraction now has an explicit execution record, **fn-257**. Prepare its
+local export and sibling consumers first under the owner's migration goal. The
+validation hold and unknown destination state still block final proof/publication;
+source preparation does not wait for every existing spec to close.
+
+Backlog order remains **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
 ranks a fast feedback loop among the most important properties. The standalone workspace/driver and independent gate checkpoint are integrated, and the complete isolated proof passed.
 Immediate validation path: finish .6's correct consumer/cache checkpoint, then .5's fixture/compiler work, then priority-0 .17's uniform nextest and single bounded stage DAG. Downloads .16 and shell ports .15 follow .17; budgets .12 and final proof .8 consume it. fn-254 gets first admission to shared build/JVM/review capacity. Already running fn-246.9/.13 work may reach safe checkpoints, and disjoint source work may continue without delaying fn-254. Finish fn-254.7 after committed fn-246 closure.
@@ -53,6 +58,28 @@ Current formats migrate together; goldens may be re-accepted after review. Go si
 reviewed validation evidence and a committed validation-cost assessment.
 
 ## Open specs
+
+### fn-257: Extract the standalone Umpire repository
+
+The independent framework workspace is ready to export as source; it still lives
+inside Temporal. Preserve its Rust history, then give Temporal an uncommitted local
+Cargo/Go development loop against a sibling checkout. Current source checkpoint
+`c88fdc5506` has 1,177 framework files; every retained candidate stays recoverable.
+GitHub destination inspection returned HTTP 401, which establishes neither contents
+nor permission. Existing standalone proof covers an older source and does not close
+the required current-pair proof. Plan review passed; build/test execution remains deferred.
+
+[Spec](.flow/specs/fn-257-extract-the-standalone-umpire.md),
+[migration map](MIGRATE.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-257.1 | 🔄 in progress | Freeze exact source/history inventory and candidate transfer ledger; reconcile the stale extraction map (R1) |
+| fn-257.2 | ⬜ todo | After .1: isolated history export, exact bytes/modes/symlinks and commit-map proof (R2) |
+| fn-257.3 | ⬜ todo | After .2: portable root, canonical Go identities/descriptors, focused docs/CI and command aliases (R3) |
+| fn-257.4 | ⬜ todo | After .1/.3: sibling Temporal Cargo/Go consumers and forwarding commands; disjoint provisional preparation may begin earlier (R4) |
+| fn-257.5 | ⛔ blocked | After .3/.4 and the validation hold ends: exact isolated/paired proof, guest/generator checks and uncommitted Rust/Go red-green tests (R3–R5) |
+| fn-257.6 | ⛔ blocked | After .5, working destination access and final authorization: preserve destination history, transfer all pending candidates, cut over one source owner (R1, R6) |
 
 ### fn-254: Fast validation gates and a real inner loop
 
