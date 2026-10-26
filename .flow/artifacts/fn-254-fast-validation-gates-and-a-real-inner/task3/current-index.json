@@ -1,0 +1,9 @@
+{
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.3",
+  "revision": 1,
+  "index": "revision1/index.json",
+  "index_sha256": "86653806171718e825a275b566e7968d9ee60cfe5ea51946befea52dd9ce67d4",
+  "source_commit": "71685512286d343ad1a59e3349e23688ea82663f",
+  "prior_index": "index.json",
+  "status": "Three admitted prefix-only golden corrections verified; Cargo and nextest compare green; original focused receipts retained by exact source closure; parent review and task11 joint full proof pending"
+}

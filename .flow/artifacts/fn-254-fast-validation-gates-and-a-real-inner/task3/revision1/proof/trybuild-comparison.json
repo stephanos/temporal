@@ -1,0 +1,48 @@
+{
+  "commands": [
+    {
+      "runner": "cargo",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "umpire-dsl-macros",
+        "--test",
+        "fixtures",
+        "--locked",
+        "refusals",
+        "--",
+        "--exact"
+      ],
+      "exit": 0,
+      "seconds": 1.0977465420000954,
+      "update_disabled": true
+    },
+    {
+      "runner": "nextest",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "nextest",
+        "run",
+        "-p",
+        "umpire-dsl-macros",
+        "--test",
+        "fixtures",
+        "--locked",
+        "-E",
+        "test(=refusals)"
+      ],
+      "exit": 0,
+      "seconds": 0.9772531679991516,
+      "update_disabled": true
+    }
+  ],
+  "baseline_red_evidence": "../proof/producer-trybuild-comparison.json (same Cargo101/nextest100 failures before exact prefix correction)",
+  "status": "Both original Cargo and nextest compare-mode green after only admitted workspace-prefix corrections."
+}
