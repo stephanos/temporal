@@ -36,15 +36,15 @@ All source coordinates are provisional planning anchors. Reanchor final fn-237.3
 
 ### Verification
 
-From model/: `mise exec -- cargo test -p umpire-temporal-tests --test fixtures`; require backend execution with `UMPIRE_BACKENDS=require` through the current fixture harness. Run focused native/TLC selected-World controls, fmt and strict clippy. Record actual backend tool/version/World/bound/counts; no TLC refinement claim.
+From model/: `UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-temporal-tests --test fixtures` requires backend execution through the current fixture harness. Run `mise exec -- cargo test -p umpire-temporal-tests --test snapshot_ownership` for the new shared protocol snapshots. Run focused native/TLC selected-World controls, fmt and strict clippy. Record actual backend tool/version/World/bound/counts; no TLC refinement claim.
 
 ## Acceptance
 - [ ] Protocol states/actions/outcomes and invariants have independent primary contract/protocol provenance for every selected World and cover final prerequisite dimensions without copying feature enablement.
 - [ ] Full protocol state retains independently authored latent budget/timer laws, separate public view and exact every-field accounting. Countdown/reset/spanning/priority/expiry-fact/terminal-clear and erased-budget mutants fail even when public snapshot classes agree; snapshots never manufacture a full protocol state.
-- [ ] Native graphs/goldens and required TLC own-invariant/state-set agreement execute for comparable finite scopes; wrong World, incomplete, unsupported and mismatching answers fail.
+- [ ] Native graphs/goldens and required TLC own-invariant/state-set agreement execute for comparable finite scopes; wrong World, incomplete, unsupported and mismatching answers fail. The snapshot-ownership gate includes the new shared protocol snapshots and passes as a separate integration-test target.
 - [ ] Terminal outcome, retained retry history, cancellation/heartbeat/acknowledgement and rejected RPC outcomes remain distinct; no projected feature edge defines protocol behavior.
 - [ ] Shared parameter contract and protocol-local adapter account for every independently declared World field with exact name/kind/domain/type provenance. Omission, misnaming, wrong bounds/kind, clamping/default substitution and None/present-zero mutants fail; no imported-World front-end admission is added.
-- [ ] Original lifecycle evidence still supports the independent semantic refinement proof and the task .15 corrected feature baseline gains no further Model-policy changes; representation/goldens may regenerate. Focused backend/fixture evidence includes actual counts, bounds and tool identity; no online or TLC-refinement proof is claimed here.
+- [ ] Original lifecycle evidence still supports the independent semantic refinement proof. The task .15 corrected feature baseline gains only the approved pending-cancellation worker-failure/local-timeout Failed/TimedOut correction, with renewed independent native/TLC evidence and primary contract provenance. Scheduled cancellation and explicit worker acknowledgement remain Canceled; task .15 retry behavior and every unrelated Model policy remain unchanged. Representation/goldens may regenerate. Focused backend/fixture evidence includes actual counts, bounds and tool identity; no online or TLC-refinement proof is claimed here.
 
 
 ## Done summary

@@ -4,7 +4,8 @@
   "claimed_at": null,
   "created_at": "2026-10-25T17:41:31.535761Z",
   "depends_on": [
-    "fn-253-reusable-deadline-countdowns-for-models.1"
+    "fn-253-reusable-deadline-countdowns-for-models.1",
+    "fn-253-reusable-deadline-countdowns-for-models.9"
   ],
   "id": "fn-253-reusable-deadline-countdowns-for-models.10",
   "priority": null,
@@ -12,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-253-reusable-deadline-countdowns-for-models.10.md",
   "status": "todo",
   "title": "Activity: always cooperative cancellation, remove asynchronous_cancel",
-  "updated_at": "2026-10-25T17:41:31.535761Z"
+  "updated_at": "2026-10-26T05:38:20.942121Z"
 }

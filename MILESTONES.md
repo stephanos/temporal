@@ -24,7 +24,7 @@ Immediate validation path: finish .6's correct consumer/cache checkpoint, then .
 The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246; fn-254.13's workspace move is integrated. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; activity changes
 retain their listed dependencies and follow the current priority/source-ownership order.
 fn-255.1, .3 and .4 (generator spike, fuzz targets, cargo-mutants) touch no gate files and may run as lanes before fn-254 closes.
-fn-256 (Scala-era tooling removal) is independent and may run as a lane; its root `Makefile` edits land serially with fn-254's.
+fn-256 (Scala-era tooling removal) may run as a lane when its blockers clear; shared Makefile, CI, pin and documentation edits land serially with fn-254's.
 Consolidation and build prerequisites for fn-246 are satisfied. Priority does not create dependencies;
 clear cross-spec blockers only after prerequisite closures are committed in `umpire`.
 Parallel work requires disjoint source and code-generation ownership.
@@ -56,7 +56,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.6 | 🔄 in progress | `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
-| fn-254.12 | ⬜ todo | After framework optimizations and controls: committed stage budgets; hard work counts, bounded timing retry, unbudgeted stages fail (R8) |
+| fn-254.12 | ⬜ todo | After .15 and framework optimizations: committed native-stage budgets; hard work counts, bounded timing retry, unbudgeted stages fail (R8) |
 | fn-254.15 | ⬜ todo | After .17/.16: port remaining model shell scripts to xtask/guest-driver/Makefile; only the xtask bootstrap stays shell (R7) |
 | fn-254.16 | ⬜ todo | After .17: mise provisions pinned TLC and opt-in Apalache behind existing entry points; keep runtime JAR hash/path admission (R7) |
 | fn-254.17 | ⬜ todo | Priority 0, after .5/.6: uniform nextest including quick, one mise/native stage DAG, bounded resources and failure cleanup (R4, R5, R7) |
@@ -97,7 +97,7 @@ Not adopted: Kani, bolero, Loom, Shuttle (a candidate once checking goes paralle
 | fn-255.1 | ⬜ todo | Spike: generate admitted Models at tree and/or source level, measured, seeded bug caught (R1) |
 | fn-255.2 | ⬜ todo | After .1: differential harness with shrinking and fixture pinning (R1) |
 | fn-255.3 | ⬜ todo | Pinned nightly; cargo-fuzz targets for guest dispatch and TLC decoders, seeded corpora (R2) |
-| fn-255.4 | ⬜ todo | cargo-mutants per core crate; triage every missed mutant (R3) |
+| fn-255.4 | ⬜ todo | Bounded cargo-mutants smoke/control runs; scheduled campaign reports and triage, serialized source edits (R3) |
 | fn-255.5 | ⬜ todo | After .3: Miri on ABI buffer logic; syscall exclusion recorded (R4) |
 | fn-255.6 | ⬜ todo | After .2, .3: coverage per crate; aim generator and corpora (R5) |
 | fn-255.7 | ⬜ todo | After .2–.6 and committed fn-254.6/.10/.12: tier wiring within budget, re-measured gates, docs (R6, R7) |
@@ -173,23 +173,23 @@ A generic countdown (`umpire_dsl::countdown`: pure arm/tick/expired functions an
 lowered from source like `closable`) plus Temporal deadline semantics in `model/temporal`, so the
 activity and later workflow, Nexus and timer Models stop hand-writing each countdown. A spike on the
 activity settles the surface and the lifter gaps first. The spike and `umpire-dsl` work (.2–.5) are
-independent of fn-246. The activity clarity task is pending; later activity changes retain their listed dependencies.
+independent of fn-246. Activity edits consume committed fn-246.15/.13 corrections and run serially as .1 → .7 → .9 → .10; .8 validates their final combined result.
 Whether fn-246.13's protocol Model may share the Temporal layer is an open owner question.
 
 [Spec](.flow/specs/fn-253-reusable-deadline-countdowns-for-models.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-253.1 | ⬜ todo | Option equality in `deadline` and `tick_priority`, named expiry effects and progress helpers, deduplicated Tick postconditions, split `state_bounds` (R4) |
+| fn-253.1 | ⬜ todo | After committed fn-246.13: Option equality, named expiry effects/progress helpers, deduplicated Tick postconditions, split `state_bounds` (R4) |
 | fn-253.2 | ⬜ todo | Spike: activity against the proposed `countdown` surface; verdict in `model/design/deadline-countdowns.md` (R1) |
 | fn-253.3 | ⬜ todo | After .2: `umpire_dsl::countdown` functions and laws in plain Rust (R2) |
 | fn-253.4 | ⬜ todo | After .3: front end lowers countdown calls in handlers, effects and claims (R2) |
 | fn-253.5 | ⬜ todo | After .4: shared `countdowns` fixture with refuting mutants (R2) |
 | fn-253.6 | ⬜ todo | After .2, .5: Temporal deadline semantics as a named pattern (R3) |
 | fn-253.7 | ⬜ todo | After .1, .6: activity uses countdowns and the deadline pattern, behaviour pinned (R4) |
-| fn-253.8 | ⬜ todo | After .7: docs and full gates (R5) |
-| fn-253.9 | ⬜ todo | After .1, coordinated with fn-246.13: `maximum_attempts` as a `Finite` wrapper (R4) |
-| fn-253.10 | ⬜ todo | After .1 and an owner decision on the fn-237 R3 compatibility control: remove `asynchronous_cancel`, always cooperative; coordinated with fn-237.4's live binding (R6) |
+| fn-253.8 | ⬜ todo | After .7, .9 and .10: final combined docs, parameter/refinement checks and full gates (R5) |
+| fn-253.9 | ⬜ todo | After .7: assess `maximum_attempts` as a `Finite` wrapper; preserve native forged-value controls and record admission refusal if unsupported (R4) |
+| fn-253.10 | ⬜ todo | After .9 and an owner decision on the fn-237 R3 compatibility control: remove `asynchronous_cancel`, always cooperative; coordinated with fn-237.4's live binding (R6) |
 
 ### fn-240: Symbolic back end (deferred)
 
@@ -201,22 +201,22 @@ through `checked_step` with native agreement; TLC owns liveness. The
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-240.1 | ⏸️ deferred | `umpire-symbolic` crate: BTOR2 emitter over the embedded admitted tree for Kettle-shaped Models, checked arithmetic latch, one-step history, emission goldens (R1) |
-| fn-240.2 | ⏸️ deferred | After .1: pinned rIC3 built into `model/build/ric3`; IC3 proofs, BMC to native depth plus one, lifecycle, verdict kinds (R2) |
-| fn-240.3 | ⏸️ deferred | After .1, .2: witness decoding by declaration index, `checked_step` replay, claim re-judged, replay types shared with `umpire-apalache`, mutation controls (R3, R4) |
+| fn-240.1 | ⏸️ deferred | Rust width/signedness metadata, then Kettle-shaped BTOR2 emission, checked arithmetic, one-step history and goldens (R1) |
+| fn-240.2 | ⏸️ deferred | After .1: pinned rIC3 under the framework build root; standalone admission, IC3 proofs, bounded BMC and lifecycle (R2) |
+| fn-240.3 | ⏸️ deferred | After .1, .2: bounded whole-trace completion and fn-250.3 shared exact-edge replay, claim confirmation and mutation controls (R3, R4) |
 | fn-240.4 | ⏸️ deferred | After .3: `expected/symbolic.txt` consumer, require-mode gating, ownership, Kettle goldens, DESIGN.md and MILESTONES (R4, R5, R8) |
 | fn-240.5 | ⏸️ deferred | After .4: symbolic Worlds over declared finite domains, computed starts, decoded World replay, `parameterized_world` golden (R6) |
-| fn-240.6 | ⏸️ deferred | After .4: action inputs, non-unit outcomes, bounded sequences, Rust widths on `Type::Int`; `action_inputs` and `shared_returns` goldens (R7) |
+| fn-240.6 | ⏸️ deferred | After .4: finite action inputs, outcomes, sequences and fn-245 sets/maps/queue operations with symbolic agreement goldens (R7) |
 
 ### fn-211: Apalache back end (deferred)
 
 Fixture integration and symbolic Worlds remain deferred until set-valued state is admitted.
 Counterexamples require typed decoding and native replay; TLC owns liveness. The unfinished
-consumer is preserved on `work/fn2114-deferred`; resumption restores Apalache's required gate.
+consumer is preserved on `work/fn2114-deferred`; Apalache retains its separate `UMPIRE_APALACHE=require` opt-in.
 
 [Spec](.flow/specs/fn-211-apalache-backend-for-umpire-in-rust.md).
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-211.4 | ⏸️ deferred | Apalache consumer; Kettle's `apalache.txt` agreement golden (R4, R5) |
-| fn-211.5 | ⏸️ deferred | symbolic World constants via `ConstInit`, one run per property across the declared World domain, replayed under the decoded World (R6) |
+| fn-211.5 | ⏸️ deferred | After .4 and the deferred R6 ownership decision: symbolic World constants, checked construction/catalogs and decoded-World replay (R6) |

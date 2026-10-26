@@ -24,13 +24,10 @@ Add the `countdown` module to `umpire-dsl` with the surface .2's verdict fixed. 
 - `model/umpire/author/dsl/src/closable.rs` — style and doc pattern
 - `model/umpire/author/dsl/src/lib.rs:8-15` — module exports
 
-### Acceptance
+## Acceptance
 - [ ] `umpire_dsl::countdown` exports exactly the verdict's functions and laws, documented.
 - [ ] Unit tests pass for absent/armed/zero/maximum cases; wasm32-wasip1 build of `umpire-dsl` still passes.
 - [ ] No Temporal names in the module (gate check for model/umpire).
-
-## Acceptance
-- [ ] TBD
 
 ## Done summary
 TBD

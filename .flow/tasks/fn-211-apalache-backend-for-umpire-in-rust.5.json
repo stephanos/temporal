@@ -4,13 +4,14 @@
   "claimed_at": null,
   "created_at": "2026-10-21T21:51:07.929801Z",
   "depends_on": [
-    "fn-211-apalache-backend-for-umpire-in-rust.3"
+    "fn-211-apalache-backend-for-umpire-in-rust.3",
+    "fn-211-apalache-backend-for-umpire-in-rust.4"
   ],
   "id": "fn-211-apalache-backend-for-umpire-in-rust.5",
   "priority": null,
   "spec": "fn-211-apalache-backend-for-umpire-in-rust",
   "spec_path": ".flow/tasks/fn-211-apalache-backend-for-umpire-in-rust.5.md",
   "status": "todo",
-  "title": "After .3: symbolic World constants through ConstInit with native replay under the decoded World",
-  "updated_at": "2026-10-24T22:13:00.362536Z"
+  "title": "After .4: symbolic World constants through ConstInit with native replay under the decoded World",
+  "updated_at": "2026-10-26T05:37:46.288735Z"
 }

@@ -13,13 +13,16 @@ Admit `countdown::` calls where Models need them: assignments and conditions in 
 **Touches:** [model/umpire/front/src/library.rs, model/umpire/front/src/body/**, model/umpire/front/src/shape.rs, model/umpire/front/tests/**]
 
 ### Approach
+- Consume .2's chosen representation and refusal-owner list before fixing the admission changes. The files above are investigation anchors. Source-local wrappers and imported library-owned const-generic wrappers require different type admission; `body/optional.rs` currently requires nongeneric source-local `Finite` types. Reanchor the affected front-end owners from the verdict rather than assuming expression lowering alone admits the chosen types.
 - Register `countdown.rs` beside `CLOSABLE` in `library.rs`; generalize the library lookup instead of copying it.
-- Extend `body/claim.rs:165`'s claim-statement path to expression position: bind arguments, inline the library body, keep the result typed as the Model's optional countdown.
+- Route handler, effect and claim expression calls through shared library-call dispatch, argument binding and result typing. Keep project-library registration generic; no Temporal-specific dispatch or duplicated countdown lowering paths.
+- Extend `body/claim.rs:165`'s claim-statement path to expression position: bind arguments, inline the library body, and preserve the configured/remaining nominal types and optional descriptors chosen in .2.
 - Unsupported forms refuse at their span: aliased or glob imports, qualified macro paths, nested Options and non-countdown arguments.
 - Add refusal golden rows for each new refusal.
 
 ### Investigation targets
 **Required:**
+- `model/design/deadline-countdowns.md` — chosen representation and admission owners
 - `model/umpire/front/src/library.rs` — library source registration
 - `model/umpire/front/src/body/claim.rs` — current library-call lowering
 - `model/umpire/front/src/body/optional.rs` — optional typing
@@ -28,13 +31,10 @@ Admit `countdown::` calls where Models need them: assignments and conditions in 
 **Optional:**
 - `model/README.md` (fn-227.11 paragraph) — the closure-law lowering contract
 
-### Acceptance
+## Acceptance
 - [ ] A Model calling every `countdown` function and law compiles, is admitted, and the interpreter and TLC agree with native on it (proved in .5).
 - [ ] Each unsupported form refuses at its span with a refusal golden row.
 - [ ] No backend recognizes `countdown` by name.
-
-## Acceptance
-- [ ] TBD
 
 ## Done summary
 TBD

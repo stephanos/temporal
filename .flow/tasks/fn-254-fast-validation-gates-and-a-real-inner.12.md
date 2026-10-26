@@ -8,8 +8,10 @@ satisfies: [R8]
 Make the fast-gate goal enforceable for every current and future stage (spec R8): a committed budget table, hard work-count checks, and wall-time budgets with a tolerance. fn-255's stages (and anything added later) must declare entries here.
 
 **Size:** M
-**Files:** budget table (framework side in `model/umpire`, Temporal side beside the root gate; format per fn-254.9), the framework entry point's timing (successor of `model/scripts/time-gate.sh`), `test-time-gate.sh` controls.
-**Touches:** [model/umpire/**, model/scripts/time-gate.sh, model/scripts/test-time-gate.sh, Makefile]
+Run after .15's native timer/control port, which also incorporates .16's provider changes. Enforce budgets against those final stage interfaces.
+
+**Files:** `model/umpire/dev/gate/budgets.toml` and `model/dev/gate/budgets.toml` (the two locations selected by .9), the framework/Temporal native gate timing and receipts from .17/.15, and their Rust controls.
+**Touches:** [model/umpire/dev/gate/budgets.toml, model/dev/gate/budgets.toml, model/umpire/dev/xtask/**, model/dev/xtask/**, model/umpire/README.md, model/README.md, Makefile]
 
 ### Approach
 - Use .1's historical timing references as initial estimates, then calibrate against the optimized stages and actual counts produced by .2/.3/.4/.5/.6/.11. Historical host/workload differences remain explicit; no fresh pre-optimization timing campaign is required. Count budgets use actual discovered/executed inventories and launch counts, not historical estimates.
@@ -21,7 +23,8 @@ Make the fast-gate goal enforceable for every current and future stage (spec R8)
 
 ### Investigation targets
 **Required:**
-- `model/scripts/time-gate.sh`, `test-time-gate.sh`
+- `model/umpire/dev/xtask/src/gate.rs`, `model/umpire/dev/xtask/src/gate/**`, `model/dev/xtask/src/gate.rs` and their Rust timing/receipt controls after .15
+- `model/umpire/dev/gate/budgets.toml` and `model/dev/gate/budgets.toml`
 - `model/design/gate-speed.md` (.1 baseline)
 - `model/design/framework-gate.md` (.9 layout)
 
@@ -31,12 +34,12 @@ Keep stage registration/count/timing/retry controls now. Derive actual count bou
 
 ## Acceptance
 - [ ] A committed budget table covers every current stage, framework and Temporal.
-- [ ] Work-count overruns and unbudgeted stages fail; wall-time overruns fail only on repeat; all four controls pass.
+- [ ] Work-count overruns and unbudgeted stages fail; wall-time overruns fail only on repeat; all listed registration/count/timing/retry controls pass.
 - [ ] README documents how to add a stage and how to change a budget.
 
 ## Final producer graph
 
-Consume .17's authoritative stage DAG, uniform runner identities and invocation-local timing/count receipts after .5/.6/.11. Budget internal/child costs without double-charging inclusive parent elapsed time. Provider/port changes must preserve or explicitly update these registrations; no second scheduler or budget mechanism belongs here.
+Consume .17's authoritative stage DAG, uniform runner identities and invocation-local timing/count receipts after .5/.6/.11 and the .16/.15 provider and native timer/control ports. Budget internal/child costs without double-charging inclusive parent elapsed time. Provider/port changes must preserve or explicitly update these registrations; no second scheduler or budget mechanism belongs here.
 
 ## Done summary
 TBD

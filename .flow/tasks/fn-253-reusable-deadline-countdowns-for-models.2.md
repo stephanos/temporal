@@ -13,15 +13,15 @@ Rewrite the activity's deadline code against the proposed `countdown` surface in
 **Touches:** [model/design/deadline-countdowns.md, .flow/tmp/fn253-spike/**]
 
 ### Approach
-- Worktree `.worktrees/fn2531-spike` on `work/fn2531-spike`. Stub `umpire_dsl::countdown` with plain Rust bodies so the native Model compiles; the refusals come from the front end.
+- Worktree `.worktrees/fn2532-spike` on `work/fn2532-spike`. Stub `umpire_dsl::countdown` with plain Rust bodies so the native Model compiles; the refusals come from the front end.
 - Rewrite `deadline`, `decrement`, the arming in `worker`/`initial`, `state_bounds` (split per spec R4), `countdowns_decrement` and `tick_priority` (`model/temporal/feature/activity/model.rs`).
 - Test whether a local helper alone suffices for the activity: an unmarked `fn arm(ticks: Option<Ticks>) -> Option<Remaining>` (and a `tick` counterpart) called from `initial`, `Poll`, retry, `Heartbeat` and `decrement`. The `armed(&self) -> bool` helper is already admitted (2026-10-25). If value-returning local helpers are admitted, record that the library is only needed for sharing across Models, and size .4 accordingly.
 - Shared `Ticks`/`Remaining` (owner question 2026-10-25): try library-owned types with the range as a const parameter (e.g. `Ticks<3>`/`Remaining<3>`), so one bound ties the configured range (`1..=N`) to the live range (`0..=N`). Today the activity states them separately as `#[inputs(1..=3)]` and `#[inputs(0..=3)]`, and nothing checks that they agree. The front end currently refuses generic input types and custom `Finite` impls; record what admitting a const-generic wrapper costs.
 - Try both representations from the spec's Parked unknowns: library-owned countdown types, and a trait implemented by the Model's `Finite` wrappers (`Ticks`, `Remaining`). Record which one the front end can type without new nominal-type machinery.
-- Try the Temporal-layer form: a shared helper module in `model/temporal` versus named per-Model effects (`time_out`, `time_out_attempt`). Record the front-end change a shared module would need.
+- Try the Temporal-layer form: a shared helper module in `model/temporal` versus a README pattern with named per-Model effects (`time_out`, `time_out_attempt`). For a shared module, name its actual compiled Temporal crate owner, module declaration and generic project-library registration path, plus the admission change needed. For the pattern, name the README authority and consuming effects; do not propose an uncompiled helper `.rs` file.
 - Answer the spec's three Parked unknowns, or name them as owner questions.
-- Verdict format per `model/design/` convention: status line, answer in brief, refusals with spans and the owning front-end file, line counts before/after, what was not proved, recommendation, rerun section.
-- Remove the worktree at handoff; keep the probe in `.flow/tmp/fn253-spike/`.
+- Verdict format per `model/design/` convention: status line, answer in brief, refusals with spans and the owning front-end file, line counts before/after, what was not proved, recommendation, rerun section. The committed verdict records the source revision, exact probe edits or reconstruction instructions, commands and required tool identities, so the result remains reproducible after scratch expires.
+- Remove the worktree at handoff; keep the temporary probe in `.flow/tmp/fn253-spike/` for current-session reruns. That scratch may expire and is not the durable acceptance evidence.
 
 ### Investigation targets
 **Required:**
@@ -36,23 +36,16 @@ Rewrite the activity's deadline code against the proposed `countdown` surface in
 - `model/design/` — existing verdict write-ups
 
 ### Key context
-fn-246.15 is rewriting the activity's timeout-retry cells. Spike from the current `umpire` tip and note anchors it will move; this task does not wait for it.
+fn-246.15 delivered the timeout-retry correction and fn-246.13 owns the approved cancellation correction. Spike from the current committed `umpire` tip, identify which corrections it includes, and note anchors that later closures may move; this read/probe lane does not wait for those closures.
 
-### Acceptance
-- [ ] `model/design/deadline-countdowns.md` chooses the representation and the Temporal-layer form, with reasons.
-- [ ] Every admission refusal from the rewrite is listed with its source span and owning front-end file.
-- [ ] The verdict states the final `countdown` function and law names and signatures for .3.
-- [ ] Probe kept in `.flow/tmp/fn253-spike/` with README and `run.sh`; worktree removed.
 ## Acceptance
 - [ ] `model/design/deadline-countdowns.md` chooses the representation and the Temporal-layer form, with reasons.
 - [ ] Every admission refusal from the rewrite is listed with its source span and owning front-end file.
 - [ ] The verdict states the final `countdown` function and law names and signatures for .3.
-- [ ] Probe kept in `.flow/tmp/fn253-spike/` with README and `run.sh`; worktree removed.
-
-### Acceptance
-- [ ] TBD
+- [ ] Probe available in `.flow/tmp/fn253-spike/` at handoff with README and `run.sh`; worktree removed. The committed verdict contains sufficient reconstruction/rerun instructions to survive scratch expiry.
 - [ ] The verdict states whether value-returning local helpers are admitted today, with the refusal if not.
 - [ ] The verdict decides whether `Ticks`/`Remaining` become shared `umpire-dsl` types with a Model-selected bound.
+
 ## Done summary
 TBD
 

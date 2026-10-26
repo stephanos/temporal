@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-255-thorough-framework-testing-generated.5.md",
   "status": "todo",
   "title": "Miri on the WASM ABI buffer logic; record the syscall exclusion",
-  "updated_at": "2026-10-25T18:22:20.555526Z"
+  "updated_at": "2026-10-26T05:36:39.001137Z"
 }

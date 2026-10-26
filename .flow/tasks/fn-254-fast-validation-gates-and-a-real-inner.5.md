@@ -37,7 +37,7 @@ Keep actual changed test/runner execution, exact coverage mappings, stage-presen
 - [ ] Expensive compiler controls retain all positive/negative semantics while exposing independent cases or batching/reusing owned compiler work. Record current selected/executed case counts and timings with complete consumer coverage.
 - [ ] Apalache is not required by routine gates; the opt-in still works.
 - [ ] UI case count and trybuild time recorded before and after; every converted case keeps its semantic error and location.
-- [ ] `model-check-changed` removed or justified.
+- [ ] `model-check-changed` is removed, as required by R5.
 
 ## Done summary
 TBD
@@ -49,7 +49,7 @@ TBD
 
 ## Bounded execution parallelism
 
-Consume the source-grounded decision at `.flow/tmp/fn254-jvm-parallel-shape/decision.md`. Tune the JVM group from one to two test owners in both nextest configurations, with four global slots for required-backend gate invocations and the standalone child. Keep backend-skipped native execution at the existing CPU-based default. Preserve fail-fast, every filter/identity/ignored case and the separate doctest phase. Keep the TLC recovery default at two processes per owner; cap the retained TLC discovery probe with the existing default heap limit so the bound includes it. Under one cross-invocation JVM lease this admits at most four checker JVMs with 2 GiB configured model heaps; JVM/native/Go overhead still needs separate resource admission. Never call sampled RSS a hard memory bound.
+Consume the source-grounded decision at `.flow/tmp/fn254-jvm-parallel-shape/decision.md`. Tune the JVM group from one to two test owners in both nextest configurations, with four global slots per admitted nextest invocation for required-backend gates and the standalone child. These slots do not cap separate nextest invocations; .17 owns their shared JVM admission. Keep backend-skipped native execution at the existing CPU-based default. Preserve fail-fast, every filter/identity/ignored case and the separate doctest phase. Keep the TLC recovery default at two processes per owner; cap the retained TLC discovery probe with the existing default heap limit so the bound includes it. Under one cross-invocation JVM lease this admits at most four checker JVMs with 2 GiB configured model heaps; JVM/native/Go overhead still needs separate resource admission. Never call sampled RSS a hard memory bound.
 
 Prove the candidate with current real simultaneous framework JVM owners and a Temporal case, exact membership/count checks and bounded process sampling. Reuse task .3's historical identity/workload evidence; do not launch a fresh group-one timing baseline campaign or attribute speedup across incomparable workloads. Keep heavy Cargo/Go stages separate until their combined budget is established. This stays part of the existing gate composition task and does not reopen completed .3.
 
