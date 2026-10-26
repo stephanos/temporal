@@ -1,0 +1,32 @@
+{
+  "commit": "cdfd3720c83bcdbcb836f77b36326e255e01ddc2",
+  "selection": {
+    "base": "HEAD",
+    "changed": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/.flow/artifacts/fn254-joined-dirty-evidence.json",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/fixtures/fixtures/sample_kettle/model.rs"
+    ],
+    "reasons": [
+      "always: umpire-fixtures (native/interpreter/backend fixture execution)",
+      "ignored known non-model input: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/.flow/artifacts/fn254-joined-dirty-evidence.json",
+      "package source: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/fixtures/fixtures/sample_kettle/model.rs",
+      "shared Kettle source: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/fixtures/fixtures/sample_kettle/model.rs"
+    ],
+    "workspaces": [
+      {
+        "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire",
+        "packages": [
+          "umpire-apalache",
+          "umpire-fixtures",
+          "umpire-kettle-guest",
+          "umpire-reference-kettle",
+          "umpire-suite",
+          "umpire-tla"
+        ]
+      }
+    ]
+  },
+  "source_original_sha256": "6adf1d33cbd161a956033a234b770af1c4eb22cb81d3a2a24ed6d51603e5c714",
+  "source_edited_sha256": "cce48c6faa1c582a71ba794b7b4a95f682790d340c8d0e25342d66d652590b17",
+  "scope": "Final follow-up affects documentation fallback only; full shipping cold/warm performed on0c83ab3d1e, final-source selection retested here. No cache/domain/lock changes."
+}

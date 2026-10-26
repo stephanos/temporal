@@ -24,7 +24,7 @@ The validation hold is lifted, so focused checks may resume.
 Backlog order remains **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
 ranks a fast feedback loop among the most important properties. The standalone workspace/driver and independent gate checkpoint are integrated, and the complete isolated proof passed.
-Immediate validation path: finish .6's correct consumer/cache checkpoint, then .5's fixture/compiler work, then priority-0 .17's uniform nextest and single bounded stage DAG. Downloads .16 and shell ports .15 follow .17; budgets .12 and final proof .8 consume it. fn-254 gets first admission to shared build/JVM/review capacity. Already running fn-246.9/.13 work may reach safe checkpoints, and disjoint source work may continue without delaying fn-254. Finish fn-254.7 after committed fn-246 closure.
+Immediate validation path: .5's fixture/compiler work, then priority-0 .17's uniform nextest and single bounded stage DAG. The consumer/cache checkpoint is reviewed and closed; verified configurations cache independently of refuted siblings, and test-only Kettle readers no longer expand unrelated libraries. Downloads .16 and shell ports .15 follow .17; budgets .12 and final proof .8 consume it. fn-254 gets first admission to shared build/JVM/review capacity. Already running fn-246.9/.13 work may reach safe checkpoints, and disjoint source work may continue without delaying fn-254. Finish fn-254.7 after committed fn-246 closure.
 The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246; fn-254.13's workspace move is integrated. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; activity changes
 retain their listed dependencies and follow the current priority/source-ownership order.
 fn-255.1, .3 and .4 (generator spike, fuzz targets, cargo-mutants) touch no gate files and may run as lanes before fn-254 closes.
@@ -94,8 +94,10 @@ the required current-pair proof. Plan review passed; execution remains deferred.
 The TLC-required gate took 2,093 s at fn-247's close against a 60 s soft target; `cargo test --workspace` was 82% of it.
 Historical causes included serial test binaries, one TLC JVM per property (about 1.5 s each), about 134 test
 binaries linking the whole graph, and no real Model-edit inner loop. Routine gates now skip Apalache;
-its opt-in cost is separate. The complete five-consumer quick run took 444.027 s, including 388.875 s in
-realization tests; the 60 s target remains unmet. Fixture/compiler batching and nextest scheduling address this.
+its opt-in cost is separate. The retained complete five-consumer activity quick run took 444.027 s, including 388.875 s in
+realization tests. The corrected six-consumer Kettle quick run took 129.783 s warm (99.527 s fixtures,
+20.229 s TLA tests); these are different workloads, and the 60 s target remains unmet.
+Fixture/compiler batching and nextest scheduling address this.
 Coverage stays: TLC remains the independent checker, and `model-validate` never uses the new TLC result cache.
 cargo-nextest approved, pinned via mise. The framework's checks move into `model/umpire` and must pass on that
 directory alone (R7). First in the current order; only .7 waits for fn-246's closure.
@@ -105,7 +107,6 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | Name | Status | What |
 | --- | --- | --- |
 | fn-254.5 | ⬜ todo | Candidates prepared: 24 fixture cases, compiler batching, 63 parser-table cases with 16 compiler cases retained, discovery heap cap and dead-target removal; integration/validation pending (R4, R5) |
-| fn-254.6 | 🔄 in progress | Correct consumer/cache proof retained; Kettle shared-source selection fix and regression control brought forward from .17 into `umpire`. Focused execution resumed; review finalization and closure remain. Warm target still missed (R2) |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
 | fn-254.12 | ⬜ todo | Budget parser/count/retry candidate assembled; real receipt producers and native wiring underway. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
@@ -146,7 +147,7 @@ Not adopted: Kani, bolero, Loom, Shuttle (a candidate once checking goes paralle
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-255.1 | ⬜ todo | Spike: generate admitted Models at tree and/or source level, measured, seeded bug caught (R1) |
+| fn-255.1 | 🔄 in progress | Source spike validated at `4285914b1b`: complete graph agreement, label-only mutants, shrinking and two-Model TLC batching measured; verdict/evidence checkpoint awaits formal review and integration (R1) |
 | fn-255.2 | ⬜ todo | Source preparation underway: differential harness with shrinking and fixture pinning; .1 admission/evidence remain prerequisites (R1) |
 | fn-255.3 | ⬜ todo | Pinned nightly; cargo-fuzz targets for guest dispatch and TLC decoders, seeded corpora (R2) |
 | fn-255.4 | ⬜ todo | Bounded cargo-mutants smoke/control runs; scheduled campaign reports and triage, serialized source edits (R3) |
