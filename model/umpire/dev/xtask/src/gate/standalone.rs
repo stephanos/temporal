@@ -161,10 +161,8 @@ fn clean_command(gate: &Gate, root: &Path, target: &Path, program: &str) -> Comm
         "LANG",
         "LC_ALL",
         "TZ",
-        "TMPDIR",
         "RUSTUP_HOME",
         "JAVA_HOME",
-        "JAVA_TOOL_OPTIONS",
         "HTTP_PROXY",
         "HTTPS_PROXY",
         "ALL_PROXY",
@@ -198,6 +196,7 @@ fn clean_command(gate: &Gate, root: &Path, target: &Path, program: &str) -> Comm
     }
     command
         .current_dir(root)
+        .env("TMPDIR", target.join("tmp"))
         .env("CARGO_HOME", &gate.home)
         .env("CARGO_TARGET_DIR", target)
         .env("CARGO_INCREMENTAL", "0")
@@ -351,6 +350,7 @@ pub(super) fn run(gate: &Gate) -> Result<i32> {
     let manifest = output.join("inputs.json");
     fs::write(&manifest, serde_json::to_vec_pretty(&provenance)?)?;
     local_configuration(&root)?;
+    fs::create_dir_all(target.join("tmp"))?;
     let controls = controls(&root, &target, &output.join("foreign"))?;
     fs::write(output.join("controls.json"), serde_json::to_vec_pretty(&controls)?)?;
     if inventory(&root, &target)? != provenance.inputs {
