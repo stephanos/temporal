@@ -72,6 +72,9 @@ Cargo/Go development loop against a sibling checkout. Current source checkpoint
 `c88fdc5506` has 1,177 framework files; every retained candidate stays recoverable.
 GitHub destination inspection is blocked by CLI authentication and the connected
 app's organization SAML authorization; contents and permissions remain unknown.
+The provisional transfer map retains all 81 original candidate refs; 36 require
+cross-repository splits and 26 lack identified tasks. No original candidate is
+yet marked transferred; see [the disposition plan](.flow/artifacts/fn-257-extract-the-standalone-umpire/task6/provisional-transfer-plan.md).
 Existing standalone proof covers an older source and does not close
 the required current-pair proof. Plan review passed; build/test execution remains deferred.
 

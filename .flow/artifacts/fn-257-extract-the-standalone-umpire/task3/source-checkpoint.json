@@ -19,5 +19,6 @@
     "sha256": "80911259bdeb273fcc929c7f1a1eff60e96434b47e63b8aae1f20181d7f6f4d1",
     "prerequisite": "cf8bec4d6231302df54b57fccdc5bdb9d11552fc from committed task2 export-history.bundle",
     "verification": "git bundle verify succeeded against standalone object store"
-  }
+  },
+  "source_inventory": "adaptation-inventory.json: 1178 original files present, 1124 unchanged, 54 expected source adaptations, no mode changes; 384 identified payload/lock/license files unchanged; retained Temporal framework/archive trees match original inventory"
 }
