@@ -260,36 +260,35 @@ fn shared_feature_inputs_select_every_direct_consumer_and_reverse_guest() -> Tes
         &metadata(
             "system",
             &[
-                ("tests", "umpire-temporal-tests", &["realization", "api"]),
-                ("realization", "umpire-temporal", &["api", "macros"]),
-                ("api", "umpire-temporal-api", &[]),
-                ("macros", "umpire-temporal-realization-macros", &[]),
-                ("guest", "umpire-temporal-guest", &["realization"]),
+                ("tests", "fixture-tests", &["realization", "api"]),
+                ("realization", "realization", &["api", "macros"]),
+                ("api", "api", &[]),
+                ("macros", "realization-macros", &[]),
+                ("guest", "guest", &["realization"]),
             ],
             &["tests", "realization", "api", "macros", "guest"],
         ),
     )?;
     let mut options =
-        Options { always: BTreeSet::from(["umpire-temporal-tests".into()]), ..Options::default() };
-    options.mappings.push(("/system/temporal/feature".into(), "umpire-temporal-tests".into()));
+        Options { always: BTreeSet::from(["fixture-tests".into()]), ..Options::default() };
+    options.mappings.push(("/system/feature".into(), "fixture-tests".into()));
     assert_eq!(
-        selected(&graph, &options, &["/system/temporal/feature/activity/model.rs"])?,
-        BTreeSet::from(["umpire-temporal-tests".into()]),
+        selected(&graph, &options, &["/system/feature/activity/model.rs"])?,
+        BTreeSet::from(["fixture-tests".into()]),
         "a test consumer seed cannot traverse forward dependencies to realization or its guest"
     );
-    for package in ["umpire-temporal", "umpire-temporal-api", "umpire-temporal-realization-macros"]
-    {
-        options.mappings.push(("/system/temporal/feature".into(), package.into()));
+    for package in ["realization", "api", "realization-macros"] {
+        options.mappings.push(("/system/feature".into(), package.into()));
     }
     let expected = BTreeSet::from([
-        "umpire-temporal-tests".into(),
-        "umpire-temporal".into(),
-        "umpire-temporal-api".into(),
-        "umpire-temporal-realization-macros".into(),
-        "umpire-temporal-guest".into(),
+        "fixture-tests".into(),
+        "realization".into(),
+        "api".into(),
+        "realization-macros".into(),
+        "guest".into(),
     ]);
     for file in ["model.rs", "phase.rs", "probe_gaps.rs"] {
-        let path = format!("/system/temporal/feature/activity/{file}");
+        let path = format!("/system/feature/activity/{file}");
         assert_eq!(selected(&graph, &options, &[&path])?, expected, "{file}");
     }
     Ok(())
