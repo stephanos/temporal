@@ -1,0 +1,9 @@
+{
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.10",
+  "revision": 1,
+  "index": "revision1/index.json",
+  "index_sha256": "2b5e88793259059f8c76a78a56b3c45b4b3f010a11d06fd6936a07f9ad2f97b5",
+  "source_commit": "0e7981836def935d3554feb62b8f03581320722d",
+  "prior_index": "index.json",
+  "status": "all four formal review findings corrected; renewed focused proof complete; coordinator same-session re-review pending"
+}

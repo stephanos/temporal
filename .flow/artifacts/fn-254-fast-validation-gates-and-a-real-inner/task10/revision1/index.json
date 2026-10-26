@@ -1,0 +1,953 @@
+{
+  "schema_version": 1,
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.10",
+  "source_commit": "0e7981836def935d3554feb62b8f03581320722d",
+  "baseline_commit": "208610049cb93d2fb6cc107898497461f5ab4a6e",
+  "status": "all four formal review findings corrected; renewed focused proof complete; coordinator same-session re-review pending",
+  "source_sha256": {
+    ".github/workflows/umpire.yml": "e5169a57b6c3bde68889a28c96089340ec1e8218b0ac786ed23d89c92c6453fb",
+    "Makefile": "453a527ece7c23ee2311c7567aaba56136354b23a66c3c867f729fea5615fd87",
+    "model/README.md": "5e211e9fb57a1b07084871f297e80cd7ef58ae6af995ecc3ca5ed149ec1c8823",
+    "model/dev/xtask/src/gate.rs": "618ff8d04350d0a62451d3991ca819c82a1b15978358f74620729327aee50a00",
+    "model/dev/xtask/src/main.rs": "93f625c63190cb5ed082c82c52d55c87905e36329b86f1ade9b9ee49d4fe5c13",
+    "model/dev/xtask/src/test_run.rs": "ca82799aaa2b8017c86bb4fb12d4e425c72abb0ff3ac9336e2c10553161dcca9",
+    "model/dev/xtask/tests/main.rs": "81b4a4e18ddc5cd803133ea6c24ed13fc31857ed14531b93dcefa709069d6735",
+    "model/dev/xtask/tests/make_paths.rs": "6cbdb1e5c3c471c83d3565a6b0089298e7cc0e224cee1ef67faa48410cb18e80",
+    "model/scripts/proto-go.sh": "67d146dd170f5ce6df4d2c79aaa053fd912b6b0a198a7e274927c760f36145ff",
+    "model/scripts/retired-names.sh": "cd3c6ccc5917fbaadbf4e473109dad423a2318ab8e3a3442c3dfc30e1ca4839b",
+    "model/scripts/test-model-validate.sh": "4e7d810c3ff2431f76324a7b3398713347521104ebbddb46e3b4209b4e1ad6c5",
+    "model/scripts/test-model-wiring.sh": "7efc2ac298ee78a8f6719407c9dd039ecae5ddc4315e5f45c2ebf1019b8a2070",
+    "model/scripts/test-time-gate.sh": "f30dbef2e590b45ff523431e02efc03018de0629923c75cf9d8996cf55a368fc",
+    "model/scripts/tests/build-guests.sh": "1eb8e6013517ba50f85703ce2e9732a4d0b43860ebc335e55d2d867b661ab190",
+    "model/scripts/tests/proto-go.sh": "8676d1e54b6fec1119d8bd939829e1c891758c4db8cfb5f3a380d2db7a900c94",
+    "model/scripts/time-gate.sh": "ff80c32b589ccd8d30ffb44c47ad61be62087c60561fc48d47476da792182e35",
+    "model/umpire/README.md": "96b06402c474be862ab4f892dd543454f9fc9707db3317f2b868d22c47b35803",
+    "model/umpire/dev/gate/policy/framework-boundary.txt": "b2265dc6ce98b2f0153ac6c8ecda6448426207193c9ad3f56d441e75fbdc7333",
+    "model/umpire/dev/xtask/README.md": "7d6d48ae79570dad7b288d19da18a5f427d177e944898de450384c4a27f83a5b",
+    "model/umpire/dev/xtask/src/gate.rs": "d96c62a96b4a51fcf48aba15aa44152dd6ce774be8df367f634019caf00ac920",
+    "model/umpire/dev/xtask/src/gate/boundary.rs": "f86b309bc972dddfbad1e5da84932e4f10c1aedf368f513086a4e6f8be0f5ada",
+    "model/umpire/dev/xtask/src/lib.rs": "ebda682a8df412effab763804c02d64370c6d116a17ccd094962b4c42138a670",
+    "model/umpire/dev/xtask/src/main.rs": "7edfba24390d2edd4e87a0990ae791c60126d2554879ce3640b2e5dc33b4f4be",
+    "model/umpire/dev/xtask/src/test_run.rs": "cbe55e9137b312b93d0c30315770350731350b8f9f47ec66015cdaa664a190d1",
+    "model/umpire/dev/xtask/tests/gate_wiring.rs": "c083a66b8072f8423108d5d275d20fb6e4719b4798fe1a6f0b1c4c9ee391c393",
+    "model/umpire/dev/xtask/tests/main.rs": "c8453d66adad9c3764c4fd2a9d6e457563fa38aacadd0d6b62fdcb696f5e0cd6",
+    "model/umpire/scripts/test-time-gate.sh": "fe00ca265166d3384e9177ef133e1522af7a9b6ff6bf21263fc8f178a2e569fe",
+    "model/umpire/scripts/tests/build-guests-controls.sh": "e76d467727d4198a43ce7f2c9809b31df7f144be822ef6b7836d71a7f4b99abc",
+    "model/umpire/scripts/time-gate.sh": "d6a382c36bd0118b6c09f7e241e6a487a2501492bace9ab6b714b5163a3e1be1"
+  },
+  "proof_sha256": {
+    "proof/accounting/baseline.json": "1415f339a8830e95cc31d6dc45b7a448d7688fc7014d5cc36e3f04dc5bf3d483",
+    "proof/accounting/compare_final.py": "01e4592b55e00a2db544a439949f9fec2d0530e11d939978efa16e38acfb7d3d",
+    "proof/accounting/comparison.json": "5ec81af43e502374e79915da1085c7cf2d56291e44b7c8d967384c7a08d6c016",
+    "proof/accounting/final-comparison.json": "e7d3adfffa00fe7d796b543768903f1fbacce8f83b516928a1b5657cc2d7a864",
+    "proof/accounting/final-inventory.json": "d7218b792b92ccd154224ad8add66768b485314d89fda0f7a1fb2917d4b31325",
+    "proof/accounting/final_account.py": "4d4c4ecfeec0be80ad7701975c36fd457c5f18e8c0fa10c31ccd1f39213b0a20",
+    "proof/actual-boundary.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/actual-retired.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/actual-stage-commands.json": "c63ee8fee7ea06522c5b92020c65f6fd325aa2b1989f2779cf60e35bb65131e7",
+    "proof/actual-stage-list.log": "4ff2b71d953d602cbfaa62f56c81dafc49f75edb5fdc97c815f415ba9957b706",
+    "proof/boundary-red-report.json": "ac929d3c03e657a27d61c60e5d7e962e9c1749b85096a9cab8cd1a4746452f13",
+    "proof/cli-independence.json": "1b1dee4d2dd5687c19d2cd9dba02623fe2e73ba57b8bb7c9119e4708d7903c42",
+    "proof/cli-independence.py": "f42ee059b313b2263772569410e7554fbb03b5fbd7f96bd2e9f1f8576fb6dcf5",
+    "proof/cli-initial-build.log": "8167287c150fcc24ac377b2234307780c187a122d52844fef159703e85d3758c",
+    "proof/cli-initial-guest.log": "3d97826d2fdc14ffe8ff79834363e3b2befe12a200981d87718b490e5daeace4",
+    "proof/cli-mutated-build.log": "3a7d2e8e3ec0b8fb8b68bd0a16e33d84adceabe0a930a5cf59e0733535629cb0",
+    "proof/cli-mutated-guest.log": "25c4764a63018ddae3ea7315d938d1adbd8fbfc89286fb62c141b00c52aceea9",
+    "proof/cli-restored-build.log": "306fc753dc8220e5c67bd3a8eb4c70ce9d7bb0401ef60b8098fcf410f8c385ba",
+    "proof/compiled-boundary-controls-initial-fixture-failed.json": "17c56766d7101871f0841e692211b9ff4d631fdf39e34015998aafaf15ca2173",
+    "proof/compiled-boundary-controls.json": "288b273f4ff2e1eb52ef80fa58b903ee8d7bfe9a08b6e33d1edd41ffc976fa80",
+    "proof/compiled-boundary-controls.py": "a94b4b5eb24d1ff124011866cff6185b6cab75cfb77127e6adda0fc91cafbb9f",
+    "proof/fn25410-paths-clippy.log": "523aababb526ab1dc2ec48330fd735afbead0c6fe9acceb164e597e93b7cc6a8",
+    "proof/fn25410-paths-package-tests.log": "03a000fbe73115b547680ef1cb1c3d9540cf20ad39175b033904e2f3b3caa5ec",
+    "proof/fn25410-paths-real-green.log": "a6911c233b60d895d7db3c7d700877c31716a954be093fea997309030cb81627",
+    "proof/fn25410-paths-real-red.log": "99bca2110eecf181782106fc2c4b615096589531e2671fc4ff950e67bfed3371",
+    "proof/fn25410-paths-recording-red.log": "b593dd6f0c8b43c5cb337dd56ab32ce458bf1b3998d2906bb8cae82c0980d72a",
+    "proof/fn25410-paths-timer-green.log": "33542ea8e11f1092582935ad6883e7e2ea6a7c27f00d4a033a16385abe0a08fc",
+    "proof/fn25410-paths-validate-green.log": "3ed58144382805e8fdcde4be467252e3436ffc80868716ab54d2b87431b00c17",
+    "proof/fn25410-paths-wiring-green.log": "99afa08e0096015c8b73d978f8c0836a8ca64eb39425217cb4ea97e177f6cdd5",
+    "proof/focused-commands.json": "eef036a5c7a34d653039402fa70bbd6e73c4033e21581ee6b45ba8a6555573ec",
+    "proof/framework-bootstrap-controls.log": "420d2ed99fa0e1efcc825a37c28dfced2c431812b4bdf52bcbc7533379a0dcb9",
+    "proof/framework-build-guest-controls.log": "33c200d5375068c480b98b852310ea91b0c71b08dce998f069ef7d22e37479fd",
+    "proof/framework-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/framework-native-clippy.log": "6a9ec6f6356f232dc22bceff1abab888a1675bb546f66048ed2ec1a2f4ad6fcb",
+    "proof/framework-native-tests.log": "34a7dde01c803432e1a6044c335e20f205b0d59073729497d14f08921ec2afa5",
+    "proof/framework-proto-controls.log": "8996adf736400c650e72c524dc7638a65b698182900f93cb9038cfa516373e66",
+    "proof/framework-proto-tools-controls.log": "4a6d05525712d5da71387c80a7a2a6343ed22bc4e0932cbd7a39e48de7055883",
+    "proof/framework-timer-controls.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/outer-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/outer-native-clippy.log": "0d4a56863edec6c2ec9bb2dcd1a5fcdc5f48f0f0ba6baea8637e644ef29f6019",
+    "proof/outer-native-tests.log": "c24574178bbabb79b16e7a0679c73067e6b38fd358c532f3b78095771cad3836",
+    "proof/outer-proto-controls.log": "9b81be8784351fbdeaa6462cb755ed2eefeb0e66cc2997d552f000f74816596c",
+    "proof/registered-stage-graph.json": "32636ec7ae3fac21d18223ab743d92068b6da184c4c543f790d656ea4654d029",
+    "proof/root-timer-controls.log": "33542ea8e11f1092582935ad6883e7e2ea6a7c27f00d4a033a16385abe0a08fc",
+    "proof/run-focused.py": "24a996b4748fd369b8299a683e34306e8757aeace79fbe6dcf9f7570b597ec93",
+    "proof/snapshot-registry-renewal.json": "2c1487c96cafa4ab4c761dd3175b50f78fb623f7ae3fc21d184de4da65df1c0a",
+    "proof/stage-recipes.json": "d6ee5f873b200a87145ca2038ea71ddab034105cbcc31fdfd73412d91d6952e9"
+  },
+  "commands": [
+    {
+      "label": "framework-proto-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/umpire/scripts/tests/proto-go.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.1930667499991614
+    },
+    {
+      "label": "outer-proto-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/scripts/tests/proto-go.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.05939429200043378
+    },
+    {
+      "label": "framework-timer-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/umpire/scripts/test-time-gate.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.03395479200025875
+    },
+    {
+      "label": "framework-proto-tools-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/umpire/scripts/tests/proto-tools.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.06252408399996057
+    },
+    {
+      "label": "framework-bootstrap-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/umpire/scripts/tests/bootstrap.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.028489375000390282
+    },
+    {
+      "label": "framework-build-guest-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/umpire/scripts/tests/build-guests-controls.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.030477166999844485
+    },
+    {
+      "label": "root-timer-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "argv": [
+        "bash",
+        "model/scripts/test-time-gate.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.27372824999929435
+    },
+    {
+      "label": "framework-native-tests",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "xtask",
+        "--lib",
+        "--test",
+        "main"
+      ],
+      "exit": 0,
+      "seconds": 1.8784770009997374
+    },
+    {
+      "label": "outer-native-tests",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "temporal-xtask"
+      ],
+      "exit": 0,
+      "seconds": 2.7330871680005657
+    },
+    {
+      "label": "framework-native-clippy",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "xtask",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.31742929199936043
+    },
+    {
+      "label": "outer-native-clippy",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "temporal-xtask",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.21042875000057393
+    },
+    {
+      "label": "framework-fmt",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.6377222500004791
+    },
+    {
+      "label": "outer-fmt",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.9566658749999988
+    },
+    {
+      "label": "actual-boundary",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "seconds": 0.869983042000058
+    },
+    {
+      "label": "actual-retired",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "retired-names"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "seconds": 0.6780028760003916
+    },
+    {
+      "label": "actual-stage-list",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--list"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "seconds": 0.0007847919996493147
+    },
+    {
+      "label": "cli-initial-build",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "build",
+        "--locked",
+        "-p",
+        "xtask",
+        "--bin",
+        "xtask",
+        "-p",
+        "umpire-guest-driver",
+        "--bin",
+        "umpire-guest-driver",
+        "--profile",
+        "dev",
+        "--target-dir",
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "seconds": 0.7145715840006233
+    },
+    {
+      "label": "cli-initial-guest",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "guest",
+        "umpire-stock-guest",
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/stock.wasm",
+        "--check"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "seconds": 0.5794960419998461
+    },
+    {
+      "label": "cli-mutated-build",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "build",
+        "--locked",
+        "-p",
+        "xtask",
+        "--bin",
+        "xtask",
+        "-p",
+        "umpire-guest-driver",
+        "--bin",
+        "umpire-guest-driver",
+        "--profile",
+        "dev",
+        "--target-dir",
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "seconds": 0.4047835000001214
+    },
+    {
+      "label": "cli-mutated-guest",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "guest",
+        "umpire-stock-guest",
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/stock.wasm",
+        "--check"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "seconds": 0.4912572089997411
+    },
+    {
+      "label": "cli-restored-build",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "build",
+        "--locked",
+        "-p",
+        "xtask",
+        "--bin",
+        "xtask",
+        "-p",
+        "umpire-guest-driver",
+        "--bin",
+        "umpire-guest-driver",
+        "--profile",
+        "dev",
+        "--target-dir",
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "seconds": 0.36583620799956407
+    }
+  ],
+  "coverage": {
+    "baseline_unique_rust": 930,
+    "baseline_ignored_rust": 4,
+    "new_rust_controls": 24,
+    "old_timed_stages": 23,
+    "final_stage_ownership_partitions": 27,
+    "old_leaf_shell_controls": 152,
+    "exact_source_accounting_pass": true,
+    "execution_scope": "13 changed focused groups; actual current framework boundary/retired leaves;25 real compiled boundary policy/escape processes; real shipping Make/bootstrap relative-path sourceguard; renewed compiled CLI mutation",
+    "existing_overlap": "Temporal source-boundary target remains explicitly run before workspace tests, as before; unique identity accounting does not claim invocation multiplicity once",
+    "snapshot_ui_preserved": 563,
+    "registry_tuples_preserved": 119,
+    "prior_task10_controls": 19,
+    "new_revision_regression_identities": 5,
+    "registered_framework_stages": 17,
+    "new_framework_stages_separate_from_old_partitions": [
+      "source-boundary",
+      "proto-tools"
+    ]
+  },
+  "cache_policy": {
+    "UMPIRE_QUICK_CACHE": "0",
+    "UMPIRE_CACHE_DISABLE": "1",
+    "scope": "all full gate child commands including provisioning; .6 must honor these before cache reads"
+  },
+  "cli_independence": {
+    "proof": "proof/cli-independence.json",
+    "driver_sha256": "ce4a2158f7b00d82e4f18af2def3fb66e4a6b0d72ac870d78a040025b71d4cb4",
+    "cli_before_sha256": "b29e7fb947ee9318280ffedbde30eeea8742d0e18eae1667eb6288ac5b450e09",
+    "cli_mutated_sha256": "3791ae8a6c4c998f5ca968c4d45727bbdb36014af8103fce842842ae18c33f9e",
+    "namespaces": [
+      "a2c4169682b4f0e0bc78ff61e5c0f322e1c27fd725f3078ec80ce92d9004cf34"
+    ],
+    "real_stock_guest_artifacts_reused": true,
+    "reuse_evidence": "exact wasm hash, size, mtime_ns and inode unchanged after retained help-diagnostic mutation compiled into the CLI"
+  },
+  "unchanged_input_checks": {
+    "model/umpire/dev/guest-driver": true,
+    "model/umpire/protocol": true,
+    "model/umpire/hosts/go": true,
+    "model/umpire/reference/kettle": true,
+    "model/umpire/author": true,
+    "model/umpire/backends": true,
+    "model/umpire/catalog": true,
+    "model/umpire/front": true,
+    "model/umpire/ir": true,
+    "model/temporal/guest": true,
+    "model/temporal/hosts/go": true,
+    "model/Cargo.toml": true,
+    "model/Cargo.lock": true,
+    "model/umpire/Cargo.toml": true,
+    "model/umpire/Cargo.lock": true
+  },
+  "reused_evidence": {
+    "pointer": "../task13/current-index.json",
+    "pointer_sha256": "53cf84fe4e47874a78fb5857deca160158d3916dcf831acf11737af34f733524",
+    "scope": "unchanged guest/native/protobuf/three Go host input closures and published Temporal guest; actual invocation remapping checked by current compiled process/shell controls",
+    "new_go_execution_claim": false,
+    "guest_regeneration_or_policy_edit": false,
+    "prior_task10_driver_controls": "../proof/driver-identity-controls.log",
+    "prior_task10_driver_control_sha256": "724c47d3974cd224b66508a705b320d7da0c2861bc8446baf1d61110a70125af",
+    "basis": "dedicated driver, guest/runtime/host/protobuf sources and both locks unchanged; current CLI guest invocation and exact driver/key reuse renewed"
+  },
+  "failed_attempts": [
+    {
+      "record": "proof/compiled-boundary-controls-initial-fixture-failed.json",
+      "status": "synthetic positive fixture had an empty virtual workspace and real Cargo metadata correctly refused101; fixture changed to a minimal dependency-free package, then final25 controls passed"
+    },
+    {
+      "record": "proof/boundary-red-report.json",
+      "status": "worker observed RED101 two regressions before fixes; raw tool output not archived, this report is explicitly secondary evidence"
+    },
+    {
+      "record": "proof/fn25410-paths-real-red.log",
+      "status": "original shipping macro with actual bootstrap/sourceguard returnedMake2 with target overlap; fixed real route passed"
+    },
+    {
+      "status": "initial cleanup cargo clean fix-paths refused missing CACHEDIR.TAG; exact solely owned cache top-level was verified, standard Cargo marker restored from sibling solely owned target, normal cargo clean then succeeded; parent cache untouched"
+    }
+  ],
+  "deferred": [
+    {
+      "command": "make model-check / make model-validate (TLC required)",
+      "owner": "fn-254.8",
+      "status": "not run; owner cadence defers unrelated full combined execution; live root parity consumer bug tracked fn-246.9 remains independent"
+    },
+    {
+      "command": "real framework directory-only complete gate",
+      "owner": "fn-254.11",
+      "status": "not run; actual current-source isolated full proof remains required"
+    },
+    {
+      "command": "nextest/quick-cache population/overlap/budgets/mise-provider migration",
+      "owner": "fn-254.3/.6/.5/.12/.14/.16",
+      "status": "not implemented here"
+    }
+  ],
+  "working_seams": {
+    "framework_gate": "model/umpire/dev/xtask/src/gate.rs and gate/",
+    "framework_test_runner": "model/umpire/dev/xtask/src/test_run.rs::run invoked by real internal test-run subprocess for gate tests and update",
+    "temporal_gate": "model/dev/xtask/src/gate.rs",
+    "temporal_test_runner": "model/dev/xtask/src/test_run.rs",
+    "future3": "only live runner leaves/config/pins; framework leaf can sequence nextest plus doctests without dispatcher/gate edits",
+    "future6": "new quick implementation and dispatcher/Make/cache; honors gate cache flags",
+    "future11": "gate-local registration/standalone and own integration controls; remains disjoint from runner leaf",
+    "current_test_invocations": "one current cargo test --workspace --locked --quiet, including its doctests, exactly once in each workspace test stage"
+  },
+  "cleanup": {
+    "removed_worktrees": [
+      "fn25410-fix-paths",
+      "fn25410-fix-boundary",
+      "fn25410-fix-runner"
+    ],
+    "child_cache_removed_MiB": [
+      602.1,
+      264.9,
+      287.3
+    ],
+    "child_targets_absent": true,
+    "branches_retained": [
+      "work/fn25410-fix-paths",
+      "work/fn25410-fix-boundary",
+      "work/fn25410-fix-runner"
+    ],
+    "parent_checkout_and_cache_retained": true,
+    "disk_free_after": "110GiB",
+    "other_sessions_and_repositories": "untouched"
+  },
+  "subagents": 3,
+  "revision": 1,
+  "prior_checkpoint": "79111d7fd57863871ddddb6ca042fac77264ec5a",
+  "prior_index": "../index.json",
+  "prior_index_sha256": "3dfaa596abec0f654758748dc4190ffd029658d6905e4bd675fc3f110fde3299",
+  "compiled_boundary_commands": [
+    {
+      "label": "actual-framework-current-inputs",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.7963328749992797,
+      "output": ""
+    },
+    {
+      "label": "organization-or-source-negative-0",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0008345830001417198,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-1",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0008110829994620872,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-2",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0007164999997257837,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-3",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0005342499998732819,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-4",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0005600419999609585,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-5",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.000518625000040629,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-6",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0006017499999870779,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-7",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0005820000005769543,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-8",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0004831669994018739,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-9",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0005615420004687621,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-10",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0005001250001441804,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-11",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0004972499991708901,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-12",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0005202499996812548,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-13",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0004933330001222203,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-14",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.00048641600005794317,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-15",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0004637080000975402,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-or-source-negative-16",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.00048741699993115617,
+      "output": "xtask: framework stage source-boundary failed: framework forbidden name: README.md:1\n"
+    },
+    {
+      "label": "organization-positive-0",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.01352850000057515,
+      "output": ""
+    },
+    {
+      "label": "organization-positive-1",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.012768333000167331,
+      "output": ""
+    },
+    {
+      "label": "character-or-lifetime-escape-0",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0007342499993683305,
+      "output": "xtask: framework stage source-boundary failed: framework source-path containment: path escapes framework root: /home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework/../outside.txt\n"
+    },
+    {
+      "label": "character-or-lifetime-escape-1",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0007118339999578893,
+      "output": "xtask: framework stage source-boundary failed: framework source-path containment: path escapes framework root: /home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework/../outside.txt\n"
+    },
+    {
+      "label": "character-or-lifetime-escape-2",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0006225000006452319,
+      "output": "xtask: framework stage source-boundary failed: framework source-path containment: path escapes framework root: /home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework/../outside.txt\n"
+    },
+    {
+      "label": "character-or-lifetime-escape-3",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.0005434169997897698,
+      "output": "xtask: framework stage source-boundary failed: framework source-path containment: path escapes framework root: /home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework/../outside.txt\n"
+    },
+    {
+      "label": "character-or-lifetime-escape-4",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+      "tool_root": "/home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework",
+      "exit": 1,
+      "expected": 1,
+      "seconds": 0.000549290999515506,
+      "output": "xtask: framework stage source-boundary failed: framework source-path containment: path escapes framework root: /home/agent/.cache/codex-build/tmp/fn25410-boundary-e7coa8_e/framework/../outside.txt\n"
+    }
+  ],
+  "review_fixes": [
+    {
+      "finding": "P1 caller-relative Cargo paths",
+      "source_commit": "e31af6b6f2374375514942fab3388dbed2c28544",
+      "proofs": [
+        "proof/fn25410-paths-real-red.log",
+        "proof/outer-native-tests.log",
+        "proof/fn25410-paths-real-green.log"
+      ],
+      "result": "Make launches bootstrap and framework CLI from root caller; explicit outer manifests retain caller; Temporal stage anchors targets before chdir; time benchmark also retains caller"
+    },
+    {
+      "finding": "P1 char and byte-character literals hide source escapes",
+      "source_commit": "5ce89a3350",
+      "proofs": [
+        "proof/boundary-red-report.json",
+        "proof/framework-native-tests.log",
+        "proof/compiled-boundary-controls.json"
+      ],
+      "result": "bounded character recognition precedes strings; char/bytechar/escape/lifetime regressions pass"
+    },
+    {
+      "finding": "P2 organization occurrence token exception",
+      "source_commit": "5ce89a3350",
+      "proofs": [
+        "proof/framework-native-tests.log",
+        "proof/compiled-boundary-controls.json"
+      ],
+      "result": "exact old ASCII path-token and occurrence offset policy;17 negatives/2 positives stored only in declarative policy"
+    },
+    {
+      "finding": "P2 undefined proto-tools dependency node",
+      "source_commit": "ff9b9930b6",
+      "proofs": [
+        "proof/registered-stage-graph.json",
+        "proof/framework-native-tests.log"
+      ],
+      "result": "proto-tools registered/listed and executed once through full gate registry"
+    }
+  ]
+}
