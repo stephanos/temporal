@@ -67,9 +67,9 @@ fn filler_uses_declared_world_inputs_and_admitted_identity()
 fn assembly_requires_each_named_capability() -> Result<(), Box<dyn std::error::Error>> {
     use std::{fs, process::Command};
     let runtime = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let model = runtime.ancestors().nth(3).ok_or("model workspace")?;
+    let framework = runtime.ancestors().nth(2).ok_or("framework workspace")?;
     let cache = std::env::var_os("CARGO_TARGET_DIR")
-        .map_or_else(|| model.join("target"), std::path::PathBuf::from)
+        .map_or_else(|| framework.join("target"), std::path::PathBuf::from)
         .join("tests/runtime-capability-controls");
     let directory = cache.join(format!("fixture-{}", std::process::id()));
     fs::create_dir_all(directory.join("src"))?;
@@ -84,10 +84,10 @@ umpire-runtime = {{ path = {:?} }}
 umpire-dsl = {{ path = {:?} }}
 "#,
         runtime,
-        model.join("umpire/author/dsl")
+        framework.join("author/dsl")
     );
     fs::write(directory.join("Cargo.toml"), manifest)?;
-    fs::copy(model.join("Cargo.lock"), directory.join("Cargo.lock"))?;
+    fs::copy(framework.join("Cargo.lock"), directory.join("Cargo.lock"))?;
     let declarations = r"
 use umpire_dsl::{Machine, Steps};
 use umpire_runtime::{capability::*, evidence::Rpc, NoTarget, Projection, Realize, prost_types::Any, protocol::Refusal};
