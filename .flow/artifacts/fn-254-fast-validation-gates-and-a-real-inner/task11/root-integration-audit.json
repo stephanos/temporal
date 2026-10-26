@@ -1,0 +1,18 @@
+{
+  "recorded_candidate": "1217f4ce8739e3366273eec3c2d3798c96ec9875",
+  "proof_artifacts_sha256_verified": 46,
+  "all_recorded_inputs_match_candidate_git_blobs_and_modes": 1171,
+  "joined_root_changed_recorded_inputs": [
+    "model/umpire/backends/process/src/lib.rs",
+    "model/umpire/backends/tlc/src/lib.rs",
+    "model/umpire/backends/tlc/src/runner/batch_tests.rs",
+    "model/umpire/backends/tlc/src/runner.rs",
+    "model/umpire/dev/testing/src/interpreted.rs",
+    "model/umpire/dev/xtask/src/lib.rs",
+    "model/umpire/dev/xtask/src/main.rs"
+  ],
+  "all_current_differences_are_verified_task6_source": true,
+  "current_task6_source_and_locks_verified": true,
+  "full_current_root_equivalence_claimed": false,
+  "renewal": "Task8 renews full proof for later task6/cache and other producer inputs. Required task11 run passed on the exact recorded candidate."
+}
