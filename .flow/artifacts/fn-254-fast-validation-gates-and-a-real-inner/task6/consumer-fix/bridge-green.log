@@ -1,0 +1,9 @@
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.28s
+     Running unittests src/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/quick/debug/deps/temporal_xtask-ec453d7574f7d635)
+
+running 1 test
+test quick::tests::bridge_selects_both_workspaces_and_the_authored_model_consumer ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+

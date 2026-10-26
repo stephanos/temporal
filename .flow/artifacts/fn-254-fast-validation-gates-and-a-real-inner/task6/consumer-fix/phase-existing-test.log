@@ -1,0 +1,113 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling equivalent v1.0.3
+   Compiling hashbrown v0.17.1
+   Compiling indexmap v2.14.2
+   Compiling syn v3.0.9
+   Compiling foldhash v0.1.5
+   Compiling anyhow v1.0.104
+   Compiling heck v0.5.0
+   Compiling rustix v1.1.5
+   Compiling hashbrown v0.15.5
+   Compiling syn v2.0.119
+   Compiling bitflags v2.13.2
+   Compiling either v1.19.0
+   Compiling fixedbitset v0.5.7
+   Compiling linux-raw-sys v0.12.1
+   Compiling itertools v0.14.0
+   Compiling fastrand v2.5.0
+   Compiling prost-derive v0.14.4
+   Compiling prettyplease v0.3.0
+   Compiling prettyplease v0.2.37
+   Compiling regex-syntax v0.8.11
+   Compiling winnow v1.0.4
+   Compiling bytes v1.12.1
+   Compiling smallvec v1.16.3
+   Compiling prost v0.14.4
+   Compiling proc-macro-utils v0.10.0
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling regex-automata v0.4.18
+   Compiling petgraph v0.8.3
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/umpire/ir/derive)
+   Compiling bytemuck v1.25.2
+   Compiling once_cell v1.21.4
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/umpire/ir)
+   Compiling tempfile v3.27.0
+   Compiling safe_arch v0.7.4
+   Compiling regex v1.13.1
+   Compiling manyhow-macros v0.14.1
+   Compiling prost-types v0.14.4
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/umpire/author/dsl/macros)
+   Compiling log v0.4.34
+   Compiling multimap v0.10.1
+   Compiling rand_core v0.9.5
+   Compiling rand_xoshiro v0.7.0
+   Compiling prost-build v0.14.4
+   Compiling thiserror v2.0.21
+   Compiling manyhow v0.14.1
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/umpire/front)
+   Compiling wide v0.7.33
+   Compiling proc-macro-crate v3.5.0
+   Compiling thiserror-impl v2.0.21
+   Compiling archery v1.2.3
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/umpire/author/dsl)
+   Compiling imbl v7.0.2
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/umpire/backends/native)
+   Compiling rustc-hash v2.1.3
+   Compiling ident_case v1.0.1
+   Compiling darling_core v0.24.1
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/umpire/protocol/runtime)
+   Compiling darling_macro v0.24.1
+   Compiling serde_core v1.0.229
+   Compiling darling v0.24.1
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/umpire/catalog/build)
+   Compiling libc v0.2.191
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/temporal/annotate/syntax)
+   Compiling zmij v1.0.23
+   Compiling getrandom v0.4.3
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/temporal/realization/macros)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/temporal/api)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/umpire/catalog/macros)
+   Compiling cfg-if v1.0.5
+   Compiling serde v1.0.229
+   Compiling target-tuple v1.0.2
+   Compiling serde_json v1.0.154
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/umpire/catalog)
+   Compiling serde_spanned v1.1.2
+   Compiling toml_writer v1.1.3+spec-1.1.0
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling console v0.16.6
+   Compiling serde_derive v1.0.229
+   Compiling termcolor v1.4.1
+   Compiling similar v2.7.0
+   Compiling glob v0.3.4
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/temporal/realization)
+   Compiling trybuild v1.0.122
+   Compiling insta v1.49.0
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 24.32s
+     Running tests/support.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/consumer-negative/debug/deps/support-c4122924f6bc7fbc)
+
+running 1 test
+
+thread 'phase_conversion_preserves_all_pairs_and_unknown_enum_precedence' (630244) panicked at temporal/realization/tests/support.rs:214:13:
+assertion `left == right` failed: 5/0
+  left: Err(MalformedRequest)
+ right: Err(Unsupported)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test phase_conversion_preserves_all_pairs_and_unknown_enum_precedence ... FAILED
+
+failures:
+
+failures:
+    phase_conversion_preserves_all_pairs_and_unknown_enum_precedence
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-temporal --test support`
