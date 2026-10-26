@@ -1,6 +1,7 @@
 //! Extension-owned guest entry point controls.
 #![forbid(unsafe_code)]
 #![allow(clippy::unwrap_used, clippy::expect_used)]
+mod make_paths;
 mod retired_names;
 #[path = "../../../umpire/dev/guest-driver/tests/pipeline/support.rs"]
 #[allow(dead_code)]
@@ -43,11 +44,11 @@ fn actual_make_freshness_recipe_propagates_stale_failure() {
     let makefile = fs::read_to_string(source.join("Makefile")).unwrap();
     let recipe = makefile
         .lines()
-        .find(|line| line.starts_with('\t') && line.contains("$(RUST_MODEL_CARGO) xtask gate"))
+        .find(|line| line.starts_with('\t') && line.contains("--bin temporal-xtask"))
         .unwrap();
     fs::write(
         f.model.join("../freshness-control.mk"),
-        format!("RUST_MODEL_CARGO := cd model && mise exec -- cargo\n.PHONY: freshness-control\nfreshness-control:\n{recipe}\n"),
+        format!("RUST_MODEL_CARGO := mise exec -- cargo\n.PHONY: freshness-control\nfreshness-control:\n{recipe}\n"),
     )
     .unwrap();
     let output = f.model.join("temporal/hosts/go/umpire_temporal_guest.wasm");
@@ -58,9 +59,9 @@ fn actual_make_freshness_recipe_propagates_stale_failure() {
         &f.root.join("bin/mise"),
         r#"#!/bin/bash
 set -euo pipefail
-if [ "$*" = 'exec -- cargo xtask gate' ]; then
+if [[ "$*" == *'--bin temporal-xtask --profile dev -- gate' ]]; then
   printf 'temporal gate freshness delegation\n' >> "$FIXTURE/gate-called"
-  if "$NATIVE_DRIVER" guest-freshness umpire-temporal-guest "$PWD/temporal/hosts/go/umpire_temporal_guest.wasm"; then
+  if "$NATIVE_DRIVER" guest-freshness umpire-temporal-guest "$PWD/model/temporal/hosts/go/umpire_temporal_guest.wasm"; then
     exit 0
   fi
   exit 37

@@ -1268,23 +1268,23 @@ ensure-no-changes:
 endif
 
 ##### model: Umpire in Rust (fn-210) #####
-RUST_MODEL_CARGO := cd model && mise exec -- cargo
-RUST_MODEL_FRAMEWORK = cd model/umpire && helper=$$(/bin/bash scripts/xtask.sh) && "$$helper"
+RUST_MODEL_CARGO := mise exec -- cargo
+RUST_MODEL_FRAMEWORK = helper=$$(/bin/bash "$(CURDIR)/model/umpire/scripts/xtask.sh") && "$$helper"
 
 .PHONY: model-check model-fmt model-update model-time model-validate
 model-check: override export UMPIRE_QUICK_CACHE = 0
 model-check: override export UMPIRE_CACHE_DISABLE = 1
 model-check: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(API_BINPB)
 	@$(RUST_MODEL_FRAMEWORK) gate
-	@$(RUST_MODEL_CARGO) xtask gate
+	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- gate
 
 model-fmt:
 	@$(RUST_MODEL_FRAMEWORK) fmt
-	@$(RUST_MODEL_CARGO) fmt --all
+	@$(RUST_MODEL_CARGO) fmt --manifest-path "$(CURDIR)/model/Cargo.toml" --all
 
 model-update:
 	@$(RUST_MODEL_FRAMEWORK) update
-	@cd model && INSTA_UPDATE=always TRYBUILD=overwrite mise exec -- cargo test --workspace --quiet
+	@INSTA_UPDATE=always TRYBUILD=overwrite $(RUST_MODEL_CARGO) test --manifest-path "$(CURDIR)/model/Cargo.toml" --workspace --quiet
 
 model-time:
 	@printf $(COLOR) "Time the model feedback loop (fn-210 R30)..."

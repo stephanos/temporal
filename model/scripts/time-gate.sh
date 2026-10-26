@@ -30,26 +30,26 @@ if [ "${1:-}" = --step ]; then
   exit 0
 fi
 
-cd "$(dirname "$0")/.."
+root=$(cd "$(dirname "$0")/../.." && pwd -P)
 
 inner_crate=${UMPIRE_INNER_CRATE:-umpire-checker}
 inner_file=${UMPIRE_INNER_SOURCE:-umpire/backends/native/src/lib.rs}
 printf '%-32s %7s\n' "step (warm)" "time"
 printf 'backend modes: UMPIRE_BACKENDS=%s UMPIRE_APALACHE=%s\n' "${UMPIRE_BACKENDS:-skip (default)}" "${UMPIRE_APALACHE:-skip (default)}"
-printf 'gate command: UMPIRE_TIME_STEPS=1 make -C .. model-check\n'
+printf 'gate command: UMPIRE_TIME_STEPS=1 make -C %s model-check\n' "$root"
 gate_log=$(mktemp)
 trap 'rm -f "$gate_log"' EXIT
-total=$({ time UMPIRE_TIME_STEPS=1 make -C .. model-check >"$gate_log" 2>&1; } 2>&1) || {
+total=$({ time UMPIRE_TIME_STEPS=1 make -C "$root" model-check >"$gate_log" 2>&1; } 2>&1) || {
   rc=$?
   cat "$gate_log"
   exit "$rc"
 }
 cat "$gate_log"
 
-test -f "$inner_file"
-printf 'inner source: %s\ninner command: cd umpire && mise exec -- cargo test -p %s --quiet\n' "$inner_file" "$inner_crate"
-touch "$inner_file"
-framework_inner() (cd umpire && mise exec -- cargo test -p "$inner_crate" --quiet)
+test -f "$root/model/$inner_file"
+printf 'inner source: %s\ninner command: mise exec -- cargo test --manifest-path %s/model/umpire/Cargo.toml -p %s --quiet\n' "$inner_file" "$root" "$inner_crate"
+touch "$root/model/$inner_file"
+framework_inner() { mise exec -- cargo test --manifest-path "$root/model/umpire/Cargo.toml" -p "$inner_crate" --quiet; }
 out=$(step "inner loop (edit+test)" framework_inner); echo "${out%$'\n'*}"; inner=${out##*$'\n'}
 
 printf '%-32s %6ss  (soft target %ss)\n' "gate total" "$total" "$GATE_BUDGET"
