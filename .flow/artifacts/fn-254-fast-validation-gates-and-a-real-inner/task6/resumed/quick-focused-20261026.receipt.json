@@ -1,0 +1,32 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+  "head": "9b9736a3c3b5f3aba55821ccbeb4ab7a1bd470ba",
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "test",
+    "--locked",
+    "-p",
+    "xtask",
+    "--lib",
+    "quick::"
+  ],
+  "environment_overrides": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "MISE_AUTO_INSTALL": "false",
+    "MISE_EXEC_AUTO_INSTALL": "false"
+  },
+  "target_write_probe": "passed",
+  "started_utc": "2026-10-26T20:22:27.758918+00:00",
+  "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task6/resumed/quick-focused-20261026.stdout.log",
+  "stderr": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task6/resumed/quick-focused-20261026.stderr.log",
+  "exit_code": 101,
+  "elapsed_seconds": 0.990376458998071,
+  "finished_utc": "2026-10-26T20:22:28.749770+00:00"
+}

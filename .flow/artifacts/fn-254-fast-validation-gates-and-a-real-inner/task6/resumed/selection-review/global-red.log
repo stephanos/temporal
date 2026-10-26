@@ -1,0 +1,22 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.89s
+     Running unittests src/lib.rs (.flow/tmp/fn2546-selection-review/target/debug/deps/xtask-3c22467feee5d72b)
+
+running 1 test
+test quick::tests::external_build_inputs_and_unknown_sources_remain_conservative ... FAILED
+
+failures:
+
+---- quick::tests::external_build_inputs_and_unknown_sources_remain_conservative stdout ----
+
+thread 'quick::tests::external_build_inputs_and_unknown_sources_remain_conservative' (120598) panicked at dev/xtask/src/quick/tests.rs:418:9:
+/Makefile
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    quick::tests::external_build_inputs_and_unknown_sources_remain_conservative
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p xtask --lib`

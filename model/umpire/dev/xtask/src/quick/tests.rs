@@ -299,15 +299,16 @@ fn shared_kettle_model_seeds_source_consumers_and_reverse_guest() -> TestResult 
     let mut metadata: serde_json::Value = serde_json::from_slice(&metadata(
         "framework",
         &[
-            ("fixtures", "umpire-fixtures", &[]),
+            ("fixtures", "umpire-fixtures", &["testing"]),
             ("reference", "umpire-reference-kettle", &[]),
             ("guest", "umpire-kettle-guest", &["reference"]),
             ("suite", "umpire-suite", &[]),
             ("tla", "umpire-tla", &[]),
             ("apalache", "umpire-apalache", &[]),
-            ("other", "unrelated", &[]),
+            ("testing", "umpire-testing", &["tla"]),
+            ("other", "unrelated", &["testing"]),
         ],
-        &["fixtures", "reference", "guest", "suite", "tla", "apalache", "other"],
+        &["fixtures", "reference", "guest", "suite", "tla", "apalache", "testing", "other"],
     ))?;
     metadata["packages"][0]["manifest_path"] =
         serde_json::json!("/framework/dev/fixtures/Cargo.toml");
@@ -337,8 +338,165 @@ fn shared_kettle_model_seeds_source_consumers_and_reverse_guest() -> TestResult 
         ])
     );
     assert_eq!(
+        selected(&graph, &options, &["/framework/backends/tla/src/lib.rs"])?,
+        BTreeSet::from([
+            "umpire-fixtures".into(),
+            "umpire-tla".into(),
+            "umpire-testing".into(),
+            "unrelated".into(),
+        ]),
+        "an actual library edit still expands its reverse dependencies"
+    );
+    assert_eq!(
         selected(&graph, &options, &["/framework/dev/fixtures/fixtures/sample_kettle/tests.rs"])?,
         BTreeSet::from(["umpire-fixtures".into()])
     );
+    Ok(())
+}
+
+#[test]
+fn model_edits_ignore_reported_non_model_metadata_and_docs() -> TestResult {
+    let graph = graph()?;
+    let mut options = options();
+    options.mappings.push(("/system/feature".into(), "activity".into()));
+    for path in [
+        "/.flow/tasks/task.json",
+        "/.flow/artifacts/task/proof.log",
+        "/.plans/UMPIRE4_SPEC.md",
+        "/.turbo/report.md",
+        "/docs/development.md",
+        "/MILESTONES.md",
+        "/README.md",
+    ] {
+        let selection = graph
+            .select(&options, vec!["/system/feature/activity/model.rs".into(), path.into()])?;
+        assert_eq!(
+            selection
+                .workspaces
+                .into_iter()
+                .flat_map(|workspace| workspace.packages)
+                .collect::<BTreeSet<_>>(),
+            BTreeSet::from(["fixtures".into(), "activity".into()]),
+            "{path}"
+        );
+        assert!(
+            selection
+                .reasons
+                .iter()
+                .any(|reason| reason.contains("ignored") && reason.contains(path)),
+            "{path}"
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn external_build_inputs_and_unknown_sources_remain_conservative() -> TestResult {
+    let graph = graph()?;
+    for path in [
+        "/Makefile",
+        "/mise.toml",
+        "/mise.lock",
+        "/rust-toolchain.toml",
+        "/go.mod",
+        "/go.sum",
+        "/cmd/tools/getproto/main.go",
+        "/proto/internal/service.proto",
+        "/proto/api.binpb",
+        "/api/generated.pb.go",
+        "/unknown/build-input.rs",
+        "/docs/build.rs",
+    ] {
+        assert_eq!(
+            selected(&graph, &options(), &[path])?,
+            BTreeSet::from(["core".into(), "fixtures".into(), "activity".into(), "other".into()]),
+            "{path}"
+        );
+    }
+    for path in ["/Makefile", "/mise.lock"] {
+        let selection = graph.select(&options(), vec![path.into()])?;
+        assert!(selection.reasons.iter().any(|reason| reason.contains("global input")), "{path}");
+    }
+    Ok(())
+}
+
+#[test]
+fn renamed_sources_select_both_owners_with_metadata_changes() -> TestResult {
+    assert_eq!(
+        selected(
+            &graph()?,
+            &options(),
+            &["/framework/core/src/old.rs", "/system/other/src/new.rs", "/.flow/specs/spec.json"],
+        )?,
+        BTreeSet::from(["core".into(), "fixtures".into(), "activity".into(), "other".into()])
+    );
+    Ok(())
+}
+
+#[test]
+fn metadata_named_checkout_ancestors_do_not_hide_external_build_inputs() -> TestResult {
+    let root = "/tmp/.flow/candidate/model";
+    let mut graph = Graph::default();
+    graph.add(
+        Path::new(root),
+        &metadata(
+            "tmp/.flow/candidate/model",
+            &[
+                ("fixtures", "fixtures", &[]),
+                ("activity", "activity", &[]),
+                ("other", "other", &[]),
+            ],
+            &["fixtures", "activity", "other"],
+        ),
+    )?;
+    for path in ["/tmp/.flow/candidate/proto/api.binpb", "/tmp/.flow/candidate/unknown/source.rs"] {
+        assert_eq!(
+            selected(&graph, &options(), &[path])?,
+            BTreeSet::from(["fixtures".into(), "activity".into(), "other".into()]),
+            "{path}"
+        );
+    }
+    assert_eq!(
+        selected(&graph, &options(), &["/tmp/.flow/candidate/model/.flow/Cargo.toml"])?,
+        BTreeSet::from(["fixtures".into(), "activity".into(), "other".into()]),
+        "explicit global inputs take precedence over metadata exclusions"
+    );
+    assert_eq!(
+        selected(&graph, &options(), &["/tmp/.flow/candidate/model/activity/.flow/evidence.json"])?,
+        BTreeSet::from(["fixtures".into(), "activity".into()]),
+        "package ownership takes precedence over metadata exclusions"
+    );
+    let mut mapped = options();
+    mapped.mappings.push(("/tmp/.flow/candidate/.flow".into(), "other".into()));
+    assert_eq!(
+        selected(&graph, &mapped, &["/tmp/.flow/candidate/.flow/evidence.json"])?,
+        BTreeSet::from(["fixtures".into(), "other".into()]),
+        "explicit mappings take precedence over metadata exclusions"
+    );
+    for path in [
+        "/tmp/.flow/candidate/.flow/evidence.json",
+        "/tmp/.flow/candidate/model/.flow/evidence.json",
+    ] {
+        let selection = graph.select(
+            &options(),
+            vec!["/tmp/.flow/candidate/model/activity/model.rs".into(), path.into()],
+        )?;
+        assert_eq!(
+            selection
+                .workspaces
+                .into_iter()
+                .flat_map(|workspace| workspace.packages)
+                .collect::<BTreeSet<_>>(),
+            BTreeSet::from(["fixtures".into(), "activity".into()]),
+            "{path}"
+        );
+        assert!(
+            selection
+                .reasons
+                .iter()
+                .any(|reason| reason.contains("ignored") && reason.contains(path)),
+            "{path}"
+        );
+    }
     Ok(())
 }

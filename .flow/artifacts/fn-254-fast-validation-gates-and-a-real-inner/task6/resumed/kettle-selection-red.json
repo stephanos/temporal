@@ -1,0 +1,31 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "test",
+    "--locked",
+    "-p",
+    "xtask",
+    "--lib",
+    "quick::tests::shared_kettle_model_seeds_source_consumers_and_reverse_guest",
+    "--",
+    "--exact",
+    "--nocapture"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire",
+  "head": "fa1ccb8af1f16a472518f1734c0aa455831e4f92",
+  "started_utc": "2026-10-26T20:54:54.571177+00:00",
+  "environment_overrides": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/tmp",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "2",
+    "RUST_TEST_THREADS": "2",
+    "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate:/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target"
+  },
+  "exit_code": 101,
+  "elapsed_seconds": 1.0955694589999894,
+  "log_sha256": "b14ee49c6418ec14a6e785dcef5b06c6f6b57f771733cda72d35bb67c7429b96"
+}

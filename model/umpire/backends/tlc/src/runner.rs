@@ -15,7 +15,7 @@ pub const JAR_SHA256: &str = "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b9
 const TLC_VERSION: &str = "Version 2.19 of 08 August 2024";
 const CACHE: &str = "build/tlc";
 use crate::cache::{self, Bundle, Record};
-use std::sync::Mutex;
+use std::sync::{Mutex, OnceLock};
 use umpire_backend_process::{
     PinnedJar, Scratch, bounded_text, bytes_sha256, java_command, run_process, structural_sha256,
 };
@@ -87,6 +87,7 @@ impl Tlc {
             .chain(module.metadata.negative.iter().map(|claim| claim.cfg.as_str()))
             .collect();
         let mut pending = Vec::new();
+        let identity = OnceLock::new();
         let mut result = self.check_inventory(
             &module.name,
             &module.tla,
@@ -94,6 +95,7 @@ impl Tlc {
             &schema,
             &inventory,
             0,
+            &identity,
             &mut pending,
         )?;
         for (index, cfg) in module
@@ -111,6 +113,7 @@ impl Tlc {
                 &schema,
                 &inventory,
                 index + 1,
+                &identity,
                 &mut pending,
             )?;
             for (operator, property) in additional.properties {
@@ -126,10 +129,8 @@ impl Tlc {
             }
             result.output.push_str(&additional.output);
         }
-        if all_verified(&result) {
-            for bundle in pending {
-                let _ = bundle.publish();
-            }
+        for bundle in pending {
+            let _ = bundle.publish();
         }
         Ok(result)
     }
@@ -175,7 +176,8 @@ impl Tlc {
         schema: &Schema,
     ) -> Result<TlcResult, Error> {
         let mut pending = Vec::new();
-        let result = self.check_inventory(name, tla, cfg, schema, &[cfg], 0, &mut pending);
+        let result =
+            self.check_inventory(name, tla, cfg, schema, &[cfg], 0, &OnceLock::new(), &mut pending);
         if result.as_ref().is_ok_and(all_verified) {
             for bundle in pending {
                 let _ = bundle.publish();
@@ -193,6 +195,7 @@ impl Tlc {
         schema: &Schema,
         inventory: &[&str],
         index: usize,
+        identity: &OnceLock<Result<(String, String), Refusal>>,
         pending: &mut Vec<Bundle>,
     ) -> Result<TlcResult, Error> {
         // Admission precedes identity work and cache access on both paths.
@@ -203,7 +206,25 @@ impl Tlc {
             std::env::var("UMPIRE_QUICK_CACHE").ok().as_deref(),
             std::env::var("UMPIRE_CACHE_DISABLE").ok().as_deref(),
         ) {
-            self.cache_bundle(name, tla, cfg, schema, inventory, index, &base, &properties).ok()
+            match self.cache_bundle(
+                name,
+                tla,
+                cfg,
+                schema,
+                inventory,
+                index,
+                &base,
+                &properties,
+                identity,
+            ) {
+                Ok(bundle) => Some(bundle),
+                Err(error) => {
+                    cache_report(format_args!(
+                        "TLC cache miss {name} configuration {index}: {error}"
+                    ));
+                    None
+                }
+            }
         } else {
             None
         };
@@ -223,13 +244,6 @@ impl Tlc {
             cache_report(format_args!(
                 "TLC cache miss {name} configuration {index} {}",
                 bundle.key
-            ));
-        } else if cache::enabled(
-            std::env::var("UMPIRE_QUICK_CACHE").ok().as_deref(),
-            std::env::var("UMPIRE_CACHE_DISABLE").ok().as_deref(),
-        ) {
-            cache_report(format_args!(
-                "TLC cache miss {name} configuration {index}: identity unavailable"
             ));
         }
         let result = self.check_strategy_cached(name, tla, cfg, schema, true, bundle.as_ref());
@@ -260,22 +274,14 @@ impl Tlc {
         index: usize,
         base: &str,
         properties: &[(String, String)],
+        identity: &OnceLock<Result<(String, String), Refusal>>,
     ) -> Result<Bundle, Refusal> {
         let root = cache::root()?;
-        let scratch = Scratch::new_in(&root, "quick-tlc-v1")?;
-        let identity = (|| {
-            let jar = bytes_sha256(&fs::read(&self.jar)?);
-            let mut command = java_command(&self.java);
-            command.arg("-version");
-            let (status, java) =
-                run_process(&mut command, scratch.path(), "identity", self.limits, None)?;
-            if !status.success() {
-                return Err(Refusal("Java cache identity unavailable".into()));
-            }
-            Ok((jar, java))
-        })();
-        let (jar, java) = scratch.finish(identity)?;
-        let (key, schema) = self.cache_key(name, tla, cfg, schema, inventory, index, &jar, &java);
+        let (jar, java) = identity
+            .get_or_init(|| self.cache_identity(&root))
+            .as_ref()
+            .map_err(|error| Refusal(error.0.clone()))?;
+        let (key, schema) = self.cache_key(name, tla, cfg, schema, inventory, index, jar, java);
         let mut expected = vec![cache::record_id(base)];
         if !properties.is_empty() {
             expected.push(cache::record_id(&property_cfg(base, properties)));
@@ -289,6 +295,22 @@ impl Tlc {
             replay: false,
             limits: self.limits,
         })
+    }
+
+    fn cache_identity(&self, root: &Path) -> Result<(String, String), Refusal> {
+        let scratch = Scratch::new_in(root, "quick-tlc-v1")?;
+        let identity = (|| {
+            let jar = bytes_sha256(&fs::read(&self.jar)?);
+            let mut command = java_command(&self.java);
+            command.arg("-version");
+            let (status, java) =
+                run_process(&mut command, scratch.path(), "identity", self.limits, None)?;
+            if !status.success() {
+                return Err(Refusal("Java cache identity unavailable".into()));
+            }
+            Ok((jar, java))
+        })();
+        scratch.finish(identity)
     }
 
     #[allow(clippy::too_many_arguments)]

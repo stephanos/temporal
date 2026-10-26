@@ -1,0 +1,168 @@
+{
+  "scope": "Review findings2,4,5 only; changes in TLC runner and owned cache tests. No quick/Flow/MILESTONES edits, commits, or HEAD movement by this worker.",
+  "head": "21a6294ba07e0235c2774179321cd40fda986603",
+  "finished_utc": "2026-10-26T21:09:03.454642+00:00",
+  "changes": [
+    "Publish each independently all-Verified configuration after complete successful module assembly, even when another configuration is Refuted. Never publish errors, incomplete modules or refuted configurations.",
+    "Resolve jar SHA256 and Java version lazily once within each check/check_module call; refresh on next call even on same Tlc instance.",
+    "Report exact identity/cache-root refusal text; strict symlink admission retained."
+  ],
+  "source_sha256": {
+    "model/umpire/backends/tlc/src/runner.rs": "769b6c7489855959b0c2bc46f7c3307df0c29ad3c10501568b34ce286b5bd243",
+    "model/umpire/backends/tlc/src/runner/cache_tests.rs": "19965ef2dbfbd0737a0f15cf1dc6b398ef62d8d4e6d3c8d511512a4a2cf3ba01"
+  },
+  "lock_sha256": {
+    "model/Cargo.lock": "50d2b024555c958b02286fa6ec65976efc9fb9cd69f4d27780e9a01998d5d70f",
+    "model/umpire/Cargo.lock": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5"
+  },
+  "red": {
+    "log": "cache-review-red.log",
+    "passed": 9,
+    "failed": 3,
+    "publication_red": "cache-publication-red.log",
+    "reason": "Second-call verified-sibling hit absent; identity ran per configuration (6 vs3); symlink refusal cause absent."
+  },
+  "green": {
+    "log": "cache-review-green.log",
+    "passed": 12,
+    "failed": 0,
+    "runtime_seconds": 0.56,
+    "coverage": [
+      "mixed module successful sibling publication with refuted sibling rerun",
+      "same-Tlc jar and Java version changes invalidate between calls",
+      "one Java identity execution per module call, not per configuration",
+      "cache-root symlink diagnostic and no symlink traversal",
+      "all effective identity inputs",
+      "corruption and interrupted publication",
+      "concurrent publication",
+      "inherited authoritative disable",
+      "failure/evaluation/incomplete-module exclusion"
+    ]
+  },
+  "commands": [
+    [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "test",
+      "--locked",
+      "--manifest-path",
+      "model/umpire/Cargo.toml",
+      "-p",
+      "umpire-tlc",
+      "--lib",
+      "cache",
+      "--",
+      "--nocapture"
+    ],
+    [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "fmt",
+      "--manifest-path",
+      "model/umpire/Cargo.toml",
+      "-p",
+      "umpire-tlc",
+      "--",
+      "--check"
+    ],
+    [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clippy",
+      "--locked",
+      "--manifest-path",
+      "model/umpire/Cargo.toml",
+      "-p",
+      "umpire-tlc",
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    [
+      "python3",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task6/resumed/cache-review-kettle.py"
+    ]
+  ],
+  "environment": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/tmp",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "BASH_ENV": "empty in shell controls; removed by real-Kettle Python driver"
+  },
+  "fmt_exit_code": 0,
+  "strict_clippy_exit_code": 0,
+  "real_kettle": {
+    "cold": {
+      "command": [
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/umpire_tlc-c27645a3e9684dea",
+        "--exact",
+        "runner::cache_tests::cache_child",
+        "--nocapture"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "exit_code": 0,
+      "elapsed_seconds": 4.593050419000065,
+      "cache_hits": 0,
+      "cache_misses": 3,
+      "executions": 6,
+      "log_sha256": "704bc5a3d0cfeb81cddcc3938f9ead478c00f46026d169607b1dd7386358a870",
+      "cache_entries": 2
+    },
+    "warm": {
+      "command": [
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/umpire_tlc-c27645a3e9684dea",
+        "--exact",
+        "runner::cache_tests::cache_child",
+        "--nocapture"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "exit_code": 0,
+      "elapsed_seconds": 1.590706167999997,
+      "cache_hits": 2,
+      "cache_misses": 1,
+      "executions": 2,
+      "log_sha256": "97ff596b27b0d8fcb37e8f8016679d8b7af3a35b64ef7ff516577b84a5c041f8",
+      "cache_entries": 2
+    }
+  },
+  "real_kettle_assertions": {
+    "states": 283,
+    "properties": 5,
+    "Verified": 4,
+    "Refuted": 1,
+    "refutation_has_trace": true,
+    "published_configurations": 2,
+    "negative_configurations_cached": 0
+  },
+  "timing_scope": "Targeted actual Kettle module invocation only; not shipping model-quick nor the full consumer closure. Existing 271.766s/444.027s quick measurements remain historical and cannot establish current corrected selection budget.",
+  "deferred": [
+    "Root final review and task8 joined validation.",
+    "No full22-consumer quick rerun; selection worker owns corrected quick selection and timing."
+  ],
+  "artifacts_sha256": {
+    "cache-review-kettle.json": "e1406a200fd78d65b29c7a2fd3105991445bbcd1c5e30ab97c022a60c4fe6c56",
+    "cache-review-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "cache-publication-red.log": "4f5910232cee14e516e7461b98140caf89c4773ab57e09d785edc952305b5497",
+    "cache-review-kettle-warm.log": "97ff596b27b0d8fcb37e8f8016679d8b7af3a35b64ef7ff516577b84a5c041f8",
+    "cache-review-green.log": "f3a0cf8ba7977543f03dcae2b05cb3147eaf29bd40b0f36622c89cc0f6c21a53",
+    "cache-review-red.log": "0b63a44b81ce3067e870777e090c95fc1fe988aa06d25ef7605e0b09e7267154",
+    "cache-review-clippy.log": "8f2bd007b98d1a3ca74d086238f73fd7a455da52d0db4c18d6840e2824dc4a2e",
+    "cache-controls-current.json": "c2ea29f88446d84e64dbd7c8d638aed0209d3820b1a69b17fd579640eadb9b01",
+    "cache-review-jar-admission.log": "d7b4458da8d55625db32dff6bc79a870711e794f384dba800c50d11f000d8f4b",
+    "cache-review-kettle-cold.log": "704bc5a3d0cfeb81cddcc3938f9ead478c00f46026d169607b1dd7386358a870",
+    "cache-review-kettle.py": "c5fdd6664be589ae9a6aa8d9360d2b233e73e394ccda640e786f63991fb3d478",
+    "cache-controls-current.log": "63fd655e8e5c15adcea2837e9dfffa33c3bb1ea61aa9176475732d05213be33a"
+  },
+  "free_space": "Filesystem      Size  Used Avail Use% Mounted on\nhost            927G  892G   36G  97% /Users/stephan/Workspace/skunkworks\n"
+}

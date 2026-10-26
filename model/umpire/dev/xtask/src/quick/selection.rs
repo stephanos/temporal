@@ -99,6 +99,24 @@ impl Graph {
         }
     }
 
+    fn known_non_model_input(&self, path: &Path) -> bool {
+        let Some(root) = self
+            .members
+            .keys()
+            .flat_map(|workspace| workspace.ancestors())
+            .filter(|ancestor| path.starts_with(ancestor))
+            .max_by_key(|ancestor| ancestor.components().count())
+        else {
+            return false;
+        };
+        let Ok(relative) = path.strip_prefix(root) else { return false };
+        relative.components().next().is_some_and(|part| {
+            [".flow", ".plans", ".turbo"].iter().any(|name| part.as_os_str() == *name)
+                || (path.extension().is_some_and(|extension| extension == "md")
+                    && (part.as_os_str() == "docs" || relative.components().count() == 1))
+        })
+    }
+
     fn seed(
         &self,
         options: &Options,
@@ -133,6 +151,7 @@ impl Graph {
 
     pub(super) fn select(&self, options: &Options, changed: Vec<PathBuf>) -> Result<Selection> {
         let mut selected = BTreeSet::new();
+        let mut test_consumers = BTreeSet::new();
         let mut reasons = BTreeSet::new();
         self.seed(options, &mut selected, &mut reasons)?;
         for path in &changed {
@@ -143,7 +162,11 @@ impl Graph {
                     {
                         let consumer = root.join(directory).join("Cargo.toml");
                         if self.members[root].contains(&consumer) {
-                            selected.insert(consumer);
+                            if directory == "reference/kettle" {
+                                selected.insert(consumer);
+                            } else {
+                                test_consumers.insert(consumer);
+                            }
                             reasons.insert(format!("shared Kettle source: {}", path.display()));
                         }
                     }
@@ -181,7 +204,9 @@ impl Graph {
                     continue;
                 }
             }
-            if let Some(root) = workspace {
+            if !global && self.known_non_model_input(path) {
+                reasons.insert(format!("ignored known non-model input: {}", path.display()));
+            } else if let Some(root) = workspace {
                 selected.extend(self.members[root].iter().cloned());
                 reasons.insert(format!(
                     "whole workspace {}: {} input {}",
@@ -199,6 +224,7 @@ impl Graph {
             }
         }
         self.expand(&mut selected);
+        selected.extend(test_consumers);
         if changed.is_empty() {
             reasons.insert("unchanged invocation: explicit always packages still execute".into());
         }
@@ -230,12 +256,14 @@ impl Graph {
 pub(super) fn global_input(path: &Path, workspace: Option<&PathBuf>) -> bool {
     path.file_name().is_some_and(|name| {
         [
+            "Makefile",
             "Cargo.toml",
             "Cargo.lock",
             "build.rs",
             "rust-toolchain",
             "rust-toolchain.toml",
             "mise.toml",
+            "mise.lock",
             ".mise.toml",
             "rustfmt.toml",
             ".rustfmt.toml",
