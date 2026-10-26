@@ -1,0 +1,5 @@
+MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false mise exec -- cargo run --manifest-path "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- quick
+helper=$(/bin/bash "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/umpire/scripts/xtask.sh") && "$helper" fmt
+MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false mise exec -- cargo fmt --manifest-path "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/Cargo.toml" --all
+helper=$(/bin/bash "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/umpire/scripts/xtask.sh") && "$helper" update
+INSTA_UPDATE=always TRYBUILD=overwrite MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false mise exec -- cargo test --manifest-path "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/Cargo.toml" --workspace --quiet

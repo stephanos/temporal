@@ -1,0 +1,246 @@
+{
+  "source_manifest": {
+    "joined_base": "46e96cfa5c",
+    "source": "cb76fcdea7c80676300f79426106289dcecd3a78",
+    "files": {
+      "Makefile": "417c6a7b831502fd31556392dc4b3eab74a636b7f01f22bbd49fb7878fa75741",
+      "model/umpire/dev/xtask/src/quick/mod.rs": "a22c2ca1b6d48caaac8bb8e17f84728769b4478038c2f795712857de8e2ca185",
+      "model/umpire/dev/xtask/src/quick/tests.rs": "fe835ba989f6b94be25d465ff98095073548bb6c70f3fb91a2e17614cf01af6b"
+    }
+  },
+  "source_commits": [
+    "773fb58152",
+    "cb76fcdea7"
+  ],
+  "warm": {
+    "mode": "warm",
+    "source": "cb76fcdea7c80676300f79426106289dcecd3a78",
+    "status": 0,
+    "changed_input": "model/temporal/feature/activity/model.rs",
+    "original_sha256": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767",
+    "edited_sha256": "6a82af7dc307dde08da7495c8114eb62ed0bdbdc764086f0f69acfd42d29bc2e",
+    "selection": {
+      "base": "HEAD",
+      "changed": [
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/feature/activity/model.rs"
+      ],
+      "reasons": [
+        "always: umpire-temporal-tests (native/interpreter/backend fixture execution)",
+        "mapped source: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/feature/activity/model.rs"
+      ],
+      "workspaces": [
+        {
+          "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model",
+          "packages": [
+            "umpire-temporal-tests"
+          ]
+        },
+        {
+          "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire",
+          "packages": []
+        }
+      ]
+    },
+    "stage_receipts": [
+      [
+        "fmt",
+        "umpire-temporal-tests",
+        "0.047",
+        "0"
+      ],
+      [
+        "clippy",
+        "umpire-temporal-tests",
+        "6.710",
+        "0"
+      ],
+      [
+        "test",
+        "umpire-temporal-tests",
+        "13.181",
+        "0"
+      ]
+    ],
+    "cache_hits": 14,
+    "cache_misses": 0,
+    "tlc_executions": 0,
+    "native_interpreter": 4,
+    "edited_test_body_ran": false,
+    "test_binary_exit73": false
+  },
+  "edited_test": {
+    "mode": "edited-test",
+    "source": "cb76fcdea7c80676300f79426106289dcecd3a78",
+    "status": 2,
+    "changed_input": "model/temporal/feature/activity/tests.rs",
+    "original_sha256": "06128e0abb2d544eaf68527b88eb1f08088337a5397b113f11de6b4ee99aa59a",
+    "edited_sha256": "8a156950a0889ab83b148668696b390c6d021f45c00d97a960cbeb4bbbe2d32d",
+    "selection": {
+      "base": "HEAD",
+      "changed": [
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/feature/activity/tests.rs"
+      ],
+      "reasons": [
+        "always: umpire-temporal-tests (native/interpreter/backend fixture execution)",
+        "mapped source: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/feature/activity/tests.rs"
+      ],
+      "workspaces": [
+        {
+          "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model",
+          "packages": [
+            "umpire-temporal-tests"
+          ]
+        },
+        {
+          "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire",
+          "packages": []
+        }
+      ]
+    },
+    "stage_receipts": [
+      [
+        "fmt",
+        "umpire-temporal-tests",
+        "0.042",
+        "0"
+      ],
+      [
+        "clippy",
+        "umpire-temporal-tests",
+        "6.607",
+        "0"
+      ],
+      [
+        "test",
+        "umpire-temporal-tests",
+        "12.811",
+        "73"
+      ]
+    ],
+    "cache_hits": 0,
+    "cache_misses": 0,
+    "tlc_executions": 0,
+    "edited_test_body_ran": true,
+    "test_binary_exit73": true,
+    "harness_assertion_correction": "Pinned Cargo propagated expected sentinel exit 73. The initial audit expected 101; retained actual logs independently verified against 73 without repeating the run."
+  },
+  "make_red": {
+    "exit": 0,
+    "child": "true|true|exec -- cargo run --manifest-path /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- quick\n",
+    "publication": true
+  },
+  "make_green": {
+    "exit": 2,
+    "child": "false|false|exec -- cargo run --manifest-path /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- quick\n",
+    "publication": false,
+    "Makefile_sha256": "417c6a7b831502fd31556392dc4b3eab74a636b7f01f22bbd49fb7878fa75741"
+  },
+  "native_controls": {
+    "quick_tests": 9,
+    "strict_clippy": true,
+    "formatting": true,
+    "red_regression_log": "quick-red.log"
+  },
+  "runs": [
+    {
+      "name": "review-fix/prewarm",
+      "command": [
+        "make",
+        "model-quick"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate",
+      "target": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate",
+      "status": 0,
+      "seconds": 24.885,
+      "environment": {
+        "CARGO_BUILD_JOBS": "2",
+        "CARGO_INCREMENTAL": "0",
+        "RUST_TEST_THREADS": "2",
+        "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate"
+      }
+    },
+    {
+      "name": "review-fix/warm",
+      "command": [
+        "make",
+        "model-quick"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate",
+      "target": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate",
+      "status": 0,
+      "seconds": 20.403,
+      "environment": {
+        "CARGO_BUILD_JOBS": "2",
+        "CARGO_INCREMENTAL": "0",
+        "RUST_TEST_THREADS": "2",
+        "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate"
+      }
+    },
+    {
+      "name": "review-fix/edited-test-selection",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "run",
+        "--locked",
+        "--manifest-path",
+        "model/Cargo.toml",
+        "-p",
+        "temporal-xtask",
+        "--bin",
+        "temporal-xtask",
+        "--",
+        "quick",
+        "--select-only"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate",
+      "target": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate",
+      "status": 0,
+      "seconds": 0.292,
+      "environment": {
+        "CARGO_BUILD_JOBS": "2",
+        "CARGO_INCREMENTAL": "0",
+        "RUST_TEST_THREADS": "2",
+        "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate"
+      }
+    },
+    {
+      "name": "review-fix/edited-test",
+      "command": [
+        "make",
+        "model-quick"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate",
+      "target": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate",
+      "status": 2,
+      "seconds": 19.817,
+      "environment": {
+        "CARGO_BUILD_JOBS": "2",
+        "CARGO_INCREMENTAL": "0",
+        "RUST_TEST_THREADS": "1",
+        "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate"
+      }
+    }
+  ],
+  "restored_candidate_clean": true,
+  "original_evidence_preserved": "../quick-proof.json retains original 20.265 s and cache/guest controls",
+  "scope": "Only Makefile and owned quick command source/tests changed. Backend/cache source, lockfiles and guest bytes remain unchanged; no repeated backend invalidation or guest campaign.",
+  "files": {
+    "warm.log": "2fab8d051da90045af664f7c4dbdaac8914108088125f47ff358b1d076e9befe",
+    "edited-test.log": "09667cea6b9b8632cd77303dbafd39af59623597781a89c5b621aa2f616342ea",
+    "edited-test-selection.log": "1b9178f2e62f552e5ab777b87d39b192cf66764fbeff9f541cb9c33b1e6d75dc",
+    "quick-red.log": "ed52a85d3a90076aaabb7db2961542534a09f34793b006fc7417397615206b79",
+    "quick-green.log": "6f4762462e97abd6e8d66913ee4f9914ea2f2e3b4b07c325f2f48869e19ebcfa",
+    "quick-clippy.log": "716fc85d498c837f9f59813d876b46c7f3bc7e6aee3bffecd272a56df2c7d93b",
+    "quick-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "make-red.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "make-red-child.log": "462a77f577df610af03e00399194ab13768d3c2e7b68a114eb57e81fb4028bcf",
+    "make-green.log": "f01b6dbc016b7c090bf36bbfb0e851f93fbb1e475949a5d453f92b0fa1c55679",
+    "make-green-child.log": "f270a6f49a06658d7ad6538bc3867dd14a08b2c6a151064fcd580223fafe3f75",
+    "make-dry-registration.log": "80878980459325d6aef143fa1734ef74c9a5ee8aff01c8cfa38551ca61b8527d",
+    "run-scenarios.py": "c12ff4f3b67870f5b417cfe5359c4567ba50647415a15e4d2025ce1be7fdf19f",
+    "fake-mise.sh": "28aa37ebec233ee0534b37db680a494b28934d30f7adaafeb74943dea2375e96"
+  }
+}

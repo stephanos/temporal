@@ -1,0 +1,4 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running `/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate/debug/temporal-xtask quick --select-only`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+{"base":"HEAD","changed":["/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/feature/activity/tests.rs"],"reasons":["always: umpire-temporal-tests (native/interpreter/backend fixture execution)","mapped source: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/feature/activity/tests.rs"],"workspaces":[{"workspace":"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model","packages":["umpire-temporal-tests"]},{"workspace":"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire","packages":[]}]}
