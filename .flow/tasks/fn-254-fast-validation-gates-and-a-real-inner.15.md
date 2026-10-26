@@ -31,6 +31,10 @@ Runs after .13 (framework copies in `model/umpire/scripts/`, Temporal copies in 
 - [ ] The framework standalone control (.11) and the focused xtask, guest-driver and TLC tests pass. The full gate runs once at the end, as usual for fn-254.
 
 
+## Throughput graph consumer
+
+Run after .17 and .16. Port leaf implementations behind .17's established native stage interfaces; keep one authoritative scheduler, stage identities, cleanup/resource contracts and framework-only task resolution. Do not rebuild a separate shell or Rust task graph during the port.
+
 ## Done summary
 TBD
 

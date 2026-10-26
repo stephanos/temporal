@@ -34,6 +34,10 @@ Keep stage registration/count/timing/retry controls now. Derive actual count bou
 - [ ] Work-count overruns and unbudgeted stages fail; wall-time overruns fail only on repeat; all four controls pass.
 - [ ] README documents how to add a stage and how to change a budget.
 
+## Final producer graph
+
+Consume .17's authoritative stage DAG, uniform runner identities and invocation-local timing/count receipts after .5/.6/.11. Budget internal/child costs without double-charging inclusive parent elapsed time. Provider/port changes must preserve or explicitly update these registrations; no second scheduler or budget mechanism belongs here.
+
 ## Done summary
 TBD
 

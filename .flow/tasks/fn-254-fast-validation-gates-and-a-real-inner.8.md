@@ -23,6 +23,10 @@ Measure the final gates warm, compare honestly with .1's historical references, 
 - [ ] README documents the tiers and the cache limits.
 - [ ] `make model-check` and TLC-required `make model-validate` pass.
 
+## Throughput proof renewal
+
+Include .17's final stage graph and uniform nextest paths, .5's 24-case mapping/compiler controls and .6's full source-consumer selection. Renew affected standalone/current-input checks after these producers. Current 444.027 s complete-coverage quick evidence is a reported target miss; old approximately 20 s incomplete-consumer runs cannot establish the final SLO or an attributed speedup.
+
 ## Done summary
 TBD
 

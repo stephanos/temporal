@@ -19,9 +19,8 @@ The Scala tree under `model/archived/` is frozen reference material.
 
 Current order: **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
-ranks a fast feedback loop among the most important properties. fn-246's in-flight work is wrapped;
-The standalone framework workspace and dedicated guest driver are integrated; remaining fn-254 tasks simplify and validate their native tools. The independent framework/gate checkpoint is integrated and its isolated proof passed.
-Resume fn-246 in disjoint lanes while finishing fn-254's remaining optimizations, then finish fn-254.7/.8.
+ranks a fast feedback loop among the most important properties. The standalone workspace/driver and independent gate checkpoint are integrated, and the complete isolated proof passed.
+Immediate validation path: finish .6's correct consumer/cache checkpoint, then .5's fixture/compiler work, then priority-0 .17's uniform nextest and single bounded stage DAG. Downloads .16 and shell ports .15 follow .17; budgets .12 and final proof .8 consume it. fn-254 gets first admission to shared build/JVM/review capacity. Already running fn-246.9/.13 work may reach safe checkpoints, and disjoint source work may continue without delaying fn-254. Finish fn-254.7 after committed fn-246 closure.
 The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246; fn-254.13's workspace move is integrated. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; activity changes
 retain their listed dependencies and follow the current priority/source-ownership order.
 fn-255.1, .3 and .4 (generator spike, fuzz targets, cargo-mutants) touch no gate files and may run as lanes before fn-254 closes.
@@ -53,13 +52,14 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-254.5 | ⬜ todo | Apalache out of routine gates, overlapping stages, trybuild trim, dead `model-check-changed` removed (R5) |
+| fn-254.5 | ⬜ todo | Critical path: 24 parallel fixture cases, compiler batching/reuse, UI trim and dead-target/default-mode cleanup (R4, R5) |
 | fn-254.6 | 🔄 in progress | `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
 | fn-254.12 | ⬜ todo | After framework optimizations and controls: committed stage budgets; hard work counts, bounded timing retry, unbudgeted stages fail (R8) |
-| fn-254.15 | ⬜ todo | After .14/.16: port remaining model shell scripts to xtask/guest-driver/Makefile; only the xtask bootstrap stays shell (R7) |
-| fn-254.16 | ⬜ todo | After .14: mise provisions pinned TLC and opt-in Apalache behind existing entry points; keep runtime JAR hash/path admission (R7) |
+| fn-254.15 | ⬜ todo | After .17/.16: port remaining model shell scripts to xtask/guest-driver/Makefile; only the xtask bootstrap stays shell (R7) |
+| fn-254.16 | ⬜ todo | After .17: mise provisions pinned TLC and opt-in Apalache behind existing entry points; keep runtime JAR hash/path admission (R7) |
+| fn-254.17 | ⬜ todo | Priority 0, after .5/.6: uniform nextest including quick, one mise/native stage DAG, bounded resources and failure cleanup (R4, R5, R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 

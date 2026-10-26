@@ -11,7 +11,8 @@
     "fn-254-fast-validation-gates-and-a-real-inner.4",
     "fn-254-fast-validation-gates-and-a-real-inner.5",
     "fn-254-fast-validation-gates-and-a-real-inner.6",
-    "fn-254-fast-validation-gates-and-a-real-inner.11"
+    "fn-254-fast-validation-gates-and-a-real-inner.11",
+    "fn-254-fast-validation-gates-and-a-real-inner.17"
   ],
   "id": "fn-254-fast-validation-gates-and-a-real-inner.12",
   "priority": null,
@@ -19,5 +20,5 @@
   "spec_path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.12.md",
   "status": "todo",
   "title": "Per-stage budgets: committed table, hard work counts, wall time with tolerance",
-  "updated_at": "2026-10-25T20:12:04.990826Z"
+  "updated_at": "2026-10-26T03:35:56.042189Z"
 }

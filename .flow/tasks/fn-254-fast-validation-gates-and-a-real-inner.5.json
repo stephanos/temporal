@@ -5,13 +5,14 @@
   "created_at": "2026-10-25T17:55:26.992200Z",
   "depends_on": [
     "fn-254-fast-validation-gates-and-a-real-inner.1",
-    "fn-254-fast-validation-gates-and-a-real-inner.10"
+    "fn-254-fast-validation-gates-and-a-real-inner.10",
+    "fn-254-fast-validation-gates-and-a-real-inner.6"
   ],
   "id": "fn-254-fast-validation-gates-and-a-real-inner.5",
   "priority": null,
   "spec": "fn-254-fast-validation-gates-and-a-real-inner",
   "spec_path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.5.md",
   "status": "todo",
-  "title": "Gate composition: Apalache out, overlapping stages, trybuild trim, remove dead target",
-  "updated_at": "2026-10-26T01:57:27.972441Z"
+  "title": "Expose parallel fixture/compiler cases, trim UI work and retire dead targets",
+  "updated_at": "2026-10-26T03:31:10.071918Z"
 }

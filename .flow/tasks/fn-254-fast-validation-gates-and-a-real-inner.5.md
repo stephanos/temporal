@@ -1,22 +1,24 @@
 ---
-satisfies: [R5]
+satisfies: [R4, R5]
 ---
-# fn-254-fast-validation-gates-and-a-real-inner.5 Gate composition: Apalache out, overlapping stages, trybuild trim, remove dead target
+# fn-254-fast-validation-gates-and-a-real-inner.5 Expose parallel fixture/compiler cases, trim UI work and retire dead targets
 
 
 ## Description
 Remove waste from the gate's structure without dropping a check (spec R5).
 
 **Size:** M
-**Files:** `Makefile` (model targets), `model/scripts/time-gate.sh`, `test-model-validate.sh`, trybuild UI cases.
-**Touches:** [Makefile, model/scripts/**, model/umpire/dev/xtask/**, model/dev/xtask/**, model/umpire/**/tests/ui/**, model/temporal/annotate/tests/ui/**, model/umpire/author/dsl/macros/tests/fixtures.rs, model/umpire/author/dsl/macros/tests/parser_refusals/**, model/umpire/.config/nextest.toml, model/.config/nextest.toml, model/umpire/backends/tlc/src/runner.rs]
+**Files:** existing fixture/compiler test binaries and helpers, parser-only UI cases, bounded nextest configuration and dead Make targets.
+**Touches:** [Makefile, model/scripts/**, model/umpire/dev/xtask/**, model/dev/xtask/**, model/umpire/**/tests/ui/**, model/temporal/annotate/syntax/tests/**, model/temporal/realization/tests/**, model/umpire/author/dsl/macros/tests/fixtures.rs, model/umpire/author/dsl/macros/tests/parser_refusals/**, model/umpire/.config/nextest.toml, model/.config/nextest.toml, model/umpire/backends/tlc/src/runner.rs, model/umpire/dev/fixtures/build.rs, model/umpire/dev/fixtures/fixtures.rs, model/umpire/dev/testing/src/runner.rs, model/umpire/dev/testing/src/lib.rs, model/umpire/dev/testing/tests/consumers.rs]
 
 ### Approach
 - Apalache: routine `model-check`/`model-validate` never require it while fn-211 is deferred; `UMPIRE_APALACHE=require` stays available and documented. Its cost is reported separately.
-- Overlap only dependency-independent stages. Guest freshness/build and protobuf scripts invoke Cargo/code generation today; inventory their actual locks, generated outputs and consumer edges instead of assuming independence. Bound shared build/JVM resources, then run safe non-cargo work beside Rust stages. Preserve named exits and deterministic timing/report order. A failing stage cancels/reaps owned siblings and preserves simultaneous failures; planted failures while siblings are active prove cleanup. Do not share a target across copied workspaces.
+- Expose the 24 framework fixtures as separate libtest cases in the same existing binary, so nextest can schedule them. Keep the full registry/consumer/snapshot admission before selecting a case; retain unchanged CHECKER/SUITE/LIFT/TLC consumers and both renders per consumer. Remove the executing umbrella rather than duplicating its TLC work. Preserve interpreted and fixture-local tests. Temporal's activity `fixtures` selector stays unchanged.
+- Break up or batch the expensive realization/compiler admission controls and reuse their owned compiler artifacts where exact source/tool/feature inputs permit it. Preserve all rustc-dependent checks and negative cases. The correct five-package quick workload took 444.027 s, including 388.875 s of realization tests; the two largest admission controls are the first targets. Never speed this up by excluding affected consumer packages or accepting cached validation without exact inputs.
+- Inventory actual Cargo locks, generated outputs, consumer edges and resource costs for .17. Task .17 exclusively owns dependency-independent stage scheduling, simultaneous failure handling and sibling cleanup; do not build a second custom scheduler here. Keep named primitive failures and existing public wiring intact.
 - trybuild: of the remaining UI cases, convert those with no rustc type-check stage into table rows (fn-252.5 pattern). Keep the rustc-dependent ones; list both.
 - Remove `model-check-changed` and `model-compiler-inputs` if only Scala uses them; check references first.
-- `test-model-validate.sh` and `test-time-gate.sh` controls still pass, extended for concurrent stages.
+- Existing mode, stage-presence and timing controls still pass; .17 adds concurrent-stage orchestration controls.
 - Existing routine defaults already skip Apalache: report the historical opt-in cost separately rather than claiming its removal as a new default-gate saving. Keep explicit opt-in controls runnable. Register resulting stages/counts for .12 and preserve converted UI-case coverage against .1's inventory.
 
 ### Investigation targets
@@ -28,10 +30,11 @@ Remove waste from the gate's structure without dropping a check (spec R5).
 
 ## Owner validation cadence (2026-10-25)
 
-Keep real changed orchestration wiring, stage-presence and mode/failure/cleanup controls now. Unrelated real full-stage execution waits for .8; synthetic controls never claim a production suite pass. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
+Keep actual changed test/runner execution, exact coverage mappings, stage-presence/mode controls and bounded JVM-owner checks now. Run all 24 new framework cases with TLC required and caching disabled. Unrelated whole-gate execution and final measurements wait for .8; .17 owns changed scheduling controls. No fresh timing-baseline campaign is required.
 
 ## Acceptance
-- [ ] Every previous stage still runs in `model-validate`; a planted failure in each stage fails the gate with its name.
+- [ ] The old framework umbrella maps exactly to 24 cases in the same binary, with all other identities preserved except separately listed new controls. Full fixture/consumer/output ownership, snapshots, both renders, registry failures and dynamic orphan/nondeterminism refusals remain covered. Preserve the 119 dependency tuples separately; they are not fixture counts.
+- [ ] Expensive compiler controls retain all positive/negative semantics while exposing independent cases or batching/reusing owned compiler work. Record current selected/executed case counts and timings with complete consumer coverage.
 - [ ] Apalache is not required by routine gates; the opt-in still works.
 - [ ] UI case count and trybuild time recorded before and after; every converted case keeps its semantic error and location.
 - [ ] `model-check-changed` removed or justified.
@@ -50,4 +53,4 @@ Consume the source-grounded decision at `.flow/tmp/fn254-jvm-parallel-shape/deci
 
 Prove the candidate with current real simultaneous framework JVM owners and a Temporal case, exact membership/count checks and bounded process sampling. Reuse task .3's historical identity/workload evidence; do not launch a fresh group-one timing baseline campaign or attribute speedup across incomparable workloads. Keep heavy Cargo/Go stages separate until their combined budget is established. This stays part of the existing gate composition task and does not reopen completed .3.
 
-For UI conversion, preserve each old diagnostic message and useful exact authored location. The read-only 63-case proposal is a candidate list, not proof of equivalence; retain any case whose full behavior cannot be reproduced in the table. New parser table source belongs under the declared nested parser_refusals tree, avoiding another test binary.
+For UI conversion, preserve each old diagnostic message and useful exact authored location. The read-only 63-case proposal is a candidate list, not proof of equivalence; retain any case whose full behavior cannot be reproduced in the table. New parser table source belongs under the declared nested parser_refusals tree, avoiding another test binary. Keep required parent/isolated-child suite authority and output contracts unchanged; artifact-publication or authority-deduplication redesign is outside this task.

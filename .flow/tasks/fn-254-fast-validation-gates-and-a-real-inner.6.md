@@ -44,6 +44,10 @@ Keep actual activity quick checks, native/interpreter selection, hit/miss/invali
 - [ ] Cache controls exercise every effective input, corruption/interruption/concurrent publication and failure exclusion; inherited enablement cannot make `model-validate` read a cache. Selection controls cover rename/delete/global inputs and cross-workspace reverse dependencies.
 - [ ] Warm `model-quick` after an activity edit is under 60 s, or the miss is reported with its cause.
 
+## Throughput handoff
+
+The correct five-consumer content-edit workload passed in 444.027 s, with 388.875 s in realization tests and 14 TLC cache hits/zero executions. Preserve this complete coverage and report the 60 s miss. .5 owns compiler-case batching/reuse and fixture granularity; .17 owns nextest reuse and stage scheduling. Earlier approximately 20 s runs omitted consumers and remain historical incomplete coverage. Neither lower test selection nor a cache-only argument satisfies the inner-loop contract.
+
 ## Done summary
 TBD
 

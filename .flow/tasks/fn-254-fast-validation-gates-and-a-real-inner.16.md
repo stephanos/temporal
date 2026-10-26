@@ -29,6 +29,10 @@ Runs after .13's workspace/tool extraction and .14's tool-probe removal. Task .1
 
 The isolated follow-up successfully installed the actual official Apalache release through mise HTTP, independently matched the archive/JAR hashes and ran the admitted JAR `version` command under pinned Java. Exact configs, resolver environment, statuses and limits are retained at `.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/planning/mise-provisioning/real-apalache/report.md`. This is preparatory evidence, not a passing implementation/provider test. Future changed resolver/admission inputs need renewed relevant controls; production .14 probes remain removed. The installed data stays outside Git for reuse.
 
+## Throughput-first order
+
+Run after priority .17. Preserve its single stage graph, public entry points and nextest/resource contract while replacing provisioning internals. Download cleanup must not delay .5/.17's validation speedups or recreate orchestration in the tool provider.
+
 ## Done summary
 TBD
 
