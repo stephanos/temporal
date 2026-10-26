@@ -10,6 +10,13 @@ pub(crate) fn stage(root: &Path, name: &str, mut command: Command) -> io::Result
     let caller = std::env::current_dir()?;
     let home = umpire_guest_driver::context::cargo_home(&caller).map_err(io::Error::other)?;
     command.env("CARGO_HOME", home).env("UMPIRE_QUICK_CACHE", "0").env("UMPIRE_CACHE_DISABLE", "1");
+    if name == "tests" {
+        crate::test_run::configure(
+            &mut command,
+            std::env::var_os("UMPIRE_BACKENDS").is_some_and(|value| value == "require"),
+            std::env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require"),
+        );
+    }
     if let Some(target) = std::env::var_os("CARGO_TARGET_DIR") {
         let target = std::path::PathBuf::from(target);
         command.env(
@@ -120,6 +127,38 @@ mod tests {
                 .unwrap(),
             37
         );
+    }
+
+    #[test]
+    fn test_policy_control_child() {
+        let Ok(expected) = std::env::var("TEMPORAL_EXPECT_TEST_POLICY") else { return };
+        let mut command = Command::new("/bin/sh");
+        command.args(["-c", "test \"${NEXTEST_PROFILE:-unset}:${NEXTEST_TEST_THREADS:-unset}\" = \"$TEMPORAL_EXPECT_TEST_POLICY\""]);
+        assert_eq!(stage(Path::new("/"), "tests", command).unwrap(), 0, "{expected}");
+    }
+
+    #[test]
+    fn test_stage_propagates_required_policy_and_preserves_skipped_defaults() {
+        for (backend, apalache, expected) in [
+            ("skip", "skip", "unset:unset"),
+            ("require", "skip", "required:4"),
+            ("skip", "require", "required:1"),
+            ("require", "require", "required:1"),
+        ] {
+            let mut child = Command::new(std::env::current_exe().unwrap());
+            child
+                .args(["--exact", "gate::tests::test_policy_control_child", "--nocapture"])
+                .env("TEMPORAL_EXPECT_TEST_POLICY", expected)
+                .env("UMPIRE_BACKENDS", backend)
+                .env("UMPIRE_APALACHE", apalache)
+                .env_remove("NEXTEST_PROFILE")
+                .env_remove("NEXTEST_TEST_THREADS");
+            if backend == "require" || apalache == "require" {
+                child.env("NEXTEST_PROFILE", "default").env("NEXTEST_TEST_THREADS", "99");
+            }
+            let output = child.output().unwrap();
+            assert!(output.status.success(), "{output:?}");
+        }
     }
 
     #[test]

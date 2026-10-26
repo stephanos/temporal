@@ -1,12 +1,32 @@
 //! Framework tests across binaries, followed by Cargo's workspace doctests.
-use std::{os::unix::process::ExitStatusExt, process::Command};
+use std::{env, os::unix::process::ExitStatusExt, process::Command};
 
 /// Run workspace tests with the caller's admitted gate environment and working directory.
 pub fn run() -> crate::Result<i32> {
     run_with(|arguments| {
-        let status = Command::new("mise").args(["exec", "--", "cargo"]).args(arguments).status()?;
+        let mut command = Command::new("mise");
+        command.args(["exec", "--", "cargo"]).args(arguments);
+        configure(
+            &mut command,
+            env::var_os("UMPIRE_BACKENDS").is_some_and(|value| value == "require"),
+            env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require"),
+        );
+        let status = command.status()?;
         Ok(status.code().unwrap_or_else(|| 128 + status.signal().unwrap_or(0)))
     })
+}
+
+pub(crate) fn test_threads(apalache: bool) -> usize {
+    // Optional mixed-backend allocation still needs its real resource proof.
+    if apalache { 1 } else { 4 }
+}
+
+pub(crate) fn configure(command: &mut Command, required: bool, apalache: bool) {
+    if required || apalache {
+        command
+            .env("NEXTEST_PROFILE", "required")
+            .env("NEXTEST_TEST_THREADS", test_threads(apalache).to_string());
+    }
 }
 
 fn run_with(mut execute: impl FnMut(&[&str]) -> crate::Result<i32>) -> crate::Result<i32> {
@@ -36,6 +56,31 @@ fn run_with(mut execute: impl FnMut(&[&str]) -> crate::Result<i32>) -> crate::Re
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    #[allow(clippy::unwrap_used)]
+    fn required_backend_policy_caps_inherited_threads_and_preserves_skipped_defaults() {
+        for (required, apalache, threads) in
+            [(true, false, "4"), (false, true, "1"), (true, true, "1")]
+        {
+            let mut command = Command::new("/bin/sh");
+            command.env("NEXTEST_PROFILE", "default").env("NEXTEST_TEST_THREADS", "99");
+            configure(&mut command, required, apalache);
+            let output = command
+                .args(["-c", "printf '%s:%s' \"$NEXTEST_PROFILE\" \"$NEXTEST_TEST_THREADS\""])
+                .output()
+                .unwrap();
+            assert!(output.status.success());
+            assert_eq!(String::from_utf8(output.stdout).unwrap(), format!("required:{threads}"));
+        }
+        let mut command = Command::new("/bin/sh");
+        configure(&mut command, false, false);
+        assert!(
+            !command
+                .get_envs()
+                .any(|(key, _)| key == "NEXTEST_PROFILE" || key == "NEXTEST_TEST_THREADS")
+        );
+    }
 
     #[test]
     fn binaries_then_doctests_exactly_once() -> crate::Result<()> {

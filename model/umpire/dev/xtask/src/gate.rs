@@ -87,6 +87,11 @@ impl Gate {
     fn tests(&self) -> Result<Command> {
         let mut command = self.command(env::current_exe()?);
         command.arg("test-run");
+        crate::test_run::configure(
+            &mut command,
+            self.required,
+            env::var_os("UMPIRE_APALACHE").as_deref() == Some(OsStr::new("require")),
+        );
         Ok(command)
     }
     fn script(&self, path: &str, args: &[&str]) -> Command {

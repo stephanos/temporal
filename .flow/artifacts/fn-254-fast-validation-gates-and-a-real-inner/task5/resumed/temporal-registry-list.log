@@ -1,0 +1,14 @@
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/protocol/runtime)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/catalog)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/temporal/api)
+   Compiling tempfile v3.27.0
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling insta v1.49.0
+   Compiling trybuild v1.0.122
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/temporal/realization)
+    Finished `test` profile [unoptimized] target(s) in 16.68s
+     Running tests/registry.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/registry-44da4846d12b18b1)
+registry_admission_accepts_valid_consumers: test
+registry_admission_uses_actual_inventory_descriptor_edges_and_rust_types: test
+
+2 tests, 0 benchmarks

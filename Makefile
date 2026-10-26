@@ -692,17 +692,6 @@ model: $(MODEL_PROTO_JARS)
 model-mini:
 	@$(MAKE) --no-print-directory model FEATURES=activity_mini
 
-# The default check of a change (model/framework/check/ChangeCheck.scala): what changed since BASE
-# (default: the last commit, plus the working tree) selects, by model/temporal/check/Coverage.scala,
-# the current features
-# to lint, compile, lift and compare with their baselines and the suites to run; it writes
-# .flow/tmp/checks/<time>/record.md. The full gates stay the batch-end and sweep tier.
-.PHONY: model-compiler-inputs model-check-changed
-model-compiler-inputs: $(MODEL_PROTO_JARS) $(MODEL_REIFY_PLUGIN)
-
-model-check-changed:
-	@$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_CHECK) -M temporal.check.changed -- $(if $(BASE),--base $(call model_quote,$(BASE)))
-
 fmt-model:
 	@printf $(COLOR) "Formatting model files..."
 	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS) $(MODEL_TOOL_DIRS)

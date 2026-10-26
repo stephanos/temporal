@@ -1,0 +1,21 @@
+    Finished `test` profile [unoptimized] target(s) in 0.05s
+     Running tests/consumers.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/consumers-6f38a314badccd3c)
+
+running 9 tests
+test consumers_select_generic_snapshot_files ... ok
+test rejects_orphan_snapshot_artifacts ... ok
+test runner_child ... ok
+test pending_text_snapshots_require_explicit_acceptance ... ok
+backend external: skipped; no execution or agreement evidence (UMPIRE_BACKENDS=require runs it)
+test selected_fixture_admits_skipped_sibling_goldens ... ok
+test selected_fixture_preserves_dynamic_orphan_and_nondeterminism_refusals ... ok
+test selection_admits_all_registry_and_snapshot_inputs_before_rendering ... ok
+test selected_fixture_renders_twice_without_running_its_siblings ... backend okexternal
+: skipped; no execution or agreement evidence (UMPIRE_BACKENDS=require runs it)
+backend external: skipped; no execution or agreement evidence (UMPIRE_BACKENDS=require runs it)
+backend external: skipped; no execution or agreement evidence (UMPIRE_BACKENDS=require runs it)
+backend external: skipped; no execution or agreement evidence (UMPIRE_BACKENDS=require runs it)
+test skipped_backend_requires_selected_complete_goldens ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+

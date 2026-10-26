@@ -133,6 +133,10 @@ set -euo pipefail
 [ "$UMPIRE_QUICK_CACHE" = 0 ] && [ "$UMPIRE_CACHE_DISABLE" = 1 ]
 [ "$MISE_AUTO_INSTALL" = false ] && [ "$MISE_EXEC_AUTO_INSTALL" = false ]
 printf '%s|%s|%s|%s|%s|%s|%s|%s\n' "$label" "$PWD" "$CARGO_TARGET_DIR" "$CARGO_HOME" "$UMPIRE_QUICK_CACHE" "$UMPIRE_CACHE_DISABLE" "${{UMPIRE_BACKENDS:-unset}}" "$*" >> "$CONTROL_LOG"
+if [ "$label" = tests ] && [ -n "${{CONTROL_EXPECT_PROFILE:-}}" ]; then
+ [ "${{NEXTEST_PROFILE:-unset}}" = "$CONTROL_EXPECT_PROFILE" ]
+ [ "${{NEXTEST_TEST_THREADS:-unset}}" = "$CONTROL_EXPECT_THREADS" ]
+fi
 if [ "${{CONTROL_SIGNAL:-}}" = "$label" ]; then
  printf 'signal stdout diagnostic\n'
  printf 'signal stderr diagnostic\n' >&2
@@ -596,5 +600,47 @@ fn root_required_backend_environment_selects_standalone_on_gate_and_time_routes(
         let log = fs::read_to_string(&fixture.log).unwrap();
         assert!(log.lines().all(|line| line.contains("|0|1|require|")), "{log}");
         assert!(!log.contains("cargo test -p"));
+    }
+}
+
+#[test]
+fn required_profile_reaches_gate_update_and_direct_test_children() {
+    let fixture = Fixture::new();
+    for entry in [vec!["gate", "--stage", "tests"], vec!["update"], vec!["test-run"]] {
+        for (backend, apalache, profile, threads) in [
+            ("skip", "skip", "unset", "unset"),
+            ("require", "skip", "required", "4"),
+            ("skip", "require", "required", "1"),
+            ("require", "require", "required", "1"),
+        ] {
+            fixture.clear();
+            let mut command = fixture.command(false);
+            if entry == ["test-run"] {
+                command
+                    .current_dir(&fixture.root)
+                    .env("CARGO_TARGET_DIR", fixture.caller.join("relative target"))
+                    .env("CARGO_HOME", fixture.caller.join("real home"))
+                    .env("UMPIRE_QUICK_CACHE", "0")
+                    .env("UMPIRE_CACHE_DISABLE", "1");
+            }
+            command
+                .args(&entry)
+                .env("UMPIRE_BACKENDS", backend)
+                .env("UMPIRE_APALACHE", apalache)
+                .env("CONTROL_EXPECT_PROFILE", profile)
+                .env("CONTROL_EXPECT_THREADS", threads)
+                .env_remove("NEXTEST_PROFILE")
+                .env_remove("NEXTEST_TEST_THREADS");
+            if backend == "require" || apalache == "require" {
+                command.env("NEXTEST_PROFILE", "default").env("NEXTEST_TEST_THREADS", "99");
+            }
+            let output = command.output().unwrap();
+            assert_eq!(
+                output.status.code(),
+                Some(0),
+                "entry={entry:?}, backend={backend}, apalache={apalache}: {output:?}"
+            );
+            assert_eq!(fixture.labels(), ["tests", "doctests"]);
+        }
     }
 }

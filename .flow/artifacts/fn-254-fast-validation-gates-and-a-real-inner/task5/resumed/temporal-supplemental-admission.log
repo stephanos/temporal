@@ -1,0 +1,29 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/temporal/api)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/temporal/realization)
+    Finished `test` profile [unoptimized] target(s) in 10.57s
+     Running tests/supplemental_admission.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/supplemental_admission-9c95d8ce10195f6e)
+
+running 2 tests
+test generated_api_catalog_compiles_and_validates_actual_messages ...    Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/temporal/api)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/temporal/realization)
+   Compiling umpire-temporal-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/tests/trybuild/umpire-temporal)
+    Finished `dev` profile [unoptimized] target(s) in 11.12s
+
+
+test tests/ui-pass/generated_api.rs ... ok
+
+
+ok
+test supplemental_requests_require_expectations_and_reject_retired_helpers ...    Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/temporal/api)
+    Checking umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/temporal/realization)
+    Checking umpire-temporal-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/tests/trybuild/umpire-temporal)
+    Finished `dev` profile [unoptimized] target(s) in 5.87s
+
+
+test tests/ui/supplemental_unregistered_api.rs ... ok
+
+
+ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 62.98s
+

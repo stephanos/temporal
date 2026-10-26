@@ -216,3 +216,178 @@ fn skipped_backend_requires_selected_complete_goldens() -> Result<(), Box<dyn Er
         Ok(())
     })
 }
+
+fn with_selection_control(
+    name: &str,
+    check: impl FnOnce(&Path, Vec<umpire_testing::Fixture>) -> umpire_testing::TestResult,
+) -> umpire_testing::TestResult {
+    with_control(name, |root, _| {
+        let fixtures = root.join("fixtures");
+        let expected = fixtures.join("other/expected");
+        fs::create_dir_all(&expected)?;
+        fs::write(fixtures.join("other/model.rs"), "")?;
+        fs::write(expected.join("artifact.tla.snap"), "---\nsource: control.rs\n---\nseed\n")?;
+        check(
+            &fixtures,
+            vec![
+                ("control", || panic!("consumer must use its renderer")),
+                ("other", || panic!("unselected producer executed")),
+            ],
+        )
+    })
+}
+
+#[test]
+fn selected_fixture_renders_twice_without_running_its_siblings() -> umpire_testing::TestResult {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    static RENDERS: AtomicUsize = AtomicUsize::new(0);
+
+    with_selection_control("selected-renders", |root, fixtures| {
+        RENDERS.store(0, Ordering::SeqCst);
+        umpire_testing::run_fixture_at_skipping(
+            root,
+            fixtures,
+            &[Consumer {
+                name: "control",
+                expected: &["artifact.tla"],
+                render: |_, folder| {
+                    assert_eq!(folder.file_name().and_then(|name| name.to_str()), Some("control"));
+                    RENDERS.fetch_add(1, Ordering::SeqCst);
+                    Ok(Files::from([("artifact.tla".into(), "seed\n".into())]))
+                },
+            }],
+            &[],
+            "control",
+        )?;
+        assert_eq!(RENDERS.load(Ordering::SeqCst), 2);
+        Ok(())
+    })
+}
+
+#[test]
+fn selection_admits_all_registry_and_snapshot_inputs_before_rendering() -> umpire_testing::TestResult
+{
+    with_selection_control("selected-admission", |root, fixtures| {
+        let consumers = [Consumer {
+            name: "control",
+            expected: &["artifact.tla"],
+            render: |_, _| panic!("render preceded full admission"),
+        }];
+        let expected = root.join("other/expected");
+        for (file, content, diagnostic) in [
+            ("artifact.tla.snap.new", "pending\n", "pending golden"),
+            ("orphan.txt.snap", "---\nsource: control.rs\n---\nseed\n", "no consumer"),
+            ("artifact.tla.snap", "malformed\n", "invalid golden"),
+        ] {
+            let path = expected.join(file);
+            let original = fs::read(&path).ok();
+            fs::write(&path, content)?;
+            let error = umpire_testing::run_fixture_at_skipping(
+                root,
+                fixtures.clone(),
+                &consumers,
+                &[],
+                "control",
+            )
+            .err()
+            .ok_or("invalid unselected fixture passed admission")?;
+            assert!(error.to_string().contains(diagnostic), "{error}");
+            assert!(error.to_string().contains("other"), "{error}");
+            if let Some(original) = original {
+                fs::write(path, original)?;
+            } else {
+                fs::remove_file(path)?;
+            }
+        }
+        for (registry, selected, diagnostic) in [
+            (vec![fixtures[0]], "control", "registry"),
+            (vec![fixtures[0], fixtures[0], fixtures[1]], "control", "registry"),
+            (fixtures.clone(), "missing", "unknown selected fixture"),
+        ] {
+            let error =
+                umpire_testing::run_fixture_at_skipping(root, registry, &consumers, &[], selected)
+                    .err()
+                    .ok_or("invalid fixture selection passed")?;
+            assert!(error.to_string().contains(diagnostic), "{error}");
+        }
+        let overlapping = [
+            Consumer { name: "one", expected: &["artifact.tla"], render: |_, _| panic!("render") },
+            Consumer { name: "two", expected: &["*.tla"], render: |_, _| panic!("render") },
+        ];
+        let error =
+            umpire_testing::run_fixture_at_skipping(root, fixtures, &overlapping, &[], "control")
+                .err()
+                .ok_or("ambiguous consumers passed")?;
+        assert!(error.to_string().contains("multiple consumers"), "{error}");
+        Ok(())
+    })
+}
+
+#[test]
+fn selected_fixture_preserves_dynamic_orphan_and_nondeterminism_refusals()
+-> umpire_testing::TestResult {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    static RENDERS: AtomicUsize = AtomicUsize::new(0);
+
+    with_selection_control("selected-refusals", |root, fixtures| {
+        for (render, diagnostic) in [
+            (
+                (|_, _| Ok(Files::new())) as fn(fn() -> RunResult, &Path) -> RunResult,
+                "golden has no fixture",
+            ),
+            (
+                |_, _| Ok(Files::from([("undeclared.txt".into(), "seed\n".into())])),
+                "undeclared output",
+            ),
+            (|_, _| Err("selected producer refused".into()), "selected producer refused"),
+            (
+                |_, _| {
+                    Ok(Files::from([(
+                        "artifact.tla".into(),
+                        RENDERS.fetch_add(1, Ordering::SeqCst).to_string(),
+                    )]))
+                },
+                "nondeterministic control producer",
+            ),
+        ] {
+            let error = umpire_testing::run_fixture_at_skipping(
+                root,
+                fixtures.clone(),
+                &[Consumer { name: "control", expected: &["artifact.tla"], render }],
+                &[],
+                "control",
+            )
+            .err()
+            .ok_or("invalid selected output passed")?;
+            assert!(error.to_string().contains(diagnostic), "{error}");
+        }
+        Ok(())
+    })
+}
+
+#[test]
+fn selected_fixture_admits_skipped_sibling_goldens() -> umpire_testing::TestResult {
+    with_selection_control("selected-skipped", |root, fixtures| {
+        let consumers = [Consumer {
+            name: "external",
+            expected: &["artifact.tla", "artifact.cfg"],
+            render: |_, _| panic!("skipped consumer executed"),
+        }];
+        fs::write(
+            root.join("control/expected/artifact.cfg.snap"),
+            "---\nsource: control.rs\n---\nseed\n",
+        )?;
+        let error = umpire_testing::run_fixture_at_skipping(
+            root,
+            fixtures,
+            &consumers,
+            &["external"],
+            "control",
+        )
+        .err()
+        .ok_or("incomplete skipped sibling passed")?;
+        assert!(error.to_string().contains("incomplete golden"), "{error}");
+        assert!(error.to_string().contains("other"), "{error}");
+        Ok(())
+    })
+}

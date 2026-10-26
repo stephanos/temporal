@@ -217,7 +217,6 @@
       "claimed_at": "2026-10-26T20:56:30.471681Z",
       "done_at": "2026-10-26T22:04:10.362826Z",
       "claim_to_done_seconds": 4059.891145,
-      "integrated_at": "142f7de90cfc4c6d79427aa74e0141235c446509",
       "closure_commit": "5d5d498f0927daec44186bf177a4751575bcd1b1",
       "source_checkpoint": "dddeead063",
       "reviews": [
@@ -235,7 +234,8 @@
       "verification": "141 archive members and6graph pairs independently checked; fresh no-build preflight/process controls; runtime evidence source-projected.",
       "source_rework": "Uncompiled proposal corrected, complete batching/shrinking/refusal/outcome controls measured; six provenance/budget/preflight follow-ups addressed.",
       "attribution": "Observed claim-to-done spans source work, validation, other sessions and review waits; not isolated worker time or causal concurrency speedup.",
-      "deferred": "Maintained harness and gate/budget activation remain later tasks."
+      "deferred": "Maintained harness and gate/budget activation remain later tasks.",
+      "integration_commit": "142f7de90cfc4c6d79427aa74e0141235c446509"
     }
   ],
   "measurement_limits": "Source handoffs are work-in-progress, not verified closures. Mixed scope, unknown exact worker times and validation/access blockers prevent a causal concurrency speedup estimate."

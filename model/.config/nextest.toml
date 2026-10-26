@@ -1,9 +1,9 @@
 nextest-version = { required = "0.9.149" }
 
 [test-groups]
-# One test can launch two 512 MiB TLC recovery JVMs. Separate workspace runs
-# must share the host budget; this group limits only this nextest invocation.
-jvm = { max-threads = 1 }
+# Two owners can each launch two 512 MiB TLC recovery JVMs. This group limits
+# one invocation; gate/quick admission must share a cross-invocation JVM lease.
+jvm = { max-threads = 2 }
 
 [profile.default]
 test-threads = "num-cpus"
@@ -12,3 +12,9 @@ slow-timeout = { period = "30s" }
 [[profile.default.overrides]]
 filter = 'package(=umpire-temporal-tests) & binary(=fixtures)'
 test-group = "jvm"
+
+# Required-backend gates and standalone children select this profile. Four global
+# slots include the two JVM owners; native backend-skipped runs keep CPU defaults.
+# The runner caps explicit Apalache mode at one slot pending mixed-backend resource proof.
+[profile.required]
+test-threads = 4

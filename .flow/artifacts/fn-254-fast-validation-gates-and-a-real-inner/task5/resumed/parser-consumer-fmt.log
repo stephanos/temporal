@@ -1,0 +1,12 @@
+Diff in /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/testing/src/runner.rs:113:
+     run_selected(root, fixtures, consumers, skipped, external, None)
+ }
+ 
+[31m-#[allow(
+(B[m[31m-    clippy::too_many_lines,
+(B[m[31m-    reason = "admit every fixture before any selected producer runs"
+(B[m[31m-)]
+(B[m[32m+#[allow(clippy::too_many_lines, reason = "admit every fixture before any selected producer runs")]
+(B[m fn run_selected(
+     root: &Path,
+     fixtures: Vec<crate::Fixture>,

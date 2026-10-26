@@ -1,0 +1,6 @@
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/testing)
+    Finished `test` profile [unoptimized] target(s) in 1.16s
+group: jvm (max threads = 2)
+  * override for default profile with filter '(package(=umpire-tlc) | package(=umpire-apalache) | package(=umpire-tla)) & binary(=main) | package(=umpire-fixtures) & binary(=fixtures) | package(=umpire-testing) & kind(lib) & test(actual_tlc_fact_traces_replay_exact_vectors)' (from .config/nextest.toml):
+      umpire-testing:
+          backend::tests::actual_tlc_fact_traces_replay_exact_vectors

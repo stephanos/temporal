@@ -18,6 +18,9 @@ mod state;
 #[path = "../src/world.rs"]
 mod world;
 
+#[path = "parser_refusals/mod.rs"]
+mod parser_refusals;
+
 include!(concat!(env!("OUT_DIR"), "/fixtures.rs"));
 
 #[test]
@@ -35,7 +38,25 @@ fn fixtures() -> umpire_testing::TestResult {
 
 #[test]
 fn refusals() {
-    trybuild::TestCases::new().compile_fail("tests/ui/*.rs");
+    let tests = trybuild::TestCases::new();
+    tests.compile_fail("tests/ui/action_domain_item_type.rs");
+    tests.compile_fail("tests/ui/action_domain_unbound.rs");
+    tests.compile_fail("tests/ui/action_domain_world_mismatch.rs");
+    tests.compile_fail("tests/ui/action_finite_missing.rs");
+    tests.compile_fail("tests/ui/machine_mutable_aliased_helper.rs");
+    tests.compile_fail("tests/ui/machine_mutable_const_helper.rs");
+    tests.compile_fail("tests/ui/machine_mutable_local_helper.rs");
+    tests.compile_fail("tests/ui/machine_mutable_local_projection.rs");
+    tests.compile_fail("tests/ui/machine_mutable_nested_helper.rs");
+    tests.compile_fail("tests/ui/machine_mutable_qualified_helper.rs");
+    tests.compile_fail("tests/ui/machine_nonexhaustive_actor.rs");
+    tests.compile_fail("tests/ui/machine_scope_actor.rs");
+    tests.compile_fail("tests/ui/machine_stay_effect.rs");
+    tests.compile_fail("tests/ui/machine_stay_helper.rs");
+    tests.compile_fail("tests/ui/machine_unsafe_allowed.rs");
+    tests.compile_fail("tests/ui/optional_facts_direct_reject.rs");
+    tests.compile_fail("tests/ui/stay_outside_machine.rs");
+    tests.compile_fail("tests/ui/world_starts_return.rs");
 }
 
 #[test]

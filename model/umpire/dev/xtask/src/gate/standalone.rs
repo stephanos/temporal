@@ -214,7 +214,6 @@ fn clean_command(gate: &Gate, root: &Path, target: &Path, program: &str) -> Resu
         .env("GOENV", "off")
         .env("GOWORK", "off")
         .env("GOTOOLCHAIN", "local")
-        .env("NEXTEST_TEST_THREADS", "2")
         .env("UMPIRE_TOOL_ROOT", root)
         .env("UMPIRE_BACKENDS", "require")
         .env("UMPIRE_QUICK_CACHE", "0")
@@ -222,6 +221,11 @@ fn clean_command(gate: &Gate, root: &Path, target: &Path, program: &str) -> Resu
         .env("UMPIRE_STANDALONE_CHILD", "1")
         .env("MISE_AUTO_INSTALL", "false")
         .env("MISE_EXEC_AUTO_INSTALL", "false");
+    crate::test_run::configure(
+        &mut command,
+        true,
+        env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require"),
+    );
     Ok(command)
 }
 fn refusal(result: Result<()>, expected: &str) -> Result<()> {
@@ -498,7 +502,7 @@ fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64
         output.join("result.json"),
         serde_json::to_vec_pretty(&serde_json::json!({
             "version": 1, "tier": "validate", "backend": "require", "apalache": env::var("UMPIRE_APALACHE").unwrap_or_else(|_| "skip (default)".into()),
-            "profile": "dev", "nextest_profile": "default", "compile_jobs": env::var("CARGO_BUILD_JOBS").ok(), "test_threads": 2, "skipped_child_stages": ["standalone"], "seconds": seconds, "child_exit": code, "complete": complete,
+            "profile": "dev", "nextest_profile": "required", "compile_jobs": env::var("CARGO_BUILD_JOBS").ok(), "test_threads": crate::test_run::test_threads(env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require")), "skipped_child_stages": ["standalone"], "seconds": seconds, "child_exit": code, "complete": complete,
             "manifest_sha256": digest(&fs::read(manifest)?), "stages_sha256": digest(records.as_bytes()), "binaries": binaries,
             "expected_stages": expected, "actual_stages": actual, "source_unchanged": source_unchanged, "artifacts": artifacts,
         }))?,
@@ -516,6 +520,42 @@ fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64
 #[allow(clippy::unwrap_used, clippy::expect_used)]
 mod tests {
     use super::*;
+    #[test]
+    fn isolated_child_uses_the_reported_required_profile_and_thread_cap() {
+        let directory = tempfile::tempdir().unwrap();
+        let source = directory.path().join("source");
+        fs::create_dir(&source).unwrap();
+        let root = directory.path().join("copy");
+        let target = directory.path().join("target");
+        let provenance = snapshot(&source, &source.join("target"), &root, &target).unwrap();
+        let manifest = directory.path().join("inputs.json");
+        fs::write(&manifest, serde_json::to_vec(&provenance).unwrap()).unwrap();
+        let gate = Gate {
+            root: source,
+            target: directory.path().join("native"),
+            home: directory.path().join("cargo"),
+            required: true,
+            timed: false,
+            child_records: None,
+        };
+        let mut command = clean_command(&gate, &root, &target, "/bin/sh").unwrap();
+        let output = command.args(["-c", "printf '%s:%s:%s:%s' \"$NEXTEST_PROFILE\" \"$NEXTEST_TEST_THREADS\" \"$UMPIRE_QUICK_CACHE\" \"$UMPIRE_CACHE_DISABLE\""]).output().unwrap();
+        assert!(output.status.success());
+        assert_eq!(finish(directory.path(), &target, &manifest, 37, 0.0).unwrap(), 37);
+        let receipt: serde_json::Value =
+            serde_json::from_slice(&fs::read(directory.path().join("result.json")).unwrap())
+                .unwrap();
+        assert_eq!(receipt["nextest_profile"], "required");
+        let threads = if env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require") {
+            1
+        } else {
+            4
+        };
+        assert_eq!(receipt["test_threads"], threads);
+        assert_eq!(receipt["child_exit"], 37);
+        assert_eq!(receipt["complete"], false);
+        assert_eq!(String::from_utf8(output.stdout).unwrap(), format!("required:{threads}:0:1"));
+    }
     #[test]
     fn copied_config_trust_is_limited_to_copy_and_owned_scratch() {
         let directory = tempfile::tempdir().unwrap();

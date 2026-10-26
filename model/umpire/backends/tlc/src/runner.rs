@@ -139,10 +139,15 @@ impl Tlc {
     pub fn discover(root: &Path) -> Result<Self, Refusal> {
         let jar = format!("tla2tools-{JAR_VERSION}.jar");
         PinnedJar::admit(root, CACHE, &jar, JAR_SHA256, |PinnedJar { root, jar, java }, scratch| {
+            let limits = Limits::default();
             let mut version = java_command(&java);
-            version.args(["-cp"]).arg(&jar).args(["tlc2.TLC", "-h"]).current_dir(scratch);
-            let (status, output) =
-                run_process(&mut version, scratch, "tlc-version", Limits::default(), None)?;
+            version
+                .arg(format!("-Xmx{}m", limits.heap_mb))
+                .arg("-cp")
+                .arg(&jar)
+                .args(["tlc2.TLC", "-h"])
+                .current_dir(scratch);
+            let (status, output) = run_process(&mut version, scratch, "tlc-version", limits, None)?;
             if status.code() != Some(1) || !output.contains(TLC_VERSION) {
                 return Err(Refusal(format!("wrong TLC version: {output}")));
             }
@@ -150,7 +155,7 @@ impl Tlc {
                 root,
                 jar,
                 java,
-                limits: Limits::default(),
+                limits,
                 property_workers: std::thread::available_parallelism()
                     .map_or(1, |n| n.get().min(2)),
             })

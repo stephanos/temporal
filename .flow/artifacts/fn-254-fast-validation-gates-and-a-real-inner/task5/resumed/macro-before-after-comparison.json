@@ -1,0 +1,75 @@
+{
+  "cold": {
+    "source": "retained task6 real Kettle edit on fa1ccb8af1; actual22package quick closure",
+    "executor": "cargo test --locked -p umpire-dsl-macros -- --nocapture; all package test targets, libtest",
+    "profile": "unoptimized + debuginfo, child unsets dev/test debug overrides",
+    "cache": "historical quick cold/warm labels; warm reuses nested trybuild compiler outputs; cold was not a machine-wide clean build",
+    "package_stage_seconds": 51.93,
+    "fixtures_binary_tests_passed": 6,
+    "fixtures_binary_runtime_seconds": 36.21,
+    "negative_compiler_cases": 79,
+    "positive_compiler_cases": 4,
+    "compilation_lines": [
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 14.59s",
+      "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 12.77s",
+      "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.51s"
+    ],
+    "other_target_results": [
+      "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+      "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 36.21s",
+      "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s",
+      "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+    ],
+    "individual_positive_and_negative_case_wall_times": "unknown; libtest log has no individual case durations",
+    "evidence": "historical-macro-cold-section.log"
+  },
+  "warm": {
+    "source": "retained task6 real Kettle edit on fa1ccb8af1; actual22package quick closure",
+    "executor": "cargo test --locked -p umpire-dsl-macros -- --nocapture; all package test targets, libtest",
+    "profile": "unoptimized + debuginfo, child unsets dev/test debug overrides",
+    "cache": "historical quick cold/warm labels; warm reuses nested trybuild compiler outputs; cold was not a machine-wide clean build",
+    "package_stage_seconds": 2.735,
+    "fixtures_binary_tests_passed": 6,
+    "fixtures_binary_runtime_seconds": 2.36,
+    "negative_compiler_cases": 79,
+    "positive_compiler_cases": 4,
+    "compilation_lines": [
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s",
+      "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.14s",
+      "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.06s"
+    ],
+    "other_target_results": [
+      "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+      "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.36s",
+      "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s",
+      "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+    ],
+    "individual_positive_and_negative_case_wall_times": "unknown; libtest log has no individual case durations",
+    "evidence": "historical-macro-warm-section.log"
+  },
+  "current": {
+    "source": "task5 dirty overlay, final-source-manifest.json; only MAPPING prose changed since runtime",
+    "executor": "cargo nextest run --locked -p umpire-dsl-macros --test fixtures; default native CPU profile",
+    "profile": "CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0, jobs2, incremental0",
+    "cache": "existing reused target; nested trybuild cache grew749469890->1210995389bytes; no new warm comparison campaign",
+    "command_seconds": 41.38265976999992,
+    "nextest_seconds": 40.682,
+    "binary_tests_passed": 8,
+    "parser_rows": 61,
+    "parser_controls": 2,
+    "negative_compiler_cases": 18,
+    "positive_compiler_cases": 4,
+    "case_timings_seconds": {
+      "parser_refusals::diagnostic_capture_keeps_duplicate_messages_at_distinct_locations": 0.005,
+      "roots::tests::normalizes_facade_imports_through_groups_without_stripping_other_prefixes": 0.005,
+      "roots::tests::normalizes_derive_paths_using_dependency_roots": 0.006,
+      "roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths": 0.014,
+      "parser_refusals::parser_refusals_preserve_messages_and_authored_locations": 0.015,
+      "fixtures": 0.129,
+      "private_state": 31.703,
+      "refusals": 40.681
+    },
+    "note": "Nextest case durations overlap and include compiler lock waiting; private_state is one positive harness covering all4positive files, not an individual-file timing."
+  },
+  "interpretation": "Preserved refusal coverage79=61parser+18rustc, positives4. Different source, executor, selectedtargets, profile, and cache states prohibit causal speedup inference. No new baseline campaign."
+}
