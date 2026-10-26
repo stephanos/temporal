@@ -201,6 +201,7 @@ fn clean_command(gate: &Gate, root: &Path, target: &Path, program: &str) -> Comm
         .env("CARGO_HOME", &gate.home)
         .env("CARGO_TARGET_DIR", target)
         .env("CARGO_INCREMENTAL", "0")
+        .env("NEXTEST_TEST_THREADS", "2")
         .env("UMPIRE_TOOL_ROOT", root)
         .env("UMPIRE_BACKENDS", "require")
         .env("UMPIRE_QUICK_CACHE", "0")
@@ -287,7 +288,11 @@ pub(super) fn record(path: &Path, name: &str, code: Option<i32>, seconds: f64) -
 }
 fn tool_versions(gate: &Gate, root: &Path, target: &Path, manifest: &Path) -> Result<()> {
     let mut tools = serde_json::Map::new();
-    for tool in ["rustc", "cargo", "go", "java", "protoc"] {
+    let mut selected = vec!["rustc", "cargo", "go", "java", "protoc"];
+    if root.join(".config/nextest.toml").exists() {
+        selected.push("cargo-nextest");
+    }
+    for tool in selected {
         let mut command = clean_command(gate, root, target, "mise");
         command.args([
             "exec",
