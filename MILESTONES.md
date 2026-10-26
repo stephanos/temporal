@@ -70,7 +70,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | Name | Status | What |
 | --- | --- | --- |
 | fn-254.5 | ⬜ todo | Candidates prepared: 24 fixture cases, compiler batching, 63 parser-table cases with 16 compiler cases retained, discovery heap cap and dead-target removal; integration/validation pending (R4, R5) |
-| fn-254.6 | 🔄 in progress | Correct consumer/cache checkpoint retained; review finalization and closure pending. Kettle consumer-selection correction prepared with .17; warm target still missed (R2) |
+| fn-254.6 | 🔄 in progress | Correct consumer/cache proof retained; Kettle shared-source selection fix and regression control brought forward from .17 into `umpire`. Execution, review finalization and closure pending under the validation hold; warm target still missed (R2) |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
 | fn-254.12 | ⬜ todo | Budget parser/count/retry candidate assembled; real receipt producers and native wiring underway. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |

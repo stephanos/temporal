@@ -293,3 +293,52 @@ fn shared_feature_inputs_select_every_direct_consumer_and_reverse_guest() -> Tes
     }
     Ok(())
 }
+
+#[test]
+fn shared_kettle_model_seeds_source_consumers_and_reverse_guest() -> TestResult {
+    let mut metadata: serde_json::Value = serde_json::from_slice(&metadata(
+        "framework",
+        &[
+            ("fixtures", "umpire-fixtures", &[]),
+            ("reference", "umpire-reference-kettle", &[]),
+            ("guest", "umpire-kettle-guest", &["reference"]),
+            ("suite", "umpire-suite", &[]),
+            ("tla", "umpire-tla", &[]),
+            ("apalache", "umpire-apalache", &[]),
+            ("other", "unrelated", &[]),
+        ],
+        &["fixtures", "reference", "guest", "suite", "tla", "apalache", "other"],
+    ))?;
+    metadata["packages"][0]["manifest_path"] =
+        serde_json::json!("/framework/dev/fixtures/Cargo.toml");
+    metadata["packages"][1]["manifest_path"] =
+        serde_json::json!("/framework/reference/kettle/Cargo.toml");
+    metadata["packages"][2]["manifest_path"] =
+        serde_json::json!("/framework/reference/kettle/guest/Cargo.toml");
+    metadata["packages"][3]["manifest_path"] =
+        serde_json::json!("/framework/author/suite/Cargo.toml");
+    metadata["packages"][4]["manifest_path"] =
+        serde_json::json!("/framework/backends/tla/Cargo.toml");
+    metadata["packages"][5]["manifest_path"] =
+        serde_json::json!("/framework/backends/apalache/Cargo.toml");
+    let mut graph = Graph::default();
+    graph.add(Path::new("/framework"), &serde_json::to_vec(&metadata)?)?;
+    let options =
+        Options { always: BTreeSet::from(["umpire-fixtures".into()]), ..Options::default() };
+    assert_eq!(
+        selected(&graph, &options, &["/framework/dev/fixtures/fixtures/sample_kettle/model.rs"])?,
+        BTreeSet::from([
+            "umpire-fixtures".into(),
+            "umpire-reference-kettle".into(),
+            "umpire-kettle-guest".into(),
+            "umpire-suite".into(),
+            "umpire-tla".into(),
+            "umpire-apalache".into(),
+        ])
+    );
+    assert_eq!(
+        selected(&graph, &options, &["/framework/dev/fixtures/fixtures/sample_kettle/tests.rs"])?,
+        BTreeSet::from(["umpire-fixtures".into()])
+    );
+    Ok(())
+}

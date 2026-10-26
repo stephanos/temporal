@@ -1,0 +1,18 @@
+{
+  "kind": "source-preparation-review",
+  "date": "2026-10-26",
+  "reviewer": "gpt-6.1-sol at high; fresh subagent kettle_selection_review",
+  "files": {
+    "model/umpire/dev/xtask/src/quick/selection.rs": "dca50daf8312d191dd55579e6e2c78ae8b259ac02f2f524659de82bd27c9fc34",
+    "model/umpire/dev/xtask/src/quick/tests.rs": "6a50094ca49212d70df79bbf09b41b3ea2ec3f11f360eb585ab1c229e777ce95"
+  },
+  "initial_finding": "The prepared reference-only seed omitted umpire-suite, umpire-tla and umpire-apalache, which directly read sample_kettle/model.rs outside Cargo dependency edges.",
+  "resolution": "Seed all four direct consumers before reverse expansion. The regression graph includes the fixture owner, reference guest and an unrelated negative package, and excludes fixture-test-only edits.",
+  "focused_rereview": "No findings in the focused source re-review. The seed covers all four identified direct consumers; reverse expansion includes the guest. The regression checks the complete selection and excludes unrelated packages and fixture-test-only edits. Deleted-path handling remains intact.",
+  "execution": "Not run: recorded owner instruction defers new validation. Source review is not a Flow implementation-review verdict or task closure.",
+  "pending": [
+    "Run the new regression with a red control",
+    "Exercise shipping quick selection and execution on a real Kettle Model content edit",
+    "Reconcile overlapping .17 preparation and finalize the supported Flow review before task closure"
+  ]
+}

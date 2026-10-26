@@ -136,6 +136,19 @@ impl Graph {
         let mut reasons = BTreeSet::new();
         self.seed(options, &mut selected, &mut reasons)?;
         for path in &changed {
+            for root in self.members.keys() {
+                if path == &root.join("dev/fixtures/fixtures/sample_kettle/model.rs") {
+                    for directory in
+                        ["reference/kettle", "author/suite", "backends/tla", "backends/apalache"]
+                    {
+                        let consumer = root.join(directory).join("Cargo.toml");
+                        if self.members[root].contains(&consumer) {
+                            selected.insert(consumer);
+                            reasons.insert(format!("shared Kettle source: {}", path.display()));
+                        }
+                    }
+                }
+            }
             let workspace = self
                 .members
                 .keys()

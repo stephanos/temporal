@@ -51,6 +51,23 @@ The correct five-consumer content-edit workload passed in 444.027 s, with 388.87
 ## Done summary
 TBD
 
+## Source preparation checkpoint (2026-10-26)
+
+The retained review identifies an additional shared-source consumer outside the Temporal
+feature mapping: `sample_kettle/model.rs` is read directly by `umpire-reference-kettle`,
+`umpire-suite`, `umpire-tla` and `umpire-apalache`. The reference's reverse dependent is
+`umpire-kettle-guest`. Bring the source-selection seed prepared in .17 (`836242a09a`)
+into this task without the nextest/compiler-only changes, expanding it to the other
+three direct consumers found in fresh source review. The regression graph requires
+all six affected packages, excludes an unrelated package, and selects only the fixture
+package for its tests-only edit. Deleted Model paths use the same selection.
+
+This is source preparation under the current no-new-validation instruction. The new
+control and the real Kettle content-edit path still require execution when validation
+resumes; retained Temporal and cache evidence does not prove this correction. Keep the
+task open and reconcile this overlapping hunk when integrating .17. The three retained
+SHIP draws were not finalized; their abandoned reservation is not a completed review.
+
 ## Evidence
 - Commits:
 - Tests:
