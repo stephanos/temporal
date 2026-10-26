@@ -158,7 +158,7 @@ func TestReplayRejectsAlteredRuns(t *testing.T) {
 		reason string
 	}{
 		{"other model", func(run *Run) { run.ModelHash = strings.Repeat("0", 64) }, 0, "another model"},
-		{"other protocol", func(run *Run) { run.ProtocolVersion = 2 }, 0, "protocol version 2"},
+		{"other protocol", func(run *Run) { run.ProtocolVersion = ProtocolVersion + 1 }, 0, "protocol version 3"},
 		{"other world", func(run *Run) { run.World = control(1) }, 0, "recorded world"},
 		{"other seed", func(run *Run) { run.Seed = 9 }, 1, "another seed"},
 		{"missing event", func(run *Run) { run.Events = append(run.Events[:4:4], run.Events[5:]...) }, 4, "out of sequence"},
@@ -403,7 +403,7 @@ func TestReduceReportsTheShortestReproductionFound(t *testing.T) {
 		t.Fatalf("not reproduced after %d candidates published %d Runs", len(gone.drivers), len(recorded))
 	}
 	for name, alter := range map[string]func(*Run){
-		"protocol": func(run *Run) { run.ProtocolVersion = 2 },
+		"protocol": func(run *Run) { run.ProtocolVersion = ProtocolVersion + 1 },
 		"seed":     func(run *Run) { run.Events[3].GetProposal().GetRequest().Seed++ },
 	} {
 		altered := proto.CloneOf(original)
@@ -492,7 +492,7 @@ func TestProgressNamesPositionsOnly(t *testing.T) {
 	}
 }
 
-func TestLegacyRefusalReplayPreservesOnlyTheCanonicalRecordedReason(t *testing.T) {
+func TestRefusalReplayRequiresTheCurrentRecordedReason(t *testing.T) {
 	wasm := statefulGuest(t)
 	h := newHarness(t, wasm, driverFor(map[byte][]step{0: {{kind: EventCallback, value: 4, call: 1}}}))
 	current := h.run(ModeExplore, configured(1))
@@ -521,7 +521,7 @@ func TestLegacyRefusalReplayPreservesOnlyTheCanonicalRecordedReason(t *testing.T
 			if err != nil {
 				t.Fatal(err)
 			}
-			if strings.HasPrefix(name, "forged") {
+			if name != "current" {
 				if !strings.Contains(replayed.Verdict.GetRefused().Reason, "recorded verdict differs") {
 					t.Fatalf("forged verdict accepted: %v", replayed.Verdict)
 				}
