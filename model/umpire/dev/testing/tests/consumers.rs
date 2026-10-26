@@ -391,3 +391,129 @@ fn selected_fixture_admits_skipped_sibling_goldens() -> umpire_testing::TestResu
         Ok(())
     })
 }
+
+#[test]
+fn update_mode_repairs_corrupt_consumer_owned_snapshots() -> umpire_testing::TestResult {
+    with_control("repair-consumer-snapshot", |root, expected| {
+        let snapshot = expected.join("artifact.tla.snap");
+        fs::write(&snapshot, "truncated snapshot\n")?;
+        let refused = child(&root.join("fixtures"), "no", "repaired\n", false)?;
+        assert!(!refused.status.success());
+        let diagnostics = format!(
+            "{}{}",
+            String::from_utf8_lossy(&refused.stdout),
+            String::from_utf8_lossy(&refused.stderr)
+        );
+        assert!(diagnostics.contains("invalid golden"), "{diagnostics}");
+        let repaired = child(&root.join("fixtures"), "always", "repaired\n", false)?;
+        assert!(repaired.status.success(), "{repaired:?}");
+        assert_eq!(
+            umpire_testing::snapshot_payload(&fs::read_to_string(&snapshot)?)?,
+            "repaired\n"
+        );
+        assert!(child(&root.join("fixtures"), "no", "repaired\n", false)?.status.success());
+        Ok(())
+    })
+}
+
+#[test]
+fn selected_update_child() -> umpire_testing::TestResult {
+    let Some(root) = std::env::var_os("UMPIRE_SELECTED_UPDATE_ROOT") else { return Ok(()) };
+    let mut consumers = vec![Consumer {
+        name: "control",
+        expected: &["artifact.tla"],
+        render: |_, folder| {
+            assert!(matches!(
+                folder.file_name().and_then(|name| name.to_str()),
+                Some("control" | "other")
+            ));
+            Ok(Files::from([("artifact.tla".into(), "repaired\n".into())]))
+        },
+    }];
+    let skipped = std::env::var_os("UMPIRE_SELECTED_UPDATE_SKIP").is_some();
+    if skipped {
+        consumers.push(Consumer {
+            name: "skipped",
+            expected: &["artifact.cfg"],
+            render: |_, _| panic!("skipped producer executed"),
+        });
+    }
+    let selected =
+        std::env::var("UMPIRE_SELECTED_UPDATE_FIXTURE").unwrap_or_else(|_| "control".into());
+    umpire_testing::run_fixture_at_skipping(
+        Path::new(&root),
+        vec![
+            ("control", || panic!("consumer must use its renderer")),
+            ("other", || panic!("unselected producer executed")),
+        ],
+        &consumers,
+        if skipped { &["skipped"] } else { &[] },
+        &selected,
+    )
+}
+
+#[test]
+fn selected_updates_admit_repairable_siblings_and_preserve_skipped_goldens()
+-> umpire_testing::TestResult {
+    with_selection_control("selected-update-repair", |root, _| {
+        let spawn = |update: &str,
+                     skipped: bool,
+                     selected: &str|
+         -> Result<std::process::Output, Box<dyn Error>> {
+            let mut command = Command::new(std::env::current_exe()?);
+            command
+                .args(["--exact", "selected_update_child", "--nocapture"])
+                .env("UMPIRE_SELECTED_UPDATE_ROOT", root)
+                .env("INSTA_UPDATE", update)
+                .env("UMPIRE_SELECTED_UPDATE_FIXTURE", selected)
+                .env_remove("UMPIRE_SELECTED_UPDATE_SKIP");
+            if skipped {
+                command.env("UMPIRE_SELECTED_UPDATE_SKIP", "1");
+            }
+            Ok(command.output()?)
+        };
+        let selected = root.join("control/expected/artifact.tla.snap");
+        let sibling = root.join("other/expected/artifact.tla.snap");
+        fs::write(&selected, "truncated selected snapshot\n")?;
+        let refused = spawn("no", false, "control")?;
+        assert!(!refused.status.success());
+        assert_eq!(fs::read_to_string(&selected)?, "truncated selected snapshot\n");
+        let repaired = spawn("always", false, "control")?;
+        assert!(repaired.status.success(), "{repaired:?}");
+        assert_eq!(
+            umpire_testing::snapshot_payload(&fs::read_to_string(&selected)?)?,
+            "repaired\n"
+        );
+        assert_eq!(umpire_testing::snapshot_payload(&fs::read_to_string(&sibling)?)?, "seed\n");
+        fs::write(&sibling, "truncated unselected snapshot\n")?;
+        let refused = spawn("no", false, "control")?;
+        assert!(!refused.status.success());
+        let diagnostics = format!(
+            "{}{}",
+            String::from_utf8_lossy(&refused.stdout),
+            String::from_utf8_lossy(&refused.stderr)
+        );
+        assert!(
+            diagnostics.contains("invalid golden") && diagnostics.contains("other"),
+            "{diagnostics}"
+        );
+        let selected_update = spawn("always", false, "control")?;
+        assert!(selected_update.status.success(), "{selected_update:?}");
+        assert_eq!(fs::read_to_string(&sibling)?, "truncated unselected snapshot\n");
+        let owning_update = spawn("always", false, "other")?;
+        assert!(owning_update.status.success(), "{owning_update:?}");
+        assert_eq!(umpire_testing::snapshot_payload(&fs::read_to_string(&sibling)?)?, "repaired\n");
+        let skipped = root.join("control/expected/artifact.cfg.snap");
+        fs::write(&skipped, "truncated skipped snapshot\n")?;
+        let refused = spawn("always", true, "control")?;
+        assert!(!refused.status.success());
+        let diagnostics = format!(
+            "{}{}",
+            String::from_utf8_lossy(&refused.stdout),
+            String::from_utf8_lossy(&refused.stderr)
+        );
+        assert!(diagnostics.contains("incomplete golden"), "{diagnostics}");
+        assert_eq!(fs::read_to_string(&skipped)?, "truncated skipped snapshot\n");
+        Ok(())
+    })
+}

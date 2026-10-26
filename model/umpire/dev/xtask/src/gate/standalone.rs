@@ -502,7 +502,7 @@ fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64
         output.join("result.json"),
         serde_json::to_vec_pretty(&serde_json::json!({
             "version": 1, "tier": "validate", "backend": "require", "apalache": env::var("UMPIRE_APALACHE").unwrap_or_else(|_| "skip (default)".into()),
-            "profile": "dev", "nextest_profile": "required", "compile_jobs": env::var("CARGO_BUILD_JOBS").ok(), "test_threads": crate::test_run::test_threads(env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require")), "skipped_child_stages": ["standalone"], "seconds": seconds, "child_exit": code, "complete": complete,
+            "profile": "dev", "nextest_profile": "required", "compile_jobs": env::var("CARGO_BUILD_JOBS").ok(), "test_threads": crate::test_run::test_threads(env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require"), env::var_os("NEXTEST_TEST_THREADS").as_deref()), "skipped_child_stages": ["standalone"], "seconds": seconds, "child_exit": code, "complete": complete,
             "manifest_sha256": digest(&fs::read(manifest)?), "stages_sha256": digest(records.as_bytes()), "binaries": binaries,
             "expected_stages": expected, "actual_stages": actual, "source_unchanged": source_unchanged, "artifacts": artifacts,
         }))?,
@@ -522,6 +522,39 @@ mod tests {
     use super::*;
     #[test]
     fn isolated_child_uses_the_reported_required_profile_and_thread_cap() {
+        for (apalache, inherited, expected) in [
+            ("skip", None, "4"),
+            ("skip", Some("99"), "4"),
+            ("skip", Some("2"), "2"),
+            ("skip", Some("1"), "1"),
+            ("skip", Some("malformed"), "4"),
+            ("skip", Some("0"), "4"),
+            ("require", Some("99"), "1"),
+            ("require", Some("1"), "1"),
+        ] {
+            let mut child = Command::new(env::current_exe().unwrap());
+            child
+                .args([
+                    "--exact",
+                    "gate::standalone::tests::isolated_child_policy_control",
+                    "--nocapture",
+                ])
+                .env("UMPIRE_APALACHE", apalache)
+                .env("UMPIRE_EXPECT_STANDALONE_THREADS", expected)
+                .env_remove("NEXTEST_TEST_THREADS");
+            if let Some(inherited) = inherited {
+                child.env("NEXTEST_TEST_THREADS", inherited);
+            }
+            let output = child.output().unwrap();
+            assert!(
+                output.status.success(),
+                "inherited={inherited:?}, apalache={apalache}: {output:?}"
+            );
+        }
+    }
+    #[test]
+    fn isolated_child_policy_control() {
+        let Ok(expected) = env::var("UMPIRE_EXPECT_STANDALONE_THREADS") else { return };
         let directory = tempfile::tempdir().unwrap();
         let source = directory.path().join("source");
         fs::create_dir(&source).unwrap();
@@ -546,11 +579,7 @@ mod tests {
             serde_json::from_slice(&fs::read(directory.path().join("result.json")).unwrap())
                 .unwrap();
         assert_eq!(receipt["nextest_profile"], "required");
-        let threads = if env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require") {
-            1
-        } else {
-            4
-        };
+        let threads: usize = expected.parse().unwrap();
         assert_eq!(receipt["test_threads"], threads);
         assert_eq!(receipt["child_exit"], 37);
         assert_eq!(receipt["complete"], false);

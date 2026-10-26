@@ -169,7 +169,13 @@ fn run_selected(
             }
         }
         for path in &files {
-            validate_text_snapshot(path)?;
+            let repairable = std::env::var("INSTA_UPDATE").as_deref() == Ok("always")
+                && path.extension().is_some_and(|extension| extension == "snap")
+                && !skipped_artifacts.contains(path)
+                && !external_artifacts.contains(path);
+            if !repairable {
+                validate_text_snapshot(path)?;
+            }
         }
         admitted.push((name, run, files, selected, skipped_artifacts));
     }

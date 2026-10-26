@@ -1,28 +1,30 @@
 //! Temporal tests across binaries and doctests, owned by the gate.
-use std::{env, io, path::Path, process::Command};
+use std::{env, ffi::OsStr, io, path::Path, process::Command};
 
 pub(crate) fn run(root: &Path) -> io::Result<i32> {
-    run_with(|arguments| {
-        let mut command = crate::gate::cargo(arguments);
-        configure(
-            &mut command,
-            env::var_os("UMPIRE_BACKENDS").is_some_and(|value| value == "require"),
-            env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require"),
-        );
-        crate::gate::stage(root, "tests", command)
-    })
+    run_with(|arguments| crate::gate::stage(root, "tests", crate::gate::cargo(arguments)))
 }
 
-pub(crate) fn test_threads(apalache: bool) -> usize {
+pub(crate) fn test_threads(apalache: bool, inherited: Option<&OsStr>) -> usize {
     // Optional mixed-backend allocation still needs its real resource proof.
-    if apalache { 1 } else { 4 }
+    let cap = if apalache { 1 } else { 4 };
+    inherited
+        .and_then(OsStr::to_str)
+        .and_then(|value| value.parse::<usize>().ok())
+        .filter(|threads| *threads > 0)
+        .map_or(cap, |threads| threads.min(cap))
 }
 
 pub(crate) fn configure(command: &mut Command, required: bool, apalache: bool) {
     if required || apalache {
+        let inherited =
+            command.get_envs().find(|(name, _)| *name == "NEXTEST_TEST_THREADS").map_or_else(
+                || env::var_os("NEXTEST_TEST_THREADS"),
+                |(_, value)| value.map(OsStr::to_os_string),
+            );
         command
             .env("NEXTEST_PROFILE", "required")
-            .env("NEXTEST_TEST_THREADS", test_threads(apalache).to_string());
+            .env("NEXTEST_TEST_THREADS", test_threads(apalache, inherited.as_deref()).to_string());
     }
 }
 
@@ -57,18 +59,36 @@ mod tests {
     #[test]
     #[allow(clippy::unwrap_used)]
     fn required_backend_policy_caps_inherited_threads_and_preserves_skipped_defaults() {
-        for (required, apalache, threads) in
-            [(true, false, "4"), (false, true, "1"), (true, true, "1")]
+        for (required, apalache, cap) in [(true, false, "4"), (false, true, "1"), (true, true, "1")]
         {
-            let mut command = Command::new("/bin/sh");
-            command.env("NEXTEST_PROFILE", "default").env("NEXTEST_TEST_THREADS", "99");
-            configure(&mut command, required, apalache);
-            let output = command
-                .args(["-c", "printf '%s:%s' \"$NEXTEST_PROFILE\" \"$NEXTEST_TEST_THREADS\""])
-                .output()
-                .unwrap();
-            assert!(output.status.success());
-            assert_eq!(String::from_utf8(output.stdout).unwrap(), format!("required:{threads}"));
+            for (inherited, lower) in [
+                (None, None),
+                (Some("99"), None),
+                (Some("2"), Some("2")),
+                (Some("1"), Some("1")),
+                (Some("malformed"), None),
+                (Some("0"), None),
+                (Some("-1"), None),
+            ] {
+                let mut command = Command::new("/bin/sh");
+                command.env("NEXTEST_PROFILE", "default").env_remove("NEXTEST_TEST_THREADS");
+                if let Some(inherited) = inherited {
+                    command.env("NEXTEST_TEST_THREADS", inherited);
+                }
+                configure(&mut command, required, apalache);
+                configure(&mut command, required, apalache);
+                let output = command
+                    .args(["-c", "printf '%s:%s' \"$NEXTEST_PROFILE\" \"$NEXTEST_TEST_THREADS\""])
+                    .output()
+                    .unwrap();
+                assert!(output.status.success());
+                let threads = if apalache { "1" } else { lower.unwrap_or(cap) };
+                assert_eq!(
+                    String::from_utf8(output.stdout).unwrap(),
+                    format!("required:{threads}"),
+                    "inherited={inherited:?}, apalache={apalache}"
+                );
+            }
         }
         let mut command = Command::new("/bin/sh");
         configure(&mut command, false, false);
@@ -77,6 +97,14 @@ mod tests {
                 .get_envs()
                 .any(|(key, _)| key == "NEXTEST_PROFILE" || key == "NEXTEST_TEST_THREADS")
         );
+        command.env("NEXTEST_PROFILE", "default").env("NEXTEST_TEST_THREADS", "2");
+        configure(&mut command, false, false);
+        let output = command
+            .args(["-c", "printf '%s:%s' \"$NEXTEST_PROFILE\" \"$NEXTEST_TEST_THREADS\""])
+            .output()
+            .unwrap();
+        assert!(output.status.success());
+        assert_eq!(String::from_utf8(output.stdout).unwrap(), "default:2");
     }
 
     #[test]

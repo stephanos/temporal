@@ -1,0 +1,738 @@
+{
+  "scope": "Tool-only isolated mise probe; no Cargo/Go/JVM/protoc/source/Git/Flow operations. Probe-owned descendants explicitly inspected and cleaned after observations.",
+  "binary": "/home/agent/.local/bin/mise",
+  "binary_sha256": "370b4b4cfd740402e9a55aa1a8a01fbb1ac95c50af1207b2db2c5489dd4da0cd",
+  "version_stdout": "2026.10.11 linux-arm64 (2026-10-15)\n",
+  "version_stderr": "mise WARN  mise version 2026.10.19 available\nmise WARN  To update, run mise self-update\n",
+  "verified_version": "2026.10.11",
+  "minimum_admission": "Only this exact2026.10.11 binary was executed; no older release verified.",
+  "environment_overrides": {
+    "MISE_AUTO_INSTALL": "false",
+    "MISE_EXEC_AUTO_INSTALL": "false",
+    "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability",
+    "MISE_CONFIG_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/config",
+    "MISE_DATA_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/data",
+    "MISE_CACHE_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/cache",
+    "MISE_STATE_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/state",
+    "MISE_HIDE_UPDATE_WARNING": "1",
+    "MISE_YES": "1"
+  },
+  "probe_script_sha256": "98bc69a6fdd1bc370287c93fc5e6077a27149daace410127239ac23575d5e1d4",
+  "leaf_script": "import os,sys,time,json,pathlib,subprocess\nr=pathlib.Path(os.environ['PROBE_CASE_DIR']);name=sys.argv[1]\ndef event(kind,**extra):\n row={'task':name,'kind':kind,'monotonic':time.monotonic(),'pid':os.getpid(),**extra}\n fd=os.open(r/'events.jsonl',os.O_WRONLY|os.O_CREAT|os.O_APPEND,0o600);os.write(fd,(json.dumps(row)+'\\n').encode());os.close(fd)\nevent('start')\nif name in ['p','q']:\n time.sleep(0.35);(r/(name+'.done')).write_text('done');event('end')\nelif name=='join':\n assert (r/'p.done').exists() and (r/'q.done').exists();event('dependencies-satisfied');event('end')\nelif name in ['slow','detached']:\n child=subprocess.Popen(['/bin/sleep','12'],start_new_session=name=='detached');(r/'owned-pids').write_text(str(os.getpid())+' '+str(child.pid));event('descendant',child=child.pid,detached=name=='detached');(r/'slow.active').write_text('active');time.sleep(12);event('end')\nelif name=='fail':\n deadline=time.monotonic()+4\n while not (r/'slow.active').exists() and time.monotonic()<deadline:time.sleep(0.01)\n assert (r/'slow.active').exists();event('failure',exit=37);sys.exit(37)\nelif name=='blocked':\n event('DEPENDENT-MUST-NOT-RUN');sys.exit(91)\n",
+  "results": {
+    "jobs2": {
+      "command": [
+        "/home/agent/.local/bin/mise",
+        "run",
+        "--force",
+        "--skip-tools",
+        "--task-cache",
+        "off",
+        "--jobs",
+        "2",
+        "join"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/jobs2",
+      "config": "min_version = \"2026.10.11\"\n\n[tasks.p]\nrun = \"/usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py p\"\n\n[tasks.q]\nrun = \"/usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py q\"\n\n[tasks.join]\ndepends = [\"p\", \"q\"]\nrun = \"/usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py join\"\n",
+      "exit": 0,
+      "elapsed_seconds": 0.6543629999996483,
+      "timed_out": false,
+      "sent_sigterm_to_mise": false,
+      "events": [
+        {
+          "task": "q",
+          "kind": "start",
+          "monotonic": 10501.092896922,
+          "pid": 545207
+        },
+        {
+          "task": "p",
+          "kind": "start",
+          "monotonic": 10501.093464547,
+          "pid": 545209
+        },
+        {
+          "task": "p",
+          "kind": "end",
+          "monotonic": 10501.448071506,
+          "pid": 545209
+        },
+        {
+          "task": "q",
+          "kind": "end",
+          "monotonic": 10501.451588089,
+          "pid": 545207
+        },
+        {
+          "task": "join",
+          "kind": "start",
+          "monotonic": 10501.492362756,
+          "pid": 545212
+        },
+        {
+          "task": "join",
+          "kind": "dependencies-satisfied",
+          "monotonic": 10501.492905923,
+          "pid": 545212
+        },
+        {
+          "task": "join",
+          "kind": "end",
+          "monotonic": 10501.493181589,
+          "pid": 545212
+        }
+      ],
+      "owned_live_after_mise_return_or_wait": {},
+      "probe_cleanup_reaped": [],
+      "owned_live_after_probe_cleanup": {},
+      "output": "[q] $ /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py q\n[p] $ /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py p\n[p] Finished in 379.9ms\n[q] Finished in 383.8ms\n[join] $ /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py join\n[join] Finished in 30.3ms\nFinished in 446.4ms\n",
+      "output_sha256": "64b1c3cff452d631c4a0b96e1daa7c4b9aa647d0b710bc28d227dc00e56e417c",
+      "producers_overlap": true,
+      "join_after_both_producers": true
+    },
+    "jobs1": {
+      "command": [
+        "/home/agent/.local/bin/mise",
+        "run",
+        "--force",
+        "--skip-tools",
+        "--task-cache",
+        "off",
+        "--jobs",
+        "1",
+        "join"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/jobs1",
+      "config": "min_version = \"2026.10.11\"\n\n[tasks.p]\nrun = \"/usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py p\"\n\n[tasks.q]\nrun = \"/usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py q\"\n\n[tasks.join]\ndepends = [\"p\", \"q\"]\nrun = \"/usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py join\"\n",
+      "exit": 0,
+      "elapsed_seconds": 1.0670770420001645,
+      "timed_out": false,
+      "sent_sigterm_to_mise": false,
+      "events": [
+        {
+          "task": "p",
+          "kind": "start",
+          "monotonic": 10501.811505714,
+          "pid": 545228
+        },
+        {
+          "task": "p",
+          "kind": "end",
+          "monotonic": 10502.16656759,
+          "pid": 545228
+        },
+        {
+          "task": "q",
+          "kind": "start",
+          "monotonic": 10502.212170298,
+          "pid": 545231
+        },
+        {
+          "task": "q",
+          "kind": "end",
+          "monotonic": 10502.573285756,
+          "pid": 545231
+        },
+        {
+          "task": "join",
+          "kind": "start",
+          "monotonic": 10502.625131881,
+          "pid": 545234
+        },
+        {
+          "task": "join",
+          "kind": "dependencies-satisfied",
+          "monotonic": 10502.625569048,
+          "pid": 545234
+        },
+        {
+          "task": "join",
+          "kind": "end",
+          "monotonic": 10502.625734131,
+          "pid": 545234
+        }
+      ],
+      "owned_live_after_mise_return_or_wait": {},
+      "probe_cleanup_reaped": [],
+      "owned_live_after_probe_cleanup": {},
+      "output": "[p] $ /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py p\n[q] $ /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py q\n[join] $ /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py join\nFinished in 855.7ms\n",
+      "output_sha256": "04df889d9717171c51f4deef47aa11d98a09a7e231eb06d87dbc451b9194ab9c",
+      "producers_overlap": false,
+      "join_after_both_producers": true
+    },
+    "failure_slow": {
+      "command": [
+        "/home/agent/.local/bin/mise",
+        "run",
+        "--force",
+        "--skip-tools",
+        "--task-cache",
+        "off",
+        "--jobs",
+        "2",
+        "all"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/failure_slow",
+      "config": "min_version = \"2026.10.11\"\n\n[tasks.slow]\nrun = \"/usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py slow\"\n[tasks.fail]\nrun = \"/usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py fail\"\n[tasks.blocked]\ndepends=[\"fail\"]\nrun = \"/usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py blocked\"\n[tasks.all]\ndepends=[\"slow\",\"blocked\"]\n",
+      "exit": null,
+      "elapsed_seconds": 5.16544562800118,
+      "timed_out": true,
+      "sent_sigterm_to_mise": false,
+      "events": [
+        {
+          "task": "fail",
+          "kind": "start",
+          "monotonic": 10502.951173882,
+          "pid": 545253
+        },
+        {
+          "task": "slow",
+          "kind": "start",
+          "monotonic": 10502.951605465,
+          "pid": 545251
+        },
+        {
+          "task": "slow",
+          "kind": "descendant",
+          "monotonic": 10502.952212007,
+          "pid": 545251,
+          "child": 545254,
+          "detached": false
+        },
+        {
+          "task": "fail",
+          "kind": "failure",
+          "monotonic": 10502.961881673,
+          "pid": 545253,
+          "exit": 37
+        }
+      ],
+      "owned_live_after_mise_return_or_wait": {
+        "545251": true,
+        "545254": true
+      },
+      "probe_cleanup_reaped": [
+        545251,
+        545254
+      ],
+      "owned_live_after_probe_cleanup": {
+        "545251": false,
+        "545254": false
+      },
+      "output": "[slow] $ /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py slow\n[fail] $ /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py fail\n",
+      "output_sha256": "8830c0fa12c4ed1ea02e4ca3352c67153ed49bd805f3d2ad7b953547b3ae7941"
+    },
+    "failure_detached": {
+      "command": [
+        "/home/agent/.local/bin/mise",
+        "run",
+        "--force",
+        "--skip-tools",
+        "--task-cache",
+        "off",
+        "--jobs",
+        "2",
+        "all"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/failure_detached",
+      "config": "min_version = \"2026.10.11\"\n\n[tasks.slow]\nrun = \"/usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py detached\"\n[tasks.fail]\nrun = \"/usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py fail\"\n[tasks.blocked]\ndepends=[\"fail\"]\nrun = \"/usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py blocked\"\n[tasks.all]\ndepends=[\"slow\",\"blocked\"]\n",
+      "exit": null,
+      "elapsed_seconds": 5.162778836000143,
+      "timed_out": true,
+      "sent_sigterm_to_mise": false,
+      "events": [
+        {
+          "task": "fail",
+          "kind": "start",
+          "monotonic": 10508.180578176,
+          "pid": 545288
+        },
+        {
+          "task": "detached",
+          "kind": "start",
+          "monotonic": 10508.180681676,
+          "pid": 545289
+        },
+        {
+          "task": "detached",
+          "kind": "descendant",
+          "monotonic": 10508.181572217,
+          "pid": 545289,
+          "child": 545291,
+          "detached": true
+        },
+        {
+          "task": "fail",
+          "kind": "failure",
+          "monotonic": 10508.192139092,
+          "pid": 545288,
+          "exit": 37
+        }
+      ],
+      "owned_live_after_mise_return_or_wait": {
+        "545289": true,
+        "545291": true
+      },
+      "probe_cleanup_reaped": [
+        545289,
+        545291
+      ],
+      "owned_live_after_probe_cleanup": {
+        "545289": false,
+        "545291": false
+      },
+      "output": "[fail] $ /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py fail\n[slow] $ /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py detached\n",
+      "output_sha256": "c05013fa4ad8d08112b418fbfb0772f79eeafa12b0cdae10638460c8a5e64da2"
+    },
+    "cancel": {
+      "command": [
+        "/home/agent/.local/bin/mise",
+        "run",
+        "--force",
+        "--skip-tools",
+        "--task-cache",
+        "off",
+        "--jobs",
+        "1",
+        "slow"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/cancel",
+      "config": "min_version = \"2026.10.11\"\n\n[tasks.slow]\nrun = \"/usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py slow\"\n",
+      "exit": 1,
+      "elapsed_seconds": 0.24223383299977286,
+      "timed_out": false,
+      "sent_sigterm_to_mise": true,
+      "events": [
+        {
+          "task": "slow",
+          "kind": "start",
+          "monotonic": 10513.37279297,
+          "pid": 545307
+        },
+        {
+          "task": "slow",
+          "kind": "descendant",
+          "monotonic": 10513.373533137,
+          "pid": 545307,
+          "child": 545308,
+          "detached": false
+        }
+      ],
+      "owned_live_after_mise_return_or_wait": {
+        "545307": true,
+        "545308": true
+      },
+      "probe_cleanup_reaped": [
+        545307,
+        545308
+      ],
+      "owned_live_after_probe_cleanup": {
+        "545307": false,
+        "545308": false
+      },
+      "output": "[slow] $ /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/leaf.py slow\n[slow] ERROR sh exited with non-zero status: killed by SIGTERM\n[slow] ERROR task failed\n",
+      "output_sha256": "ee9f9042d9af4c40bbb4360c9f97be88ef2c10324571a9a4787e0b620a0ec4cf"
+    },
+    "no_auto_install": {
+      "command": [
+        "/home/agent/.local/bin/mise",
+        "exec",
+        "--",
+        "python",
+        "--version"
+      ],
+      "config": "min_version = \"2026.10.11\"\n\n[tools]\npython=\"0.0.0\"\n",
+      "exit": 1,
+      "elapsed_seconds": 0.027975916000286816,
+      "stdout": "",
+      "stderr": "mise WARN  python@0.0.0 is not installed and auto-install is disabled, so mise looks for python on PATH instead. Install it with: mise install python@0.0.0\nmise ERROR \"python\" couldn't exec process: No such file or directory\nmise ERROR Version: 2026.10.11 linux-arm64 (2026-10-15)\nmise ERROR Run with --verbose or MISE_VERBOSE=1 for more information\n",
+      "install_tree_exists": false
+    }
+  },
+  "findings": {
+    "jobs2_real_overlap": true,
+    "jobs1_serial": true,
+    "dependency_edges_hold": true,
+    "failure_blocks_dependents": true,
+    "surviving_descendant_cases": [
+      "failure_slow",
+      "failure_detached",
+      "cancel"
+    ],
+    "no_auto_install_missing_tool_fails": true
+  },
+  "supplemental_results": {
+    "single_failure": {
+      "command": [
+        "/home/agent/.local/bin/mise",
+        "run",
+        "--force",
+        "--skip-tools",
+        "--task-cache",
+        "off",
+        "--jobs",
+        "2",
+        "fail"
+      ],
+      "config": "min_version=\"2026.10.11\"\n[tasks.fail]\nrun=\"exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py fail\"\ndepends_post=[\"post\"]\n[tasks.post]\nrun=\"exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py post\"\n",
+      "exit": 37,
+      "elapsed_seconds": 0.11896608300048683,
+      "watchdog_seconds": 8,
+      "timed_out": false,
+      "owned_live_before_cleanup": {},
+      "owned_process_snapshots": {},
+      "owned_live_after_cleanup": {},
+      "events": [
+        {
+          "task": "fail",
+          "kind": "start",
+          "time": 10617.546543936,
+          "pid": 545648
+        },
+        {
+          "task": "fail",
+          "kind": "exit",
+          "time": 10617.546783061,
+          "pid": 545648,
+          "code": 37
+        },
+        {
+          "task": "post",
+          "kind": "start",
+          "time": 10617.564483978,
+          "pid": 545650
+        },
+        {
+          "task": "post",
+          "kind": "post",
+          "time": 10617.564671811,
+          "pid": 545650
+        }
+      ],
+      "output": "[fail] $ exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py fail\n[post] $ exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py post\nFinished in 49.6ms\n[fail] ERROR task failed\n"
+    },
+    "failure_plain2sec": {
+      "command": [
+        "/home/agent/.local/bin/mise",
+        "run",
+        "--force",
+        "--skip-tools",
+        "--task-cache",
+        "off",
+        "--jobs",
+        "2",
+        "all"
+      ],
+      "config": "min_version=\"2026.10.11\"\n[tasks.fail]\nrun=\"exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py fail\"\ndepends_post=[\"post\"]\n[tasks.post]\nrun=\"exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py post\"\n[tasks.slow]\nrun=\"exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py slow\"\n[tasks.all]\ndepends=[\"fail\",\"slow\"]\n",
+      "exit": 37,
+      "elapsed_seconds": 0.11809274999905028,
+      "watchdog_seconds": 8,
+      "timed_out": false,
+      "owned_live_before_cleanup": {},
+      "owned_process_snapshots": {},
+      "owned_live_after_cleanup": {},
+      "events": [
+        {
+          "task": "slow",
+          "kind": "start",
+          "time": 10617.842648645,
+          "pid": 545665
+        },
+        {
+          "task": "fail",
+          "kind": "start",
+          "time": 10617.842896811,
+          "pid": 545666
+        },
+        {
+          "task": "fail",
+          "kind": "exit",
+          "time": 10617.843086853,
+          "pid": 545666,
+          "code": 37
+        },
+        {
+          "task": "post",
+          "kind": "start",
+          "time": 10617.859550853,
+          "pid": 545669
+        },
+        {
+          "task": "post",
+          "kind": "post",
+          "time": 10617.85969227,
+          "pid": 545669
+        }
+      ],
+      "output": "[slow] $ exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py slow\n[fail] $ exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py fail\n[post] $ exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py post\n[post] Finished in 14.3ms\nFinished in 63.3ms\n[fail] ERROR task failed\n"
+    },
+    "failure_exec_descendant": {
+      "command": [
+        "/home/agent/.local/bin/mise",
+        "run",
+        "--force",
+        "--skip-tools",
+        "--task-cache",
+        "off",
+        "--jobs",
+        "2",
+        "all"
+      ],
+      "config": "min_version=\"2026.10.11\"\n[tasks.fail]\nrun=\"exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py fail\"\ndepends_post=[\"post\"]\n[tasks.post]\nrun=\"exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py post\"\n[tasks.slow]\nrun=\"exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py descendant\"\n[tasks.all]\ndepends=[\"fail\",\"slow\"]\n",
+      "exit": null,
+      "elapsed_seconds": 8.002841461999196,
+      "watchdog_seconds": 8,
+      "timed_out": true,
+      "owned_live_before_cleanup": {
+        "545684": false,
+        "545688": true
+      },
+      "owned_process_snapshots": {
+        "545688": {
+          "stat": "545688 (sleep) S 545620 545671 545671 0 -1 4194304 198 0 0 0 0 0 0 0 20 0 1 0 1061811 15187968 421 18446744073709551615 187650986737664 187650995894864 281474551117440 0 0 0 0 0 0 1 0 0 17 8 0 0 0 0 0 187650995976152 187650997378568 187651254484992 281474551130243 281474551130257 281474551130257 281474551136237 0\n",
+          "cmdline": "/bin/sleep 12 "
+        }
+      },
+      "owned_live_after_cleanup": {
+        "545684": false,
+        "545688": false
+      },
+      "events": [
+        {
+          "task": "descendant",
+          "kind": "start",
+          "time": 10618.119672145,
+          "pid": 545684
+        },
+        {
+          "task": "descendant",
+          "kind": "child",
+          "time": 10618.120531478,
+          "pid": 545684,
+          "child": 545688
+        },
+        {
+          "task": "fail",
+          "kind": "start",
+          "time": 10618.120655062,
+          "pid": 545686
+        },
+        {
+          "task": "fail",
+          "kind": "exit",
+          "time": 10618.12082152,
+          "pid": 545686,
+          "code": 37
+        },
+        {
+          "task": "post",
+          "kind": "start",
+          "time": 10618.136902145,
+          "pid": 545689
+        },
+        {
+          "task": "post",
+          "kind": "post",
+          "time": 10618.137049145,
+          "pid": 545689
+        }
+      ],
+      "output": "[slow] $ exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py descendant\n[fail] $ exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py fail\n[post] $ exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py post\n[post] Finished in 14.6ms\n"
+    },
+    "failure_timeout_descendant": {
+      "command": [
+        "/home/agent/.local/bin/mise",
+        "run",
+        "--force",
+        "--skip-tools",
+        "--task-cache",
+        "off",
+        "--jobs",
+        "2",
+        "--timeout",
+        "2s",
+        "all"
+      ],
+      "config": "min_version=\"2026.10.11\"\n[tasks.fail]\nrun=\"exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py fail\"\ndepends_post=[\"post\"]\n[tasks.post]\nrun=\"exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py post\"\n[tasks.slow]\nrun=\"exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py descendant\"\n[tasks.all]\ndepends=[\"fail\",\"slow\"]\n",
+      "exit": 1,
+      "elapsed_seconds": 2.0248109590011154,
+      "watchdog_seconds": 8,
+      "timed_out": false,
+      "owned_live_before_cleanup": {
+        "545781": false,
+        "545783": true
+      },
+      "owned_process_snapshots": {
+        "545783": {
+          "stat": "545783 (sleep) S 545620 545766 545766 0 -1 4194304 197 0 0 0 0 0 0 0 20 0 1 0 1062628 16646144 420 18446744073709551615 187650922250240 187650931407440 281474010905024 0 0 0 0 0 0 1 0 0 17 1 0 0 0 0 0 187650931488728 187650932891144 187651917824000 281474010916980 281474010916994 281474010916994 281474010922989 0\n",
+          "cmdline": "/bin/sleep 12 "
+        }
+      },
+      "owned_live_after_cleanup": {
+        "545781": false,
+        "545783": false
+      },
+      "events": [
+        {
+          "task": "fail",
+          "kind": "start",
+          "time": 10626.284030232,
+          "pid": 545779
+        },
+        {
+          "task": "descendant",
+          "kind": "start",
+          "time": 10626.283910982,
+          "pid": 545781
+        },
+        {
+          "task": "descendant",
+          "kind": "child",
+          "time": 10626.285053649,
+          "pid": 545781,
+          "child": 545783
+        },
+        {
+          "task": "fail",
+          "kind": "exit",
+          "time": 10626.29470594,
+          "pid": 545779,
+          "code": 37
+        },
+        {
+          "task": "post",
+          "kind": "start",
+          "time": 10626.312267982,
+          "pid": 545784
+        },
+        {
+          "task": "post",
+          "kind": "post",
+          "time": 10626.312433357,
+          "pid": 545784
+        }
+      ],
+      "output": "[fail] $ exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py fail\n[slow] $ exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py descendant\n[post] $ exec /usr/bin/python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/supplement-leaf.py post\n[post] Finished in 14.7ms\nmise ERROR mise run timed out after 2s\nmise ERROR Version: 2026.10.11 linux-arm64 (2026-10-15)\nmise ERROR Run with --verbose or MISE_VERBOSE=1 for more information\n"
+    },
+    "skiptools_missing_tool": {
+      "command": [
+        "/home/agent/.local/bin/mise",
+        "run",
+        "--force",
+        "--skip-tools",
+        "--task-cache",
+        "off",
+        "--jobs",
+        "2",
+        "check"
+      ],
+      "config": "min_version=\"2026.10.11\"\n[tools]\npython=\"0.0.0\"\n[tasks.check]\nrun=\"exec /bin/true\"\n",
+      "exit": 0,
+      "elapsed_seconds": 0.19533445900015067,
+      "stdout": "",
+      "stderr": "[check] $ exec /bin/true\n",
+      "missing_tool_install_exists": false
+    }
+  },
+  "supported_option_audit": {
+    "run_help": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/mise-run-help.txt",
+    "run_help_sha256": "012eddd17f3884bac15250c496e5b79d01b8044d5860e91f37d1134800f3926f",
+    "failure_option": "--continue-on-error is the only failure-mode option; omitted in every production-flags probe. No --fail-fast or --kill-others option appears in complete actual binary help.",
+    "other_options": "--timeout bounds entire run; explicitly probed. --raw serializes tasks and cannot provide required overlap.",
+    "task_dependencies": "v2026.10.11 official reference says wait_for only waits already scheduled tasks; depends_post runs cleanup after started parent even on failure. Supplemental probes include depends_post to inspect actual failure behavior. Neither declarative edge is a generic descendant reaper.",
+    "official_sources": [
+      {
+        "url": "https://raw.githubusercontent.com/jdx/mise/v2026.10.11/src/cli/run.rs",
+        "scratch": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/upstream/run.rs",
+        "sha256": "daa5507747231e04c05b39004395e399d26614c89906918a3a2dd36933df8394"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/jdx/mise/v2026.10.11/docs/tasks/task-configuration.md",
+        "scratch": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/upstream/task-configuration.md",
+        "sha256": "939ba48a92e476ce5ddba6f44b9bd51490122b94df0eca44ebf52bc03d0b5e2b"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/jdx/mise/v2026.10.11/docs/tasks/architecture.md",
+        "scratch": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/upstream/architecture.md",
+        "sha256": "b390e38092c7344ebb92527de6572d7788b4246a2e52655ffe288a82ce14f3e8"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/jdx/mise/v2026.10.11/src/task/task_scheduler.rs",
+        "scratch": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/upstream/task-task_scheduler.rs",
+        "sha256": "0f9712204fc8e9a0e8f45ba681fda4bb6df1f86000be18853adbe1cf9e15e24b"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/jdx/mise/v2026.10.11/src/task/task_executor.rs",
+        "scratch": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/upstream/task-task_executor.rs",
+        "sha256": "64c566155b6c1607faa6883296785f9e5d23b831ba2acbf11772127f1f99fbad"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/jdx/mise/v2026.10.11/src/cmd.rs",
+        "scratch": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-mise-capability/upstream/cmd.rs",
+        "sha256": "a9b76ff3d8c686c08ebf8f1a6c36e91bfc65b9ff02615af3a52f637d65dde76d"
+      }
+    ]
+  },
+  "attempt1_harness_correction": {
+    "issue": "With custom MISE_CONFIG_FILE and isolated config directory, mise task working directory resolved /home/agent instead of requested case cwd. Initial instrumentation wrote five solely owned temporary files there.",
+    "correction": "Retained those exact files under scratch/attempt1; later leaves anchor every write to explicit absolute PROBE_CASE_DIR. No repository source changed. First attempt produced no claims and was rerun.",
+    "preserved": "scratch/attempt1"
+  },
+  "conclusion": {
+    "minimum_version_verified": "2026.10.11 only; actualbinarySHA/version retained. No older floor inferred.",
+    "supported": "jobs1/jobs2 and dependency ordering, default failure status37, direct plain sibling cancellation, forced no-task-cache execution, --skip-tools no installation and disabled exec auto-install refusal.",
+    "concrete_missing_guarantee": "Descendant cleanup/reaping: direct-exec failed-sibling test cancels task parent but sleep12 descendant survives at8s watchdog; --timeout2s returns1 while that owned descendant remains live. SIGTERM-to-mise shell-leaf case similarly leaves task/descendant.",
+    "bounded_observation": "8s/5s watchdogs do not prove mise never cancels; they demonstrate no cleanup within the measured admission interval. Current task requirement needs owned descendants dead/reaped before return; timeout and SIGTERM return cases concretely violate that.",
+    "minimal_native_requirement": "Retain mise as sole DAG/scheduler; native supervision must own cancellation/process descendants, release resource admission after cleanup, and preserve failed-stage37 independently of timeout/collateral cancellation. No second scheduler justified.",
+    "cleanup": "Probe enabled Linux child subreaper and cleaned only its own setsid mise group and exact recorded leaf/sleep PIDs, then waitpid-reaped adopted children. Every recorded owned PID is nonlive after cleanup.",
+    "production_evidence_limit": "These are isolated tool capability controls, not current gate/quick/standalone suite passes."
+  },
+  "final_cleanup_verification": {
+    "all_recorded_task_and_descendant_pids": [
+      544794,
+      544795,
+      544800,
+      544816,
+      544819,
+      544822,
+      544839,
+      544841,
+      544842,
+      544880,
+      544882,
+      544883,
+      544968,
+      544974,
+      545207,
+      545209,
+      545212,
+      545228,
+      545231,
+      545234,
+      545251,
+      545253,
+      545254,
+      545288,
+      545289,
+      545291,
+      545307,
+      545308,
+      545648,
+      545650,
+      545665,
+      545666,
+      545669,
+      545684,
+      545686,
+      545688,
+      545689,
+      545779,
+      545781,
+      545783,
+      545784
+    ],
+    "live": [],
+    "first_attempt_owned_artifacts_retained_under": ".flow/tmp/fn25417-mise-capability/attempt1",
+    "probe_created_home_paths_remaining": []
+  }
+}

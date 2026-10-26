@@ -139,11 +139,17 @@ mod tests {
 
     #[test]
     fn test_stage_propagates_required_policy_and_preserves_skipped_defaults() {
-        for (backend, apalache, expected) in [
-            ("skip", "skip", "unset:unset"),
-            ("require", "skip", "required:4"),
-            ("skip", "require", "required:1"),
-            ("require", "require", "required:1"),
+        for (backend, apalache, inherited, expected) in [
+            ("skip", "skip", None, "unset:unset"),
+            ("skip", "skip", Some("2"), "unset:2"),
+            ("require", "skip", None, "required:4"),
+            ("require", "skip", Some("99"), "required:4"),
+            ("require", "skip", Some("2"), "required:2"),
+            ("require", "skip", Some("1"), "required:1"),
+            ("require", "skip", Some("malformed"), "required:4"),
+            ("require", "skip", Some("0"), "required:4"),
+            ("skip", "require", Some("2"), "required:1"),
+            ("require", "require", Some("99"), "required:1"),
         ] {
             let mut child = Command::new(std::env::current_exe().unwrap());
             child
@@ -154,7 +160,10 @@ mod tests {
                 .env_remove("NEXTEST_PROFILE")
                 .env_remove("NEXTEST_TEST_THREADS");
             if backend == "require" || apalache == "require" {
-                child.env("NEXTEST_PROFILE", "default").env("NEXTEST_TEST_THREADS", "99");
+                child.env("NEXTEST_PROFILE", "default");
+            }
+            if let Some(inherited) = inherited {
+                child.env("NEXTEST_TEST_THREADS", inherited);
             }
             let output = child.output().unwrap();
             assert!(output.status.success(), "{output:?}");

@@ -607,11 +607,17 @@ fn root_required_backend_environment_selects_standalone_on_gate_and_time_routes(
 fn required_profile_reaches_gate_update_and_direct_test_children() {
     let fixture = Fixture::new();
     for entry in [vec!["gate", "--stage", "tests"], vec!["update"], vec!["test-run"]] {
-        for (backend, apalache, profile, threads) in [
-            ("skip", "skip", "unset", "unset"),
-            ("require", "skip", "required", "4"),
-            ("skip", "require", "required", "1"),
-            ("require", "require", "required", "1"),
+        for (backend, apalache, inherited, profile, threads) in [
+            ("skip", "skip", None, "unset", "unset"),
+            ("skip", "skip", Some("2"), "unset", "2"),
+            ("require", "skip", Some("99"), "required", "4"),
+            ("require", "skip", None, "required", "4"),
+            ("require", "skip", Some("2"), "required", "2"),
+            ("require", "skip", Some("1"), "required", "1"),
+            ("require", "skip", Some("malformed"), "required", "4"),
+            ("require", "skip", Some("0"), "required", "4"),
+            ("skip", "require", Some("2"), "required", "1"),
+            ("require", "require", Some("99"), "required", "1"),
         ] {
             fixture.clear();
             let mut command = fixture.command(false);
@@ -632,7 +638,10 @@ fn required_profile_reaches_gate_update_and_direct_test_children() {
                 .env_remove("NEXTEST_PROFILE")
                 .env_remove("NEXTEST_TEST_THREADS");
             if backend == "require" || apalache == "require" {
-                command.env("NEXTEST_PROFILE", "default").env("NEXTEST_TEST_THREADS", "99");
+                command.env("NEXTEST_PROFILE", "default");
+            }
+            if let Some(inherited) = inherited {
+                command.env("NEXTEST_TEST_THREADS", inherited);
             }
             let output = command.output().unwrap();
             assert_eq!(
