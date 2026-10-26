@@ -54,17 +54,17 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-254.3 | ⬜ todo | After .10: cargo-nextest across binaries with a JVM test group; identical logical test inventory (R4) |
-| fn-254.5 | ⬜ todo | After .10: Apalache out of routine gates, overlapping stages, trybuild trim, dead `model-check-changed` removed (R5) |
-| fn-254.6 | ⬜ todo | After .10: `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
+| fn-254.3 | ⬜ todo | cargo-nextest across binaries with a JVM test group; identical logical test inventory (R4) |
+| fn-254.5 | ⬜ todo | Apalache out of routine gates, overlapping stages, trybuild trim, dead `model-check-changed` removed (R5) |
+| fn-254.6 | ⬜ todo | `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
-| fn-254.10 | 🔄 in progress | Independent framework gate and root delegation; prove CLI changes preserve guest caches (R7) |
-| fn-254.11 | ⬜ todo | After .10: framework gate passes on `model/umpire` alone; planted Temporal coupling fails (R7) |
+| fn-254.10 | ✅ done | Independent framework gate and root delegation; prove CLI changes preserve guest caches (R7) |
+| fn-254.11 | ⬜ todo | framework gate passes on `model/umpire` alone; planted Temporal coupling fails (R7) |
 | fn-254.12 | ⬜ todo | After framework optimizations and controls: committed stage budgets; hard work counts, bounded timing retry, unbudgeted stages fail (R8) |
 | fn-254.13 | ✅ done | Standalone workspace and dedicated guest driver; caller/root/remap controls and guest reproduction reviewed (R7) |
-| fn-254.14 | ⬜ todo | After .13: assume mise and pinned tools are installed; drop presence/pin probes and their controls, fail hard (R7) |
-| fn-254.15 | ⬜ todo | After .13, .10, .14: port remaining model shell scripts to xtask/guest-driver/Makefile; only the xtask bootstrap stays shell (R7) |
+| fn-254.14 | ⬜ todo | assume mise and pinned tools are installed; drop presence/pin probes and their controls, fail hard (R7) |
+| fn-254.15 | ⬜ todo | After .14/.16: port remaining model shell scripts to xtask/guest-driver/Makefile; only the xtask bootstrap stays shell (R7) |
 | fn-254.16 | ⬜ todo | After .14: mise provisions pinned TLC and opt-in Apalache behind existing entry points; keep runtime JAR hash/path admission (R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
@@ -124,7 +124,7 @@ subprocess refusal remains recorded separately.
 | fn-246.13 | ⬜ todo | Independent standalone-activity protocol Model and native/TLC invariants (R5) |
 | fn-246.9 | ⬜ todo | Current-format whole-prefix Run recording, replay and presentation (R1, R5) |
 | fn-246.10 | ⬜ todo | After .9: bounded alternatives and coherent explanation publication (R1, R5) |
-| fn-246.2 | ⬜ todo | After .10: shared entity lens and filler-driven probes with equivalence pins (R3) |
+| fn-246.2 | ⬜ todo | shared entity lens and filler-driven probes with equivalence pins (R3) |
 | fn-246.3 | ⬜ todo | After .2, .13: activity migration, exact probe parity and mapping count (R4, R7) |
 | fn-246.4 | ⬜ todo | After .3, .13: generic native Refinement consumer and activity declaration (R5) |
 | fn-246.5 | ⬜ todo | After .3, .4: complete observable-worker policies and derived programs (R6) |
