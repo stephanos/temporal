@@ -159,6 +159,7 @@ def main():
     environment = dict(os.environ, MISE_AUTO_INSTALL="false", MISE_EXEC_AUTO_INSTALL="false",
                        UMPIRE_QUICK_CACHE="0", UMPIRE_CACHE_DISABLE="1", CARGO_BUILD_JOBS="2")
     environment.pop("BASH_ENV", None)
+    environment.pop("FN255_CONTROLS_ONLY", None)
     print(json.dumps(execute(destination, args.cases, environment)))
     if args.shrink_controls:
         current = json.loads((destination / "inputs.json").read_text())["shapes"][0]
