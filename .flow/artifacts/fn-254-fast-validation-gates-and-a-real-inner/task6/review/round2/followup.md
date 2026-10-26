@@ -1,0 +1,1 @@
+All draws SHIP; coordinator verified the retained shared-feature consumer selection P2 and requires a complete source-consumer mapping plus focused negative proof before task6 closure. No Model or backend behavior changes are authorized by that fix.

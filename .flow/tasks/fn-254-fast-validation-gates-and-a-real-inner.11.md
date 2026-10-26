@@ -41,13 +41,13 @@ The real directory-only framework entry-point run is the isolation gate being ch
 - [ ] Cost and control tier (quick, check or validate) recorded with exact source/tool/stage inputs; task .8 states the tier in the consolidated README and renews changed-input standalone proof.
 
 ## Done summary
-TBD
+Implemented validate-tier standalone execution from a source-only framework copy with independently built local CLI/guest driver, explicit child recursion exclusion, exact source/tool/output provenance and named planted-refusal controls. The final real isolated gate passed all17stages exactly once,740tests plus4doctests,allguest/native-reportchecks and bothGo modules in678.821s cold; this is not a warm-budget claim. Two real failures exposed copied-mise trust and an inherited runtime capability fixture path; both were corrected with focused controls and preserved assertions before the final run. Actual shipping rootMake validation routing selects standalone. All three formal review axes SHIP. Evidence binds exact candidate1217f4ce; later task6/cache and subsequent producer inputs remain assigned to task8 current-input renewal, not claimed covered by this run.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e198ea9dd2, 71f1fa6d11, 66f53a87a4, 6660073f42
+- Tests: Full real isolated framework gate: exit0, 17 stages once, 740 nextest tests plus four doctests passed, five guests/native reports/both Go modules passed, Native xtask 46 tests, fmt/clippy passed, Exact shipping Make/timer compiled-gate routing RED-GREEN passed with synthetic leaves, Original capability assembly positive and all five named negative controls passed, Three formal review axes SHIP; coordinator independently verified all46 indexed artifacts and1171 source hashes/executable modes against exact recorded candidate; all17stages once/exit0.
 - PRs:
-
 ## Isolated runtime-test path correction
 
 Own protocol/runtime/tests/capabilities.rs only to repair its inherited pre-move framework-root/DSL/lock paths exposed by the mandatory real isolated proof. Preserve all capability assembly/refusal assertions. Add any further actual file needs through honest ownership amendment and admission before editing.

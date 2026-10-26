@@ -10,8 +10,9 @@
   "id": "fn-254-fast-validation-gates-and-a-real-inner",
   "impl_review_rounds": {
     "fn-254-fast-validation-gates-and-a-real-inner.10": 0,
+    "fn-254-fast-validation-gates-and-a-real-inner.11": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.13": 0,
-    "fn-254-fast-validation-gates-and-a-real-inner.14": 1,
+    "fn-254-fast-validation-gates-and-a-real-inner.14": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.2": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.3": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.4": 0,
@@ -1280,15 +1281,140 @@
       "task": "fn-254-fast-validation-gates-and-a-real-inner.6",
       "timestamp": "2026-10-26T01:50:01.616459Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "bc3422ed1b6a44588d952931398e380a28f913d3b515722f46e895407d5c3fa3",
+      "backend": "codex",
+      "base_sha": "234dcd5c6fd85d2d05790c87b032f26e2e8cd96d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e96e2343c957dbd930039d036433548a",
+            "classification": "introduced",
+            "findingId": "finding-e96e2343c957dbd930039d036433548a",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d5d4eaa8a32630da0719b0302f077067a4d14e41",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 671,
+      "output_sha256": "da4ea06de8fdf9c59532f3075d0c330e63604fe9565097f46fce64e60a0decf2",
+      "reservation_id": "f6bcc2effb26453f982b13324c4dfbcc",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.14",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.14",
+      "timestamp": "2026-10-26T02:06:43.712839Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3f59ac67c3bfaf16f8a21449eee8d623d822cbc2fce19dd248ac8c7227d7ef85",
+      "backend": "codex",
+      "base_sha": "6d7cbebe21db55a55e0b9a607e1838dea54173ba",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d5d4eaa8a32630da0719b0302f077067a4d14e41",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 605,
+      "output_sha256": "88bdeed27dc1ce3627680af8c42acc28832e145fff2b2e47ad8b5b3088c9092d",
+      "reservation_id": "b554da52ed174ce89713b1250be3af4b",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.11",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.11",
+      "timestamp": "2026-10-26T02:33:06.795894Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "60fb777298597067795b91503e97fc222b0dda59f268590c13425622ba1f4c80",
+      "backend": "codex",
+      "base_sha": "8cf15a04e60d15f63f7b0de72d1e2f933d6f2ad0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3ee976132fa355a6d179f58d87db00d6",
+            "classification": "introduced",
+            "findingId": "finding-3ee976132fa355a6d179f58d87db00d6",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "d5d4eaa8a32630da0719b0302f077067a4d14e41",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 2629,
+      "output_sha256": "62bae01116b28b1b239e4fc8bfe049381ee03b25c4600e1f212741b706afc688",
+      "reservation_id": "e3942d57da4f4d5a95f58a1f9824f33e",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.6",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.6",
+      "timestamp": "2026-10-26T02:33:07.129234Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-254-fast-validation-gates-and-a-real-inner.10": 1,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.11": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.13": 1,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.14": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.2": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.3": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.4": 1,
-    "impl:fn-254-fast-validation-gates-and-a-real-inner.6": 1,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.6": 2,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.9": 1,
     "plan": 8,
     "plan#completion": 0
@@ -1297,6 +1423,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-254-fast-validation-gates-and-a-real-inner.10": 0,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.11": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.13": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.14": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.2": 0,
@@ -1320,5 +1447,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-26T01:50:01.621732Z"
+  "updated_at": "2026-10-26T02:33:07.134726Z"
 }

@@ -20,8 +20,8 @@ The Scala tree under `model/archived/` is frozen reference material.
 Current order: **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
 ranks a fast feedback loop among the most important properties. fn-246's in-flight work is wrapped;
-The standalone framework workspace and dedicated guest driver are integrated; remaining fn-254 tasks simplify and validate their native tools. Deliver fn-254's independent framework/gate checkpoint,
-resume fn-246 to closure, then finish fn-254.7/.8.
+The standalone framework workspace and dedicated guest driver are integrated; remaining fn-254 tasks simplify and validate their native tools. The independent framework/gate checkpoint is integrated and its isolated proof passed.
+Resume fn-246 in disjoint lanes while finishing fn-254's remaining optimizations, then finish fn-254.7/.8.
 The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246; fn-254.13's workspace move is integrated. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; activity changes
 retain their listed dependencies and follow the current priority/source-ownership order.
 fn-255.1, .3 and .4 (generator spike, fuzz targets, cargo-mutants) touch no gate files and may run as lanes before fn-254 closes.
@@ -57,9 +57,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.6 | 🔄 in progress | `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
-| fn-254.11 | 🔄 in progress | framework gate passes on `model/umpire` alone; planted Temporal coupling fails (R7) |
 | fn-254.12 | ⬜ todo | After framework optimizations and controls: committed stage budgets; hard work counts, bounded timing retry, unbudgeted stages fail (R8) |
-| fn-254.14 | 🔄 in progress | assume mise and pinned tools are installed; drop presence/pin probes and their controls, fail hard (R7) |
 | fn-254.15 | ⬜ todo | After .14/.16: port remaining model shell scripts to xtask/guest-driver/Makefile; only the xtask bootstrap stays shell (R7) |
 | fn-254.16 | ⬜ todo | After .14: mise provisions pinned TLC and opt-in Apalache behind existing entry points; keep runtime JAR hash/path admission (R7) |
 
