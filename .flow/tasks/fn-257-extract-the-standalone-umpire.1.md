@@ -29,9 +29,14 @@ Git object inventories and exact blob/mode comparisons only; no new builds/tests
 - [ ] All existing candidates remain present with explicit provisional ownership; inaccessible destination and unrun gates remain open.
 
 ## Done summary
-TBD
+Frozen source `c88fdc550694020eb1c6a2e09577813d906c9ffe` and its exact framework/archive trees. The manifest contains all 1,177 framework files plus LICENSE, with blob IDs, SHA-256, modes, sizes and symlink targets. Independent Git archive comparison agrees on every selected byte/mode. The history map records both sibling archive moves, 1,225 Rust-qualified commits, exact support provenance and six representative histories.
 
+Preservation evidence covers 81 local branches, all 36 observed worktrees and 217 additional refs, with merge-base deltas and provisional destination ownership. No checkout/ref/candidate was deleted or transferred. Dirty/unmerged state, unknown legacy ownership and ignored evidence remain explicit final-cutover obligations. Destination access still fails HTTP401; contents/permissions remain unknown and publication is not admitted.
+
+Updated MIGRATE.md to use the existing independent workspace/tooling, preserve Java/TLC and both canonical Go identities, and honor the current baseline waiver/validation hold. MILESTONES.md tracks the full extraction through later current-pair proof and authorized cutover. All three implementation-review axes returned SHIP and were finalized through Flow reservation `4797c20787d149f8bc70dbd71c612620`. No builds/tests ran; this task's verification consists of Git object/inventory comparisons. Actual filtering and runtime proofs are intentionally unfinished tasks 2–6.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1ce541e398
+- Tests: python3 .flow/tmp/fn257-capture-source.py --source c88fdc5506 --output .flow/artifacts/fn-257-extract-the-standalone-umpire/task1, Git archive tar entries independently compared against all source-manifest.json records; source-inventory-proof.json records 1178 exact matches, flowctl validate --spec fn-257 --coverage --json, Three source-only implementation review axes verified source/history/candidate inventories against Git; finalized reservation 4797c20787d149f8bc70dbd71c612620: SHIP
 - PRs:

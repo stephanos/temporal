@@ -74,8 +74,7 @@ the required current-pair proof. Plan review passed; build/test execution remain
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-257.1 | 🔄 in progress | Freeze exact source/history inventory and candidate transfer ledger; reconcile the stale extraction map (R1) |
-| fn-257.2 | ⬜ todo | After .1: isolated history export, exact bytes/modes/symlinks and commit-map proof (R2) |
+| fn-257.2 | ⬜ todo | Source/history inventory reviewed; next is isolated history export, exact bytes/modes/symlinks and commit-map proof (R2) |
 | fn-257.3 | ⬜ todo | After .2: portable root, canonical Go identities/descriptors, focused docs/CI and command aliases (R3) |
 | fn-257.4 | ⬜ todo | After .1/.3: sibling Temporal Cargo/Go consumers and forwarding commands; disjoint provisional preparation may begin earlier (R4) |
 | fn-257.5 | ⛔ blocked | After .3/.4 and the validation hold ends: exact isolated/paired proof, guest/generator checks and uncommitted Rust/Go red-green tests (R3–R5) |
