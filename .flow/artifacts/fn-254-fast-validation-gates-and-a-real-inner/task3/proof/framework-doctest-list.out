@@ -1,0 +1,34 @@
+0 tests, 0 benchmarks
+0 tests, 0 benchmarks
+0 tests, 0 benchmarks
+0 tests, 0 benchmarks
+catalog/src/types.rs - types::check (line 32): test
+
+1 test, 0 benchmarks
+catalog/src/types.rs - types::check (line 37): test
+
+1 test, 0 benchmarks
+0 tests, 0 benchmarks
+0 tests, 0 benchmarks
+0 tests, 0 benchmarks
+0 tests, 0 benchmarks
+0 tests, 0 benchmarks
+0 tests, 0 benchmarks
+0 tests, 0 benchmarks
+0 tests, 0 benchmarks
+0 tests, 0 benchmarks
+0 tests, 0 benchmarks
+0 tests, 0 benchmarks
+protocol/runtime/src/runtime.rs - runtime::SingletonTarget (line 66): test
+
+1 test, 0 benchmarks
+author/suite/src/lib.rs - expect (line 37): test
+
+1 test, 0 benchmarks
+author/suite/src/space.rs - space::Space<S>::with_world (line 69): test
+
+1 test, 0 benchmarks
+0 tests, 0 benchmarks
+0 tests, 0 benchmarks
+0 tests, 0 benchmarks
+0 tests, 0 benchmarks

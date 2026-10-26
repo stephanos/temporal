@@ -1,0 +1,12 @@
+gate::boundary::tests::character_literals_and_lifetimes_cannot_hide_source_escapes: test
+gate::boundary::tests::character_recognition_requires_a_valid_closed_literal: test
+gate::boundary::tests::declared_unused_dependency_escape_is_refused_before_cargo: test
+gate::boundary::tests::external_target_alias_cannot_hide_source_subtree: test
+gate::boundary::tests::organization_exception_preserves_occurrence_token_boundaries: test
+gate::boundary::tests::source_escape_is_structural_and_contained_deep_paths_work: test
+gate::boundary::tests::target_cannot_hide_sources: test
+gate::tests::real_stage_child_receives_cache_bypass_and_required_mode: test
+test_run::tests::binaries_then_doctests_exactly_once: test
+test_run::tests::binary_failure_stops_before_doctests: test
+test_run::tests::doctest_failure_preserves_status: test
+test_run::tests::missing_runner_fails_without_fallback: test

@@ -1,0 +1,9 @@
+
+running 4 tests
+test test_run::tests::binaries_then_doctests_exactly_once ... ok
+test test_run::tests::binary_failure_stops_before_doctests ... ok
+test test_run::tests::doctest_failure_preserves_status ... ok
+test test_run::tests::missing_runner_fails_without_fallback ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+

@@ -1,0 +1,8 @@
+gate::tests::actual_temporal_gate_wiring_and_named_failures: test
+gate::tests::full_gate_overrides_cache_and_preserves_failure: test
+gate::tests::run_control_child: test
+gate::tests::spawn_failure_names_the_stage: test
+test_run::tests::binaries_then_doctests_exactly_once: test
+test_run::tests::binary_failure_stops_before_doctests: test
+test_run::tests::doctest_failure_preserves_status: test
+test_run::tests::missing_runner_fails_without_fallback: test
