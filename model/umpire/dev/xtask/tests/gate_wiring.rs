@@ -581,3 +581,20 @@ fn test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes() {
     assert!(stderr(&output).contains("usage: cargo xtask test-run"));
     assert_eq!(fixture.labels(), Vec::<String>::new());
 }
+
+#[test]
+fn root_required_backend_environment_selects_standalone_on_gate_and_time_routes() {
+    let fixture = Fixture::new();
+    write(&fixture.root.join("backends/native/src/lib.rs"), "// benchmark input\n");
+    for entry in ["gate", "time"] {
+        fixture.clear();
+        let output =
+            fixture.command(false).arg(entry).env("UMPIRE_BACKENDS", "require").output().unwrap();
+        assert_status(&output, 1);
+        assert!(stderr(&output).contains("framework stage standalone failed: missing or escaping standalone configuration: Cargo.lock"), "{output:?}");
+        assert_eq!(fixture.labels(), LEAVES.iter().map(|(_, leaf)| *leaf).collect::<Vec<_>>());
+        let log = fs::read_to_string(&fixture.log).unwrap();
+        assert!(log.lines().all(|line| line.contains("|0|1|require|")), "{log}");
+        assert!(!log.contains("cargo test -p"));
+    }
+}

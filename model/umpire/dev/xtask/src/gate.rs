@@ -276,7 +276,9 @@ pub fn run(command: &str, args: Vec<OsString>) -> Result<i32> {
     }
     let args = args.into_boxed_slice();
     let tools = ToolRoot::local()?;
-    let mut gate = Gate::new(&tools, command == "validate")?;
+    let required = command == "validate"
+        || env::var_os("UMPIRE_BACKENDS").as_deref() == Some(OsStr::new("require"));
+    let mut gate = Gate::new(&tools, required)?;
     if matches!(command, "time" | "validate") {
         gate.timed = true;
     }
