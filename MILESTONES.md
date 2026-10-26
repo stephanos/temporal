@@ -29,7 +29,22 @@ Consolidation and build prerequisites for fn-246 are satisfied. Priority does no
 clear cross-spec blockers only after prerequisite closures are committed in `umpire`.
 Parallel work requires disjoint source and code-generation ownership.
 
-During fn-254, run focused checks for each change and its changed gates. Defer unrelated broad suites and full
+Current owner instruction: prepare implementations in parallel worktrees, with no new validation yet.
+Candidates for fn-254.5/.15/.16/.17 and .12 are being combined in an isolated source-assembly branch.
+Remaining implementation includes actual receipt counters, budget wiring, mise compatibility and native control fixtures.
+Candidates are unvalidated and not integrated into `umpire`;
+preparation does not advance Flow dependencies or mark tasks complete. Integrate shared CLI/configuration
+changes in dependency order. fn-246.9/.13 have retained source/proof checkpoints awaiting integration and closure.
+The normal limit is four parallel implementation workers. The owner authorized one additional batch of
+six tasks (fn-255.2 differential harness, fn-255.5 Miri, fn-255.6 coverage, fn-256.2 retirement,
+fn-253.3 countdown library and fn-246.2 entity lens), temporarily allowing ten; do not replace
+these extra implementation workers after they finish. Each hands off once to a fresh source-review worker;
+execution gates remain deferred. Existing workers finish their current
+assignments, then fresh agents take subsequent work within that cap. fn-254 has priority; retain the
+fn-255 generator/fuzz/mutation and fn-253.2 spike candidates without treating preparation as completion.
+Spike verdicts, performance claims and task completion still require evidence.
+
+When validation resumes, run focused checks for each change and its changed gates. Defer unrelated broad suites and full
 `model-check`/`model-validate` runs to fn-254.8. Exact TLC agreement, migration inventories, gate failure controls
 and the changed standalone gate keep their task-specific checks. Deferred checks remain final requirements.
 
@@ -42,8 +57,10 @@ reviewed validation evidence and a committed validation-cost assessment.
 ### fn-254: Fast validation gates and a real inner loop
 
 The TLC-required gate took 2,093 s at fn-247's close against a 60 s soft target; `cargo test --workspace` was 82% of it.
-Causes: test binaries run one after another, TLC starts one JVM per property (about 1.5 s each), Apalache runs
-although deferred, about 134 test binaries each link the whole graph, and no inner loop covers a real Model edit.
+Historical causes included serial test binaries, one TLC JVM per property (about 1.5 s each), about 134 test
+binaries linking the whole graph, and no real Model-edit inner loop. Routine gates now skip Apalache;
+its opt-in cost is separate. The complete five-consumer quick run took 444.027 s, including 388.875 s in
+realization tests; the 60 s target remains unmet. Fixture/compiler batching and nextest scheduling address this.
 Coverage stays: TLC remains the independent checker, and `model-validate` never uses the new TLC result cache.
 cargo-nextest approved, pinned via mise. The framework's checks move into `model/umpire` and must pass on that
 directory alone (R7). First in the current order; only .7 waits for fn-246's closure.
@@ -52,14 +69,14 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-254.5 | ⬜ todo | Critical path: 24 parallel fixture cases, compiler batching/reuse, UI trim and dead-target/default-mode cleanup (R4, R5) |
-| fn-254.6 | 🔄 in progress | `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
+| fn-254.5 | ⬜ todo | Candidates prepared: 24 fixture cases, compiler batching, 63 parser-table cases with 16 compiler cases retained, discovery heap cap and dead-target removal; integration/validation pending (R4, R5) |
+| fn-254.6 | 🔄 in progress | Correct consumer/cache checkpoint retained; review finalization and closure pending. Kettle consumer-selection correction prepared with .17; warm target still missed (R2) |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
-| fn-254.12 | ⬜ todo | After .15 and framework optimizations: committed native-stage budgets; hard work counts, bounded timing retry, unbudgeted stages fail (R8) |
-| fn-254.15 | ⬜ todo | After .17/.16: port remaining model shell scripts to xtask/guest-driver/Makefile; only the xtask bootstrap stays shell (R7) |
-| fn-254.16 | ⬜ todo | After .17: mise provisions pinned TLC and opt-in Apalache behind existing entry points; keep runtime JAR hash/path admission (R7) |
-| fn-254.17 | ⬜ todo | Priority 0, after .5/.6: uniform nextest including quick, one mise/native stage DAG, bounded resources and failure cleanup (R4, R5, R7) |
+| fn-254.12 | ⬜ todo | Budget parser/count/retry candidate assembled; real receipt producers and native wiring underway. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
+| fn-254.15 | ⬜ todo | Native ports/callers assembled; only two bootstraps and four control shells remain. Complete native fixture adaptation before removing control shells and validating (R7) |
+| fn-254.16 | ⬜ todo | Mise TLC/opt-in Apalache provisioning candidate prepared; runtime hash/path admission retained. Integrate after .17, then validate installs and failures (R7) |
+| fn-254.17 | ⬜ todo | Priority 0, after .5/.6: nextest, mise DAG, native receipts/controls and single root dispatch prepared; tool compatibility, resource bounds and cleanup remain unvalidated (R4, R5, R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 
@@ -73,7 +90,7 @@ section, so it may run as a lane, landing serially.
 | Name | Status | What |
 | --- | --- | --- |
 | fn-256.1 | ⛔ blocked | Source checkpoint retained; required live gate awaits fn-246.9 whole-prefix consumer repair and current guest/policy renewal (R1, R3) |
-| fn-256.2 | ⬜ todo | Delete the archived Scala Make targets and `scala-cli` pin; mark `model/archived` read-only (R2–R4) |
+| fn-256.2 | ⬜ todo | Retirement candidate source-reviewed and assembled: Scala targets/pin removed, archive retained read-only. Prerequisite closure and execution evidence remain (R2–R4) |
 
 ### fn-255: Thorough framework testing
 
@@ -95,11 +112,11 @@ Not adopted: Kani, bolero, Loom, Shuttle (a candidate once checking goes paralle
 | Name | Status | What |
 | --- | --- | --- |
 | fn-255.1 | ⬜ todo | Spike: generate admitted Models at tree and/or source level, measured, seeded bug caught (R1) |
-| fn-255.2 | ⬜ todo | After .1: differential harness with shrinking and fixture pinning (R1) |
+| fn-255.2 | ⬜ todo | Source preparation underway: differential harness with shrinking and fixture pinning; .1 admission/evidence remain prerequisites (R1) |
 | fn-255.3 | ⬜ todo | Pinned nightly; cargo-fuzz targets for guest dispatch and TLC decoders, seeded corpora (R2) |
 | fn-255.4 | ⬜ todo | Bounded cargo-mutants smoke/control runs; scheduled campaign reports and triage, serialized source edits (R3) |
-| fn-255.5 | ⬜ todo | After .3: Miri on ABI buffer logic; syscall exclusion recorded (R4) |
-| fn-255.6 | ⬜ todo | After .2, .3: coverage per crate; aim generator and corpora (R5) |
+| fn-255.5 | ⬜ todo | Miri ABI candidate prepared and under source review; .3 pin, registration and actual Miri runs pending (R4) |
+| fn-255.6 | ⬜ todo | Coverage runner/parser candidate prepared and under source review; .2/.3 integration and measured guidance pending (R5) |
 | fn-255.7 | ⬜ todo | After .2–.6 and committed fn-254.6/.10/.12: tier wiring within budget, re-measured gates, docs (R6, R7) |
 
 ### fn-246: Realization as a checked refinement
@@ -115,8 +132,8 @@ subprocess refusal remains recorded separately.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-246.13 | ⬜ todo | Independent standalone-activity protocol Model and native/TLC invariants (R5) |
-| fn-246.9 | ⬜ todo | Current-format whole-prefix Run recording, replay and presentation (R1, R5) |
+| fn-246.13 | 🔄 in progress | Protocol/approved cancellation correction and guest publication checkpoints prepared with native/TLC proofs; root integration/review/closure pending (R5) |
+| fn-246.9 | 🔄 in progress | Whole-prefix recording/replay and consumer repair checkpoint prepared; 59-row Model-slice proof retained. Root integration/review/closure pending; full live umbrella remains separate (R1, R5) |
 | fn-246.10 | ⬜ todo | After .9: bounded alternatives and coherent explanation publication (R1, R5) |
 | fn-246.2 | ⬜ todo | shared entity lens and filler-driven probes with equivalence pins (R3) |
 | fn-246.3 | ⬜ todo | After .2, .13: activity migration, exact probe parity and mapping count (R4, R7) |
@@ -182,7 +199,7 @@ Whether fn-246.13's protocol Model may share the Temporal layer is an open owner
 | --- | --- | --- |
 | fn-253.1 | ⬜ todo | After committed fn-246.13: Option equality, named expiry effects/progress helpers, deduplicated Tick postconditions, split `state_bounds` (R4) |
 | fn-253.2 | ⬜ todo | Spike: activity against the proposed `countdown` surface; verdict in `model/design/deadline-countdowns.md` (R1) |
-| fn-253.3 | ⬜ todo | After .2: `umpire_dsl::countdown` functions and laws in plain Rust (R2) |
+| fn-253.3 | ⬜ todo | Countdown source candidate reviewed and assembled; .2 verdict, encoding/lowering admission and execution evidence remain (R2) |
 | fn-253.4 | ⬜ todo | After .3: front end lowers countdown calls in handlers, effects and claims (R2) |
 | fn-253.5 | ⬜ todo | After .4: shared `countdowns` fixture with refuting mutants (R2) |
 | fn-253.6 | ⬜ todo | After .2, .5: Temporal deadline semantics as a named pattern (R3) |
