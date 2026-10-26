@@ -2,7 +2,7 @@
 
 The owner's overview of open work, execution order and blockers.
 
-As of 2026-10-25.
+As of 2026-10-26.
 
 ## Keeping this page current
 
@@ -20,10 +20,9 @@ The Scala tree under `model/archived/` is frozen reference material.
 Current order: **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
 ranks a fast feedback loop among the most important properties. fn-246's in-flight work is wrapped;
-fn-254.13 is extracting the standalone framework workspace and simplifying its native tools. Deliver fn-254's independent framework/gate checkpoint,
+The standalone framework workspace and dedicated guest driver are integrated; remaining fn-254 tasks simplify and validate their native tools. Deliver fn-254's independent framework/gate checkpoint,
 resume fn-246 to closure, then finish fn-254.7/.8.
-The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246, and fn-254.13's workspace move lands at an
-integration boundary. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; activity changes
+The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246; fn-254.13's workspace move is integrated. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; activity changes
 retain their listed dependencies and follow the current priority/source-ownership order.
 fn-255.1, .3 and .4 (generator spike, fuzz targets, cargo-mutants) touch no gate files and may run as lanes before fn-254 closes.
 fn-256 (Scala-era tooling removal) is independent and may run as a lane; its root `Makefile` edits land serially with fn-254's.
@@ -54,16 +53,14 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-254.3 | ⬜ todo | cargo-nextest across binaries with a JVM test group; identical logical test inventory (R4) |
+| fn-254.3 | 🔄 in progress | cargo-nextest across binaries with a JVM test group; identical logical test inventory (R4) |
 | fn-254.5 | ⬜ todo | Apalache out of routine gates, overlapping stages, trybuild trim, dead `model-check-changed` removed (R5) |
-| fn-254.6 | ⬜ todo | `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
+| fn-254.6 | 🔄 in progress | `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
-| fn-254.10 | ✅ done | Independent framework gate and root delegation; prove CLI changes preserve guest caches (R7) |
-| fn-254.11 | ⬜ todo | framework gate passes on `model/umpire` alone; planted Temporal coupling fails (R7) |
+| fn-254.11 | 🔄 in progress | framework gate passes on `model/umpire` alone; planted Temporal coupling fails (R7) |
 | fn-254.12 | ⬜ todo | After framework optimizations and controls: committed stage budgets; hard work counts, bounded timing retry, unbudgeted stages fail (R8) |
-| fn-254.13 | ✅ done | Standalone workspace and dedicated guest driver; caller/root/remap controls and guest reproduction reviewed (R7) |
-| fn-254.14 | ⬜ todo | assume mise and pinned tools are installed; drop presence/pin probes and their controls, fail hard (R7) |
+| fn-254.14 | 🔄 in progress | assume mise and pinned tools are installed; drop presence/pin probes and their controls, fail hard (R7) |
 | fn-254.15 | ⬜ todo | After .14/.16: port remaining model shell scripts to xtask/guest-driver/Makefile; only the xtask bootstrap stays shell (R7) |
 | fn-254.16 | ⬜ todo | After .14: mise provisions pinned TLC and opt-in Apalache behind existing entry points; keep runtime JAR hash/path admission (R7) |
 
@@ -78,7 +75,7 @@ section, so it may run as a lane, landing serially.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-256.1 | 🚧 blocked | Source checkpoint retained; required live gate awaits fn-246.9 whole-prefix consumer repair and current guest/policy renewal (R1, R3) |
+| fn-256.1 | ⛔ blocked | Source checkpoint retained; required live gate awaits fn-246.9 whole-prefix consumer repair and current guest/policy renewal (R1, R3) |
 | fn-256.2 | ⬜ todo | Delete the archived Scala Make targets and `scala-cli` pin; mark `model/archived` read-only (R2–R4) |
 
 ### fn-255: Thorough framework testing

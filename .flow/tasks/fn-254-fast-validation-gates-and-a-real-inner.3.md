@@ -9,7 +9,7 @@ Run tests across all binaries at once instead of one binary after another (spec 
 
 **Size:** M
 **Files:** real framework/Temporal test-runner leaves extracted by .10; framework/Temporal nextest configurations and mise pins. Tests of runner policy live in the owned leaves; existing command and stage registration already calls those working leaves.
-**Touches:** [model/umpire/.config/nextest.toml, model/umpire/mise.toml, model/umpire/mise.lock, model/.config/nextest.toml, mise.toml, mise.lock, model/umpire/dev/xtask/src/test_run.rs, model/dev/xtask/src/test_run.rs, model/umpire/author/dsl/macros/tests/ui/action_domain_unbound.stderr, model/umpire/author/dsl/macros/tests/ui/action_finite_missing.stderr, model/umpire/author/dsl/macros/tests/ui/optional_facts_direct_reject.stderr]
+**Touches:** [model/umpire/.config/nextest.toml, model/umpire/mise.toml, model/umpire/mise.lock, model/.config/nextest.toml, mise.toml, mise.lock, model/umpire/dev/xtask/src/test_run.rs, model/dev/xtask/src/test_run.rs, model/dev/xtask/src/gate.rs, model/umpire/author/dsl/macros/tests/ui/action_domain_unbound.stderr, model/umpire/author/dsl/macros/tests/ui/action_finite_missing.stderr, model/umpire/author/dsl/macros/tests/ui/optional_facts_direct_reject.stderr]
 
 ### Parallel ownership
 - Consume committed .4 identity mapping and .10's working test-runner leaves. Own only the listed test-runner source/config/pin files, including focused unit controls inside the runner leaves. Their existing gate callers remain unchanged; no dispatcher, Make, manifest, aggregate-test or budget edit is needed to change runner policy. Task .8 owns consolidated tier/tool documentation.
@@ -46,3 +46,7 @@ TBD
 ## Workspace-move snapshot correction
 
 Own the three exact listed stderr files only for mechanical `$WORKSPACE/umpire/author/dsl/src/` to `$WORKSPACE/author/dsl/src/` normalization. Preserve all other diagnostic bytes and record old/new hashes; reconcile as 560 unchanged snapshots plus three path-only corrections. This repairs the inherited independent-workspace move mismatch reproduced under both runners.
+
+## Runner consumer correction
+
+Own the Temporal gate.rs wiring control to expect nextest then Cargo doctests and preserve each phase failure/status/stage-name assertions. Framework wiring belongs to .11. This exact consumer file is required by first-round review; no other gate composition change belongs here.
