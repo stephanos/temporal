@@ -34,7 +34,8 @@ Consolidation and build prerequisites for fn-246 are satisfied. Priority does no
 clear cross-spec blockers only after prerequisite closures are committed in `umpire`.
 Parallel work requires disjoint source and code-generation ownership.
 
-Current owner instruction: prepare implementations in parallel worktrees, with no new validation yet.
+The owner lifted the validation hold on 2026-10-26. Resume focused migration checks
+and retain unvalidated candidates until their required evidence and reviews pass.
 Candidates for fn-254.5/.15/.16/.17 and .12 are being combined in an isolated source-assembly branch.
 Remaining implementation includes actual receipt counters, budget wiring, mise compatibility and native control fixtures.
 Candidates are unvalidated and not integrated into `umpire`;
@@ -48,8 +49,7 @@ handoff gets a fresh reviewer. Retain the earlier extra-batch candidates without
 restarting those extra lanes; new implementation admission uses the four-worker cap.
 Measure verified Flow closures and observed cycle/review/rework/blocked time in
 [the execution record](.flow/artifacts/fn-257-extract-the-standalone-umpire/agent-throughput.json),
-keeping unvalidated preparation out of completed-task counts. Execution gates remain
-deferred. fn-254 retains priority for shared build/JVM capacity; retain the
+keeping unvalidated preparation out of completed-task counts. Execution gates may now run. fn-254 retains priority for shared build/JVM capacity; retain the
 fn-255 generator/fuzz/mutation and fn-253.2 spike candidates without treating preparation as completion.
 Spike verdicts, performance claims and task completion still require evidence.
 
@@ -76,17 +76,17 @@ The provisional transfer map retains all 81 original candidate refs; 36 require
 cross-repository splits and 26 lack identified tasks. No original candidate is
 yet marked transferred; see [the disposition plan](.flow/artifacts/fn-257-extract-the-standalone-umpire/task6/provisional-transfer-plan.md).
 Existing standalone proof covers an older source and does not close
-the required current-pair proof. Plan review passed; build/test execution remains deferred.
+the required current-pair proof. Plan review passed; focused build/test validation is now authorized.
 
 [Spec](.flow/specs/fn-257-extract-the-standalone-umpire.md),
 [migration map](MIGRATE.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-257.3 | 🔄 in progress | Portable root, canonical Go identities/descriptors and docs/CI checkpointed in sibling prep branch at `f7b42ce255`; source review found no actionable issues, execution held (R3) |
+| fn-257.3 | 🔄 in progress | Portable root, canonical Go identities/descriptors and docs/CI checkpointed in sibling prep branch at `f7b42ce255`; source review found no actionable issues; execution validation now authorized (R3) |
 | fn-257.4 | ⬜ todo | Rust/Go/protobuf candidate checkpointed at `91547f57ec`; source review found no actionable issues. Inactive paired CI interface prepared. Active CI/auth wiring and admission wait for .3/.7 and execution evidence (R4) |
-| fn-257.7 | 🔄 in progress | Multi-repository Quick selection and regression cases assembled at `f7b42ce255`; source review found no actionable issues, tests held (R3, R4) |
-| fn-257.5 | ⛔ blocked | After .3/.4 and the validation hold ends: exact isolated/paired proof, guest/generator checks and uncommitted Rust/Go red-green tests (R3–R5) |
+| fn-257.7 | 🔄 in progress | Multi-repository Quick selection and regression cases assembled at `f7b42ce255`; source review found no actionable issues; focused tests now authorized (R3, R4) |
+| fn-257.5 | ⛔ blocked | After .3/.4: exact isolated/paired proof, guest/generator checks and uncommitted Rust/Go red-green tests (R3–R5) |
 | fn-257.6 | ⛔ blocked | After .5, working destination access and final authorization: preserve destination history, transfer all pending candidates, cut over one source owner (R1, R6) |
 
 ### fn-254: Fast validation gates and a real inner loop
