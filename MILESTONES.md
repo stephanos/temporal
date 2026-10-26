@@ -114,7 +114,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.12 | ⬜ todo | Budget parser/count/retry candidate assembled; real receipt producers and native wiring underway. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
 | fn-254.15 | ⬜ todo | Native ports/callers assembled; only two bootstraps and four control shells remain. Complete native fixture adaptation before removing control shells and validating (R7) |
 | fn-254.16 | ⬜ todo | Mise TLC/opt-in Apalache provisioning candidate prepared; runtime hash/path admission retained. Integrate after .17, then validate installs and failures (R7) |
-| fn-254.17 | ⬜ todo | Priority 0, after .5/.6: nextest, mise DAG, native receipts/controls and single root dispatch prepared; tool compatibility, resource bounds and cleanup remain unvalidated (R4, R5, R7) |
+| fn-254.17 | 🔄 in progress | Priority 0: consume closed .5/.6; port nextest and one mise DAG. Actual mise scheduling verified; shared lease, supervisor custody/cleanup, portable behavior and frozen-candidate proof remain (R4, R5, R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 
