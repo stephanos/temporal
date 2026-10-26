@@ -77,7 +77,7 @@ the required current-pair proof. Plan review passed; build/test execution remain
 | --- | --- | --- |
 | fn-257.2 | 🔄 in progress | Export reproduced and independently verified; 1,178 files, 581 retained commits, original candidate preservation and bundle recovery proven. Review/closure pending (R2) |
 | fn-257.3 | ⬜ todo | After .2: portable root, canonical Go identities/descriptors, focused docs/CI and command aliases (R3) |
-| fn-257.4 | ⬜ todo | After .1/.3: sibling Temporal Cargo/Go consumers and forwarding commands; disjoint provisional preparation may begin earlier (R4) |
+| fn-257.4 | ⬜ todo | Disjoint provisional Rust/CLI and Go consumer wiring underway in `work/fn2574-consumers`; final admission waits for .3's actual interface, generation and execution evidence (R4) |
 | fn-257.5 | ⛔ blocked | After .3/.4 and the validation hold ends: exact isolated/paired proof, guest/generator checks and uncommitted Rust/Go red-green tests (R3–R5) |
 | fn-257.6 | ⛔ blocked | After .5, working destination access and final authorization: preserve destination history, transfer all pending candidates, cut over one source owner (R1, R6) |
 

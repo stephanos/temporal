@@ -12,7 +12,7 @@ Two fresh clones reproduced the same commit/map, and a committed
 [recovery bundle](.flow/artifacts/fn-257-extract-the-standalone-umpire/task2/export-history.bundle)
 restores the independent checkout. See [export evidence](.flow/artifacts/fn-257-extract-the-standalone-umpire/task2/README.md).
 Portable-layout changes, actual consumer wiring, execution proof and cutover remain pending.
-The supplied history stops before February 2026, earlier than all selected Rust
+The supplied history stops at 2026-02-05, earlier than all selected Rust
 births; earlier ancestry is unavailable and is not claimed recovered.
 
 ## Outcome and decisions
