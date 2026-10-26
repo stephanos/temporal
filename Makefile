@@ -1268,7 +1268,7 @@ ensure-no-changes:
 endif
 
 ##### model: Umpire in Rust (fn-210) #####
-RUST_MODEL_CARGO := mise exec -- cargo
+RUST_MODEL_CARGO := MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false mise exec -- cargo
 RUST_MODEL_FRAMEWORK = helper=$$(/bin/bash "$(CURDIR)/model/umpire/scripts/xtask.sh") && "$$helper"
 
 .PHONY: model-check model-quick model-fmt model-update model-time model-validate
