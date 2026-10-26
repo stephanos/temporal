@@ -9,7 +9,9 @@ Prove the framework stands alone and stays Temporal-agnostic (spec R7 errors), a
 
 **Size:** S
 **Files:** standalone control under .10's real framework gate module, gate-local stage/child-mode registration, exact declarative boundary policy, framework xtask integration controls. Task .8 owns consolidated README/tier documentation.
-**Touches:** [model/umpire/dev/xtask/src/gate.rs, model/umpire/dev/xtask/src/gate/**, model/umpire/dev/xtask/tests/main.rs, model/umpire/dev/xtask/tests/standalone/**, model/umpire/dev/gate/policy/framework-boundary.txt]
+**Touches:** [model/umpire/dev/xtask/src/gate.rs, model/umpire/dev/xtask/src/gate/**, model/umpire/dev/xtask/tests/main.rs, model/umpire/dev/xtask/tests/gate_wiring.rs, model/umpire/dev/xtask/tests/standalone/**, model/umpire/dev/gate/policy/framework-boundary.txt]
+
+The existing compiled `gate_wiring.rs` inventory/validate fixtures are included to preserve every old leaf assertion while registering the new standalone stage. Synthetic fixtures must report the real standalone refusal; they do not earn a full-copy proof.
 
 ### Honest source and proof boundary
 - Add the real standalone stage/control inside .10's existing gate module, with gate-local module registration; keep the general CLI, Makefile, test-runner policy and cache source unchanged. Register standalone integration controls in the owned existing aggregate test root. No new task or dormant placeholder is needed. If .10 lands different paths, correct Touches before admitting this task.
