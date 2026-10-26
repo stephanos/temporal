@@ -125,6 +125,7 @@ pub fn installed_jar(root: &Path, tool: JarTool) -> io::Result<PathBuf> {
     Ok(jar)
 }
 
+// mise may spawn extractors; the checker descendant-prevention policy cannot run it.
 fn supervised(
     root: &Path,
     command: &mut Command,
@@ -135,8 +136,9 @@ fn supervised(
     let scratch = crate::Scratch::new_in(root, "build/mise-jars/runs")
         .map_err(io::Error::other)?;
     let result = (|| {
-        let (status, output) = crate::run_process_cancelled(
+        let (status, output) = crate::run_process_cancelled_with_policy(
             command, scratch.path(), label, limits, None, cancelled,
+            crate::DescendantPolicy::Orchestration,
         ).map_err(|failure| crate::Refusal(format!("{}; {}", failure.refusal, failure.output)))?;
         let stdout = crate::bounded_text(&scratch.path().join(format!("{label}.stdout")), limits.output_bytes)?;
         Ok::<_, crate::Refusal>((status, stdout, output))
@@ -229,6 +231,18 @@ mod tests {
     fn cleaned(root: &Path) -> io::Result<()> {
         assert_eq!(fs::read_dir(root.join("build/mise-jars/runs"))?.count(), 0);
         Ok(())
+    }
+
+    #[test]
+    fn orchestration_policy_allows_extractor_children() -> io::Result<()> {
+        let scratch = tempfile::tempdir()?;
+        let root = scratch.path().canonicalize()?;
+        let mut command = fixture(&root, "/bin/sh -c 'printf child-helper'");
+        let (status, stdout, _) = supervised(&root, &mut command, "helper-child",
+            crate::Limits::default(), &AtomicBool::new(false))?;
+        assert!(status.success());
+        assert_eq!(stdout, "child-helper");
+        cleaned(&root)
     }
 
     #[test]
