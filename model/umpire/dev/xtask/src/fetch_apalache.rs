@@ -1,7 +1,6 @@
 use crate::{Error, Result, support::hash};
 use std::{fs, path::{Path, PathBuf}};
-#[path = "../../../backends/process/src/tool_provider.rs"]
-mod provider;
+use umpire_backend_process::tool_provider as provider;
 
 /// Provision the optional Apalache release through its named mise environment.
 pub fn install(root: &Path) -> Result<PathBuf> {
