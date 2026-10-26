@@ -13,6 +13,7 @@ use std::{
 };
 
 mod gate;
+mod quick;
 mod test_run;
 
 fn run() -> io::Result<i32> {
@@ -26,6 +27,9 @@ fn run() -> io::Result<i32> {
     let caller = env::current_dir()?;
     let cargo_home = umpire_guest_driver::context::cargo_home(&caller).map_err(io::Error::other)?;
     let mut arguments: Vec<_> = env::args_os().skip(1).collect();
+    if arguments.first().is_some_and(|command| command == "quick") {
+        arguments = quick::arguments(&root, arguments.into_iter().skip(1).collect())?;
+    }
     let guest =
         arguments.first().is_some_and(|command| command == "guest" || command == "guest-freshness");
     let mut workspace = caller.clone();

@@ -1271,7 +1271,10 @@ endif
 RUST_MODEL_CARGO := mise exec -- cargo
 RUST_MODEL_FRAMEWORK = helper=$$(/bin/bash "$(CURDIR)/model/umpire/scripts/xtask.sh") && "$$helper"
 
-.PHONY: model-check model-fmt model-update model-time model-validate
+.PHONY: model-check model-quick model-fmt model-update model-time model-validate
+model-quick:
+	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- quick
+
 model-check: override export UMPIRE_QUICK_CACHE = 0
 model-check: override export UMPIRE_CACHE_DISABLE = 1
 model-check: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(API_BINPB)

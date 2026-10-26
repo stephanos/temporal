@@ -62,6 +62,7 @@ fn guest(arguments: Vec<OsString>) -> xtask::Result<i32> {
 fn run() -> xtask::Result<i32> {
     let mut arguments = env::args_os().skip(1);
     match arguments.next().as_deref() {
+        Some(command) if command == OsStr::new("quick") => xtask::quick::run(arguments.collect()),
         Some(command)
             if ["gate", "fmt", "update", "time", "validate"]
                 .iter()
@@ -114,7 +115,7 @@ fn run() -> xtask::Result<i32> {
             ))
         }
         _ => Err(xtask::Error::Invalid(
-            "commands: gate, fmt, update, time, validate, test-run, fetch-apalache, guest, guest-freshness, guest-lock, retired-names".into(),
+            "commands: gate, quick, fmt, update, time, validate, test-run, fetch-apalache, guest, guest-freshness, guest-lock, retired-names".into(),
         )),
     }
 }

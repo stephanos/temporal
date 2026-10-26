@@ -14,7 +14,11 @@ pub const JAR_VERSION: &str = "1.7.4";
 pub const JAR_SHA256: &str = "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88";
 const TLC_VERSION: &str = "Version 2.19 of 08 August 2024";
 const CACHE: &str = "build/tlc";
-use umpire_backend_process::{PinnedJar, Scratch, bounded_text, java_command, run_process};
+use crate::cache::{self, Bundle, Record};
+use std::sync::Mutex;
+use umpire_backend_process::{
+    PinnedJar, Scratch, bounded_text, bytes_sha256, java_command, run_process, structural_sha256,
+};
 
 /// An admitted property result.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -78,15 +82,37 @@ impl Tlc {
     /// A refusal, or TLC's typed evaluation error naming the property and state it failed in.
     pub fn check_module(&self, module: &umpire_tla::Module) -> Result<TlcResult, Error> {
         let schema = crate::module::schema(module)?;
-        let mut result = self.check(&module.name, &module.tla, &module.cfg, &schema)?;
-        for cfg in module
+        let inventory: Vec<_> = std::iter::once(module.cfg.as_str())
+            .chain(module.metadata.progress.iter().map(|claim| claim.cfg.as_str()))
+            .chain(module.metadata.negative.iter().map(|claim| claim.cfg.as_str()))
+            .collect();
+        let mut pending = Vec::new();
+        let mut result = self.check_inventory(
+            &module.name,
+            &module.tla,
+            &module.cfg,
+            &schema,
+            &inventory,
+            0,
+            &mut pending,
+        )?;
+        for (index, cfg) in module
             .metadata
             .progress
             .iter()
             .map(|claim| &claim.cfg)
             .chain(module.metadata.negative.iter().map(|claim| &claim.cfg))
+            .enumerate()
         {
-            let additional = self.check(&module.name, &module.tla, cfg, &schema)?;
+            let additional = self.check_inventory(
+                &module.name,
+                &module.tla,
+                cfg,
+                &schema,
+                &inventory,
+                index + 1,
+                &mut pending,
+            )?;
             for (operator, property) in additional.properties {
                 if result.properties.insert(operator.clone(), property).is_some() {
                     return Err(Refusal(format!("duplicate property result {operator}")).into());
@@ -99,6 +125,11 @@ impl Tlc {
                 return Err(Refusal("combined module output limit exceeded".into()).into());
             }
             result.output.push_str(&additional.output);
+        }
+        if all_verified(&result) {
+            for bundle in pending {
+                let _ = bundle.publish();
+            }
         }
         Ok(result)
     }
@@ -143,7 +174,70 @@ impl Tlc {
         cfg: &str,
         schema: &Schema,
     ) -> Result<TlcResult, Error> {
-        let result = self.check_strategy(name, tla, cfg, schema, true);
+        let mut pending = Vec::new();
+        let result = self.check_inventory(name, tla, cfg, schema, &[cfg], 0, &mut pending);
+        if result.as_ref().is_ok_and(all_verified) {
+            for bundle in pending {
+                let _ = bundle.publish();
+            }
+        }
+        result
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn check_inventory(
+        &self,
+        name: &str,
+        tla: &str,
+        cfg: &str,
+        schema: &Schema,
+        inventory: &[&str],
+        index: usize,
+        pending: &mut Vec<Bundle>,
+    ) -> Result<TlcResult, Error> {
+        // Admission precedes identity work and cache access on both paths.
+        schema.validate()?;
+        umpire_tla::identifier(name)?;
+        let (base, properties) = split_cfg(cfg)?;
+        let mut bundle = if cache::enabled(
+            std::env::var("UMPIRE_QUICK_CACHE").ok().as_deref(),
+            std::env::var("UMPIRE_CACHE_DISABLE").ok().as_deref(),
+        ) {
+            self.cache_bundle(name, tla, cfg, schema, inventory, index, &base, &properties).ok()
+        } else {
+            None
+        };
+        if let Some(bundle) = bundle.as_mut() {
+            if bundle.load().is_ok() {
+                let result = self.check_strategy_cached(name, tla, cfg, schema, true, Some(bundle));
+                if result.as_ref().is_ok_and(all_verified) {
+                    cache_report(format_args!(
+                        "TLC cache hit {name} configuration {index} {}",
+                        bundle.key
+                    ));
+                    return result;
+                }
+                bundle.replay = false;
+                bundle.records = Mutex::new(BTreeMap::new());
+            }
+            cache_report(format_args!(
+                "TLC cache miss {name} configuration {index} {}",
+                bundle.key
+            ));
+        } else if cache::enabled(
+            std::env::var("UMPIRE_QUICK_CACHE").ok().as_deref(),
+            std::env::var("UMPIRE_CACHE_DISABLE").ok().as_deref(),
+        ) {
+            cache_report(format_args!(
+                "TLC cache miss {name} configuration {index}: identity unavailable"
+            ));
+        }
+        let result = self.check_strategy_cached(name, tla, cfg, schema, true, bundle.as_ref());
+        if result.as_ref().is_ok_and(all_verified)
+            && let Some(bundle) = bundle
+        {
+            pending.push(bundle);
+        }
         #[cfg(feature = "strategy-equivalence")]
         {
             let independent = self.check_strategy(name, tla, cfg, schema, false);
@@ -155,6 +249,85 @@ impl Tlc {
         result
     }
 
+    #[allow(clippy::too_many_arguments)]
+    fn cache_bundle(
+        &self,
+        name: &str,
+        tla: &str,
+        cfg: &str,
+        schema: &Schema,
+        inventory: &[&str],
+        index: usize,
+        base: &str,
+        properties: &[(String, String)],
+    ) -> Result<Bundle, Refusal> {
+        let root = cache::root()?;
+        let scratch = Scratch::new_in(&root, "quick-tlc-v1")?;
+        let identity = (|| {
+            let jar = bytes_sha256(&fs::read(&self.jar)?);
+            let mut command = java_command(&self.java);
+            command.arg("-version");
+            let (status, java) =
+                run_process(&mut command, scratch.path(), "identity", self.limits, None)?;
+            if !status.success() {
+                return Err(Refusal("Java cache identity unavailable".into()));
+            }
+            Ok((jar, java))
+        })();
+        let (jar, java) = scratch.finish(identity)?;
+        let (key, schema) = self.cache_key(name, tla, cfg, schema, inventory, index, &jar, &java);
+        let mut expected = vec![cache::record_id(base)];
+        if !properties.is_empty() {
+            expected.push(cache::record_id(&property_cfg(base, properties)));
+        }
+        Ok(Bundle {
+            key,
+            schema,
+            root,
+            expected,
+            records: Mutex::new(BTreeMap::new()),
+            replay: false,
+            limits: self.limits,
+        })
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn cache_key(
+        &self,
+        name: &str,
+        tla: &str,
+        cfg: &str,
+        schema: &Schema,
+        inventory: &[&str],
+        index: usize,
+        jar: &str,
+        java: &str,
+    ) -> (String, String) {
+        let schema = structural_sha256(&(&schema.fields, &schema.observers));
+        let key = structural_sha256(&(
+            cache::VERSION,
+            name,
+            tla,
+            inventory,
+            index,
+            cfg,
+            &schema,
+            jar,
+            java,
+            &self.java,
+            (
+                self.limits.timeout,
+                self.limits.output_bytes,
+                self.limits.dump_bytes,
+                self.limits.heap_mb,
+                self.property_workers,
+            ),
+            (std::env::consts::ARCH, std::env::consts::OS, usize::BITS),
+        ));
+        (key, schema)
+    }
+
+    #[cfg(any(test, feature = "strategy-equivalence"))]
     fn check_strategy(
         &self,
         name: &str,
@@ -162,6 +335,19 @@ impl Tlc {
         cfg: &str,
         schema: &Schema,
         batch: bool,
+    ) -> Result<TlcResult, Error> {
+        self.check_strategy_cached(name, tla, cfg, schema, batch, None)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn check_strategy_cached(
+        &self,
+        name: &str,
+        tla: &str,
+        cfg: &str,
+        schema: &Schema,
+        batch: bool,
+        cache: Option<&Bundle>,
     ) -> Result<TlcResult, Error> {
         schema.validate()?;
         umpire_tla::identifier(name)?;
@@ -174,7 +360,8 @@ impl Tlc {
             return Err(Refusal("subprocess limits must be positive".into()).into());
         }
         let (base_cfg, properties) = split_cfg(cfg)?;
-        let (output, dump) = self.execution(name, tla, &base_cfg, Selection::Explore, schema)?;
+        let (output, dump) =
+            self.execution(name, tla, &base_cfg, Selection::Explore, schema, cache)?;
         let count = distinct_count(&messages(&output)?)?;
         let states = decode_dump(&dump, count, schema)?;
         let mut result = TlcResult {
@@ -185,7 +372,7 @@ impl Tlc {
         };
         if batch && properties.len() > 1 {
             let cfg = property_cfg(&base_cfg, &properties);
-            match self.execution(name, tla, &cfg, Selection::Batch(&properties), schema) {
+            match self.execution(name, tla, &cfg, Selection::Batch(&properties), schema, cache) {
                 Ok((output, _)) => {
                     let violated =
                         messages(&output)?.iter().any(|(code, _)| VIOLATIONS.contains(code));
@@ -204,10 +391,17 @@ impl Tlc {
                 Err(error) => return Err(error),
             }
         }
+        if batch
+            && properties.len() > 1
+            && let Some(cache) = cache
+        {
+            // Recovery is evidence of a failed batch, even if every singleton later passes.
+            cache.records.lock().map_err(|_| Refusal("cache poisoned".into()))?.clear();
+        }
         let workers = if batch { self.property_workers } else { 1 };
         for wave in properties.chunks(workers) {
             let checked = if wave.len() == 1 {
-                vec![self.check_property(name, tla, &base_cfg, &wave[0], schema)]
+                vec![self.check_property_cached(name, tla, &base_cfg, &wave[0], schema, cache)]
             } else {
                 self.recover_properties(name, tla, &base_cfg, wave, schema)?
             };
@@ -228,9 +422,22 @@ impl Tlc {
         property: &(String, String),
         schema: &Schema,
     ) -> Result<(PropertyResult, String), Error> {
+        self.check_property_cached(name, tla, base, property, schema, None)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn check_property_cached(
+        &self,
+        name: &str,
+        tla: &str,
+        base: &str,
+        property: &(String, String),
+        schema: &Schema,
+        cache: Option<&Bundle>,
+    ) -> Result<(PropertyResult, String), Error> {
         let cfg = property_cfg(base, std::slice::from_ref(property));
         let (output, _) =
-            self.execution(name, tla, &cfg, Selection::Property(&property.1), schema)?;
+            self.execution(name, tla, &cfg, Selection::Property(&property.1), schema, cache)?;
         let messages = messages(&output)?;
         let violated = messages.iter().any(|(code, _)| VIOLATIONS.contains(code));
         let trace = if violated { Some(decode_trace(&messages, schema)?) } else { None };
@@ -268,6 +475,7 @@ impl Tlc {
         })
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn execution(
         &self,
         name: &str,
@@ -275,13 +483,39 @@ impl Tlc {
         cfg: &str,
         selection: Selection<'_>,
         schema: &Schema,
+        cache: Option<&Bundle>,
     ) -> Result<(String, String), Error> {
+        let id = cache::record_id(cfg);
+        if let Some(cache) = cache
+            && cache.replay
+        {
+            let records = cache.records.lock().map_err(|_| Refusal("cache poisoned".into()))?;
+            let record =
+                records.get(&id).ok_or_else(|| Refusal("cache execution missing".into()))?;
+            self.admit_execution(tla, selection, schema, true, "cached success", &record.output)?;
+            return Ok((record.output.clone(), record.dump.clone()));
+        }
+        if std::env::var("UMPIRE_QUICK_CACHE").as_deref() == Ok("1")
+            || std::env::var("UMPIRE_CACHE_DISABLE").as_deref() == Ok("1")
+        {
+            cache_report(format_args!("TLC execute {name} record {id}"));
+        }
         let scratch = Scratch::new(&self.root)?;
         let result = (|| {
             fs::write(scratch.path().join(format!("{name}.tla")), tla)?;
             self.execute(name, cfg, scratch.path(), selection, schema)
         })();
-        scratch.finish(result)
+        let result = scratch.finish(result);
+        if let Some(cache) = cache
+            && let Ok((output, dump)) = &result
+        {
+            cache
+                .records
+                .lock()
+                .map_err(|_| Refusal("cache poisoned".into()))?
+                .insert(id, Record { output: output.clone(), dump: dump.clone() });
+        }
+        result
     }
 
     fn execute(
@@ -292,10 +526,6 @@ impl Tlc {
         selection: Selection<'_>,
         schema: &Schema,
     ) -> Result<(String, String), Error> {
-        let property = match selection {
-            Selection::Property(property) => Some(property),
-            _ => None,
-        };
         let label = match selection {
             Selection::Explore => "explore",
             Selection::Property(property) => property,
@@ -336,19 +566,46 @@ impl Tlc {
             .current_dir(directory);
         let (status, output) =
             run_process(&mut command, directory, label, self.limits, Some(&dump))?;
-        let parsed = parse(&output).map_err(|error| Refusal(format!("{error}\n{output}")))?;
         let tla = fs::read_to_string(directory.join(format!("{name}.tla")))?;
+        self.admit_execution(
+            &tla,
+            selection,
+            schema,
+            status.success(),
+            &status.to_string(),
+            &output,
+        )?;
+        Ok((output, bounded_text(&dump, self.limits.dump_bytes)?))
+    }
+    #[allow(clippy::too_many_arguments)]
+    fn admit_execution(
+        &self,
+        tla: &str,
+        selection: Selection<'_>,
+        schema: &Schema,
+        success_status: bool,
+        status: &str,
+        output: &str,
+    ) -> Result<(), Error> {
+        let property = match selection {
+            Selection::Property(property) => Some(property),
+            _ => None,
+        };
+        if output.len() as u64 > self.limits.output_bytes {
+            return Err(Refusal("cached output limit".into()).into());
+        }
+        let parsed = parse(output).map_err(|error| Refusal(format!("{error}\n{output}")))?;
         if matches!(selection, Selection::Batch(_))
             && !parsed.iter().any(|message| message.code == 2186)
         {
             return Err(Refusal(format!("incomplete TLC property batch:\n{output}")).into());
         }
-        failure(&parsed, property, &tla, schema)?;
+        failure(&parsed, property, tla, schema)?;
         let messages: Vec<_> =
             parsed.into_iter().map(|message| (message.code, message.body)).collect();
         let violation = match selection {
-            Selection::Batch(properties) => batch_violation(&messages, properties, &tla)?,
-            _ => selected_violation(&messages, property, &tla)?,
+            Selection::Batch(properties) => batch_violation(&messages, properties, tla)?,
+            _ => selected_violation(&messages, property, tla)?,
         };
         let finished = messages.iter().any(|(code, _)| *code == 2186);
         let success = messages.iter().any(|(code, _)| *code == 2193);
@@ -358,8 +615,8 @@ impl Tlc {
         });
         if !finished
             || unexpected_error
-            || !(status.success() || !matches!(selection, Selection::Explore) && violation)
-            || (status.success() && !success)
+            || !(success_status || !matches!(selection, Selection::Explore) && violation)
+            || (success_status && !success)
         {
             return Err(Refusal(format!(
                 "process failed or incomplete for {} (exit {status}):\n{output}",
@@ -370,8 +627,20 @@ impl Tlc {
         if violation && matches!(selection, Selection::Explore) {
             return Err(Refusal(format!("reachability unexpectedly refuted:\n{output}")).into());
         }
-        Ok((output, bounded_text(&dump, self.limits.dump_bytes)?))
+        Ok(())
     }
+}
+
+fn cache_report(message: std::fmt::Arguments<'_>) {
+    use std::io::Write;
+    let _ = writeln!(std::io::stderr(), "{message}");
+}
+
+fn all_verified(result: &TlcResult) -> bool {
+    result
+        .properties
+        .values()
+        .all(|property| property.verdict == Verdict::Verified && property.trace.is_none())
 }
 
 #[derive(Clone, Copy)]
@@ -1013,3 +1282,6 @@ mod tests {
 
 #[cfg(test)]
 mod batch_tests;
+
+#[cfg(test)]
+mod cache_tests;

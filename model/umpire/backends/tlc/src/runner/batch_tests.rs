@@ -79,6 +79,7 @@ fn batch_protocol_requires_complete_selected_evidence() -> Result<(), Error> {
                 "SPECIFICATION Spec\nINVARIANT A\nPROPERTY B\n",
                 Selection::Batch(&properties),
                 &Schema::default(),
+                None,
             );
             let actual = match &answer {
                 Ok(_) => "ok",

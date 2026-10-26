@@ -5,5 +5,6 @@ pub mod apalache_pins;
 /// SHA-pinned installer with private staging and serialized publication.
 pub mod fetch_apalache;
 pub mod gate;
+pub mod quick;
 pub mod retired_names;
 pub mod test_run;
