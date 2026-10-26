@@ -8,5 +8,11 @@
   "organization_sso_url": "https://github.com/orgs/temporalio/sso",
   "authorization_request_query_not_persisted": true,
   "remote_mutations": false,
-  "prior_gh_probe": "HTTP401 Bad credentials; task1/destination-probe.json"
+  "prior_gh_probe": "HTTP401 Bad credentials; task1/destination-probe.json",
+  "public_git_probe": {
+    "command": "GIT_TERMINAL_PROMPT=0 git -c credential.helper= -c http.extraHeader= ls-remote --symref https://github.com/temporalio/umpire.git HEAD",
+    "exit_code": 128,
+    "output": "fatal: could not read Username for 'https://github.com': terminal prompts disabled",
+    "interpretation": "Public Git access did not establish destination contents or permissions."
+  }
 }

@@ -63,6 +63,72 @@
     {
       "at": "2026-10-26T16:52:00.831679+00:00",
       "type": "policy_applied"
+    },
+    {
+      "at": "2026-10-26T16:59:10.501164+00:00",
+      "type": "implementation_dispatched",
+      "agent": "/root/impl_native_probe",
+      "task": "fn-257.4",
+      "scope": "retained native-symbolic probe sibling paths",
+      "mode": "provisional source only; validation held"
+    },
+    {
+      "at": "2026-10-26T17:27:25.731221+00:00",
+      "type": "source_handoff_observed",
+      "agent": "/root/impl_native_probe",
+      "task": "fn-257.4",
+      "scope": "native-symbolic sibling paths",
+      "validated": false,
+      "timing": "observation time only; execution start/end not reconstructed"
+    },
+    {
+      "at": "2026-10-26T17:27:25.731221+00:00",
+      "type": "source_handoff_observed",
+      "agent": "/root/impl_standalone_docs",
+      "task": "fn-257.3",
+      "scope": "portable root documentation and CI; followup corrected Apalache mode",
+      "validated": false,
+      "timing": "observation time only; execution start/end not reconstructed"
+    },
+    {
+      "at": "2026-10-26T17:27:25.731221+00:00",
+      "type": "source_handoff_observed",
+      "agent": "/root/impl_standalone_go",
+      "task": "fn-257.3",
+      "scope": "canonical Go identities and generic generation",
+      "validated": false,
+      "timing": "observation time only; execution start/end not reconstructed"
+    },
+    {
+      "at": "2026-10-26T17:27:25.731221+00:00",
+      "type": "source_handoff_observed",
+      "agent": "/root/impl_multirepo_quick",
+      "task": "fn-257.7",
+      "scope": "multi-repository quick sources and regression cases",
+      "validated": false,
+      "timing": "observation time only; execution start/end not reconstructed"
+    },
+    {
+      "at": "2026-10-26T17:27:25.731221+00:00",
+      "type": "source_handoff_observed",
+      "agent": "/root/impl_standalone_go",
+      "scope": "Temporal generation: one generated import changed",
+      "validated": false
+    },
+    {
+      "at": "2026-10-26T17:27:25.731221+00:00",
+      "type": "implementation_active_observed",
+      "agent": "/root/extraction_portability",
+      "scope": "paired CI interface source preparation",
+      "validated": false
+    },
+    {
+      "at": "2026-10-26T17:27:25.731221+00:00",
+      "type": "review_active_observed",
+      "agent": "/root/standalone_source_review",
+      "scope": "frozen standalone f7b42ce25558344ea2d38f1e05d002259427a8f6",
+      "validated": false
     }
-  ]
+  ],
+  "measurement_limits": "Source handoffs are work-in-progress, not verified closures. Mixed scope, unknown exact worker times and validation/access blockers prevent a causal concurrency speedup estimate."
 }

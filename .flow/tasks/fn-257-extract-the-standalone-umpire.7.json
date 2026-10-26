@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-26T16:56:03.124581Z",
+  "depends_on": [
+    "fn-257-extract-the-standalone-umpire.2"
+  ],
+  "id": "fn-257-extract-the-standalone-umpire.7",
+  "priority": null,
+  "spec": "fn-257-extract-the-standalone-umpire",
+  "spec_path": ".flow/tasks/fn-257-extract-the-standalone-umpire.7.md",
+  "status": "todo",
+  "title": "Preserve quick consumer selection across sibling Git repositories",
+  "updated_at": "2026-10-26T16:56:03.124581Z"
+}

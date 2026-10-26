@@ -1,0 +1,23 @@
+{
+  "observed_at": "2026-10-26T17:27:25.731221+00:00",
+  "status": "source_preparation_only",
+  "standalone_repository": "../umpire",
+  "standalone_branch": "work/fn2573-standalone",
+  "export_base": "cf8bec4d6231302df54b57fccdc5bdb9d11552fc",
+  "source_preparation_head": "f7b42ce25558344ea2d38f1e05d002259427a8f6",
+  "commits": {
+    "root_go": "d090323",
+    "historical_support_removal": "2dcbc92",
+    "quick": "045b988"
+  },
+  "validation": "builds, tests, gate/freshness execution held; tasks3/7 remain open",
+  "review": "fresh source-only review pending; not a completion receipt",
+  "publication": "local only; destination access unresolved",
+  "recovery_bundle": {
+    "path": "source-preparation.bundle",
+    "size": 25970,
+    "sha256": "80911259bdeb273fcc929c7f1a1eff60e96434b47e63b8aae1f20181d7f6f4d1",
+    "prerequisite": "cf8bec4d6231302df54b57fccdc5bdb9d11552fc from committed task2 export-history.bundle",
+    "verification": "git bundle verify succeeded against standalone object store"
+  }
+}

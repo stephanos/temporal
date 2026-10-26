@@ -8,7 +8,7 @@ Adapt the exported independent workspace without rebuilding its already local ga
 
 **Size:** M
 **Files:** exported README/docs/AGENTS/LICENSE/Makefile/CI, Go manifests/imports and protocol schema options/generated descriptors.
-**Touches:** [../umpire/**, .flow/artifacts/fn-257-extract-the-standalone-umpire/**]
+**Touches:** [../umpire/Makefile, ../umpire/LICENSE, ../umpire/AGENTS.md, ../umpire/README.md, ../umpire/DESIGN.md, ../umpire/GUEST_BUILDS.md, ../umpire/docs/**, ../umpire/.github/**, ../umpire/hosts/go/**, ../umpire/reference/kettle/**, ../umpire/protocol/proto/**, ../umpire/dev/guest-driver/README.md, ../umpire/.cargo/config.toml, ../umpire/rust-toolchain.toml, ../umpire/.history-support/**, .flow/artifacts/fn-257-extract-the-standalone-umpire/task3/**]
 
 ### Approach
 - Copy root LICENSE and write focused agent guidance, command aliases and CI using existing cargo xtask gate/fmt/update/time/validate. Preserve Java for TLC and all current pins/configuration.
@@ -22,6 +22,8 @@ Adapt the exported independent workspace without rebuilding its already local ga
 ### Verification
 Source preparation may proceed during the hold. Preserve task 2's source checkpoint and semantic golden manifest; execution/protobuf regeneration evidence is not fabricated while deferred.
 
+### Concurrent ownership
+Task7 exclusively owns exported dev/xtask/src/quick/**, dev/xtask/README.md and the retained Temporal quick caller. Task3 does not edit those paths. Go/schema generation and root documentation/CI are disjoint sublanes, with the coordinator owning commits and removal of historical support copies.
 ## Acceptance
 - [ ] Standalone entry points, attribution, guidance and CI target the existing framework-owned tooling.
 - [ ] Both Go identities and schema options are coherent, and generated-code work is completed and checked before final admission.

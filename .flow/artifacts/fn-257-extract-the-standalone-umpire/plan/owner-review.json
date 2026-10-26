@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "type": "plan_review",
+  "id": "fn-257-extract-the-standalone-umpire",
+  "verdict": "SHIP",
+  "session_id": "01a178cc-8b6f-7331-b376-f5b8f5a7d958",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "medium",
+  "spec": "codex:gpt-6.1-sol:medium",
+  "review": "Prior finding: fixed\n\nTask 3 now declares specific paths and explicitly reserves task 7\u2019s quick-command paths for task 7. Their Touches sets no longer overlap.\n\nNo new blockers identified. Test strategy, logging, dependency ordering and non-functional requirements remain intact.\n\nmaintainability:\n  duplication: none identified\n  structure: none identified\n\n```json\n{\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "plan_review_status": "ship",
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}
