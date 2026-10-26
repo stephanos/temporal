@@ -47,13 +47,20 @@ Lowering controls clone only the interpreter's embedded tree: swap one Lt to Gt 
 a guard, and independently erase branch fact sequences. The latter must leave
 states/verdicts equal while complete edge agreement fails. A dedicated comparator
 control requires matching backend errors to fail. These are actual source controls,
-not assertions that they passed. Outcome-only mutation, dropped-guard mutation,
-automated recompiling source shrink, proptest tree construction, multi-Model TLC
-batching and launch-count/process observations remain unimplemented spike work.
+not assertions that they passed. Outcome-only mutation, dropped-guard mutation, proptest tree construction,
+multi-Model TLC batching and launch-count/process observations remain unimplemented
+spike work.
 
-To minimize a future failing seeded case, retain inputs.json and use the deterministic
-source parameters upper=1, start=Off, token=0 as bounded candidate reductions. No
-shrinking result or minimality claim exists. Task .1 cannot close until executable
-shrinking, complete TLC extraction proof, batching and measured bounds are supplied.
+`--execute --shrink-controls` additionally tries at most three deterministic source
+reductions on the first shape: seed/token=0, upper=1, start=Off. Each candidate is
+recompiled and must still catch both planted lowering defects, including the fact-only
+state/verdict preservation assertion. Backend/refusal/build errors never count as a
+successful reduction. Candidates run compiled/interpreter controls only; no TLC is
+launched by shrink candidates. Results are recorded in shrunk-controls.json. Each
+candidate retains a separate 120-second compile and 45-second runtime ceiling; these
+extra bounded costs are not admitted to any gate tier. No shrinking result or global
+minimality claim exists. Task .1 cannot close until shrinking execution, complete TLC
+extraction proof, batching and measured bounds are supplied. The Python runner owns
+compiler/backend process groups for cleanup on timeout; that cleanup has not run.
 No Temporal dependencies are used. No production manifest or module registration
 was modified.

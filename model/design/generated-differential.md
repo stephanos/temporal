@@ -26,9 +26,10 @@ model/discovery JVM launches before it can support a required-backend gate.
 Source controls plant a swapped comparison and a fact-only lowering mutation in an
 interpreter-only tree copy; complete graph comparison must catch both, and fact-only
 mutation must preserve reached states and claim verdicts. Matching errors must fail.
-The controls have not run. Outcome-only/drop-guard controls and executable bounded
-shrinking are still needed. Parameter reductions are documented for replay, without
-a shrinking or minimality claim.
+The controls have not run. An optional bounded source reducer recompiles at most
+three first-case candidates and retains only candidates for which both real lowering
+controls still detect their planted differences. It has not run and provides no
+shrinking or minimality evidence. Outcome-only/drop-guard controls remain future work.
 
 The executable preparation is intentionally retained as an unintegrated proposal.
 Its final design verdict is **unverified**. Required next evidence includes compiled
