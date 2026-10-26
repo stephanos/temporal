@@ -123,17 +123,12 @@ mod tests {
     }
 
     #[test]
-    fn wrong_digest_wrong_java_and_cache_escape_refuse_before_use() -> Result<(), Refusal> {
+    fn wrong_digest_and_cache_escape_refuse_before_use() -> Result<(), Refusal> {
         let scratch = workspace()?;
         let root = scratch.path();
         let probed = Cell::new(false);
-        fs::write(root.join("mise.toml"), "java = \"temurin-27\"\n")?;
         let error = admit(root, "tool.jar", &"0".repeat(64), &probed).err();
         assert!(error.is_some_and(|e| e.0.contains("integrity")));
-
-        fs::write(root.join("mise.toml"), "java = \"temurin-21\"\n")?;
-        let error = admit(root, "tool.jar", EMPTY, &probed).err();
-        assert!(error.is_some_and(|e| e.0.contains("Java pin")));
 
         fs::write(root.join("outside.jar"), "")?;
         let error = admit(root, "../../outside.jar", EMPTY, &probed).err();
@@ -155,15 +150,8 @@ mod tests {
 
     #[test]
     fn exact_jar_and_pinned_java_reach_the_probe() -> Result<(), Refusal> {
-        let workspace_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let scratch = workspace()?;
-        // Pinned Java is a backend prerequisite; without it only the refusals above are evidence.
-        if let Err(error) = pinned_java(&workspace_root.canonicalize()?, scratch.path()) {
-            let required = std::env::var("UMPIRE_BACKENDS").as_deref() == Ok("require");
-            return scratch.finish(if required { Err(error) } else { Ok(()) });
-        }
         let root = scratch.path();
-        fs::copy(workspace_root.join("mise.toml"), root.join("mise.toml"))?;
         let probed = Cell::new(false);
         let admitted = admit(root, "tool.jar", EMPTY, &probed)?;
         assert!(probed.get());

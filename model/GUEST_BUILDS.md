@@ -138,13 +138,10 @@ through `temporal.Guest()`. Its Go consumers use no Rust or guest-path environme
 `make umpire-guest` refreshes only that asset through `guest.sh`. `make model-check`
 runs the same builder with `--check` before the other gate steps. Its internal
 `guest-freshness.sh` bootstraps the native tool with `MISE_AUTO_INSTALL=false` and
-`MISE_EXEC_AUTO_INSTALL=false` before the first tool probe. Rust then validates
-TOML Rust-pin consistency, typed installed-tool JSON, installed mise-pinned
-Rust/Cargo, Go and protoc executables, rustup toolchain readiness when applicable,
-Rust sources and the wasm target. Missing bootstrap tools/compiler failures and
-runtime prerequisites fail for every `CI` value; there is no local skip policy.
-The cached tool follows the same validation path. Bash only orchestrates bootstrap;
-metadata and pin semantics live in Rust.
+`MISE_EXEC_AUTO_INSTALL=false` before tool execution. The builder assumes mise and
+its pinned tools, Rust sources and wasm target are installed. Commands use the
+local toolchain pins directly; missing tools and compiler failures fail for every
+`CI` value. Bash only orchestrates bootstrap; metadata and cache identity live in Rust.
 The full Rust authoring gate still requires its toolchain. Slice and gaps use the
 embedded asset directly; the umbrella's separate legacy IR bridge remains source-built.
 Only the Temporal guest is committed, as a binary Git file without LFS; generic

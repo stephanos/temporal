@@ -155,9 +155,9 @@ The Temporal host module's `go test -tags test_dep ./...` needs only Go, with no
 guest environment variable or Cargo target lookup. Model authors refresh the embedded
 artifact with `make umpire-guest`. The generic builder's `--check` compares bytes during
 `make model-check`, reporting stale sizes and the first differing offset. The shell entrypoint bootstraps native xtask before guest compiler settings, with
-auto-install disabled before the first probe. Rust validates pinned tools, metadata,
-Rust sources and target readiness on cold and cached paths. Missing tools, compile
-failures and stale bytes fail regardless of `CI`.
+auto-install disabled before tool execution. The builder assumes mise and its pinned
+tools, Rust sources and target are installed; command failures and stale bytes fail
+regardless of `CI`.
 The full Rust authoring gate still requires Rust.
 Umpire ships no prebuilt stock/control guests. See [GUEST_BUILDS.md](GUEST_BUILDS.md).
 

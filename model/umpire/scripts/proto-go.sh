@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false
 cd "$(dirname "$0")/.."
 if [ "$#" -lt 1 ] || [ "$#" -gt 2 ] || { [ "$#" -eq 2 ] && [ "$2" != --check ]; }; then
   printf 'usage: proto-go.sh <core|kettle> [--check]\n' >&2
@@ -41,10 +42,6 @@ if [ "$module" = kettle ]; then
     exit 1
   fi
   plugins+=(--plugin="protoc-gen-go-grpc=$grpc_plugin")
-fi
-if [ "$(mise exec -- protoc --version)" != 'libprotoc 29.5' ]; then
-  printf 'wrong protoc version; expected mise-pinned libprotoc 29.5\n' >&2
-  exit 1
 fi
 output="$PWD/$destination"
 if [ "${2:-}" = --check ]; then

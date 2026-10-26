@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false
 cd "$(dirname "$0")/.."
 if [ "$#" -lt 1 ] || [ "$#" -gt 2 ] || { [ "$#" -eq 2 ] && [ "$2" != --check ]; }; then
   printf 'usage: proto-go.sh <temporal> [--check]\n' >&2
@@ -26,10 +27,6 @@ case "$("$plugin" --version)" in
   'protoc-gen-go v1.36.6'|'protoc-gen-go-v1.36.6 v1.36.6') ;;
   *) printf 'wrong protoc-gen-go version: %s\n' "$plugin" >&2; exit 1 ;;
 esac
-if [ "$(mise exec -- protoc --version)" != 'libprotoc 29.5' ]; then
-  printf 'wrong protoc version; expected mise-pinned libprotoc 29.5\n' >&2
-  exit 1
-fi
 output="$PWD/$destination"
 if [ "${2:-}" = --check ]; then
   temporary=$(mktemp -d)

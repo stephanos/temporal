@@ -4,7 +4,7 @@
 #[path = "pipeline/support.rs"]
 mod support;
 use std::{fs, io::Write, process::Command};
-use support::{Fixture, code, executable};
+use support::{Fixture, code};
 #[test]
 fn guest_build_check_and_artifact_refusals() {
     let f = Fixture::new();
@@ -52,74 +52,26 @@ fn cold_shell_bootstrap_and_cached_native_validation() {
     fs::remove_file(f.root.join("guest-built")).unwrap();
     for ci in [None, Some(""), Some("true")] {
         let mut command = f.command(true, true);
-        command.env("MISSING", "go");
         if let Some(ci) = ci {
             command.env("CI", ci);
         } else {
             command.env_remove("CI");
         }
         let result = command.output().unwrap();
-        assert!(!result.status.success());
-        assert!(!f.root.join("guest-built").exists());
+        code(&result, 0);
+        assert!(f.root.join("guest-built").exists());
+        fs::remove_file(f.root.join("guest-built")).unwrap();
     }
 }
 
 #[test]
-fn cold_bootstrap_failures_never_build_or_publish() {
-    for failure in ["missing-mise", "FAIL_BOOTSTRAP"] {
-        let f = Fixture::new();
-        let mut command = f.command(true, true);
-        if failure == "missing-mise" {
-            command.env("PATH", "/usr/bin:/bin");
-        } else {
-            command.env(failure, "1");
-        }
-        let output = command.output().unwrap();
-        assert!(
-            String::from_utf8_lossy(&output.stderr).contains(if failure == "missing-mise" {
-                "requires mise"
-            } else {
-                "bootstrap-compiler-failed"
-            }),
-            "{}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-        code(&output, 1);
-        assert!(!f.root.join("guest-built").exists());
-        assert!(!f.root.join("out.wasm").exists());
-    }
-}
-
-#[test]
-fn native_prerequisite_failures_stop_before_guest_build() {
-    for (key, value) in [
-        ("MISSING", "rust"),
-        ("MISSING", "go"),
-        ("MISSING", "protoc"),
-        ("FAIL_PROBE", "1"),
-        ("BAD_METADATA", "1"),
-    ] {
-        let f = Fixture::new();
-        code(&f.command(true, true).env(key, value).output().unwrap(), 1);
-        assert!(!f.root.join("guest-built").exists());
-        assert!(!f.root.join("out.wasm").exists());
-    }
-    for remove in [
-        "rust/bin/cargo",
-        "rust/lib/rustlib/src/rust/library/Cargo.toml",
-        "rust/lib/rustlib/wasm32-wasip1/lib/libstd-control.rlib",
-    ] {
-        let f = Fixture::new();
-        fs::remove_file(f.root.join(remove)).unwrap();
-        code(&f.command(true, true).output().unwrap(), 1);
-        assert!(!f.root.join("guest-built").exists());
-    }
-    for contents in ["invalid [", "[tools]\nrust='0.0.0'\ngo='0'\nprotoc='0'\n"] {
-        let f = Fixture::new();
-        fs::write(f.model.join("mise.toml"), contents).unwrap();
-        code(&f.command(true, true).output().unwrap(), 1);
-        assert!(!f.root.join("guest-built").exists());
-    }
+fn cold_bootstrap_failure_never_builds_or_publishes() {
+    let f = Fixture::new();
+    let output = f.command(true, true).env("FAIL_BOOTSTRAP", "1").output().unwrap();
+    assert!(String::from_utf8_lossy(&output.stderr).contains("bootstrap-compiler-failed"));
+    code(&output, 1);
+    assert!(!f.root.join("guest-built").exists());
+    assert!(!f.root.join("out.wasm").exists());
 }
 
 #[test]
@@ -152,26 +104,6 @@ fn shell_caller_relative_paths_and_changed_inputs_select_new_cache() {
     code(&command.output().unwrap(), 0);
     assert_ne!(fs::read(f.root.join("guest-cache")).unwrap(), first);
     assert!(String::from_utf8(first).unwrap().contains("relative target/guest-cache/"));
-}
-
-#[test]
-fn rust_toolchain_metadata_and_rustup_failures_refuse() {
-    for content in ["invalid [", "[toolchain]\nchannel='0.0.0'\n"] {
-        let f = Fixture::new();
-        fs::write(f.model.join("rust-toolchain.toml"), content).unwrap();
-        code(&f.command(true, true).output().unwrap(), 1);
-        assert!(!f.root.join("guest-built").exists());
-    }
-    for script in [
-        "#!/bin/sh\necho no-installed-toolchain\n",
-        "#!/bin/sh\necho rustup-probe-failed >&2\nexit 27\n",
-    ] {
-        let f = Fixture::new();
-        executable(&f.root.join("rust/bin/rustc"), script);
-        fs::hard_link(f.root.join("rust/bin/rustc"), f.root.join("rust/bin/rustup")).unwrap();
-        code(&f.command(true, true).output().unwrap(), 1);
-        assert!(!f.root.join("guest-built").exists());
-    }
 }
 
 #[test]

@@ -36,23 +36,6 @@ impl Fixture {
             }
         }
         fs::write(root.join("built custom.wasm"), b"\0asm\x01\0\0\0").unwrap();
-        let pins: toml::Value =
-            toml::from_str(&fs::read_to_string(model.join("mise.toml")).unwrap()).unwrap();
-        for (tool, names) in
-            [("rust", vec!["rustc", "cargo"]), ("go", vec!["go"]), ("protoc", vec!["protoc"])]
-        {
-            let directory = root.join(tool).join("bin");
-            fs::create_dir_all(&directory).unwrap();
-            for name in names {
-                executable(&directory.join(name), "#!/bin/sh\nexit 0\n");
-            }
-            fs::write(root.join(format!("{tool}.json")), serde_json::to_vec(&serde_json::json!([{"version": pins["tools"][tool].as_str().unwrap(), "install_path": root.join(tool), "installed":true,"active":true}])).unwrap()).unwrap();
-        }
-        let lib = root.join("rust/lib/rustlib");
-        fs::create_dir_all(lib.join("src/rust/library")).unwrap();
-        fs::write(lib.join("src/rust/library/Cargo.toml"), "[workspace]\n").unwrap();
-        fs::create_dir_all(lib.join("wasm32-wasip1/lib")).unwrap();
-        fs::write(lib.join("wasm32-wasip1/lib/libstd-control.rlib"), "").unwrap();
         fs::create_dir_all(root.join("bin")).unwrap();
         executable(
             &root.join("bin/mise"),
@@ -62,12 +45,6 @@ set -eu
 printf '%s\n' "$*" >> "$FIXTURE/calls"
 if [[ -n "${EXPECTED_CARGO_HOME:-}" ]]; then
   [[ "$CARGO_HOME" = "$EXPECTED_CARGO_HOME" ]] || { echo "wrong-cargo-home: $CARGO_HOME from $PWD" >&2; exit 96; }
-fi
-if [[ "$1" = ls ]]; then
-  [[ "${FAIL_PROBE:-}" != 1 ]] || { echo probe-failed >&2; exit 23; }
-  [[ "${BAD_METADATA:-}" != 1 ]] || { echo '[{}]'; exit; }
-  [[ "${MISSING:-}" != "$4" ]] || { echo '[]'; exit; }
-  cat "$FIXTURE/$4.json"; exit
 fi
 [[ "$1 $2" = 'exec --' ]]
 shift 2

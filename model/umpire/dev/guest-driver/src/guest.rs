@@ -1,4 +1,4 @@
-//! Native guest orchestration, prerequisite admission and artifact publication.
+//! Native guest orchestration and artifact publication.
 use crate::{
     Error, Result,
     context::{Context, ToolRoot, caller_path, cargo_home},
@@ -10,10 +10,7 @@ use std::{
     ffi::{OsStr, OsString},
     fs,
     io::Write,
-    os::unix::{
-        fs::{MetadataExt, OpenOptionsExt},
-        process::ExitStatusExt,
-    },
+    os::unix::{fs::OpenOptionsExt, process::ExitStatusExt},
     path::{Path, PathBuf},
     process::{Command, Stdio},
 };
@@ -46,120 +43,6 @@ fn text(bytes: Vec<u8>) -> Result<String> {
         return Err(invalid("empty tool output"));
     }
     Ok(value.trim().to_owned())
-}
-
-#[derive(Deserialize)]
-struct Pins {
-    tools: Tools,
-}
-#[derive(Deserialize)]
-struct Tools {
-    rust: String,
-    go: String,
-    protoc: String,
-}
-#[derive(Deserialize)]
-struct ToolchainFile {
-    toolchain: Toolchain,
-}
-#[derive(Deserialize)]
-struct Toolchain {
-    channel: String,
-}
-#[derive(Deserialize)]
-struct ToolInstallation {
-    version: String,
-    install_path: PathBuf,
-    installed: bool,
-    active: bool,
-}
-
-fn executable(path: &Path) -> bool {
-    use std::os::unix::fs::PermissionsExt;
-    fs::metadata(path).is_ok_and(|m| m.is_file() && m.permissions().mode() & 0o111 != 0)
-}
-
-/// Admit installed pinned tools and Rust source/target readiness on every freshness call.
-fn prerequisites(workspace: &Path, cargo_home: &Path) -> Result<()> {
-    let pins: Pins = toml::from_str(&fs::read_to_string(workspace.join("mise.toml"))?)?;
-    let rust: ToolchainFile =
-        toml::from_str(&fs::read_to_string(workspace.join("rust-toolchain.toml"))?)?;
-    if pins.tools.rust != rust.toolchain.channel {
-        return Err(invalid("Rust toolchain pins disagree"));
-    }
-    for (tool, pin, commands) in [
-        ("rust", pins.tools.rust.as_str(), &["rustc", "cargo"][..]),
-        ("go", pins.tools.go.as_str(), &["go"][..]),
-        ("protoc", pins.tools.protoc.as_str(), &["protoc"][..]),
-    ] {
-        let entries: Vec<ToolInstallation> = serde_json::from_slice(&probe(
-            workspace,
-            cargo_home,
-            &["ls", "--installed", "--json", tool],
-        )?)?;
-        let mut matched = entries.iter().filter(|e| e.version == pin && e.installed && e.active);
-        let entry =
-            matched.next().ok_or_else(|| invalid(format!("missing pinned {tool} {pin}")))?;
-        if matched.next().is_some() {
-            return Err(invalid(format!("ambiguous installed {tool}")));
-        }
-        for command in commands {
-            let compiler =
-                [entry.install_path.join(command), entry.install_path.join("bin").join(command)]
-                    .into_iter()
-                    .find(|p| executable(p))
-                    .ok_or_else(|| invalid(format!("missing executable {command}")))?;
-            if *command == "rustc" {
-                let rustup = compiler.with_file_name("rustup");
-                if let Ok(up) = fs::metadata(&rustup) {
-                    let cc = fs::metadata(&compiler)?;
-                    if up.dev() == cc.dev() && up.ino() == cc.ino() {
-                        let output = Command::new(rustup)
-                            .args(["toolchain", "list"])
-                            .env("CARGO_HOME", cargo_home)
-                            .env("MISE_AUTO_INSTALL", "false")
-                            .env("MISE_EXEC_AUTO_INSTALL", "false")
-                            .output()?;
-                        if !output.status.success() {
-                            return Err(invalid(format!(
-                                "rustup probe failed: {}",
-                                String::from_utf8_lossy(&output.stderr)
-                            )));
-                        }
-                        let list = text(output.stdout)?;
-                        if !list
-                            .lines()
-                            .filter_map(|l| l.split_whitespace().next())
-                            .any(|s| s.starts_with(&format!("{pin}-")))
-                        {
-                            return Err(invalid(format!("missing pinned Rust {pin}")));
-                        }
-                    }
-                }
-            }
-        }
-    }
-    let sysroot = PathBuf::from(text(probe(
-        workspace,
-        cargo_home,
-        &["exec", "--", "rustc", "--print", "sysroot"],
-    )?)?);
-    if !sysroot.join("lib/rustlib/src/rust/library/Cargo.toml").is_file() {
-        return Err(invalid("missing rust-src"));
-    }
-    let libraries = sysroot.join("lib/rustlib/wasm32-wasip1/lib");
-    let ready = fs::read_dir(libraries).is_ok_and(|entries| {
-        entries.filter_map(std::result::Result::ok).any(|e| {
-            e.file_type().is_ok_and(|t| t.is_file())
-                && e.file_name().to_str().is_some_and(|n| {
-                    n.starts_with("libstd-") && Path::new(n).extension() == Some(OsStr::new("rlib"))
-                })
-        })
-    });
-    if !ready {
-        return Err(invalid("missing wasm32-wasip1 target"));
-    }
-    Ok(())
 }
 
 fn launcher(path: &Path, binary: &[u8]) -> Result<()> {
@@ -233,9 +116,6 @@ pub fn run(arguments: &[OsString], freshness: bool) -> Result<i32> {
     let workspace = env::current_dir()?.canonicalize()?;
     let cargo_home = cargo_home(&workspace)?;
     let output = caller_path(PathBuf::from(&arguments[1]), &workspace);
-    if freshness {
-        prerequisites(tools.path(), &cargo_home)?;
-    }
     let sysroot =
         text(probe(tools.path(), &cargo_home, &["exec", "--", "rustc", "--print", "sysroot"])?)?;
     let compiler = text(probe(tools.path(), &cargo_home, &["exec", "--", "rustc", "-V"])?)?;

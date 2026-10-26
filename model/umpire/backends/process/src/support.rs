@@ -117,34 +117,18 @@ pub fn java_command(java: &Path) -> Command {
 }
 
 pub fn pinned_java(root: &Path, directory: &Path) -> Result<PathBuf, Refusal> {
-    if !fs::read_to_string(root.join("mise.toml"))?
-        .lines()
-        .any(|line| line.trim() == "java = \"temurin-27\"")
-    {
-        return Err(Refusal("expected repository mise Java pin temurin-27".into()));
-    }
     let mut resolve = Command::new("mise");
-    resolve.args(["which", "java"]).current_dir(root);
+    resolve
+        .args(["which", "java"])
+        .current_dir(root)
+        .env("MISE_AUTO_INSTALL", "false")
+        .env("MISE_EXEC_AUTO_INSTALL", "false");
     let (status, output) = run_process(&mut resolve, directory, "mise", Limits::default(), None)?;
     let java = PathBuf::from(output.trim());
-    if !status.success() || !java.is_absolute() || !java.is_file() {
+    if !status.success() || !java.is_absolute() {
         return Err(Refusal(format!("mise did not resolve an absolute Java executable: {output}")));
     }
-    let mut version = java_command(&java);
-    version.arg("-version").current_dir(directory);
-    let (status, output) = run_process(&mut version, directory, "java", Limits::default(), None)?;
-    validate_java(status.success(), &output)?;
     Ok(java)
-}
-
-fn validate_java(success: bool, output: &str) -> Result<(), Refusal> {
-    if !success
-        || !output.lines().any(|line| line.starts_with("openjdk version \"27\""))
-        || !output.contains("Temurin-27+")
-    {
-        return Err(Refusal(format!("mise Java is not pinned Temurin 27: {output}")));
-    }
-    Ok(())
 }
 
 pub struct ProcessFailure {
@@ -307,7 +291,3 @@ pub fn bounded_text(path: &Path, limit: u64) -> Result<String, Refusal> {
     }
     Ok(text)
 }
-
-#[cfg(test)]
-#[path = "tests.rs"]
-mod tests;

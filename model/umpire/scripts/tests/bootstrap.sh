@@ -43,4 +43,24 @@ cmp "$scratch/expected" "$scratch/arguments"
 CARGO_TARGET_DIR=target bash "$scratch/framework/scripts/guest-freshness.sh" example relative.wasm
 printf 'guest-freshness\nexample\n%s/relative.wasm\n' "$scratch/caller" > "$scratch/expected"
 cmp "$scratch/expected" "$scratch/arguments"
-printf 'bootstrap controls: local tool root, caller cwd/output/target and two native executables passed (fake build)\n'
+mkdir -p "$scratch/missing-bin"
+for tool in dirname mkdir; do
+  ln -s "$(command -v "$tool")" "$scratch/missing-bin/$tool"
+done
+cat > "$scratch/missing-bin/cargo" <<'TOOL'
+#!/bin/bash
+printf 'unexpected build\n' > "$CONTROL_OUTPUT"
+exit 1
+TOOL
+chmod +x "$scratch/missing-bin/cargo"
+if PATH="$scratch/missing-bin" CARGO_TARGET_DIR="$scratch/missing-target" CONTROL_OUTPUT="$scratch/missing-build" /bin/bash "$scratch/framework/scripts/guest.sh" example "$scratch/missing.wasm" > "$scratch/missing.stdout" 2> "$scratch/missing.stderr"; then
+  printf 'unexpected success without mise\n' >&2
+  exit 1
+fi
+grep -F 'mise: command not found' "$scratch/missing.stderr" >/dev/null
+grep -F 'xtask bootstrap failed: installed pinned Rust/Cargo are required' "$scratch/missing.stderr" >/dev/null
+[ ! -s "$scratch/missing.stdout" ]
+[ ! -e "$scratch/missing-build" ]
+[ ! -e "$scratch/missing-target/xtask-bootstrap" ]
+[ ! -e "$scratch/missing.wasm" ]
+printf 'bootstrap controls: local tool root, caller cwd/output/target, two native executables and missing-mise failure passed (fake build)\n'

@@ -10,12 +10,9 @@ export PATH="$scratch/bin:$PATH"
 cat > "$scratch/bin/mise" <<'TOOL'
 #!/usr/bin/env bash
 set -euo pipefail
+[ "$MISE_AUTO_INSTALL" = false ] && [ "$MISE_EXEC_AUTO_INSTALL" = false ]
 [ "$1" = exec ] && [ "$2" = -- ] && [ "$3" = protoc ]
 shift 3
-if [ "${1:-}" = --version ]; then
-  printf '%s\n' "${PROTO_VERSION:-libprotoc 29.5}"
-  exit
-fi
 printf '%s\n' "$@" > "$PROTO_LOG"
 [ "${PROTO_FAIL:-0}" = 0 ] || exit 42
 for arg in "$@"; do

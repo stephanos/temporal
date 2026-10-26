@@ -14,10 +14,6 @@ if [ -n "${CARGO_HOME:-}" ] && [ -d "$CARGO_HOME" ]; then
 fi
 cd "$(dirname "$0")/.."
 export UMPIRE_TOOL_ROOT="$PWD"
-if ! command -v mise >/dev/null 2>&1; then
-  printf 'xtask bootstrap requires mise and installed pinned Rust/Cargo\n' >&2
-  exit 1
-fi
 target=${CARGO_TARGET_DIR:-$PWD/target}
 mkdir -p "$target"
 target=$(cd "$target" && pwd -P)
