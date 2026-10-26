@@ -500,3 +500,31 @@ fn metadata_named_checkout_ancestors_do_not_hide_external_build_inputs() -> Test
     }
     Ok(())
 }
+
+#[test]
+fn workspace_documentation_can_supply_executable_test_inputs() -> TestResult {
+    let mut graph = Graph::default();
+    graph.add(
+        Path::new("/repo/model/umpire"),
+        &metadata(
+            "repo/model/umpire",
+            &[("fixtures", "fixtures", &[]), ("dsl", "dsl", &[]), ("other", "other", &[])],
+            &["fixtures", "dsl", "other"],
+        ),
+    )?;
+    for path in ["/repo/model/umpire/README.md", "/repo/model/umpire/docs/examples.md"] {
+        assert_eq!(
+            selected(&graph, &options(), &[path])?,
+            BTreeSet::from(["fixtures".into(), "dsl".into(), "other".into()]),
+            "{path}"
+        );
+    }
+    for path in ["/repo/README.md", "/repo/MILESTONES.md", "/repo/docs/development.md"] {
+        assert_eq!(
+            selected(&graph, &options(), &["/repo/model/umpire/dsl/src/lib.rs", path])?,
+            BTreeSet::from(["fixtures".into(), "dsl".into()]),
+            "{path}"
+        );
+    }
+    Ok(())
+}

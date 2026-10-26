@@ -1,13 +1,13 @@
 {
-  "test_result": "15 passed; 0 failed",
+  "test_result": "16 passed; 0 failed",
   "commands": [
     "mise exec -- cargo test --locked -p xtask --lib quick::",
     "mise exec -- cargo clippy --locked -p xtask --lib --tests -- -D warnings",
     "mise exec -- cargo fmt -p xtask -- --check"
   ],
   "source_sha256": {
-    "model/umpire/dev/xtask/src/quick/selection.rs": "e958359c853b54426278c2703de235b3435387646f467f05e24715962296a676",
-    "model/umpire/dev/xtask/src/quick/tests.rs": "5289f5de03973368571d5158d778b6b4493be7ed1b56caeb13133ceabe3a45c0"
+    "model/umpire/dev/xtask/src/quick/selection.rs": "7289342c2aff358b92f786d0d8641157fcbd708fe7c2ae3a199a983ea25ea6f2",
+    "model/umpire/dev/xtask/src/quick/tests.rs": "50fc5e471f588d64864e4f6c52a276bfdfa76f4721497c3c27cc856acba14074"
   },
   "log_sha256": {
     "red.log": "1c756001b72bf225df6ec1ef82fd5abfb286d4c5ad00e9b6318676b332309996",
@@ -18,13 +18,18 @@
     "ancestor-red.log": "381b85f784b7013815d88f32a66ca74bddeed824346f1bef337c90c514e5ccf9",
     "ancestor-green.log": "4cf5091357772cb89402bf157112f90b2a2c4f85d5d3eb024f28da23753b9862",
     "ancestor-clippy.log": "ed3d4fbf68a263ce98f949e210dd7edc2fff4c2c0723604d5d9e427985b1a0c0",
-    "ancestor-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    "ancestor-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "workspace-docs-green.log": "548b7d14c04680ae5fd223d1a95d741ae5f54b7d03592e2e1a7b636c60b45d70",
+    "workspace-docs-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "workspace-docs-red.log": "05bc26f7d1e184bc1da7a6cd3a3fe6577fdd1b414db0677c86c593778ebfc2a3",
+    "workspace-docs-clippy.log": "966a6079ce9a31d28d83db7f1363700e63797eb462e7b6a5063f6f30fe7ca52a"
   },
   "controls": [
     "Kettle test-only readers do not reverse-expand; library changes still expand",
     "Flow/docs do not widen model selection",
     "Explicit globals and unknown proto/generated/build inputs stay conservative",
     "Checkout ancestor named .flow does not hide source inputs",
-    "Standalone metadata respects package/mapping/global precedence"
+    "Standalone metadata respects package/mapping/global precedence",
+    "Workspace README/docs retain conservative selection; external repository prose remains ignored"
   ]
 }

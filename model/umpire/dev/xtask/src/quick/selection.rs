@@ -112,7 +112,8 @@ impl Graph {
         let Ok(relative) = path.strip_prefix(root) else { return false };
         relative.components().next().is_some_and(|part| {
             [".flow", ".plans", ".turbo"].iter().any(|name| part.as_os_str() == *name)
-                || (path.extension().is_some_and(|extension| extension == "md")
+                || (!self.members.keys().any(|workspace| path.starts_with(workspace))
+                    && path.extension().is_some_and(|extension| extension == "md")
                     && (part.as_os_str() == "docs" || relative.components().count() == 1))
         })
     }
