@@ -208,6 +208,34 @@
         "target_met": false
       },
       "deferred": "Full joined gates and final measurements remain fn-254.8."
+    },
+    {
+      "at": "2026-10-26T22:37:19.097771+00:00",
+      "type": "verified_task_closure",
+      "task": "fn-255.1",
+      "status": "done",
+      "claimed_at": "2026-10-26T20:56:30.471681Z",
+      "done_at": "2026-10-26T22:04:10.362826Z",
+      "claim_to_done_seconds": 4059.891145,
+      "integrated_at": "142f7de90cfc4c6d79427aa74e0141235c446509",
+      "closure_commit": "5d5d498f0927daec44186bf177a4751575bcd1b1",
+      "source_checkpoint": "dddeead063",
+      "reviews": [
+        {
+          "rid": "323a48392a034ca18d569d7b5e1e6da0",
+          "result": "SHIP",
+          "max_draw_seconds": 379.1
+        },
+        {
+          "rid": "5ed27c0c9b114641b6b94d17883916c8",
+          "result": "SHIP",
+          "max_draw_seconds": 165.1
+        }
+      ],
+      "verification": "141 archive members and6graph pairs independently checked; fresh no-build preflight/process controls; runtime evidence source-projected.",
+      "source_rework": "Uncompiled proposal corrected, complete batching/shrinking/refusal/outcome controls measured; six provenance/budget/preflight follow-ups addressed.",
+      "attribution": "Observed claim-to-done spans source work, validation, other sessions and review waits; not isolated worker time or causal concurrency speedup.",
+      "deferred": "Maintained harness and gate/budget activation remain later tasks."
     }
   ],
   "measurement_limits": "Source handoffs are work-in-progress, not verified closures. Mixed scope, unknown exact worker times and validation/access blockers prevent a causal concurrency speedup estimate."

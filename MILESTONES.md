@@ -27,7 +27,7 @@ ranks a fast feedback loop among the most important properties. The standalone w
 Immediate validation path: .5's fixture/compiler work, then priority-0 .17's uniform nextest and single bounded stage DAG. The consumer/cache checkpoint is reviewed and closed; verified configurations cache independently of refuted siblings, and test-only Kettle readers no longer expand unrelated libraries. Downloads .16 and shell ports .15 follow .17; budgets .12 and final proof .8 consume it. fn-254 gets first admission to shared build/JVM/review capacity. Already running fn-246.9/.13 work may reach safe checkpoints, and disjoint source work may continue without delaying fn-254. Finish fn-254.7 after committed fn-246 closure.
 The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246; fn-254.13's workspace move is integrated. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; activity changes
 retain their listed dependencies and follow the current priority/source-ownership order.
-fn-255.1, .3 and .4 (generator spike, fuzz targets, cargo-mutants) touch no gate files and may run as lanes before fn-254 closes.
+fn-255.3 and .4 (fuzz targets and cargo-mutants) touch no gate files and may run as lanes before fn-254 closes.
 fn-256 (Scala-era tooling removal) may run as a lane when its blockers clear; shared Makefile, CI, pin and documentation edits land serially with fn-254's.
 Consolidation and build prerequisites for fn-246 are satisfied. Priority does not create dependencies;
 clear cross-spec blockers only after prerequisite closures are committed in `umpire`.
@@ -35,8 +35,8 @@ Parallel work requires disjoint source and code-generation ownership.
 
 The owner lifted the validation hold on 2026-10-26. Resume focused fn-254 checks
 and retain unvalidated candidates until their required evidence and reviews pass.
-The fn-254.5 source is applied on `umpire` for focused validation; its fixture/compiler
-coverage and bounded nextest controls still require execution. Candidates for .15/.16/.17
+The fn-254.5 source is applied on `umpire`; framework fixtures, parser/compiler coverage
+and bounded nextest controls are validated. Temporal compiler/resource checks remain. Candidates for .15/.16/.17
 and .12 remain in the isolated source-assembly branch.
 Remaining implementation includes actual receipt counters, budget wiring, mise compatibility and native control fixtures.
 Candidates are unvalidated and not integrated into `umpire`;
@@ -108,7 +108,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-254.5 | 🔄 in progress | Source applied: 24 fixture cases, compiler batching, 63 parser-table cases with 16 compiler cases retained, discovery heap cap, dead-target removal and bounded nextest profile/receipt controls; focused validation underway (R4, R5) |
+| fn-254.5 | 🔄 in progress | Validated: required-TLC run 83 passed/1 ignored with 24 fixture cases, all 84 identities/191 snapshots preserved, 61 parser rows plus 18 compiler cases, bounded profiles/receipts and discovery heap cap. Temporal compiler batching and representative/resource proof remain (R4, R5) |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
 | fn-254.12 | ⬜ todo | Budget parser/count/retry candidate assembled; real receipt producers and native wiring underway. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
@@ -145,12 +145,15 @@ Its share is at most 30 s in `model-check` and 120 s in `model-validate`. Mutant
 scheduled-tier only. If the gates miss fn-254's targets, fn-255's counts are cut, never the targets.
 Not adopted: Kani, bolero, Loom, Shuttle (a candidate once checking goes parallel), deterministic simulation.
 
+The reviewed [source-generation design](model/design/generated-differential.md) is integrated;
+its measured bounds and same-schema, Verified-only batching guide the maintained harness.
+Gate budgets still need admission through fn-254.12 and .7 below.
+
 [Spec](.flow/specs/fn-255-thorough-framework-testing-generated.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-255.1 | 🔄 in progress | Source spike validated and reviewed at `4285914b1b`: complete graph agreement, label-only mutants, shrinking and two-Model TLC batching measured; budget/provenance docs and missing-jar preflight follow-up precede closure/integration (R1) |
-| fn-255.2 | ⬜ todo | Source preparation underway: differential harness with shrinking and fixture pinning; .1 admission/evidence remain prerequisites (R1) |
+| fn-255.2 | ⬜ todo | Adapt retained differential-harness candidate to the admitted source design; validate shrinking and fixture pinning (R1) |
 | fn-255.3 | ⬜ todo | Pinned nightly; cargo-fuzz targets for guest dispatch and TLC decoders, seeded corpora (R2) |
 | fn-255.4 | ⬜ todo | Bounded cargo-mutants smoke/control runs; scheduled campaign reports and triage, serialized source edits (R3) |
 | fn-255.5 | ⬜ todo | Miri ABI candidate prepared and under source review; .3 pin, registration and actual Miri runs pending (R4) |
