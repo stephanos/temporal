@@ -25,6 +25,7 @@ const STAGES: &[&str] = &[
     "wasm-guest",
     "go-host",
     "kettle-go-host",
+    "standalone",
 ];
 const LEAVES: &[(&str, &str)] = &[
     ("proto-tools", "proto-tools"),
@@ -165,6 +166,8 @@ fi
         command
             .current_dir(&self.caller)
             .env_remove("BASH_ENV")
+            .env_remove("UMPIRE_STANDALONE_CHILD")
+            .env_remove("UMPIRE_STANDALONE_OUTPUT")
             .env_remove("UMPIRE_BACKENDS")
             .env_remove("UMPIRE_APALACHE")
             .env("PATH", format!("{}:/usr/bin:/bin", self.bin.display()))
@@ -383,12 +386,21 @@ fn validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_fai
         }
         fixture.clear();
         let output = fixture.command(false).arg(entry).output().unwrap();
-        assert_status(&output, 0);
         let mut expected = LEAVES.iter().map(|(_, leaf)| *leaf).collect::<Vec<_>>();
-        expected.push("tests");
+        if entry == "validate" {
+            assert_status(&output, 1);
+            assert!(stderr(&output).contains("framework stage standalone failed: missing or escaping standalone configuration: Cargo.lock"), "{output:?}");
+        } else {
+            assert_status(&output, 0);
+            expected.push("tests");
+        }
         assert_eq!(fixture.labels(), expected);
         let log = fs::read_to_string(&fixture.log).unwrap();
-        assert!(log.lines().last().unwrap().ends_with("cargo test -p umpire-checker --quiet"));
+        if entry == "time" {
+            assert!(log.lines().last().unwrap().ends_with("cargo test -p umpire-checker --quiet"));
+        } else {
+            assert!(!log.contains("cargo test -p"));
+        }
         if entry == "validate" {
             assert!(log.lines().all(|line| line.contains("|0|1|require|")), "{log}");
         }
@@ -426,16 +438,22 @@ fn convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status() 
             .env("UMPIRE_INNER_BUDGET", "-1")
             .output()
             .unwrap();
-        assert_status(&output, 37);
-        assert!(
-            stderr(&output).contains("framework stage inner loop (edit+test) failed (exit 37)"),
-            "{output:?}"
-        );
-        assert!(stderr(&output).contains("inner child diagnostic"), "{output:?}");
+        if entry == "time" {
+            assert_status(&output, 37);
+            assert!(
+                stderr(&output).contains("framework stage inner loop (edit+test) failed (exit 37)"),
+                "{output:?}"
+            );
+            assert!(stderr(&output).contains("inner child diagnostic"), "{output:?}");
+            assert_eq!(fixture.labels().len(), LEAVES.len() + 1);
+        } else {
+            assert_status(&output, 1);
+            assert!(stderr(&output).contains("framework stage standalone failed: missing or escaping standalone configuration: Cargo.lock"), "{output:?}");
+            assert_eq!(fixture.labels(), LEAVES.iter().map(|(_, leaf)| *leaf).collect::<Vec<_>>());
+        }
         let stdout = String::from_utf8_lossy(&output.stdout);
         assert!(!stdout.contains("gate total"), "{output:?}");
         assert!(!stdout.contains("over soft target"), "{output:?}");
-        assert_eq!(fixture.labels().len(), LEAVES.len() + 1);
     }
 }
 

@@ -12,6 +12,7 @@ use std::{
 };
 use umpire_guest_driver::context::{ToolRoot, cargo_home};
 mod boundary;
+mod standalone;
 
 /// Ordered framework stages. Dependencies are conservative prerequisite edges.
 pub const STAGES: &[(&str, &[&str])] = &[
@@ -32,6 +33,7 @@ pub const STAGES: &[(&str, &[&str])] = &[
     ("wasm-guest", &[]),
     ("go-host", &["wasm-guest"]),
     ("kettle-go-host", &["wasm-guest", "kettle-protobuf-freshness"]),
+    ("standalone", &[]),
 ];
 
 struct Gate {
@@ -40,6 +42,7 @@ struct Gate {
     home: PathBuf,
     required: bool,
     timed: bool,
+    child_records: Option<PathBuf>,
 }
 impl Gate {
     fn new(tools: &ToolRoot, required: bool) -> Result<Self> {
@@ -56,6 +59,7 @@ impl Gate {
             target,
             home: cargo_home(&caller)?,
             required,
+            child_records: None,
             timed: env::var_os("UMPIRE_TIME_STEPS").as_deref() == Some(OsStr::new("1")),
         })
     }
@@ -123,6 +127,7 @@ impl Gate {
                 return Ok(code);
             }
             "source-boundary" => return self.boundary(),
+            "standalone" => return standalone::run(self),
             "timing-controls" => {
                 let code = self.execute(name, self.script("test-time-gate.sh", &[]))?;
                 if code != 0 {
@@ -235,9 +240,20 @@ impl Gate {
             }
         }
         for (name, _) in STAGES {
+            if *name == "standalone" && (!self.required || self.child_records.is_some()) {
+                continue;
+            }
             let started = Instant::now();
-            let result = self
-                .stage(name)
+            let result = self.stage(name);
+            if let Some(records) = &self.child_records {
+                standalone::record(
+                    records,
+                    name,
+                    result.as_ref().ok().copied(),
+                    started.elapsed().as_secs_f64(),
+                )?;
+            }
+            let result = result
                 .map_err(|e| Error::Invalid(format!("framework stage {name} failed: {e}")))?;
             if result != 0 {
                 return Ok(result);
@@ -269,6 +285,14 @@ pub fn run(command: &str, args: Vec<OsString>) -> Result<i32> {
         return gate
             .stage(stage)
             .map_err(|e| Error::Invalid(format!("framework stage {stage} failed: {e}")));
+    }
+    if command == "gate" && args.len() == 2 && args[0] == "--standalone-child" {
+        gate.required = true;
+        gate.child_records = Some(standalone::admit(&PathBuf::from(&args[1]), &gate)?);
+        return gate.full();
+    }
+    if env::var_os("UMPIRE_STANDALONE_CHILD").is_some() {
+        return Err(Error::Invalid("standalone recursion or invalid child mode refused".into()));
     }
     if !args.is_empty() {
         return Err(Error::Invalid(format!(
@@ -339,6 +363,7 @@ mod tests {
             home: directory.path().join("cargo"),
             required: true,
             timed: false,
+            child_records: None,
         };
         let mut command = gate.command("/bin/sh");
         command.args(["-c","test \"$UMPIRE_QUICK_CACHE\" = 0 && test \"$UMPIRE_CACHE_DISABLE\" = 1 && test \"$UMPIRE_BACKENDS\" = require"]);

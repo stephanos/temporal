@@ -39,7 +39,7 @@ fn policy(root: &Path) -> Result<Policy> {
     }
     Ok(policy)
 }
-fn files(root: &Path, target: &Path) -> Result<Vec<PathBuf>> {
+pub(super) fn files(root: &Path, target: &Path) -> Result<Vec<PathBuf>> {
     let target = normalize(target);
     let root = fs::canonicalize(root)?;
     admit_target(&root, &target)?;
