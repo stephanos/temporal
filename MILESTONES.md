@@ -40,12 +40,16 @@ Remaining implementation includes actual receipt counters, budget wiring, mise c
 Candidates are unvalidated and not integrated into `umpire`;
 preparation does not advance Flow dependencies or mark tasks complete. Integrate shared CLI/configuration
 changes in dependency order. fn-246.9/.13 have retained source/proof checkpoints awaiting integration and closure.
-The normal limit is four parallel implementation workers. The owner authorized one additional batch of
-six tasks (fn-255.2 differential harness, fn-255.5 Miri, fn-255.6 coverage, fn-256.2 retirement,
-fn-253.3 countdown library and fn-246.2 entity lens), temporarily allowing ten; do not replace
-these extra implementation workers after they finish. Each hands off once to a fresh source-review worker;
-execution gates remain deferred. Existing workers finish their current
-assignments, then fresh agents take subsequent work within that cap. fn-254 has priority; retain the
+The owner-approved admission policy is one coordinator, up to four implementation
+workers across the team, and one separate review lane. The coordinator owns admission,
+Git/Flow integration and closure; workers own disjoint source. Admit one review round
+at a time, preserving required review lenses and a fixed reviewed head. Each source
+handoff gets a fresh reviewer. Retain the earlier extra-batch candidates without
+restarting those extra lanes; new implementation admission uses the four-worker cap.
+Measure verified Flow closures and observed cycle/review/rework/blocked time in
+[the execution record](.flow/artifacts/fn-257-extract-the-standalone-umpire/agent-throughput.json),
+keeping unvalidated preparation out of completed-task counts. Execution gates remain
+deferred. fn-254 retains priority for shared build/JVM capacity; retain the
 fn-255 generator/fuzz/mutation and fn-253.2 spike candidates without treating preparation as completion.
 Spike verdicts, performance claims and task completion still require evidence.
 
@@ -76,7 +80,6 @@ the required current-pair proof. Plan review passed; build/test execution remain
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-257.2 | 🔄 in progress | Export reproduced and independently verified; 1,178 files, 581 retained commits, original candidate preservation and bundle recovery proven. Review/closure pending (R2) |
 | fn-257.3 | ⬜ todo | After .2: portable root, canonical Go identities/descriptors, focused docs/CI and command aliases (R3) |
 | fn-257.4 | ⬜ todo | Disjoint provisional Rust/CLI and Go consumer wiring underway in `work/fn2574-consumers`; final admission waits for .3's actual interface, generation and execution evidence (R4) |
 | fn-257.5 | ⛔ blocked | After .3/.4 and the validation hold ends: exact isolated/paired proof, guest/generator checks and uncommitted Rust/Go red-green tests (R3–R5) |

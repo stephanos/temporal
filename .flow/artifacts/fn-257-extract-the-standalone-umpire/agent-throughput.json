@@ -1,0 +1,68 @@
+{
+  "policy_observed_at": "2026-10-26T16:52:00.831679+00:00",
+  "user_approval": "yes do it: one coordinator, up to four implementation workers, separate review lane; starting point to measure",
+  "policy": {
+    "coordinators": 1,
+    "max_implementation_workers": 4,
+    "max_active_review_rounds": 1,
+    "integration_owner": "coordinator",
+    "source_ownership": "disjoint worker lanes; coordinator admits any nested implementation delegation"
+  },
+  "baseline": {
+    "verified_flow_closures": [
+      {
+        "id": "fn-257.1",
+        "status": "done",
+        "claimed_at": "2026-10-26T15:23:45.996133Z",
+        "done_observed_at": "2026-10-26T15:35:48.997947Z",
+        "claim_to_done_seconds": 723.001814
+      },
+      {
+        "id": "fn-257.2",
+        "status": "done",
+        "claimed_at": "2026-10-26T15:38:25.434531Z",
+        "done_observed_at": "2026-10-26T16:50:32.250127Z",
+        "claim_to_done_seconds": 4326.815596
+      }
+    ],
+    "observed_initial_review_rounds": [
+      {
+        "rid": "4797c20787d149f8bc70dbd71c612620",
+        "task": "fn-257-extract-the-standalone-umpire.1",
+        "started_at": "2026-10-26T15:30:50.612716+00:00",
+        "finished_at": "2026-10-26T15:34:50.447069+00:00",
+        "wall_seconds": 239.834353,
+        "axes": 3
+      },
+      {
+        "rid": "8538daa56dc34ce791b7aa6676295cce",
+        "task": "fn-257-extract-the-standalone-umpire.2",
+        "started_at": "2026-10-26T16:18:17.329685+00:00",
+        "finished_at": "2026-10-26T16:22:37.926940+00:00",
+        "wall_seconds": 260.597255,
+        "axes": 3
+      }
+    ],
+    "attribution": "Historical mixed-scope task observations; not a post-policy speedup comparison. Preparation before claim and exact coordinator/worker time are not reconstructed.",
+    "worker_time_seconds": null,
+    "rework_time_seconds": null
+  },
+  "blockers_observed": [
+    {
+      "kind": "validation_hold",
+      "observed_at": "2026-10-26T16:52:00.831679+00:00",
+      "impact": "runtime/guest/consumer gates cannot establish completion while held"
+    },
+    {
+      "kind": "destination_access",
+      "observed_at": "2026-10-26T16:52:00.831679+00:00",
+      "impact": "CLI401 and connected-app SAML403 keep destination contents/permissions unknown"
+    }
+  ],
+  "events": [
+    {
+      "at": "2026-10-26T16:52:00.831679+00:00",
+      "type": "policy_applied"
+    }
+  ]
+}
