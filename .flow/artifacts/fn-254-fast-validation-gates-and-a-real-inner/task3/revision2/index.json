@@ -1,0 +1,124 @@
+{
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.3",
+  "revision": 2,
+  "source_commit": "ba473b52be7800703ec60223ab40b206066ab56b",
+  "admission": "Root explicitly amended task3 Touches to exact model/dev/xtask/src/gate.rs consumer and reported four-lane re-admission PASS before edit.",
+  "prior_index": "../revision1/index.json",
+  "prior_index_sha256": "86653806171718e825a275b566e7968d9ee60cfe5ea51946befea52dd9ce67d4",
+  "source_sha256": {
+    "mise.toml": "c959fbc35e982bb71dd75e1babb230899939ba8f997b3a5fc1bd0a20dbe610a1",
+    "mise.lock": "83bd1e2858a4444470d4ae801111897a87160a9cac233f797999a9e4c0c99cb5",
+    "model/umpire/mise.toml": "047236435e49253d7b4ad8047fa5b7bc683fe089de9eb40a14a25581245a24bb",
+    "model/umpire/mise.lock": "cbe9740d3768eca5e0d500f9aade2f4075bb6f3712ea9c6e905f5e4109555f35",
+    "model/.config/nextest.toml": "9170506dc6f6c152e76fd0f51ae4e0d926495750a8a629293c50536064433d93",
+    "model/umpire/.config/nextest.toml": "2a841c92bc1a2b0bac3ab4f3c701e2452e3ad37235046e82d9393b4293eb987f",
+    "model/dev/xtask/src/test_run.rs": "f4daf19a6caa62e59005cfc93243cc838a77fe4b87f983e654bfdaa3c0011ca5",
+    "model/umpire/dev/xtask/src/test_run.rs": "fad7518ddd8884e53613cdd83e80b18100a9b63e36369c7f02e6963ac51f8742",
+    "model/umpire/author/dsl/macros/tests/ui/action_domain_unbound.stderr": "58e6723e77258497b8dc34410c4e0a379a5cbfa402c0aeba6d7f68db8527e896",
+    "model/umpire/author/dsl/macros/tests/ui/action_finite_missing.stderr": "eb9768f02c7cd55bdb02b4fc3e4efc7beb9c4df3834fec8bcab870180405eb3f",
+    "model/umpire/author/dsl/macros/tests/ui/optional_facts_direct_reject.stderr": "4d31a2012173a309454540439aaf2fffa371d7dc392a1aa6c03c678048a1b669",
+    "model/dev/xtask/src/gate.rs": "188c66720221c362efd982b1d6e8a445eee1a3454cc448a304a597aa8c2bc831"
+  },
+  "proof_sha256": {
+    "proof/attempt1-commands.json": "f87687acd659ec44e634fb91c122cbf0c254839a530bd6bdb091276c7c8cb9d6",
+    "proof/attempt1-temporal-xtask-clippy.err": "b4fbb043aa9b0ff4b4f1c69444c9d22a0b368b0bdd387840cb0a5ba9127d1f22",
+    "proof/attempt1-temporal-xtask-clippy.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/commands.json": "c6a9c6f545d8d4cfe96ad30c661556d462606d8da831b8775a10d070cba01c15",
+    "proof/control-accounting.json": "36329380f8601a66ec993709e5f884cf5efe040cdfa0a54f73ae967c9635ff7c",
+    "proof/control.diff": "190036771ae5c11c6338f1faac1e536c0130ebe60cd9e8fb8a1119c1dfe85051",
+    "proof/temporal-fmt.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-fmt.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/temporal-xtask-clippy.err": "bc0d1443ce1b22c40a6f454399307962887c506c719aeb4288ecd18c50f6fc5b",
+    "proof/temporal-xtask-clippy.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/verification.json": "61a24603aa38a3d40caaef65d0ea75620e79e363e67e2003f6ebc65ecdcefa43",
+    "proof/verify.py": "a61a0f674e5522565991ca853e1d1e2db00e947550a2a62e08a666f3b582a489",
+    "proof/wiring-green.err": "c817ae9f0325d04456859276b1089ce1af967a43487af892094cf6b8ffa5708e",
+    "proof/wiring-green.out": "22cf0523486c76cade8feb8eb0c3734cc4e1c7190ecc49c2d9da43563b17a930",
+    "proof/wiring-red.err": "ba7b7c35d5490ae46fda81c9cf91d3a9aaa3c602f70ef9e158680d749c56dbc1",
+    "proof/wiring-red.json": "68500fb1fe22fa0d0d88148eee9954f7b9a77a14652685614c5a9c9a29b52736",
+    "proof/wiring-red.out": "b98eed47b33edb470e9b67d23f88fb355418d764eafdc46a224fc71361ca1614"
+  },
+  "summary_sha256": "cc87ae86c06ddd51ea26130675a65e5cba0cb95ded4159db1d891c5bc5ecbc1a",
+  "status": "P1 consumer inventory fixed; exact red->green,fmt,clippy and28 timed/untimed scenarios pass; parent integration and formal re-review pending",
+  "finding": "Existing Temporal gate wiring control expected old once-Cargo test command.",
+  "results": {
+    "source_file": "model/dev/xtask/src/gate.rs",
+    "only_model_file_changed_since_revision1": true,
+    "prior_11_source_file_hashes_unchanged": true,
+    "existing_test_names_and_attributes_unchanged": true,
+    "production_module_bytes_unchanged": true,
+    "existing_962_identity_inventory_preserved_by_unchanged_manifests_declarations_and_all_other_source": true,
+    "snapshot_ui_count": 563,
+    "all_revision1_snapshot_ui_hashes_unchanged": true,
+    "red_exit": 101,
+    "green_checks": [
+      {
+        "label": "wiring-green",
+        "argv": [
+          "mise",
+          "exec",
+          "--",
+          "cargo",
+          "test",
+          "-p",
+          "temporal-xtask",
+          "--bin",
+          "temporal-xtask",
+          "--locked",
+          "gate::tests::actual_temporal_gate_wiring_and_named_failures",
+          "--",
+          "--exact"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+        "exit": 0,
+        "seconds": 0.7561383330012177
+      },
+      {
+        "label": "temporal-fmt",
+        "argv": [
+          "mise",
+          "exec",
+          "--",
+          "cargo",
+          "fmt",
+          "--all",
+          "--check"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+        "exit": 0,
+        "seconds": 1.063577876000636
+      },
+      {
+        "label": "temporal-xtask-clippy",
+        "argv": [
+          "mise",
+          "exec",
+          "--",
+          "cargo",
+          "clippy",
+          "-p",
+          "temporal-xtask",
+          "--all-targets",
+          "--locked",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+        "exit": 0,
+        "seconds": 0.11475091700049234
+      }
+    ],
+    "child_scenarios": 28,
+    "both_phases_mapped_to_tests": true,
+    "prior_runtime_receipts": "Runtime runner/config and production gate functions unchanged; no new JVM/full workspace execution required for consumer-control correction. Existing focused runtime/doc/group receipts retained.",
+    "review": "Root formal same-primary-session re-review pending after this fix and task11 separate required-mode finding integration."
+  },
+  "retained_failed_attempt": "attempt1-* retains clippy function-size failure from simple inventory extension; paired table fixes it without lint waiver.",
+  "deferred": [
+    "Task11 separate framework required-backend finding and joint mandatory full copied gate owned by task11.",
+    "Parent formal same-primary-session re-review after both fixes integrated.",
+    "Task8 final combined/warm-performance and joined producer reconciliation."
+  ],
+  "scope": "Only one admitted source file; no production gate behavior changes; historical indexes retained."
+}

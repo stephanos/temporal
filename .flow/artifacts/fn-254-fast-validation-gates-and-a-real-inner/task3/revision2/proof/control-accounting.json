@@ -1,0 +1,271 @@
+{
+  "source_file": "model/dev/xtask/src/gate.rs",
+  "old_sha256": "618ff8d04350d0a62451d3991ca819c82a1b15978358f74620729327aee50a00",
+  "new_sha256": "188c66720221c362efd982b1d6e8a445eee1a3454cc448a304a597aa8c2bc831",
+  "production_module_bytes_unchanged": true,
+  "stage_pairs": [
+    {
+      "index": 0,
+      "name": "temporal-guest-freshness",
+      "command": "guest"
+    },
+    {
+      "index": 1,
+      "name": "retired-names",
+      "command": "retired"
+    },
+    {
+      "index": 2,
+      "name": "timing-controls",
+      "command": "timing"
+    },
+    {
+      "index": 3,
+      "name": "source-boundary",
+      "command": "exec -- cargo test -p umpire-temporal-tests --test boundary --quiet"
+    },
+    {
+      "index": 4,
+      "name": "protobuf-controls",
+      "command": "proto-controls"
+    },
+    {
+      "index": 5,
+      "name": "temporal-protobuf-freshness",
+      "command": "proto"
+    },
+    {
+      "index": 6,
+      "name": "fmt",
+      "command": "exec -- cargo fmt --all --check"
+    },
+    {
+      "index": 7,
+      "name": "clippy",
+      "command": "exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings"
+    },
+    {
+      "index": 8,
+      "name": "docs",
+      "command": "exec -- cargo doc --workspace --no-deps --quiet"
+    },
+    {
+      "index": 9,
+      "name": "tests",
+      "command": "exec -- cargo nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final"
+    },
+    {
+      "index": 10,
+      "name": "tests",
+      "command": "exec -- cargo test --doc --workspace --locked --quiet"
+    },
+    {
+      "index": 11,
+      "name": "wasm-guest",
+      "command": "guest-build"
+    },
+    {
+      "index": 12,
+      "name": "temporal-go-host",
+      "command": "exec -- go -C PLACEHOLDER/temporal/hosts/go test -tags test_dep -count=1 ./..."
+    }
+  ],
+  "success_modes": [
+    "untimed",
+    "timed"
+  ],
+  "failure_modes": [
+    {
+      "index": 0,
+      "name": "temporal-guest-freshness",
+      "command": "guest",
+      "timing": "untimed",
+      "status": 37
+    },
+    {
+      "index": 0,
+      "name": "temporal-guest-freshness",
+      "command": "guest",
+      "timing": "timed",
+      "status": 37
+    },
+    {
+      "index": 1,
+      "name": "retired-names",
+      "command": "retired",
+      "timing": "untimed",
+      "status": 37
+    },
+    {
+      "index": 1,
+      "name": "retired-names",
+      "command": "retired",
+      "timing": "timed",
+      "status": 37
+    },
+    {
+      "index": 2,
+      "name": "timing-controls",
+      "command": "timing",
+      "timing": "untimed",
+      "status": 37
+    },
+    {
+      "index": 2,
+      "name": "timing-controls",
+      "command": "timing",
+      "timing": "timed",
+      "status": 37
+    },
+    {
+      "index": 3,
+      "name": "source-boundary",
+      "command": "exec -- cargo test -p umpire-temporal-tests --test boundary --quiet",
+      "timing": "untimed",
+      "status": 37
+    },
+    {
+      "index": 3,
+      "name": "source-boundary",
+      "command": "exec -- cargo test -p umpire-temporal-tests --test boundary --quiet",
+      "timing": "timed",
+      "status": 37
+    },
+    {
+      "index": 4,
+      "name": "protobuf-controls",
+      "command": "proto-controls",
+      "timing": "untimed",
+      "status": 37
+    },
+    {
+      "index": 4,
+      "name": "protobuf-controls",
+      "command": "proto-controls",
+      "timing": "timed",
+      "status": 37
+    },
+    {
+      "index": 5,
+      "name": "temporal-protobuf-freshness",
+      "command": "proto",
+      "timing": "untimed",
+      "status": 37
+    },
+    {
+      "index": 5,
+      "name": "temporal-protobuf-freshness",
+      "command": "proto",
+      "timing": "timed",
+      "status": 37
+    },
+    {
+      "index": 6,
+      "name": "fmt",
+      "command": "exec -- cargo fmt --all --check",
+      "timing": "untimed",
+      "status": 37
+    },
+    {
+      "index": 6,
+      "name": "fmt",
+      "command": "exec -- cargo fmt --all --check",
+      "timing": "timed",
+      "status": 37
+    },
+    {
+      "index": 7,
+      "name": "clippy",
+      "command": "exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings",
+      "timing": "untimed",
+      "status": 37
+    },
+    {
+      "index": 7,
+      "name": "clippy",
+      "command": "exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings",
+      "timing": "timed",
+      "status": 37
+    },
+    {
+      "index": 8,
+      "name": "docs",
+      "command": "exec -- cargo doc --workspace --no-deps --quiet",
+      "timing": "untimed",
+      "status": 37
+    },
+    {
+      "index": 8,
+      "name": "docs",
+      "command": "exec -- cargo doc --workspace --no-deps --quiet",
+      "timing": "timed",
+      "status": 37
+    },
+    {
+      "index": 9,
+      "name": "tests",
+      "command": "exec -- cargo nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final",
+      "timing": "untimed",
+      "status": 37
+    },
+    {
+      "index": 9,
+      "name": "tests",
+      "command": "exec -- cargo nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final",
+      "timing": "timed",
+      "status": 37
+    },
+    {
+      "index": 10,
+      "name": "tests",
+      "command": "exec -- cargo test --doc --workspace --locked --quiet",
+      "timing": "untimed",
+      "status": 37
+    },
+    {
+      "index": 10,
+      "name": "tests",
+      "command": "exec -- cargo test --doc --workspace --locked --quiet",
+      "timing": "timed",
+      "status": 37
+    },
+    {
+      "index": 11,
+      "name": "wasm-guest",
+      "command": "guest-build",
+      "timing": "untimed",
+      "status": 37
+    },
+    {
+      "index": 11,
+      "name": "wasm-guest",
+      "command": "guest-build",
+      "timing": "timed",
+      "status": 37
+    },
+    {
+      "index": 12,
+      "name": "temporal-go-host",
+      "command": "exec -- go -C PLACEHOLDER/temporal/hosts/go test -tags test_dep -count=1 ./...",
+      "timing": "untimed",
+      "status": 37
+    },
+    {
+      "index": 12,
+      "name": "temporal-go-host",
+      "command": "exec -- go -C PLACEHOLDER/temporal/hosts/go test -tags test_dep -count=1 ./...",
+      "timing": "timed",
+      "status": 37
+    }
+  ],
+  "total_child_cases": 28,
+  "both_test_phase_failure_indices": [
+    9,
+    10
+  ],
+  "both_test_phase_failure_name": "tests",
+  "cache_cargo_home_target_environment_assertion_body_unchanged": true,
+  "child_status_environment_and_timer_setup_bytes_unchanged": true,
+  "exact_prefix_log_assertion_and_cleanup_bytes_unchanged": true,
+  "fail_fast_control": "At every failure index, exact call log must end after that invocation: nextest failure prevents doctests; doctest failure prevents guest-build and Go host."
+}

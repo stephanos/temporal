@@ -1,0 +1,73 @@
+{
+  "source_file": "model/dev/xtask/src/gate.rs",
+  "only_model_file_changed_since_revision1": true,
+  "prior_11_source_file_hashes_unchanged": true,
+  "existing_test_names_and_attributes_unchanged": true,
+  "production_module_bytes_unchanged": true,
+  "existing_962_identity_inventory_preserved_by_unchanged_manifests_declarations_and_all_other_source": true,
+  "snapshot_ui_count": 563,
+  "all_revision1_snapshot_ui_hashes_unchanged": true,
+  "red_exit": 101,
+  "green_checks": [
+    {
+      "label": "wiring-green",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "temporal-xtask",
+        "--bin",
+        "temporal-xtask",
+        "--locked",
+        "gate::tests::actual_temporal_gate_wiring_and_named_failures",
+        "--",
+        "--exact"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "exit": 0,
+      "seconds": 0.7561383330012177
+    },
+    {
+      "label": "temporal-fmt",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "exit": 0,
+      "seconds": 1.063577876000636
+    },
+    {
+      "label": "temporal-xtask-clippy",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "-p",
+        "temporal-xtask",
+        "--all-targets",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "exit": 0,
+      "seconds": 0.11475091700049234
+    }
+  ],
+  "child_scenarios": 28,
+  "both_phases_mapped_to_tests": true,
+  "prior_runtime_receipts": "Runtime runner/config and production gate functions unchanged; no new JVM/full workspace execution required for consumer-control correction. Existing focused runtime/doc/group receipts retained.",
+  "review": "Root formal same-primary-session re-review pending after this fix and task11 separate required-mode finding integration."
+}

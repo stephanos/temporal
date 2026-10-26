@@ -1,0 +1,58 @@
+[
+  {
+    "label": "wiring-green",
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "test",
+      "-p",
+      "temporal-xtask",
+      "--bin",
+      "temporal-xtask",
+      "--locked",
+      "gate::tests::actual_temporal_gate_wiring_and_named_failures",
+      "--",
+      "--exact"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+    "exit": 0,
+    "seconds": 0.7951040839998313
+  },
+  {
+    "label": "temporal-fmt",
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+    "exit": 0,
+    "seconds": 2.2757412509999995
+  },
+  {
+    "label": "temporal-xtask-clippy",
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clippy",
+      "-p",
+      "temporal-xtask",
+      "--all-targets",
+      "--locked",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+    "exit": 101,
+    "seconds": 0.2101059169999644
+  }
+]
