@@ -1,9 +1,11 @@
 # Extract Umpire into temporalio/umpire
 
-Status: local execution preparation under [fn-257](.flow/specs/fn-257-extract-the-standalone-umpire.md).
+Status: deferred by the owner on 2026-10-26 under [fn-257](.flow/specs/fn-257-extract-the-standalone-umpire.md).
 Destination: <https://github.com/temporalio/umpire>. The owner requested migration;
 remote creation, push, release and source removal remain separate authorization boundaries.
-The current validation hold permits source preparation, with execution proofs still pending.
+The validation hold is lifted, but migration validation and cutover are deferred.
+Preserve the source candidates and recovery evidence; current execution follows
+the fn-254 priority in [MILESTONES.md](MILESTONES.md).
 The 2026-10-26 CLI probe returned HTTP 401. The connected GitHub app also returned
 HTTP 403 because `temporalio` requires SAML SSO authorization for that connection;
 destination contents and permissions remain unknown.
