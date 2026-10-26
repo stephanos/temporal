@@ -1,0 +1,81 @@
+{
+  "type": "impl_review_fanout",
+  "focus": null,
+  "claim_token": null,
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.10",
+  "standalone": false,
+  "base_branch": "b68c42f59fe5da8ba697c21484289e37c1e52a19",
+  "reviewed_base_sha": "b68c42f59fe5da8ba697c21484289e37c1e52a19",
+  "reviewed_head_sha": "fe1412110fcfd9614c8d0f3c1c24a00544e4d4aa",
+  "artifact_sha256": "05636df2c4908e84c23f0b4efca457dde22c8fa4535729378147fda529d61b03",
+  "reservation_id": "a50a4e2672e7403badb3af9d349f86f5",
+  "rid": "a50a4e2672e7403badb3af9d349f86f5",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a1757a-f039-7c71-8f63-a6517b98d5e0",
+      "verdict": "NEEDS_WORK",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-25T23:52:32.764531Z",
+      "finished_at": "2026-10-25T23:59:46.542955Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/a50a4e2672e7403badb3af9d349f86f5/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/a50a4e2672e7403badb3af9d349f86f5/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a1757a-f038-78e3-942d-745623f0add4",
+      "verdict": "NEEDS_WORK",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-25T23:52:32.764691Z",
+      "finished_at": "2026-10-25T23:57:30.188218Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/a50a4e2672e7403badb3af9d349f86f5/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/a50a4e2672e7403badb3af9d349f86f5/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a1757a-f038-7843-a0c1-5e2ab699a13b",
+      "verdict": "NEEDS_WORK",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-25T23:52:32.764816Z",
+      "finished_at": "2026-10-25T23:57:36.243475Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/a50a4e2672e7403badb3af9d349f86f5/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/a50a4e2672e7403badb3af9d349f86f5/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-8f37faba39e2-fn-254-fast-validation-gates-and-a-real-inner.10.json",
+  "created_at": "2026-10-25T23:59:46.564893Z"
+}

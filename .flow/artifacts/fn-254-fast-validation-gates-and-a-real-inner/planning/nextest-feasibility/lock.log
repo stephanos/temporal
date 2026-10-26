@@ -1,0 +1,19 @@
+→ Targeting 7 platform(s) for /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2543-nextest-probe/configcwd/mise.lock: linux-arm64, linux-arm64-musl, linux-x64, linux-x64-musl, macos-arm64, macos-x64, windows-x64
+→ Processing 1 tool(s): github:nextest-rs/nextest@0.9.149
+✓ Updated 7 platform entries (0 skipped)
+✓ Lockfile written to /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2543-nextest-probe/configcwd/mise.lock
+mise downloading artifact for lock-time provenance verification: cargo-nextest-0.9.149-aarch64-unknown-linux-gnu.tar.gz
+mise downloading artifact for lock-time provenance verification: cargo-nextest-0.9.149-x86_64-pc-windows-msvc.zip
+mise downloading artifact for lock-time provenance verification: cargo-nextest-0.9.149-x86_64-unknown-linux-gnu.tar.gz
+mise lock                      github:nextest-rs/nextest@0.9.149 linux-arm64
+mise downloading artifact for lock-time provenance verification: cargo-nextest-0.9.149-universal-apple-darwin.tar.gz
+mise downloading artifact for lock-time provenance verification: cargo-nextest-0.9.149-universal-apple-darwin.tar.gz
+mise downloading artifact for lock-time provenance verification: cargo-nextest-0.9.149-aarch64-unknown-linux-musl.tar.gz
+mise downloading artifact for lock-time provenance verification: cargo-nextest-0.9.149-x86_64-unknown-linux-musl.tar.gz
+mise lock                      github:nextest-rs/nextest@0.9.149 windows-x64
+mise lock                      github:nextest-rs/nextest@0.9.149 linux-x64
+mise lock                      github:nextest-rs/nextest@0.9.149 linux-arm64-musl
+mise lock                      github:nextest-rs/nextest@0.9.149 linux-x64-musl
+mise lock                      github:nextest-rs/nextest@0.9.149 macos-arm64
+mise lock                      github:nextest-rs/nextest@0.9.149 macos-x64
+mise lock                    ✓ 7 platform entries

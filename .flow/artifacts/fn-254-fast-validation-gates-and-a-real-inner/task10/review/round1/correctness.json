@@ -1,0 +1,21 @@
+{
+  "axis": "correctness",
+  "parse_status": {
+    "status": "parsed",
+    "reason": null,
+    "block": null
+  },
+  "backend": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "session_id": "01a1757a-f039-7c71-8f63-a6517b98d5e0",
+  "verdict": "NEEDS_WORK",
+  "failed": false,
+  "failure_class": null,
+  "failure_message": null,
+  "exit_code": 0,
+  "started_at": "2026-10-25T23:52:32.764531Z",
+  "finished_at": "2026-10-25T23:59:46.542955Z",
+  "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/a50a4e2672e7403badb3af9d349f86f5/correctness.review.md",
+  "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/a50a4e2672e7403badb3af9d349f86f5/correctness.out.txt"
+}

@@ -1,0 +1,28 @@
+{
+  "kind": "preparation only; no project tests/builds or task3 completion",
+  "files": {
+    "remote.log": "f3e9798a1175f0ca2e68231c6392d40eb45c7b65bb86305bb6c6fc062421beed",
+    "config-list.log": "4a61b26a60464cbb50fdf931551d8524cd876561f0a1c0822e8acbf640f11c26",
+    "backends.log": "48b758c6a0d7559395eb9a562a391bc5477d6e94fb36d197093b67ff519481fb",
+    "version.log": "dac5c3c42f79f6b1476ff24f07637a80e055b8b0ab430a05e3ca01fc85aa835a",
+    "schema-help.log": "5f4591acc958920d5c3f1a1bc2ef1a6df344207a7afa885839b71ee25a5055f9",
+    "run-help.log": "4d78cb984289b3b44a33666c4a42ae7f22b2972237801eacc0746d52338f3a4c",
+    "receipt.json": "9c9f581a3f1b750d9fc37efe72de70d42b130bef3737d7414cacb26e0ea63883",
+    "report.md": "01a0ad25a8c0569c3d039040916c47a0bceb4329336980e8b15777db2c331f42",
+    "probe-env.json": "23156e1be8a7e1e419223861e531f4bf71ea531efcc1ac4042d73c39f6bc1bde",
+    "install.log": "fcd61f98ef5781c3b7a63373c00062913882ef4d28b0a0c073e73784b9f7aa65",
+    "lock.log": "d0ca2da51a95da14e25aa830baa548c555818cbc68b5674a915e7ced6d1c81e6",
+    "list-help.log": "08972310204cfad0c7a614c6f0bf5c6fbe4886fa832bdc75a223a8d93d47d830",
+    "configcwd/mise.toml": "030cc8e9508039e8657713869cb10950e26dc7dacd48259652237da928738ea2",
+    "configcwd/mise.lock": "cbe9740d3768eca5e0d500f9aade2f4075bb6f3712ea9c6e905f5e4109555f35",
+    "data/installs/.mise-installs.toml": "3fa9747aabcbdd8b173f070743ead9661e196f7d4517cb2c1e0ffd83e161767a",
+    "data/installs/github-nextest-rs-nextest/.mise.backend.toml": "9f334cfd562b9324bd329673bb58241146d0f254c32058cad2f9de174aa12212",
+    "cache/downloads-cas/urls/c8042d0a3fe70e7df8adc76d2a5a302d41b91b5640696fd172e0f7505ad4f624.json": "e74a77211d03507866c23d75d3a31769461829551e07fd276aca37231857b64b",
+    "cache/downloads-cas/urls/3e79010cf7da5ae055a6c8701cdd80814634e252bb598085eaafd5175eab5282.json": "c6a20090810a687e791cfafb9a80ad1236f2fe1ce74eebba1b1dc9baa52bdbe2",
+    "cache/downloads-cas/urls/5a77b53d3bde196a07618d80c50e5f15f956436d1c7bf82c2781c17e02ac2e8f.json": "83129d15c35f457828792c6d8b9c6ab7427f4918ef34d53a97dd36c47c268ba7",
+    "cache/downloads-cas/urls/ea96f99d9d3bb888344e85a2d8efbe8ea6de71e72b524a566b3deb73f10201ce.json": "bea658df94e377ead138161ccaba7108083f92d8298abe6ff5e874173f9be90e",
+    "cache/downloads-cas/urls/fd582bd767a8b73d00ed1bc26002047af9603e3b3b56b23b0662a04670b16cba.json": "a2f9487d3b02d293440eeb0c19be81a108911aa3c141f362c4d29df5ab78d267",
+    "cache/downloads-cas/urls/223d221db9d6691fab94f69140e7980fe16446610a5df059f00014fcfb9de437.json": "b89b65405ea3bf082bcee2aa2445870ac22b29a317cae90a4db2ce68b943a08d",
+    "cache/downloads-cas/pins/sha256/6f82e375187cf3a1f3e336879a51940c315a5d0ce7253f7e517ad28295b74189.json": "54cfe2fe0b2d05aeca90c5a873ec5f1fe50b697fcd25303c01273f0c1e3a78de"
+  }
+}

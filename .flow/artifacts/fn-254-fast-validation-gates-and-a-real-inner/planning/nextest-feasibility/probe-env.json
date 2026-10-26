@@ -1,0 +1,16 @@
+{
+  "MISE_DATA_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2543-nextest-probe/data",
+  "MISE_CONFIG_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2543-nextest-probe/config",
+  "MISE_CACHE_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2543-nextest-probe/cache",
+  "MISE_STATE_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2543-nextest-probe/state",
+  "MISE_GLOBAL_CONFIG_FILE": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2543-nextest-probe/global.toml",
+  "MISE_SYSTEM_CONFIG_FILE": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2543-nextest-probe/system.toml",
+  "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2543-nextest-probe/configcwd",
+  "MISE_CEILING_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2543-nextest-probe",
+  "MISE_AUTO_INSTALL": "false",
+  "MISE_EXEC_AUTO_INSTALL": "false",
+  "MISE_CHECK_FOR_UPDATES": "false",
+  "MISE_SYSTEM_CONFIG_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2543-nextest-probe/system",
+  "MISE_TMP_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2543-nextest-probe/tmp",
+  "MISE_SHIMS_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2543-nextest-probe/shims"
+}
