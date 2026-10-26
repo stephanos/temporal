@@ -395,6 +395,15 @@ pub(super) fn run(gate: &Gate) -> Result<i32> {
     let code = gate.execute("standalone-child", command)?;
     finish(&output, &target, &manifest, code, started.elapsed().as_secs_f64())
 }
+fn artifact(path: &Path) -> serde_json::Value {
+    let files = path.is_dir().then(|| inventory(path, &path.join("target")).ok()).flatten();
+    let bytes = if path.is_dir() {
+        files.as_ref().and_then(|files| serde_json::to_vec(files).ok())
+    } else {
+        fs::read(path).ok()
+    };
+    serde_json::json!({"path": path, "sha256": bytes.map(|bytes| digest(&bytes)), "files": files})
+}
 fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64) -> Result<i32> {
     let records = fs::read_to_string(output.join("stages.jsonl")).unwrap_or_default();
     let stages = records
@@ -414,6 +423,8 @@ fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64
         "debug/umpire-guest-driver",
         "xtask-bootstrap/debug/xtask",
         "xtask-bootstrap/debug/umpire-guest-driver",
+        "guest/panic-control-reports",
+        "guest/current-contract-reports",
     ] {
         let binary = target.join(name);
         binaries.insert(
@@ -448,7 +459,7 @@ fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64
     ] {
         for name in names {
             let path = base.join(name);
-            artifacts.insert((*name).into(), serde_json::json!({"path": path, "sha256": fs::read(&path).ok().map(|bytes| digest(&bytes))}));
+            artifacts.insert((*name).into(), artifact(&path));
         }
     }
     let complete = stages_complete
@@ -476,6 +487,18 @@ fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64
 #[allow(clippy::unwrap_used, clippy::expect_used)]
 mod tests {
     use super::*;
+    #[test]
+    fn report_directory_artifact_hashes_every_generated_file() {
+        let directory = tempfile::tempdir().unwrap();
+        fs::write(directory.path().join("request.pb"), b"request").unwrap();
+        fs::write(directory.path().join("response.pb"), b"response").unwrap();
+        let before = artifact(directory.path());
+        assert!(before["sha256"].is_string());
+        assert_eq!(before["files"].as_array().unwrap().len(), 2);
+        fs::write(directory.path().join("response.pb"), b"changed response").unwrap();
+        assert_ne!(before["sha256"], artifact(directory.path())["sha256"]);
+        assert!(artifact(&directory.path().join("missing"))["sha256"].is_null());
+    }
     #[test]
     fn copy_uses_current_bytes_and_excludes_only_generated_roots() {
         let directory = tempfile::tempdir().unwrap();
