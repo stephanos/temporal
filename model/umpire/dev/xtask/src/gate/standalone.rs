@@ -157,7 +157,7 @@ pub(super) fn admit(manifest: &Path, gate: &Gate) -> Result<PathBuf> {
     Ok(records)
 }
 
-fn clean_command(gate: &Gate, root: &Path, target: &Path, program: &str) -> Command {
+fn clean_command(gate: &Gate, root: &Path, target: &Path, program: &str) -> Result<Command> {
     let mut command = Command::new(program);
     command.env_clear();
     for name in [
@@ -200,7 +200,11 @@ fn clean_command(gate: &Gate, root: &Path, target: &Path, program: &str) -> Comm
     if let Ok(path) = env::join_paths(paths) {
         command.env("PATH", path);
     }
+    let trusted = env::join_paths([root.to_owned(), target.join("tmp")]).map_err(|error| {
+        Error::Invalid(format!("invalid standalone trusted config roots: {error}"))
+    })?;
     command
+        .env("MISE_TRUSTED_CONFIG_PATHS", trusted)
         .current_dir(root)
         .env("TMPDIR", target.join("tmp"))
         .env("CARGO_HOME", &gate.home)
@@ -218,7 +222,7 @@ fn clean_command(gate: &Gate, root: &Path, target: &Path, program: &str) -> Comm
         .env("UMPIRE_STANDALONE_CHILD", "1")
         .env("MISE_AUTO_INSTALL", "false")
         .env("MISE_EXEC_AUTO_INSTALL", "false");
-    command
+    Ok(command)
 }
 fn refusal(result: Result<()>, expected: &str) -> Result<()> {
     match result {
@@ -302,7 +306,7 @@ fn tool_versions(gate: &Gate, root: &Path, target: &Path, manifest: &Path) -> Re
         selected.push("cargo-nextest");
     }
     for tool in selected {
-        let mut command = clean_command(gate, root, target, "mise");
+        let mut command = clean_command(gate, root, target, "mise")?;
         command.args([
             "exec",
             "--",
@@ -316,7 +320,7 @@ fn tool_versions(gate: &Gate, root: &Path, target: &Path, manifest: &Path) -> Re
             },
         ]);
         let output = command.output()?;
-        let mut which = clean_command(gate, root, target, "mise");
+        let mut which = clean_command(gate, root, target, "mise")?;
         if matches!(tool, "rustc" | "cargo") {
             which.args(["exec", "--", "rustc", "--print", "sysroot"]);
         } else {
@@ -401,7 +405,7 @@ pub(super) fn run(gate: &Gate) -> Result<i32> {
         ),
         ("standalone-tlc-tool", "/bin/bash", vec!["scripts/fetch-tlc.sh"]),
     ] {
-        let mut command = clean_command(gate, &root, &target, program);
+        let mut command = clean_command(gate, &root, &target, program)?;
         command.args(args);
         let setup_started = Instant::now();
         let code = gate.execute(name, command)?;
@@ -415,7 +419,7 @@ pub(super) fn run(gate: &Gate) -> Result<i32> {
             return Ok(code);
         }
     }
-    let mut command = clean_command(gate, &root, &target, "mise");
+    let mut command = clean_command(gate, &root, &target, "mise")?;
     command.args(["exec", "--", "cargo", "xtask", "gate", "--standalone-child"]).arg(&manifest);
     let code = gate.execute("standalone-child", command)?;
     finish(&output, &target, &manifest, code, started.elapsed().as_secs_f64())
@@ -512,6 +516,27 @@ fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64
 #[allow(clippy::unwrap_used, clippy::expect_used)]
 mod tests {
     use super::*;
+    #[test]
+    fn copied_config_trust_is_limited_to_copy_and_owned_scratch() {
+        let directory = tempfile::tempdir().unwrap();
+        let root = directory.path().join("copy");
+        let target = directory.path().join("target");
+        fs::create_dir(&root).unwrap();
+        fs::create_dir_all(target.join("tmp")).unwrap();
+        let gate = Gate {
+            root: directory.path().join("source"),
+            target: directory.path().join("native"),
+            home: directory.path().join("cargo"),
+            required: true,
+            timed: false,
+            child_records: None,
+        };
+        let mut command = clean_command(&gate, &root, &target, "mise").unwrap();
+        let output = command.args(["settings", "get", "trusted_config_paths"]).output().unwrap();
+        assert!(output.status.success(), "{output:?}");
+        let trusted: Vec<PathBuf> = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(trusted, [root, target.join("tmp")]);
+    }
     #[test]
     fn report_directory_artifact_hashes_every_generated_file() {
         let directory = tempfile::tempdir().unwrap();
