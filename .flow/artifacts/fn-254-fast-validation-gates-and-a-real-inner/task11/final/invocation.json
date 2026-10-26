@@ -1,0 +1,55 @@
+{
+  "attempt": 3,
+  "command": [
+    "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25411-standalone/native-target/debug/xtask",
+    "gate",
+    "--stage",
+    "standalone"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25411-standalone",
+  "source_commit": "1217f4ce8739e3366273eec3c2d3798c96ec9875",
+  "joined_root_commit": "7ec6525f6f",
+  "source_addition_after_join": [
+    "66f53a87a4: framework-local runtime capability root/DSL/lock paths"
+  ],
+  "outer_binary_sha256": "5865c5172de8630929f69f1a7a103e9a9f634a1146127e624ca7e80aacbc50de",
+  "poisoned_parent_overrides": {
+    "UMPIRE_GUEST_DRIVER": "/unavailable-parent-override",
+    "UMPIRE_XTASK": "/unavailable-parent-override",
+    "UMPIRE_GUEST_WORKSPACE": "/unavailable-parent-override",
+    "UMPIRE_GUEST_TOOL_ROOT": "/unavailable-parent-override",
+    "UMPIRE_GUEST_TARGET": "/unavailable-parent-override",
+    "UMPIRE_GUEST_LOCK": "/unavailable-parent-override",
+    "RUSTC": "/unavailable-parent-override",
+    "RUSTC_WRAPPER": "/unavailable-parent-override",
+    "RUSTC_WORKSPACE_WRAPPER": "/unavailable-parent-override",
+    "RUSTFLAGS": "/unavailable-parent-override",
+    "CARGO_ENCODED_RUSTFLAGS": "/unavailable-parent-override",
+    "CARGO_BUILD_TARGET": "/unavailable-parent-override",
+    "GOCACHE": "/unavailable-parent-override",
+    "GOWORK": "/unavailable-parent-override",
+    "GOENV": "/unavailable-parent-override",
+    "MISE_CONFIG_FILE": "/unavailable-parent-override",
+    "MISE_ENV": "/unavailable-parent-override",
+    "MISE_TRUSTED_CONFIG_PATHS": "/unavailable-parent-override",
+    "JAVA_TOOL_OPTIONS": "/unavailable-parent-override"
+  },
+  "selected_environment": {
+    "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25411-standalone/model/umpire",
+    "UMPIRE_STANDALONE_OUTPUT": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25411-standalone/isolatedcopy-target",
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25411-standalone/native-target",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "RUST_TEST_THREADS": "2",
+    "UMPIRE_APALACHE": "skip",
+    "UMPIRE_BACKENDS": "skip",
+    "UMPIRE_QUICK_CACHE": "1",
+    "UMPIRE_CACHE_DISABLE": "0"
+  },
+  "started_unix": 1792978762.6652403,
+  "status": "completed",
+  "pid": 470904,
+  "exit": 0,
+  "seconds": 678.8208224773407,
+  "log_sha256": "73078e7eba661352649d8fd1d81cee1294159fe7fec7c9759e9d54b2afe88b7a"
+}

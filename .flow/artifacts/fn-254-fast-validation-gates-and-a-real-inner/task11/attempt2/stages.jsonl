@@ -1,0 +1,12 @@
+{"exit":0,"seconds":4.21884271,"stage":"proto-tools"}
+{"exit":0,"seconds":0.611348501,"stage":"retired-names"}
+{"exit":0,"seconds":0.064996292,"stage":"timing-controls"}
+{"exit":0,"seconds":0.162056792,"stage":"capability-controls"}
+{"exit":0,"seconds":0.715494792,"stage":"source-boundary"}
+{"exit":0,"seconds":0.143365334,"stage":"protobuf-controls"}
+{"exit":0,"seconds":0.029316083,"stage":"protobuf-freshness"}
+{"exit":0,"seconds":0.027916167,"stage":"kettle-protobuf-freshness"}
+{"exit":0,"seconds":0.592355376,"stage":"fmt"}
+{"exit":0,"seconds":27.363409888,"stage":"clippy"}
+{"exit":0,"seconds":8.920685463,"stage":"docs"}
+{"exit":100,"seconds":135.212463523,"stage":"tests"}

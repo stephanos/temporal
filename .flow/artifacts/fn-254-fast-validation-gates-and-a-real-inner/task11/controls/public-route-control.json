@@ -1,0 +1,25 @@
+{
+  "scope": "Shipping Make model-validate -> model-time -> shipping timer -> model-check -> actual compiled framework gate, with synthetic leaf work; separate from real copied full proof.",
+  "make_sha256": "453a527ece7c23ee2311c7567aaba56136354b23a66c3c867f729fea5615fd87",
+  "timer_sha256": "ff80c32b589ccd8d30ffb44c47ad61be62087c60561fc48d47476da792182e35",
+  "recipes_sha256": "98a3e10cd8a0bbbe21b8e71f1c06736cc99bdb44578c21be03497939fe70e3e3",
+  "fixture": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25411-standalone/public-route-xk8qacy1",
+  "results": [
+    {
+      "label": "red",
+      "exit": 2,
+      "standalone_selected": false,
+      "binary": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25411-standalone/isolatedcopy-target/proof-PvkrYJ/target/debug/xtask",
+      "binary_sha256": "16c60d7da340fcb8b847575f225927b5719bd60d03fe50d6331118d40eadbe42",
+      "log_sha256": "65fc6f07ce2405f6075e5f69067c7d5fcc5ae5ff3e280286e573e9e3772c7666"
+    },
+    {
+      "label": "green",
+      "exit": 2,
+      "standalone_selected": true,
+      "binary": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25411-standalone/native-target/debug/xtask",
+      "binary_sha256": "57d6abb7b6a673224c3e81eac44bb1ae7fd6c35a576aad98d71503171d080b3e",
+      "log_sha256": "df5bec53e4d1c9bbd0442648dd0d71acc8e9d68f3a7765424090e27af1815c69"
+    }
+  ]
+}

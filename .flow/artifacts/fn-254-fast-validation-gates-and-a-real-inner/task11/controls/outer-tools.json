@@ -1,0 +1,7 @@
+{
+  "mise": {
+    "path": "/home/agent/.local/bin/mise",
+    "sha256": "370b4b4cfd740402e9a55aa1a8a01fbb1ac95c50af1207b2db2c5489dd4da0cd",
+    "version": "2026.10.11 linux-arm64 (2026-10-15)"
+  }
+}

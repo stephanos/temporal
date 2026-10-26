@@ -1,0 +1,396 @@
+{
+  "version": 1,
+  "status": "passed_exact_recorded_candidate",
+  "source_commit": "1217f4ce8739e3366273eec3c2d3798c96ec9875",
+  "joined_root_commit": "7ec6525f6f3ee0a32f4a61e0765f98098350ecfb",
+  "source_after_join": "66f53a87a4 framework-local capability fixture paths; all assertions preserved",
+  "proof_directory": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25411-standalone/isolatedcopy-target/proof-FavnEu",
+  "source_inputs": 1171,
+  "input_manifest_sha256": "878bcc5c6cf2aa73db932619c202936a431e3a35bd549b4eaa45c783da319955",
+  "stages_sha256": "2bd09dbfd2ef4f974a8641ae850026d980ad9122afd3c2353cf5fe62431ae385",
+  "scope": {
+    "tier": "validate",
+    "cargo_profile": "dev (guest profile for guest/report artifacts)",
+    "nextest_profile": "default",
+    "backends": "require",
+    "apalache": "skip",
+    "quick_cache": "0",
+    "cache_disable": "1",
+    "cargo_build_jobs": 2,
+    "rust_test_threads": 2,
+    "nextest_test_threads": 2,
+    "source_changed": false,
+    "no_parent_source_or_prebuilt_tools": true,
+    "copy_excluded_generated_roots": [
+      ".git",
+      "target",
+      "build",
+      ".bin"
+    ],
+    "trusted_config_roots": "exact copied framework and owned target/tmp only",
+    "renewal": "Task 8 must renew after relevant source/tool/mode/profile/stage changes; later task 6/cache inputs are outside this proof."
+  },
+  "real_full_proof": {
+    "attempt": 3,
+    "outer_exit": 0,
+    "child_exit": 0,
+    "complete": true,
+    "seconds": 678.8208224773407,
+    "child_seconds": 677.730059698,
+    "stages": [
+      {
+        "exit": 0,
+        "seconds": 4.335736877,
+        "stage": "proto-tools"
+      },
+      {
+        "exit": 0,
+        "seconds": 0.606750417,
+        "stage": "retired-names"
+      },
+      {
+        "exit": 0,
+        "seconds": 0.057549083,
+        "stage": "timing-controls"
+      },
+      {
+        "exit": 0,
+        "seconds": 0.155632751,
+        "stage": "capability-controls"
+      },
+      {
+        "exit": 0,
+        "seconds": 0.702856667,
+        "stage": "source-boundary"
+      },
+      {
+        "exit": 0,
+        "seconds": 0.125421333,
+        "stage": "protobuf-controls"
+      },
+      {
+        "exit": 0,
+        "seconds": 0.029621792,
+        "stage": "protobuf-freshness"
+      },
+      {
+        "exit": 0,
+        "seconds": 0.021354708,
+        "stage": "kettle-protobuf-freshness"
+      },
+      {
+        "exit": 0,
+        "seconds": 0.513383292,
+        "stage": "fmt"
+      },
+      {
+        "exit": 0,
+        "seconds": 26.312260179,
+        "stage": "clippy"
+      },
+      {
+        "exit": 0,
+        "seconds": 8.437681004,
+        "stage": "docs"
+      },
+      {
+        "exit": 0,
+        "seconds": 507.203905992,
+        "stage": "tests"
+      },
+      {
+        "exit": 0,
+        "seconds": 6.210141253,
+        "stage": "wasm32-wasip1"
+      },
+      {
+        "exit": 0,
+        "seconds": 3.443089918,
+        "stage": "core-wasm-clippy"
+      },
+      {
+        "exit": 0,
+        "seconds": 66.399119824,
+        "stage": "wasm-guest"
+      },
+      {
+        "exit": 0,
+        "seconds": 6.667788378,
+        "stage": "go-host"
+      },
+      {
+        "exit": 0,
+        "seconds": 35.531615183,
+        "stage": "kettle-go-host"
+      }
+    ],
+    "child_skip": [
+      "standalone"
+    ],
+    "nextest": {
+      "available": 742,
+      "run": 740,
+      "passed": 740,
+      "ignored": 2,
+      "binary_suites": 69
+    },
+    "doctests": {
+      "passed": 4,
+      "ignored": 1
+    },
+    "native_binary_hashes_verified": 6,
+    "output_artifact_hashes_verified": 10,
+    "test_binary_hashes_verified": 69,
+    "all_current_source_hashes_reverified": true
+  },
+  "negative_controls": [
+    {
+      "name": "forbidden-name",
+      "verified_reason_substring": "framework forbidden name"
+    },
+    {
+      "name": "existing-outside-dependency",
+      "verified_reason_substring": "framework dependency containment: path escapes framework root"
+    },
+    {
+      "name": "root-escape-dependency",
+      "verified_reason_substring": "framework dependency containment: path escapes framework root"
+    },
+    {
+      "name": "manifest-root-source-escape",
+      "verified_reason_substring": "framework source-path containment: path escapes framework root"
+    },
+    {
+      "name": "resolved-outside-dependency",
+      "verified_reason_substring": "framework resolved dependency containment"
+    },
+    {
+      "name": "missing-local-configuration",
+      "verified_reason_substring": "missing or escaping framework configuration: mise.toml"
+    }
+  ],
+  "fixture_controls": {
+    "separate_from_full_proof": true,
+    "native_tests_on_71f1fa6d11": 46,
+    "trust_red_green": true,
+    "required_route_red_green": true,
+    "shipping_make_timer_compiled_gate_red_green": true,
+    "capability_original_positive_and_five_refusals_green": true,
+    "paths": "controls/"
+  },
+  "failed_full_attempts": [
+    {
+      "attempt": 1,
+      "source_commit": "75b1ae992a4b73f3ffb8c2474f33aff879d6a6b4",
+      "exit": 100,
+      "seconds": 117.98958683013916,
+      "nextest_run": 52,
+      "nextest_passed": 51,
+      "nextest_failed": 1,
+      "nextest_not_run": 689,
+      "failure": "positive backend jar admission refused untrusted copied Mise config",
+      "fixed_by": "e198ea9dd2",
+      "artifacts": "attempt1/"
+    },
+    {
+      "attempt": 2,
+      "source_commit": "e198ea9dd2",
+      "exit": 100,
+      "seconds": 189.79627895355225,
+      "nextest_run": 379,
+      "nextest_passed": 378,
+      "nextest_failed": 1,
+      "nextest_not_run": 363,
+      "failure": "capability assembly test still depended on outer workspace root/DSL/lock",
+      "fixed_by": "66f53a87a4",
+      "artifacts": "attempt2/"
+    }
+  ],
+  "source_changes_not_in_final_run": "Later task 6/cache and subsequent producers; source/stage renewal remains task 8 ownership.",
+  "artifacts": {
+    "attempt1/controls.json": {
+      "sha256": "e54be77fce5984d5c7e07b745b5d0ee556c3b61bf9fab8b08116edc1cc11b747",
+      "bytes": 182
+    },
+    "attempt1/full-proof.log": {
+      "sha256": "d52822ecd287cc8780a3238d087b0b8c0fe1f2f03d43972906065926b1f3d737",
+      "bytes": 23051
+    },
+    "attempt1/inputs.json": {
+      "sha256": "676e80b30a7c4bb708a72b429defcfd1f5a2bb890bcab867bd4980afb4874529",
+      "bytes": 282862
+    },
+    "attempt1/invocation.json": {
+      "sha256": "5787ff24241cc37ee5d66fd5e93f5ef97f14630cb26892cacf51347d25b0ceca",
+      "bytes": 2344
+    },
+    "attempt1/result.json": {
+      "sha256": "3c567fa432f9f1db051fdbaeacaa3af4679fdd88e2dc7356f70794919a343c3d",
+      "bytes": 5479
+    },
+    "attempt1/setup.jsonl": {
+      "sha256": "5cba257f6eb65d21a2d01fdc352b870561608c01826497e78b5b110fa4d40b4f",
+      "bytes": 129
+    },
+    "attempt1/stages.jsonl": {
+      "sha256": "4509c3b29e8653f586bd88e9bc476c915d2226b98bd46bd75cfe5f7d3c369daf",
+      "bytes": 681
+    },
+    "attempt1/tools.json": {
+      "sha256": "fbfb79b51c4dc1f24cc7f8d32e0d1e1c1d48306c97a123c37729ebd913b44c1c",
+      "bytes": 1990
+    },
+    "attempt2/controls.json": {
+      "sha256": "e54be77fce5984d5c7e07b745b5d0ee556c3b61bf9fab8b08116edc1cc11b747",
+      "bytes": 182
+    },
+    "attempt2/full-proof.log": {
+      "sha256": "660c8f47643691cae997603d4cdf705c836e118961dee28d545accac509e43f7",
+      "bytes": 22044
+    },
+    "attempt2/inputs.json": {
+      "sha256": "c686169d23382ba0f4bdecef39e19310f88cc42e5133919c545f75a2525434e6",
+      "bytes": 282862
+    },
+    "attempt2/invocation.json": {
+      "sha256": "df0c653a6cc879c3c11436a1b6ba0569290176539e66cef72786f0692160705e",
+      "bytes": 2561
+    },
+    "attempt2/result.json": {
+      "sha256": "fa4b27f911dad73827116d8add68bc0b8a05f9bee2c836f58af418fc346f8ac1",
+      "bytes": 5480
+    },
+    "attempt2/setup.jsonl": {
+      "sha256": "96dae83a5f602e7c4d30c6cf7a136a930d0f99550e18261770383fa8ecb03f32",
+      "bytes": 129
+    },
+    "attempt2/stages.jsonl": {
+      "sha256": "864e99f2693328e849980982dd68f41cbe8f3531c8788f47594ebbce16dc1950",
+      "bytes": 683
+    },
+    "attempt2/tools.json": {
+      "sha256": "fbfb79b51c4dc1f24cc7f8d32e0d1e1c1d48306c97a123c37729ebd913b44c1c",
+      "bytes": 1990
+    },
+    "controls/all-native-red.log": {
+      "sha256": "335c33ba2eb4b766409a937d097c5e75686a830b6cf5944705bf592c7a6ced8f",
+      "bytes": 8520
+    },
+    "controls/attempt1-root-source-equivalence.json": {
+      "sha256": "8cedd91edc4a5c6f6e3d2c2894283f616714705cb85e52a7dd2df2338ec8cc4a",
+      "bytes": 6959
+    },
+    "controls/capability-path-clippy.log": {
+      "sha256": "b7cf99eae101787396e61b9c1ddfe431c8ef8d0099a20200c3cca57545c65849",
+      "bytes": 2202
+    },
+    "controls/capability-path-green.log": {
+      "sha256": "77f5f6446f509829c0fcaf82f1731ed8eb0863216ff446277d6ae85d8d285834",
+      "bytes": 3098
+    },
+    "controls/outer-tools.json": {
+      "sha256": "593658e13e2fcbb8138b441a13584e1c86339407ce081ce3042b033dba27fd8c",
+      "bytes": 198
+    },
+    "controls/public-route-control.json": {
+      "sha256": "b60e847b84bdebf9c485bf4fc9c36e682ad37e8f3f98ab044fd90747d4fd64af",
+      "bytes": 1388
+    },
+    "controls/public-route-control.py": {
+      "sha256": "073becbda2e456c4780c99b9628d5f56d2ffdf4e26dbb8559db96ad0bb31c995",
+      "bytes": 4216
+    },
+    "controls/public-route-green.log": {
+      "sha256": "df5bec53e4d1c9bbd0442648dd0d71acc8e9d68f3a7765424090e27af1815c69",
+      "bytes": 1505
+    },
+    "controls/public-route-red.log": {
+      "sha256": "65fc6f07ce2405f6075e5f69067c7d5fcc5ae5ff3e280286e573e9e3772c7666",
+      "bytes": 1293
+    },
+    "controls/red.log": {
+      "sha256": "5b06a9638ab7939c3338ac30cc4b2094e0fe5420ac4ecc68b54c08b0b95b2021",
+      "bytes": 2528
+    },
+    "controls/required-route-clippy.log": {
+      "sha256": "f2cc525bbbea40c3d46b72dfc25d2f5b75b832573282e32f7833b399aef90c5c",
+      "bytes": 205
+    },
+    "controls/required-route-green.log": {
+      "sha256": "7329adb7ae30a4ee7014a0c2c42ac34576d808b2e2742066b65d0d102470197a",
+      "bytes": 5307
+    },
+    "controls/required-route-red.log": {
+      "sha256": "f3b5fa08edca715f63387297755e5bfd366d71ae549a670c3655ada6cba160f3",
+      "bytes": 1204
+    },
+    "controls/trust-clippy.log": {
+      "sha256": "87a598774279189310fddc6b50860c3765a477604847a43db1b43b35ec8e510a",
+      "bytes": 205
+    },
+    "controls/trust-green.log": {
+      "sha256": "22ee31d247a342bf16061dc5b033d510dfee1f45e3e40600cae49da706814e87",
+      "bytes": 760
+    },
+    "controls/trust-native-green.log": {
+      "sha256": "8c9f95c3b0a081f31851f378003a9ab2b3ccb178b23240cae608823b4b02465b",
+      "bytes": 5205
+    },
+    "controls/trust-red.log": {
+      "sha256": "270268850963666e59be3c77cebbc8cde23b3e21f98ba8fc09c7ded8be8ed90f",
+      "bytes": 1139
+    },
+    "final/controls.json": {
+      "sha256": "e54be77fce5984d5c7e07b745b5d0ee556c3b61bf9fab8b08116edc1cc11b747",
+      "bytes": 182
+    },
+    "final/final-nextest-list.json": {
+      "sha256": "2bf69c47481b49b8c183d12cbd76ec292bc2c944a5749907c2928f0334956d7c",
+      "bytes": 154836
+    },
+    "final/final-nextest-list.log": {
+      "sha256": "c48907d198c06b105b220bb34e52e4793323ec8303ad3957642d1b82be59e4b8",
+      "bytes": 73
+    },
+    "final/final-test-identities.json": {
+      "sha256": "1239e0f040b3e07d19e44210d09daac65e6457e64cb2b3feafbd2f166f1bec66",
+      "bytes": 201013
+    },
+    "final/full-proof.log": {
+      "sha256": "73078e7eba661352649d8fd1d81cee1294159fe7fec7c9759e9d54b2afe88b7a",
+      "bytes": 43436
+    },
+    "final/inputs.json": {
+      "sha256": "878bcc5c6cf2aa73db932619c202936a431e3a35bd549b4eaa45c783da319955",
+      "bytes": 282659
+    },
+    "final/invocation.json": {
+      "sha256": "ac85015a44a21804c45dc526c12990730623e5882d313431661698c7307dc923",
+      "bytes": 2504
+    },
+    "final/outer-build-attempt3.log": {
+      "sha256": "4e33108ab084e8332b7a3cb9c974b80228c9bd77b92aec34b3694d575d6d16b3",
+      "bytes": 359
+    },
+    "final/result.json": {
+      "sha256": "2d8d1777b8d09e90824b9a65edb27d0868058f17d21561b65282709eca3e68ff",
+      "bytes": 17730
+    },
+    "final/setup.jsonl": {
+      "sha256": "744d2f60dac2ae89374503e3c38a3fecec97773e2136e9e555fc46ec65eee8c1",
+      "bytes": 129
+    },
+    "final/stages.jsonl": {
+      "sha256": "2bd09dbfd2ef4f974a8641ae850026d980ad9122afd3c2353cf5fe62431ae385",
+      "bytes": 964
+    },
+    "final/tools.json": {
+      "sha256": "fbfb79b51c4dc1f24cc7f8d32e0d1e1c1d48306c97a123c37729ebd913b44c1c",
+      "bytes": 1990
+    },
+    "summary.md": {
+      "sha256": "f5fa1590467a132600d1445aea37df7ea1886f6746a98a44e60cd1b3001ccb8c",
+      "bytes": 2214
+    }
+  }
+}

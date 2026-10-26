@@ -1,0 +1,21 @@
+import pathlib,tempfile,os,subprocess,json,hashlib
+base=pathlib.Path('/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25411-standalone'); source=pathlib.Path.cwd(); fixture=pathlib.Path(tempfile.mkdtemp(prefix='public-route-',dir=base)); framework=fixture/'framework';(framework/'dev/gate/policy').mkdir(parents=True);(fixture/'bin').mkdir();(fixture/'model/scripts').mkdir(parents=True)
+def write(path,text):path.parent.mkdir(parents=True,exist_ok=True);path.write_text(text)
+def executable(path,text):write(path,'#!/bin/bash\nset -euo pipefail\n'+text);path.chmod(0o755)
+write(framework/'Cargo.toml','[workspace]\nmembers=[]\n');write(framework/'mise.toml','[tools]\n');write(framework/'rust-toolchain.toml',"[toolchain]\nchannel='stable'\n");write(framework/'dev/gate/policy/framework-boundary.txt',"version=1\nforbidden=['blockedtoken']\nretired_pattern='retiredtoken'\norganization_prefix='github.com/acme/'\ncontrols=['blockedtoken']\naccepted_controls=['github.com/acme/project']\n")
+for name in ['proto-tools.sh','test-time-gate.sh','tests/build-guests-controls.sh','test-capabilities.sh','tests/proto-go.sh','proto-go.sh','tests/build-guests.sh']:executable(framework/'scripts'/name,'exit 0\n')
+executable(fixture/'bin/mise',"if [ \"$*\" = 'exec -- cargo metadata --locked --format-version 1' ]; then printf '{\"packages\":[]}\\n'; fi\nexit 0\n")
+executable(fixture/'unreached-system-command',"printf 'fixture system command reached after framework gate\\n'\nexit 91\n")
+make_source=(source/'Makefile').read_text();lines=make_source.splitlines(True);recipes=[]
+for target in ['model-check','model-time','model-validate']:
+ start=next(i for i,line in enumerate(lines) if line.startswith(target+':'));end=start
+ while end<len(lines) and lines[end].strip():end+=1
+ recipes.extend(lines[start:end]);recipes.append('\n')
+write(fixture/'model/scripts/time-gate.sh',(source/'model/scripts/time-gate.sh').read_text());(fixture/'model/scripts/time-gate.sh').chmod(0o755)
+before=base/'isolatedcopy-target/proof-PvkrYJ/target/debug/xtask';after=base/'native-target/debug/xtask'; results=[]
+for label,binary in [('red',before),('green',after)]:
+ header='COLOR = "%s\\n"\nPROTOC_GEN_GO =\nPROTOC_GEN_GO_GRPC =\nAPI_BINPB =\nRUST_MODEL_FRAMEWORK = '+str(binary)+'\nRUST_MODEL_CARGO = '+str(fixture/'unreached-system-command')+'\n.PHONY: model-check model-time model-validate\n'
+ write(fixture/'Makefile',header+''.join(recipes));environment=os.environ.copy();environment.update({'UMPIRE_TOOL_ROOT':str(framework),'CARGO_TARGET_DIR':str(fixture/'target'),'CARGO_HOME':'/home/agent/.cargo','PATH':str(fixture/'bin')+':'+os.environ['PATH'],'UMPIRE_APALACHE':'skip','UMPIRE_BACKENDS':'skip','UMPIRE_STANDALONE_OUTPUT':str(fixture/'copies')});environment.pop('UMPIRE_STANDALONE_CHILD',None)
+ output=subprocess.run(['make','--no-print-directory','-C',str(fixture),'UMPIRE_BACKENDS=skip','model-validate'],env=environment,stdout=subprocess.PIPE,stderr=subprocess.STDOUT);text=output.stdout.decode();(base/('public-route-'+label+'.log')).write_bytes(output.stdout);reason='framework stage standalone failed: missing or escaping standalone configuration: Cargo.lock';selected=reason in text;assert output.returncode==2,(label,text);assert selected==(label=='green'),(label,text);assert ('fixture system command reached' in text)==(label=='red'),(label,text)
+ results.append({'label':label,'exit':output.returncode,'standalone_selected':selected,'binary':str(binary),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'log_sha256':hashlib.sha256(output.stdout).hexdigest()})
+receipt={'scope':'Shipping Make model-validate -> model-time -> shipping timer -> model-check -> actual compiled framework gate, with synthetic leaf work; separate from real copied full proof.','make_sha256':hashlib.sha256((source/'Makefile').read_bytes()).hexdigest(),'timer_sha256':hashlib.sha256((source/'model/scripts/time-gate.sh').read_bytes()).hexdigest(),'recipes_sha256':hashlib.sha256(''.join(recipes).encode()).hexdigest(),'fixture':str(fixture),'results':results};(base/'public-route-control.json').write_text(json.dumps(receipt,indent=2)+'\n');print(json.dumps({'public_route_red_green':True,'fixture':str(fixture)}))

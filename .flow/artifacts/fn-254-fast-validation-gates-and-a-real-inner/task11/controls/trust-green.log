@@ -1,0 +1,13 @@
+   Compiling getrandom v0.4.3
+   Compiling once_cell v1.21.4
+   Compiling tempfile v3.27.0
+   Compiling thiserror v2.0.21
+   Compiling umpire-backend-process v0.0.1 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25411-standalone/isolatedcopy-target/proof-yv9pf0/framework/backends/process)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.57s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25411-standalone/isolatedcopy-target/proof-yv9pf0/target/debug/deps/umpire_backend_process-010aca4a7dd52ead)
+
+running 1 test
+test jar::tests::exact_jar_and_pinned_java_reach_the_probe ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.11s
+
