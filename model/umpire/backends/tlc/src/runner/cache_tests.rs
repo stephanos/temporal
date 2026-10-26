@@ -554,3 +554,43 @@ fn failures_refutations_and_incomplete_modules_never_publish() -> Result<(), Ref
     })();
     scratch.finish(result)
 }
+
+#[test]
+fn invalid_cached_batch_refuses_before_any_singleton_recovery() -> Result<(), Refusal> {
+    let tlc = backend(Path::new("/missing-backend"));
+    let cfg = "SPECIFICATION Spec\nINVARIANT A\nINVARIANT B\n";
+    let (base, properties) = split_cfg(cfg)?;
+    let message = |code, error, body| {
+        format!("@!@!@STARTMSG {code}:{error} @!@!@\n{body}\n@!@!@ENDMSG {code} @!@!@\n")
+    };
+    let success = format!(
+        "{}{}{}",
+        message(2199, 0, "0 states generated, 0 distinct states found, 0 states left on queue."),
+        message(2193, 0, "No error has been found."),
+        message(2186, 0, "Finished")
+    );
+    for invalid in [
+        message(2110, 1, "Invariant A is violated."),
+        message(2111, 1, "Evaluating invariant A failed.\nOverflow"),
+    ] {
+        let mut cached = bundle(Path::new("/unused"));
+        cached.replay = true;
+        cached.records = Mutex::new(BTreeMap::from([
+            (cache::record_id(&base), Record { output: success.clone(), dump: String::new() }),
+            (
+                cache::record_id(&property_cfg(&base, &properties)),
+                Record { output: format!("{success}{invalid}"), dump: String::new() },
+            ),
+        ]));
+        let error = tlc
+            .check_strategy_cached("M", "", cfg, &schema(), true, Some(&cached))
+            .err()
+            .ok_or_else(|| Refusal("invalid cache batch accepted".into()))?;
+        assert!(
+            matches!(error, Error::Evaluation(_))
+                || error.to_string().contains("cached property batch is not Verified"),
+            "{error}"
+        );
+    }
+    Ok(())
+}

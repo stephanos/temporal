@@ -377,6 +377,9 @@ impl Tlc {
                     let violated =
                         messages(&output)?.iter().any(|(code, _)| VIOLATIONS.contains(code));
                     append_output(&mut result.output, &output, self.limits.output_bytes)?;
+                    if violated && cache.is_some_and(|cache| cache.replay) {
+                        return Err(Refusal("cached property batch is not Verified".into()).into());
+                    }
                     if !violated {
                         for (_, property) in properties {
                             result.properties.insert(
@@ -387,7 +390,11 @@ impl Tlc {
                         return Ok(result);
                     }
                 }
-                Err(Error::Evaluation(_)) => {}
+                Err(error @ Error::Evaluation(_)) => {
+                    if cache.is_some_and(|cache| cache.replay) {
+                        return Err(error);
+                    }
+                }
                 Err(error) => return Err(error),
             }
         }
