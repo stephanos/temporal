@@ -1,0 +1,47 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.10s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/deps/xtask-77ca01b04ba72586)
+
+running 8 tests
+test gate::boundary::tests::character_recognition_requires_a_valid_closed_literal ... ok
+test gate::boundary::tests::declared_unused_dependency_escape_is_refused_before_cargo ... ok
+test gate::boundary::tests::external_target_alias_cannot_hide_source_subtree ... ok
+test gate::boundary::tests::organization_exception_preserves_occurrence_token_boundaries ... ok
+test gate::boundary::tests::source_escape_is_structural_and_contained_deep_paths_work ... ok
+test gate::boundary::tests::target_cannot_hide_sources ... ok
+framework stage exit-control failed (exit 37)
+test gate::tests::real_stage_child_receives_cache_bypass_and_required_mode ... ok
+test gate::boundary::tests::character_literals_and_lifetimes_cannot_hide_source_escapes ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/deps/main-dcc7a2bdcc375b6b)
+
+running 23 tests
+test apalache_install::installer::tests::download_failure_cleans_private_staging_and_never_publishes ... ok
+test apalache_install::installer::tests::hash_before_parse_and_exact_regular_member_before_publication ... ok
+test apalache_install::installer::tests::malicious_lock_types_refuse_without_following_or_blocking ... ok
+test apalache_install::installer::tests::native_curl_contract_and_download_failure_cleanup ... ok
+test apalache_install::installer::tests::native_dispatch_usage_failure_is_nonzero_and_structured ... ok
+test apalache_install::installer::tests::partial_wrong_and_nonregular_installations_never_download ... ok
+test apalache_install::installer::tests::symlinks_in_every_component_including_dangling_are_refused ... ok
+test gate_wiring::compiled_stage_inventory_matches_preserved_framework_stages ... ok
+test apalache_install::installer::tests::concurrent_installers_publish_once_and_return_same_path ... ok
+test gate_wiring::convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status ... ok
+test gate_wiring::every_command_boundary_preserves_failure_status_and_environment_in_both_modes ... ok
+test gate_wiring::full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_command ... ok
+test gate_wiring::guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths ... ok
+test gate_wiring::required_optional_backend_fetch_failure_is_named_and_prevents_first_stage ... ok
+test gate_wiring::scanner_stages_reject_real_planted_inputs_and_full_gate_stops_before_later_commands ... ok
+test gate_wiring::signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch ... ok
+test gate_wiring::test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes ... ok
+test gate_wiring::validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate ... ok
+retired-name filtering failed: control
+test retired_names::io_and_missing_grep_errors_fail_closed ... ok
+test retired_names::malformed_records_fail_closed ... ok
+test retired_names::posix_ere_recheck_and_grep_failure_propagate ... ok
+test retired_names::raw_records_exempt_only_author_facade_tokens ... ok
+test gate_wiring::full_dispatch_stops_at_every_failed_leaf_in_both_modes ... ok
+
+test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.41s
+

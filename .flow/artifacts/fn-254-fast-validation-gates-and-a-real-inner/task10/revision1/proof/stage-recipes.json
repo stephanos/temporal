@@ -1,0 +1,781 @@
+{
+  "scope": "source recipe inventory; all command boundaries exercised by compiled synthetic-leaf controls, not a real full-gate execution",
+  "target_example": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent",
+  "cache_environment": {
+    "UMPIRE_QUICK_CACHE": "0",
+    "UMPIRE_CACHE_DISABLE": "1"
+  },
+  "per_stage_environment": {
+    "docs": {
+      "RUSTDOCFLAGS": "-D warnings"
+    },
+    "go-hosts": {
+      "CGO_ENABLED": "0"
+    },
+    "validate": {
+      "UMPIRE_BACKENDS": "require"
+    }
+  },
+  "stages": [
+    {
+      "owner": "framework",
+      "stage": "proto-tools",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "untimed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/proto-tools.sh"
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/proto-tools.sh"
+      ],
+      "timing": "native capture and named duration"
+    },
+    {
+      "owner": "framework",
+      "stage": "retired-names",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "untimed_argv": [
+        "<native filesystem retired-name stage>"
+      ],
+      "timed_argv": [
+        "<native filesystem retired-name stage>"
+      ],
+      "timing": "native capture and named duration"
+    },
+    {
+      "owner": "framework",
+      "stage": "timing-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "untimed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/test-time-gate.sh"
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/test-time-gate.sh"
+      ],
+      "timing": "native capture and named duration"
+    },
+    {
+      "owner": "framework",
+      "stage": "timing-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "untimed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/tests/build-guests-controls.sh"
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/tests/build-guests-controls.sh"
+      ],
+      "timing": "native capture and named duration"
+    },
+    {
+      "owner": "framework",
+      "stage": "capability-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "untimed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/test-capabilities.sh"
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/test-capabilities.sh"
+      ],
+      "timing": "native capture and named duration"
+    },
+    {
+      "owner": "framework",
+      "stage": "source-boundary",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "untimed_argv": [
+        "<native name/dependency/source scanner>"
+      ],
+      "timed_argv": [
+        "<native name/dependency/source scanner>"
+      ],
+      "timing": "native capture and named duration"
+    },
+    {
+      "owner": "framework",
+      "stage": "source-boundary",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "untimed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "metadata",
+        "--locked",
+        "--format-version",
+        "1"
+      ],
+      "timed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "metadata",
+        "--locked",
+        "--format-version",
+        "1"
+      ],
+      "timing": "native capture and named duration"
+    },
+    {
+      "owner": "framework",
+      "stage": "protobuf-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "untimed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/tests/proto-go.sh"
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/tests/proto-go.sh"
+      ],
+      "timing": "native capture and named duration"
+    },
+    {
+      "owner": "framework",
+      "stage": "protobuf-freshness",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "untimed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/proto-go.sh",
+        "core",
+        "--check"
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/proto-go.sh",
+        "core",
+        "--check"
+      ],
+      "timing": "native capture and named duration"
+    },
+    {
+      "owner": "framework",
+      "stage": "kettle-protobuf-freshness",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "untimed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/proto-go.sh",
+        "kettle",
+        "--check"
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/proto-go.sh",
+        "kettle",
+        "--check"
+      ],
+      "timing": "native capture and named duration"
+    },
+    {
+      "owner": "framework",
+      "stage": "fmt",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "untimed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "timed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "timing": "native capture and named duration"
+    },
+    {
+      "owner": "framework",
+      "stage": "clippy",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "untimed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--all-features",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "timed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--all-features",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "timing": "native capture and named duration"
+    },
+    {
+      "owner": "framework",
+      "stage": "docs",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "untimed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "doc",
+        "--workspace",
+        "--no-deps",
+        "--quiet"
+      ],
+      "timed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "doc",
+        "--workspace",
+        "--no-deps",
+        "--quiet"
+      ],
+      "timing": "native capture and named duration"
+    },
+    {
+      "owner": "framework",
+      "stage": "tests",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "untimed_argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "test-run"
+      ],
+      "timed_argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "test-run"
+      ],
+      "timing": "native capture and named duration",
+      "runner_leaf_argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--workspace",
+        "--locked",
+        "--quiet"
+      ],
+      "runner_leaf_cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire"
+    },
+    {
+      "owner": "framework",
+      "stage": "wasm32-wasip1",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "untimed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "build",
+        "--target",
+        "wasm32-wasip1",
+        "-p",
+        "umpire-dsl",
+        "-p",
+        "umpire-checker",
+        "--quiet"
+      ],
+      "timed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "build",
+        "--target",
+        "wasm32-wasip1",
+        "-p",
+        "umpire-dsl",
+        "-p",
+        "umpire-checker",
+        "--quiet"
+      ],
+      "timing": "native capture and named duration"
+    },
+    {
+      "owner": "framework",
+      "stage": "core-wasm-clippy",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "untimed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "--target",
+        "wasm32-wasip1",
+        "-p",
+        "umpire-dsl",
+        "-p",
+        "umpire-checker",
+        "--lib",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "timed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "--target",
+        "wasm32-wasip1",
+        "-p",
+        "umpire-dsl",
+        "-p",
+        "umpire-checker",
+        "--lib",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "timing": "native capture and named duration"
+    },
+    {
+      "owner": "framework",
+      "stage": "wasm-guest",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "untimed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/tests/build-guests.sh"
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/tests/build-guests.sh"
+      ],
+      "timing": "native capture and named duration"
+    },
+    {
+      "owner": "framework",
+      "stage": "go-host",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "untimed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "go",
+        "-C",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/hosts/go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./..."
+      ],
+      "timed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "go",
+        "-C",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/hosts/go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./..."
+      ],
+      "timing": "native capture and named duration"
+    },
+    {
+      "owner": "framework",
+      "stage": "kettle-go-host",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "untimed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "go",
+        "-C",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/reference/kettle",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./..."
+      ],
+      "timed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "go",
+        "-C",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/reference/kettle",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./..."
+      ],
+      "timing": "native capture and named duration"
+    },
+    {
+      "owner": "temporal",
+      "stage": "temporal-guest-freshness",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model",
+      "untimed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/scripts/guest-freshness.sh",
+        "umpire-temporal-guest",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/temporal/hosts/go/umpire_temporal_guest.wasm"
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/time-gate.sh",
+        "--step",
+        "temporal-guest-freshness",
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/scripts/guest-freshness.sh",
+        "umpire-temporal-guest",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/temporal/hosts/go/umpire_temporal_guest.wasm"
+      ],
+      "timing": "public timer --step with caller cwd preserved"
+    },
+    {
+      "owner": "temporal",
+      "stage": "retired-names",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model",
+      "untimed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/scripts/retired-names.sh"
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/time-gate.sh",
+        "--step",
+        "retired-names",
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/scripts/retired-names.sh"
+      ],
+      "timing": "public timer --step with caller cwd preserved"
+    },
+    {
+      "owner": "temporal",
+      "stage": "timing-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model",
+      "untimed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/scripts/test-time-gate.sh"
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/time-gate.sh",
+        "--step",
+        "timing-controls",
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/scripts/test-time-gate.sh"
+      ],
+      "timing": "public timer --step with caller cwd preserved"
+    },
+    {
+      "owner": "temporal",
+      "stage": "source-boundary",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model",
+      "untimed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "umpire-temporal-tests",
+        "--test",
+        "boundary",
+        "--quiet"
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/time-gate.sh",
+        "--step",
+        "source-boundary",
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "umpire-temporal-tests",
+        "--test",
+        "boundary",
+        "--quiet"
+      ],
+      "timing": "public timer --step with caller cwd preserved"
+    },
+    {
+      "owner": "temporal",
+      "stage": "protobuf-controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model",
+      "untimed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/scripts/tests/proto-go.sh"
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/time-gate.sh",
+        "--step",
+        "protobuf-controls",
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/scripts/tests/proto-go.sh"
+      ],
+      "timing": "public timer --step with caller cwd preserved"
+    },
+    {
+      "owner": "temporal",
+      "stage": "temporal-protobuf-freshness",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model",
+      "untimed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/scripts/proto-go.sh",
+        "temporal",
+        "--check"
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/time-gate.sh",
+        "--step",
+        "temporal-protobuf-freshness",
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/scripts/proto-go.sh",
+        "temporal",
+        "--check"
+      ],
+      "timing": "public timer --step with caller cwd preserved"
+    },
+    {
+      "owner": "temporal",
+      "stage": "fmt",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model",
+      "untimed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/time-gate.sh",
+        "--step",
+        "fmt",
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "timing": "public timer --step with caller cwd preserved"
+    },
+    {
+      "owner": "temporal",
+      "stage": "clippy",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model",
+      "untimed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--all-features",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/time-gate.sh",
+        "--step",
+        "clippy",
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--all-features",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "timing": "public timer --step with caller cwd preserved"
+    },
+    {
+      "owner": "temporal",
+      "stage": "docs",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model",
+      "untimed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "doc",
+        "--workspace",
+        "--no-deps",
+        "--quiet"
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/time-gate.sh",
+        "--step",
+        "docs",
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "doc",
+        "--workspace",
+        "--no-deps",
+        "--quiet"
+      ],
+      "timing": "public timer --step with caller cwd preserved"
+    },
+    {
+      "owner": "temporal",
+      "stage": "tests",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model",
+      "untimed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--workspace",
+        "--locked",
+        "--quiet"
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/time-gate.sh",
+        "--step",
+        "tests",
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--workspace",
+        "--locked",
+        "--quiet"
+      ],
+      "timing": "public timer --step with caller cwd preserved"
+    },
+    {
+      "owner": "temporal",
+      "stage": "wasm-guest",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model",
+      "untimed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/scripts/tests/build-guests.sh"
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/time-gate.sh",
+        "--step",
+        "wasm-guest",
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/scripts/tests/build-guests.sh"
+      ],
+      "timing": "public timer --step with caller cwd preserved"
+    },
+    {
+      "owner": "temporal",
+      "stage": "temporal-go-host",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model",
+      "untimed_argv": [
+        "mise",
+        "exec",
+        "--",
+        "go",
+        "-C",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/temporal/hosts/go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./..."
+      ],
+      "timed_argv": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/scripts/time-gate.sh",
+        "--step",
+        "temporal-go-host",
+        "mise",
+        "exec",
+        "--",
+        "go",
+        "-C",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/temporal/hosts/go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./..."
+      ],
+      "timing": "public timer --step with caller cwd preserved"
+    }
+  ],
+  "registered_framework_stages": 17,
+  "full_gate_registry_proto_tools_occurrences": 1,
+  "framework_runner_seam": "test_run::run executes the one current Cargo invocation; future sequencing stays entirely in that live leaf",
+  "root_make_delegation_cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate",
+  "root_make_outer_argv": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "run",
+    "--manifest-path",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/Cargo.toml",
+    "--package",
+    "temporal-xtask",
+    "--bin",
+    "temporal-xtask",
+    "--profile",
+    "dev",
+    "--",
+    "gate"
+  ],
+  "root_time_benchmark_argv": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "test",
+    "--manifest-path",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/Cargo.toml",
+    "-p",
+    "umpire-checker",
+    "--quiet"
+  ]
+}

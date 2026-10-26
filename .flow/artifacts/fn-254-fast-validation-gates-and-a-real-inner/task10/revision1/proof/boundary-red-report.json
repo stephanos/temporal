@@ -1,0 +1,35 @@
+{
+  "kind": "worker-observed RED; raw tool output was not archived",
+  "worker_commit": "210a333719786037cff5f362b2a84e8a0e47b0b8",
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-fix-boundary/model/umpire",
+  "argv": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "test",
+    "--locked",
+    "-p",
+    "xtask",
+    "--lib",
+    "gate::boundary::tests",
+    "--",
+    "--nocapture"
+  ],
+  "env": {
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/fix-boundary",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "RUSTFLAGS": "",
+    "CARGO_ENCODED_RUSTFLAGS": "",
+    "RUSTDOCFLAGS": "",
+    "RUST_TEST_THREADS": "2"
+  },
+  "observed_exit": 101,
+  "passed": 4,
+  "failed": [
+    "organization_exception_preserves_occurrence_token_boundaries",
+    "character_literals_and_lifetimes_cannot_hide_source_escapes"
+  ],
+  "current_green": "framework-native-tests.log plus independent compiled-boundary-controls.json"
+}

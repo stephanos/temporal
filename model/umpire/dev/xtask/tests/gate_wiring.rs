@@ -73,7 +73,7 @@ impl Fixture {
         write(&fixture.root.join("rust-toolchain.toml"), "[toolchain]\nchannel = 'stable'\n");
         write(
             &fixture.root.join("dev/gate/policy/framework-boundary.txt"),
-            "version = 1\nforbidden = ['forbidden_payload']\nretired_pattern = 'retired_payload'\norganization_prefix = 'github.com/acme/'\ncontrols = ['forbidden_payload']\n",
+            "version = 1\nforbidden = ['forbidden_payload']\nretired_pattern = 'retired_payload'\norganization_prefix = 'github.com/acme/'\ncontrols = ['forbidden_payload']\naccepted_controls = ['github.com/acme/project']\n",
         );
         fs::create_dir_all(fixture.caller.join("real home")).unwrap();
         symlink("real home", fixture.caller.join("cargo home")).unwrap();
