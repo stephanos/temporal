@@ -9,7 +9,7 @@ The author's inner loop (spec R2): edit a Model, get native, interpreter and (wh
 
 **Size:** M
 **Files:** native framework quick command and Temporal selection extension; their actual CLI/Make registration; TLC cache and backend call sites; focused unit/cache controls. Use the established xtask home, without introducing a quick shell wrapper.
-**Touches:** [Makefile, model/dev/xtask/src/main.rs, model/dev/xtask/src/quick/**, model/umpire/dev/xtask/src/main.rs, model/umpire/dev/xtask/src/lib.rs, model/umpire/dev/xtask/src/quick/**, model/umpire/dev/testing/src/**, model/umpire/backends/tlc/src/**, model/umpire/backends/tlc/tests/**, model/umpire/backends/process/src/**]
+**Touches:** [Makefile, model/dev/xtask/src/main.rs, model/dev/xtask/src/quick/**, model/umpire/dev/xtask/src/main.rs, model/umpire/dev/xtask/src/lib.rs, model/umpire/dev/xtask/src/quick/**, model/umpire/dev/testing/src/**, model/umpire/backends/tlc/src/**, model/umpire/backends/tlc/tests/**, model/umpire/backends/process/src/fingerprint.rs, model/umpire/backends/process/src/lib.rs]
 
 ### Parallel ownership
 - Own the listed quick command, CLI/Make wiring, cache/backend source and narrow backend-process hashing/owned artifact-I/O helpers. Reuse existing dependencies and the established external framework executable bridge; no Cargo manifest or lock edit is needed for this design. Keep quick command controls as unit tests within its owned quick source; TLC cache controls use the owned TLC test tree. Framework xtask integration-test aggregation belongs to .11. Task .8 owns consolidated README/tier/cache documentation; .12 owns budgets.
