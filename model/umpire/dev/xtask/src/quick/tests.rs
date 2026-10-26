@@ -176,11 +176,78 @@ fn package_filters_only_narrow_unchanged_or_exclusively_mapped_feature_edits() {
     assert!(super::focused(&options, "activity", &["/system/feature/activity/model.rs".into()]));
     for path in [
         "/system/activity/src/lib.rs",
+        "/system/feature/activity/tests.rs",
+        "/system/feature/activity/proof_checks.rs",
+        "/system/feature/activity/compatibility/model.rs",
+        "/system/feature/activity/api.rs",
         "/framework/core/src/lib.rs",
         "/system/feature/Cargo.toml",
         "/system/unknown",
     ] {
         assert!(!super::focused(&options, "activity", &[path.into()]), "{path}");
     }
+    assert!(!super::focused(
+        &options,
+        "activity",
+        &["/system/feature/activity/model.rs".into(), "/system/feature/activity/tests.rs".into(),]
+    ));
     assert!(!super::focused(&options, "other", &["/system/feature/activity/model.rs".into()]));
+}
+
+fn assert_stage_receipt(log: &[u8], phase: &str, exit: &str) -> TestResult {
+    let log = std::str::from_utf8(log)?;
+    let receipt = log.lines().last().ok_or("missing stage receipt")?;
+    assert!(
+        receipt.starts_with(&format!(
+            "quick: stage={phase} workspace=/selected/workspace packages=selected-package elapsed="
+        )),
+        "{receipt}"
+    );
+    let elapsed = receipt
+        .split(" elapsed=")
+        .nth(1)
+        .ok_or("missing elapsed time")?
+        .split('s')
+        .next()
+        .ok_or("missing seconds unit")?
+        .parse::<f64>()?;
+    assert!(elapsed.is_finite() && elapsed >= 0.0, "{receipt}");
+    assert!(receipt.contains(&format!(" exit={exit}")), "{receipt}");
+    Ok(())
+}
+
+#[test]
+fn stage_receipts_label_formatting_and_preserve_success_and_failure_statuses() -> TestResult {
+    for (program, phase, expected) in
+        [("/bin/true", "fmt", 0), ("/bin/false", "clippy", 1), ("/bin/false", "test", 1)]
+    {
+        let mut log = Vec::new();
+        let actual = super::execute(
+            phase,
+            Path::new("/selected/workspace"),
+            &["selected-package".into()],
+            Command::new(program),
+            &mut log,
+        )?;
+        assert_eq!(actual, expected);
+        assert_stage_receipt(&log, phase, &expected.to_string())?;
+    }
+    Ok(())
+}
+
+#[test]
+fn stage_receipt_reports_elapsed_and_spawn_failure_without_success_status() -> TestResult {
+    let root = tempfile::tempdir()?;
+    let mut log = Vec::new();
+    let result = super::execute(
+        "test",
+        Path::new("/selected/workspace"),
+        &["selected-package".into()],
+        Command::new(root.path().join("missing-program")),
+        &mut log,
+    );
+    assert!(result.is_err());
+    assert_stage_receipt(&log, "test", "spawn-error")?;
+    assert!(std::str::from_utf8(&log)?.contains(" error="));
+    Ok(())
 }

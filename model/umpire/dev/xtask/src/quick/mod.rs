@@ -9,6 +9,7 @@ use std::{
     os::unix::{ffi::OsStringExt, process::ExitStatusExt},
     path::{Path, PathBuf},
     process::Command,
+    time::Instant,
 };
 use umpire_guest_driver::context::{ToolRoot, cargo_home};
 
@@ -187,17 +188,47 @@ fn cargo(root: &Path, home: &Path, target: &Path) -> Command {
 fn focused(options: &Options, package: &str, changed: &[PathBuf]) -> bool {
     changed.iter().all(|path| {
         !selection::global_input(path, None)
-            && options
-                .mappings
-                .iter()
-                .any(|(directory, name)| name == package && path.starts_with(directory))
+            && options.mappings.iter().any(|(directory, name)| {
+                name == package
+                    && path.file_name().is_some_and(|name| name == "model.rs")
+                    && path.parent().and_then(Path::parent) == Some(directory.as_path())
+            })
     })
 }
 
-fn execute(mut command: Command) -> Result<i32> {
-    writeln!(io::stderr(), "quick: {command:?}")?;
-    let status = command.status()?;
-    Ok(status.code().unwrap_or_else(|| 128 + status.signal().unwrap_or(0)))
+fn execute(
+    phase: &str,
+    workspace: &Path,
+    packages: &[String],
+    mut command: Command,
+    mut output: impl Write,
+) -> Result<i32> {
+    let stage = format!(
+        "quick: stage={phase} workspace={} packages={}",
+        workspace.display(),
+        packages.join(",")
+    );
+    writeln!(output, "{stage} command={command:?}")?;
+    let started = Instant::now();
+    match command.status() {
+        Ok(status) => {
+            let code = status.code().unwrap_or_else(|| 128 + status.signal().unwrap_or(0));
+            writeln!(
+                output,
+                "{stage} elapsed={:.3}s exit={code}",
+                started.elapsed().as_secs_f64()
+            )?;
+            Ok(code)
+        }
+        Err(error) => {
+            writeln!(
+                output,
+                "{stage} elapsed={:.3}s exit=spawn-error error={error}",
+                started.elapsed().as_secs_f64()
+            )?;
+            Err(error.into())
+        }
+    }
 }
 
 /// Run affected-package formatting, clippy and tests; `--select-only` reports the selection.
@@ -261,7 +292,13 @@ pub fn run(arguments: Vec<OsString>) -> Result<i32> {
             } else {
                 &["--", "-D", "warnings"][..]
             });
-            let status = execute(command)?;
+            let status = execute(
+                operation,
+                &workspace.workspace,
+                &workspace.packages,
+                command,
+                io::stderr().lock(),
+            )?;
             if status != 0 {
                 return Ok(status);
             }
@@ -280,7 +317,13 @@ pub fn run(arguments: Vec<OsString>) -> Result<i32> {
             if focused && options.filters.contains_key(name) {
                 command.arg("--exact");
             }
-            let status = execute(command)?;
+            let status = execute(
+                "test",
+                &workspace.workspace,
+                std::slice::from_ref(name),
+                command,
+                io::stderr().lock(),
+            )?;
             if status != 0 {
                 return Ok(status);
             }
