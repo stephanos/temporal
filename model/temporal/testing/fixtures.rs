@@ -90,3 +90,49 @@ fn import_live_gap_candidate() -> umpire_testing::TestResult {
     settings.bind(|| insta::assert_snapshot!("gaps.txt", candidate));
     Ok(())
 }
+
+mod protocol_fixtures {
+    include!(concat!(env!("OUT_DIR"), "/protocol_fixtures.rs"));
+    pub(super) use activity_tests::{check, lifted, scopes};
+
+    pub(super) fn fixtures() -> Vec<umpire_testing::Fixture> {
+        registered()
+    }
+}
+
+#[test]
+fn standalone_activity_protocol_fixtures() -> umpire_testing::TestResult {
+    const PROTOCOL_LIFT: umpire_testing::Consumer = umpire_testing::Consumer {
+        name: "protocol source lift",
+        expected: &["*.tla", "*.cfg", "lift.txt"],
+        render: |_, folder| {
+            let module = protocol_fixtures::lifted(&folder.join("model.rs"))?;
+            Ok(umpire_testing::Files::from([
+                (format!("{}.tla", module.name), module.tla),
+                (format!("{}.cfg", module.name), module.cfg),
+                ("lift.txt".into(), "admitted: independent protocol source lift\n".into()),
+            ]))
+        },
+    };
+    const PROTOCOL_TLC: umpire_testing::Consumer = umpire_testing::Consumer {
+        name: "protocol tlc",
+        expected: &["tlc.txt"],
+        render: |_, folder| protocol_fixtures::check(folder),
+    };
+    const PROTOCOL_SCOPES: umpire_testing::Consumer = umpire_testing::Consumer {
+        name: "protocol scopes",
+        expected: &["worlds.txt", "schema.txt", "worlds/*.txt"],
+        render: |_, _| protocol_fixtures::scopes(),
+    };
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../shared/protocol");
+    umpire_testing::run_at_skipping(
+        &root,
+        protocol_fixtures::fixtures(),
+        &[umpire_testing::CHECKER, PROTOCOL_LIFT, PROTOCOL_TLC, PROTOCOL_SCOPES],
+        if std::env::var("UMPIRE_BACKENDS").as_deref() == Ok("require") {
+            &[]
+        } else {
+            &["protocol tlc"]
+        },
+    )
+}

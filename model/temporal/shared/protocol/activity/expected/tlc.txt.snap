@@ -1,0 +1,22 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+TLC 1.7.4; complete source-lifted exploration
+states: 23; native: 23; agreement: yes
+claim attempt_changes_only_by_retry: Verified; native: Verified; agreement: yes
+claim cancellation_request_preserves_running_timers: Verified; native: Verified; agreement: yes
+claim every_live_budget_descends: Verified; native: Verified; agreement: yes
+claim exact_budget_arming: Verified; native: Verified; agreement: yes
+claim execution_expiry_dominates: Verified; native: Verified; agreement: yes
+claim heartbeat_resets_only_its_interval: Verified; native: Verified; agreement: yes
+claim local_expiry_priority_retains_its_cause: Verified; native: Verified; agreement: yes
+claim outcome_and_pending_are_distinct: Verified; native: Verified; agreement: yes
+claim pending_expiry_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim pending_failure_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim positive_bounded_budgets: Verified; native: Verified; agreement: yes
+claim rejection_preserves_full_state: Verified; native: Verified; agreement: yes
+claim retry_rearms_queue_preserves_execution: Verified; native: Verified; agreement: yes
+claim selected_attempts: Verified; native: Verified; agreement: yes
+claim spanning_budget_never_increases: Verified; native: Verified; agreement: yes
+claim terminal_is_final: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0

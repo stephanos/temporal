@@ -1,0 +1,20 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+[
+    Model {
+        lifecycle: Queued,
+        attempt: 1,
+        cancellation_pending: false,
+        terminal_outcome: None,
+        retained_failure: None,
+        queued_budget: Some(
+            Remaining {
+                ticks: 1,
+            },
+        ),
+        attempt_budget: None,
+        execution_budget: None,
+        heartbeat_budget: None,
+    },
+]
