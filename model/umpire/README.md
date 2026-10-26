@@ -177,3 +177,13 @@ This exact block compiles as [the DSL README fixture](author/dsl/tests/readme/pa
 checked against the README by `mise exec -- cargo test -p umpire-dsl --test main readme::` from
 this directory. The fixture binds one selected World explicitly; `bound_for` selects another without
 fabricating defaults. `World::new` assigns fields and does not validate their ranges or starts.
+
+Checker tools are provisioned explicitly with `bash scripts/fetch-tlc.sh` or
+`cargo xtask fetch-apalache`. Their framework-owned HTTP declarations live in
+`mise-tools/`; its default environment contains TLC 1.7.4 and its `apalache`
+environment adds Apalache 0.62.4. Provisioning delegates checksummed downloads,
+extraction and installation locking to mise. Execution never auto-installs tools.
+The jar provider scopes mise data/cache/state to `build/mise-jars`, leaving the
+ordinary Java and Rust installations in place. Backends require exact install
+paths, regular files without symlinks, runtime JAR SHA-256 and tool version
+admission before checking a Model. See [provider controls](mise-tools/README.md).

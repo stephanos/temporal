@@ -2,7 +2,7 @@
 #![forbid(unsafe_code)]
 pub use umpire_guest_driver::{Error, Result, support};
 pub mod apalache_pins;
-/// SHA-pinned installer with private staging and serialized publication.
+/// Explicit mise provisioning with runtime JAR integrity admission.
 pub mod fetch_apalache;
 pub mod gate;
 pub mod quick;

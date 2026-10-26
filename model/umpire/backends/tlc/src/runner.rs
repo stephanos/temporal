@@ -137,8 +137,7 @@ impl Tlc {
 
     /// Admit the exact jar and mise-pinned Temurin JDK before any model check.
     pub fn discover(root: &Path) -> Result<Self, Refusal> {
-        let jar = format!("tla2tools-{JAR_VERSION}.jar");
-        PinnedJar::admit(root, CACHE, &jar, JAR_SHA256, |PinnedJar { root, jar, java }, scratch| {
+        PinnedJar::admit_mise(root, CACHE, umpire_backend_process::tool_provider::JarTool::Tlc, JAR_SHA256, |PinnedJar { root, jar, java }, scratch| {
             let limits = Limits::default();
             let mut version = java_command(&java);
             version
@@ -1261,20 +1260,9 @@ mod tests {
                 !outside.join("tlc").exists(),
                 "escaping cache wrote outside the root before admission"
             );
-            let scripts = fake.join("scripts");
-            fs::create_dir(&scripts)?;
-            let script = scripts.join("fetch-tlc.sh");
-            fs::copy(root.join("scripts/fetch-tlc.sh"), &script)?;
-            let mut fetch = Command::new("bash");
-            fetch.arg(&script).current_dir(&fake);
-            let (status, output) =
-                run_process(&mut fetch, scratch.path(), "fetch-symlink", Limits::default(), None)?;
-            assert!(!status.success());
-            assert!(output.contains("TLC cache escapes repository"), "{output}");
-            assert!(
-                !outside.join("tlc").exists(),
-                "fetch script wrote through an escaping symlink"
-            );
+            assert!(umpire_backend_process::tool_provider::command(
+                &fake, umpire_backend_process::tool_provider::JarTool::Tlc
+            ).is_err());
             Ok(())
         })();
         scratch.finish(result)
@@ -1289,8 +1277,8 @@ mod tests {
                 .err()
                 .ok_or_else(|| Refusal("missing jar admitted".into()))?;
             assert!(error.0.contains("missing pinned jar"));
-            fs::create_dir_all(scratch.path().join("build/tlc"))?;
-            fs::write(scratch.path().join("build/tlc/tla2tools-1.7.4.jar"), b"wrong version")?;
+            fs::create_dir_all(scratch.path().join("build/mise-jars/data/installs/http-tlc/1.7.4"))?;
+            fs::write(scratch.path().join("build/mise-jars/data/installs/http-tlc/1.7.4/tla2tools.jar"), b"wrong version")?;
             fs::write(scratch.path().join("mise.toml"), "java = \"temurin-27\"\n")?;
             let error = Tlc::discover(scratch.path())
                 .err()

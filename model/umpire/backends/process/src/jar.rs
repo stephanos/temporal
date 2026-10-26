@@ -18,6 +18,28 @@ pub struct PinnedJar {
 }
 
 impl PinnedJar {
+    /// Resolve an exact mise installation, then retain the same hash and Java admission.
+    pub fn admit_mise<T>(
+        root: &Path,
+        cache: &str,
+        tool: crate::tool_provider::JarTool,
+        sha: &str,
+        probe: impl FnOnce(Self, &Path) -> Result<T, Refusal>,
+    ) -> Result<T, Refusal> {
+        let root = root.canonicalize()?;
+        let jar = crate::tool_provider::installed_jar(&root, tool)?;
+        if digest(&jar)? != sha {
+            return Err(Refusal(format!("pinned jar integrity mismatch: {}", jar.display())));
+        }
+        crate::tool_provider::resolve(&root, tool)?;
+        let scratch = Scratch::new_in(&root, cache)?;
+        let admitted = (|| {
+            let java = pinned_java(&root, scratch.path())?;
+            probe(Self { root: root.clone(), jar, java }, scratch.path())
+        })();
+        scratch.finish(admitted)
+    }
+
     /// Admit `root/cache/jar` before any use: no symlink or escape on its path, the exact
     /// SHA-256, the pinned Java, then `probe` checks the tool's version in a cache scratch and
     /// returns the tool built from the admitted jar. Admission vouches for the file only at
@@ -144,6 +166,27 @@ mod tests {
         let error = admit(root, "absent.jar", EMPTY, &probed).err();
         assert!(error.is_some_and(|e| e.0.contains("missing pinned jar")));
 
+        assert!(!probed.get());
+        scratch.finish(Ok(()))
+    }
+
+    #[test]
+    fn mise_install_corruption_and_symlinks_refuse_before_resolution() -> Result<(), Refusal> {
+        let scratch = workspace()?;
+        let relative = "build/mise-jars/data/installs/http-tlc/1.7.4";
+        fs::create_dir_all(scratch.path().join(relative))?;
+        let jar = scratch.path().join(relative).join("tla2tools.jar");
+        fs::write(&jar, b"corrupt installed payload")?;
+        let probed = Cell::new(false);
+        let admit = || PinnedJar::admit_mise(scratch.path(), "build/tlc",
+            crate::tool_provider::JarTool::Tlc, EMPTY, |_, _| {
+                probed.set(true);
+                Ok(())
+            });
+        assert!(admit().is_err_and(|error| error.0.contains("integrity mismatch")));
+        fs::remove_file(&jar)?;
+        std::os::unix::fs::symlink(scratch.path().join("build/tool/tool.jar"), &jar)?;
+        assert!(admit().is_err_and(|error| error.0.contains("symlink")));
         assert!(!probed.get());
         scratch.finish(Ok(()))
     }

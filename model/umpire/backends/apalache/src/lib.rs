@@ -122,8 +122,7 @@ impl Apalache {
     /// Check the exact installed release before invoking a Model.
     pub fn discover(root: &Path) -> Result<Self, Refusal> {
         let limits = Limits { timeout: CHECK_TIMEOUT, ..Limits::default() };
-        let jar = format!("apalache-{VERSION}/lib/apalache.jar");
-        PinnedJar::admit(root, "build/apalache", &jar, JAR_SHA256, |admitted, scratch| {
+        PinnedJar::admit_mise(root, "build/apalache", umpire_backend_process::tool_provider::JarTool::Apalache, JAR_SHA256, |admitted, scratch| {
             let PinnedJar { root, jar, java } = admitted;
             let tool = Self { root, jar, java, limits };
             let mut command = tool.command(scratch);

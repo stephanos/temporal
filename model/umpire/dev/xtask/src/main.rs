@@ -100,11 +100,11 @@ fn run() -> xtask::Result<i32> {
                 _ => Err(xtask::Error::Invalid("usage: cargo xtask test-run [--package NAME]".into())),
             }
         }
-        Some(command) if command == OsStr::new("fetch-apalache") => {
+        Some(command) if command == OsStr::new("fetch-apalache") || command == OsStr::new("fetch-tlc") => {
             let root = arguments.next();
             if arguments.next().is_some() {
                 return Err(xtask::Error::Invalid(
-                    "usage: cargo xtask fetch-apalache [framework-root]".into(),
+                    format!("usage: cargo xtask {} [framework-root]", command.to_string_lossy()),
                 ));
             }
             let tools = if let Some(root) = root {
@@ -112,7 +112,11 @@ fn run() -> xtask::Result<i32> {
             } else {
                 ToolRoot::local()?
             };
-            let path = xtask::fetch_apalache::install(tools.path())?;
+            let path = if command == OsStr::new("fetch-tlc") {
+                xtask::fetch_apalache::install_tlc(tools.path())?
+            } else {
+                xtask::fetch_apalache::install(tools.path())?
+            };
             io::stdout().write_all(path.as_os_str().as_encoded_bytes())?;
             io::stdout().write_all(b"\n")?;
             Ok(0)
@@ -136,7 +140,7 @@ fn run() -> xtask::Result<i32> {
             ))
         }
         _ => Err(xtask::Error::Invalid(
-            "commands: gate, quick, fmt, update, time, validate, test-run, fetch-apalache, guest, guest-freshness, guest-lock, retired-names".into(),
+            "commands: gate, quick, fmt, update, time, validate, test-run, fetch-tlc, fetch-apalache, guest, guest-freshness, guest-lock, retired-names".into(),
         )),
     }
 }
