@@ -66,8 +66,9 @@ history export is verified at `cf8bec4d6`, with 581 retained commits and a recov
 bundle. Prepare its portable root, then give Temporal an uncommitted local
 Cargo/Go development loop against a sibling checkout. Current source checkpoint
 `c88fdc5506` has 1,177 framework files; every retained candidate stays recoverable.
-GitHub destination inspection returned HTTP 401, which establishes neither contents
-nor permission. Existing standalone proof covers an older source and does not close
+GitHub destination inspection is blocked by CLI authentication and the connected
+app's organization SAML authorization; contents and permissions remain unknown.
+Existing standalone proof covers an older source and does not close
 the required current-pair proof. Plan review passed; build/test execution remains deferred.
 
 [Spec](.flow/specs/fn-257-extract-the-standalone-umpire.md),

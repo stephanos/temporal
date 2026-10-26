@@ -9,7 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-257-extract-the-standalone-umpire",
   "impl_review_rounds": {
-    "fn-257-extract-the-standalone-umpire.1": 0
+    "fn-257-extract-the-standalone-umpire.1": 0,
+    "fn-257-extract-the-standalone-umpire.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -81,10 +82,55 @@
       "task": "fn-257-extract-the-standalone-umpire.1",
       "timestamp": "2026-10-26T15:35:19.337872Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "958d12b7a15c68c23bd1225413780f94638d4ce3fd7372388d66c73163ae37cb",
+      "backend": "codex",
+      "base_sha": "8bcf4c9fa67f87463ce9bb34c6e5e269e608113b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5a6233b614ccf8235cdcc7ac0e09bf12",
+            "classification": "introduced",
+            "findingId": "finding-5a6233b614ccf8235cdcc7ac0e09bf12",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "35efd6422e539e58c9d48a253c24226c8bc2e584",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1019,
+      "output_sha256": "944671dbe37f442842adf94a46a8f6b3121e76e1feb672fff57b694f33396054",
+      "reservation_id": "8538daa56dc34ce791b7aa6676295cce",
+      "round_consumed": true,
+      "scope": "impl:fn-257-extract-the-standalone-umpire.2",
+      "superseded_by": null,
+      "task": "fn-257-extract-the-standalone-umpire.2",
+      "timestamp": "2026-10-26T16:27:25.989515Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-257-extract-the-standalone-umpire.1": 1,
+    "impl:fn-257-extract-the-standalone-umpire.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -92,6 +138,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-257-extract-the-standalone-umpire.1": 0,
+    "impl:fn-257-extract-the-standalone-umpire.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-257-extract-the-standalone-umpire.md",
@@ -108,5 +155,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-26T15:35:19.343342Z"
+  "updated_at": "2026-10-26T16:27:25.998781Z"
 }

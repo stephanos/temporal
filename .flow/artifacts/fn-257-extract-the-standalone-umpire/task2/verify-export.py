@@ -320,6 +320,7 @@ def verify(args, report, failures):
                     pending.extend(export_graph.get(current, []))
             return seen
         frontiers = {}
+        ordered_frontiers = {}
         retained = 0
         pruned = 0
         boundary_results = []
@@ -338,13 +339,21 @@ def verify(args, report, failures):
             expected = projection(oid, tree)
             projected_hash = tree_digest(expected)
             mapped = mapping[oid]
+            parent_frontier = list(dict.fromkeys(
+                candidate for parent in parents for candidate in ordered_frontiers[parent]
+            ))
             if mapped:
                 retained += 1
                 require(mapped in export_graph, "reachable-mapped-history", {"old": oid, "new": mapped})
-                _, _, new_identity = commit_parts(exported.object(mapped, "commit"))
+                _, new_parents, new_identity = commit_parts(exported.object(mapped, "commit"))
                 require(identity == new_identity, "metadata", {"old": oid, "new": mapped, "fields": "raw author, committer, encoding and complete message"})
                 require(projected_hash == exported_tree_hash(mapped), "historical-projection", {"old": oid, "new": mapped})
+                require(new_parents == [parent for parent in parent_frontier if parent in new_parents],
+                        "rewritten-parent-order", {"old": oid, "new": mapped, "original_parent_frontier": parent_frontier, "actual_parents": new_parents})
+                require(all(any(parent in export_ancestors(actual) for actual in new_parents)
+                            for parent in parent_frontier), "lost-parent-ancestry", {"old": oid, "new": mapped})
                 frontiers[oid] = {mapped}
+                ordered_frontiers[oid] = [mapped]
                 disposition = "retained-and-compared"
             else:
                 pruned += 1
@@ -355,11 +364,12 @@ def verify(args, report, failures):
                     expected_hashes = {tree_digest({})}
                 require(expected_hashes == {projected_hash}, "pruned-nonneutral-projection", {"old": oid, "retained_parent_frontier": sorted(frontier)[:10]})
                 frontiers[oid] = frontier
+                ordered_frontiers[oid] = [parent for parent in parent_frontier if parent in frontier]
                 disposition = "zero-pruned; compared with nearest nonredundant retained-parent frontier"
             if oid in required:
                 boundary_results.append({"original": oid, "mapped": mapped, "disposition": disposition, "projected_files": len(expected), "projection_sha256": projected_hash})
-        report["history"] = {"original_commits": len(graph), "retained_metadata_and_snapshot_comparisons": retained, "zero_pruned_projection_comparisons": pruned, "required_boundaries_and_representatives": boundary_results, "qualification": "Recomputed graph ancestry; every original snapshot independently projected, including pre-R exclusions and host/native-tool cutoffs."}
-        report["completed_checks"].append("all mapped historical snapshots, retained metadata, and zero-pruned projection neutrality")
+        report["history"] = {"original_commits": len(graph), "retained_metadata_and_snapshot_comparisons": retained, "retained_parent_frontier_comparisons": retained, "zero_pruned_projection_comparisons": pruned, "required_boundaries_and_representatives": boundary_results, "qualification": "Recomputed graph ancestry; every original snapshot independently projected, including pre-R exclusions and host/native-tool cutoffs. Retained parents follow original frontier order; omitted parents must remain ancestors of retained parents."}
+        report["completed_checks"].append("all mapped historical snapshots, retained metadata, rewritten parent frontiers/order and zero-pruned projection neutrality")
         missing_required = required - set(graph)
         require(not missing_required, "required-history-coverage", sorted(missing_required))
         roles = {item["role"] for item in history["representative_history"]}

@@ -15,11 +15,16 @@ historical support files under `.history-support/`. Remove those support copies 
 the separate portable-layout commit, retaining their history. No module identity,
 protocol, semantic golden or Model adaptation is part of this checkpoint.
 
-`verification-final.json` independently compares every available original snapshot:
+`verification-with-parent-edges.json` independently compares every available original snapshot:
 581 retained commits preserve raw author/committer/date/message/encoding metadata;
 6,568 pruned commits are projection-neutral. Both sibling archive moves, old host
 paths and native-tool paths are included. The verifier reads raw Git trees/objects;
 it does not import the filter's projection implementation.
+Retained parent edges must follow the original retained-frontier order; an omitted
+parent must remain an ancestor of a retained parent. `parent-edge-negative.json`
+records an injected sibling parent with unchanged snapshots/metadata: the previous
+verifier accepted it, and the corrected verifier rejects it. The actual export
+passes all 581 retained-parent comparisons.
 
 `reproduction-and-preservation.json` records identical export commits/maps from two
 fresh clones and unchanged refs, indexes and product states across all 36 source

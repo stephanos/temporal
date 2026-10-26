@@ -1,0 +1,81 @@
+{
+  "type": "impl_review_fanout",
+  "focus": "Review task 2 history export only. Read task2 README/checkpoint and the three helper tools; query large machine evidence with bounded JSON keys, do not dump full diffs/manifests/maps or binary bundle. Source frozen c88; input original repo is shallow only before Feb5, all Oct Rust births and both archive siblings are present. Independent verifier checked every available snapshot/metadata, current1178files, pruning neutrality; two clones identical; original36 worktrees/56dirtypaths preserved. Private clones cleaned and bundle recovery proved. Source working HEAD legitimately advanced for evidence commits; do not rerun verifier with old8bc root baseline unless testing its refusal; use actual current HEAD if rechecking. New fn2574 provisional worktree was intentionally added only after export/preservation proof and is outside that earlier36-worktree observation; no candidate removed. No Rust/Go builds or runtime tests under owner hold; Git object/inventory checks only. Portable adaptation, consumer generation, CI/live gates/publication are later tasks, not missing task2 implementation. Inspect destructive Git isolation guards and merge/pruning correctness rigorously.",
+  "claim_token": null,
+  "id": "fn-257-extract-the-standalone-umpire.2",
+  "standalone": false,
+  "base_branch": "8bcf4c9fa6",
+  "reviewed_base_sha": "8bcf4c9fa67f87463ce9bb34c6e5e269e608113b",
+  "reviewed_head_sha": "35efd6422e539e58c9d48a253c24226c8bc2e584",
+  "artifact_sha256": "958d12b7a15c68c23bd1225413780f94638d4ce3fd7372388d66c73163ae37cb",
+  "reservation_id": "8538daa56dc34ce791b7aa6676295cce",
+  "rid": "8538daa56dc34ce791b7aa6676295cce",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a17901-68bb-7fb2-af7b-af37e9c92b85",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-26T16:18:17.329685Z",
+      "finished_at": "2026-10-26T16:22:37.926940Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/8538daa56dc34ce791b7aa6676295cce/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/8538daa56dc34ce791b7aa6676295cce/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a17901-68bc-7e21-bc05-8b426075395e",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-26T16:18:17.329813Z",
+      "finished_at": "2026-10-26T16:21:51.306748Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/8538daa56dc34ce791b7aa6676295cce/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/8538daa56dc34ce791b7aa6676295cce/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a17901-68bc-7de3-8b53-64bc20d81a91",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-26T16:18:17.329984Z",
+      "finished_at": "2026-10-26T16:21:31.612240Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/8538daa56dc34ce791b7aa6676295cce/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/8538daa56dc34ce791b7aa6676295cce/integration.out.txt"
+    }
+  ],
+  "receipt_path": ".flow/tmp/fn257-task2-review.json",
+  "created_at": "2026-10-26T16:22:37.937580Z"
+}

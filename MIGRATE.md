@@ -4,7 +4,9 @@ Status: local execution preparation under [fn-257](.flow/specs/fn-257-extract-th
 Destination: <https://github.com/temporalio/umpire>. The owner requested migration;
 remote creation, push, release and source removal remain separate authorization boundaries.
 The current validation hold permits source preparation, with execution proofs still pending.
-The 2026-10-26 destination probe returned HTTP 401; its contents and permissions remain unknown.
+The 2026-10-26 CLI probe returned HTTP 401. The connected GitHub app also returned
+HTTP 403 because `temporalio` requires SAML SSO authorization for that connection;
+destination contents and permissions remain unknown.
 
 The local history export is verified at `cf8bec4d6`: 1,178 selected files, 581
 retained commits and projection-neutral pruning of 6,568 other available commits.
