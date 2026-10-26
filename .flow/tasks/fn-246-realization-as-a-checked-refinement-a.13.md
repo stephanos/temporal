@@ -8,11 +8,11 @@ Author R5's independent standalone-activity protocol Model and native/TLC fixtur
 
 **Size:** M
 **Files:** new shared protocol/activity Model, its authored tests and expected outputs, fixture discovery/exports only where current conventions require registration.
-**Touches:** [model/temporal/shared/protocol/activity/**, model/temporal/testing/fixtures.rs, model/temporal/testing/build.rs, model/temporal/realization/src/lib.rs]
+**Touches:** [model/temporal/shared/protocol/activity/**, model/temporal/testing/fixtures.rs, model/temporal/testing/build.rs, model/temporal/realization/src/lib.rs, model/temporal/testing/snapshot_ownership.rs, model/temporal/feature/activity/**, model/temporal/hosts/go/umpire_temporal_guest.wasm, tools/canary/policy/production-canary.json]
 
 ### Approach
 
-Consume task .15's committed, independently proved corrected timeout-retry baseline. This task introduces no further Model-policy changes and preserves the original independent lifecycle checkpoint outside the approved retry cell.
+Consume task .15's committed, independently proved corrected timeout-retry baseline. The 2026-10-26 explicit user approval additionally corrects pending-cancellation worker-failure/local-timeout outcomes to the pinned API Failed/TimedOut results. Scheduled cancellation and explicit worker acknowledgement remain Canceled. Other Model policies and the original atomic lifecycle checkpoint remain unchanged; retain task15 retry behavior.
 
 All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
 
@@ -54,3 +54,11 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Approved cancellation correction and parameter boundary (2026-10-26)
+
+The explicit user reply is retained at `.flow/artifacts/fn-246-realization-as-a-checked-refinement-a/task13/planning/approved-api-correction.json`. Amend the independent contract from primary pinned API evidence, correct the feature cancellation cells and author the new protocol independently, then renew native/TLC proofs. Preserve historical evidence rather than rewriting the old chosen-policy artifact. New shared protocol snapshots belong to the snapshot-ownership gate.
+
+Raw Start requests and effective modeled budgets are separate types/contracts. New raw admission must implement and test the pinned explicit defaults at its named boundary; effective parameters remain exact, with None and present-zero distinct and no hidden fallback/clamping. Existing all-absent or otherwise non-API-realizable checker Worlds remain explicitly labelled abstract scopes, never claimed accepted raw requests. Preserve their exploration rather than silently excluding them. Do not change the feature Model's timeout-absence policy without a separate concrete decision if one becomes necessary.
+
+Conditional generated guest and canary modelHash paths are declared for actual changed-input reproduction/publication only; compare exact bytes first. Coordinate code-generation ownership with task9 before publication. No Task9 runtime/proto/Go edits belong here.
