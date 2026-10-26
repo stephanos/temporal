@@ -17,10 +17,9 @@ Umpire uses the Rust workspace described in [model/README.md](model/README.md).
 Its guest runs as stock WASM in a pure Go host.
 The Scala tree under `model/archived/` is frozen reference material.
 
-Repository extraction now has an explicit execution record, **fn-257**. Prepare its
-local export and sibling consumers first under the owner's migration goal. The
-validation hold and unknown destination state still block final proof/publication;
-source preparation does not wait for every existing spec to close.
+The owner set repository extraction (**fn-257**) aside. Preserve its committed
+source candidates and recovery evidence; return to the backlog order below.
+The validation hold is lifted, so focused checks may resume.
 
 Backlog order remains **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
@@ -65,7 +64,8 @@ reviewed validation evidence and a committed validation-cost assessment.
 
 ### fn-257: Extract the standalone Umpire repository
 
-The independent framework source remains authoritative inside Temporal. Its local
+Deferred by the owner on 2026-10-26; no migration validation, publication or cutover
+is currently scheduled. The independent framework source remains authoritative inside Temporal. Its local
 history export is verified at `cf8bec4d6`, with 581 retained commits and a recoverable
 bundle. Prepare its portable root, then give Temporal an uncommitted local
 Cargo/Go development loop against a sibling checkout. Current source checkpoint
@@ -83,11 +83,11 @@ the required current-pair proof. Plan review passed; focused build/test validati
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-257.3 | 🔄 in progress | Portable root, canonical Go identities/descriptors and docs/CI checkpointed in sibling prep branch at `f7b42ce255`; source review found no actionable issues; execution validation now authorized (R3) |
-| fn-257.4 | ⬜ todo | Rust/Go/protobuf candidate checkpointed at `91547f57ec`; source review found no actionable issues. Inactive paired CI interface prepared. Active CI/auth wiring and admission wait for .3/.7 and execution evidence (R4) |
-| fn-257.7 | 🔄 in progress | Multi-repository Quick selection and regression cases assembled at `f7b42ce255`; source review found no actionable issues; focused tests now authorized (R3, R4) |
-| fn-257.5 | ⛔ blocked | After .3/.4: exact isolated/paired proof, guest/generator checks and uncommitted Rust/Go red-green tests (R3–R5) |
-| fn-257.6 | ⛔ blocked | After .5, working destination access and final authorization: preserve destination history, transfer all pending candidates, cut over one source owner (R1, R6) |
+| fn-257.3 | ⏸️ deferred | Portable root, canonical Go identities/descriptors and docs/CI checkpointed in sibling prep branch at `f7b42ce255`; source review found no actionable issues; execution validation now authorized (R3) |
+| fn-257.4 | ⏸️ deferred | Rust/Go/protobuf candidate checkpointed at `91547f57ec`; source review found no actionable issues. Inactive paired CI interface prepared. Active CI/auth wiring and admission wait for .3/.7 and execution evidence (R4) |
+| fn-257.7 | ⏸️ deferred | Multi-repository Quick selection and regression cases assembled at `f7b42ce255`; source review found no actionable issues; focused tests now authorized (R3, R4) |
+| fn-257.5 | ⏸️ deferred | After .3/.4: exact isolated/paired proof, guest/generator checks and uncommitted Rust/Go red-green tests (R3–R5) |
+| fn-257.6 | ⏸️ deferred | After .5, working destination access and final authorization: preserve destination history, transfer all pending candidates, cut over one source owner (R1, R6) |
 
 ### fn-254: Fast validation gates and a real inner loop
 
@@ -105,7 +105,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | Name | Status | What |
 | --- | --- | --- |
 | fn-254.5 | ⬜ todo | Candidates prepared: 24 fixture cases, compiler batching, 63 parser-table cases with 16 compiler cases retained, discovery heap cap and dead-target removal; integration/validation pending (R4, R5) |
-| fn-254.6 | 🔄 in progress | Correct consumer/cache proof retained; Kettle shared-source selection fix and regression control brought forward from .17 into `umpire`. Execution, review finalization and closure pending under the validation hold; warm target still missed (R2) |
+| fn-254.6 | 🔄 in progress | Correct consumer/cache proof retained; Kettle shared-source selection fix and regression control brought forward from .17 into `umpire`. Focused execution resumed; review finalization and closure remain. Warm target still missed (R2) |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
 | fn-254.12 | ⬜ todo | Budget parser/count/retry candidate assembled; real receipt producers and native wiring underway. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
