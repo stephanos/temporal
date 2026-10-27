@@ -46,7 +46,7 @@ fn listing_from_value(
             .filter_map(serde_json::Value::as_str)
             .find_map(|value| value.strip_prefix("UMPIRE_GATE_SCOPE="))
             .unwrap_or("");
-        if !["", "framework", "temporal"].contains(&scope) {
+        if !scope.bytes().all(|byte| byte.is_ascii_alphanumeric() || byte == b'-') {
             return Err(io::Error::other("invalid mise stage scope"));
         }
         let identity = if scope.is_empty() { name.to_owned() } else { format!("{scope}/{name}") };
@@ -152,7 +152,7 @@ fn scheduled_with(
         .filter(|path| path.is_absolute() && path.is_dir())
         .ok_or_else(|| io::Error::other("missing invocation-local stage receipt directory"))?;
     let scope = env::var("UMPIRE_GATE_SCOPE").unwrap_or_default();
-    if !["", "framework", "temporal"].contains(&scope.as_str()) {
+    if !scope.bytes().all(|byte| byte.is_ascii_alphanumeric() || byte == b'-') {
         return Err(io::Error::other("invalid stage receipt scope"));
     }
     let directory = if scope.is_empty() { directory } else { directory.join(&scope) };
@@ -193,7 +193,7 @@ pub(super) fn collect(directory: &Path, expected: &[String], success: bool) -> i
         let path = entry?.path();
         if path.is_dir() {
             let scope = path.file_name().and_then(|n| n.to_str()).unwrap_or_default();
-            if !["framework", "temporal"].contains(&scope) {
+            if !expected.iter().any(|name| name.starts_with(&format!("{scope}/"))) {
                 return Err(io::Error::other("unexpected receipt directory"));
             }
             for entry in fs::read_dir(path)? {
@@ -426,9 +426,9 @@ mod receipt_controls {
     #[test]
     fn scoped_receipts_keep_duplicate_public_names_and_logical_order() -> io::Result<()> {
         let directory = tempfile::tempdir()?;
-        write(directory.path(), "temporal/fmt", 0)?;
+        write(directory.path(), "extension/fmt", 0)?;
         write(directory.path(), "framework/fmt", 0)?;
-        let names = vec!["framework/fmt".into(), "temporal/fmt".into()];
+        let names = vec!["framework/fmt".into(), "extension/fmt".into()];
         let bytes = collect(directory.path(), &names, true)?;
         let rows = String::from_utf8(bytes).map_err(io::Error::other)?;
         let rows = rows
@@ -436,7 +436,7 @@ mod receipt_controls {
             .map(serde_json::from_str::<serde_json::Value>)
             .collect::<Result<Vec<_>, _>>()?;
         assert_eq!(rows[0]["scope"], "framework");
-        assert_eq!(rows[1]["scope"], "temporal");
+        assert_eq!(rows[1]["scope"], "extension");
         assert!(rows.iter().all(|row| row["stage"] == "fmt"));
         Ok(())
     }
@@ -447,7 +447,8 @@ mod receipt_controls {
         let directory = tempfile::tempdir()?;
         write(directory.path(), "framework/fmt", 37)?;
         fs::write(directory.path().join("framework/tests.claim"), b"")?;
-        let names = vec!["framework/fmt".into(), "framework/tests".into(), "temporal/tests".into()];
+        let names =
+            vec!["framework/fmt".into(), "framework/tests".into(), "extension/tests".into()];
         assert!(collect(directory.path(), &names, true).is_err());
         assert_eq!(failed(directory.path(), &names), Some(37));
         let bytes = collect(directory.path(), &names, false)?;

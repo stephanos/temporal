@@ -59,10 +59,10 @@ only select this route. Child exit codes and signal statuses propagate to the ga
 
 ## Stage graph and host admission
 
-`src/gate/tasks.toml` is the framework stage DAG. The framework mise config includes it; the Temporal root includes the same file and adds its own stages and cross-workspace resource edges. Native stage listing, receipt order and standalone completeness read actual mise task metadata. Mise 2026.10.11 is the verified minimum; production commands do not probe capabilities.
+`src/gate/tasks.toml` is the framework stage DAG. The framework mise config includes it; a system root includes the same file and adds its own stages and cross-workspace resource edges. Native stage listing, receipt order and standalone completeness read actual mise task metadata. Mise 2026.10.11 is the verified minimum; production commands do not probe capabilities.
 
 One supervisor retains the host lease through each public gate, quick or test invocation and descendant cleanup. Leased descendants receive a validated file descriptor, including the clean standalone child. Mise owns dependency scheduling; native supervision polls failed stage receipts and cancels owned work when descendant pipes keep mise pending. Independent read-only checks can overlap. Shared Cargo targets, generated outputs, JVM phases and Go work retain conservative graph barriers until combined admission proves additional overlap.
 
-Invocation records preserve public stage names and qualify their scope as `framework/<stage>` or `temporal/<stage>`. Every expected stage receives a success, failure, skipped, cancelled, not-started or partial record in logical order. Missing or invalid successful receipts fail. Parent and isolated-child suites remain separate authorities. Raw stage timings and counts feed the later budget task; inclusive parent time is not the sum of overlapping stage times.
+Invocation records preserve public stage names and qualify their scope as `framework/<stage>` or `system/<stage>`. Every expected stage receives a success, failure, skipped, cancelled, not-started or partial record in logical order. Missing or invalid successful receipts fail. Parent and isolated-child suites remain separate authorities. Raw stage timings and counts feed the later budget task; inclusive parent time is not the sum of overlapping stage times.
 
 `test-run --package NAME` uses the selected runner's exact package inventory, nextest policy and eligible scoped Cargo doctests. Full workspace test execution retains its separate doctest phase.
