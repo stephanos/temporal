@@ -118,7 +118,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
 | fn-254.12 | ⬜ todo | Budget parser/retry candidate retained; consume .17 Rust/TLC receipts, add actual Go-host counts, then admit tables against final .15/.16 interfaces. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
-| fn-254.15 | ⬜ todo | Native ports/callers assembled; only two bootstraps and four control shells remain. Complete native fixture adaptation before removing control shells and validating (R7) |
+| fn-254.15 | ⬜ todo | Integrated tree has 29 active shell paths; retained source candidate reduces these to two bootstraps/four controls. Adapt ports to .17 supervision and final .16 interfaces, finish native controls and validate (R7) |
 | fn-254.16 | 🔄 in progress | Validate the retained mise TLC/opt-in Apalache provider against closed .17: actual clean installs, runtime hash/path admission and failure controls, then review/integrate (R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling

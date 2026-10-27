@@ -23,6 +23,22 @@ Runs after .13 (framework copies in `model/umpire/scripts/`, Temporal copies in 
 - Framework xtask stays free of Temporal names (fn-254 R7 standalone control still passes).
 - Byte-for-byte compatibility with the old script output is not required.
 
+
+### Source readiness after .17 closure (2026-10-27)
+
+The integrated tree still has29active shell paths. Committed source snapshot
+`7cf05d1c53` reduces them to six: two bootstraps and four deliberately retained
+control shells. This is preparation, not the final two-bootstrap acceptance.
+Exact source object IDs, current/prepared inventories and remaining adaptation
+gaps are recorded in `task15/readiness-20261027.json` under this spec's artifacts.
+Use committed objects selectively; dirty source-assembly is not an input.
+
+Preserve .17's owned timing/cleanup/lease/count contracts and authoritative
+`test-run --package` route; prepared timing code still has raw spawn/status paths.
+Preserve final .16 provider interfaces and runtime admission. Native Make controls
+must cover current prerequisites/bootstrap/quick/CI-floor cases, and all four
+remaining shell controls need native coverage before deletion. Task execution
+continues to require committed .16 closure; this read-only report advances no dependency.
 ## Acceptance
 - [ ] `find model -name '*.sh' -not -path '*/target/*' -not -path '*/archived/*' -not -path '*/design/*'` lists only the xtask bootstrap script(s); the archived and design probes are out of scope.
 - [ ] Every removed script's job is reached through `cargo xtask <cmd>`, a guest-driver subcommand or a Makefile recipe. Root `Makefile`, the framework gate and the docs call the new forms, and an `rg` check finds no references to deleted scripts in active source callers, maintained tests or maintained user/developer documentation. Preserve historical specs, completion records, review artifacts and archived/design evidence that name the former scripts.
