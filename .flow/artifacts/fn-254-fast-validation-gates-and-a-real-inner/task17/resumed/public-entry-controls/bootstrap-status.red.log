@@ -1,0 +1,11 @@
+orchestration control expected exit 37, got 127: step (warm)                         time
+backend modes: UMPIRE_BACKENDS=skip (default) UMPIRE_APALACHE=skip (default)
+gate command: UMPIRE_TIME_STEPS=1 make -C /tmp/umpire-fn25417-public-entry/tmp.lZGMS9ZI0G model-check
+make: Entering directory '/tmp/umpire-fn25417-public-entry/tmp.lZGMS9ZI0G'
+gate stdout diagnostic
+gate stderr diagnostic
+make: Leaving directory '/tmp/umpire-fn25417-public-entry/tmp.lZGMS9ZI0G'
+inner source: inner.rs
+inner command: helper=$(bash "/tmp/umpire-fn25417-public-entry/tmp.lZGMS9ZI0G/model/umpire/scripts/xtask.sh"); "$helper" test-run --package control-checker
+bootstrap failed
+model/scripts/time-gate.sh: line 55: : command not found

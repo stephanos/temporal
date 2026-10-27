@@ -2,7 +2,7 @@
 
 The owner's overview of open work, execution order and blockers.
 
-As of 2026-10-26.
+As of 2026-10-27.
 
 ## Keeping this page current
 
@@ -38,8 +38,8 @@ and retain unvalidated candidates until their required evidence and reviews pass
 The fn-254.5 fixture/compiler checkpoint is reviewed and closed on `umpire`: all 24 cases,
 Temporal compiler/activity checks, 61 parser rows plus 18 compiler refusals, bounded profiles
 and snapshot repair controls passed. Candidates for .15/.16/.17 and .12 remain in the isolated source-assembly branch.
-Task .17's actual mise probe verified scheduling but found descendant cleanup gaps; native supervision and shared JVM admission remain implementation work.
-Remaining implementation includes actual receipt counters, budget wiring, mise compatibility and native control fixtures.
+Task .17's shared mise task graph, batched runner and supervisor source are joined on `umpire`. Focused quick/process checks pass; joined graph, shared admission and real standalone/throughput proofs remain. Darwin escaped-descendant cleanup is unresolved.
+Remaining work includes joined graph/resource proof, actual receipt counters, budget wiring and native control ports.
 Candidates are unvalidated and not integrated into `umpire`;
 preparation does not advance Flow dependencies or mark tasks complete. Integrate shared CLI/configuration
 changes in dependency order. fn-246.9/.13 have retained source/proof checkpoints awaiting integration and closure.
@@ -114,7 +114,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.12 | ⬜ todo | Budget parser/count/retry candidate assembled; real receipt producers and native wiring underway. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
 | fn-254.15 | ⬜ todo | Native ports/callers assembled; only two bootstraps and four control shells remain. Complete native fixture adaptation before removing control shells and validating (R7) |
 | fn-254.16 | ⬜ todo | Mise TLC/opt-in Apalache provisioning candidate prepared; runtime hash/path admission retained. Integrate after .17, then validate installs and failures (R7) |
-| fn-254.17 | 🔄 in progress | Priority 0: consume closed .5/.6; port nextest and one mise DAG. Actual mise scheduling verified; shared lease, supervisor custody/cleanup, portable behavior and frozen-candidate proof remain (R4, R5, R7) |
+| fn-254.17 | 🔄 in progress | Priority 0: shared graph/runner/supervisor source joined; focused quick/process checks pass. Joined native controls, exact inventories, real shared admission/standalone/throughput and Darwin cleanup remain (R4, R5, R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 

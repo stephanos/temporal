@@ -47,9 +47,14 @@ total=$({ time UMPIRE_TIME_STEPS=1 make -C "$root" model-check >"$gate_log" 2>&1
 cat "$gate_log"
 
 test -f "$root/model/$inner_file"
-printf 'inner source: %s\ninner command: mise exec -- cargo test --manifest-path %s/model/umpire/Cargo.toml -p %s --quiet\n' "$inner_file" "$root" "$inner_crate"
+printf 'inner source: %s\ninner command: helper=$(bash "%s/model/umpire/scripts/xtask.sh"); "$helper" test-run --package %s\n' "$inner_file" "$root" "$inner_crate"
 touch "$root/model/$inner_file"
-framework_inner() { mise exec -- cargo test --manifest-path "$root/model/umpire/Cargo.toml" -p "$inner_crate" --quiet; }
+framework_inner() {
+  local helper
+  helper=$(/bin/bash "$root/model/umpire/scripts/xtask.sh") || return "$?"
+  MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false UMPIRE_QUICK_CACHE=0 UMPIRE_CACHE_DISABLE=1 \
+    "$helper" test-run --package "$inner_crate"
+}
 out=$(step "inner loop (edit+test)" framework_inner); echo "${out%$'\n'*}"; inner=${out##*$'\n'}
 
 printf '%-32s %6ss  (soft target %ss)\n' "gate total" "$total" "$GATE_BUDGET"

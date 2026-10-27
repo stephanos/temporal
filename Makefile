@@ -1267,7 +1267,6 @@ model-quick:
 model-check: override export UMPIRE_QUICK_CACHE = 0
 model-check: override export UMPIRE_CACHE_DISABLE = 1
 model-check: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(API_BINPB)
-	@$(RUST_MODEL_FRAMEWORK) gate
 	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- gate
 
 model-fmt:
@@ -1276,7 +1275,7 @@ model-fmt:
 
 model-update:
 	@$(RUST_MODEL_FRAMEWORK) update
-	@INSTA_UPDATE=always TRYBUILD=overwrite $(RUST_MODEL_CARGO) test --manifest-path "$(CURDIR)/model/Cargo.toml" --workspace --quiet
+	@INSTA_UPDATE=always TRYBUILD=overwrite $(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- test-run
 
 model-time:
 	@printf $(COLOR) "Time the model feedback loop (fn-210 R30)..."

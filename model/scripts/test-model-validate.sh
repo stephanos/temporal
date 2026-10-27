@@ -5,7 +5,7 @@ cd "$(dirname "$0")/../.."
 # Controls use the shipping Make recipes and timer, with disposable child work only.
 control=$(mktemp -d)
 trap 'rm -rf "${control:?}"' EXIT
-mkdir -p "$control/model/scripts" "$control/model/umpire" "$control/bin" "$control/output"
+mkdir -p "$control/model/scripts" "$control/model/umpire/scripts" "$control/bin" "$control/output"
 cp model/scripts/time-gate.sh "$control/model/scripts/"
 printf 'control source\n' > "$control/model/inner.rs"
 export UMPIRE_INNER_SOURCE=inner.rs UMPIRE_INNER_CRATE=control-checker
@@ -21,18 +21,33 @@ model-check:
 	@printf 'gate:%s:%s\n' "$${UMPIRE_BACKENDS-unset}" "$${UMPIRE_APALACHE-unset}" >> "$$CONTROL_LOG"
 	@printf 'gate stdout diagnostic\n'; printf 'gate stderr diagnostic\n' >&2; exit "$${CONTROL_GATE_STATUS:-0}"
 MAKE
-cat > "$control/bin/mise" <<'CHILD'
+cat > "$control/model/umpire/scripts/xtask.sh" <<'BOOTSTRAP'
+#!/usr/bin/env bash
+if [ "${CONTROL_BOOTSTRAP_STATUS:-0}" -ne 0 ]; then
+  printf 'bootstrap failed\n' >&2
+  exit "$CONTROL_BOOTSTRAP_STATUS"
+fi
+printf '%s\n' "$CONTROL_MODEL/bin/framework"
+BOOTSTRAP
+cat > "$control/bin/framework" <<'CHILD'
 #!/usr/bin/env bash
 set -euo pipefail
-[ "$*" = "exec -- cargo test --manifest-path $CONTROL_MODEL/model/umpire/Cargo.toml -p control-checker --quiet" ]
+[ "$*" = "test-run --package control-checker" ]
 [ "$CARGO_HOME:$CARGO_TARGET_DIR" = relative-home:relative-target ]
+[ "$UMPIRE_QUICK_CACHE:$UMPIRE_CACHE_DISABLE" = 0:1 ]
+[ "$MISE_AUTO_INSTALL:$MISE_EXEC_AUTO_INSTALL" = false:false ]
 [ "$PWD" = "$CONTROL_MODEL" ]
 printf 'benchmark:%s:%s\n' "${UMPIRE_BACKENDS-unset}" "${UMPIRE_APALACHE-unset}" >> "$CONTROL_LOG"
 printf 'benchmark stdout diagnostic\n'
 printf 'benchmark stderr diagnostic\n' >&2
 exit "${CONTROL_BENCHMARK_STATUS:-0}"
 CHILD
-chmod +x "$control/bin/mise"
+cat > "$control/bin/mise" <<'CHILD'
+#!/usr/bin/env bash
+printf 'unexpected direct mise test invocation: %s\n' "$*" >&2
+exit 92
+CHILD
+chmod +x "$control/bin/mise" "$control/bin/framework"
 export PATH="$control/bin:$PATH"
 make_bin=$(command -v make)
 cd "$control"
@@ -93,4 +108,5 @@ done
 run_control 2 'gate:require:unset' env CONTROL_GATE_STATUS=37 "$make_bin" model-validate
 run_control 2 $'gate:require:unset\nbenchmark:require:unset' env CONTROL_BENCHMARK_STATUS=37 "$make_bin" model-validate
 run_control 37 $'gate:unset:unset\nbenchmark:unset:unset' env CONTROL_BENCHMARK_STATUS=37 bash model/scripts/time-gate.sh
+run_control 37 'gate:unset:unset' env CONTROL_BOOTSTRAP_STATUS=37 bash model/scripts/time-gate.sh
 printf 'Model orchestration controls passed (fake children; no execution evidence).\n'

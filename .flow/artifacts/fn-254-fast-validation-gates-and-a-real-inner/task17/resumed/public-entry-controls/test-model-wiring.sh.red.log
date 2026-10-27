@@ -1,0 +1,2 @@
+combined gate wiring expected <temporal|/tmp/tmp.En67kj8C1g|exec -- cargo run --manifest-path /tmp/tmp.En67kj8C1g/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- gate|0|1>, got <framework|/tmp/tmp.En67kj8C1g|gate|0|1
+temporal|/tmp/tmp.En67kj8C1g|exec -- cargo run --manifest-path /tmp/tmp.En67kj8C1g/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- gate|0|1>

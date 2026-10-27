@@ -1,0 +1,61 @@
+{
+  "at": "2026-10-27T00:17:35.398741+00:00",
+  "root_parent": "acb290e160",
+  "source_commits": [
+    "5246f7a1c8",
+    "356a12469f",
+    "dcb41ebcdd",
+    "acb290e160"
+  ],
+  "source_files": {
+    "Makefile": "a04d46275f195d257ba599668175cf11e0c6fe526edbf1a0c4ceb90ec82ffdeb",
+    "mise.toml": "25f0bf78c59a1b894def70c1b1c3ed4d0d11b24f9cb82eca4e742c930c2d8962",
+    "model/Cargo.lock": "b9fdce7093d7014ffa4a8d8fa4f91f81c03e54dac3bb49be84807e10c1db9a43",
+    "model/README.md": "21c35d19180e7348f6f8a34d38172e22475c70dde9787fd5b0a16b7e68a2f911",
+    "model/dev/xtask/Cargo.toml": "67bb0982387b0ff81c152e04fa242c7ba1c113aef1854b5da3a642eb77ea9d6f",
+    "model/dev/xtask/src/gate.rs": "716d2a3e1b11ad9cb9eb92c022f422e6cf4b83580dd60d6db736124ca3341878",
+    "model/dev/xtask/src/main.rs": "95e2f191820f9adc36aebf222655b469d73a07d1a4dafdbf92eff5b86f578e5b",
+    "model/dev/xtask/src/quick/mod.rs": "6535d2eeb49fa52c9fb291f36f71a68441e6cfefbffe708ea58d0f9a8b924ffd",
+    "model/dev/xtask/src/test_run.rs": "204a40f595c138408fbfce6040a79606e94f38ea77cc63a2784e84aba33ea353",
+    "model/scripts/test-model-validate.sh": "0e82a34d1f3c976db76b407b6f07bcd9e23bb9e5246feed708ffd51a4208b083",
+    "model/scripts/test-model-wiring.sh": "c195638869696ae1da15e432cf4f2d1aa92f7371c6d371561cad19b473e4642d",
+    "model/scripts/time-gate.sh": "abceca4440cc626f5b343076db7912ce29bb448d5fb7da5a380a989eb43e0eef",
+    "model/umpire/Cargo.lock": "fee0845e49a7e6719bafdf556ada08113d0cc21c43fce94ada81fc6f7b2c6d44",
+    "model/umpire/backends/process/src/support.rs": "9b550237605f6606ebbe0dd100b6e1a4317e12899084b5f1684c18d0f70a8430",
+    "model/umpire/backends/process/src/syscall.rs": "6ec80ab0081abbf02c2ef2934023f6f6d7559ebc24432038fe0fb38133a18011",
+    "model/umpire/backends/process/tests/fixtures/process_fixture.rs": "3e6266b305ce30eb615ddbb01c6827c638b3b714c26ef829510d5df8e87dc89d",
+    "model/umpire/backends/process/tests/process.rs": "698a76a530cb1a83bb723f029b5bb0a314447bef92f7780ea5ea6d22703e509c",
+    "model/umpire/dev/xtask/Cargo.toml": "52bd4c88b82d6752f5d7b41c9b8ffdccebd287278f19cb9ae5f3829bc132d0a2",
+    "model/umpire/dev/xtask/README.md": "51ecceaca4f3179bd7535c080bc3ecf1d1109382f8dcfb8f88abd7d88f98691c",
+    "model/umpire/dev/xtask/src/gate.rs": "e17b42283f81b26470af40818dfdf7b96456caeb8212adae232b0bb3e5c813c5",
+    "model/umpire/dev/xtask/src/gate/lease.rs": "a20b1653d8c84c69b19101cf2a5f9689693c7405b71118ebe44426f5e741865e",
+    "model/umpire/dev/xtask/src/gate/scheduler.rs": "4b5b7da288f27572a044328d56625c915cefc64dc35e0c42fa62f75e8bf5d62f",
+    "model/umpire/dev/xtask/src/gate/standalone.rs": "a4d60ee5e1d91b9432a7b648807e80438568918eca22fc136e933a22bd086092",
+    "model/umpire/dev/xtask/src/gate/tasks.toml": "348ddfdd3d7384476f85acbcd72dc32ce875f70e3066f65d2bd751b815d9a5b8",
+    "model/umpire/dev/xtask/src/main.rs": "6abca35428733a04b0afb3b3a0bfeedee583df9db6c0d7abeba5b61b33072444",
+    "model/umpire/dev/xtask/src/quick/mod.rs": "c04a0c8384114e730a5a14c9f99979dd09a2a86a083cc9097e20272bced74270",
+    "model/umpire/dev/xtask/src/quick/selection.rs": "7b45f3b6b5e18d594d89ae0d4b64fa878059864a17d622759c28cd395c5ae4eb",
+    "model/umpire/dev/xtask/src/quick/tests.rs": "ad237decf4206955772c34224c49fbb9be593841e43c85bcff3b1679912c7193",
+    "model/umpire/dev/xtask/src/test_run.rs": "093857b18d0529400d1c2bf54ffd2e35004014c4676105e00a430aa3ec577290",
+    "model/umpire/dev/xtask/tests/gate_graph.rs": "27669cd28213ccf124e033ec845827c52c6fa24e8119bd9f2b488de25a32b495",
+    "model/umpire/dev/xtask/tests/gate_wiring.rs": "18ef253ca6730828479ba839e96308e2a98d53d4a9b72d8b1f52b85d9604054e",
+    "model/umpire/dev/xtask/tests/main.rs": "3390e225d8e0d5779e62e4a7c2ed60c7950b2ec603d3ef0e2a6aa40360c8a136",
+    "model/umpire/mise.toml": "17e680c4d4ce2aa8c2a01c006ea58c4b07405f7e18bdbebfe43dd72eba7b0ec0"
+  },
+  "registry_tuples": 119,
+  "registry_projection_unchanged_from_task5_closure": true,
+  "validated_slices": [
+    "Native process19lib+23integration,strictprocesslint andcustodymutation",
+    "Quick52lib/actualpinnednextest52,strictscope lint;Temporalrunner6+bridge1",
+    "Actualmise2026.10.11 sharedtaskinclude/dependencies/overlap andFD9transport",
+    "RootpublicMake/timer realscriptcontrols withfakechildren,includingbootstrapfailure37"
+  ],
+  "pending": [
+    "JoinedRusttypecheck/lint/nativegraph/authority/failure/resourcecontrols",
+    "RealindependentinvocationJVMexclusionandstandalonehandoff",
+    "ExactCargo/nextestidentity/ignoredinventoryequivalence",
+    "Frozenrealcorrectconsumerquick/standaloneproof+timings",
+    "Darwinescaped/adopteddescendantownership"
+  ],
+  "complete": false
+}

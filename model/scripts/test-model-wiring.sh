@@ -29,6 +29,7 @@ set -euo pipefail
 printf 'temporal|%s|%s|%s|%s\n' "$PWD" "$*" "${UMPIRE_QUICK_CACHE-unset}" "${UMPIRE_CACHE_DISABLE-unset}" >> "$CONTROL_LOG"
 [ "$PWD" = "$CONTROL_ROOT" ]
 [ "$CARGO_HOME:$CARGO_TARGET_DIR" = relative-home:relative-target ]
+exit "${CONTROL_TEMPORAL_STATUS:-0}"
 CHILD
 chmod +x "$control/bin/mise" "$control/bin/framework"
 export PATH="$control/bin:$PATH" CONTROL_LOG="$control/calls" CONTROL_FRAMEWORK="$control/bin/framework" CONTROL_ROOT="$control"
@@ -39,7 +40,7 @@ control=$(pwd -P)
 for timed in 0 1; do
   : > "$CONTROL_LOG"
   UMPIRE_QUICK_CACHE=1 UMPIRE_CACHE_DISABLE=0 make UMPIRE_TIME_STEPS="$timed" UMPIRE_QUICK_CACHE=1 UMPIRE_CACHE_DISABLE=0 model-check > "$control/output" 2>&1
-  expected=$(printf 'framework|%s|gate|0|1\ntemporal|%s|exec -- cargo run --manifest-path %s/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- gate|0|1' "$control" "$control" "$control")
+  expected=$(printf 'temporal|%s|exec -- cargo run --manifest-path %s/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- gate|0|1' "$control" "$control")
   actual=$(cat "$CONTROL_LOG")
   if [ "$actual" != "$expected" ]; then
     printf 'combined gate wiring expected <%s>, got <%s>\n' "$expected" "$actual" >&2
@@ -48,7 +49,7 @@ for timed in 0 1; do
 done
 : > "$CONTROL_LOG"
 status=0
-CONTROL_FRAMEWORK_STATUS=37 make model-check > "$control/output" 2>&1 || status=$?
+CONTROL_TEMPORAL_STATUS=37 make model-check > "$control/output" 2>&1 || status=$?
 [ "$status" -eq 2 ]
 [ "$(wc -l < "$CONTROL_LOG" | tr -d ' ')" -eq 1 ]
 for action in fmt update; do
@@ -56,6 +57,10 @@ for action in fmt update; do
   make "model-$action" > "$control/output" 2>&1
   [ "$(wc -l < "$CONTROL_LOG" | tr -d ' ')" -eq 2 ]
   head -1 "$CONTROL_LOG" | rg -q "framework\|.*\|$action\|"
+  if [ "$action" = update ]; then
+    expected=$(printf 'temporal|%s|exec -- cargo run --manifest-path %s/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- test-run|unset|unset' "$control" "$control")
+    [ "$(tail -1 "$CONTROL_LOG")" = "$expected" ]
+  fi
   : > "$CONTROL_LOG"
   status=0
   CONTROL_FRAMEWORK_STATUS=37 make "model-$action" > "$control/output" 2>&1 || status=$?
