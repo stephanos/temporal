@@ -1,0 +1,17 @@
+{
+  "source_sha256": {
+    "model/umpire/backends/process/src/support.rs": "7b16416b5aa7a9709594e8ae5e7507dbf469645cc52cbc4b32fddf5c96158cae",
+    "model/umpire/backends/process/src/syscall.rs": "f4906abd94b97d9cd3b99cccdae2d7025b098adb70b21f13a900a4be496d8c74",
+    "model/umpire/backends/process/tests/process.rs": "836dc65df857ed44d5fc844320e6b230a796826525c05b488b64a6a98ecc6935",
+    "model/umpire/backends/process/tests/fixtures/process_fixture.rs": "a2e6bb9c28e24e1e5270cc7423edcd367f4ce43237e425cb8a0ecba2adffb41a",
+    "model/umpire/dev/xtask/src/gate/lease.rs": "a20b1653d8c84c69b19101cf2a5f9689693c7405b71118ebe44426f5e741865e",
+    "model/umpire/dev/xtask/Cargo.toml": "52bd4c88b82d6752f5d7b41c9b8ffdccebd287278f19cb9ae5f3829bc132d0a2",
+    "model/dev/xtask/Cargo.toml": "67bb0982387b0ff81c152e04fa242c7ba1c113aef1854b5da3a642eb77ea9d6f",
+    "model/umpire/Cargo.lock": "fee0845e49a7e6719bafdf556ada08113d0cc21c43fce94ada81fc6f7b2c6d44",
+    "model/Cargo.lock": "b9fdce7093d7014ffa4a8d8fa4f91f81c03e54dac3bb49be84807e10c1db9a43"
+  },
+  "compilation_admitted": false,
+  "runtime_proof_pending": true,
+  "free_bytes": 7676592128,
+  "scope": "No graph/main/runner/accounting/provider edits; fixture+syscall reused explicitly."
+}

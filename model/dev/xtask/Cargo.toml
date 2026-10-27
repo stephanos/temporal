@@ -13,9 +13,9 @@ workspace = true
 [dependencies]
 umpire-guest-driver.workspace = true
 serde_json.workspace = true
+xtask = { path = "../../umpire/dev/xtask" }
 
 [dev-dependencies]
-xtask = { path = "../../umpire/dev/xtask" }
 toml.workspace = true
 
 [[bin]]

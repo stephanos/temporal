@@ -17,10 +17,37 @@ use std::{
 #[path = "syscall/calls.rs"]
 mod calls;
 
+pub(crate) const LEASE_FD: i32 = 9;
+pub(crate) const LEASE_ENV: &str = "UMPIRE_JVM_LEASE_FD";
+
+pub(crate) fn inherited_lease() -> io::Result<File> {
+    use std::os::fd::FromRawFd;
+    // SAFETY: fcntl duplicates a live descriptor or fails; the returned descriptor
+    // is newly owned and immediately transferred to File, never borrowing raw FD9.
+    let descriptor = unsafe { libc::fcntl(LEASE_FD, libc::F_DUPFD_CLOEXEC, 10) };
+    if descriptor < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    // SAFETY: successful F_DUPFD_CLOEXEC returned a unique owned descriptor.
+    Ok(unsafe { File::from_raw_fd(descriptor) })
+}
+
+#[cfg(any(test, not(any(target_os = "linux", target_os = "macos"))))]
 fn platform_policy(platform: &str, uid: u32, euid: u32) -> io::Result<()> {
+    platform_policy_with_descendants(platform, uid, euid, crate::DescendantPolicy::Checker)
+}
+
+fn platform_policy_with_descendants(
+    platform: &str,
+    uid: u32,
+    euid: u32,
+    policy: crate::DescendantPolicy,
+) -> io::Result<()> {
     match platform {
         "linux" => Ok(()),
-        "macos" if uid != 0 && euid != 0 => Ok(()),
+        "macos" if policy == crate::DescendantPolicy::Orchestration || (uid != 0 && euid != 0) => {
+            Ok(())
+        }
         "macos" => Err(io::Error::other("Darwin descendant prevention requires a non-root user")),
         _ => Err(io::Error::other("backend process ownership supports Linux and macOS only")),
     }
@@ -28,7 +55,7 @@ fn platform_policy(platform: &str, uid: u32, euid: u32) -> io::Result<()> {
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 mod supported {
-    use super::{Command, ExitStatus, File, Path, calls, io, platform_policy};
+    use super::{Command, ExitStatus, File, Path, calls, io, platform_policy_with_descendants};
     use std::{
         collections::BTreeMap,
         ffi::{CString, OsStr, OsString},
@@ -65,23 +92,52 @@ mod supported {
             out: &File,
             err: &File,
         ) -> io::Result<Self> {
-            platform_policy(
+            Self::spawn_with_policy(
+                command,
+                fallback_directory,
+                out,
+                err,
+                crate::DescendantPolicy::Checker,
+            )
+        }
+
+        pub(crate) fn spawn_with_policy(
+            command: &Command,
+            fallback_directory: &Path,
+            out: &File,
+            err: &File,
+            policy: crate::DescendantPolicy,
+        ) -> io::Result<Self> {
+            Self::spawn_with_custody(command, fallback_directory, (out, err), policy, None, true)
+        }
+
+        pub(crate) fn spawn_with_custody(
+            command: &Command,
+            fallback_directory: &Path,
+            (out, err): (&File, &File),
+            policy: crate::DescendantPolicy,
+            lease: Option<&File>,
+            inherit_environment: bool,
+        ) -> io::Result<Self> {
+            platform_policy_with_descendants(
                 std::env::consts::OS,
                 process::getuid().as_raw(),
                 process::geteuid().as_raw(),
+                policy,
             )?;
-            let mut prepared = Prepared::new(command, fallback_directory)?;
+            let mut prepared =
+                Prepared::new(command, fallback_directory, lease.is_some(), inherit_environment)?;
             let (owner_read, owner_write) = io::pipe()?;
             let null = File::open("/dev/null")?;
             let input = duplicate(&owner_read)?;
             let output = duplicate(out)?;
             let errors = duplicate(err)?;
             let null = duplicate(&null)?;
+            let lease = lease.map(duplicate).transpose()?;
             let context = prepared.context(
-                input.as_raw_fd(),
-                output.as_raw_fd(),
-                errors.as_raw_fd(),
-                null.as_raw_fd(),
+                [input.as_raw_fd(), output.as_raw_fd(), errors.as_raw_fd(), null.as_raw_fd()],
+                policy,
+                lease.as_ref().map_or(-1, AsRawFd::as_raw_fd),
             );
             let mask = SignalMask::block(&context)?;
             // SAFETY: all child memory and descriptors are live across fork. Only
@@ -162,11 +218,20 @@ mod supported {
     }
 
     impl Prepared {
-        fn new(command: &Command, fallback_directory: &Path) -> io::Result<Self> {
+        fn new(
+            command: &Command,
+            fallback_directory: &Path,
+            leased: bool,
+            inherit_environment: bool,
+        ) -> io::Result<Self> {
             let api = calls::Api::new()?;
             let directory =
                 command.get_current_dir().unwrap_or(fallback_directory).canonicalize()?;
-            let environment = environment(command)?;
+            let mut environment = environment(command, inherit_environment)?;
+            environment.remove(OsStr::new(super::LEASE_ENV));
+            if leased {
+                environment.insert(super::LEASE_ENV.into(), super::LEASE_FD.to_string().into());
+            }
             let executable_bytes =
                 executable_candidates(command.get_program(), &directory, &environment)?;
             let mut executables =
@@ -252,10 +317,9 @@ mod supported {
 
         fn context(
             &mut self,
-            input: RawFd,
-            output: RawFd,
-            errors: RawFd,
-            null: RawFd,
+            [input, output, errors, null]: [RawFd; 4],
+            policy: crate::DescendantPolicy,
+            lease: RawFd,
         ) -> ChildContext {
             ChildContext {
                 api: &raw const self.api,
@@ -270,6 +334,8 @@ mod supported {
                 output,
                 errors,
                 null,
+                lease,
+                allow_descendants: policy == crate::DescendantPolicy::Orchestration,
                 #[cfg(target_os = "macos")]
                 default_action: &raw const self.default_action,
                 stop_action: &raw const self.stop_action,
@@ -287,8 +353,9 @@ mod supported {
         CString::new(value.as_bytes()).map_err(io::Error::other)
     }
 
-    fn environment(command: &Command) -> io::Result<BTreeMap<OsString, OsString>> {
-        let mut environment = std::env::vars_os().collect::<BTreeMap<_, _>>();
+    fn environment(command: &Command, inherit: bool) -> io::Result<BTreeMap<OsString, OsString>> {
+        let mut environment =
+            if inherit { std::env::vars_os().collect::<BTreeMap<_, _>>() } else { BTreeMap::new() };
         for (key, value) in command.get_envs() {
             if key.as_bytes().contains(&b'=') || key.as_bytes().contains(&0) {
                 return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid environment key"));
@@ -389,6 +456,8 @@ mod supported {
         output: RawFd,
         errors: RawFd,
         null: RawFd,
+        lease: RawFd,
+        allow_descendants: bool,
         #[cfg(target_os = "macos")]
         default_action: *const libc::sigaction,
         stop_action: *const libc::sigaction,
@@ -424,7 +493,10 @@ mod supported {
             if api.setpgid(0, 0) != 0 || !install_signals(context) {
                 child_error(api, c"cannot establish backend supervisor".as_ptr());
             }
-            close_descriptors(api, 4, context.close_limit);
+            if context.lease >= 0 && api.dup2(context.lease, super::LEASE_FD) < 0 {
+                child_error(api, c"cannot retain orchestration lease".as_ptr());
+            }
+            close_descriptors_with_lease(api, 4, context);
             #[cfg(target_os = "linux")]
             let children = {
                 if !api.subreaper() {
@@ -553,9 +625,9 @@ mod supported {
             {
                 child_error(api, c"cannot prepare backend subprocess".as_ptr());
             }
-            close_descriptors(api, 3, context.close_limit);
-            #[cfg(target_os = "macos")]
-            {
+            close_descriptors_with_lease(api, 3, context);
+            if !context.allow_descendants {
+                #[cfg(target_os = "macos")]
                 if !prevent_descendants(api) {
                     child_error(api, c"cannot prevent backend descendants".as_ptr());
                 }
@@ -711,6 +783,23 @@ mod supported {
         #[cfg(target_os = "macos")]
         unsafe {
             api.fork()
+        }
+    }
+
+    unsafe fn close_descriptors_with_lease(api: &calls::Api, first: RawFd, context: &ChildContext) {
+        // The same locked description stays in the supervisor until exit after
+        // descendant reaping, and crosses exec for admitted nested native tools.
+        unsafe {
+            if context.lease >= 0 {
+                let mut fd = first;
+                while fd < super::LEASE_FD {
+                    calls::close(api, fd);
+                    fd += 1;
+                }
+                close_descriptors(api, super::LEASE_FD + 1, context.close_limit);
+            } else {
+                close_descriptors(api, first, context.close_limit);
+            }
         }
     }
 
@@ -978,6 +1067,27 @@ impl Running {
         platform_policy(std::env::consts::OS, 0, 0)?;
         Ok(Self)
     }
+    pub(crate) fn spawn_with_policy(
+        _: &Command,
+        _: &Path,
+        _: &File,
+        _: &File,
+        policy: crate::DescendantPolicy,
+    ) -> io::Result<Self> {
+        platform_policy_with_descendants(std::env::consts::OS, 0, 0, policy)?;
+        Ok(Self)
+    }
+    pub(crate) fn spawn_with_custody(
+        _: &Command,
+        _: &Path,
+        _: (&File, &File),
+        policy: crate::DescendantPolicy,
+        _: Option<&File>,
+        _: bool,
+    ) -> io::Result<Self> {
+        platform_policy_with_descendants(std::env::consts::OS, 0, 0, policy)?;
+        Ok(Self)
+    }
     pub(crate) fn try_wait(&mut self) -> io::Result<Option<ExitStatus>> {
         platform_policy(std::env::consts::OS, 0, 0)?;
         Ok(None)
@@ -998,6 +1108,40 @@ mod tests {
             );
         }
         assert!(platform_policy("linux", 0, 0).is_ok());
+    }
+
+    #[test]
+    fn orchestration_allows_darwin_children_without_weakening_checker_admission() {
+        for (uid, euid) in [(501, 501), (0, 501), (501, 0), (0, 0)] {
+            assert!(
+                super::platform_policy_with_descendants(
+                    "macos",
+                    uid,
+                    euid,
+                    crate::DescendantPolicy::Orchestration
+                )
+                .is_ok()
+            );
+            assert_eq!(
+                super::platform_policy_with_descendants(
+                    "macos",
+                    uid,
+                    euid,
+                    crate::DescendantPolicy::Checker
+                )
+                .is_ok(),
+                uid != 0 && euid != 0
+            );
+        }
+        assert!(
+            super::platform_policy_with_descendants(
+                "unsupported",
+                501,
+                501,
+                crate::DescendantPolicy::Orchestration
+            )
+            .is_err()
+        );
     }
 
     #[test]

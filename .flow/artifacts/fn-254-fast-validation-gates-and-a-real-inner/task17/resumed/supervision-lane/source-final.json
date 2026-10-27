@@ -1,0 +1,16 @@
+{
+  "base_commit": "c958d34af0",
+  "source_sha256": {
+    "model/umpire/backends/process/src/support.rs": "9b550237605f6606ebbe0dd100b6e1a4317e12899084b5f1684c18d0f70a8430",
+    "model/umpire/backends/process/src/syscall.rs": "6ec80ab0081abbf02c2ef2934023f6f6d7559ebc24432038fe0fb38133a18011",
+    "model/umpire/backends/process/tests/process.rs": "698a76a530cb1a83bb723f029b5bb0a314447bef92f7780ea5ea6d22703e509c",
+    "model/umpire/backends/process/tests/fixtures/process_fixture.rs": "3e6266b305ce30eb615ddbb01c6827c638b3b714c26ef829510d5df8e87dc89d",
+    "model/umpire/dev/xtask/src/gate/lease.rs": "a20b1653d8c84c69b19101cf2a5f9689693c7405b71118ebe44426f5e741865e",
+    "model/umpire/dev/xtask/Cargo.toml": "52bd4c88b82d6752f5d7b41c9b8ffdccebd287278f19cb9ae5f3829bc132d0a2",
+    "model/dev/xtask/Cargo.toml": "67bb0982387b0ff81c152e04fa242c7ba1c113aef1854b5da3a642eb77ea9d6f",
+    "model/umpire/Cargo.lock": "fee0845e49a7e6719bafdf556ada08113d0cc21c43fce94ada81fc6f7b2c6d44",
+    "model/Cargo.lock": "b9fdce7093d7014ffa4a8d8fa4f91f81c03e54dac3bb49be84807e10c1db9a43"
+  },
+  "no_graph_or_quick_runner_source_changes": true,
+  "gate_module_registration_owned_by_graph_lane": true
+}
