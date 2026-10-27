@@ -1,0 +1,12 @@
+    Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-supervision-resumed/model/umpire/backends/process)
+error: this function has too many lines (128/100)
+  --> backends/process/tests/fixtures/process_fixture.rs:80:5
+   |
+80 |     pub(super) fn main() -> Result<(), Box<dyn std::error::Error>> {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#too_many_lines
+   = note: `-D clippy::too-many-lines` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::too_many_lines)]`
+
+error: could not compile `umpire-backend-process` (bin "umpire-process-fixture") due to 1 previous error

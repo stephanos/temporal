@@ -673,3 +673,114 @@ fn leased_clean_command_preserves_only_explicit_environment() -> Result<(), Refu
     }
     scratch.finish(Ok(()))
 }
+
+#[test]
+#[cfg(target_os = "linux")]
+fn default_checker_guardian_retains_inherited_custody_without_delegating_to_target()
+-> Result<(), Refusal> {
+    use std::os::unix::fs::MetadataExt;
+    use umpire_backend_process::{JvmLease, OwnedProcess};
+    let scratch = Scratch::new(&root()?)?;
+    let allocation = JvmLease::inherited_or_acquire()?;
+    let ready = scratch.path().join("ready");
+    let release = scratch.path().join("release");
+    let stdout = fs::File::create(scratch.path().join("owner.out"))?;
+    let stderr = fs::File::create(scratch.path().join("owner.err"))?;
+    let mut command = fixture("checker-owner");
+    command.arg(scratch.path()).arg(&ready).arg(&release);
+    let mut owner =
+        OwnedProcess::spawn_leased(&command, scratch.path(), &stdout, &stderr, &allocation)?;
+    assert!(wait_ready(&ready), "checker target did not become ready");
+    let ids = fs::read_to_string(&ready)?;
+    let ids: Vec<_> = ids.split_whitespace().collect();
+    assert!(!Path::new("/proc").join(ids[0]).join("fd/9").exists(), "Checker target received FD9");
+    let guardian = fs::metadata(format!("/proc/{}/fd/9", ids[1])).map_err(|error| {
+        Refusal(format!("Checker guardian lost inherited lease custody: {error}"))
+    })?;
+    let lock = fs::metadata(
+        fs::canonicalize("/tmp")?
+            .join(format!("umpire-validation-{}/jvm.lock", rustix::process::getuid().as_raw())),
+    )?;
+    assert_eq!((guardian.dev(), guardian.ino()), (lock.dev(), lock.ino()));
+    fs::write(&release, "release")?;
+    let started = Instant::now();
+    loop {
+        if let Some(status) = owner.try_wait()? {
+            assert!(status.success(), "{}", fs::read_to_string(scratch.path().join("owner.err"))?);
+            break;
+        }
+        assert!(started.elapsed() < Duration::from_secs(5));
+        thread::sleep(Duration::from_millis(5));
+    }
+    scratch.finish(Ok(()))
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn checker_inheritance_is_optional_and_invalid_present_custody_refuses_before_launch()
+-> Result<(), Refusal> {
+    use umpire_backend_process::JvmLease;
+    let scratch = Scratch::new(&root()?)?;
+    let _allocation = JvmLease::inherited_or_acquire()?;
+    for (label, locator, foreign) in [
+        ("absent", None, false),
+        ("malformed", Some("1"), false),
+        ("closed", Some("9"), false),
+        ("foreign", Some("9"), true),
+    ] {
+        let directory = scratch.path().join(label);
+        fs::create_dir(&directory)?;
+        let ready = directory.join("ready");
+        let release = directory.join("release");
+        fs::write(&release, "release")?;
+        let victim = directory.join("foreign-file");
+        fs::write(&victim, "unchanged")?;
+        let mut command = Command::new("/bin/sh");
+        let script = if foreign {
+            "exec 9<\"$1\"; exec \"$2\" checker-owner \"$3\" \"$4\" \"$5\""
+        } else {
+            "exec 9<&-; exec \"$2\" checker-owner \"$3\" \"$4\" \"$5\""
+        };
+        command
+            .args(["-c", script, "checker-inheritance"])
+            .arg(&victim)
+            .arg(FIXTURE)
+            .arg(&directory)
+            .arg(&ready)
+            .arg(&release)
+            .env_remove("UMPIRE_JVM_LEASE_FD")
+            .stdout(fs::File::create(directory.join("out"))?)
+            .stderr(fs::File::create(directory.join("err"))?);
+        if let Some(locator) = locator {
+            command.env("UMPIRE_JVM_LEASE_FD", locator);
+        }
+        let mut child = command.spawn()?;
+        let started = Instant::now();
+        let status = loop {
+            if let Some(status) = child.try_wait()? {
+                break status;
+            }
+            if started.elapsed() > Duration::from_secs(5) {
+                child.kill()?;
+                child.wait()?;
+                return Err(Refusal(format!(
+                    "{label}: optional Checker custody acquired or blocked on host allocation"
+                )));
+            }
+            thread::sleep(Duration::from_millis(5));
+        };
+        assert_eq!(
+            status.success(),
+            locator.is_none(),
+            "{label}: {}",
+            fs::read_to_string(directory.join("err"))?
+        );
+        assert_eq!(
+            ready.exists(),
+            locator.is_none(),
+            "{label}: invalid inheritance reached target"
+        );
+        assert_eq!(fs::read_to_string(victim)?, "unchanged");
+    }
+    scratch.finish(Ok(()))
+}

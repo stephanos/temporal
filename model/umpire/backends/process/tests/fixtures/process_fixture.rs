@@ -4,7 +4,7 @@
 #[path = "../../src/syscall.rs"]
 #[allow(dead_code)]
 mod syscall;
-use umpire_backend_process::DescendantPolicy;
+use umpire_backend_process::{DescendantPolicy, JvmLease};
 
 #[forbid(unsafe_code)]
 mod fixture {
@@ -77,6 +77,38 @@ mod fixture {
         Ok(())
     }
 
+    fn checker_owner(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
+        let directory = Path::new(&args[2]);
+        let mut target = Command::new(env::current_exe()?);
+        target.args(["checker-target", &args[3], &args[4]]);
+        let (status, output) = umpire_backend_process::run_process(
+            &mut target,
+            directory,
+            "checker",
+            Limits::default(),
+            None,
+        )?;
+        if !status.success() {
+            return Err(format!("checker target failed: {status}: {output}").into());
+        }
+        Ok(())
+    }
+
+    fn checker_target(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
+        assert!(
+            env::var_os("UMPIRE_JVM_LEASE_FD").is_none(),
+            "Checker target received lease locator"
+        );
+        assert!(syscall::inherited_lease().is_err(), "Checker target received FD9 capability");
+        fs::write(&args[2], format!("{} {}", process::id(), parent_pid()?))?;
+        let started = std::time::Instant::now();
+        while !Path::new(&args[3]).exists() {
+            assert!(started.elapsed() < Duration::from_secs(5), "checker control release timeout");
+            thread::sleep(Duration::from_millis(5));
+        }
+        Ok(())
+    }
+
     pub(super) fn main() -> Result<(), Box<dyn std::error::Error>> {
         let args: Vec<_> = env::args().collect();
         match args.get(1).map_or("", String::as_str) {
@@ -101,6 +133,8 @@ mod fixture {
                 child.wait()?;
             }
             "owner" => owner(&args)?,
+            "checker-owner" => checker_owner(&args)?,
+            "checker-target" => checker_target(&args)?,
             "lease-child" => {
                 let _lease = umpire_backend_process::JvmLease::inherited_or_acquire()?;
                 fs::write(&args[2], "verified")?;
