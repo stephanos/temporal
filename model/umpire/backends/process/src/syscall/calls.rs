@@ -43,6 +43,13 @@ type Wait4 = unsafe extern "C" fn(
     *mut libc::rusage,
 ) -> libc::pid_t;
 #[cfg(target_os = "macos")]
+type WaitId = unsafe extern "C" fn(
+    libc::idtype_t,
+    libc::id_t,
+    *mut libc::siginfo_t,
+    libc::c_int,
+) -> libc::c_int;
+#[cfg(target_os = "macos")]
 type Sigprocmask =
     unsafe extern "C" fn(libc::c_int, *const libc::sigset_t, *mut libc::sigset_t) -> libc::c_int;
 
@@ -103,6 +110,8 @@ pub(super) struct Api {
     #[cfg(target_os = "macos")]
     wait4: Wait4,
     #[cfg(target_os = "macos")]
+    waitid: WaitId,
+    #[cfg(target_os = "macos")]
     sigprocmask: Sigprocmask,
 }
 
@@ -147,6 +156,8 @@ impl Api {
                 poll: resolve!(c"poll$NOCANCEL", darwin_poll, Poll),
                 #[cfg(target_os = "macos")]
                 wait4: resolve!(c"__wait4_nocancel", darwin_wait4, Wait4),
+                #[cfg(target_os = "macos")]
+                waitid: resolve!(c"__waitid_nocancel", darwin_waitid, WaitId),
                 #[cfg(target_os = "macos")]
                 sigprocmask: resolve!(c"sigprocmask", libc::sigprocmask, Sigprocmask),
                 #[cfg(target_os = "linux")]
@@ -336,6 +347,34 @@ pub(super) unsafe fn waitpid(
     }
 }
 
+pub(super) unsafe fn target_exited(api: &Api, pid: libc::pid_t) -> (bool, bool) {
+    unsafe {
+        let mut info = std::mem::zeroed::<libc::siginfo_t>();
+        let options = libc::WEXITED | libc::WNOHANG | libc::WNOWAIT;
+        #[cfg(target_os = "linux")]
+        let result = (api.syscall())(
+            libc::SYS_waitid,
+            libc::P_PID,
+            pid.cast_unsigned(),
+            &raw mut info,
+            options,
+            ptr::null_mut::<libc::c_void>(),
+        );
+        #[cfg(target_os = "macos")]
+        let result = (ptr::read_volatile(&raw const api.waitid))(
+            libc::P_PID,
+            pid.cast_unsigned(),
+            &raw mut info,
+            options,
+        );
+        #[cfg(target_os = "linux")]
+        let child = info.si_pid();
+        #[cfg(target_os = "macos")]
+        let child = info.si_pid;
+        (result == 0 && child == pid, result < 0 && *api.errno != libc::EINTR)
+    }
+}
+
 pub(super) unsafe fn poll_owner(api: &Api, owner: *mut libc::pollfd) -> libc::c_long {
     #[cfg(target_os = "linux")]
     unsafe {
@@ -415,6 +454,13 @@ unsafe extern "C" {
         fds: *mut libc::pollfd,
         count: libc::nfds_t,
         timeout: libc::c_int,
+    ) -> libc::c_int;
+    #[link_name = "__waitid_nocancel"]
+    fn darwin_waitid(
+        idtype: libc::idtype_t,
+        id: libc::id_t,
+        info: *mut libc::siginfo_t,
+        options: libc::c_int,
     ) -> libc::c_int;
     #[link_name = "__wait4_nocancel"]
     fn darwin_wait4(
