@@ -13,8 +13,8 @@
   },
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "stale",
-  "plan_reviewed_at": "2026-10-26T05:37:55.001164Z",
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-27T20:57:19.924065Z",
   "review_attempts": [
     {
       "artifact_sha256": "0fc87956f7458cf96d90ddf81609ebbb7c6b7e69b7260e3da0d0e0229291a6a6",
@@ -383,11 +383,69 @@
       "task": "fn-255-thorough-framework-testing-generated.1",
       "timestamp": "2026-10-26T21:55:51.237021Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "4dd034f0b760341b8caea8cf5aa62c147cdbf42332db038c5172c083ee16c032",
+      "backend": "claude",
+      "base_sha": "86bf3fe1446b1ebbac8cf154131151b5e9909dd8",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "86bf3fe1446b1ebbac8cf154131151b5e9909dd8",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 8315,
+      "output_sha256": "d8253cda69a3af5816fcd0f0245c53187ccf6191057c44671edef7fb15ca0d13",
+      "reservation_id": "cdee57cc7ec5403fa4f4f0212ef36a6a",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-27T20:51:32.765773Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "ca0b1dccf779bb8a8965b7b733a57e321be137bdde1b810f9d796bcb5aa5016c",
+      "backend": "claude",
+      "base_sha": "86bf3fe1446b1ebbac8cf154131151b5e9909dd8",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "86bf3fe1446b1ebbac8cf154131151b5e9909dd8",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 3591,
+      "output_sha256": "5d76411fcfb926048fecb998cb6a4514becb96484c21de65765df9c429dc02e7",
+      "reservation_id": "37e813fcf21d4279900c5d0529f93fc0",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-27T20:56:27.234082Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-255-thorough-framework-testing-generated.1": 2,
-    "plan": 1,
+    "plan": 2,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
@@ -410,5 +468,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-26T21:55:51.273486Z"
+  "updated_at": "2026-10-27T20:57:19.924145Z"
 }

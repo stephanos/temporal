@@ -1,0 +1,237 @@
+{
+  "schema_version": 1,
+  "kind": "source-readiness-investigation",
+  "task": "fn-255-thorough-framework-testing-generated.4",
+  "date_utc": "2026-10-27",
+  "scope": "Read-only investigation; only this report written. No implementation, build, install, tool run, review verdict, task mutation or dependency advancement.",
+  "basis": {
+    "main_branch": "umpire",
+    "main_head": "86bf3fe1446b1ebbac8cf154131151b5e9909dd8",
+    "candidate_branch": "work/fn2554-prep-mutants",
+    "candidate_head": "a573caade12cac5d50ca3f1ab6d9f59683a84ed2",
+    "merge_base": "1df6f6b75d47a06642bd30b9bbe0d47b6d040ef8",
+    "candidate_clean": true,
+    "candidate_changed_paths": [
+      "model/umpire/.cargo/mutants-scheduled.toml",
+      "model/umpire/dev/xtask/mutants-budget.toml",
+      "model/umpire/dev/xtask/src/mutants_scheduled.rs",
+      "model/umpire/dev/xtask/src/mutants_scheduled/owned.rs"
+    ]
+  },
+  "candidate_files": [
+    {
+      "path": ".worktrees/prep2554-mutants/model/umpire/.cargo/mutants-scheduled.toml",
+      "bytes": 397,
+      "sha256": "4cd52cb123f513c190365b893e4920224bad5ba4c13fa4cab61cf308ccd6e9d0"
+    },
+    {
+      "path": ".worktrees/prep2554-mutants/model/umpire/dev/xtask/mutants-budget.toml",
+      "bytes": 349,
+      "sha256": "aeda98d4ecd9fd365879fb2b3bbc0553913fe49f7c7535f1e6a68a4a5513a7c3"
+    },
+    {
+      "path": ".worktrees/prep2554-mutants/model/umpire/dev/xtask/src/mutants_scheduled.rs",
+      "bytes": 15228,
+      "sha256": "355d67f58109b76f90dc810716c2a62e6bf9a3fb6c130dab0f72c03b748caf1c"
+    },
+    {
+      "path": ".worktrees/prep2554-mutants/model/umpire/dev/xtask/src/mutants_scheduled/owned.rs",
+      "bytes": 2446,
+      "sha256": "68e7507fbb03d1093e9a766bc5149030c27c71660a39bd6bd741ec54a708f312"
+    }
+  ],
+  "reference_files": [
+    {
+      "path": "AGENTS.md",
+      "bytes": 19744,
+      "sha256": "932de2327ec129e91e1fea98bc9b77b270fd8bbe3390bd31bef3d96ed86cc9d0"
+    },
+    {
+      "path": "MILESTONES.md",
+      "bytes": 21805,
+      "sha256": "ecb55d3d2203578bb1759547072a7086ea03da13d8d83a57f080752cb678c671"
+    },
+    {
+      "path": "model/README.md",
+      "bytes": 77001,
+      "sha256": "b94ec536e42f2949059221e50c1d25e4587e760664625e4cfcb52f745634e33e"
+    },
+    {
+      "path": ".plans/UMPIRE4_SPEC.md",
+      "bytes": 47686,
+      "sha256": "ce167b2fd9132b6d4103133649bdab5f67136959f68d835656b44a0715097cb7"
+    },
+    {
+      "path": ".plans/UMPIRE4_VISION.md",
+      "bytes": 32029,
+      "sha256": "f1eedcf1479f8ba0302fc5a7b20b90ad1662a2627bc46b47f4c52dfedf12788c"
+    },
+    {
+      "path": ".plans/UMPIRE_MODULES.md",
+      "bytes": 80399,
+      "sha256": "d2ff906be583b6bb618a24e3ad7918831f7a34cfa00797f96a9f561e259762fb"
+    },
+    {
+      "path": ".flow/tasks/fn-255-thorough-framework-testing-generated.4.md",
+      "bytes": 2869,
+      "sha256": "3fa9bd793312378a402b4ab618ee0f60c363b3cac8946275ef9899ef9b218641"
+    },
+    {
+      "path": ".flow/specs/fn-255-thorough-framework-testing-generated.md",
+      "bytes": 18408,
+      "sha256": "eae532d7b677542a1869b240c826e8a79ea2c9e535574e6a295e640d3ad29b96"
+    },
+    {
+      "path": "model/design/gate-speed.md",
+      "bytes": 16292,
+      "sha256": "c181db11da7b1b33330adc673e903d5b81b0ff03f03893b9642039b17cd015b7"
+    },
+    {
+      "path": "model/umpire/dev/xtask/README.md",
+      "bytes": 10690,
+      "sha256": "875174aa1b0e2039bff25b67e44c80f003281b75bbe3153e17bb6646725ddf63"
+    },
+    {
+      "path": "model/umpire/dev/xtask/src/main.rs",
+      "bytes": 5570,
+      "sha256": "d17ac972137c4bc271cbe40bb6eee1e2851ecf82d0e4affe30d80d3adff41817"
+    },
+    {
+      "path": "model/umpire/dev/xtask/src/lib.rs",
+      "bytes": 308,
+      "sha256": "e9de36caefe2fcd486cea91008d2804f52c2b8121554271bd8befc9ac88ef7af"
+    },
+    {
+      "path": "model/umpire/dev/xtask/Cargo.toml",
+      "bytes": 681,
+      "sha256": "52bd4c88b82d6752f5d7b41c9b8ffdccebd287278f19cb9ae5f3829bc132d0a2"
+    },
+    {
+      "path": "model/umpire/mise.toml",
+      "bytes": 251,
+      "sha256": "17e680c4d4ce2aa8c2a01c006ea58c4b07405f7e18bdbebfe43dd72eba7b0ec0"
+    },
+    {
+      "path": "model/umpire/backends/process/src/support.rs",
+      "bytes": 34182,
+      "sha256": "2a133c250b904674d09efd58afb2afb16abc37fcbd86e74232a33e792c509223"
+    },
+    {
+      "path": "model/umpire/dev/xtask/src/gate.rs",
+      "bytes": 18676,
+      "sha256": "76bb40eccd48bdfe04dd8e3bc182a70ad6ec99993f70566ff0e3a0dc6cf23353"
+    },
+    {
+      "path": "model/umpire/dev/xtask/src/gate/admission.rs",
+      "bytes": 3439,
+      "sha256": "369e84b2d79eb3bf9bd1215b96208c6ef792137120ea59c5316d98c57cd1db7d"
+    },
+    {
+      "path": "model/umpire/dev/xtask/src/gate/work_counts.rs",
+      "bytes": 51764,
+      "sha256": "9a6f31882b4aace847fcd4e05a7632a8d6f00a2fba6631894c630a7a92bd4aa2"
+    },
+    {
+      "path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.12.md",
+      "bytes": 4986,
+      "sha256": "c3e037f5eb7ca5acf2c9804cc65bf61c7e07ff01d3029bff4cabea8bf9355fb0"
+    },
+    {
+      "path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.16.md",
+      "bytes": 5862,
+      "sha256": "925299821639d36d3b7bf40039004b567e37e40b53da11c041cd4d718886f03a"
+    },
+    {
+      "path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.17.md",
+      "bytes": 20630,
+      "sha256": "c753d5920cc8d95bba4820c0e830cbd56784e0d01a5cccb3a8c635602872255a"
+    }
+  ],
+  "readiness": {
+    "state": "partial_unregistered_source_candidate",
+    "registered_module": false,
+    "registered_cli": false,
+    "pinned_cargo_mutants": false,
+    "execution_proven": false,
+    "triage_present": false,
+    "budget_admitted": false
+  },
+  "implemented_source": [
+    "Explicit smoke/scheduled command arguments, six core-package allowlist, exact escaped name selection, jobs=1, baseline run, offline locked Cargo args and auto-install disabled.",
+    "Separate outcome categories caught/missed/timed_out/unviable; timeout never increments caught. Selected manifest hash, remaining names, elapsed time, capped flag, tool status and error are written after run phase.",
+    "Four source tests cover category separation, partial accounting, fake stopped smoke selection and refusal of unknown/duplicate/unselected outcomes. Module is unregistered, so these tests are not selected by normal Cargo builds.",
+    "Owned executor uses existing orchestration policy, deadline polling, combined stdout/stderr cap and drop-before-read cleanup."
+  ],
+  "acceptance_mapping": [
+    {
+      "criterion": "R3 / task acceptance 1: config and commands for each framework crate; bounded real smoke",
+      "source": "Partial: config and six-crate runner exist; main exports/dispatch and tool pin absent. Six crates are an initial allowlist, not every production framework crate. Smoke chooses first three live inventory names rather than a committed fixed manifest.",
+      "evidence": "No real cargo-mutants inventory, execution, bounded smoke result or exact selected manifest located for this candidate.",
+      "remaining": "Register current native command and module, pin tool, settle production crate inventory/exclusions, commit fixed smoke identities and baseline-derived admitted bounds, then execute bounded smoke."
+    },
+    {
+      "criterion": "R3 / task acceptance 2: smoke triage and scheduled retained partial work",
+      "source": "Partial: remaining names and counts exist; no triage records or equivalent/dead-code/test-gap disposition support supplied.",
+      "evidence": "No fn2554 campaign/triage evidence found in candidate tracked Flow tree or main/candidate temporary filenames searched. Unrelated Kettle and earlier semantic mutants do not prove cargo-mutants execution.",
+      "remaining": "Preserve per-mutant observed missed identities and triage with evidence; document resume inputs, tool/source identity and scheduled reports. Verify cargo-mutants actual JSON schema against pinned version."
+    },
+    {
+      "criterion": "R3 / task acceptance 3: category and partial-report controls",
+      "source": "Four unregistered source controls exist; partial campaign accounting and fake capped executor use separate counters. Inventory failures return before report creation; executor failure can skip outcomes ingestion.",
+      "evidence": "No compiled or executed control evidence; no real timeout/unviable/missed/caught controls established.",
+      "remaining": "Register and run meaningful parser/command controls, including real capped execution and error paths that retain partial outcomes. Preserve exact missed/timed-out/unviable identities for triage rather than only their counters."
+    },
+    {
+      "criterion": "R7: work/time bounds and scheduled-only campaigns",
+      "source": "Candidate-only hard caps: smoke 3 mutants/300s; scheduled 64/3600s; list 60s; build 120s; test 60s; combined output 16777216 bytes. These are explicitly preparation estimates.",
+      "evidence": "No authoritative fn254.12 admission or measured baseline derivation exists in this candidate. Polling/drop cleanup has not established end-to-end wall cap.",
+      "remaining": "Reconcile cap table with fn254.12 final interfaces; register mutation work counters without replacing existing nextest/doctest/TLC authorities; prove cleanup/time/output behavior. Keep full campaigns out of quick/check/validate and separate smoke evidence from scheduled evidence."
+    }
+  ],
+  "compatibility": {
+    "current_native": "Selectively port the four new files onto current main; do not replace old lib/main/Cargo/mise from candidate. Main already has umpire-backend-process dependency. Main OwnedProcess::spawn signature matches candidate adapter. Current public supervisor holds cross-invocation JVM lease, inherits cancellation/completion custody, and records admission; adapter alone does not acquire that allocation.",
+    "resource_gap": "Runner jobs=1 only serializes mutants. It does not cap nextest test concurrency, nested compiler queues or required TLC owners. test_workspace=true may exercise whole workspace. Use admitted native controller/lease and resource policy before execution; no independent scheduler.",
+    "counts": "fn254.17 producer receipts distinguish discovered/executed/ignored/skipped and actual TLC launches/configurations; unobserved modalities remain null. Campaign mutant categories are additional domain counters, not replacements for those authorities. Go counts still await fn254.12 producer work.",
+    "platform": "Main documents Linux subreaper and hierarchical native custody. Darwin relies on admitted controllers forwarding cancellation/waiting; arbitrary uncooperative detached children are outside contract and non-root runtime proof remains open. Do not infer Darwin proof from candidate comment or Linux evidence.",
+    "frozen_provider": {
+      "head": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+      "integrated_into_main": false,
+      "main_tool_provider_module_present": false,
+      "relationship": "fn254.16 provider work is a frozen independent candidate, not main readiness credit. MILESTONES records focused/provider controls passing but full standalone renewal, review and integration pending. Canonical flowctl status is in_progress; task JSON is not authoritative because task state is separate. Closure remains pending. Preserve provider admission when source is eventually integrated; mutation source prep is independently allowed."
+    },
+    "budget_authority": "fn254.12 table admission consumes final .15/.16 interfaces. Retained fn25412-budget-wiring table is uncalibrated/pending and refuses enforcement; candidate mutants-budget.toml must not be called an approved authoritative table. fn255 check/validate shares remain at most 30s/120s; full campaigns stay scheduled only."
+  },
+  "evidence_inspection": {
+    "candidate_specific_execution": "not located; absence is bounded to searched tracked Flow paths and tmp filenames, not a claim that no external evidence exists",
+    "runs_performed_here": [],
+    "provider_context_files": [
+      {
+        "path": ".flow/tmp/fn25416-provider-validation/final-focused-checks.json",
+        "bytes": 2513,
+        "sha256": "acef6c7fcffd396d09f6ed5d0d62743bf6e05f46be5e44ec02e350bcad80441e"
+      },
+      {
+        "path": ".flow/tmp/fn25416-provider-validation/standalone-attempts.json",
+        "bytes": 5029,
+        "sha256": "a19c798c2a49b983170f52855bed579475978f726f481713fef0d51612cac7c1"
+      },
+      {
+        "path": ".flow/tmp/fn25416-provider-validation/standalone-native-build-final.json",
+        "bytes": 1211,
+        "sha256": "2248b7b9412149f193c6f521208356e6bb111ab4ca9b57d40b99fbf547a84da6"
+      }
+    ],
+    "nontransferable": "Provider focused checks/native build and historical semantic mutants earn no mutation-run evidence."
+  },
+  "next_concrete_source_step": {
+    "action": "Under exclusive shared-file ownership, selectively register mutants_scheduled in current model/umpire/dev/xtask/src/lib.rs and add mutants dispatch/help in current main.rs through current host-supervised native admission. Reuse existing process dependency and retain current .17 count/lease/cancellation behavior. Serialize cargo-mutants pin and authoritative budget/exclusion edits with other fn255 lanes.",
+    "execution_boundary": "No build/install/run now. Before bounded proof, settle pinned tool schema, fixed smoke manifest, calibrated per-mutant budgets and actual nextest/nested compiler/TLC admission. Final tier activation remains fn255.7 after committed fn254.12 and final ports.",
+    "precondition": "Wait for fresh plan review outcome and its applicable gate before implementation; current fn255 plan_review_status is stale."
+  },
+  "plan_review_gate": {
+    "plan_review_status": "stale",
+    "blocks_implementation": true,
+    "current_action": "Root has started fresh Flow Claude Opus5.5 high plan review; session is live and outcome remains pending.",
+    "source": "Conductor status correction; no plan review outcome asserted."
+  }
+}

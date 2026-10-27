@@ -1,0 +1,98 @@
+I found two P1s and three P2s, so the verdict is NEEDS_WORK. This was a plan-only review: the diff file at `.flow/tmp/claude-review/plan-review-receipt-fn255-…diff` is empty (base and head are the same SHA). I read the spec, all seven task specs and their dependency JSON, and checked the code the plan touches.
+
+**Finding 1**
+Severity: P1
+Confidence: 75
+Classification: introduced
+File:Line: .flow/tasks/fn-255-thorough-framework-testing-generated.2.md:20
+R-IDs: [R7, R1, R3, R4, R5]
+Location: .2 Approach "Bounds" and its last AC; .4 Approach line 19; .5 Approach line 19; .6 Approach line 17
+Problem: Tasks .2, .4, .5 and .6 must take their caps "from the committed budget table". That table is fn-254.12's `model/umpire/dev/gate/budgets.toml`, and it does not exist yet: fn-254.12's done summary is still `TBD`. Only .7 has a cross-spec gate on fn-254.12. The spec's `depends_on_epics` is empty, and MILESTONES.md:42 lets .3 and .4 run as lanes before fn-254 closes. The concrete result: either .2/.4/.5/.6 get dispatched as ready and then hit an AC they cannot meet, or each one invents a provisional table. The second path puts the same bounds in several places, and .7 then has to "register the same measured bounds" again. That is exactly the duplication the Decision Context says was removed.
+Suggestion: Pick one route and write it down. Either (a) add fn-254.12's committed closure as a gate on the bounds ACs of .2/.4/.5/.6, or (b) name one provisional fn-255 location (for example, the bounds table in `model/design/generated-differential.md`, or one constants module). .7 then moves those values into fn-254.12's table, and the task ACs are reworded to say "from <that location>".
+
+**Finding 2**
+Severity: P1
+Confidence: 75
+Classification: introduced
+File:Line: model/design/generated-differential.md:73-76; .flow/tasks/fn-255-thorough-framework-testing-generated.2.md:15-21
+R-IDs: [R1]
+Location: .2 Approach and Acceptance
+Problem: The spike's committed verdict says batched TLC verdicts are "Verified-or-fail". It then leaves a decision to .2: "families with legitimately refutable claims need independently reported per-claim operators, or individual checks that preserve each claim verdict." The .2 task spec never mentions this. An implementer can meet every .2 AC with generated invariants that are always verified. In that case, verdict agreement is only ever checked on `Verified`, and the Refuted/counterexample path (`runner.rs::decode_trace`, counterexample replay) never gets differential coverage. A native/TLC disagreement on a violated claim would go uncaught, and that is part of the framework's central claim ("same verdicts").
+Suggestion: Have .2 choose per-claim operators or the individual-check fallback. Require at least one required-mode generated family whose claim is refuted, with complete verdict/counterexample agreement. Add a control in which only one backend refutes.
+
+**Finding 3**
+Severity: P2
+Confidence: 75
+Classification: introduced
+File:Line: .flow/tasks/fn-255-thorough-framework-testing-generated.3.md:6, .4.md:6, .2.md:6
+R-IDs: [R2, R3]
+Location: `Touches:` declarations
+Problem: Several tasks with no dependency between them overlap or under-declare what they touch:
+- **.2 / .3:** `model/umpire/backends/tlc/**` contains `backends/tlc/src/**`.
+- **.4:** `model/umpire/**/src/**`, `**/tests/**` and `mise.toml` overlap .2, .3, .5 and .6. They also cover `dev/xtask/src/**` (gate sources), which contradicts MILESTONES.md:42 ("fn-255.3 and .4 touch no gate files and may run as lanes").
+- **.3 is too narrow:** a `fuzzing` feature means editing `protocol/runtime/Cargo.toml`, `backends/tlc/Cargo.toml` and possibly `model/umpire/Cargo.toml`/`Cargo.lock`. None of these are declared, and .2 declares the Cargo files too.
+
+Result: either dispatch is forced to be serial, or two lanes collide on manifests and the lockfile.
+Suggestion: Widen .3 to include the crate manifests and the lock. Narrow .4 to scratch/config plus "fixes acquire exclusive ownership", or update the MILESTONES lane claim. Record the .2/.3 overlap as intentionally serial.
+
+**Finding 4**
+Severity: P2
+Confidence: 75
+Classification: introduced
+File:Line: .flow/specs/fn-255-thorough-framework-testing-generated.md:38-42,63,75; model/umpire/Cargo.toml:4-33; model/umpire/dev/xtask/src/gate.rs:146-154
+R-IDs: [R2, R6]
+Location: fuzz package placement and the stable replay harness
+Problem: The plan never says whether `model/umpire/fuzz/` joins the root workspace or is a nested `[workspace]` (cargo-fuzz's default). Both choices have a cost:
+- **Nested:** a second lockfile; it falls outside `clippy --workspace --all-features` and the quick-selection member graph.
+- **Root member:** `libfuzzer-sys` enters stable gate builds.
+
+Separately, `model-check` replay must be stable and must not need libFuzzer, yet it "calls the shared decoder harness". The plan never says where that harness lives. If .3 puts it inside a libFuzzer crate, .7 cannot wire stable replay without restructuring .3.
+Suggestion: State the layout. For example: the shared decoder harness and a stable replay binary live in a root-workspace crate, and `fuzz/` is a thin nested workspace of `fuzz_target!` wrappers that depends on it.
+
+**Finding 5**
+Severity: P2
+Confidence: 75
+Classification: introduced
+File:Line: .flow/tasks/fn-255-thorough-framework-testing-generated.5.md:20; model/umpire/protocol/runtime/src/abi.rs:11-127; model/umpire/Cargo.toml:103
+R-IDs: [R4]
+Location: .5's planted out-of-bounds control
+Problem: `Guest`'s buffer logic is entirely safe Rust (`BTreeMap<u32, Vec<u8>>`, no `unsafe`). An out-of-bounds read in a safe copy just panics on a bounds check, both natively and under Miri. So "reported by Miri" would pass without showing that Miri detects undefined behaviour. A real UB control needs `unsafe` (`get_unchecked` or a raw pointer read), which requires a local `#[allow(unsafe_code)]` against the workspace `unsafe_code = "deny"`. It also has to be kept out of the native `tests` stage, where it would run actual UB.
+Suggestion: Say that the control uses an unsafe raw read, is gated by `#[cfg(miri)]` or `#[ignore]` and run explicitly, and asserts Miri's UB diagnostic rather than a panic message.
+
+**Finding 6**
+Severity: P3
+Confidence: 75
+Classification: introduced
+File:Line: .flow/tasks/fn-255-thorough-framework-testing-generated.3.md:16; .5.md:6
+R-IDs: [R4, R5]
+Location: nightly components
+Problem: .3 pins the shared nightly but does not list its components: `miri` and `rust-src` for .5, `llvm-tools` for .6. .6 declares `mise.toml`; .5 does not. The `--lib miri_abi::` unit modules live under `src/`, but .5 declares `protocol/runtime/tests/**` and only `abi.rs` (no `abi/` child module).
+Suggestion: Have .3 pin the nightly with `miri`, `rust-src` and `llvm-tools`. Fix .5's Touches to match where the modules actually go.
+
+**Finding 7**
+Severity: P3
+Confidence: 75
+Classification: introduced
+File:Line: .flow/tasks/fn-255-thorough-framework-testing-generated.2.md:37
+R-IDs: [R7]
+Location: .2's bounds AC
+Problem: The AC lists size caps, timeout, shrink cap and case counts, but leaves out "TLC launches per case". R7 lists that bound, and .1 proposed it (2 model JVMs + 1 discovery per batch).
+Suggestion: Add TLC launches per case and per batch to .2's budget-sourced bounds and its over-cap control.
+
+FYI (does not affect the verdict):
+- Miri on `abi.rs` checks safe code with no `unsafe` of its own, so its expected yield is low. That was the owner's decision; I'm not reopening it.
+- Each pinned `generated_<n>` fixture is auto-discovered by `dev/fixtures/build.rs` as a test, so `tests`-stage cost grows with every finding. Nothing in R7 bounds that growth.
+
+```
+maintainability:
+  duplication: generated/mutant/Miri/coverage bounds are decided in .1's design doc, again in the per-task "committed budget table" references (.2/.4/.5/.6) while that table does not exist, and again when .7 registers them in fn-254.12's table
+  structure: .7 adds fuzz-replay/fuzz/mutants/miri/coverage stages to `Gate::stage` (model/umpire/dev/xtask/src/gate.rs:122), the gate's central stage-dispatch match, unless fn-254.17's stage DAG takes them first
+```
+
+```json
+{"classification_counts":{"introduced":7,"pre_existing":0},"unaddressed":["R1","R7"]}
+```
+
+<verdict>NEEDS_WORK</verdict>
+
+VERDICT=NEEDS_WORK

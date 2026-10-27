@@ -39,7 +39,7 @@ ranks a fast feedback loop among the most important properties. The standalone w
 Immediate validation path: downloads .16, then shell ports .15, budgets .12 and final proof .8, consuming the reviewed and closed .17 nextest/stage-DAG checkpoint. The consumer/cache checkpoint is reviewed and closed; verified configurations cache independently of refuted siblings, and test-only Kettle readers no longer expand unrelated libraries. fn-254 gets first admission to shared build/JVM/review capacity. Already running fn-246.9/.13 work may reach safe checkpoints, and disjoint source work may continue without delaying fn-254. Finish fn-254.7 after committed fn-246 closure.
 The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246; fn-254.13's workspace move is integrated. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; activity changes
 retain their listed dependencies and follow the current priority/source-ownership order.
-fn-255.3 and .4 (fuzz targets and cargo-mutants) touch no gate files and may run as lanes before fn-254 closes.
+fn-255.3 and .4 (fuzz targets and cargo-mutants) may prepare disjoint source before fn-254 closes; execution waits for committed fn-254.12 budget admission. Shared pins, manifests, decoder seams and native command registrations land serially.
 fn-256 (Scala-era tooling removal) may run as a lane when its blockers clear; shared Makefile, CI, pin and documentation edits land serially with fn-254's.
 Consolidation and build prerequisites for fn-246 are satisfied. Priority does not create dependencies;
 clear cross-spec blockers only after prerequisite closures are committed in `umpire`.
@@ -152,17 +152,18 @@ Not adopted: Kani, bolero, Loom, Shuttle (a candidate once checking goes paralle
 
 The reviewed [source-generation design](model/design/generated-differential.md) is integrated;
 its measured bounds and same-schema, Verified-only batching guide the maintained harness.
-Gate budgets still need admission through fn-254.12 and .7 below.
+Execution of .2–.6 waits for committed fn-254.12 budget admission; disjoint source preparation may continue. Their explicit Flow blocks prevent premature admission. Final tier wiring remains .7.
+The [renewed plan review](.flow/artifacts/fn-255-thorough-framework-testing-generated/plan-review-20261027/summary.json) returned SHIP: stable replay and nightly fuzz wrappers have separate ownership, and differential checks must include legitimately Refuted claims.
 
 [Spec](.flow/specs/fn-255-thorough-framework-testing-generated.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-255.2 | ⬜ todo | Adapt retained differential-harness candidate to the admitted source design; validate shrinking and fixture pinning (R1) |
-| fn-255.3 | ⬜ todo | Pinned nightly; cargo-fuzz targets for guest dispatch and TLC decoders, seeded corpora (R2) |
-| fn-255.4 | ⬜ todo | Bounded cargo-mutants smoke/control runs; scheduled campaign reports and triage, serialized source edits (R3) |
-| fn-255.5 | ⬜ todo | Miri ABI candidate prepared and under source review; .3 pin, registration and actual Miri runs pending (R4) |
-| fn-255.6 | ⬜ todo | Coverage runner/parser candidate prepared and under source review; .2/.3 integration and measured guidance pending (R5) |
+| fn-255.2 | ⛔ blocked | Adapt retained differential-harness candidate to the admitted source design; validate shrinking and fixture pinning (R1) |
+| fn-255.3 | ⛔ blocked | [Nine target sources and 23 seeds inventoried](.flow/artifacts/fn-255-thorough-framework-testing-generated/task3/readiness-20261027.json); tool pins, supervision/output isolation and execution controls pending (R2) |
+| fn-255.4 | ⛔ blocked | [Four-file runner candidate is unregistered](.flow/artifacts/fn-255-thorough-framework-testing-generated/task4/readiness-20261027.json); tool pin, fixed smoke manifest, budget admission and measured triage pending (R3) |
+| fn-255.5 | ⛔ blocked | Miri ABI candidate prepared and under source review; .3 pin, registration and actual Miri runs pending (R4) |
+| fn-255.6 | ⛔ blocked | Coverage runner/parser candidate prepared and under source review; .2/.3 integration and measured guidance pending (R5) |
 | fn-255.7 | ⬜ todo | After .2–.6 and committed fn-254.6/.10/.12: tier wiring within budget, re-measured gates, docs (R6, R7) |
 
 ### fn-246: Realization as a checked refinement

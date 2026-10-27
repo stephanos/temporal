@@ -1,0 +1,47 @@
+I checked all seven prior findings against the current spec and task files on disk. All seven are fixed, and the fixes introduce no new P0/P1, so the verdict is SHIP. The diff file is empty (base and head are the same SHA), so I verified against the files directly.
+
+Prior finding #1: fixed
+Prior finding #2: fixed
+Prior finding #3: fixed
+Prior finding #4: fixed
+
+Prior finding #5: fixed
+Prior finding #6: fixed
+Prior finding #7: fixed
+
+**How each was fixed:**
+- **#1 (budget table doesn't exist yet):** The Decision Context (spec line 126) now gates .2–.6 on the committed fn-254.12 closure before execution or completion, and rules out a second provisional table. Each of those task files records the same Flow blocked condition in its done summary. .2 registers .1's measured values in `model/umpire/dev/gate/budgets.toml` as proposals for review, not as admitted budgets.
+- **#2 (refutable claims dropped):** Spec line 36, R1, .2 Approach/AC and .7's AC now require:
+  - individual TLC checks for refutable claims;
+  - at least one source-generated family that is Refuted in required mode;
+  - per-claim verdict agreement and counterexample replay through compiled and interpreted execution;
+  - a control where only one backend refutes, which must fail and shrink.
+- **#3 (Touches overlaps):**
+  - .3 now declares the root and decoder manifests, `Cargo.lock`, `mise.lock` and the xtask files.
+  - .4 is narrowed to its config, command and docs paths, with exclusive ownership required before any production fix.
+  - The remaining .2/.3 and shared-pin/xtask overlaps are explicitly serialized by the conductor (spec line 126, plus each task's ownership section).
+- **#4 (fuzz layout):**
+  - The stable shared harness and replay binary live in the root-workspace crate `dev/decoder-testing`.
+  - `fuzz/` is a nested workspace with its own lockfile and only thin wrappers.
+  - libFuzzer is excluded from the stable dependency graph, and artifact roots stay outside `fuzz/target`.
+- **#5 (Miri control was safe code):** The deliberate UB now lives only in a separate non-workspace crate, `dev/miri-control`. It is compiled only under `cfg(miri)`, marked ignored and invoked explicitly. Passing requires Miri's UB diagnostic, not a bounds-check panic. Production unsafe-code prohibitions stay intact.
+- **#6 (nightly components and .5 Touches):** The nightly is pinned with `miri`, `rust-src` and `llvm-tools` (spec Edge Cases; .3 Approach and AC). .5's Touches now includes `src/abi/**`.
+- **#7 (TLC launches missing):** R7 and .2 now bound TLC launches per case and per batch, including discovery and individual claim checks, with over-cap controls.
+
+**FYI (does not block):**
+- .4/.5/.6 must have their limits admitted before evidence runs, but .4 also says to set timeouts from measured test baselines. The plan leaves calibration probes to "disjoint source preparation" without saying whether bounded probe runs count as preparation. The conductor can admit proposed values first and recalibrate later. P2, advisory.
+- `dev/miri-control` sits inside the root workspace directory. As a "non-workspace crate" it needs its own `[workspace]` table (or a root `exclude`). Having its own lockfile implies this, but the plan doesn't say it.
+
+```
+maintainability:
+  duplication: none identified
+  structure: .3/.4/.5/.7 all register commands through the shared xtask entry point (`dev/xtask/src/main.rs`, `gate.rs` `Gate::stage`), serialized by the conductor; advisory only
+```
+
+```json
+{"classification_counts":{"introduced":0,"pre_existing":0},"unaddressed":[]}
+```
+
+<verdict>SHIP</verdict>
+
+VERDICT=SHIP

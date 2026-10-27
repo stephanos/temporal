@@ -3,42 +3,48 @@ satisfies: [R1, R7]
 ---
 # fn-255-thorough-framework-testing-generated.2 Generated differential harness with shrinking and fixture pinning
 
-Touches: [model/umpire/dev/**, model/umpire/backends/native/tests/**, model/umpire/backends/tlc/**, model/umpire/backends/tla/**, model/umpire/Cargo.toml, model/umpire/Cargo.lock]
+Touches: [model/umpire/dev/generate/**, model/umpire/dev/testing/**, model/umpire/dev/fixtures/fixtures/generated_*/**, model/umpire/backends/native/tests/**, model/umpire/backends/tlc/**, model/umpire/backends/tla/**, model/umpire/dev/gate/budgets.toml, model/umpire/Cargo.toml, model/umpire/Cargo.lock]
 
 ## Description
-Build the harness .1 chose (spec R1): generators for the admitted subset, three-way agreement, shrinking, and fixture pinning for every finding.
+Build the source harness chosen by .1: complete graph comparison, independent per-claim agreement including legitimate refutations, bounded shrinking, and fixture pinning (R1, R7). The optional tree-only layer was declined; source generation must cover the macro and front end.
 
 **Size:** M
-**Files:** generator module or crate under `model/umpire/dev/` (per .1), tests, `generated_<n>` fixtures for findings.
-**Touches:** [model/umpire/dev/**, model/umpire/backends/native/tests/**, model/umpire/backends/tlc/**, model/umpire/backends/tla/**, model/umpire/Cargo.toml, model/umpire/Cargo.lock]
+**Files:** `model/umpire/dev/generate`, shared comparison helpers, generated regression fixtures, narrowly required TLC/emitter seams, and the authoritative budget table.
+
+### Prerequisites and ownership
+- Consume committed fn-254.12 and its single authoritative table at `model/umpire/dev/gate/budgets.toml` before execution or task closure. Add the harness's reviewed bounds there; do not create another provisional budget table, environment-default allocation or independently maintained hard-cap source.
+- The coordinator serializes .2/.3 TLC seams, framework manifest/lock and shared development-harness changes. Acquire exact exclusive file/hunk ownership before editing overlapping files; preserve current native stage DAG, cancellation, resource admission and count authorities.
 
 ### Approach
-- Cover the admitted subset in `model/README.md` and `model/umpire/README.md` (bounded optional values, World-selected assumptions, action inputs, checked arithmetic, `reject!`/`stay!`, facts), weighted by .1. Keep spaces small by construction.
-- Implement .1's complete start-set and labeled-transition comparison, including action identity, successor, outcome and facts, alongside states/verdicts. Extend TLC/emitter seams and `umpire-testing` helpers as needed; counterexample-only replay is insufficient.
-- Require successful completion from each selected backend before using comparison helpers. Their matching-refusal success path must not be accepted here. Any backend error, timeout or refusal fails with its reason, including identical refusals on every backend.
-- On failure, print the seed and the shrunk Model source. A helper writes it as a `generated_<n>` fixture with goldens.
-- Bounds (spec R7): the generator never emits a Model above the size caps (states, edges, depth); a per-case timeout fails the case with its reason; case counts come from one committed budget table, not from environment defaults. proptest's own defaults (256 cases, unbounded shrink time) are overridden explicitly, including a shrink-iteration cap.
-- Seeded-bug controls use test-only switches for a swapped comparison in emission, a dropped interpreter guard, and changes to an outcome and a fact that leave reached states/verdicts unchanged. All are caught and shrunk. A matching-refusal control fails the case.
+- Implement the admitted design in `model/design/generated-differential.md`, with bounded optional values, World-selected assumptions, action inputs, checked arithmetic, `reject!`/`stay!` and facts. Source families remain within a proven finite space.
+- Compare complete start sets, reachable states and canonical labeled transitions, including action identity, successor, outcome and ordered facts. This complete-transition obligation is separate from per-claim verdict and counterexample checks; counterexample replay alone cannot satisfy it. Preserve independent compiled execution, interpreter evaluation and source-lifted TLC emission.
+- Use Verified-only same-schema batching for claims known valid by construction. Include at least one required-mode generated source family with a legitimately Refuted claim. Check such claims individually with TLC and compare each backend's verdict under the same authored claim identity. A legitimate Refuted result is a successful checker result; an unsupported refusal, error, timeout or incomplete exploration is a failure, including matching refusals.
+- Preserve each refuted claim's independent TLC counterexample, validate it and replay its labeled steps through compiled and interpreted execution for that claim. Compare verdict and trace validity, without requiring independent checkers to choose the same trace or order. A batch-level refutation cannot stand in for per-claim results.
+- Freeze seed, printed source and selected-case/claim manifests. Default mode records compiled/interpreted checks and TLC skipped explicitly; required mode completes every selected backend and reports its actual launches/configurations.
+- On disagreement print the seed and shrunk source. Shrinking must preserve the same mismatch and claim identity, with every candidate successfully admitted and checked; refusal or a new error is not detection. Pin every real finding under `dev/fixtures/fixtures/generated_<n>/` with reproducible goldens.
+- Seeded controls cover swapped emission comparison, dropped interpreter guard, outcome/fact-only changes preserving states/verdicts, and a change making only one backend refute a claim. Every mismatch is detected and shrunk. Matching backend refusals fail.
+
+### Bounds and measured basis
+- Register .1's measured proposals in fn-254.12's table for review rather than treating them as admitted: at most 36 states, 144 emitted edges, shortest depth 35, two starts, 290 augmented assignments per Model and 580 per two-Model batch; one default source Model with no TLC; two required source Models in one same-schema Verified batch; three shrink candidates.
+- The measured Verified batch used two model JVMs plus one discovery JVM. Legitimately Refuted families require additional individual claim checks; admit their actual per-case and per-batch launch budgets, including discovery and every claim check, before execution. Do not invent a larger allocation or hide these launches behind the original three-JVM proposal. Cut selected work if necessary to fit the admitted share.
+- .1 proposes default differential share 11 s (10 s compilation plus 1 s native runtime), required share 45 s (30 s compilation plus 15 s runtime), 10 s per model JVM, 8 MiB output and 16 MiB dumps. These remain measured proposals until authoritative admission. Keep source-size, case, claim, batch, shrink and launch limits, per-case deadlines and failure reduction within the owning stage's admitted wall time. Override proptest defaults explicitly.
+- Over-cap Model, assignment, case/batch and TLC-launch controls fail by stage name, including an extra discovery or individual claim launch. Timeouts refuse agreement. Full campaigns stay scheduled-only; .7 owns final tier activation and combined 30 s/120 s share measurement.
 
 ### Investigation targets
-**Required:**
-- `model/design/generated-differential.md`
-- `model/umpire/dev/testing/src/backend.rs`, `interpreted.rs` — agreement helpers
-- `model/umpire/dev/fixtures/fixtures/` — fixture layout
-
-### Tier agreement and evidence
-
-Default mode records its selected native/interpreter checks and TLC skip explicitly. Required mode exercises the same bounded cases with actual TLC and fails on timeout/refusal/disagreement. Source generation remains required to cover the macro/front end; tree-only cases cannot claim that coverage. Freeze the case manifest and counts so backend agreement compares the same cases.
+- `model/design/generated-differential.md` and its retained .1 measurements.
+- `model/umpire/dev/testing/src/backend.rs`, `interpreted.rs` and fixture layout.
+- Current TLC/emitter APIs, native lifecycle/count receipts and fn-254.12 admission contract.
 
 ## Acceptance
-- [ ] Required-mode source cases pass with compiled/interpreted/TLC complete starts, states, labeled edges, outcomes, facts and verdicts; any optional tree cases compare interpreter/TLC. Default-mode checks record their backend selection and TLC skip.
-- [ ] Swapped-comparison, dropped-guard and outcome/fact-only controls are caught and shrunk; matching refusals fail.
-- [ ] Every real disagreement found is fixed or filed, and pinned as a fixture.
-- [ ] Size caps, per-case timeout, shrink cap and case counts come from the committed budget table; a control shows an over-cap generation is rejected.
+- [ ] Required-mode source cases agree on complete starts, states, labeled edges, outcomes and facts; per-claim checks independently agree on Verified and legitimately Refuted results. Default mode records backend selection and TLC skip.
+- [ ] At least one required-mode generated source family is legitimately Refuted; its independently checked counterexample replays in compiled and interpreted execution under the exact claim identity, without imposing identical trace ordering.
+- [ ] Swapped-comparison, dropped-guard, outcome/fact-only and single-backend-refutes controls are caught and shrunk; matching refusals, errors and timeouts fail.
+- [ ] Every real disagreement is fixed or filed and pinned as a fixture.
+- [ ] One authoritative fn-254.12 table supplies admitted sizes, cases, claims, batches, shrink limits, timeouts and TLC launches per case and batch, including discovery and individual checks. Over-cap controls fail with stage identity.
 
 ## Done summary
-TBD
-
+Blocked:
+Execution and task closure wait for the committed fn-254-fast-validation-gates-and-a-real-inner.12 closure in umpire and admission of this task's work/time limits to its single authoritative budget table. Disjoint source preparation does not satisfy this gate. Flow task dependencies only accept same-spec IDs; after verifying that closure and admitted entries, the conductor may reset this block and admit the task normally.
 ## Evidence
 - Commits:
 - Tests:

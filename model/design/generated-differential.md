@@ -71,9 +71,12 @@ A conjunction guarded by the selector checks each case's invariant; any refutati
 fails the entire batch. Reachability plus invariant checking take two model JVMs.
 The same reachability dump supplies complete edge extraction, eliminating a separate
 extraction JVM for each case. This batch requires identical schemas and invariants
-that verify by construction. Batched verdicts are Verified-or-fail. In task .2,
-families with legitimately refutable claims need independently reported per-claim
-operators, or individual checks that preserve each claim verdict.
+that verify by construction. Batched verdicts are Verified-or-fail. Task .2 uses
+individual TLC checks for legitimately refutable claims, preserving each claim's
+identity and verdict. Its required source families include a Refuted claim whose
+counterexample replays through compiled and interpreted transitions. The extra
+claim/discovery launches need admission in fn-254.12; the batch measurements below
+do not establish their cost.
 
 For seed 255003, both starts in each Model survived exact graph comparison. Case 0
 had 10 reachable states and 30 edges; case 1 had 6 states and 16 edges. Individual
