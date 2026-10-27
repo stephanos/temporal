@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-257-extract-the-standalone-umpire",
   "spec_path": ".flow/tasks/fn-257-extract-the-standalone-umpire.3.md",
-  "status": "todo",
+  "status": "retired",
   "title": "Prepare the portable standalone root and canonical Go identities",
   "updated_at": "2026-10-26T17:02:43.464821Z"
 }

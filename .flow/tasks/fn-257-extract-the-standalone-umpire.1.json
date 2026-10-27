@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-257-extract-the-standalone-umpire",
   "spec_path": ".flow/tasks/fn-257-extract-the-standalone-umpire.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Freeze the source, history map and retained candidate ledger",
   "updated_at": "2026-10-26T15:19:56.450112Z"
 }

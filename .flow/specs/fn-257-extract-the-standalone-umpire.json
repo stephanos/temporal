@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-257-extract-the-standalone-umpire",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-10-27T15:01:24.585398Z",
   "created_at": "2026-10-26T15:18:23.697164Z",
   "default_impl": null,
   "default_review": null,
@@ -17,6 +17,10 @@
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-10-26T17:03:02.669205Z",
   "ready": true,
+  "retired": {
+    "by": [],
+    "reason": "moot"
+  },
   "review_attempts": [
     {
       "artifact_sha256": "368ec494e11f764874b6dbf53a267005f7fd569f5a6c4104e7f52fb76938c179",
@@ -274,7 +278,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-257-extract-the-standalone-umpire.md",
-  "status": "open",
+  "status": "done",
   "title": "Extract the standalone Umpire repository and retain the local Temporal loop",
   "tracker": {
     "baseHashFlow": null,
@@ -287,5 +291,10 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-26T17:03:02.670254Z"
+  "updated_at": "2026-10-27T15:01:24.585409Z",
+  "validation_review": {
+    "path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/validation-cost-review-be1bf9b88bdd6fad0ff123050656112c3e1d52e3178f7213e5cfcf04611bd996.json",
+    "schema_version": 1,
+    "sha256": "be1bf9b88bdd6fad0ff123050656112c3e1d52e3178f7213e5cfcf04611bd996"
+  }
 }

@@ -1,5 +1,18 @@
 # Extract the standalone Umpire repository and retain the local Temporal loop
 
+## Owner closure — 2026-10-27
+
+Closed for now at the owner's request. Retirement records the change in scope,
+not delivery: .1/.2 retain their completed export evidence; .3–.7 remain
+unaccepted preparation and are retired. No publication, consumer cutover or
+source removal has occurred. The authoritative framework stays in Temporal.
+
+Preserve the standalone candidate `f7b42ce`, the Temporal consumer candidate
+`91547f57ec`, task2–task4 recovery bundles and the provisional candidate-transfer
+ledger. The consumer worktree contains an unmerged commit and remains in place.
+Reopen or replace this spec to resume the remaining requirements in MIGRATE.md.
+Current work returns to fn-254 in MILESTONES.md.
+
 ## Goal & Context
 
 The owner asks to complete the migration, then continue the milestone backlog,

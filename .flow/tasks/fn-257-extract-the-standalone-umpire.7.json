@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-257-extract-the-standalone-umpire",
   "spec_path": ".flow/tasks/fn-257-extract-the-standalone-umpire.7.md",
-  "status": "todo",
+  "status": "retired",
   "title": "Preserve quick consumer selection across sibling Git repositories",
   "updated_at": "2026-10-26T16:56:03.124581Z"
 }

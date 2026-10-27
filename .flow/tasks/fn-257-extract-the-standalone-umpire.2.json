@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-257-extract-the-standalone-umpire",
   "spec_path": ".flow/tasks/fn-257-extract-the-standalone-umpire.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Produce and verify a history-preserving local export",
   "updated_at": "2026-10-26T15:19:56.450234Z"
 }

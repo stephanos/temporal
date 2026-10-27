@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-257-extract-the-standalone-umpire",
   "spec_path": ".flow/tasks/fn-257-extract-the-standalone-umpire.5.md",
-  "status": "todo",
+  "status": "retired",
   "title": "Prove the exact standalone and paired local development loop",
   "updated_at": "2026-10-26T15:19:56.450387Z"
 }

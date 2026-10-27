@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "spec_id": "fn-257-extract-the-standalone-umpire",
+  "gates": [],
+  "no_validation_reason": "Owner requested administrative retirement before migration delivery. No implementation or runtime acceptance is claimed. Existing export and preparation evidence is retained; remaining standalone/paired checks, destination access, publication and cutover are unaccepted.",
+  "speedup_decisions": [
+    {
+      "opportunity": "Migration gates on administrative closure",
+      "decision": "Do not launch Rust/Go migration gates for retirement",
+      "rationale": "Closure changes scope and tracking only; full gate costs would establish no new delivery claim. Resume required current-input validation if migration is reopened.",
+      "coverage_preserved": "All migration requirements and historical evidence remain in MIGRATE.md and the retired spec; no missing checks are represented as passing."
+    }
+  ]
+}

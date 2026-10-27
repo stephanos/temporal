@@ -23,8 +23,9 @@ Umpire uses the Rust workspace described in [model/README.md](model/README.md).
 Its guest runs as stock WASM in a pure Go host.
 The Scala tree under `model/archived/` is frozen reference material.
 
-The owner set repository extraction (**fn-257**) aside. Preserve its committed
-source candidates and recovery evidence; return to the backlog order below.
+The owner closed repository extraction (**fn-257**) for now on 2026-10-27.
+Migration remains unfinished; preserve its source candidates and recovery evidence
+in [MIGRATE.md](MIGRATE.md) and return to the backlog order below.
 The validation hold is lifted, so focused checks may resume.
 
 Backlog order remains **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
@@ -70,33 +71,6 @@ Current formats migrate together; goldens may be re-accepted after review. Go si
 reviewed validation evidence and a committed validation-cost assessment.
 
 ## Open specs
-
-### fn-257: Extract the standalone Umpire repository
-
-Deferred by the owner on 2026-10-26; no migration validation, publication or cutover
-is currently scheduled. The independent framework source remains authoritative inside Temporal. Its local
-history export is verified at `cf8bec4d6`, with 581 retained commits and a recoverable
-bundle. Prepare its portable root, then give Temporal an uncommitted local
-Cargo/Go development loop against a sibling checkout. Current source checkpoint
-`c88fdc5506` has 1,177 framework files; every retained candidate stays recoverable.
-GitHub destination inspection is blocked by CLI authentication and the connected
-app's organization SAML authorization; contents and permissions remain unknown.
-The provisional transfer map retains all 81 original candidate refs; 36 require
-cross-repository splits and 26 lack identified tasks. No original candidate is
-yet marked transferred; see [the disposition plan](.flow/artifacts/fn-257-extract-the-standalone-umpire/task6/provisional-transfer-plan.md).
-Existing standalone proof covers an older source and does not close
-the required current-pair proof. Plan review passed; execution remains deferred.
-
-[Spec](.flow/specs/fn-257-extract-the-standalone-umpire.md),
-[migration map](MIGRATE.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-257.3 | ⏸️ deferred | Portable root, canonical Go identities/descriptors and docs/CI checkpointed in sibling prep branch at `f7b42ce255`; source review found no actionable issues; execution proof pending (R3) |
-| fn-257.4 | ⏸️ deferred | Rust/Go/protobuf candidate checkpointed at `91547f57ec`; source review found no actionable issues. Inactive paired CI interface prepared. Active CI/auth wiring and admission wait for .3/.7 and execution evidence (R4) |
-| fn-257.7 | ⏸️ deferred | Multi-repository Quick selection and regression cases assembled at `f7b42ce255`; source review found no actionable issues; execution proof pending (R3, R4) |
-| fn-257.5 | ⏸️ deferred | After .3/.4: exact isolated/paired proof, guest/generator checks and uncommitted Rust/Go red-green tests (R3–R5) |
-| fn-257.6 | ⏸️ deferred | After .5, working destination access and final authorization: preserve destination history, transfer all pending candidates, cut over one source owner (R1, R6) |
 
 ### fn-254: Fast validation gates and a real inner loop
 

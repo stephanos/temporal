@@ -1,9 +1,11 @@
 # Extract Umpire into temporalio/umpire
 
-Status: deferred by the owner on 2026-10-26 under [fn-257](.flow/specs/fn-257-extract-the-standalone-umpire.md).
+Status: closed for now by the owner on 2026-10-27 under [fn-257](.flow/specs/fn-257-extract-the-standalone-umpire.md).
 Destination: <https://github.com/temporalio/umpire>. The owner requested migration;
 remote creation, push, release and source removal remain separate authorization boundaries.
-The validation hold is lifted, but migration validation and cutover are deferred.
+The spec is retired because migration is out of the current work scope; this is
+not a completed migration. Unfinished tasks are retired rather than accepted.
+Reopen or replace this spec before resuming validation and cutover.
 Preserve the source candidates and recovery evidence; current execution follows
 the fn-254 priority in [MILESTONES.md](MILESTONES.md).
 The 2026-10-26 CLI probe returned HTTP 401. The connected GitHub app also returned
