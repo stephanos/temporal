@@ -37,7 +37,10 @@ optional root defaults to the admitted framework tool root. Local Cargo, mise an
 Rust-toolchain configuration must exist; parent directories are never searched.
 Success prints the admitted absolute JAR path and exits 0. Failures exit 1 with
 `xtask: <native error>` on stderr; mise diagnostics also go to stderr.
-Paths are OS arguments, including non-UTF-8 paths on Unix.
+Arguments remain OS arguments. Mise provisioning and exact-version resolution
+require a UTF-8 canonical framework root. Other roots fail native admission with
+status 1 before invoking mise or creating provider data/capture directories;
+this is narrower than the retired downloader's non-UTF-8 root support.
 
 Jar-only mise data, cache and configuration remain under `build/mise-jars`.
 Apalache requires the explicit optional environment; routine installs select TLC.

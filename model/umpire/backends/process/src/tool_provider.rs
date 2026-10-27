@@ -92,6 +92,12 @@ fn directory(root: &Path, relative: &Path) -> io::Result<PathBuf> {
 /// Construct a jar-only mise command without inherited configuration selectors.
 pub fn command(root: &Path, tool: JarTool) -> io::Result<Command> {
     let root = root.canonicalize()?;
+    if root.to_str().is_none() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "mise jar provider requires a UTF-8 framework root",
+        ));
+    }
     let context = contained(&root, Path::new("mise-tools"))?;
     for config in
         ["mise.toml", "mise.apalache.toml", "empty.toml", "mise.lock", "mise.apalache.lock"]
@@ -235,6 +241,33 @@ pub fn install_cancelled(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn non_utf8_root_refuses_before_mise_or_data_side_effects() -> io::Result<()> {
+        use std::{ffi::OsString, os::unix::ffi::OsStringExt};
+        let scratch = tempfile::tempdir_in("/tmp")?;
+        let root = scratch.path().join(OsString::from_vec(b"framework-\xff".to_vec()));
+        fs::create_dir_all(root.join("mise-tools"))?;
+        for file in
+            ["mise.toml", "mise.apalache.toml", "empty.toml", "mise.lock", "mise.apalache.lock"]
+        {
+            fs::write(root.join("mise-tools").join(file), "")?;
+        }
+        let alias = scratch.path().join("ascii-alias");
+        std::os::unix::fs::symlink(&root, &alias)?;
+        for input in [&root, &alias] {
+            for tool in [JarTool::Tlc, JarTool::Apalache] {
+                let result = command(input, tool);
+                assert!(
+                    matches!(&result, Err(error) if error.kind() == io::ErrorKind::InvalidInput),
+                    "{result:?}"
+                );
+                assert!(!root.join("build").exists());
+            }
+        }
+        Ok(())
+    }
 
     #[test]
     fn scoped_commands_only_select_optional_apalache_explicitly() -> io::Result<()> {

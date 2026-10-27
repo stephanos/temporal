@@ -25,6 +25,7 @@ copied to another custom cache. Exact install directories under
 | Custom staging cleanup, interrupted download | Delegated to mise. Cleanup can be best effort; this does not promise the former custom staging cleanup-error behavior. |
 | Java and checker version admission | Existing bounded backend runtime probes remain; no prerequisite presence/version preflight is added. |
 | Default/required backend modes | Gate ownership and opt-in selection remain with the existing stage graph. |
+| Non-UTF-8 framework root | The scoped mise provider refuses the canonical root with `InvalidInput` before starting mise or creating data/capture directories. This narrows the retired downloader's OS-path support. |
 
 The jar environment owns default and optional mise lockfiles and requires locked
 resolution. This avoids HTTP remote-version metadata refresh while mise retains
@@ -54,3 +55,12 @@ The retired installer was the last tar/flate2 consumer. Their direct dependencie
 and unreachable package closure are removed from both Cargo workspaces. Task .16
 retains the exact release, fixture, failure and control-mapping evidence under
 [task16](../../../.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task16/).
+
+The pinned mise release serializes its actual working directory into a UTF-8
+template context. Scoped relative settings and even entirely relative
+config/data/cache paths still abort there for a non-UTF-8 root; absolute installed
+paths also lose bytes in mise's `where` output. The provider therefore refuses
+that root explicitly instead of exposing the upstream panic. UTF-8 spaces and
+shell metacharacters remain OS arguments. This restriction belongs to the jar
+provider; guest-driver and other native path/receipt handling retain their
+existing OS-path contracts.

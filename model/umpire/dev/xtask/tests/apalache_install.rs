@@ -23,6 +23,51 @@ fn dispatch_usage_failure_is_nonzero_and_structured() {
 }
 
 #[test]
+#[cfg(target_os = "linux")]
+fn non_utf8_provider_root_has_a_native_status_one_refusal_before_mise() {
+    use std::{ffi::OsString, os::unix::ffi::OsStringExt};
+    let scratch = tempfile::tempdir_in("/tmp").unwrap();
+    let root = scratch.path().join(OsString::from_vec(b"framework-\xff".to_vec()));
+    fs::create_dir_all(root.join("mise-tools")).unwrap();
+    for file in ["Cargo.toml", "mise.toml", "rust-toolchain.toml"] {
+        fs::write(root.join(file), "fixture").unwrap();
+    }
+    for file in ["mise.toml", "mise.apalache.toml", "empty.toml", "mise.lock", "mise.apalache.lock"]
+    {
+        fs::write(root.join("mise-tools").join(file), "").unwrap();
+    }
+    let bin = scratch.path().join("bin");
+    fs::create_dir(&bin).unwrap();
+    let mise = bin.join("mise");
+    fs::write(&mise, "#!/bin/sh\nprintf invoked > \"$FIXTURE_LOG\"\nexit 42\n").unwrap();
+    fs::set_permissions(&mise, fs::Permissions::from_mode(0o700)).unwrap();
+    let log = scratch.path().join("invoked");
+    let alias = scratch.path().join("ascii-alias");
+    symlink(&root, &alias).unwrap();
+    for supplied in [root.as_path(), alias.as_path(), std::path::Path::new(".")] {
+        for name in ["fetch-tlc", "fetch-apalache"] {
+            let output = Command::new(env!("CARGO_BIN_EXE_xtask"))
+                .arg(name)
+                .arg(supplied)
+                .current_dir(&root)
+                .env("PATH", &bin)
+                .env("FIXTURE_LOG", &log)
+                .output()
+                .unwrap();
+            assert_eq!(output.status.code(), Some(1));
+            assert_eq!(output.stdout, b"");
+            assert!(
+                String::from_utf8_lossy(&output.stderr)
+                    .starts_with("xtask: mise jar provider requires a UTF-8 framework root"),
+                "{output:?}"
+            );
+            assert!(!log.exists());
+            assert!(!root.join("build").exists());
+        }
+    }
+}
+
+#[test]
 fn provider_uses_explicit_opt_in_and_surfaces_install_failure() {
     for name in ["fetch-tlc", "fetch-apalache"] {
         let root = tempfile::tempdir().unwrap();
