@@ -1,0 +1,64 @@
+{
+  "baseline": "c68571b04c",
+  "state": "source-only-preparation",
+  "compiled_or_executed_tests": false,
+  "files": {
+    "model/dev/xtask/src/gate.rs": "1267cfa219f9ea2b51974c4eb0a618ee38d4dd399a57af528c0b87fe8a2c23a3",
+    "model/umpire/dev/xtask/src/gate.rs": "7b6bf2dc2cf3825f565785ad4939fc74afa90b603040d8075fb7c97b427d3a48",
+    "model/umpire/dev/xtask/src/gate/scheduler.rs": "41da4b98478280fc8546bf45340d74ed357d7202ff3038cf85c3a48eb7233347",
+    "model/umpire/dev/xtask/src/gate/standalone.rs": "b78a074422860f14262b6622db6b57e8f0df4976d38d38181a4592a9de6c9740",
+    "model/umpire/dev/xtask/src/quick/mod.rs": "4df09131d551d1d29c94ba9aaa63f022af476cb04d7aab83480b59e5acaded0c",
+    "model/umpire/dev/xtask/src/quick/selection.rs": "587be84f98aa52c8018983e4f0e851303f2ad54a8493a4bc286811f9e0eda01f",
+    "model/umpire/dev/xtask/src/quick/tests.rs": "f1fad23ea348981875f41148876355c773bd230fd6a12dd91cc417f20db904f9",
+    "model/umpire/dev/xtask/src/test_run.rs": "8de81c52b013a986c54df121d2b96539bcddd3a7a502b675839de6bb975e58cd"
+  },
+  "required_backend_api": [
+    "OwnedProcess::spawn_clean",
+    "verified inherited FD9/10/11 custody",
+    "hierarchical completion before controller kill"
+  ],
+  "production_raw_launches_remaining": [
+    {
+      "file": "model/umpire/dev/xtask/src/gate/scheduler.rs",
+      "command": "mise tasks ls --json",
+      "role": "read-only DAG inventory"
+    },
+    {
+      "file": "model/umpire/dev/xtask/src/gate/boundary.rs",
+      "command": "grep retired-name scan",
+      "role": "read-only source scanning"
+    }
+  ],
+  "coverage_prepared": [
+    "captured cwd/env/raw bytes/exit37",
+    "caller default cwd",
+    "public signal143",
+    "direct streamed channels",
+    "Linux gate/quick background child cleanup",
+    "global fallback explicit zero-harness admission with compiler checks and eligible docs",
+    "unexpected-zero and missing exact selectors refused",
+    "new tests in previously zero-harness packages still selected",
+    "missing executable preserves child diagnostic plus named stage exit1",
+    "invalid cwd remains named io::Error"
+  ],
+  "proof_boundaries": [
+    "No Cargo, Go or JVM execution performed in caller lane",
+    "No Darwin runtime ownership claim",
+    "No arbitrary guardian SIGKILL ownership claim",
+    "No global production quick run claim",
+    "No task-complete claim",
+    "Native OwnedProcess preserves missing/nonexecutable target status1 plus stderr; former raw Command spawn Err is replaced by named failed-stage status1"
+  ],
+  "quick_admission_inputs": {
+    "umpire": {
+      "manifest": "model/umpire/author/umpire/Cargo.toml",
+      "target": "lib",
+      "doctest": true
+    },
+    "umpire-ir-derive": {
+      "manifest": "model/umpire/ir/derive/Cargo.toml",
+      "target": "proc-macro",
+      "doctest": true
+    }
+  }
+}

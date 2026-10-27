@@ -1,0 +1,26 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-lifecycle-callers/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized] target(s) in 1.33s
+────────────
+ Nextest run ID bcbf134c-8dce-48ad-b974-d0a2ce3f88ab with nextest profile: default
+    Starting 1 test across 1 binary (66 tests skipped)
+        FAIL [   0.003s] (1/1) xtask quick::tests::global_fallback_compiles_zero_harness_members_and_keeps_their_tests_and_doctests
+  stdout ───
+
+    running 1 test
+    test quick::tests::global_fallback_compiles_zero_harness_members_and_keeps_their_tests_and_doctests ... FAILED
+
+    failures:
+
+    failures:
+        quick::tests::global_fallback_compiles_zero_harness_members_and_keeps_their_tests_and_doctests
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 66 filtered out; finished in 0.00s
+
+  stderr ───
+    Error: Invalid("quick nextest selection has no runnable tests: package=umpire target=None filter=None")
+
+  Cancelling due to test failure
+────────────
+     Summary [   0.003s] 1 test run: 0 passed, 1 failed, 66 skipped
+        FAIL [   0.003s] (1/1) xtask quick::tests::global_fallback_compiles_zero_harness_members_and_keeps_their_tests_and_doctests
+error: test run failed

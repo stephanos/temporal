@@ -55,7 +55,8 @@ impl Gate {
             .env("UMPIRE_QUICK_CACHE", "0")
             .env("UMPIRE_CACHE_DISABLE", "1")
             .env("MISE_AUTO_INSTALL", "false")
-            .env("MISE_EXEC_AUTO_INSTALL", "false");
+            .env("MISE_EXEC_AUTO_INSTALL", "false")
+            .env("MISE_TASK_PGID_MANAGED", "1");
         if self.required {
             command.env("UMPIRE_BACKENDS", "require");
         }
@@ -85,17 +86,17 @@ impl Gate {
         command.arg(self.root.join("scripts").join(path)).args(args);
         command
     }
-    fn execute(&self, name: &str, mut command: Command) -> Result<i32> {
+    fn execute(&self, name: &str, command: &Command) -> Result<i32> {
         let started = Instant::now();
         let status = if self.timed {
-            let output = command.output()?;
+            let output = scheduler::execute(command, false, false)?;
             if !output.status.success() {
                 io::stderr().write_all(&output.stdout)?;
                 io::stderr().write_all(&output.stderr)?;
             }
             output.status
         } else {
-            command.status()?
+            scheduler::execute(command, true, true)?.status
         };
         let code = status.code().unwrap_or_else(|| 128 + status.signal().unwrap_or(0));
         self.report(name, code, started.elapsed().as_secs_f64())?;
@@ -130,7 +131,7 @@ impl Gate {
             "source-boundary" => return self.boundary(),
             "standalone" => return standalone::run(self),
             "timing-controls" => {
-                let code = self.execute(name, self.script("test-time-gate.sh", &[]))?;
+                let code = self.execute(name, &self.script("test-time-gate.sh", &[]))?;
                 if code != 0 {
                     return Ok(code);
                 }
@@ -206,11 +207,15 @@ impl Gate {
             }
             _ => return Err(Error::Invalid(format!("unknown framework stage: {name}"))),
         };
-        self.execute(name, command)
+        self.execute(name, &command)
     }
     fn boundary(&self) -> Result<i32> {
         boundary::check(&self.root, &self.target)?;
-        let output = self.cargo(&["metadata", "--locked", "--format-version", "1"]).output()?;
+        let output = scheduler::execute(
+            &self.cargo(&["metadata", "--locked", "--format-version", "1"]),
+            false,
+            false,
+        )?;
         if !output.status.success() {
             io::stderr().write_all(&output.stderr)?;
             let code =
@@ -237,7 +242,7 @@ impl Gate {
         let inner = Instant::now();
         let mut command = self.command(env::current_exe()?);
         command.args(["test-run", "--package", &package]);
-        let code = self.execute("inner loop (edit+test)", command)?;
+        let code = self.execute("inner loop (edit+test)", &command)?;
         if code != 0 {
             return Ok(code);
         }
@@ -278,7 +283,7 @@ impl Gate {
         if env::var_os("UMPIRE_APALACHE").as_deref() == Some(OsStr::new("require")) {
             let mut command = self.command(env::current_exe()?);
             command.arg("fetch-apalache").arg(&self.root);
-            let code = self.execute("apalache", command)?;
+            let code = self.execute("apalache", &command)?;
             if code != 0 {
                 return Ok(code);
             }
@@ -377,11 +382,11 @@ pub fn run(command: &str, args: Vec<OsString>) -> Result<i32> {
     }
     match command {
         "gate" => gate.full(),
-        "fmt" => gate.execute("fmt", gate.cargo(&["fmt", "--all"])),
+        "fmt" => gate.execute("fmt", &gate.cargo(&["fmt", "--all"])),
         "update" => {
             let mut c = gate.tests()?;
             c.env("INSTA_UPDATE", "always").env("TRYBUILD", "overwrite");
-            gate.execute("update", c)
+            gate.execute("update", &c)
         }
         "time" | "validate" => gate.time(),
         _ => Err(Error::Invalid(format!("unknown framework command: {command}"))),
@@ -407,6 +412,37 @@ pub fn supervise(arguments: Vec<OsString>) -> Result<i32> {
 mod tests {
     use super::*;
     #[test]
+    #[cfg(target_os = "linux")]
+    fn stage_reaps_background_children_before_returning_the_failed_status() -> Result<()> {
+        let directory = tempfile::tempdir()?;
+        let gate = Gate {
+            root: directory.path().to_owned(),
+            target: directory.path().join("target"),
+            home: directory.path().join("cargo"),
+            required: false,
+            timed: false,
+            child_records: None,
+        };
+        let pid = directory.path().join("child.pid");
+        let mut command = gate.command("/bin/sh");
+        command
+            .args(["-c", "sleep 30 & printf '%s' $! > \"$CONTROL_PID\"; exit 37"])
+            .env("CONTROL_PID", &pid);
+        assert_eq!(gate.execute("owned-child", &command)?, 37);
+        let pid = fs::read_to_string(pid)?;
+        let alive = Command::new("/bin/kill")
+            .args(["-0", &pid])
+            .stderr(std::process::Stdio::null())
+            .status()?
+            .success();
+        if alive {
+            Command::new("/bin/kill").args(["-KILL", &pid]).status()?;
+        }
+        assert!(!alive, "stage returned while its background child was alive");
+        Ok(())
+    }
+
+    #[test]
     fn real_stage_child_receives_cache_bypass_and_required_mode() -> Result<()> {
         let directory = tempfile::tempdir()?;
         let gate = Gate {
@@ -419,10 +455,10 @@ mod tests {
         };
         let mut command = gate.command("/bin/sh");
         command.args(["-c","test \"$UMPIRE_QUICK_CACHE\" = 0 && test \"$UMPIRE_CACHE_DISABLE\" = 1 && test \"$UMPIRE_BACKENDS\" = require"]);
-        assert_eq!(gate.execute("cache-control", command)?, 0);
+        assert_eq!(gate.execute("cache-control", &command)?, 0);
         let mut command = gate.command("/bin/sh");
         command.args(["-c", "exit 37"]);
-        assert_eq!(gate.execute("exit-control", command)?, 37);
+        assert_eq!(gate.execute("exit-control", &command)?, 37);
         Ok(())
     }
 }

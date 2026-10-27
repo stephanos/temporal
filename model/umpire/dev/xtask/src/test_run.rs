@@ -6,7 +6,7 @@ pub fn run() -> crate::Result<i32> {
     run_with(|arguments| {
         let mut command = cargo();
         command.args(arguments);
-        let status = command.status()?;
+        let status = crate::gate::scheduler::execute(&command, true, true)?.status;
         Ok(status.code().unwrap_or_else(|| 128 + status.signal().unwrap_or(0)))
     })
 }
@@ -16,7 +16,8 @@ fn cargo() -> Command {
     command
         .args(["exec", "--", "cargo"])
         .env("MISE_AUTO_INSTALL", "false")
-        .env("MISE_EXEC_AUTO_INSTALL", "false");
+        .env("MISE_EXEC_AUTO_INSTALL", "false")
+        .env("MISE_TASK_PGID_MANAGED", "1");
     configure(
         &mut command,
         env::var_os("UMPIRE_BACKENDS").is_some_and(|value| value == "require"),
@@ -70,10 +71,11 @@ pub fn run_package(package: &str) -> crate::Result<i32> {
     if package.is_empty() {
         return Err(crate::Error::Invalid("scoped test package is empty".into()));
     }
-    let output = cargo()
-        .args(["metadata", "--locked", "--no-deps", "--format-version", "1"])
-        .stderr(std::process::Stdio::inherit())
-        .output()?;
+    let output = crate::gate::scheduler::execute(
+        cargo().args(["metadata", "--locked", "--no-deps", "--format-version", "1"]),
+        false,
+        true,
+    )?;
     if !output.status.success() {
         return Ok(output
             .status
@@ -90,14 +92,15 @@ pub fn run_package(package: &str) -> crate::Result<i32> {
         &selections,
         &std::collections::BTreeSet::new(),
         |arguments| {
-            let output = cargo().args(arguments).stderr(std::process::Stdio::inherit()).output()?;
+            let output = crate::gate::scheduler::execute(cargo().args(arguments), false, true)?;
             Ok((
                 output.status.code().unwrap_or_else(|| 128 + output.status.signal().unwrap_or(0)),
                 output.stdout,
             ))
         },
         |_, arguments| {
-            let status = cargo().args(arguments).status()?;
+            let status =
+                crate::gate::scheduler::execute(cargo().args(arguments), true, true)?.status;
             Ok(status.code().unwrap_or_else(|| 128 + status.signal().unwrap_or(0)))
         },
     )

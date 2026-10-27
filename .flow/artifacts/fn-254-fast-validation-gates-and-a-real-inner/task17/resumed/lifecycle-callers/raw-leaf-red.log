@@ -1,0 +1,49 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-lifecycle-callers/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized] target(s) in 1.35s
+────────────
+ Nextest run ID 458076a6-8506-4497-b0b3-39323b78de18 with nextest profile: default
+    Starting 2 tests across 1 binary (65 tests skipped)
+        FAIL [   0.004s] (1/2) xtask gate::tests::stage_reaps_background_children_before_returning_the_failed_status
+  stdout ───
+
+    running 1 test
+    test gate::tests::stage_reaps_background_children_before_returning_the_failed_status ... FAILED
+
+    failures:
+
+    failures:
+        gate::tests::stage_reaps_background_children_before_returning_the_failed_status
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 66 filtered out; finished in 0.00s
+
+  stderr ───
+    framework stage owned-child failed (exit 37)
+
+    thread 'gate::tests::stage_reaps_background_children_before_returning_the_failed_status' (700573) panicked at dev/xtask/src/gate.rs:442:9:
+    stage returned while its background child was alive
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.002s] (2/2) xtask quick::tests::quick_leaf_reaps_background_children_and_preserves_failed_status
+  stdout ───
+
+    running 1 test
+    test quick::tests::quick_leaf_reaps_background_children_and_preserves_failed_status ... FAILED
+
+    failures:
+
+    failures:
+        quick::tests::quick_leaf_reaps_background_children_and_preserves_failed_status
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 66 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'quick::tests::quick_leaf_reaps_background_children_and_preserves_failed_status' (700579) panicked at dev/xtask/src/quick/tests.rs:734:5:
+    quick returned while its background child was alive
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+────────────
+     Summary [   0.007s] 2 tests run: 0 passed, 2 failed, 65 skipped
+        FAIL [   0.004s] (1/2) xtask gate::tests::stage_reaps_background_children_before_returning_the_failed_status
+        FAIL [   0.002s] (2/2) xtask quick::tests::quick_leaf_reaps_background_children_and_preserves_failed_status
+error: test run failed

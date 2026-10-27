@@ -1,0 +1,25 @@
+{
+  "command": [
+    "cargo",
+    "+1.99.1",
+    "nextest",
+    "run",
+    "--manifest-path",
+    "model/umpire/Cargo.toml",
+    "--locked",
+    "-p",
+    "xtask",
+    "--lib",
+    "-E",
+    "test(global_fallback_compiles_zero_harness)",
+    "--test-threads",
+    "1",
+    "--no-tests",
+    "fail"
+  ],
+  "status": 100,
+  "guard": null,
+  "seconds": 2.035583734512329,
+  "cache_kib": 6465224,
+  "free_bytes": 15650127872
+}
