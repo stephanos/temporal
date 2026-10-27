@@ -1,0 +1,33 @@
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-supervision-resumed/model/umpire/backends/process)
+    Finished `test` profile [unoptimized] target(s) in 0.46s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/umpire_backend_process-080fd156155bc007)
+
+running 1 test
+test support::lease_tests::leased_owner_death_excludes_contender_until_escaped_child_is_reaped ... 
+running 1 test
+
+running 1 test
+Error: Custom { kind: Other, error: "supervisor lost lease custody: No such file or directory (os error 2)" }
+test support::lease_tests::lifecycle_child ... FAILED
+
+failures:
+
+failures:
+    support::lease_tests::lifecycle_child
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.01s
+
+
+thread 'support::lease_tests::leased_owner_death_excludes_contender_until_escaped_child_is_reaped' (615631) panicked at backends/process/src/support.rs:586:9:
+assertion failed: status.success()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    support::lease_tests::leased_owner_death_excludes_contender_until_escaped_child_is_reaped
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p umpire-backend-process --lib`

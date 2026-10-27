@@ -1,0 +1,7 @@
+{
+  "mutation": "close FD9 in supervisor only after target fork; target still inherits descriptor",
+  "green_sha256": "6ec80ab0081abbf02c2ef2934023f6f6d7559ebc24432038fe0fb38133a18011",
+  "red_sha256": "338bd3cdc4a2253ce58fa3890be0a761c25886ea1856f243cc7d79de2e1bf2a0",
+  "exit_code": 101,
+  "green_restored": true
+}

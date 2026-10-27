@@ -4,6 +4,7 @@
 #[path = "../../src/syscall.rs"]
 #[allow(dead_code)]
 mod syscall;
+use umpire_backend_process::DescendantPolicy;
 
 #[forbid(unsafe_code)]
 mod fixture {
@@ -100,6 +101,10 @@ mod fixture {
                 child.wait()?;
             }
             "owner" => owner(&args)?,
+            "lease-child" => {
+                let _lease = umpire_backend_process::JvmLease::inherited_or_acquire()?;
+                fs::write(&args[2], "verified")?;
+            }
             #[cfg(target_os = "linux")]
             "lifecycle-harness" => lifecycle_harness(&args[2], Path::new(&args[3]))?,
             "policy" => {
