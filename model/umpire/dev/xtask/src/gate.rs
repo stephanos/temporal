@@ -398,16 +398,17 @@ pub fn run(command: &str, args: Vec<OsString>) -> Result<i32> {
 
 /// Run one public command under supervisor-held host admission.
 pub fn supervise(arguments: Vec<OsString>) -> Result<i32> {
-    let parent = env::temp_dir().join("umpire-command");
-    let directory = scheduler::directory(&parent)?;
+    use std::os::unix::fs::PermissionsExt;
+    let directory =
+        tempfile::Builder::new().permissions(fs::Permissions::from_mode(0o700)).tempdir()?;
     let required = arguments.first().is_some_and(|arg| arg == "quick" || arg == "validate")
         || env::var_os("UMPIRE_BACKENDS").is_some_and(|value| value == "require")
         || env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require");
     let mut command = Command::new(env::current_exe()?);
     admission::configure(&mut command, required);
     command.arg("__owned-command").args(arguments).current_dir(env::current_dir()?);
-    let result = scheduler::supervised(&command, &directory, &[]).map_err(Into::into);
-    fs::remove_dir_all(&directory)?;
+    let result = scheduler::supervised(&command, directory.path(), &[]).map_err(Into::into);
+    directory.close()?;
     result
 }
 

@@ -1,0 +1,8 @@
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-supervision-reviewfix/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.02s
+     Running tests/main.rs (/home/agent/.cache/codex-build/fn25417-work-counts/debug/deps/main-25461879b6726a59)
+
+running 1 test
+test public_fmt_finishes_while_host_lease_is_held ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.11s
