@@ -48,8 +48,14 @@ pub(crate) fn stage(root: &Path, name: &str, mut command: Command) -> io::Result
             .args(["--step", name])
             .arg(command.get_program())
             .args(command.get_args())
-            .current_dir(root)
-            .envs(command.get_envs().filter_map(|(key, value)| value.map(|value| (key, value))));
+            .current_dir(root);
+        for (key, value) in command.get_envs() {
+            if let Some(value) = value {
+                timer.env(key, value);
+            } else {
+                timer.env_remove(key);
+            }
+        }
         timer.status()
     } else {
         command.current_dir(root).status()
@@ -155,6 +161,16 @@ pub(crate) fn scheduled_stage(root: &Path, name: &str) -> io::Result<i32> {
 
 pub(crate) fn run_stage(root: &Path, name: &str) -> io::Result<i32> {
     let command = match name {
+        "temporal-prerequisites" => {
+            let mut command = Command::new("mise");
+            command
+                .args(["exec", "--", "make", "-C"])
+                .arg(root.parent().ok_or_else(|| io::Error::other("missing repository root"))?)
+                .args(["-j1", "model-prerequisites"])
+                .env_remove("MAKEFLAGS")
+                .env_remove("MFLAGS");
+            command
+        }
         "temporal-guest-freshness" => {
             let mut command = script(root, "guest-freshness.sh", &["umpire-temporal-guest"]);
             command.arg(root.join("temporal/hosts/go/umpire_temporal_guest.wasm"));
@@ -316,7 +332,8 @@ printf '%s\n' "$label" >> "$UMPIRE_GATE_CONTROL_LOG"
 [ "$label" != "${UMPIRE_GATE_CONTROL_FAILURE:-}" ] || exit 37
 "#;
 
-    const CONTROL_STAGES: [(&str, &str); 14] = [
+    const CONTROL_STAGES: [(&str, &str); 15] = [
+        ("temporal-prerequisites", "prerequisites"),
         ("temporal-guest-freshness", "guest"),
         ("retired-names", "retired"),
         ("timing-controls", "timing"),
@@ -369,6 +386,26 @@ printf '%s\n' "$label" >> "$UMPIRE_GATE_CONTROL_LOG"
         root
     }
 
+    fn control_mise_script(scheduler: &str) -> String {
+        let body = CONTROL_BODY;
+        let nextest = r#"
+case "$*" in
+ 'exec -- make -C '*' -j1 model-prerequisites')
+   [ "$5" = "$(dirname "$UMPIRE_GATE_CONTROL_ROOT")" ] || exit 92
+   [ -z "${MAKEFLAGS+x}${MFLAGS+x}" ] || exit 93
+   label=prerequisites ;;
+ 'exec -- cargo nextest list'*)
+   label=boundary-inventory
+   BODY
+   printf '%s\n' '{"rust-suites":{"boundary":{"package-name":"umpire-temporal-tests","binary-name":"boundary","kind":"test","status":"listed","testcases":{"control":{"ignored":false,"filter-match":{"status":"matches"}}}}}}'
+   exit 0 ;;
+ 'exec -- cargo nextest run'*' -p umpire-temporal-tests '*) label=boundary-tests ;;
+ *) label="$*" ;;
+esac
+"#.replace("BODY", body);
+        format!("#!/bin/bash\nset -eu\n{scheduler}\n{nextest}\n{body}")
+    }
+
     #[test]
     fn actual_temporal_gate_wiring_and_named_failures() {
         use std::{fs, os::unix::fs::PermissionsExt};
@@ -413,18 +450,7 @@ fi
 "#,
             names = stage_names.join(" ")
         );
-        let nextest = r#"
-case "$*" in
- 'exec -- cargo nextest list'*)
-   label=boundary-inventory
-   BODY
-   printf '%s\n' '{"rust-suites":{"boundary":{"package-name":"umpire-temporal-tests","binary-name":"boundary","kind":"test","status":"listed","testcases":{"control":{"ignored":false,"filter-match":{"status":"matches"}}}}}}'
-   exit 0 ;;
- 'exec -- cargo nextest run'*' -p umpire-temporal-tests '*) label=boundary-tests ;;
- *) label="$*" ;;
-esac
-"#.replace("BODY", body);
-        fs::write(&mise, format!("#!/bin/bash\nset -eu\n{scheduler}\n{nextest}\n{body}")).unwrap();
+        fs::write(&mise, control_mise_script(&scheduler)).unwrap();
         fs::set_permissions(&mise, fs::Permissions::from_mode(0o755)).unwrap();
         let expected =
             stages.map(|(_, label)| label.replace("PLACEHOLDER", &root.to_string_lossy()));
@@ -450,6 +476,8 @@ esac
                 .env("CARGO_TARGET_DIR", "control-relative-target")
                 .env("UMPIRE_GATE_CONTROL_CALLER", std::env::current_dir().unwrap())
                 .env("UMPIRE_TIME_STEPS", timed)
+                .env("MAKEFLAGS", "-n -j99")
+                .env("MFLAGS", "-n -j99")
                 .env(
                     "PATH",
                     format!("{}:{}", root.join("bin").display(), std::env::var("PATH").unwrap()),
