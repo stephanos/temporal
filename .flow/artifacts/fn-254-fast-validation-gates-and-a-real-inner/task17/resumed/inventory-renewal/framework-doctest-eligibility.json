@@ -1,0 +1,170 @@
+[
+  {
+    "package": "umpire",
+    "name": "umpire",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-apalache",
+    "name": "umpire_apalache",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-author-consumer",
+    "name": "umpire_author_consumer",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-backend-process",
+    "name": "umpire_backend_process",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-catalog",
+    "name": "umpire_catalog",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-catalog-build",
+    "name": "umpire_catalog_build",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-catalog-macros",
+    "name": "umpire_catalog_macros",
+    "kind": [
+      "proc-macro"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-catalog-syntax",
+    "name": "umpire_catalog_syntax",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-checker",
+    "name": "umpire_checker",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-dsl",
+    "name": "umpire_dsl",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-dsl-macros",
+    "name": "umpire_dsl_macros",
+    "kind": [
+      "proc-macro"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-front",
+    "name": "umpire_front",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-guest-driver",
+    "name": "umpire_guest_driver",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-ir",
+    "name": "umpire_ir",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-ir-derive",
+    "name": "umpire_ir_derive",
+    "kind": [
+      "proc-macro"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-reference-kettle",
+    "name": "umpire_reference_kettle",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-suite",
+    "name": "umpire_suite",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-testing",
+    "name": "umpire_testing",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-tla",
+    "name": "umpire_tla",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-tlc",
+    "name": "umpire_tlc",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "xtask",
+    "name": "xtask",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  }
+]

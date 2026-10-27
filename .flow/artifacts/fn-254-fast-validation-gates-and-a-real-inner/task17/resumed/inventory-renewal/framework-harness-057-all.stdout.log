@@ -1,0 +1,3 @@
+external_artifact_is_unchanged_during_native_update_and_compare: test
+external_declarations_refuse_invalid_ownership_and_paths: test
+external_runner_child: test

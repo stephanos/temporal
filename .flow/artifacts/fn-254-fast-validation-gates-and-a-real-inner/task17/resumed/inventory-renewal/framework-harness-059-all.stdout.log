@@ -1,0 +1,5 @@
+declared_values::world_and_state_enums_bind_without_finite: test
+discovery::compiles_distinct_non_identifier_folder_names: test
+discovery::refuses_incomplete_fixtures: test
+empty_control::rejects_fixture_without_owned_outputs: test
+orphan_control::orphan_control: test

@@ -1,0 +1,11 @@
+coverage::tests::catalog_validation_and_row_classification_avoid_quadratic_equality_scans: test
+coverage::tests::classifies_retained_outcomes_and_equal_display_actions_by_typed_identity: test
+coverage::tests::progress_uses_the_combined_evaluator_on_witness_states: test
+coverage::tests::refuses_invalid_metadata_and_panicking_callbacks: test
+coverage::tests::undeclared_and_complete_empty_catalogs_remain_distinct: test
+search::tests::bounded_gap_loops_do_not_spend_work_once_their_labels_are_dominated: test
+search::tests::cut_graph_answers_only_settled_searches: test
+search::tests::exact_outcome_retains_the_selected_row: test
+search::tests::finds_a_global_shortest_match_and_searches_before_the_first_node: test
+search::tests::only_explicit_gaps_consume_intervening_edges: test
+search::tests::seeded_walks_retain_loops_and_refuse_too_short_a_horizon: test

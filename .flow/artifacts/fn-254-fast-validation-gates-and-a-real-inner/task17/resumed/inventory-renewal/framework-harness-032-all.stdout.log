@@ -1,0 +1,2 @@
+metadata_semantics::executable_reject_and_stay_keep_their_native_and_lifted_semantics: test
+metadata_semantics::opaque_macro_tokens_preserve_unit_outcome_catalog_and_native_lifted_rows: test

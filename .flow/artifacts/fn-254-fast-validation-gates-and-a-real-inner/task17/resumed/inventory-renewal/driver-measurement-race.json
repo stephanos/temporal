@@ -1,0 +1,7 @@
+{
+  "scope": "proof-driver defect, not production",
+  "cause": "du traversed compiler temporary objects removed during linking, returned1 despite size stdout; check_output interrupted collector",
+  "compiler_body_execution": false,
+  "cleanup": "No cargo/rustc/nextest descendants remained on immediate process inspection; command log completed. Will rerun Cargo no-run to renew authoritative receipt.",
+  "fix": "Use available du total despite disappearing temporary files; later fixed-state size remains authoritative."
+}

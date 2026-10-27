@@ -1,0 +1,2 @@
+assembly_requires_each_named_capability: test
+filler_uses_declared_world_inputs_and_admitted_identity: test

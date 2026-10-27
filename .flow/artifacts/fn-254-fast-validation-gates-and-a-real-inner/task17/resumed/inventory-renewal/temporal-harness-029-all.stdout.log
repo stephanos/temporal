@@ -1,0 +1,7 @@
+roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths: test
+tests::activity_expansion: test
+tests::answer_contexts_follow_rpc_descriptor_edges: test
+tests::field_declarations_use_the_admitted_catalog_graph: test
+tests::migrated_realization_refusals_retain_source_locations: test
+tests::read_configuration_requires_a_typed_correlation_hook: test
+tests::typed_registry_expansion: test

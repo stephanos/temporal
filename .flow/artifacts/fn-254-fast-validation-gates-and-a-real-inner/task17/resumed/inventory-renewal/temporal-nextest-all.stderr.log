@@ -1,0 +1,23 @@
+   Compiling prost-build v0.14.4
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/build)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/api)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/annotate/syntax)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/realization/macros)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/realization)
+   Compiling darling_core v0.24.1
+   Compiling darling v0.24.1
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tla)
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/guest-driver)
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/xtask)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/testing)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/testing)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/suite)
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/dev/xtask)
+   Compiling umpire-temporal-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/guest)
+    Finished `test` profile [unoptimized] target(s) in 55.01s

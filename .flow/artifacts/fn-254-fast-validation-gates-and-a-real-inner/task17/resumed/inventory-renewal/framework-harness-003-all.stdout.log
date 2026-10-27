@@ -1,0 +1,3 @@
+authors_a_machine_path_suite_and_catalog_through_one_dependency: test
+capabilities::renamed_facade_preserves_generic_bounds_empty_actions_and_refusing_defaults: test
+forwards_opaque_metadata_through_renamed_facade: test
