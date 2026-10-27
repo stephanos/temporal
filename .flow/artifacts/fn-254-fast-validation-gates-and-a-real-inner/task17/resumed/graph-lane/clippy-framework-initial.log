@@ -1,0 +1,115 @@
+    Checking umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/guest-driver)
+    Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/backends/process)
+    Checking xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask)
+error: this `if` can be collapsed into the outer `match`
+   --> dev/xtask/src/gate/scheduler.rs:105:17
+    |
+105 | /                 if order.replace(value).is_some() {
+106 | |                     return Err(io::Error::other("duplicate mise stage order"));
+107 | |                 }
+    | |_________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_match
+    = note: `-D clippy::collapsible-match` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::collapsible_match)]`
+help: collapse nested if block
+    |
+104 ~             "UMPIRE_GATE_ORDER"
+105 ~                 if order.replace(value).is_some() => {
+106 |                     return Err(io::Error::other("duplicate mise stage order"));
+107 ~                 }
+    |
+
+error: called `map(<f>).unwrap_or(<a>)` on an `Option` value
+   --> dev/xtask/src/gate/scheduler.rs:239:24
+    |
+239 |                     != name.split_once('/').map(|(scope, _)| scope).unwrap_or("")
+    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#map_unwrap_or
+    = note: `-D clippy::map-unwrap-or` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::map_unwrap_or)]`
+help: use `map_or(<a>, <f>)` instead
+    |
+239 -                     != name.split_once('/').map(|(scope, _)| scope).unwrap_or("")
+239 +                     != name.split_once('/').map_or("", |(scope, _)| scope)
+    |
+
+error: called `map(<f>).unwrap_or(<a>)` on an `Option` value
+   --> dev/xtask/src/gate/scheduler.rs:253:91
+    |
+253 | ...).next().unwrap_or(name), "scope": name.split_once('/').map(|(scope, _)| scope).unwrap_or(""),
+    |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#map_unwrap_or
+help: use `map_or(<a>, <f>)` instead
+    |
+253 -             serde_json::json!({"stage": name.rsplit('/').next().unwrap_or(name), "scope": name.split_once('/').map(|(scope, _)| scope).unwrap_or(""),
+253 +             serde_json::json!({"stage": name.rsplit('/').next().unwrap_or(name), "scope": name.split_once('/').map_or("", |(scope, _)| scope),
+    |
+
+error: use of `format!` to build up a string from an iterator
+   --> dev/xtask/src/gate/scheduler.rs:332:17
+    |
+332 | /                 expected
+333 | |                     .iter()
+334 | |                     .map(|name| {
+335 | |                         let mut value = fs::read(directory.join(format!("{name}.json"))).ok()
+...   |
+346 | |                     })
+347 | |                     .collect::<String>();
+    | |________________________________________^
+    |
+help: call `fold` instead
+   --> dev/xtask/src/gate/scheduler.rs:334:22
+    |
+334 |                     .map(|name| {
+    |                      ^^^
+help: ... and use the `write!` macro here
+   --> dev/xtask/src/gate/scheduler.rs:345:25
+    |
+345 |                         format!("{value}\n")
+    |                         ^^^^^^^^^^^^^^^^^^^^
+    = note: this can be written more efficiently by appending to a `String` directly
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#format_collect
+    = note: `-D clippy::format-collect` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::format_collect)]`
+
+error: called `map(<f>).unwrap_or(<a>)` on an `Option` value
+   --> dev/xtask/src/gate/scheduler.rs:341:34
+    |
+341 |                         "scope": name.split_once('/').map(|(scope, _)| scope).unwrap_or(""),
+    |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#map_unwrap_or
+help: use `map_or(<a>, <f>)` instead
+    |
+341 -                         "scope": name.split_once('/').map(|(scope, _)| scope).unwrap_or(""),
+341 +                         "scope": name.split_once('/').map_or("", |(scope, _)| scope),
+    |
+
+error: this argument is passed by value, but not consumed in the function body
+  --> dev/xtask/src/gate.rs:99:50
+   |
+99 |     fn execute_clean(&self, name: &str, command: Command) -> Result<i32> {
+   |                                                  ^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#needless_pass_by_value
+   = note: `-D clippy::needless-pass-by-value` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::needless_pass_by_value)]`
+help: consider taking a reference instead
+   |
+99 |     fn execute_clean(&self, name: &str, command: &Command) -> Result<i32> {
+   |                                                  +
+
+error: this function has too many lines (110/100)
+   --> dev/xtask/src/gate.rs:272:1
+    |
+272 | pub fn run(command: &str, args: Vec<OsString>) -> Result<i32> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#too_many_lines
+    = note: `-D clippy::too-many-lines` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::too_many_lines)]`
+
+error: could not compile `xtask` (lib) due to 7 previous errors

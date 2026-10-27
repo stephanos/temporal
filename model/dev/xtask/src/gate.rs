@@ -1,4 +1,5 @@
 //! Temporal stages of the combined Model gate.
+use std::os::unix::ffi::OsStringExt;
 use std::{
     io::{self, Write},
     os::unix::process::ExitStatusExt,
@@ -30,6 +31,11 @@ fn admit_command(name: &str, command: &mut Command) -> io::Result<()> {
             if target.is_absolute() { target } else { caller.join(target) },
         );
     }
+    xtask::gate::admission::configure(
+        command,
+        std::env::var_os("UMPIRE_BACKENDS").is_some_and(|v| v == "require")
+            || std::env::var_os("UMPIRE_APALACHE").is_some_and(|v| v == "require"),
+    );
     Ok(())
 }
 
@@ -68,8 +74,7 @@ fn script(root: &Path, script: &str, arguments: &[&str]) -> Command {
     command
 }
 
-#[path = "../../../umpire/dev/xtask/src/gate/scheduler.rs"]
-mod scheduler;
+use xtask::gate::scheduler;
 
 fn mise(root: &Path) -> io::Result<Command> {
     let caller = std::env::current_dir()?;
@@ -91,6 +96,7 @@ fn mise(root: &Path) -> io::Result<Command> {
             if target.is_absolute() { target } else { caller.join(target) },
         );
     }
+    admit_command("graph", &mut command)?;
     Ok(command)
 }
 
@@ -104,7 +110,6 @@ pub(crate) fn run(root: &Path) -> io::Result<i32> {
         )?;
         return Ok(bootstrap.status.code().unwrap_or(1));
     }
-    use std::os::unix::ffi::OsStringExt;
     let framework = std::ffi::OsString::from_vec(
         bootstrap.stdout.strip_suffix(b"\n").unwrap_or(&bootstrap.stdout).to_owned(),
     );
@@ -174,7 +179,14 @@ pub(crate) fn run_stage(root: &Path, name: &str) -> io::Result<i32> {
                     admit_command("source-boundary", &mut command)?;
                     let output = command.output()?;
                     io::stderr().write_all(&output.stderr)?;
-                    Ok((output.status.code().unwrap_or(1), output.stdout))
+                    let code = output.status.code().unwrap_or(1);
+                    if code != 0 {
+                        writeln!(
+                            io::stderr(),
+                            "Temporal stage source-boundary failed (exit {code})"
+                        )?;
+                    }
+                    Ok((code, output.stdout))
                 },
                 |_, args| {
                     let mut command = cargo(&[]);
@@ -296,74 +308,39 @@ mod tests {
         );
     }
 
-    #[test]
-    fn actual_temporal_gate_wiring_and_named_failures() {
-        use std::{fs, os::unix::fs::PermissionsExt};
-        let root = std::env::temp_dir().join(format!("temporal-gate-{}", std::process::id()));
-        fs::create_dir_all(root.join("scripts/tests")).unwrap();
-        fs::create_dir_all(root.join("bin")).unwrap();
-        fs::create_dir_all(root.join("umpire/scripts")).unwrap();
-        fs::copy(
-            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../umpire/scripts/time-gate.sh"),
-            root.join("umpire/scripts/time-gate.sh"),
-        )
-        .unwrap();
-        fs::write(root.join("scripts/xtask.sh"), "#!/bin/bash\nprintf '/bin/true\\n'\n").unwrap();
-        let labels = [
-            ("guest-freshness.sh", "guest"),
-            ("retired-names.sh", "retired"),
-            ("test-time-gate.sh", "timing"),
-            ("tests/proto-go.sh", "proto-controls"),
-            ("proto-go.sh", "proto"),
-            ("tests/build-guests.sh", "guest-build"),
-        ];
-        let body = r#"
+    const CONTROL_BODY: &str = r#"
 [ "$UMPIRE_QUICK_CACHE:$UMPIRE_CACHE_DISABLE" = 0:1 ] || exit 9
 [ "$CARGO_HOME" = "$UMPIRE_GATE_CONTROL_CALLER/control-relative-home" ] || exit 8
 [ "$CARGO_TARGET_DIR" = "$UMPIRE_GATE_CONTROL_CALLER/control-relative-target" ] || exit 7
 printf '%s\n' "$label" >> "$UMPIRE_GATE_CONTROL_LOG"
 [ "$label" != "${UMPIRE_GATE_CONTROL_FAILURE:-}" ] || exit 37
 "#;
-        for (file, label) in labels {
-            fs::write(
-                root.join("scripts").join(file),
-                format!("#!/bin/bash\nset -eu\nlabel={label}\n{body}"),
-            )
-            .unwrap();
-        }
-        let mise = root.join("bin/mise");
-        let stages = [
-            ("temporal-guest-freshness", "guest"),
-            ("retired-names", "retired"),
-            ("timing-controls", "timing"),
-            ("source-boundary", "boundary-inventory"),
-            ("source-boundary", "boundary-tests"),
-            ("protobuf-controls", "proto-controls"),
-            ("temporal-protobuf-freshness", "proto"),
-            ("fmt", "exec -- cargo fmt --all --check"),
-            (
-                "clippy",
-                "exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings",
-            ),
-            ("docs", "exec -- cargo doc --workspace --no-deps --quiet"),
-            (
-                "tests",
-                "exec -- cargo nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final --no-tests fail",
-            ),
-            ("tests", "exec -- cargo test --doc --workspace --locked --quiet"),
-            ("wasm-guest", "guest-build"),
-            (
-                "temporal-go-host",
-                "exec -- go -C PLACEHOLDER/temporal/hosts/go test -tags test_dep -count=1 ./...",
-            ),
-        ];
-        let mut stage_names = Vec::new();
-        for (name, _) in &stages {
-            if !stage_names.contains(name) {
-                stage_names.push(*name);
-            }
-        }
-        let inventory = serde_json::to_string(
+
+    const CONTROL_STAGES: [(&str, &str); 14] = [
+        ("temporal-guest-freshness", "guest"),
+        ("retired-names", "retired"),
+        ("timing-controls", "timing"),
+        ("source-boundary", "boundary-inventory"),
+        ("source-boundary", "boundary-tests"),
+        ("protobuf-controls", "proto-controls"),
+        ("temporal-protobuf-freshness", "proto"),
+        ("fmt", "exec -- cargo fmt --all --check"),
+        ("clippy", "exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings"),
+        ("docs", "exec -- cargo doc --workspace --no-deps --quiet"),
+        (
+            "tests",
+            "exec -- cargo nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final --no-tests fail",
+        ),
+        ("tests", "exec -- cargo test --doc --workspace --locked --quiet"),
+        ("wasm-guest", "guest-build"),
+        (
+            "temporal-go-host",
+            "exec -- go -C PLACEHOLDER/temporal/hosts/go test -tags test_dep -count=1 ./...",
+        ),
+    ];
+
+    fn control_inventory(stage_names: &[&str]) -> String {
+        serde_json::to_string(
             &stage_names
                 .iter()
                 .enumerate()
@@ -374,7 +351,53 @@ printf '%s\n' "$label" >> "$UMPIRE_GATE_CONTROL_LOG"
                 })
                 .collect::<Vec<_>>(),
         )
+        .unwrap()
+    }
+
+    fn control_directory() -> std::path::PathBuf {
+        use std::fs;
+        let root = std::env::temp_dir().join(format!("temporal-gate-{}", std::process::id()));
+        fs::create_dir_all(root.join("scripts/tests")).unwrap();
+        fs::create_dir_all(root.join("bin")).unwrap();
+        fs::create_dir_all(root.join("umpire/scripts")).unwrap();
+        fs::copy(
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../umpire/scripts/time-gate.sh"),
+            root.join("umpire/scripts/time-gate.sh"),
+        )
         .unwrap();
+        fs::write(root.join("scripts/xtask.sh"), "#!/bin/bash\nprintf '/bin/true\\n'\n").unwrap();
+        root
+    }
+
+    #[test]
+    fn actual_temporal_gate_wiring_and_named_failures() {
+        use std::{fs, os::unix::fs::PermissionsExt};
+        let root = control_directory();
+        let labels = [
+            ("guest-freshness.sh", "guest"),
+            ("retired-names.sh", "retired"),
+            ("test-time-gate.sh", "timing"),
+            ("tests/proto-go.sh", "proto-controls"),
+            ("proto-go.sh", "proto"),
+            ("tests/build-guests.sh", "guest-build"),
+        ];
+        let body = CONTROL_BODY;
+        for (file, label) in labels {
+            fs::write(
+                root.join("scripts").join(file),
+                format!("#!/bin/bash\nset -eu\nlabel={label}\n{body}"),
+            )
+            .unwrap();
+        }
+        let mise = root.join("bin/mise");
+        let stages = CONTROL_STAGES;
+        let mut stage_names = Vec::new();
+        for (name, _) in &stages {
+            if !stage_names.contains(name) {
+                stage_names.push(*name);
+            }
+        }
+        let inventory = control_inventory(&stage_names);
         let scheduler = format!(
             r#"
 if [ "$*" = "tasks ls --json" ]; then
@@ -434,7 +457,11 @@ esac
             let output = child.output().unwrap();
             assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stdout));
             if let Some(index) = failure {
-                assert!(String::from_utf8_lossy(&output.stderr).contains(stages[index].0));
+                assert!(
+                    String::from_utf8_lossy(&output.stderr).contains(stages[index].0),
+                    "failure={index}, stage={:?}: {output:?}",
+                    stages[index]
+                );
             }
             let actual = fs::read_to_string(&log).unwrap();
             let end = failure.map_or(expected.len(), |index| index + 1);

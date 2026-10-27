@@ -11,9 +11,10 @@ use std::{
     time::Instant,
 };
 use umpire_guest_driver::context::{ToolRoot, cargo_home};
+pub mod admission;
 mod boundary;
 pub mod lease;
-mod scheduler;
+pub mod scheduler;
 mod standalone;
 
 struct Gate {
@@ -58,6 +59,10 @@ impl Gate {
         if self.required {
             command.env("UMPIRE_BACKENDS", "require");
         }
+        admission::configure(
+            &mut command,
+            self.required || env::var_os("UMPIRE_APALACHE").is_some_and(|v| v == "require"),
+        );
         command
     }
     fn cargo(&self, args: &[&str]) -> Command {
@@ -96,10 +101,10 @@ impl Gate {
         self.report(name, code, started.elapsed().as_secs_f64())?;
         Ok(code)
     }
-    fn execute_clean(&self, name: &str, command: Command) -> Result<i32> {
+    fn execute_clean(&self, name: &str, command: &Command) -> Result<i32> {
         let started = Instant::now();
         let directory = scheduler::directory(&self.target.join("command-receipts"))?;
-        let code = scheduler::supervised_clean(&command, &directory)?;
+        let code = scheduler::supervised_clean(command, &directory, !self.timed)?;
         self.report(name, code, started.elapsed().as_secs_f64())?;
         Ok(code)
     }
@@ -216,6 +221,43 @@ impl Gate {
         boundary::metadata(&self.root, &output.stdout)?;
         Ok(0)
     }
+    fn time(&self) -> Result<i32> {
+        let start = Instant::now();
+        let code = self.full()?;
+        if code != 0 {
+            return Ok(code);
+        }
+        let total = start.elapsed().as_secs_f64();
+        let source = env::var_os("UMPIRE_INNER_SOURCE")
+            .map_or_else(|| self.root.join("backends/native/src/lib.rs"), PathBuf::from);
+        let source = if source.is_absolute() { source } else { self.root.join(source) };
+        let file = fs::OpenOptions::new().write(true).open(&source)?;
+        file.set_modified(std::time::SystemTime::now())?;
+        let package = env::var("UMPIRE_INNER_CRATE").unwrap_or_else(|_| "umpire-checker".into());
+        let inner = Instant::now();
+        let mut command = self.command(env::current_exe()?);
+        command.args(["test-run", "--package", &package]);
+        let code = self.execute("inner loop (edit+test)", command)?;
+        if code != 0 {
+            return Ok(code);
+        }
+        writeln!(
+            io::stdout(),
+            "gate total {:.3}s; inner loop {:.3}s",
+            total,
+            inner.elapsed().as_secs_f64()
+        )?;
+        for (label, elapsed, key, default) in [
+            ("gate", total, "UMPIRE_GATE_BUDGET", 60.0),
+            ("inner loop", inner.elapsed().as_secs_f64(), "UMPIRE_INNER_BUDGET", 10.0),
+        ] {
+            let budget = env::var(key).ok().and_then(|v| v.parse::<f64>().ok()).unwrap_or(default);
+            if elapsed > budget {
+                writeln!(io::stdout(), "note: {label} over soft target ({budget}s)")?;
+            }
+        }
+        Ok(code)
+    }
     fn full(&self) -> Result<i32> {
         self.full_inner(None)
     }
@@ -297,13 +339,13 @@ pub fn run(command: &str, args: Vec<OsString>) -> Result<i32> {
     {
         let stage = args[1].to_str().ok_or_else(|| Error::Invalid("stage must be UTF-8".into()))?;
         if env::var_os("UMPIRE_STANDALONE_CHILD").is_some() {
+            if stage == "standalone" {
+                return Err(Error::Invalid("standalone recursion refused".into()));
+            }
             let manifest = env::var_os("UMPIRE_STANDALONE_MANIFEST").ok_or_else(|| {
                 Error::Invalid("standalone recursion or invalid child mode refused".into())
             })?;
             standalone::verify(&PathBuf::from(manifest), &gate)?;
-            if stage == "standalone" {
-                return Err(Error::Invalid("standalone recursion refused".into()));
-            }
         }
         if args[0] == "--scheduled-stage" && stage == "standalone" && !gate.required {
             return scheduler::skipped(stage, "standalone runs only with TLC required")
@@ -341,63 +383,24 @@ pub fn run(command: &str, args: Vec<OsString>) -> Result<i32> {
             c.env("INSTA_UPDATE", "always").env("TRYBUILD", "overwrite");
             gate.execute("update", c)
         }
-        "time" | "validate" => {
-            let start = Instant::now();
-            let code = gate.full()?;
-            if code != 0 {
-                return Ok(code);
-            }
-            let total = start.elapsed().as_secs_f64();
-            let source = env::var_os("UMPIRE_INNER_SOURCE")
-                .map_or_else(|| gate.root.join("backends/native/src/lib.rs"), PathBuf::from);
-            let source = if source.is_absolute() { source } else { gate.root.join(source) };
-            let file = fs::OpenOptions::new().write(true).open(&source)?;
-            file.set_modified(std::time::SystemTime::now())?;
-            let package =
-                env::var("UMPIRE_INNER_CRATE").unwrap_or_else(|_| "umpire-checker".into());
-            let inner = Instant::now();
-            let code = crate::test_run::run_selected_with(
-                &[crate::test_run::Selection {
-                    package: &package,
-                    target: None,
-                    filter: None,
-                    doctests: true,
-                }],
-                |phase, arguments| {
-                    let mut command = gate.cargo(&[]);
-                    command.args(arguments);
-                    if gate.required
-                        && arguments.first().is_some_and(|arg| arg == "nextest")
-                        && !arguments.iter().any(|arg| arg == "--profile")
-                    {
-                        command.args(["--profile", "required"]);
-                    }
-                    gate.execute(&format!("inner loop ({phase})"), command)
-                },
-            )?;
-            if code != 0 {
-                return Ok(code);
-            }
-            writeln!(
-                io::stdout(),
-                "gate total {:.3}s; inner loop {:.3}s",
-                total,
-                inner.elapsed().as_secs_f64()
-            )?;
-            for (label, elapsed, key, default) in [
-                ("gate", total, "UMPIRE_GATE_BUDGET", 60.0),
-                ("inner loop", inner.elapsed().as_secs_f64(), "UMPIRE_INNER_BUDGET", 10.0),
-            ] {
-                let budget =
-                    env::var(key).ok().and_then(|v| v.parse::<f64>().ok()).unwrap_or(default);
-                if elapsed > budget {
-                    writeln!(io::stdout(), "note: {label} over soft target ({budget}s)")?;
-                }
-            }
-            Ok(code)
-        }
+        "time" | "validate" => gate.time(),
         _ => Err(Error::Invalid(format!("unknown framework command: {command}"))),
     }
+}
+
+/// Run one public command under supervisor-held host admission.
+pub fn supervise(arguments: Vec<OsString>) -> Result<i32> {
+    let parent = env::temp_dir().join("umpire-command");
+    let directory = scheduler::directory(&parent)?;
+    let required = arguments.first().is_some_and(|arg| arg == "quick" || arg == "validate")
+        || env::var_os("UMPIRE_BACKENDS").is_some_and(|value| value == "require")
+        || env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require");
+    let mut command = Command::new(env::current_exe()?);
+    admission::configure(&mut command, required);
+    command.arg("__owned-command").args(arguments).current_dir(env::current_dir()?);
+    let result = scheduler::supervised(&command, &directory, &[]).map_err(Into::into);
+    fs::remove_dir_all(&directory)?;
+    result
 }
 
 #[cfg(test)]
@@ -422,15 +425,4 @@ mod tests {
         assert_eq!(gate.execute("exit-control", command)?, 37);
         Ok(())
     }
-}
-
-/// Run one public command under supervisor-held host admission.
-pub fn supervise(arguments: Vec<OsString>) -> Result<i32> {
-    let parent = env::temp_dir().join("umpire-command");
-    let directory = scheduler::directory(&parent)?;
-    let mut command = Command::new(env::current_exe()?);
-    command.arg("__owned-command").args(arguments);
-    let result = scheduler::supervised(&command, &directory, &[]).map_err(Into::into);
-    fs::remove_dir_all(&directory)?;
-    result
 }
