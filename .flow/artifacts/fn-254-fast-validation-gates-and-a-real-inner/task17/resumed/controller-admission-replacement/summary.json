@@ -1,0 +1,32 @@
+{
+  "source_commit": "bac6ba518431106b503e3fb4fb68421e122d64c5",
+  "defect": "Cargo nextest discovery can atomically replace the running native xtask. Rechecking current_exe on Linux sees its deleted old pathname, so docs run without count interception after nextest was counted.",
+  "actual_8350_evidence": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-8350ba8f/",
+  "actual_8350_counts": {
+    "nextest_discovered": 895,
+    "nextest_executed": 893,
+    "nextest_ignored": 2,
+    "omitted_doc_passed": 4,
+    "omitted_doc_ignored": 1,
+    "doc_summaries": 23
+  },
+  "fix": "Freeze the verified native controller role at process startup in private OnceLock; reject missing markers without filesystem lookup; retain both accepted and rejected roles through executable-path changes.",
+  "real_regression": "Copied actual native controller, transparent mise wrapper, pinned Rust nextest/list and Cargo doctests. Wrapper copies then atomically renames the admitted executable during real list; successful receipt must count both producer completions.",
+  "red_then_green": "Old code yields successful3/2/1 receipt and permits a rejected test carrier to gain admission through path retargeting; fixed code yields5/3/2 with two completion pairs and keeps carrier rejected.",
+  "validated": [
+    "copied-controller real Rust regression",
+    "rejected-carrier alias-retarget regression",
+    "22 producer tests",
+    "9 scheduler tests",
+    "ordinary unscheduled test-run call/output/status contract",
+    "framework and system scoped clippy with -D warnings",
+    "framework and system formatting"
+  ],
+  "scope_unchanged": "No Model, guest-driver, lease, scheduler, budget, retry or Go-adapter changes.",
+  "pending": [
+    "conductor-owned real scheduled-parent standalone renewal on integrated source",
+    "final Activity and configured reviews"
+  ],
+  "raw_directory": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-controller-admission",
+  "build_lane": "released"
+}
