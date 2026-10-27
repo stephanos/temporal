@@ -16,8 +16,16 @@ includes = ["model/umpire/dev/xtask/src/gate/tasks.toml"]
 description = "Admitted combined framework and Temporal gate"
 depends = ["gate:all", "model:retired-names", "model:fmt", "model:temporal-go-host"]
 
-[tasks."model:temporal-guest-freshness"]
+[tasks."model:temporal-prerequisites"]
 depends = ["gate:wasm-guest"]
+env.UMPIRE_GATE_STAGE = "temporal-prerequisites"
+env.UMPIRE_GATE_ORDER = "0"
+env.UMPIRE_GATE_SCOPE = "temporal"
+dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
+run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage temporal-prerequisites'
+
+[tasks."model:temporal-guest-freshness"]
+depends = ["model:temporal-prerequisites"]
 env.UMPIRE_GATE_STAGE = "temporal-guest-freshness"
 env.UMPIRE_GATE_ORDER = "1"
 env.UMPIRE_GATE_SCOPE = "temporal"

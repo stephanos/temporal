@@ -22,11 +22,12 @@ for name,cwd,task in [('combined',r,'model:all'),('framework',r/'model/umpire','
   return values
  reached=closure(task);assert all(t in reached for identity,t in selected.items() if name=='combined' or not identity.endswith('/standalone'))
  if name=='combined':
-  assert len(selected)==30,len(selected)
+  assert len(selected)==31,len(selected)
   assert 'model:framework' not in by
   assert 'model:wasm-guest' in by['gate:go-host']['wait_for']
   assert 'model:wasm-guest' in reached
-  assert 'gate:wasm-guest' in closure('model:temporal-guest-freshness')
+  assert 'gate:wasm-guest' in closure('model:temporal-prerequisites')
+  assert 'model:temporal-prerequisites' in closure('model:temporal-guest-freshness')
   assert 'gate:standalone' in closure('model:temporal-go-host')
   assert closure('model:fmt')=={'model:fmt'}
  else:
@@ -39,8 +40,8 @@ for name,cwd,task in [('combined',r,'model:all'),('framework',r/'model/umpire','
   expected_root=r/'model/umpire' if event['UMPIRE_GATE_SCOPE']=='framework' else r/'model'
   assert event['cwd']==str(expected_root),event
   if event['UMPIRE_GATE_SCOPE']=='framework':assert event['UMPIRE_TOOL_ROOT']==str(expected_root),event
- assert len(events)==(30 if name=='combined' else 17),len(events)
+ assert len(events)==(31 if name=='combined' else 17),len(events)
  overlaps=[(a['UMPIRE_GATE_SCOPE']+'/'+a['UMPIRE_GATE_STAGE'],b['UMPIRE_GATE_SCOPE']+'/'+b['UMPIRE_GATE_STAGE']) for i,a in enumerate(events) for b in events[i+1:] if max(a['start'],b['start'])<min(a['end'],b['end'])]
  assert overlaps
  results[name]={'leaf_events':events,'overlapping_stand_in_pairs':overlaps,'cwd':str(cwd),'inventory':tasks,'selected_stage_ids':selected,'reachable_tasks':sorted(reached),'run':args,'exit':y.returncode,'seconds':time.monotonic()-start,'stdout':y.stdout.decode(),'stderr':y.stderr.decode()}
-report={'scope':'Actual mise include/metadata-override/dependency execution with tool-only Python leaf stand-ins; NOT native gate, model, standalone, build or suite evidence. No Cargo/Go/JVM launched.','version':subprocess.check_output(['/home/agent/.local/bin/mise','--version'],env=env,text=True).strip(),'source_sha256':{str(p.relative_to(r)):hashlib.sha256(p.read_bytes()).hexdigest() for p in [r/'mise.toml',r/'model/umpire/mise.toml',r/'model/umpire/dev/xtask/src/gate/tasks.toml']},'results':results};(out/'mise-shared-graph-tool.json').write_text(json.dumps(report,indent=2)+'\n');print('Actual shared graph tool controls passed:',[(n,len(v['selected_stage_ids']),v['exit']) for n,v in results.items()])
+report={'scope':'Actual mise include/metadata-override/dependency execution with tool-only Python leaf stand-ins; NOT native gate, model, standalone, build or suite evidence. No Cargo/Go/JVM launched.','version':subprocess.check_output(['/home/agent/.local/bin/mise','--version'],env=env,text=True).strip(),'source_sha256':{str(p.relative_to(r)):hashlib.sha256(p.read_bytes()).hexdigest() for p in [r/'mise.toml',r/'model/umpire/mise.toml',r/'model/umpire/dev/xtask/src/gate/tasks.toml']},'results':results};(out/'mise-shared-graph-tool-31.json').write_text(json.dumps(report,indent=2)+'\n');print('Actual shared graph tool controls passed:',[(n,len(v['selected_stage_ids']),v['exit']) for n,v in results.items()])
