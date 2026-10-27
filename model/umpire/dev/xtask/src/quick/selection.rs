@@ -18,6 +18,13 @@ struct Package {
     name: String,
     manifest_path: PathBuf,
     source: Option<String>,
+    #[serde(default)]
+    targets: Vec<Target>,
+}
+#[derive(Deserialize)]
+struct Target {
+    kind: Vec<String>,
+    doctest: bool,
 }
 #[derive(Deserialize)]
 struct Resolve {
@@ -34,6 +41,7 @@ pub(super) struct Graph {
     packages: BTreeMap<PathBuf, String>,
     members: BTreeMap<PathBuf, BTreeSet<PathBuf>>,
     reverse: BTreeMap<PathBuf, BTreeSet<PathBuf>>,
+    doctests: BTreeSet<PathBuf>,
 }
 
 impl Graph {
@@ -59,6 +67,12 @@ impl Graph {
         self.members.insert(root.to_owned(), members);
         for package in packages.values() {
             self.packages.insert(package.manifest_path.clone(), package.name.clone());
+            if package.targets.iter().any(|target| {
+                target.doctest
+                    && target.kind.iter().any(|kind| kind == "lib" || kind == "proc-macro")
+            }) {
+                self.doctests.insert(package.manifest_path.clone());
+            }
         }
         let resolve = metadata
             .resolve
@@ -75,6 +89,22 @@ impl Graph {
             }
         }
         Ok(())
+    }
+
+    pub(super) fn compiler_only(&self, root: &Path, package: &str) -> bool {
+        [
+            "reference/kettle/guest",
+            "protocol/runtime/guests/stock",
+            "protocol/runtime/guests/control",
+            "protocol/runtime/guests/caught-panic",
+            "protocol/runtime/guests/overflow",
+        ]
+        .iter()
+        .any(|directory| {
+            let manifest = root.join(directory).join("Cargo.toml");
+            self.members.get(root).is_some_and(|members| members.contains(&manifest))
+                && self.packages.get(&manifest).is_some_and(|name| name == package)
+        })
     }
 
     fn members_named(&self, name: &str) -> BTreeSet<PathBuf> {
@@ -124,8 +154,12 @@ impl Graph {
         selected: &mut BTreeSet<PathBuf>,
         reasons: &mut BTreeSet<String>,
     ) -> Result<()> {
-        for name in
-            options.always.iter().chain(options.targets.keys()).chain(options.filters.keys())
+        for name in options
+            .always
+            .iter()
+            .chain(options.targets.keys())
+            .chain(options.filters.keys())
+            .chain(options.compiler_only.iter())
         {
             let packages = self.members_named(name);
             if packages.is_empty() {
@@ -148,6 +182,26 @@ impl Graph {
             }
         }
         Ok(())
+    }
+
+    fn workspace_selection(&self, selected: &BTreeSet<PathBuf>) -> Vec<WorkspaceSelection> {
+        self.members
+            .iter()
+            .map(|(workspace, members)| WorkspaceSelection {
+                workspace: workspace.clone(),
+                doctests: members
+                    .intersection(selected)
+                    .filter(|manifest| self.doctests.contains(*manifest))
+                    .map(|manifest| self.packages[manifest].clone())
+                    .collect(),
+                packages: members
+                    .intersection(selected)
+                    .map(|manifest| self.packages[manifest].clone())
+                    .collect::<BTreeSet<_>>()
+                    .into_iter()
+                    .collect(),
+            })
+            .collect()
     }
 
     pub(super) fn select(&self, options: &Options, changed: Vec<PathBuf>) -> Result<Selection> {
@@ -229,19 +283,7 @@ impl Graph {
         if changed.is_empty() {
             reasons.insert("unchanged invocation: explicit always packages still execute".into());
         }
-        let workspaces = self
-            .members
-            .iter()
-            .map(|(workspace, members)| WorkspaceSelection {
-                workspace: workspace.clone(),
-                packages: members
-                    .intersection(&selected)
-                    .map(|manifest| self.packages[manifest].clone())
-                    .collect::<BTreeSet<_>>()
-                    .into_iter()
-                    .collect(),
-            })
-            .collect();
+        let workspaces = self.workspace_selection(&selected);
         Ok(Selection {
             base: options
                 .base
