@@ -1,0 +1,12 @@
+{
+  "current_files": {
+    "model/umpire/backends/process/src/support.rs": "8742be8eb5375d9ddaaacfdea56f446d5df490ce9d292ab7717c19bfbef930b9",
+    "model/umpire/backends/process/src/syscall.rs": "6ec80ab0081abbf02c2ef2934023f6f6d7559ebc24432038fe0fb38133a18011",
+    "model/umpire/backends/process/tests/process.rs": "1ab2ed1e5e2634c70caa3a8babba65b29b7aa455bc6261f7c9e487f8f4391475",
+    "model/umpire/backends/process/tests/fixtures/process_fixture.rs": "1984701df093dd5ac3efa4539520885dd91f8d8e246dd08cd25aea25bcbd9ada"
+  },
+  "production_syscall_still_before": true,
+  "builds_run": false,
+  "note": "Only new controls added. support.rs cfg(test) case calls future private shared admission helper; first red command must --testprocess only, no --lib until implementation. Existing production functions unchanged.",
+  "free_bytes_readonly_observation": 11068854272
+}

@@ -108,7 +108,19 @@ mod supported {
             err: &File,
             policy: crate::DescendantPolicy,
         ) -> io::Result<Self> {
-            Self::spawn_with_custody(command, fallback_directory, (out, err), policy, None, true)
+            let lease = if policy == crate::DescendantPolicy::Checker {
+                crate::JvmLease::inherited_file()?
+            } else {
+                None
+            };
+            Self::spawn_with_custody(
+                command,
+                fallback_directory,
+                (out, err),
+                policy,
+                lease.as_ref(),
+                true,
+            )
         }
 
         pub(crate) fn spawn_with_custody(
@@ -125,8 +137,10 @@ mod supported {
                 process::geteuid().as_raw(),
                 policy,
             )?;
+            let delegate_lease =
+                lease.is_some() && policy == crate::DescendantPolicy::Orchestration;
             let mut prepared =
-                Prepared::new(command, fallback_directory, lease.is_some(), inherit_environment)?;
+                Prepared::new(command, fallback_directory, delegate_lease, inherit_environment)?;
             let (owner_read, owner_write) = io::pipe()?;
             let null = File::open("/dev/null")?;
             let input = duplicate(&owner_read)?;
@@ -138,6 +152,7 @@ mod supported {
                 [input.as_raw_fd(), output.as_raw_fd(), errors.as_raw_fd(), null.as_raw_fd()],
                 policy,
                 lease.as_ref().map_or(-1, AsRawFd::as_raw_fd),
+                delegate_lease,
             );
             let mask = SignalMask::block(&context)?;
             // SAFETY: all child memory and descriptors are live across fork. Only
@@ -221,7 +236,7 @@ mod supported {
         fn new(
             command: &Command,
             fallback_directory: &Path,
-            leased: bool,
+            delegate_lease: bool,
             inherit_environment: bool,
         ) -> io::Result<Self> {
             let api = calls::Api::new()?;
@@ -229,7 +244,7 @@ mod supported {
                 command.get_current_dir().unwrap_or(fallback_directory).canonicalize()?;
             let mut environment = environment(command, inherit_environment)?;
             environment.remove(OsStr::new(super::LEASE_ENV));
-            if leased {
+            if delegate_lease {
                 environment.insert(super::LEASE_ENV.into(), super::LEASE_FD.to_string().into());
             }
             let executable_bytes =
@@ -320,6 +335,7 @@ mod supported {
             [input, output, errors, null]: [RawFd; 4],
             policy: crate::DescendantPolicy,
             lease: RawFd,
+            delegate_lease: bool,
         ) -> ChildContext {
             ChildContext {
                 api: &raw const self.api,
@@ -335,6 +351,7 @@ mod supported {
                 errors,
                 null,
                 lease,
+                delegate_lease,
                 allow_descendants: policy == crate::DescendantPolicy::Orchestration,
                 #[cfg(target_os = "macos")]
                 default_action: &raw const self.default_action,
@@ -457,6 +474,7 @@ mod supported {
         errors: RawFd,
         null: RawFd,
         lease: RawFd,
+        delegate_lease: bool,
         allow_descendants: bool,
         #[cfg(target_os = "macos")]
         default_action: *const libc::sigaction,
@@ -494,7 +512,7 @@ mod supported {
                 child_error(api, c"cannot establish backend supervisor".as_ptr());
             }
             if context.lease >= 0 && api.dup2(context.lease, super::LEASE_FD) < 0 {
-                child_error(api, c"cannot retain orchestration lease".as_ptr());
+                child_error(api, c"cannot retain inherited lease custody".as_ptr());
             }
             close_descriptors_with_lease(api, 4, context);
             #[cfg(target_os = "linux")]
@@ -625,7 +643,11 @@ mod supported {
             {
                 child_error(api, c"cannot prepare backend subprocess".as_ptr());
             }
-            close_descriptors_with_lease(api, 3, context);
+            if context.delegate_lease {
+                close_descriptors_with_lease(api, 3, context);
+            } else {
+                close_descriptors(api, 3, context.close_limit);
+            }
             if !context.allow_descendants {
                 #[cfg(target_os = "macos")]
                 if !prevent_descendants(api) {

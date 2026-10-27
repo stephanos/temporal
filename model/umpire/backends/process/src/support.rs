@@ -252,35 +252,67 @@ impl JvmLease {
     /// Adopt an actually inherited descriptor, or acquire a new outer allocation.
     /// A present malformed locator, foreign descriptor or contended description refuses.
     pub fn inherited_or_acquire() -> std::io::Result<Self> {
+        Self::inherited()?.map_or_else(Self::acquire, Ok)
+    }
+
+    /// Verify optional inherited custody for a checker guardian, without waiting.
+    /// Absence does not open the host directory/file or acquire an allocation.
+    /// Release custody by closing descriptions, never by explicitly unlocking them.
+    pub fn inherited_file() -> std::io::Result<Option<File>> {
+        Ok(Self::inherited()?.map(|lease| lease.file))
+    }
+
+    fn inherited() -> std::io::Result<Option<Self>> {
         match std::env::var_os(crate::syscall::LEASE_ENV) {
-            None => Self::acquire(),
+            None => Ok(None),
             Some(value) if value == crate::syscall::LEASE_FD.to_string().as_str() => {
-                let root = Self::host_root()?;
-                let directory = Self::directory(&root)?;
-                let file = crate::syscall::inherited_lease()?;
-                let lease = Self { file, root, directory };
-                lease.verify()?;
-                lease.file.try_lock().map_err(|error| {
-                    std::io::Error::other(format!("inherited JVM lease is not exclusive: {error}"))
-                })?;
-                lease.verify()?;
-                Ok(lease)
+                Self::admit_inherited(crate::syscall::inherited_lease()?, Self::host_root()?)
+                    .map(Some)
             }
             Some(_) => Err(std::io::Error::other("invalid inherited JVM lease descriptor locator")),
         }
     }
 
-    fn acquire_in(root: PathBuf) -> std::io::Result<Self> {
-        use std::os::unix::fs::OpenOptionsExt;
+    fn admit_inherited(file: File, root: PathBuf) -> std::io::Result<Self> {
         let directory = Self::directory(&root)?;
-        let file = fs::OpenOptions::new()
+        let lease = Self { file, root, directory };
+        lease.verify()?;
+        let probe = Self::open_file(&lease.root, false)?;
+        let actual = lease.file.metadata()?;
+        let other = probe.metadata()?;
+        if (actual.dev(), actual.ino()) != (other.dev(), other.ino()) {
+            return Err(std::io::Error::other("inherited JVM lease changed during admission"));
+        }
+        match probe.try_lock() {
+            Ok(()) => return Err(std::io::Error::other("unheld inherited JVM lease refused")),
+            Err(fs::TryLockError::WouldBlock) => (),
+            Err(fs::TryLockError::Error(error)) => return Err(error),
+        }
+        lease.verify()?;
+        // Another holder can exit between the independent probe and this check.
+        // Acceptance requires actual exclusive custody, not a race-free ownership history.
+        lease.file.try_lock().map_err(|error| {
+            std::io::Error::other(format!("inherited JVM lease is not exclusive: {error}"))
+        })?;
+        lease.verify()?;
+        Ok(lease)
+    }
+
+    fn open_file(root: &Path, create: bool) -> std::io::Result<File> {
+        use std::os::unix::fs::OpenOptionsExt;
+        fs::OpenOptions::new()
             .read(true)
             .write(true)
-            .create(true)
+            .create(create)
             .truncate(false)
             .mode(0o600)
             .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK)
-            .open(root.join("jvm.lock"))?;
+            .open(root.join("jvm.lock"))
+    }
+
+    fn acquire_in(root: PathBuf) -> std::io::Result<Self> {
+        let directory = Self::directory(&root)?;
+        let file = Self::open_file(&root, true)?;
         let lease = Self { file, root, directory };
         lease.verify()?;
         lease.file.lock()?;
@@ -674,6 +706,113 @@ mod lease_tests {
                 crate::syscall::reap_owned_children()?;
             }
             _ => panic!("unknown lease lifecycle role"),
+        }
+        Ok(())
+    }
+    #[test]
+    fn inherited_admission_rejects_unheld_canonical_and_held_wrong_description() {
+        let temporary = tempfile::tempdir().unwrap();
+        let root = temporary.path().join("host");
+        let initial = JvmLease::acquire_in(root.clone()).unwrap();
+        drop(initial);
+        let unheld =
+            fs::OpenOptions::new().read(true).write(true).open(root.join("jvm.lock")).unwrap();
+        let error = JvmLease::admit_inherited(unheld, root.clone()).err().unwrap();
+        assert!(error.to_string().contains("unheld"), "{error}");
+        let owner = JvmLease::acquire_in(root.clone()).unwrap();
+        let other =
+            fs::OpenOptions::new().read(true).write(true).open(root.join("jvm.lock")).unwrap();
+        assert!(JvmLease::admit_inherited(other, root.clone()).is_err());
+        let admitted =
+            JvmLease::admit_inherited(owner.file.try_clone().unwrap(), root.clone()).unwrap();
+        drop(owner);
+        let probe =
+            fs::OpenOptions::new().read(true).write(true).open(root.join("jvm.lock")).unwrap();
+        assert!(matches!(probe.try_lock(), Err(fs::TryLockError::WouldBlock)));
+        drop(admitted);
+        probe.try_lock().unwrap();
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn checker_guardian_holds_last_private_description_while_target_has_no_capability() {
+        let directory = tempfile::tempdir().unwrap();
+        let root = directory.path().join("host");
+        let lease = JvmLease::acquire_in(root.clone()).unwrap();
+        let out = File::create(directory.path().join("out")).unwrap();
+        let err = File::create(directory.path().join("err")).unwrap();
+        let mut command = Command::new(std::env::current_exe().unwrap());
+        command
+            .args(["--exact", "support::lease_tests::checker_target_control", "--nocapture"])
+            .env("UMPIRE_CHECKER_PRIVATE_DIRECTORY", directory.path());
+        let mut guardian = crate::syscall::Running::spawn_with_custody(
+            &command,
+            directory.path(),
+            (&out, &err),
+            DescendantPolicy::Checker,
+            Some(&lease.file),
+            true,
+        )
+        .unwrap();
+        drop(lease);
+        let ready = directory.path().join("checker-ready");
+        let started = Instant::now();
+        while !ready.exists() {
+            if let Some(status) = guardian.try_wait().unwrap() {
+                panic!(
+                    "Checker target failed before readiness: {status}: {}",
+                    fs::read_to_string(directory.path().join("err")).unwrap()
+                );
+            }
+            assert!(
+                started.elapsed() < Duration::from_secs(5),
+                "Checker target failed: {}",
+                fs::read_to_string(directory.path().join("err")).unwrap()
+            );
+            thread::sleep(Duration::from_millis(5));
+        }
+        let pid = fs::read_to_string(ready).unwrap();
+        let descriptor = fs::metadata(format!("/proc/{}/fd/9", pid.trim())).unwrap();
+        let named = fs::metadata(root.join("jvm.lock")).unwrap();
+        assert_eq!((descriptor.dev(), descriptor.ino()), (named.dev(), named.ino()));
+        let probe =
+            fs::OpenOptions::new().read(true).write(true).open(root.join("jvm.lock")).unwrap();
+        assert!(
+            matches!(probe.try_lock(), Err(fs::TryLockError::WouldBlock)),
+            "Checker guardian lost last custody"
+        );
+        fs::write(directory.path().join("checker-release"), "release").unwrap();
+        let started = Instant::now();
+        loop {
+            if let Some(status) = guardian.try_wait().unwrap() {
+                assert!(status.success());
+                break;
+            }
+            assert!(started.elapsed() < Duration::from_secs(5));
+            thread::sleep(Duration::from_millis(5));
+        }
+        probe.try_lock().unwrap();
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn checker_target_control() -> std::io::Result<()> {
+        let Some(directory) = std::env::var_os("UMPIRE_CHECKER_PRIVATE_DIRECTORY") else {
+            return Ok(());
+        };
+        assert!(
+            std::env::var_os(crate::syscall::LEASE_ENV).is_none(),
+            "Checker target received lease locator"
+        );
+        assert!(crate::syscall::inherited_lease().is_err(), "Checker target received FD9");
+        let directory = PathBuf::from(directory);
+        let status = fs::read_to_string("/proc/self/status")?;
+        let parent = status.lines().find_map(|line| line.strip_prefix("PPid:")).unwrap().trim();
+        fs::write(directory.join("checker-ready"), parent)?;
+        let started = Instant::now();
+        while !directory.join("checker-release").exists() {
+            assert!(started.elapsed() < Duration::from_secs(5), "checker target release timeout");
+            thread::sleep(Duration::from_millis(5));
         }
         Ok(())
     }
