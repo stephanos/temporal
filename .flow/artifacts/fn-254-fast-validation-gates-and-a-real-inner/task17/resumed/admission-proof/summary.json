@@ -1,0 +1,54 @@
+{
+  "scope": "Prepared reviewable future frozen-join admission/inventory protocol; no resource or production coverage pass claim",
+  "location": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-supervision-resumed/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/admission-proof",
+  "source_checkpoint": "b8c5ede4dad8542edfd61b456628fc513949edb4",
+  "source_manifest": "source-preparation.json",
+  "source_paths": 73,
+  "binary_input_paths": 65,
+  "registry_tuple_union": 119,
+  "frozen": false,
+  "artifacts": [
+    "PROTOCOL.md",
+    "driver.py",
+    "stub_mise.py",
+    "equivalence.py"
+  ],
+  "checks_run": [
+    "ast.parse all3scripts",
+    "pure inventory parser smoke: proc-macro kind,ignored flags,filter exclusion,default runnable subset",
+    "driver.py --prepare only: source/Gitidentity reads, manifest write"
+  ],
+  "not_executed": [
+    "Cargo/nextest/builds",
+    "native public entrypoint admission/workloads",
+    "JVM/Go",
+    "lease contention/SIGKILL",
+    "standalone copied executable/source fixtures",
+    "new caches/full source checkout copies"
+  ],
+  "planned_cases": [
+    "independent publicgate+quick distinctroot/target/Cargohome/TMPDIR,normal release",
+    "publicquick holder SIGKILL+escaped nonleaseFD child,gatecontender waits cleanup",
+    "copied actualnativechild FD9/provenance handoff+wrongtarget/wronginput/recursionrefusals",
+    "absent/malformed/closed/foreignFD9 direct owned-command refusal"
+  ],
+  "coverage_boundary": "Deny-by-default stubmise fakeoneleafgraph exercises native admission/receipt transport only. ActualmiseDAG proof separate; sixKettle+fiveTemporal quick workloads andrealproductionstandalone mandatorylaterowneradmission.",
+  "platform_boundary": "Linuxonly planned protocol; Darwin escaped/adopted Orchestration cleanup remains open; originalChecker prevention unchanged.",
+  "retained_coverage_evidence_sha256": {
+    "task5/resumed/fixture-identity-equivalence.json": "21504992d220cf8ef9bae8efe682e2b140bd4a64d63e61d21a86781eb8b3692c",
+    "task5/resumed/activity-and-membership-summary.json": "f9f70be49f2320ff0a70516897a65261954398350ea8f903ba402dfae8bb347f",
+    "task6/resumed/joined-summary.json": "576d5026e0b3b3d6a4350f42e6b03a93c971690695d5a86ba635531df9becdfa"
+  },
+  "runtime_free_bytes_readonly_observation": 12579446784,
+  "owned_artifact_bytes": 76784,
+  "finished_utc": "2026-10-27T00:39:32.848558+00:00",
+  "artifact_sha256": {
+    "PROTOCOL.md": "9cbf3df9bc2f24086060a87d169eca7582c136f696014550323492736fbb00dd",
+    "driver.py": "cf1cf21419d85f61207025bb065aa319ac060e53731b04260fae0a37a37b674f",
+    "equivalence.py": "1032515d9f53ecd430869ab28c84d2d1b757842654208d6d72aaaf253ac41467",
+    "parser-smoke.json": "f259edaaa26a5813e9f81ded014254e2f795dfe7999367b6e9884cce2315ac30",
+    "source-preparation.json": "f94d70043269da060ad43103559efe3486691829a166ad4f48a5e4c44a364217",
+    "stub_mise.py": "26a2159d0357910e7f7475fc3f23f39594d270c12015acf1560dd4b5f1f28c13",
+    "syntax-check.json": "50e542840092a20eb3a6bb6ae60534b5504951a55069d43b50d4769792ffd4c2"
+  }
+}
