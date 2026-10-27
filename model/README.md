@@ -1065,3 +1065,5 @@ DSL and checker. TLC retains tick/cycle/progress projection; Apalache retains ta
 stutters, before-state history, arithmetic boundaries and selected-claim confirmation.
 The DSL's generated `__umpire_*` Rust methods and the emitter's hygienic TLA locals
 and arithmetic operators are internal helpers, separate from trace observer fields.
+
+The combined gate uses one mise DAG: root tasks import the framework task file under `umpire/dev/xtask/src/gate/tasks.toml` and add Temporal stages. Public `model-check` enters the Temporal gate once; framework `cargo xtask gate` remains independently runnable. Cross-workspace `wait_for` edges constrain already selected work without causing a framework-only invocation to select Temporal tasks. Host admission and owned cleanup span the whole invocation, including the isolated child; stage receipts retain scoped identities for later budget enforcement.

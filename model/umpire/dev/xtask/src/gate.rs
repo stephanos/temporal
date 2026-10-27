@@ -12,29 +12,9 @@ use std::{
 };
 use umpire_guest_driver::context::{ToolRoot, cargo_home};
 mod boundary;
+pub mod lease;
+mod scheduler;
 mod standalone;
-
-/// Ordered framework stages. Dependencies are conservative prerequisite edges.
-pub const STAGES: &[(&str, &[&str])] = &[
-    ("proto-tools", &[]),
-    ("retired-names", &[]),
-    ("timing-controls", &[]),
-    ("capability-controls", &[]),
-    ("source-boundary", &[]),
-    ("protobuf-controls", &["proto-tools"]),
-    ("protobuf-freshness", &["proto-tools"]),
-    ("kettle-protobuf-freshness", &["proto-tools"]),
-    ("fmt", &[]),
-    ("clippy", &[]),
-    ("docs", &[]),
-    ("tests", &[]),
-    ("wasm32-wasip1", &[]),
-    ("core-wasm-clippy", &[]),
-    ("wasm-guest", &[]),
-    ("go-host", &["wasm-guest"]),
-    ("kettle-go-host", &["wasm-guest", "kettle-protobuf-freshness"]),
-    ("standalone", &[]),
-];
 
 struct Gate {
     root: PathBuf,
@@ -68,6 +48,7 @@ impl Gate {
         command
             .current_dir(&self.root)
             .env("UMPIRE_TOOL_ROOT", &self.root)
+            .env("UMPIRE_FRAMEWORK_ROOT", &self.root)
             .env("CARGO_HOME", &self.home)
             .env("CARGO_TARGET_DIR", &self.target)
             .env("UMPIRE_QUICK_CACHE", "0")
@@ -101,8 +82,7 @@ impl Gate {
     }
     fn execute(&self, name: &str, mut command: Command) -> Result<i32> {
         let started = Instant::now();
-        let timed = self.timed;
-        let status = if timed {
+        let status = if self.timed {
             let output = command.output()?;
             if !output.status.success() {
                 io::stderr().write_all(&output.stdout)?;
@@ -113,13 +93,24 @@ impl Gate {
             command.status()?
         };
         let code = status.code().unwrap_or_else(|| 128 + status.signal().unwrap_or(0));
-        if code == 0 && timed {
-            writeln!(io::stdout(), "{name:<32} {:6.3}s", started.elapsed().as_secs_f64())?;
+        self.report(name, code, started.elapsed().as_secs_f64())?;
+        Ok(code)
+    }
+    fn execute_clean(&self, name: &str, command: Command) -> Result<i32> {
+        let started = Instant::now();
+        let directory = scheduler::directory(&self.target.join("command-receipts"))?;
+        let code = scheduler::supervised_clean(&command, &directory)?;
+        self.report(name, code, started.elapsed().as_secs_f64())?;
+        Ok(code)
+    }
+    fn report(&self, name: &str, code: i32, seconds: f64) -> io::Result<()> {
+        if code == 0 && self.timed {
+            writeln!(io::stdout(), "{name:<32} {seconds:6.3}s")?;
         }
         if code != 0 {
             writeln!(io::stderr(), "framework stage {name} failed (exit {code})")?;
         }
-        Ok(code)
+        Ok(())
     }
     fn stage(&self, name: &str) -> Result<i32> {
         let command = match name {
@@ -226,6 +217,12 @@ impl Gate {
         Ok(0)
     }
     fn full(&self) -> Result<i32> {
+        self.full_inner(None)
+    }
+    fn full_child(&self, manifest: &std::path::Path) -> Result<i32> {
+        self.full_inner(Some(manifest))
+    }
+    fn full_inner(&self, manifest: Option<&std::path::Path>) -> Result<i32> {
         writeln!(
             io::stdout(),
             "backend modes: UMPIRE_BACKENDS={} UMPIRE_APALACHE={}",
@@ -244,38 +241,45 @@ impl Gate {
                 return Ok(code);
             }
         }
-        for (name, _) in STAGES {
-            if *name == "standalone" && (!self.required || self.child_records.is_some()) {
-                continue;
-            }
-            let started = Instant::now();
-            let result = self.stage(name);
-            if let Some(records) = &self.child_records {
-                standalone::record(
-                    records,
-                    name,
-                    result.as_ref().ok().copied(),
-                    started.elapsed().as_secs_f64(),
-                )?;
-            }
-            let result = result
-                .map_err(|e| Error::Invalid(format!("framework stage {name} failed: {e}")))?;
-            if result != 0 {
-                return Ok(result);
-            }
-            if ["source-boundary", "retired-names"].contains(name) && self.timed {
-                writeln!(io::stdout(), "{name:<32} {:6.3}s", started.elapsed().as_secs_f64())?;
-            }
+        let mut expected = scheduler::inventory(self.command("mise"), "gate:")?;
+        let child = self.child_records.is_some();
+        if child {
+            expected.retain(|name| !name.ends_with("/standalone") && name != "standalone");
         }
-        Ok(0)
+        let directory = scheduler::directory(&self.target.join("gate-receipts"))?;
+        let mut command = self.command("mise");
+        command.env("UMPIRE_GATE_EXECUTABLE", env::current_exe()?);
+        if self.timed {
+            command.env("UMPIRE_TIME_STEPS", "1");
+        }
+        if let Some(manifest) = manifest {
+            command.env("UMPIRE_STANDALONE_MANIFEST", manifest);
+        }
+        let code = scheduler::run(
+            command,
+            if child { "gate:child" } else { "gate:all" },
+            &directory,
+            &expected,
+        )?;
+        if let Some(records) = &self.child_records {
+            fs::write(records, fs::read(directory.join("stages.jsonl")).unwrap_or_default())?;
+        }
+        Ok(code)
     }
 }
 
 /// Run the framework gate or one of its formatting, update and timing entry points.
 pub fn run(command: &str, args: Vec<OsString>) -> Result<i32> {
     if command == "gate" && args == [OsString::from("--list")] {
-        for (name, deps) in STAGES {
-            writeln!(io::stdout(), "{name}\t{}", deps.join(","))?;
+        let tools = ToolRoot::local()?;
+        let gate = Gate::new(&tools, false)?;
+        for (name, dependencies) in scheduler::listing(gate.command("mise"), "gate:")? {
+            writeln!(
+                io::stdout(),
+                "{}\t{}",
+                name.rsplit('/').next().unwrap_or(&name),
+                dependencies.join(",")
+            )?;
         }
         return Ok(0);
     }
@@ -287,16 +291,39 @@ pub fn run(command: &str, args: Vec<OsString>) -> Result<i32> {
     if matches!(command, "time" | "validate") {
         gate.timed = true;
     }
-    if command == "gate" && args.len() == 2 && args[0] == "--stage" {
+    if command == "gate"
+        && args.len() == 2
+        && (args[0] == "--stage" || args[0] == "--scheduled-stage")
+    {
         let stage = args[1].to_str().ok_or_else(|| Error::Invalid("stage must be UTF-8".into()))?;
-        return gate
-            .stage(stage)
-            .map_err(|e| Error::Invalid(format!("framework stage {stage} failed: {e}")));
+        if env::var_os("UMPIRE_STANDALONE_CHILD").is_some() {
+            let manifest = env::var_os("UMPIRE_STANDALONE_MANIFEST").ok_or_else(|| {
+                Error::Invalid("standalone recursion or invalid child mode refused".into())
+            })?;
+            standalone::verify(&PathBuf::from(manifest), &gate)?;
+            if stage == "standalone" {
+                return Err(Error::Invalid("standalone recursion refused".into()));
+            }
+        }
+        if args[0] == "--scheduled-stage" && stage == "standalone" && !gate.required {
+            return scheduler::skipped(stage, "standalone runs only with TLC required")
+                .map_err(Into::into);
+        }
+        let run = || {
+            gate.stage(stage).map_err(|error| {
+                io::Error::other(format!("framework stage {stage} failed: {error}"))
+            })
+        };
+        return if args[0] == "--scheduled-stage" {
+            scheduler::scheduled(stage, run).map_err(Into::into)
+        } else {
+            run().map_err(Into::into)
+        };
     }
     if command == "gate" && args.len() == 2 && args[0] == "--standalone-child" {
         gate.required = true;
         gate.child_records = Some(standalone::admit(&PathBuf::from(&args[1]), &gate)?);
-        return gate.full();
+        return gate.full_child(&PathBuf::from(&args[1]));
     }
     if env::var_os("UMPIRE_STANDALONE_CHILD").is_some() {
         return Err(Error::Invalid("standalone recursion or invalid child mode refused".into()));
@@ -329,9 +356,24 @@ pub fn run(command: &str, args: Vec<OsString>) -> Result<i32> {
             let package =
                 env::var("UMPIRE_INNER_CRATE").unwrap_or_else(|_| "umpire-checker".into());
             let inner = Instant::now();
-            let code = gate.execute(
-                "inner loop (edit+test)",
-                gate.cargo(&["test", "-p", &package, "--quiet"]),
+            let code = crate::test_run::run_selected_with(
+                &[crate::test_run::Selection {
+                    package: &package,
+                    target: None,
+                    filter: None,
+                    doctests: true,
+                }],
+                |phase, arguments| {
+                    let mut command = gate.cargo(&[]);
+                    command.args(arguments);
+                    if gate.required
+                        && arguments.first().is_some_and(|arg| arg == "nextest")
+                        && !arguments.iter().any(|arg| arg == "--profile")
+                    {
+                        command.args(["--profile", "required"]);
+                    }
+                    gate.execute(&format!("inner loop ({phase})"), command)
+                },
             )?;
             if code != 0 {
                 return Ok(code);
@@ -380,4 +422,15 @@ mod tests {
         assert_eq!(gate.execute("exit-control", command)?, 37);
         Ok(())
     }
+}
+
+/// Run one public command under supervisor-held host admission.
+pub fn supervise(arguments: Vec<OsString>) -> Result<i32> {
+    let parent = env::temp_dir().join("umpire-command");
+    let directory = scheduler::directory(&parent)?;
+    let mut command = Command::new(env::current_exe()?);
+    command.arg("__owned-command").args(arguments);
+    let result = scheduler::supervised(&command, &directory, &[]).map_err(Into::into);
+    fs::remove_dir_all(&directory)?;
+    result
 }

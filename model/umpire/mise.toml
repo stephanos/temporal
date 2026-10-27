@@ -1,6 +1,11 @@
+min_version = "2026.10.11"
+
 [tools]
 go = "1.27.0"
 protoc = "29.5"
 java = "temurin-27"
 rust = "1.99.1"
 "github:nextest-rs/nextest" = { version = "0.9.149", version_prefix = "cargo-nextest-" }
+
+[task_config]
+includes = ["dev/xtask/src/gate/tasks.toml"]
