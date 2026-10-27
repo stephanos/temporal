@@ -1,0 +1,60 @@
+{
+  "recovery": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn25417-disk-20261027T170723Z",
+  "archive": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn25417-disk-20261027T170723Z/retained-proof-output.tar.gz",
+  "archive_sha256": "294c67432fb467d2919c144e478ebcb67ea280220d2b265da668ce2022c81d2b",
+  "manifest_sha256": "009395ca548b4528ff89d3e7a030b5fa758768e56d952146b46dffa63b25dae0",
+  "retained_files_verified": 17929,
+  "cache_allocated_bytes_removed": 12257677312,
+  "archive_bytes": 1446432944,
+  "net_reclaimed_estimate_bytes": 10811244368,
+  "free_before_bytes": 56543600640,
+  "free_after_bytes": 54616100864,
+  "framework_sources_unchanged": true,
+  "protected_shared_and_next_task_caches_present": true,
+  "results": [
+    {
+      "target": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-Mxf6U4/target",
+      "cargo_exit": 101,
+      "cargo_output": "error: cannot clean `/tmp/umpire-fn25417-standalone-dc7feca3/proof-Mxf6U4/target`: missing or invalid `CACHEDIR.TAG` file\n  |\n  = note: cleaning has been aborted to prevent accidental deletion of unrelated files\n",
+      "exact_owned_cache_removal": true
+    },
+    {
+      "target": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-SuPdUL/target",
+      "cargo_exit": 101,
+      "cargo_output": "error: cannot clean `/tmp/umpire-fn25417-standalone-dc7feca3/proof-SuPdUL/target`: missing or invalid `CACHEDIR.TAG` file\n  |\n  = note: cleaning has been aborted to prevent accidental deletion of unrelated files\n",
+      "exact_owned_cache_removal": true
+    },
+    {
+      "target": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-esl66Z/target",
+      "cargo_exit": 101,
+      "cargo_output": "error: cannot clean `/tmp/umpire-fn25417-standalone-dc7feca3/proof-esl66Z/target`: missing or invalid `CACHEDIR.TAG` file\n  |\n  = note: cleaning has been aborted to prevent accidental deletion of unrelated files\n",
+      "exact_owned_cache_removal": true
+    },
+    {
+      "target": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-hlnVzv/target",
+      "cargo_exit": 101,
+      "cargo_output": "error: cannot clean `/tmp/umpire-fn25417-standalone-dc7feca3/proof-hlnVzv/target`: missing or invalid `CACHEDIR.TAG` file\n  |\n  = note: cleaning has been aborted to prevent accidental deletion of unrelated files\n",
+      "exact_owned_cache_removal": true
+    },
+    {
+      "target": "/tmp/umpire-fn25417-standalone-8350ba8f/proof-zBSpnB/target",
+      "cargo_exit": 101,
+      "cargo_output": "error: cannot clean `/tmp/umpire-fn25417-standalone-8350ba8f/proof-zBSpnB/target`: missing or invalid `CACHEDIR.TAG` file\n  |\n  = note: cleaning has been aborted to prevent accidental deletion of unrelated files\n",
+      "exact_owned_cache_removal": true
+    }
+  ],
+  "worktree_audit": {
+    "registered_child_checkouts": 36,
+    "removed": 0,
+    "reason": "Unmerged source or dirty integrated checkouts; all preserved."
+  },
+  "protected": [
+    "All framework/Temporal source trees and uncommitted changes",
+    "All Git worktrees and recovery bundles",
+    "Shared cargo-target used by live Gomad build",
+    "Idle fn25417-work-counts target reserved for controller regression",
+    "Parent standalone bootstrap target and all raw/compact proof records"
+  ],
+  "free_bytes_observed_after_verification": 67835568128,
+  "space_note": "Net reclamation estimate is removed cache allocation minus retained archive. Shared-filesystem free space also changes with unrelated concurrent jobs."
+}

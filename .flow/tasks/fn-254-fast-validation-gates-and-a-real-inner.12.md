@@ -41,6 +41,19 @@ Keep stage registration/count/timing/retry controls now. Derive actual count bou
 
 Consume .17's authoritative stage DAG, uniform runner identities and invocation-local timing/count receipts after .5/.6/.11 and the .16/.15 provider and native timer/control ports. Budget internal/child costs without double-charging inclusive parent elapsed time. Provider/port changes must preserve or explicitly update these registrations; no second scheduler or budget mechanism belongs here.
 
+### Remaining count modalities before admission
+
+The .17 producer checkpoint supplies structured stage receipts for actual Rust
+nextest/doctest counts and confirmed TLC launches/configurations. Go-host test
+counts and other unadapted modalities remain explicitly unobserved (`null`).
+Complete their actual producers where a stage has work counts before admitting
+its budget table. A missing observation is neither zero nor proof that the metric
+is inapplicable. The real mixed-control stage also records unconfirmed TLC
+starts from negative controls; its launch/configuration totals remain unknown.
+Resolve that measurement gap before admitting a launch/configuration budget,
+preserving those controls. Preserve current caller/output contracts, invocation ownership,
+child authority and the single stage DAG while adding these adapters.
+
 ## Done summary
 TBD
 

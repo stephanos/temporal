@@ -4,12 +4,13 @@ The owner's overview of open work, execution order and blockers.
 
 As of 2026-10-27.
 
-Work resumed on fn-254.17 after the owner closed fn-257 for now. Real isolated
-validation exposed three test-fixture defects; their focused checks now pass.
-The full run stopped after 658 passes and one failure, leaving 212 tests and
-later stages unexecuted. Exact inventory reconciliation retains every earlier
-identity. Structured work-count producers are being integrated before renewed
-standalone proof and final review. macOS validation remains owner-deferred.
+Full source-only standalone execution passed all 17 stages on `8350ba8f03`,
+but its work-count receipt omitted the separate doctests after Cargo replaced
+the running controller executable. Acceptance remains open for the controller
+admission repair, scheduled parent-child proof, current Activity timing and
+review. About 10 GiB of idle validation caches were reclaimed with verified
+proof-output recovery. Go-host count producers and mixed-control TLC unknowns
+remain with .12. macOS validation remains owner-deferred.
 
 ## Keeping this page current
 
@@ -84,10 +85,10 @@ realization tests. The corrected six-consumer Kettle quick run took 129.783 s wa
 The current .17 edited-source Kettle run took 173.142 s: 45.465 s in inventory/build
 and 110.616 s in its test phase. It retained the existing positive TLC cache and fresh
 negative executions; the 60 s target remains unmet. See [the current proof](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/kettle-semantic-renewal/summary.json).
-The current five-consumer activity runs took 354.645 s initially and 321.299 s warm,
+The retained pre-counter five-consumer activity runs took 354.645 s initially and 321.299 s warm,
 with all 148 selected tests and 23 negative/two positive compiler controls passing.
 The warm run had 14 verified TLC hits and no model-checker executions; compiler admission
-still dominated. These current-candidate measurements leave the 60 s target unmet.
+still dominated. These measurements leave the 60 s target unmet; they precede the count-producer checkpoint.
 macOS validation is owner-deferred for now; the Linux proof does not establish Darwin cleanup.
 Fixture/compiler batching and nextest scheduling address gate costs.
 Coverage stays: TLC remains the independent checker, and `model-validate` never uses the new TLC result cache.
@@ -100,10 +101,10 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | --- | --- | --- |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
-| fn-254.12 | ⬜ todo | Budget parser/count/retry candidate assembled; real receipt producers and native wiring underway. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
+| fn-254.12 | ⬜ todo | Budget parser/retry candidate retained; consume .17 Rust/TLC receipts, add actual Go-host counts, then admit tables against final .15/.16 interfaces. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
 | fn-254.15 | ⬜ todo | Native ports/callers assembled; only two bootstraps and four control shells remain. Complete native fixture adaptation before removing control shells and validating (R7) |
 | fn-254.16 | ⬜ todo | Mise TLC/opt-in Apalache provisioning candidate prepared; runtime hash/path admission retained. Integrate after .17, then validate installs and failures (R7) |
-| fn-254.17 | 🔄 in progress | Real standalone exposed test-fixture defects; focused repairs pass. Structured count producers remain under integration, then full standalone renewal and review. Prior complete quick runs miss timing targets; macOS validation owner-deferred (R4, R5, R7) |
+| fn-254.17 | 🔄 in progress | All 17 standalone stages pass on 8350; controller replacement caused omitted doctest counts. Repair, scheduled parent-child proof, current Activity timing and review remain; macOS validation owner-deferred (R4, R5, R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 

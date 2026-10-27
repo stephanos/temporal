@@ -1,0 +1,7 @@
+{
+  "file_count": 3348,
+  "event_count": 1674,
+  "canonical_manifest_sha256": "54729fc8fed542ed9348454865877f18adaf20bf91727b539d23e7aae2675616",
+  "compressed_manifest_sha256": "ba0529d010344756ea20a134d69eef0b28e479b85dd34f55e2e1bdcf876b91f5",
+  "retained_raw_root": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-8350ba8f"
+}

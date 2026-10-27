@@ -1,0 +1,23 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "test",
+    "--doc",
+    "--workspace",
+    "--locked",
+    "--quiet"
+  ],
+  "completed_suite_summaries": 24,
+  "totals": {
+    "passed": 4,
+    "failed": 0,
+    "ignored": 1,
+    "measured": 0,
+    "filtered_out": 0
+  },
+  "raw_stdout_sha256": "d5cb5b1d52225c0e8ec55b68ff7c29ef4e1f0c06a42e74638652b868b06895fc",
+  "stage_receipt_gap": "Numeric tests stage currently includes only nextest; separate doc evidence retained"
+}
