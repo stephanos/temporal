@@ -60,6 +60,7 @@ fn guest(arguments: Vec<OsString>) -> xtask::Result<i32> {
 }
 
 fn run() -> xtask::Result<i32> {
+    xtask::gate::work_counts::owns_controller()?;
     let mut supplied: Vec<_> = env::args_os().skip(1).collect();
     let _lease = if supplied.first().is_some_and(|arg| arg == "__owned-command") {
         supplied.remove(0);

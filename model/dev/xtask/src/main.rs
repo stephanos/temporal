@@ -17,6 +17,7 @@ mod quick;
 mod test_run;
 
 fn run() -> io::Result<i32> {
+    xtask::gate::work_counts::owns_controller()?;
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
     let mut supplied: Vec<_> = env::args_os().skip(1).collect();
     let _lease = if supplied.first().is_some_and(|arg| arg == "__owned-command") {

@@ -868,7 +868,7 @@ fn scheduled_stage_atomically_commits_success_failure_and_scanner_error_receipts
     }
 }
 
-fn spawn_owned(
+pub(super) fn spawn_owned(
     command: &Command,
     caller: &Path,
     lease: &umpire_backend_process::JvmLease,
@@ -887,7 +887,7 @@ fn spawn_owned(
     (process, directory)
 }
 
-fn finish_owned(
+pub(super) fn finish_owned(
     (mut process, directory): (umpire_backend_process::OwnedProcess, tempfile::TempDir),
 ) -> Output {
     let status = loop {
