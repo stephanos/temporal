@@ -1,0 +1,20 @@
+[
+  {
+    "package": "temporal-xtask",
+    "kind": "bin",
+    "binary": "temporal-xtask",
+    "executable": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/temporal_xtask-143a8664f5bd6fbd",
+    "sha256": "7c3bae7654e66631c31cbb35d5d32f2a1763825c109ad3f788a6b9d52c0c283c",
+    "all_list": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-semantic-renewal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/semantic-renewal/temporal-xtask-harness-000-all.stdout.log",
+    "ignored_list": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-semantic-renewal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/semantic-renewal/temporal-xtask-harness-000-ignored.stdout.log"
+  },
+  {
+    "package": "temporal-xtask",
+    "kind": "test",
+    "binary": "main",
+    "executable": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/main-bc54003994d72ae8",
+    "sha256": "885a989c6f97dde270ec76ebd63a1b08e2bf8e535f1f0eb738e7bb6cceaefc30",
+    "all_list": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-semantic-renewal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/semantic-renewal/temporal-xtask-harness-001-all.stdout.log",
+    "ignored_list": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-semantic-renewal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/semantic-renewal/temporal-xtask-harness-001-ignored.stdout.log"
+  }
+]
