@@ -1,0 +1,64 @@
+    Checking xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask)
+error: this `if` statement can be collapsed
+  --> dev/xtask/tests/gate_graph.rs:41:9
+   |
+41 | /         if let Some(env) = task.get("env") {
+42 | |             if let Some(stage) = env.get("UMPIRE_GATE_STAGE") {
+43 | |                 let stage = stage.as_str().unwrap();
+44 | |                 assert_eq!(name, &format!("gate:{stage}"));
+...  |
+52 | |         }
+   | |_________^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
+   = note: `-D clippy::collapsible-if` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+   |
+41 ~         if let Some(env) = task.get("env")
+42 ~             && let Some(stage) = env.get("UMPIRE_GATE_STAGE") {
+43 |                 let stage = stage.as_str().unwrap();
+...
+50 |                 assert!(run.contains(&format!("gate --scheduled-stage {stage}")), "{name}: {run}");
+51 ~             }
+   |
+
+error: this function has too many lines (145/100)
+  --> dev/xtask/tests/gate_wiring.rs:63:5
+   |
+63 |     fn new() -> Self {
+   |     ^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#too_many_lines
+   = note: `-D clippy::too-many-lines` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::too_many_lines)]`
+
+error: used `assert!` to check that a value is empty
+   --> dev/xtask/tests/gate_wiring.rs:792:5
+    |
+792 |     assert!(fixture.labels().is_empty());
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#assert_is_empty
+    = note: `-D clippy::assert-is-empty` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::assert_is_empty)]`
+help: use `assert_eq!` to show the value on failure
+    |
+792 -     assert!(fixture.labels().is_empty());
+792 +     assert_eq!(fixture.labels(), [] as [std::string::String; 0]);
+    |
+
+error: used `assert!` to check that a value is empty
+   --> dev/xtask/tests/gate_wiring.rs:926:17
+    |
+926 |                 assert!(fixture.labels().is_empty());
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#assert_is_empty
+help: use `assert_eq!` to show the value on failure
+    |
+926 -                 assert!(fixture.labels().is_empty());
+926 +                 assert_eq!(fixture.labels(), [] as [std::string::String; 0]);
+    |
+
+error: could not compile `xtask` (test "main") due to 4 previous errors

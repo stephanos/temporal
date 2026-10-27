@@ -1,0 +1,15 @@
+    Checking umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/guest-driver)
+    Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/backends/process)
+    Checking xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask)
+    Checking temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/dev/xtask)
+error: adding items after statements is confusing, since items exist from the start of the scope
+   --> dev/xtask/src/gate.rs:112:5
+    |
+112 |     use std::os::unix::ffi::OsStringExt;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#items_after_statements
+    = note: `-D clippy::items-after-statements` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::items_after_statements)]`
+
+error: could not compile `temporal-xtask` (bin "temporal-xtask") due to 1 previous error

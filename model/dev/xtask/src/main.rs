@@ -25,10 +25,11 @@ fn run() -> io::Result<i32> {
             return Err(io::Error::other("missing owned-command descriptor"));
         }
         Some(xtask::gate::lease::JvmLease::inherited_or_acquire()?)
-    } else if supplied
-        .first()
-        .is_some_and(|arg| ["gate", "test-run"].iter().any(|name| arg == name))
-        && !supplied.iter().any(|arg| arg == "--list")
+    } else if supplied.first().is_some_and(|arg| {
+        ["gate", "test-run", "quick", "fmt", "update", "time", "validate"]
+            .iter()
+            .any(|name| arg == name)
+    }) && !supplied.iter().any(|arg| arg == "--list")
     {
         return xtask::gate::supervise(supplied).map_err(io::Error::other);
     } else {

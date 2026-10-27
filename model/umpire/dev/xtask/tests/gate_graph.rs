@@ -38,17 +38,17 @@ fn shipping_graph_has_unique_complete_stage_metadata_and_no_cycle() {
     let mut orders = BTreeSet::new();
     for (name, task) in &tasks {
         assert!(!predecessors(&tasks, name).contains(name), "cycle at {name}");
-        if let Some(env) = task.get("env") {
-            if let Some(stage) = env.get("UMPIRE_GATE_STAGE") {
-                let stage = stage.as_str().unwrap();
-                assert_eq!(name, &format!("gate:{stage}"));
-                assert!(stages.insert(stage), "duplicate stage {stage}");
-                let order = env["UMPIRE_GATE_ORDER"].as_str().unwrap().parse::<usize>().unwrap();
-                assert!(orders.insert(order), "duplicate stage order {order}");
-                let run = task["run"].as_str().unwrap();
-                assert!(run.contains("UMPIRE_GATE_EXECUTABLE"), "{name}: {run}");
-                assert!(run.contains(&format!("gate --scheduled-stage {stage}")), "{name}: {run}");
-            }
+        if let Some(env) = task.get("env")
+            && let Some(stage) = env.get("UMPIRE_GATE_STAGE")
+        {
+            let stage = stage.as_str().unwrap();
+            assert_eq!(name, &format!("gate:{stage}"));
+            assert!(stages.insert(stage), "duplicate stage {stage}");
+            let order = env["UMPIRE_GATE_ORDER"].as_str().unwrap().parse::<usize>().unwrap();
+            assert!(orders.insert(order), "duplicate stage order {order}");
+            let run = task["run"].as_str().unwrap();
+            assert!(run.contains("UMPIRE_GATE_EXECUTABLE"), "{name}: {run}");
+            assert!(run.contains(&format!("gate --scheduled-stage {stage}")), "{name}: {run}");
         }
     }
     assert_eq!(stages, super::gate_wiring::STAGES.iter().copied().collect());

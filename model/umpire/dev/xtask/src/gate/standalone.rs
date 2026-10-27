@@ -225,6 +225,7 @@ fn clean_command(gate: &Gate, root: &Path, target: &Path, program: &str) -> Resu
         .env("UMPIRE_STANDALONE_CHILD", "1")
         .env("MISE_AUTO_INSTALL", "false")
         .env("MISE_EXEC_AUTO_INSTALL", "false");
+    super::admission::configure_clean(&mut command);
     crate::test_run::configure(
         &mut command,
         true,
@@ -416,7 +417,7 @@ pub(super) fn run(gate: &Gate) -> Result<i32> {
         let mut command = clean_command(gate, &root, &target, program)?;
         command.args(args);
         let setup_started = Instant::now();
-        let code = gate.execute_clean(name, command)?;
+        let code = gate.execute_clean(name, &command)?;
         record(
             &output.join("setup.jsonl"),
             name,
@@ -429,7 +430,7 @@ pub(super) fn run(gate: &Gate) -> Result<i32> {
     }
     let mut command = clean_command(gate, &root, &target, "mise")?;
     command.args(["exec", "--", "cargo", "xtask", "gate", "--standalone-child"]).arg(&manifest);
-    let code = gate.execute_clean("standalone-child", command)?;
+    let code = gate.execute_clean("standalone-child", &command)?;
     finish(&output, &target, &manifest, code, started.elapsed().as_secs_f64())
 }
 fn artifact(path: &Path) -> serde_json::Value {
@@ -459,9 +460,9 @@ fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64
     let provenance: Provenance = serde_json::from_slice(&fs::read(manifest)?)?;
     let mut command = gate_inventory_command(&provenance.root);
     command.env("CARGO_TARGET_DIR", target);
-    let inventory = scheduler::inventory(command, "gate:");
-    let inventory_error = inventory.as_ref().err().map(ToString::to_string);
-    let expected = match inventory {
+    let graph_inventory = scheduler::inventory(command, "gate:");
+    let inventory_error = graph_inventory.as_ref().err().map(ToString::to_string);
+    let expected = match graph_inventory {
         Ok(names) => names,
         Err(error) if code != 0 => {
             let _ = error;
@@ -567,6 +568,9 @@ mod tests {
                 ])
                 .env("UMPIRE_APALACHE", apalache)
                 .env("UMPIRE_EXPECT_STANDALONE_THREADS", expected)
+                .env("CARGO_BUILD_JOBS", "99")
+                .env("GOMAXPROCS", "99")
+                .env("GOFLAGS", "-tags=strip-parent")
                 .env_remove("NEXTEST_TEST_THREADS");
             if let Some(inherited) = inherited {
                 child.env("NEXTEST_TEST_THREADS", inherited);
@@ -598,7 +602,7 @@ mod tests {
             child_records: None,
         };
         let mut command = clean_command(&gate, &root, &target, "/bin/sh").unwrap();
-        let output = command.args(["-c", "printf '%s:%s:%s:%s' \"$NEXTEST_PROFILE\" \"$NEXTEST_TEST_THREADS\" \"$UMPIRE_QUICK_CACHE\" \"$UMPIRE_CACHE_DISABLE\""]).output().unwrap();
+        let output = command.args(["-c", "printf '%s:%s:%s:%s:%s:%s:%s' \"$NEXTEST_PROFILE\" \"$NEXTEST_TEST_THREADS\" \"$UMPIRE_QUICK_CACHE\" \"$UMPIRE_CACHE_DISABLE\" \"$CARGO_BUILD_JOBS\" \"$GOMAXPROCS\" \"$GOFLAGS\""]).output().unwrap();
         assert!(output.status.success());
         assert_eq!(finish(directory.path(), &target, &manifest, 37, 0.0).unwrap(), 37);
         let receipt: serde_json::Value =
@@ -609,7 +613,10 @@ mod tests {
         assert_eq!(receipt["test_threads"], threads);
         assert_eq!(receipt["child_exit"], 37);
         assert_eq!(receipt["complete"], false);
-        assert_eq!(String::from_utf8(output.stdout).unwrap(), format!("required:{threads}:0:1"));
+        assert_eq!(
+            String::from_utf8(output.stdout).unwrap(),
+            format!("required:{threads}:0:1:1:1:-p=1")
+        );
     }
     #[test]
     fn copied_config_trust_is_limited_to_copy_and_owned_scratch() {

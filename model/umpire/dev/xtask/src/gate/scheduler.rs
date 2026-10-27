@@ -19,7 +19,8 @@ fn tasks(mut command: Command) -> io::Result<serde_json::Value> {
     Ok(tasks)
 }
 
-pub(super) fn listing(command: Command, prefix: &str) -> io::Result<Vec<(String, Vec<String>)>> {
+/// Read stage order and prerequisite metadata from actual mise task definitions.
+pub fn listing(command: Command, prefix: &str) -> io::Result<Vec<(String, Vec<String>)>> {
     listing_from_value(&tasks(command)?, prefix)
 }
 
@@ -95,15 +96,11 @@ fn stage_metadata(task: &serde_json::Value) -> io::Result<Option<(&str, usize)>>
             .ok_or_else(|| io::Error::other("invalid mise task env directive"))?;
         let Some((key, value)) = directive.split_once('=') else { continue };
         match key {
-            "UMPIRE_GATE_STAGE" => {
-                if stage.replace(value).is_some() {
-                    return Err(io::Error::other("duplicate mise stage metadata"));
-                }
+            "UMPIRE_GATE_STAGE" if stage.replace(value).is_some() => {
+                return Err(io::Error::other("duplicate mise stage metadata"));
             }
-            "UMPIRE_GATE_ORDER" => {
-                if order.replace(value).is_some() {
-                    return Err(io::Error::other("duplicate mise stage order"));
-                }
+            "UMPIRE_GATE_ORDER" if order.replace(value).is_some() => {
+                return Err(io::Error::other("duplicate mise stage order"));
             }
             _ => (),
         }
@@ -119,11 +116,13 @@ fn stage_metadata(task: &serde_json::Value) -> io::Result<Option<(&str, usize)>>
     }
 }
 
-pub(super) fn inventory(command: Command, prefix: &str) -> io::Result<Vec<String>> {
+/// Read qualified stage identities in deterministic logical order.
+pub fn inventory(command: Command, prefix: &str) -> io::Result<Vec<String>> {
     Ok(listing(command, prefix)?.into_iter().map(|(name, _)| name).collect())
 }
 
-pub(super) fn directory(parent: &Path) -> io::Result<PathBuf> {
+/// Create an exclusively owned invocation receipt directory beneath the selected parent.
+pub fn directory(parent: &Path) -> io::Result<PathBuf> {
     fs::create_dir_all(parent)?;
     let nonce = SystemTime::now().duration_since(UNIX_EPOCH).map_err(io::Error::other)?.as_nanos();
     let directory = parent.join(format!("gate-{}-{nonce}", std::process::id()));
@@ -131,7 +130,8 @@ pub(super) fn directory(parent: &Path) -> io::Result<PathBuf> {
     Ok(directory)
 }
 
-pub(super) fn scheduled(name: &str, run: impl FnOnce() -> io::Result<i32>) -> io::Result<i32> {
+/// Claim and publish exactly one scheduled leaf execution.
+pub fn scheduled(name: &str, run: impl FnOnce() -> io::Result<i32>) -> io::Result<i32> {
     scheduled_with(name, run, None)
 }
 
@@ -209,7 +209,7 @@ pub(super) fn collect(directory: &Path, expected: &[String], success: bool) -> i
             .ok()
             .and_then(|p| p.to_str())
             .ok_or_else(|| io::Error::other("invalid stage receipt path"))?;
-        if ["stages.jsonl", "stdout.log", "stderr.log"].contains(&name) {
+        if ["stages.jsonl", "stdout.log", "stderr.log", "admission.json"].contains(&name) {
             continue;
         }
         let stage = [".json", ".claim", ".duplicate", ".partial"]
@@ -232,11 +232,22 @@ pub(super) fn collect(directory: &Path, expected: &[String], success: bool) -> i
             if value["stage"] != name.rsplit('/').next().unwrap_or(name)
                 || !value["seconds"].as_f64().is_some_and(|n| n.is_finite() && n >= 0.0)
                 || value["scope"].as_str().unwrap_or("")
-                    != name.split_once('/').map(|(scope, _)| scope).unwrap_or("")
+                    != name.split_once('/').map_or("", |(scope, _)| scope)
                 || !value["exit"].is_i64()
                 || !claimed
             {
                 return Err(io::Error::other(format!("invalid stage receipt: {name}")));
+            }
+            let completed = match (value["state"].as_str(), value["exit"].as_i64()) {
+                (Some("success"), Some(0)) => true,
+                (Some("skipped"), Some(0)) => {
+                    value["reason"].as_str().is_some_and(|reason| !reason.is_empty())
+                }
+                (Some("failed"), Some(code)) => code != 0,
+                _ => false,
+            };
+            if !completed {
+                return Err(io::Error::other(format!("partial stage receipt: {name}")));
             }
             if success && value["exit"] != 0 {
                 return Err(io::Error::other(format!("failed stage receipt: {name}")));
@@ -246,7 +257,7 @@ pub(super) fn collect(directory: &Path, expected: &[String], success: bool) -> i
             if success {
                 return Err(io::Error::other(format!("missing stage receipt: {name}")));
             }
-            serde_json::json!({"stage": name.rsplit('/').next().unwrap_or(name), "scope": name.split_once('/').map(|(scope, _)| scope).unwrap_or(""),
+            serde_json::json!({"stage": name.rsplit('/').next().unwrap_or(name), "scope": name.split_once('/').map_or("", |(scope, _)| scope),
                 "state": if claimed { "cancelled" } else { "not-started" },
                 "exit": null, "seconds": null})
         };
@@ -270,11 +281,15 @@ pub(super) fn supervised(
     directory: &Path,
     expected: &[String],
 ) -> io::Result<i32> {
-    supervised_inner(command, directory, expected, false)
+    supervised_inner(command, directory, expected, false, true)
 }
 
-pub(super) fn supervised_clean(command: &Command, directory: &Path) -> io::Result<i32> {
-    supervised_inner(command, directory, &[], true)
+pub(super) fn supervised_clean(
+    command: &Command,
+    directory: &Path,
+    stream: bool,
+) -> io::Result<i32> {
+    supervised_inner(command, directory, &[], true, stream)
 }
 
 fn supervised_inner(
@@ -282,9 +297,14 @@ fn supervised_inner(
     directory: &Path,
     expected: &[String],
     clean: bool,
+    stream: bool,
 ) -> io::Result<i32> {
     use umpire_backend_process::{JvmLease, OwnedProcess};
     let lease = JvmLease::inherited_or_acquire()?;
+    fs::write(
+        directory.join("admission.json"),
+        serde_json::to_vec_pretty(&super::admission::receipt(command))?,
+    )?;
     let stdout = fs::File::create(directory.join("stdout.log"))?;
     let stderr = fs::File::create(directory.join("stderr.log"))?;
     let mut process = if clean {
@@ -292,7 +312,13 @@ fn supervised_inner(
     } else {
         OwnedProcess::spawn_leased(command, directory, &stdout, &stderr, &lease)?
     };
+    let mut output = fs::File::open(directory.join("stdout.log"))?;
+    let mut errors = fs::File::open(directory.join("stderr.log"))?;
     let code = loop {
+        if stream {
+            relay(&mut output, &mut io::stdout())?;
+            relay(&mut errors, &mut io::stderr())?;
+        }
         if let Some(code) = failed(directory, expected) {
             std::thread::sleep(std::time::Duration::from_millis(30));
             break failed(directory, expected).unwrap_or(code);
@@ -304,12 +330,20 @@ fn supervised_inner(
     };
     drop(process);
     let code = failed(directory, expected).unwrap_or(code);
-    io::stdout().write_all(&fs::read(directory.join("stdout.log"))?)?;
-    io::stderr().write_all(&fs::read(directory.join("stderr.log"))?)?;
+    if stream || code != 0 {
+        relay(&mut output, &mut io::stdout())?;
+        relay(&mut errors, &mut io::stderr())?;
+    }
     Ok(code)
 }
 
-pub(super) fn run(
+fn relay(input: &mut fs::File, output: &mut dyn Write) -> io::Result<()> {
+    io::copy(input, output)?;
+    output.flush()
+}
+
+/// Run one mise graph under lease custody and publish complete ordered stage records.
+pub fn run(
     mut command: Command,
     task: &str,
     directory: &Path,
@@ -323,23 +357,26 @@ pub(super) fn run(
         Ok(records) => fs::write(directory.join("stages.jsonl"), records)?,
         Err(error) => {
             // Preserve the real failed leaf status while retaining complete invalid-stage evidence.
-            let records =
-                expected
-                    .iter()
-                    .map(|name| {
-                        let mut value = fs::read(directory.join(format!("{name}.json"))).ok()
+            let mut records = Vec::new();
+            for name in expected {
+                let mut value = fs::read(directory.join(format!("{name}.json")))
+                    .ok()
                     .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok())
-                    .filter(|value| value["stage"] == name.rsplit('/').next().unwrap_or(name)
-                        && value["exit"].is_i64())
-                    .unwrap_or_else(|| serde_json::json!({
-                        "stage": name.rsplit('/').next().unwrap_or(name),
-                        "scope": name.split_once('/').map(|(scope, _)| scope).unwrap_or(""),
-                        "state": "partial", "exit": null, "seconds": null,
-                    }));
-                        value["receipt_error"] = error.to_string().into();
-                        format!("{value}\n")
+                    .filter(|value| {
+                        value["stage"] == name.rsplit('/').next().unwrap_or(name)
+                            && value["exit"].is_i64()
                     })
-                    .collect::<String>();
+                    .unwrap_or_else(|| {
+                        serde_json::json!({
+                            "stage": name.rsplit('/').next().unwrap_or(name),
+                            "scope": name.split_once('/').map_or("", |(scope, _)| scope),
+                            "state": "partial", "exit": null, "seconds": null,
+                        })
+                    });
+                value["receipt_error"] = error.to_string().into();
+                serde_json::to_writer(&mut records, &value)?;
+                records.push(b'\n');
+            }
             fs::write(directory.join("stages.jsonl"), records)?;
             writeln!(io::stderr(), "invalid gate receipts: {error}")?;
             if code == 0 {
@@ -438,6 +475,11 @@ mod receipt_controls {
         assert_eq!(rows[0]["scope"], "framework");
         assert_eq!(rows[1]["scope"], "extension");
         assert!(rows.iter().all(|row| row["stage"] == "fmt"));
+        let file = directory.path().join("framework/fmt.json");
+        let mut partial: serde_json::Value = serde_json::from_slice(&fs::read(&file)?)?;
+        partial["state"] = "partial".into();
+        fs::write(file, serde_json::to_vec(&partial)?)?;
+        assert!(collect(directory.path(), &names, true).is_err());
         Ok(())
     }
 

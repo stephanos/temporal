@@ -48,6 +48,97 @@ const LEAVES: &[(&str, &str)] = &[
     ("kettle-go-host", "kettle-go-host"),
 ];
 
+const MISE_SCRIPT: &str = r#"[ "$PWD" = "$CONTROL_ROOT" ]
+[ "$CARGO_TARGET_DIR" = "$CONTROL_EXPECT_TARGET" ]
+[ "$CARGO_HOME" = "$CONTROL_CALLER/real home" ]
+[ "$UMPIRE_QUICK_CACHE" = 0 ] && [ "$UMPIRE_CACHE_DISABLE" = 1 ]
+[ "$MISE_AUTO_INSTALL" = false ] && [ "$MISE_EXEC_AUTO_INSTALL" = false ]
+if [ "$*" = 'tasks ls --json' ]; then
+ if [ -n "${CONTROL_REAL_MISE:-}" ]; then exec "$CONTROL_REAL_MISE" "$@"; fi
+ cat "$CONTROL_ROOT/tasks.json"
+ exit 0
+fi
+if [ "$1" = run ]; then
+ if [ -n "${CONTROL_REAL_MISE:-}" ]; then
+  exec "$CONTROL_REAL_MISE" "$@"
+ fi
+ [ "$2 $3 $4 $5 $6 $7 $8" = '--force --skip-tools --task-cache off --jobs 4 gate:all' ] ||
+ [ "$2 $3 $4 $5 $6 $7 $8" = '--force --skip-tools --task-cache off --jobs 4 gate:child' ]
+ aggregate=$8
+ [ "$#" = 8 ]
+ [ -d "$UMPIRE_GATE_RECEIPTS" ]
+ printf '%s\n' "$UMPIRE_GATE_RECEIPTS" >> "$CONTROL_ROOT/invocations"
+ case "${CONTROL_RECEIPT_FAULT:-}" in zero) exit 0 ;; esac
+ case "${CONTROL_RECEIPT_FAULT:-}" in
+  stream)
+   printf 'streamed-early-diagnostic\n' >&2
+   remaining=500
+   while [ ! -f "$CONTROL_ROOT/stream-release" ]; do
+    remaining=$((remaining - 1)); [ "$remaining" -gt 0 ] || exit 97; sleep 0.01
+   done
+   exit 37
+   ;;
+  simultaneous)
+   CONTROL_FAIL=proto-tools "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage proto-tools &
+   first=$!
+   CONTROL_FAIL=fmt "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage fmt &
+   second=$!
+   first_status=0; second_status=0
+   wait "$first" || first_status=$?
+   wait "$second" || second_status=$?
+   [ "$first_status:$second_status" = 37:37 ] || exit 96
+   exit 37
+   ;;
+  orphan)
+   /bin/bash -c 'echo $$ > "$CONTROL_ROOT/owned-child"; sleep 5; touch "$CONTROL_ROOT/child-escaped-cleanup"' &
+   remaining=500
+   while [ ! -s "$CONTROL_ROOT/owned-child" ]; do
+    remaining=$((remaining - 1))
+    [ "$remaining" -gt 0 ] || exit 97
+    sleep 0.01
+   done
+   CONTROL_FAIL=fmt "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage fmt
+   exit 98
+   ;;
+ esac
+ for stage in proto-tools retired-names timing-controls capability-controls source-boundary protobuf-controls protobuf-freshness kettle-protobuf-freshness fmt clippy docs tests wasm32-wasip1 core-wasm-clippy wasm-guest go-host kettle-go-host standalone; do
+  if [ "$stage" = standalone ] && [ "$aggregate" = gate:child ]; then
+   continue
+  fi
+  "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage "$stage"
+  if [ "${CONTROL_RECEIPT_FAULT:-}" = duplicate ]; then
+   "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage "$stage"
+  fi
+ done
+ case "${CONTROL_RECEIPT_FAULT:-}" in
+  partial) printf '{' > "$UMPIRE_GATE_RECEIPTS/fmt.json" ;;
+  missing) rm "$UMPIRE_GATE_RECEIPTS/fmt.json" ;;
+  extra) cp "$UMPIRE_GATE_RECEIPTS/fmt.json" "$UMPIRE_GATE_RECEIPTS/unexpected.json" ;;
+ esac
+ exit 0
+fi
+[ "$1" = exec ] && [ "$2" = -- ]
+shift 2
+case "$1 $2" in
+ 'cargo metadata') case " $* " in *' --no-deps '*) label=inner-metadata ;; *) label=source-boundary ;; esac ;;
+ 'cargo fmt') label=fmt; [ "$*" = "${CONTROL_EXPECT_FMT:-cargo fmt --all --check}" ] ;;
+ 'cargo doc') label=docs; [ "$*" = 'cargo doc --workspace --no-deps --quiet' ]; [ "$RUSTDOCFLAGS" = '-D warnings' ] ;;
+ 'cargo nextest') if [ "$3" = list ]; then label=inner-inventory; else label=tests; fi ;;
+ 'cargo test') case " $* " in *' --doc '*) label=doctests ;; *) label=tests ;; esac ;;
+ 'cargo build') label=wasm32-wasip1 ;;
+ 'cargo clippy') case " $* " in *' --target '*) label=core-wasm-clippy ;; *) label=clippy; [ "$*" = 'cargo clippy --workspace --all-targets --all-features -- -D warnings' ] ;; esac ;;
+ 'go -C') [ "$CGO_ENABLED" = 0 ]; case "$3" in "$CONTROL_ROOT/hosts/go") label=go-host ;; "$CONTROL_ROOT/reference/kettle") label=kettle-go-host ;; *) exit 91 ;; esac
+ [ "$UMPIRE_WASM" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/umpire_stock_guest.wasm" ]
+ [ "$UMPIRE_KETTLE_WASM" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/umpire_kettle_guest.wasm" ]
+ [ "$UMPIRE_STATEFUL_WASM" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/stateful_control.wasm" ]
+ [ "$UMPIRE_CAUGHT_PANIC_WASM" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/caught_panic_control.wasm" ]
+ [ "$UMPIRE_OVERFLOW_WASM" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/overflow_control.wasm" ]
+ [ "$UMPIRE_PANIC_NATIVE" = "$CONTROL_EXPECT_TARGET/panic-native" ]
+ [ "$UMPIRE_CURRENT_CONTRACT_NATIVE" = "$CONTROL_EXPECT_TARGET/current-contract-native" ] ;;
+ *) exit 92 ;;
+esac
+"#;
+
 struct Fixture {
     _directory: tempfile::TempDir,
     root: PathBuf,
@@ -111,90 +202,7 @@ impl Fixture {
             &fixture.root.join("scripts/proto-go.sh"),
             "case $1 in core) label=protobuf-freshness ;; kettle) label=kettle-protobuf-freshness ;; *) exit 90 ;; esac\n[ \"$2\" = --check ]\n",
         );
-        Self::script(
-            &fixture.bin.join("mise"),
-            r#"[ "$PWD" = "$CONTROL_ROOT" ]
-[ "$CARGO_TARGET_DIR" = "$CONTROL_EXPECT_TARGET" ]
-[ "$CARGO_HOME" = "$CONTROL_CALLER/real home" ]
-[ "$UMPIRE_QUICK_CACHE" = 0 ] && [ "$UMPIRE_CACHE_DISABLE" = 1 ]
-[ "$MISE_AUTO_INSTALL" = false ] && [ "$MISE_EXEC_AUTO_INSTALL" = false ]
-if [ "$*" = 'tasks ls --json' ]; then
- cat "$CONTROL_ROOT/tasks.json"
- exit 0
-fi
-if [ "$1" = run ]; then
- if [ -n "${CONTROL_REAL_MISE:-}" ]; then
-  exec "$CONTROL_REAL_MISE" "$@"
- fi
- [ "$2 $3 $4 $5 $6 $7 $8" = '--force --skip-tools --task-cache off --jobs 4 gate:all' ] ||
- [ "$2 $3 $4 $5 $6 $7 $8" = '--force --skip-tools --task-cache off --jobs 4 gate:child' ]
- aggregate=$8
- [ "$#" = 8 ]
- [ -d "$UMPIRE_GATE_RECEIPTS" ]
- printf '%s\n' "$UMPIRE_GATE_RECEIPTS" >> "$CONTROL_ROOT/invocations"
- case "${CONTROL_RECEIPT_FAULT:-}" in zero) exit 0 ;; esac
- case "${CONTROL_RECEIPT_FAULT:-}" in
-  simultaneous)
-   CONTROL_FAIL=proto-tools "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage proto-tools &
-   first=$!
-   CONTROL_FAIL=fmt "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage fmt &
-   second=$!
-   first_status=0; second_status=0
-   wait "$first" || first_status=$?
-   wait "$second" || second_status=$?
-   [ "$first_status:$second_status" = 37:37 ] || exit 96
-   exit 37
-   ;;
-  orphan)
-   /bin/bash -c 'echo $$ > "$CONTROL_ROOT/owned-child"; sleep 5; touch "$CONTROL_ROOT/child-escaped-cleanup"' &
-   remaining=500
-   while [ ! -s "$CONTROL_ROOT/owned-child" ]; do
-    remaining=$((remaining - 1))
-    [ "$remaining" -gt 0 ] || exit 97
-    sleep 0.01
-   done
-   CONTROL_FAIL=fmt "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage fmt
-   exit 98
-   ;;
- esac
- for stage in proto-tools retired-names timing-controls capability-controls source-boundary protobuf-controls protobuf-freshness kettle-protobuf-freshness fmt clippy docs tests wasm32-wasip1 core-wasm-clippy wasm-guest go-host kettle-go-host standalone; do
-  if [ "$stage" = standalone ] && [ "$aggregate" = gate:child ]; then
-   continue
-  fi
-  "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage "$stage"
-  if [ "${CONTROL_RECEIPT_FAULT:-}" = duplicate ]; then
-   "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage "$stage"
-  fi
- done
- case "${CONTROL_RECEIPT_FAULT:-}" in
-  partial) printf '{' > "$UMPIRE_GATE_RECEIPTS/fmt.json" ;;
-  missing) rm "$UMPIRE_GATE_RECEIPTS/fmt.json" ;;
-  extra) cp "$UMPIRE_GATE_RECEIPTS/fmt.json" "$UMPIRE_GATE_RECEIPTS/unexpected.json" ;;
- esac
- exit 0
-fi
-[ "$1" = exec ] && [ "$2" = -- ]
-shift 2
-case "$1 $2" in
- 'cargo metadata') label=source-boundary ;;
- 'cargo fmt') label=fmt; [ "$*" = "${CONTROL_EXPECT_FMT:-cargo fmt --all --check}" ] ;;
- 'cargo doc') label=docs; [ "$*" = 'cargo doc --workspace --no-deps --quiet' ]; [ "$RUSTDOCFLAGS" = '-D warnings' ] ;;
- 'cargo nextest') label=tests ;;
- 'cargo test') case " $* " in *' --doc '*) label=doctests ;; *) label=tests ;; esac ;;
- 'cargo build') label=wasm32-wasip1 ;;
- 'cargo clippy') case " $* " in *' --target '*) label=core-wasm-clippy ;; *) label=clippy; [ "$*" = 'cargo clippy --workspace --all-targets --all-features -- -D warnings' ] ;; esac ;;
- 'go -C') [ "$CGO_ENABLED" = 0 ]; case "$3" in "$CONTROL_ROOT/hosts/go") label=go-host ;; "$CONTROL_ROOT/reference/kettle") label=kettle-go-host ;; *) exit 91 ;; esac
- [ "$UMPIRE_WASM" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/umpire_stock_guest.wasm" ]
- [ "$UMPIRE_KETTLE_WASM" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/umpire_kettle_guest.wasm" ]
- [ "$UMPIRE_STATEFUL_WASM" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/stateful_control.wasm" ]
- [ "$UMPIRE_CAUGHT_PANIC_WASM" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/caught_panic_control.wasm" ]
- [ "$UMPIRE_OVERFLOW_WASM" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/overflow_control.wasm" ]
- [ "$UMPIRE_PANIC_NATIVE" = "$CONTROL_EXPECT_TARGET/panic-native" ]
- [ "$UMPIRE_CURRENT_CONTRACT_NATIVE" = "$CONTROL_EXPECT_TARGET/current-contract-native" ] ;;
- *) exit 92 ;;
-esac
-"#,
-        );
+        Self::script(&fixture.bin.join("mise"), MISE_SCRIPT);
         Self::script(&fixture.bin.join("curl"), "label=apalache-download\n");
         fixture
     }
@@ -224,10 +232,31 @@ if [ "${{CONTROL_OVERLAP:-0}}" = 1 ] && {{ [ "$label" = proto-tools ] || [ "$lab
  done
  printf '%s\n' "$label" >> "$CONTROL_ROOT/overlap"
 fi
+if [ "${{CONTROL_MISE_DESCENDANT:-0}}" = 1 ]; then
+ if [ "$label" = fmt ]; then
+  /bin/bash -c 'echo $$ > "$CONTROL_ROOT/real-owned-child"; sleep 5; touch "$CONTROL_ROOT/real-child-escaped"' &
+  while [ ! -f "$CONTROL_ROOT/failure-reached" ]; do sleep 0.01; done
+  sleep 5
+ elif [ "$label" = proto-tools ]; then
+  remaining=500
+  while [ ! -s "$CONTROL_ROOT/real-owned-child" ]; do
+   remaining=$((remaining - 1)); [ "$remaining" -gt 0 ] || exit 97; sleep 0.01
+  done
+  touch "$CONTROL_ROOT/failure-reached"
+ fi
+fi
 printf '%s|%s|%s|%s|%s|%s|%s|%s\n' "$label" "$PWD" "$CARGO_TARGET_DIR" "$CARGO_HOME" "$UMPIRE_QUICK_CACHE" "$UMPIRE_CACHE_DISABLE" "${{UMPIRE_BACKENDS:-unset}}" "$*" >> "$CONTROL_LOG"
 if [ "$label" = tests ] && [ -n "${{CONTROL_EXPECT_PROFILE:-}}" ]; then
  [ "${{NEXTEST_PROFILE:-unset}}" = "$CONTROL_EXPECT_PROFILE" ]
  [ "${{NEXTEST_TEST_THREADS:-unset}}" = "$CONTROL_EXPECT_THREADS" ]
+fi
+if [ -n "${{CONTROL_EXPECT_CPU_JOBS:-}}" ]; then
+ [ "$CARGO_BUILD_JOBS:$GOMAXPROCS" = "$CONTROL_EXPECT_CPU_JOBS:$CONTROL_EXPECT_CPU_JOBS" ]
+ if [ "$CONTROL_EXPECT_CPU_JOBS" = 1 ]; then
+  [ "$GOFLAGS" = '-tags=control -p=9 -p=1' ]
+ else
+  [ "$GOFLAGS" = '-tags=control -p=9' ]
+ fi
 fi
 if [ "${{CONTROL_SIGNAL:-}}" = "$label" ]; then
  printf 'signal stdout diagnostic\n'
@@ -238,9 +267,14 @@ fi
 if [ "${{CONTROL_EXPECT_UPDATE:-0}}" = 1 ]; then
  [ "$INSTA_UPDATE" = always ] && [ "$TRYBUILD" = overwrite ]
 fi
-if [ "${{CONTROL_FAIL_INNER:-0}}" = 1 ] && [ "$*" = 'cargo test -p umpire-checker --quiet' ]; then
- printf 'inner child diagnostic\n' >&2
- exit 37
+if [ "${{CONTROL_FAIL_INNER:-0}}" = 1 ] && [ "$label" = tests ]; then
+ case " $* " in *' -p umpire-checker '*) printf 'inner child diagnostic\n' >&2; exit 37 ;; esac
+fi
+if [ "$label" = inner-metadata ]; then
+ printf '{{"workspace_members":["checker"],"packages":[{{"id":"checker","name":"umpire-checker","targets":[{{"kind":["lib"],"doctest":true}}]}}]}}\n'
+fi
+if [ "$label" = inner-inventory ]; then
+ printf '{{"rust-suites":{{"checker":{{"package-name":"umpire-checker","binary-name":"umpire_checker","kind":"lib","status":"listed","testcases":{{"control":{{"ignored":false,"filter-match":{{"status":"matches"}}}}}}}}}}}}\n'
 fi
 if [ "$label" = source-boundary ]; then
  printf '{{"packages":[{{"source":null,"manifest_path":"%s/Cargo.toml"}}]}}\n' "$CONTROL_ROOT"
@@ -497,12 +531,17 @@ fn validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_fai
             assert!(stderr(&output).contains("framework stage standalone failed: missing or escaping standalone configuration: Cargo.lock"), "{output:?}");
         } else {
             assert_status(&output, 0);
-            expected.push("tests");
+            expected.extend(["inner-metadata", "inner-inventory", "tests", "doctests"]);
         }
         assert_eq!(fixture.labels(), expected);
         let log = fs::read_to_string(&fixture.log).unwrap();
         if entry == "time" {
-            assert!(log.lines().last().unwrap().ends_with("cargo test -p umpire-checker --quiet"));
+            assert!(
+                log.lines()
+                    .last()
+                    .unwrap()
+                    .ends_with("cargo test --doc --locked -p umpire-checker -- --nocapture")
+            );
         } else {
             assert!(!log.contains("cargo test -p"));
         }
@@ -556,7 +595,7 @@ fn convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status() 
                 "{output:?}"
             );
             assert!(stderr(&output).contains("inner child diagnostic"), "{output:?}");
-            assert_eq!(fixture.labels().len(), LEAVES.len() + 1);
+            assert_eq!(fixture.labels().len(), LEAVES.len() + 3);
         } else {
             assert_status(&output, 1);
             assert!(stderr(&output).contains("framework stage standalone failed: missing or escaping standalone configuration: Cargo.lock"), "{output:?}");
@@ -731,6 +770,13 @@ fn required_profile_reaches_gate_update_and_direct_test_children() {
                 .env("UMPIRE_APALACHE", apalache)
                 .env("CONTROL_EXPECT_PROFILE", profile)
                 .env("CONTROL_EXPECT_THREADS", threads)
+                .env("CARGO_BUILD_JOBS", "99")
+                .env("GOMAXPROCS", "99")
+                .env("GOFLAGS", "-tags=control -p=9")
+                .env(
+                    "CONTROL_EXPECT_CPU_JOBS",
+                    if backend == "require" || apalache == "require" { "1" } else { "99" },
+                )
                 .env_remove("NEXTEST_PROFILE")
                 .env_remove("NEXTEST_TEST_THREADS");
             if backend == "require" || apalache == "require" {
@@ -757,7 +803,7 @@ fn scheduled_stage_requires_invocation_directory_before_starting_leaf() {
         fixture.command(false).args(["gate", "--scheduled-stage", "fmt"]).output().unwrap();
     assert_status(&output, 1);
     assert!(stderr(&output).contains("invocation-local stage receipt directory"), "{output:?}");
-    assert!(fixture.labels().is_empty());
+    assert_eq!(fixture.labels(), Vec::<String>::new());
 }
 
 #[test]
@@ -832,7 +878,7 @@ fn spawn_owned(
 
 fn finish_owned(
     (mut process, directory): (umpire_backend_process::OwnedProcess, tempfile::TempDir),
-) -> std::process::Output {
+) -> Output {
     let status = loop {
         if let Some(status) = process.try_wait().unwrap() {
             break status;
@@ -840,7 +886,7 @@ fn finish_owned(
         std::thread::sleep(std::time::Duration::from_millis(10));
     };
     drop(process);
-    std::process::Output {
+    Output {
         status,
         stdout: fs::read(directory.path().join("stdout")).unwrap(),
         stderr: fs::read(directory.path().join("stderr")).unwrap(),
@@ -891,7 +937,7 @@ fn successful_scheduler_status_cannot_replace_complete_unique_atomic_stage_recor
             assert!(!output.status.success(), "accepted {fault} receipts: {output:?}");
             assert!(!String::from_utf8_lossy(&output.stdout).contains("gate total"));
             if fault == "zero" {
-                assert!(fixture.labels().is_empty());
+                assert_eq!(fixture.labels(), Vec::<String>::new());
             } else if fault == "duplicate" {
                 assert_eq!(fixture.labels(), ["proto-tools"]);
             } else {
@@ -1109,4 +1155,65 @@ fn required_test_stage_selects_bounded_profile_and_empty_selection_status_is_pre
             assert!(log.lines().all(|line| line.contains("|0|1|require|")), "{log}");
         }
     }
+}
+
+#[test]
+fn actual_mise_failed_leaf_reaps_its_active_sibling_descendant_before_return() {
+    let fixture = Fixture::new();
+    let mise = std::env::split_paths(&std::env::var_os("PATH").unwrap())
+        .map(|path| path.join("mise"))
+        .find(|path| path.is_file())
+        .unwrap();
+    let output = fixture
+        .command(false)
+        .arg("gate")
+        .env("CONTROL_REAL_MISE", mise)
+        .env("MISE_TRUSTED_CONFIG_PATHS", &fixture.root)
+        .env("CONTROL_OVERLAP", "1")
+        .env("CONTROL_MISE_DESCENDANT", "1")
+        .env("CONTROL_FAIL", "proto-tools")
+        .output()
+        .unwrap();
+    assert_status(&output, 37);
+    assert!(stderr(&output).contains("proto-tools failed (exit 37)"), "{output:?}");
+    let pid = fs::read_to_string(fixture.root.join("real-owned-child")).unwrap();
+    assert!(
+        !Command::new("/bin/kill")
+            .args(["-0", pid.trim()])
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .status()
+            .unwrap()
+            .success(),
+        "real mise sibling descendant {pid} survived"
+    );
+    assert!(!fixture.root.join("real-child-escaped").exists());
+}
+
+#[test]
+fn outer_supervision_streams_separate_diagnostics_before_scheduler_completion() {
+    let fixture = Fixture::new();
+    let stderr = fixture.caller.join("stream.stderr");
+    let mut child = fixture
+        .command(false)
+        .arg("gate")
+        .env("CONTROL_RECEIPT_FAULT", "stream")
+        .stdout(std::process::Stdio::null())
+        .stderr(fs::File::create(&stderr).unwrap())
+        .spawn()
+        .unwrap();
+    let mut observed = false;
+    for _ in 0..200 {
+        if fs::read_to_string(&stderr).unwrap().contains("streamed-early-diagnostic") {
+            observed = true;
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    }
+    let pending = child.try_wait().unwrap().is_none();
+    write(&fixture.root.join("stream-release"), "release");
+    let status = child.wait().unwrap();
+    assert_eq!(status.code(), Some(37));
+    assert!(observed && pending, "diagnostic was buffered until scheduler completion");
+    assert_eq!(fs::read_to_string(stderr).unwrap().matches("streamed-early-diagnostic").count(), 1);
 }
