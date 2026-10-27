@@ -105,7 +105,7 @@ pub fn command(root: &Path, tool: JarTool) -> io::Result<Command> {
         directory(&owned, Path::new(relative))?;
     }
     let mut command = Command::new("mise");
-    // Inherited mise selectors must not admit Temporal or user configuration.
+    // Inherited mise selectors must not admit parent or user configuration.
     for (key, _) in std::env::vars_os() {
         if key.to_string_lossy().starts_with("MISE_") {
             command.env_remove(key);
