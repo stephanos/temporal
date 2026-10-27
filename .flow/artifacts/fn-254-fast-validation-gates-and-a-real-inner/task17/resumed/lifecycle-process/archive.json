@@ -1,0 +1,14 @@
+{
+  "original_directory": "/tmp/fn25417-lifecycle-custody",
+  "source_commit": "db17edb783",
+  "scope": "Process controls only; no portable Darwin acceptance",
+  "files": {
+    "green-process.log": "d182b7260237a1cc2da0454a4158dcf0cdaa6559e6b15a479c5ba987dab803b0",
+    "compile.log": "4832fdfe012a043d71b2619f89decb572c72d2726a0006a080d1dfa2b1656c35",
+    "red-broadcast.log": "a5e479d618bafa5b1c42b0bc185fbaa83fb615f4aeb3ac08d6c7ebd46de9615b",
+    "clippy.log": "31d8823b1da2371a86b3b6a63e762f3bade5fee7ad71a2493fd4951afa5041ba",
+    "red-linux-reap.log": "f6a9ebd5c7489a74f8beaed4e48abe52a23dd84e5d8cd11da3299920370ab49d",
+    "evidence.json": "48b819c19e9ad038b3d777b3ee1d6fa4f717ca44bd4a4849564a645d35e58ade",
+    "green-integration.log": "17dc86d58bd039969251e60b44ccc05f4a60a4e33e29e330681d83b03d44c352"
+  }
+}
