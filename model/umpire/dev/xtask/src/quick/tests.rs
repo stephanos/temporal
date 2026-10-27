@@ -326,6 +326,8 @@ fn shared_kettle_model_seeds_source_consumers_and_reverse_guest() -> TestResult 
     graph.add(Path::new("/framework"), &serde_json::to_vec(&metadata)?)?;
     let options =
         Options { always: BTreeSet::from(["umpire-fixtures".into()]), ..Options::default() };
+    assert!(graph.compiler_only(Path::new("/framework"), "umpire-kettle-guest"));
+    assert!(!graph.compiler_only(Path::new("/framework"), "umpire-reference-kettle"));
     assert_eq!(
         selected(&graph, &options, &["/framework/dev/fixtures/fixtures/sample_kettle/model.rs"])?,
         BTreeSet::from([
@@ -525,6 +527,154 @@ fn workspace_documentation_can_supply_executable_test_inputs() -> TestResult {
             BTreeSet::from(["fixtures".into(), "dsl".into()]),
             "{path}"
         );
+    }
+    Ok(())
+}
+
+#[test]
+fn metadata_preserves_doctests_without_requesting_binary_only_docs() -> TestResult {
+    let mut metadata: serde_json::Value = serde_json::from_slice(&metadata(
+        "system",
+        &[("library", "library", &[]), ("guest", "guest", &[]), ("disabled", "disabled", &[])],
+        &["library", "guest", "disabled"],
+    ))?;
+    metadata["packages"][0]["targets"] = serde_json::json!([
+        {"kind": ["lib"], "doctest": true}
+    ]);
+    metadata["packages"][1]["targets"] = serde_json::json!([
+        {"kind": ["bin"], "doctest": false}
+    ]);
+    metadata["packages"][2]["targets"] = serde_json::json!([
+        {"kind": ["lib"], "doctest": false}
+    ]);
+    let mut graph = Graph::default();
+    graph.add(Path::new("/system"), &serde_json::to_vec(&metadata)?)?;
+    let options = Options { always: BTreeSet::from(["library".into()]), ..Options::default() };
+    let selection = graph.select(&options, vec!["/system/Cargo.toml".into()])?;
+    assert_eq!(selection.workspaces[0].packages, ["disabled", "guest", "library"]);
+    assert_eq!(selection.workspaces[0].doctests, BTreeSet::from(["library".into()]));
+    Ok(())
+}
+
+#[test]
+fn explicit_compiler_only_packages_must_belong_to_an_admitted_workspace() -> TestResult {
+    let mut options = options();
+    options.compiler_only.insert("missing".into());
+    assert!(graph()?.select(&options, vec![]).is_err());
+    Ok(())
+}
+
+#[test]
+fn framework_abi_guests_are_explicit_compiler_only_consumers() -> TestResult {
+    let guests = [
+        ("umpire-kettle-guest", "reference/kettle/guest"),
+        ("umpire-stock-guest", "protocol/runtime/guests/stock"),
+        ("umpire-control-guest", "protocol/runtime/guests/control"),
+        ("umpire-caught-panic-guest", "protocol/runtime/guests/caught-panic"),
+        ("umpire-overflow-guest", "protocol/runtime/guests/overflow"),
+    ];
+    let mut data: serde_json::Value = serde_json::from_slice(&metadata(
+        "framework",
+        &guests.map(|(name, _)| (name, name, &[][..])),
+        &guests.map(|(name, _)| name),
+    ))?;
+    for (index, (_, directory)) in guests.iter().enumerate() {
+        data["packages"][index]["manifest_path"] =
+            serde_json::json!(format!("/framework/{directory}/Cargo.toml"));
+    }
+    let mut graph = Graph::default();
+    graph.add(Path::new("/framework"), &serde_json::to_vec(&data)?)?;
+    for (name, _) in guests {
+        assert!(graph.compiler_only(Path::new("/framework"), name));
+        assert!(!graph.compiler_only(Path::new("/other-workspace"), name));
+    }
+    Ok(())
+}
+
+#[test]
+fn workspace_execution_checks_build_only_consumers_then_batches_tests_and_scoped_docs() -> TestResult
+{
+    let directory = tempfile::tempdir()?;
+    let root = directory.path();
+    let inventory = serde_json::json!({"rust-suites": {
+        "api": {"package-name": "api", "binary-name": "api", "kind": "lib", "status": "listed", "testcases": {
+            "api_test": {"ignored": false, "filter-match": {"status": "matches"}}
+        }},
+        "fixtures": {"package-name": "fixtures", "binary-name": "fixtures", "kind": "test", "status": "listed", "testcases": {
+            "fixtures": {"ignored": false, "filter-match": {"status": "matches"}}
+        }}
+    }});
+    fs::write(root.join("inventory.json"), serde_json::to_vec(&inventory)?)?;
+    let script = root.join("cargo.sh");
+    fs::write(
+        &script,
+        r#"set -eu
+printf '%s\n' "$*" >> "$CONTROL_ROOT/calls"
+case "$1" in
+ check) exit "$CONTROL_COMPILE_EXIT" ;;
+ nextest) case "$2" in
+  list) cat "$CONTROL_ROOT/inventory.json"; exit "$CONTROL_LIST_EXIT" ;;
+  run) exit "$CONTROL_RUN_EXIT" ;;
+  *) exit 91 ;;
+ esac ;;
+ test) [ "$2" = --doc ]; exit "$CONTROL_DOC_EXIT" ;;
+ *) exit 92 ;;
+esac
+"#,
+    )?;
+    let workspace = super::WorkspaceSelection {
+        workspace: root.into(),
+        packages: vec!["api".into(), "guest".into(), "fixtures".into()],
+        doctests: BTreeSet::from(["api".into()]),
+    };
+    let options = Options {
+        mappings: vec![("/feature".into(), "fixtures".into())],
+        targets: [("fixtures".into(), "fixtures".into())].into(),
+        filters: [("fixtures".into(), "fixtures".into())].into(),
+        ..Options::default()
+    };
+    for (compile, list, run, doc, expected, count) in [
+        (0, 0, 0, 0, 0, 4),
+        (13, 0, 0, 0, 13, 1),
+        (0, 17, 0, 0, 17, 2),
+        (0, 0, 29, 0, 29, 3),
+        (0, 0, 0, 37, 37, 4),
+    ] {
+        fs::write(root.join("calls"), "")?;
+        let status = super::test_workspace(
+            &workspace,
+            &options,
+            &["/feature/activity/model.rs".into()],
+            &BTreeSet::from(["guest".into()]),
+            || {
+                let mut command = Command::new("/bin/sh");
+                command
+                    .arg(&script)
+                    .current_dir(root)
+                    .env("CONTROL_ROOT", root)
+                    .env("CONTROL_COMPILE_EXIT", compile.to_string())
+                    .env("CONTROL_LIST_EXIT", list.to_string())
+                    .env("CONTROL_RUN_EXIT", run.to_string())
+                    .env("CONTROL_DOC_EXIT", doc.to_string());
+                command
+            },
+        )?;
+        assert_eq!(status, expected);
+        let calls = fs::read_to_string(root.join("calls"))?;
+        let lines = calls.lines().collect::<Vec<_>>();
+        assert_eq!(lines.len(), count, "{calls}");
+        assert_eq!(lines[0], "check --locked --all-targets -p guest");
+        if count >= 3 {
+            assert!(lines[2].starts_with("nextest run "), "{calls}");
+            assert!(lines[2].contains("-p api -p guest -p fixtures"), "{calls}");
+            assert!(
+                lines[2].contains("kind(test) & binary(=fixtures) & test(=fixtures)"),
+                "{calls}"
+            );
+        }
+        if count == 4 {
+            assert_eq!(lines[3], "test --doc --locked -p api -- --nocapture");
+        }
     }
     Ok(())
 }

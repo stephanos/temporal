@@ -23,6 +23,7 @@ struct Options {
     base: Option<OsString>,
     mappings: Vec<(PathBuf, String)>,
     always: BTreeSet<String>,
+    compiler_only: BTreeSet<String>,
     targets: BTreeMap<String, String>,
     filters: BTreeMap<String, String>,
     select_only: bool,
@@ -59,6 +60,13 @@ impl Options {
                 }
                 Some("--always") => {
                     options.always.insert(
+                        value
+                            .into_string()
+                            .map_err(|_| Error::Invalid("package must be UTF-8".into()))?,
+                    );
+                }
+                Some("--compile-only") => {
+                    options.compiler_only.insert(
                         value
                             .into_string()
                             .map_err(|_| Error::Invalid("package must be UTF-8".into()))?,
@@ -110,6 +118,8 @@ impl Options {
 struct WorkspaceSelection {
     workspace: PathBuf,
     packages: Vec<String>,
+    #[serde(skip)]
+    doctests: BTreeSet<String>,
 }
 #[derive(Serialize)]
 struct Selection {
@@ -182,6 +192,11 @@ fn cargo(root: &Path, home: &Path, target: &Path) -> Command {
             command.env_remove(name);
         }
     }
+    crate::test_run::configure(
+        &mut command,
+        true,
+        env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require"),
+    );
     command
 }
 
@@ -200,9 +215,23 @@ fn execute(
     phase: &str,
     workspace: &Path,
     packages: &[String],
+    command: Command,
+    output: impl Write,
+) -> Result<i32> {
+    execute_with(phase, workspace, packages, command, output, |command| {
+        command.status().map(|status| (status, Vec::new()))
+    })
+    .map(|(status, _)| status)
+}
+
+fn execute_with(
+    phase: &str,
+    workspace: &Path,
+    packages: &[String],
     mut command: Command,
     mut output: impl Write,
-) -> Result<i32> {
+    run: impl FnOnce(&mut Command) -> io::Result<(std::process::ExitStatus, Vec<u8>)>,
+) -> Result<(i32, Vec<u8>)> {
     let stage = format!(
         "quick: stage={phase} workspace={} packages={}",
         workspace.display(),
@@ -210,15 +239,15 @@ fn execute(
     );
     writeln!(output, "{stage} command={command:?}")?;
     let started = Instant::now();
-    match command.status() {
-        Ok(status) => {
+    match run(&mut command) {
+        Ok((status, bytes)) => {
             let code = status.code().unwrap_or_else(|| 128 + status.signal().unwrap_or(0));
             writeln!(
                 output,
                 "{stage} elapsed={:.3}s exit={code}",
                 started.elapsed().as_secs_f64()
             )?;
-            Ok(code)
+            Ok((code, bytes))
         }
         Err(error) => {
             writeln!(
@@ -229,6 +258,66 @@ fn execute(
             Err(error.into())
         }
     }
+}
+
+fn test_workspace(
+    workspace: &WorkspaceSelection,
+    options: &Options,
+    changed: &[PathBuf],
+    compiler_only: &BTreeSet<String>,
+    cargo: impl Fn() -> Command,
+) -> Result<i32> {
+    let selections = workspace
+        .packages
+        .iter()
+        .map(|name| {
+            let focused = focused(options, name, changed);
+            crate::test_run::Selection {
+                package: name,
+                target: options.targets.get(name).filter(|_| focused).map(String::as_str),
+                filter: options.filters.get(name).filter(|_| focused).map(String::as_str),
+                doctests: workspace.doctests.contains(name),
+            }
+        })
+        .collect::<Vec<_>>();
+    if !compiler_only.is_empty() {
+        let mut command = cargo();
+        command.args(["check", "--locked", "--all-targets"]);
+        for package in compiler_only {
+            command.args(["-p", package]);
+        }
+        let status = execute(
+            "compile",
+            &workspace.workspace,
+            &compiler_only.iter().cloned().collect::<Vec<_>>(),
+            command,
+            io::stderr().lock(),
+        )?;
+        if status != 0 {
+            return Ok(status);
+        }
+    }
+    crate::test_run::run_selected_checked_with(
+        &selections,
+        compiler_only,
+        |arguments| {
+            let mut command = cargo();
+            command.args(arguments).stderr(std::process::Stdio::inherit());
+            execute_with(
+                "test-inventory",
+                &workspace.workspace,
+                &workspace.packages,
+                command,
+                io::stderr().lock(),
+                |command| command.output().map(|output| (output.status, output.stdout)),
+            )
+        },
+        |phase, arguments| {
+            let mut command = cargo();
+            command.args(arguments);
+            execute(phase, &workspace.workspace, &workspace.packages, command, io::stderr().lock())
+        },
+    )
 }
 
 /// Run affected-package formatting, clippy and tests; `--select-only` reports the selection.
@@ -303,30 +392,21 @@ pub fn run(arguments: Vec<OsString>) -> Result<i32> {
                 return Ok(status);
             }
         }
-        for name in &workspace.packages {
-            let mut command = cargo(&workspace.workspace, &home, &target);
-            command.args(["test", "--locked", "-p", name]);
-            let focused = focused(&options, name, &selection.changed);
-            if let Some(test) = options.targets.get(name).filter(|_| focused) {
-                command.args(["--test", test]);
-            }
-            if let Some(filter) = options.filters.get(name).filter(|_| focused) {
-                command.arg(filter);
-            }
-            command.args(["--", "--nocapture"]);
-            if focused && options.filters.contains_key(name) {
-                command.arg("--exact");
-            }
-            let status = execute(
-                "test",
-                &workspace.workspace,
-                std::slice::from_ref(name),
-                command,
-                io::stderr().lock(),
-            )?;
-            if status != 0 {
-                return Ok(status);
-            }
+        let compiler_only = workspace
+            .packages
+            .iter()
+            .filter(|name| {
+                options.compiler_only.contains(*name)
+                    || graph.compiler_only(&workspace.workspace, name)
+            })
+            .cloned()
+            .collect::<BTreeSet<_>>();
+        let status =
+            test_workspace(workspace, &options, &selection.changed, &compiler_only, || {
+                cargo(&workspace.workspace, &home, &target)
+            })?;
+        if status != 0 {
+            return Ok(status);
         }
     }
     Ok(0)
