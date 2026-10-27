@@ -11,7 +11,7 @@ repair. Its five-consumer Activity warm run passed all 148 tests and 25 compiler
 controls in 444.463 s; the 60 s target remains unmet. Review fixes align CI's mise
 pin, restore combined Apalache opt-in, keep formatting outside JVM admission and
 make supervisor scratch private. Focused joined controls pass; follow-up review
-remains before .17 can close. About 10 GiB of idle validation caches were reclaimed
+returned SHIP and .17 is closed. Provisioning .16 is next. About 10 GiB of idle validation caches were reclaimed
 with verified proof-output recovery. Go-host count producers and mixed-control
 TLC unknowns remain with .12. macOS validation remains owner-deferred.
 
@@ -36,7 +36,7 @@ The validation hold is lifted, so focused checks may resume.
 Backlog order remains **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
 ranks a fast feedback loop among the most important properties. The standalone workspace/driver and independent gate checkpoint are integrated, and the complete isolated proof passed.
-Immediate validation path: priority-0 .17's uniform nextest and single bounded stage DAG, consuming the reviewed and committed .5 fixture/compiler checkpoint. The consumer/cache checkpoint is reviewed and closed; verified configurations cache independently of refuted siblings, and test-only Kettle readers no longer expand unrelated libraries. Downloads .16 and shell ports .15 follow .17; budgets .12 and final proof .8 consume it. fn-254 gets first admission to shared build/JVM/review capacity. Already running fn-246.9/.13 work may reach safe checkpoints, and disjoint source work may continue without delaying fn-254. Finish fn-254.7 after committed fn-246 closure.
+Immediate validation path: downloads .16, then shell ports .15, budgets .12 and final proof .8, consuming the reviewed and closed .17 nextest/stage-DAG checkpoint. The consumer/cache checkpoint is reviewed and closed; verified configurations cache independently of refuted siblings, and test-only Kettle readers no longer expand unrelated libraries. fn-254 gets first admission to shared build/JVM/review capacity. Already running fn-246.9/.13 work may reach safe checkpoints, and disjoint source work may continue without delaying fn-254. Finish fn-254.7 after committed fn-246 closure.
 The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246; fn-254.13's workspace move is integrated. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; activity changes
 retain their listed dependencies and follow the current priority/source-ownership order.
 fn-255.3 and .4 (fuzz targets and cargo-mutants) touch no gate files and may run as lanes before fn-254 closes.
@@ -60,7 +60,7 @@ The current Activity warm run passed in 444.463 s with exactly five consumers,
 148 tests, 23 negative/two positive compiler controls and three documentation targets;
 14 verified TLC cache hits avoided model executions. Post-review fixes pass focused
 CI, opt-in provisioning, formatting and supervision controls; follow-up review
-remains before .17 closure. The owner deferred macOS validation on 2026-10-27; Darwin behavior is
+returned SHIP and .17 is closed. The owner deferred macOS validation on 2026-10-27; Darwin behavior is
 preserved, with no runtime acceptance claim.
 Remaining work includes provisioning, native control ports, budget admission and
 final combined-gate measurements. Downstream candidates are unvalidated and not integrated into `umpire`;
@@ -120,7 +120,6 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.12 | ⬜ todo | Budget parser/retry candidate retained; consume .17 Rust/TLC receipts, add actual Go-host counts, then admit tables against final .15/.16 interfaces. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
 | fn-254.15 | ⬜ todo | Native ports/callers assembled; only two bootstraps and four control shells remain. Complete native fixture adaptation before removing control shells and validating (R7) |
 | fn-254.16 | ⬜ todo | Mise TLC/opt-in Apalache provisioning candidate prepared; runtime hash/path admission retained. Integrate after .17, then validate installs and failures (R7) |
-| fn-254.17 | 🔄 in progress | Scheduled standalone and exact Activity scope pass on c5189bd3; warm Activity 444.463 s misses target. Four review fixes pass joined controls; follow-up review remains. macOS validation owner-deferred (R4, R5, R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 

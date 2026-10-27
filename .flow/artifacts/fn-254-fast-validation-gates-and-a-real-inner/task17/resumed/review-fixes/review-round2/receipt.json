@@ -1,0 +1,88 @@
+{
+  "base": "c958d34af0",
+  "effort": "high",
+  "findings": {
+    "backend": "claude",
+    "baseSha": "c958d34af0c1f00479ddabf6b207aa2949200201",
+    "headSha": "e988ff1d229f9b8c9e89f106bc6ecff095606bd7",
+    "items": [
+      {
+        "body": "correctness:1. The combined model:all graph dispatches framework leaves directly, bypassing Gate::full_inner and its UMPIRE_APALACHE=require fetch. On a clean checkout the required Apalache tests refuse the missing pinned JAR; the previous Make caller provisioned it first.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-af9fd73b857ee0305dbdebaf47d374ade955a3ddba0fef656a2bf8f19e48c355",
+        "id": "finding-e3dd092d30e209a102f471c6b5843fae",
+        "lastSeenReceiptId": "review-ad7ec9a5021b3ff3423cf0bb071c45fc2c6ddabedcfefa9aaa4900bbaf5612d0",
+        "ordinal": 1,
+        "rIds": [
+          "R4",
+          "R7"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Restore explicit optional provisioning before the combined graph and cover the required/default/failure paths without routine auto-install.",
+        "title": "Combined required-Apalache gate bypasses explicit provisioning"
+      },
+      {
+        "body": "contracts:1. All four Umpire jobs install mise2026.8.16 while both task configurations now require2026.10.11. The pinned binary refuses these configs before their public gate or Go commands run.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-af9fd73b857ee0305dbdebaf47d374ade955a3ddba0fef656a2bf8f19e48c355",
+        "id": "finding-29b4625222e7f7e544fff42b7d46697d",
+        "lastSeenReceiptId": "review-ad7ec9a5021b3ff3423cf0bb071c45fc2c6ddabedcfefa9aaa4900bbaf5612d0",
+        "ordinal": 2,
+        "rIds": [],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Pin the verified2026.10.11 release and its correct extracted Linux x64 binary SHA256 in each job, and verify the workflow/config compatibility.",
+        "title": "CI mise pin is older than both newly required config floors"
+      },
+      {
+        "body": "correctness:2, contracts:2 and integration's second finding describe the same defect. Both dispatchers route fmt through leased supervise, so formatting in one checkout waits for unrelated gate or quick work despite launching no JVM.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-af9fd73b857ee0305dbdebaf47d374ade955a3ddba0fef656a2bf8f19e48c355",
+        "id": "finding-947aa585f8c09d7021ea658375d150f8",
+        "lastSeenReceiptId": "review-ad7ec9a5021b3ff3423cf0bb071c45fc2c6ddabedcfefa9aaa4900bbaf5612d0",
+        "ordinal": 3,
+        "rIds": [],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Remove fmt from both leased command lists, preserving owned leaf execution and exact formatting arguments/status.",
+        "title": "Formatting unnecessarily waits on the host-wide JVM lease"
+      },
+      {
+        "body": "integration's first finding. A first user creates the fixed TMPDIR/umpire-command parent with ordinary permissions. A second user cannot create a command directory there; an attacker-owned parent can also expose or replace another user's redirected logs. This parent was introduced for every supervised public command.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-af9fd73b857ee0305dbdebaf47d374ade955a3ddba0fef656a2bf8f19e48c355",
+        "id": "finding-d1f1584c3f99d7b2539c1dab71f1a86b",
+        "lastSeenReceiptId": "review-ad7ec9a5021b3ff3423cf0bb071c45fc2c6ddabedcfefa9aaa4900bbaf5612d0",
+        "ordinal": 4,
+        "rIds": [],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Use the existing tempfile private temporary-directory mechanism or a validated private per-user parent.",
+        "title": "Shared supervisor scratch parent prevents a second user from running commands"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-ad7ec9a5021b3ff3423cf0bb071c45fc2c6ddabedcfefa9aaa4900bbaf5612d0",
+    "supersedesReceiptId": "review-af9fd73b857ee0305dbdebaf47d374ade955a3ddba0fef656a2bf8f19e48c355"
+  },
+  "focus": "Follow-up review of the four finalized round1 findings after fixes: explicit required-Apalache setup before combined scheduling; four CI mise2026.10.11 pins with verified official extracted Linux x64 SHA and minimum-floor wiring control; both public fmt dispatchers bypass JVM lease with real held-lease/status/argv/reaping controls; supervisor uses independent TempDir with explicit0700 and tested cleanup/legacy-parent obstruction. Merged review and original lenses are retained in task17/resumed/review-fixes/review-round1. Joined fixed source192dd9ceb2 passes framework5/Systemgate9/bridgefmt1 controls and scoped clippy/fmt. Current committed source is unchanged from that joined checkpoint; later changes only evidence/docs. Read review-fixes/joined/input-reuse.json: real standalone17stages and Activity148 remain exact c518 evidence, with scoped later fixes explicitly distinguished; no post-fix full-suite/current-total claim. Single mise DAG, scheduler/count/process/guest-driver/Model semantic inputs and locks are unchanged. Preserve explicit owner Darwin execution deferral, .12 unknown-count admission and .8 final combined measurements/target misses. Assess correctness of these fixes and any regression they introduce; keep unrelated code-smell/FYI refactors out of task closure.",
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.17",
+  "introduced_count": 0,
+  "mode": "claude",
+  "model": "claude-opus-5-5",
+  "pre_existing_count": 0,
+  "review": "The fixes address all four prior findings, and none of them introduces a new P0/P1 in the changed paths. I read the source directly; this session had no shell, so I ran no tests.\n\nPrior finding #1: fixed\nPrior finding #2: fixed\nPrior finding #3: fixed\nPrior finding #4: fixed\n\n## How each was verified\n\n1. **Apalache in the combined gate:** `model/dev/xtask/src/gate.rs:152-159` now runs the bootstrapped framework executable's `fetch-apalache <root>/umpire` when `UMPIRE_APALACHE=require`. It runs after the framework bootstrap and before the stage inventory and `scheduler::run`, and a non-zero exit is returned as the gate's status. A new control, `optional_apalache_is_prepared_before_combined_scheduling`, checks the call order (bootstrap \u2192 apalache \u2192 inventory \u2192 graph) and that a named failure stops the run. When Apalache is not required, the path is unchanged.\n2. **CI mise version:** `.github/workflows/umpire.yml` now pins `mise-action` to `version: \"2026.10.11\"` with a `sha256` in each of the four jobs. That matches the `min_version` floor in both `mise.toml` and `model/umpire/mise.toml`. I could not check the SHA value itself without a shell; it is accepted on the strength of the retained `review-fixes/ci` evidence.\n3. **`fmt` and the JVM lease:** `fmt` has been removed from the supervised command list in both `model/umpire/dev/xtask/src/main.rs:72` and `model/dev/xtask/src/main.rs:30`. The framework `fmt` path still runs through `gate::run`, then `scheduler::execute`, then `OwnedProcess::spawn`. That path calls `JvmLease::inherited_file()`, which returns `None` when no lease is inherited and never takes the lock. So `fmt` still gets owned cleanup but no longer waits on the host lease.\n4. **Supervisor scratch directory:** `supervise` (`model/umpire/dev/xtask/src/gate.rs:400-413`) now uses a fresh `tempfile` directory with mode `0700` instead of the shared `$TMPDIR/umpire-command` parent. It closes the directory explicitly, and `TempDir`'s drop also cleans it up on error paths.\n\n## New findings\nNone blocking.\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0}}\n```\n\n<verdict>SHIP</verdict>",
+  "review_reservation_id": "e9373153d8594563a7b0d4aeade328cc",
+  "session_id": "16e2f742-a1a6-4dd0-9b67-9382ca3055aa",
+  "spec": "claude:claude-opus-5-5:high",
+  "timestamp": "2026-10-27T18:44:31.746689Z",
+  "type": "impl_review",
+  "verdict": "SHIP"
+}
