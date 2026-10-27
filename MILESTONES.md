@@ -38,7 +38,7 @@ and retain unvalidated candidates until their required evidence and reviews pass
 The fn-254.5 fixture/compiler checkpoint is reviewed and closed on `umpire`: all 24 cases,
 Temporal compiler/activity checks, 61 parser rows plus 18 compiler refusals, bounded profiles
 and snapshot repair controls passed. Candidates for .15/.16 and .12 remain in the isolated source-assembly branch.
-Task .17's shared mise task graph, batched runner and supervisor source are joined on `umpire`. The pre-lifecycle Cargo and nextest inventories match 860 framework and 235 Temporal identities; actual edits retain the six/five consumer scopes. Lifecycle custody and explicit compile-only admission for the facade/IR derive are now joined: 52 process, 67 framework caller, 14 Temporal caller and 28 public graph controls pass, including meaningful regression mutations. Renew the narrower activity inventory, real quick/standalone throughput and non-root Darwin cleanup proof.
+Task .17's shared mise task graph, batched runner and supervisor source are joined on `umpire`. The pre-lifecycle Cargo and nextest inventories match 860 framework and 235 Temporal identities; affected inventories and the exact 148-test activity scope are renewed. Lifecycle custody and explicit compile-only admission for the facade/IR derive are joined: 52 process, 67 framework caller, 14 Temporal caller and 28 public graph controls pass. The real public process run also preserves inherited-context owner-EOF status125. Actual six-consumer Kettle quick passed 278 tests with two ignored in 173.142 s; four sampled JVMs retained the configured bounds and fresh negative checks. Activity execution, real standalone throughput and non-root Darwin cleanup proof remain.
 Remaining work includes joined graph/resource proof, actual receipt counters, budget wiring and native control ports.
 Candidates are unvalidated and not integrated into `umpire`;
 preparation does not advance Flow dependencies or mark tasks complete. Integrate shared CLI/configuration
@@ -100,7 +100,10 @@ binaries linking the whole graph, and no real Model-edit inner loop. Routine gat
 its opt-in cost is separate. The retained complete five-consumer activity quick run took 444.027 s, including 388.875 s in
 realization tests. The corrected six-consumer Kettle quick run took 129.783 s warm (99.527 s fixtures,
 20.229 s TLA tests); these are different workloads, and the 60 s target remains unmet.
-Fixture/compiler batching and nextest scheduling address this.
+The current .17 edited-source Kettle run took 173.142 s: 45.465 s in inventory/build
+and 110.616 s in its test phase. It retained the existing positive TLC cache and fresh
+negative executions; the 60 s target remains unmet. See [the current proof](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/kettle-semantic-renewal/summary.json).
+Fixture/compiler batching and nextest scheduling address gate costs.
 Coverage stays: TLC remains the independent checker, and `model-validate` never uses the new TLC result cache.
 cargo-nextest approved, pinned via mise. The framework's checks move into `model/umpire` and must pass on that
 directory alone (R7). First in the current order; only .7 waits for fn-246's closure.
@@ -114,7 +117,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.12 | ⬜ todo | Budget parser/count/retry candidate assembled; real receipt producers and native wiring underway. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
 | fn-254.15 | ⬜ todo | Native ports/callers assembled; only two bootstraps and four control shells remain. Complete native fixture adaptation before removing control shells and validating (R7) |
 | fn-254.16 | ⬜ todo | Mise TLC/opt-in Apalache provisioning candidate prepared; runtime hash/path admission retained. Integrate after .17, then validate installs and failures (R7) |
-| fn-254.17 | 🔄 in progress | Priority 0: graph/runner/lifecycle custody joined; process/caller/public graph controls pass. Pre-lifecycle inventories match (860 framework, 235 Temporal), selectors retain six/five consumers. Renew affected inventories, real quick/standalone timing and Darwin cleanup proof (R4, R5, R7) |
+| fn-254.17 | 🔄 in progress | Priority 0: graph/runner/lifecycle custody joined; native controls and affected inventories pass. Six-consumer Kettle quick passes in 173.142 s, above target. Finish five-consumer activity execution, real standalone timing and Darwin cleanup proof (R4, R5, R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 
