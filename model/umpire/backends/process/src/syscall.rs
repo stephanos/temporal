@@ -625,7 +625,7 @@ mod supported {
             if context.lifecycle {
                 calls::close(api, 5);
             }
-            let (mut status, mut completed, mut failed) = if context.lifecycle {
+            let (mut status, completed, mut failed) = if context.lifecycle {
                 wait_for_lifecycle(context, target)
             } else {
                 wait_for_target(context, target)
@@ -640,7 +640,6 @@ mod supported {
                 loop {
                     let result = calls::waitpid(api, target, &raw mut status, 0);
                     if result == target {
-                        completed |= context.lifecycle;
                         break;
                     }
                     if result < 0 && errno(api) != libc::EINTR {
@@ -739,7 +738,7 @@ mod supported {
                     // children can keep FD10 open without observing cancellation.
                     // The caller kills and reaps every descendant before releasing
                     // this guardian's parent completion writer or lease.
-                    return (0, false, failed);
+                    return (0, true, failed);
                 }
                 // Trusted carriers retain FD10 until their children finish; a
                 // nested guardian retains its parent's writer until its own
@@ -748,7 +747,7 @@ mod supported {
                     if context.lifecycle_fds[3] >= 0 && !broadcast_closed {
                         calls::close(api, 7);
                     }
-                    return (0, false, failed);
+                    return (0, exited, failed);
                 }
             }
         }

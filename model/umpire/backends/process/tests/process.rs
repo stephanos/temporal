@@ -838,7 +838,7 @@ fn linux_root_reaps_paused_nested_guardian_before_releasing_lease() -> Result<()
 
 #[test]
 #[cfg(target_os = "linux")]
-fn root_broadcast_cancels_checker_while_rust_owner_is_stopped() -> Result<(), Refusal> {
+fn linux_cleanup_reaps_checker_while_rust_owner_is_stopped() -> Result<(), Refusal> {
     use umpire_backend_process::{DescendantPolicy, OwnedProcess};
     let scratch = Scratch::new(&root()?)?;
     let ready = scratch.path().join("ready");
@@ -865,7 +865,6 @@ fn root_broadcast_cancels_checker_while_rust_owner_is_stopped() -> Result<(), Re
         );
         thread::sleep(Duration::from_millis(5));
     }
-    assert!(Command::new("kill").args(["-CONT", rust_owner.trim()]).status()?.success());
     let started = Instant::now();
     loop {
         if let Some(status) = owner.try_wait()? {
@@ -875,6 +874,10 @@ fn root_broadcast_cancels_checker_while_rust_owner_is_stopped() -> Result<(), Re
         assert!(started.elapsed() < Duration::from_secs(5));
         thread::sleep(Duration::from_millis(5));
     }
+    assert!(
+        !Path::new("/proc").join(rust_owner.trim()).exists(),
+        "stopped Rust owner was not reaped before return"
+    );
     scratch.finish(Ok(()))
 }
 
@@ -906,7 +909,10 @@ fn lifecycle_locators_without_both_pipe_capabilities_refuse_before_launch() -> R
     let scratch = Scratch::new(&root()?)?;
     for (completion, cancellation) in [("10", "11"), ("1", "11"), ("10", "1")] {
         let ready = scratch.path().join("ready");
-        let output = fixture("checker-owner")
+        let output = Command::new("/bin/bash")
+            .args(["-c", "exec 10>&- 11<&-; exec \"$@\"", "lifecycle-locator-control"])
+            .arg(FIXTURE)
+            .arg("checker-owner")
             .arg(scratch.path())
             .arg(&ready)
             .arg(scratch.path().join("release"))
