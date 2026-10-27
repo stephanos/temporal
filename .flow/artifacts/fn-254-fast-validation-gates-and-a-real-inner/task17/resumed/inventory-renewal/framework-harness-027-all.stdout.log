@@ -1,0 +1,6 @@
+fixtures: test
+recorder::checks_record_first_failure_without_stopping_control_flow: test
+recorder::direct_nested_and_panicking_calls_restore_evaluation: test
+recorder::evaluations_are_thread_local: test
+recorder::failures_dominate_holes_in_both_orders_and_first_hole_wins: test
+recorder::only_reached_checks_count_after_ordinary_early_returns: test

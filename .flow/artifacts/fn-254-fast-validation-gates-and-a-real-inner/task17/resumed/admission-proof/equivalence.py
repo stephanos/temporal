@@ -17,7 +17,7 @@ def cargo(rows, workspace):
     for row in rows:
         names, ignored = listed(row['all_list']), listed(row['ignored_list'])
         assert ignored <= names
-        kind = 'lib' if row['kind'] in ['lib', 'proc-macro'] else row['kind']
+        kind = 'lib' if row['kind'] in ['rlib', 'cdylib', 'dylib', 'staticlib'] else row['kind']
         identities = {(workspace, row['package'], kind, row['binary'], name, name in ignored) for name in names}
         assert not result.intersection(identities), 'duplicate Cargo harness identity'
         result.update(identities)

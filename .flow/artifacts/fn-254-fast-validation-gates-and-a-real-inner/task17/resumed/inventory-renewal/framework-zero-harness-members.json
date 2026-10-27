@@ -1,0 +1,102 @@
+[
+  {
+    "package": "umpire",
+    "manifest": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/umpire/Cargo.toml",
+    "targets": [
+      {
+        "kind": [
+          "lib"
+        ],
+        "crate_types": [
+          "lib"
+        ],
+        "name": "umpire",
+        "src_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/umpire/src/lib.rs",
+        "edition": "2024",
+        "doc": true,
+        "doctest": true,
+        "test": true
+      }
+    ]
+  },
+  {
+    "package": "umpire-ir-derive",
+    "manifest": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir/derive/Cargo.toml",
+    "targets": [
+      {
+        "kind": [
+          "proc-macro"
+        ],
+        "crate_types": [
+          "proc-macro"
+        ],
+        "name": "umpire_ir_derive",
+        "src_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir/derive/src/lib.rs",
+        "edition": "2024",
+        "doc": true,
+        "doctest": true,
+        "test": true
+      }
+    ]
+  },
+  {
+    "package": "umpire-kettle-guest",
+    "manifest": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/reference/kettle/guest/Cargo.toml",
+    "targets": [
+      {
+        "kind": [
+          "cdylib"
+        ],
+        "crate_types": [
+          "cdylib"
+        ],
+        "name": "umpire_kettle_guest",
+        "src_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/reference/kettle/guest/src/lib.rs",
+        "edition": "2024",
+        "doc": true,
+        "doctest": false,
+        "test": true
+      }
+    ]
+  },
+  {
+    "package": "umpire-overflow-guest",
+    "manifest": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime/guests/overflow/Cargo.toml",
+    "targets": [
+      {
+        "kind": [
+          "cdylib"
+        ],
+        "crate_types": [
+          "cdylib"
+        ],
+        "name": "overflow_control",
+        "src_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime/guests/overflow/src/lib.rs",
+        "edition": "2024",
+        "doc": true,
+        "doctest": false,
+        "test": true
+      }
+    ]
+  },
+  {
+    "package": "umpire-stock-guest",
+    "manifest": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime/guests/stock/Cargo.toml",
+    "targets": [
+      {
+        "kind": [
+          "cdylib"
+        ],
+        "crate_types": [
+          "cdylib"
+        ],
+        "name": "umpire_stock_guest",
+        "src_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime/guests/stock/src/lib.rs",
+        "edition": "2024",
+        "doc": true,
+        "doctest": false,
+        "test": true
+      }
+    ]
+  }
+]

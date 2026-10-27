@@ -1,0 +1,8 @@
+{
+  "path": "model/umpire/dev/fixtures/fixtures/sample_kettle/model.rs",
+  "before_sha256": "6adf1d33cbd161a956033a234b770af1c4eb22cb81d3a2a24ed6d51603e5c714",
+  "edited_sha256": "5df019379bd8c94ab1f8028f636cd7fe367aa620b84e726bba9c72f5c73adefd",
+  "restored_sha256": "6adf1d33cbd161a956033a234b770af1c4eb22cb81d3a2a24ed6d51603e5c714",
+  "exact_original_bytes_restored": true,
+  "selection_only": true
+}

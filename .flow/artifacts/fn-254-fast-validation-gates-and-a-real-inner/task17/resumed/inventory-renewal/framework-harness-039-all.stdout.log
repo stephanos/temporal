@@ -1,0 +1,6 @@
+bounded_controls::exact_optional_codes_preserve_absence_and_exhaustion: test
+expr::tests::children_visit_every_variant_in_order_and_mutate_each_child_once: test
+expr::tests::infallible_preserves_explicit_false_cases_and_propagates_child_failure: test
+literal::tests::integers_enums_and_sequences_refuse_outside_their_type: test
+literal::tests::nominal_and_optional_values_admit_exactly: test
+printing_controls::new_fields_and_variants_print_without_registration: test

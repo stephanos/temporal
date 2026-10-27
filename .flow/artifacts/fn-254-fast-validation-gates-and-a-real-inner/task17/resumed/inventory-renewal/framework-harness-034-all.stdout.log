@@ -1,0 +1,7 @@
+body::effects::optional_fact_tests::optional_fact_declarations_and_tails_are_bounded: test
+body::effects::optional_fact_tests::optional_tail_preserves_prefix_state: test
+body::optional::tests::canonical_constructor_types_and_located_refusals: test
+body::optional::tests::defaults_and_eager_ssa_preserve_nominal_types: test
+error_tests::errors_preserve_order_and_success_value: test
+library::tests::library_sources_parse_and_declare_the_laws_and_traits: test
+shape::tests::facade_roots_preserve_admission_and_library_paths: test
