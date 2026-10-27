@@ -1,5 +1,7 @@
 # Frozen join admission proof protocol
 
+Execution update: this protocol was prepared before admission. The retained `../frozen-native/summary.json` records the later F1 native proof, and `../inventory-renewal/summary.json` records the partial F2 inventory proof at `c68571b04c`. The preparation-only description below records the protocol's original state; it is not a current execution summary. F2's narrower activity listing stopped at its growth limit. Real quick and production standalone renewal remain open.
+
 Preparation only. No Cargo, nextest, Go, JVM, native xtask workload, lease contention, source copy or test body has run for this artifact lane. `driver.py --prepare` only reads source/Git identity and writes a provisional manifest. The graph worker still owns compiler admission. Production source/tests are untouched.
 
 ## Owner admission and freeze
