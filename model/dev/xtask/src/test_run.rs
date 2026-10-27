@@ -45,6 +45,8 @@ fn run_with(mut execute: impl FnMut(&[&str]) -> io::Result<i32>) -> io::Result<i
         "never",
         "--failure-output",
         "immediate-final",
+        "--no-tests",
+        "fail",
     ])?;
     if status != 0 {
         return Ok(status);
@@ -108,6 +110,17 @@ mod tests {
     }
 
     #[test]
+    fn workspace_selection_rejects_an_unexpected_zero_test_run() {
+        let result = run_with(|arguments| {
+            if arguments.first() == Some(&"nextest") {
+                assert!(arguments.windows(2).any(|pair| pair == ["--no-tests", "fail"]));
+            }
+            Ok(0)
+        });
+        assert!(result.is_ok());
+    }
+
+    #[test]
     fn binaries_then_doctests_exactly_once() -> io::Result<()> {
         let mut calls = Vec::new();
         assert_eq!(
@@ -120,7 +133,7 @@ mod tests {
         assert_eq!(
             calls,
             [
-                "nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final",
+                "nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final --no-tests fail",
                 "test --doc --workspace --locked --quiet",
             ]
         );
