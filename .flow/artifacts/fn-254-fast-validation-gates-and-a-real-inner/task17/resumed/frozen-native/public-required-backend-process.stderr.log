@@ -1,0 +1,10 @@
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+    Finished `test` profile [unoptimized] target(s) in 1.11s
+    Finished `test` profile [unoptimized] target(s) in 0.02s
+────────────
+ Nextest run ID 0c690e98-923b-4d73-acbd-38cd6ab0f28f with nextest profile: required
+    Starting 47 tests across 2 binaries
+────────────
+     Summary [   1.389s] 47 tests run: 47 passed, 0 skipped
+    Finished `test` profile [unoptimized] target(s) in 0.04s
+   Doc-tests umpire_backend_process

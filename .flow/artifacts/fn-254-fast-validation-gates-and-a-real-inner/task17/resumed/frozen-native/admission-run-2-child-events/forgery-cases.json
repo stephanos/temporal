@@ -1,0 +1,22 @@
+[
+  {
+    "locator": null,
+    "exit_code": 1,
+    "stderr": "xtask: missing owned-command descriptor\n"
+  },
+  {
+    "locator": "1",
+    "exit_code": 1,
+    "stderr": "xtask: invalid inherited JVM lease descriptor locator\n"
+  },
+  {
+    "locator": "9",
+    "exit_code": 1,
+    "stderr": "xtask: Bad file descriptor (os error 9)\n"
+  },
+  {
+    "locator": "9/foreign-regular-file",
+    "exit_code": 1,
+    "stderr": "xtask: JVM lease is not a stable private owned regular file\n"
+  }
+]
