@@ -27,9 +27,7 @@ fn run() -> io::Result<i32> {
         }
         Some(xtask::gate::lease::JvmLease::inherited_or_acquire()?)
     } else if supplied.first().is_some_and(|arg| {
-        ["gate", "test-run", "quick", "fmt", "update", "time", "validate"]
-            .iter()
-            .any(|name| arg == name)
+        ["gate", "test-run", "quick", "update", "time", "validate"].iter().any(|name| arg == name)
     }) && !supplied.iter().any(|arg| arg == "--list")
     {
         return xtask::gate::supervise(supplied).map_err(io::Error::other);

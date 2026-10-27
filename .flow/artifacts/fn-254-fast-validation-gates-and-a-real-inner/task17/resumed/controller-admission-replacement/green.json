@@ -1,0 +1,77 @@
+{
+  "source_commit": "bac6ba518431106b503e3fb4fb68421e122d64c5",
+  "cases": [
+    {
+      "name": "replacement-green",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "xtask",
+        "--test",
+        "main",
+        "controller_counts::copied_controller_keeps_nextest_and_doctest_counts_after_atomic_self_replacement",
+        "--",
+        "--exact",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "seconds": 3.451155293005286,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-controller-admission/replacement-green.log",
+      "sha256": "f0b32fde632f84a5c87cc01f6ba030f0d9e363de8e51483a15e2e8cd0882c7dc"
+    },
+    {
+      "name": "carrier-green",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "xtask",
+        "--lib",
+        "gate::work_counts::tests::test_carrier_rejection_is_frozen_before_configured_path_can_change",
+        "--",
+        "--exact",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "seconds": 1.106911584000045,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-controller-admission/carrier-green.log",
+      "sha256": "955b8984f524d6672daf5fca9c8b3506472d6f02f6d0c8d9bd52e35869925e76"
+    }
+  ],
+  "asserted_complete_counts": {
+    "discovered": 5,
+    "executed": 3,
+    "ignored": 2,
+    "completion_pairs": 2
+  },
+  "ordinary_noop": {
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "xtask",
+      "--test",
+      "main",
+      "gate_wiring::test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes",
+      "--",
+      "--exact"
+    ],
+    "exit": 0,
+    "seconds": 2.683391959995788,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-controller-admission/ordinary-noop.log",
+    "sha256": "d572e02c776634320dd9d134cee6c92bd30ed736824f21a5191474bc7e9fea56"
+  }
+}

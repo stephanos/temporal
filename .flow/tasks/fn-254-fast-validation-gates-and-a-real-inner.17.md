@@ -8,7 +8,7 @@ Make the production validation paths use available parallelism without omitting 
 
 **Size:** M
 **Files:** existing framework/Temporal native gate and test-runner leaves; quick execution; mise task definitions; their wiring/standalone controls and entry-point documentation.
-**Touches:** [Makefile, model/scripts/time-gate.sh, mise.toml, model/umpire/mise.toml, model/dev/xtask/src/gate.rs, model/dev/xtask/src/test_run.rs, model/dev/xtask/src/main.rs, model/umpire/dev/xtask/src/gate.rs, model/umpire/dev/xtask/src/gate/**, model/umpire/backends/process/src/support.rs, model/umpire/backends/process/src/syscall.rs, model/umpire/backends/process/src/work.rs, model/umpire/backends/tlc/src/runner.rs, model/umpire/backends/process/tests/**, model/umpire/backends/process/Cargo.toml, model/umpire/dev/xtask/Cargo.toml, model/dev/xtask/Cargo.toml, model/umpire/Cargo.lock, model/Cargo.lock, model/umpire/dev/xtask/src/test_run.rs, model/umpire/dev/xtask/src/main.rs, model/umpire/dev/xtask/src/quick/**, model/umpire/dev/xtask/tests/**, model/scripts/test-model-validate.sh, model/scripts/test-time-gate.sh, model/umpire/README.md, model/umpire/dev/xtask/README.md, model/README.md]
+**Touches:** [.github/workflows/umpire.yml, model/dev/xtask/tests/main.rs, Makefile, model/scripts/time-gate.sh, mise.toml, model/umpire/mise.toml, model/dev/xtask/src/gate.rs, model/dev/xtask/src/test_run.rs, model/dev/xtask/src/main.rs, model/umpire/dev/xtask/src/gate.rs, model/umpire/dev/xtask/src/gate/**, model/umpire/backends/process/src/support.rs, model/umpire/backends/process/src/syscall.rs, model/umpire/backends/process/src/work.rs, model/umpire/backends/tlc/src/runner.rs, model/umpire/backends/process/tests/**, model/umpire/backends/process/Cargo.toml, model/umpire/dev/xtask/Cargo.toml, model/dev/xtask/Cargo.toml, model/umpire/Cargo.lock, model/Cargo.lock, model/umpire/dev/xtask/src/test_run.rs, model/umpire/dev/xtask/src/main.rs, model/umpire/dev/xtask/src/quick/**, model/umpire/dev/xtask/tests/**, model/scripts/test-model-validate.sh, model/scripts/test-time-gate.sh, model/umpire/README.md, model/umpire/dev/xtask/README.md, model/README.md]
 
 ### Ownership and order
 - Consume completed .6's correct source-consumer selection, .11's isolated validation contract and .5's smaller independently schedulable cases. Keep all .6 direct consumer mappings and reverse dependencies; speed cannot come from selecting fewer affected packages.
@@ -80,18 +80,68 @@ package token, and inherited scheduler metadata in a gate fixture. Focused
 repairs pass; its failed full run is evidence of incomplete validation. Renew
 the actual standalone on the final producer candidate before review or closure.
 
+
+### Current frozen-candidate acceptance checkpoint (2026-10-27)
+
+The resumed scheduled standalone on `c5189bd35d36e0e404c0980cb986bdc970d4b8af`
+passed all 17 stages in 990.582 s. Its child receipt includes all 896 successful
+nextest identities and four successful doctest bodies: 903 discovered, 900 executed,
+three ignored, zero skipped. Parent-child path bytes, digest and exclusive count
+authority agree; source seals match and all owned processes were reaped.
+This supersedes the earlier owner-stop and failed/count-incomplete standalone
+checkpoints as current acceptance evidence; those records remain historical.
+
+The same-source Activity setup passed in 598.237 s and the valid warm retry in
+444.463 s: exactly five consumers, 148 tests, 23 negative/two positive compiler
+controls and three documentation targets. The warm run retained 14 verified TLC
+cache hits and no model-checker executions; the 60 s target remains unmet.
+An earlier warm attempt was cancelled by the measurement harness and selected
+190 tests because untracked proof files widened its filter. It is retained as
+failed harness evidence, not an accepted measurement. The retry fixed only
+transient scratch-directory sampling and isolated owned evidence outside the
+checkout. Model probe bytes were restored exactly; no Model semantics changed.
+
+Current final proof is under `task17/resumed/final-c5189bd3/`. Controller
+replacement red/green evidence is under `controller-admission-replacement/`.
+Final implementation review remains before task closure. Go/unadapted counts
+and mixed-control TLC unknowns remain explicit nulls for .12 admission; full
+combined-gate measurements remain .8 obligations. macOS execution is owner-deferred.
+
+### Final review repair checkpoint (2026-10-27)
+
+The three-lens Claude Opus5.5 review finalized NEEDS_WORK on `884794b825`.
+Four concrete findings are repaired: CI's mise pin now meets both admitted
+config floors with the verified official Linux x64 binary checksum; combined
+required-Apalache mode restores explicit provisioning before the graph;
+public formatting bypasses the JVM lease in both dispatchers; supervisor
+scratch uses an independently created private0700 TempDir.
+
+Behavioral controls failed before the fixes and pass after them. The joined
+source checkpoint `192dd9ceb2` passes five framework supervision controls,
+nine Temporal gate controls and the actual bridge formatting control; scoped
+clippy and formatting also pass. CI recipe wiring passes after its compatibility
+control reproduced the stale pin. The real standalone and warm Activity evidence
+remains explicitly attached to `c5189bd35d`; focused post-review deltas do not
+claim another full-suite execution. The graph, count producers, process backend,
+registry dependencies, Model semantics and guest driver are unchanged by these
+repairs. Follow-up Claude Opus5.5 high review on `e988ff1d22` returned SHIP with no introduced findings; its receipt and report are retained under `review-fixes/review-round2/`.
 ## Acceptance
-- [ ] Production Rust unit/integration gate paths, including correctly scoped quick tests, use pinned nextest with matching package/binary/test/ignored coverage; Cargo doctests and compiler-only probes retain their distinct roles. Target/filter, empty-selection, failure and timing controls pass.
-- [ ] One authoritative stage DAG schedules dependency-independent work with the verified mise capability or a documented concrete native requirement; no parallel duplicate graph/scheduler remains. Public xtask gate/validate and Make/CI/standalone contracts are preserved with scheduling beneath them. A mise-based scheduler declares the verified minimum version in both task configs without runtime probes. Shared target/generated-output/caller/standalone obligations are preserved.
-- [ ] Combined compiler/test/JVM/Go admission is bounded, including nested TLC workers. JVM-bearing framework-tests, Temporal-tests, standalone-child and quick-TLC work remain mutually exclusive across independent invocations until an explicit combined proof admits overlap; shared lease/handoff controls pass. Actual parallel execution and peak-owner controls establish the candidate bounds without claiming sampled RSS is a hard heap limit.
-- [ ] Named failures, fail-fast, owned sibling cleanup, simultaneous failures, deterministic invocation-local receipts, full-gate cache bypass and no-auto-install controls pass; the changed real standalone validation is renewed on the frozen candidate.
-- [ ] Documentation and .12 stage/count interfaces identify the single scheduler and resource contract. Current comparable quick/validation timings and any target misses are reported honestly, preserving all affected consumers and deferring unrelated final .8 gates rather than claiming them green.
-
-
+- [x] Production Rust unit/integration gate paths, including correctly scoped quick tests, use pinned nextest with matching package/binary/test/ignored coverage; Cargo doctests and compiler-only probes retain their distinct roles. Target/filter, empty-selection, failure and timing controls pass.
+- [x] One authoritative stage DAG schedules dependency-independent work with the verified mise capability or a documented concrete native requirement; no parallel duplicate graph/scheduler remains. Public xtask gate/validate and Make/CI/standalone contracts are preserved with scheduling beneath them. A mise-based scheduler declares the verified minimum version in both task configs without runtime probes. Shared target/generated-output/caller/standalone obligations are preserved.
+- [x] Combined compiler/test/JVM/Go admission is bounded, including nested TLC workers. JVM-bearing framework-tests, Temporal-tests, standalone-child and quick-TLC work remain mutually exclusive across independent invocations until an explicit combined proof admits overlap; shared lease/handoff controls pass. Actual parallel execution and peak-owner controls establish the candidate bounds without claiming sampled RSS is a hard heap limit.
+- [x] Named failures, fail-fast, owned sibling cleanup, simultaneous failures, deterministic invocation-local receipts, full-gate cache bypass and no-auto-install controls pass; the changed real standalone validation is renewed on the frozen candidate.
+- [x] Documentation and .12 stage/count interfaces identify the single scheduler and resource contract. Current comparable quick/validation timings and any target misses are reported honestly, preserving all affected consumers and deferring unrelated final .8 gates rather than claiming them green.
 ## Done summary
-TBD
+Implemented the single mise stage DAG beneath public Make/xtask/standalone paths, uniform nextest execution with distinct doctests, bounded cross-invocation JVM admission, owned cleanup and strict exclusive Rust/TLC count receipts.
 
+The exact c5189bd35d source passed the real scheduled standalone: 17 stages, 896 nextest tests plus four doctest bodies; combined903discovered/900executed/3ignored/0skipped. Parent-child authority/digest/raw path bytes agree and all owned processes were reaped. Exact five-consumer Activity148tests/23negative+2positive compiler controls/3documentation targets passed; setup598.237s and warm444.463s, with14verified TLC hits. The60s target remains unmet; no causal speedup or post-fix full-suite execution claimed.
+
+Three-lens review found four introduced issues, all fixed with red/green controls: CI mise floor/checksum compatibility, combined required-Apalache setup, public fmt lease independence and private0700supervisor scratch. Joined checkpoint192dd9ceb2 passes framework5/Systemgate9/bridgefmt1 controls; affected clippy/fmt pass. Follow-up Claude Opus5.5 high review returnedSHIP on e988ff1d22 with no introduced findings. The exact proof/input-reuse boundaries and both review rounds are retained under task17/resumed/review-fixes/.
+
+Explicit remaining obligations: owner-deferred Darwin execution; actual Go/unadapted and mixed-control TLC count admission in .12; full combined gates, performance targets and final measurements in .8. No Model semantics, guest-driver inputs or registry tuple identities changed. Reviewed implementation and Flow closure satisfy R4/R5/R7 only; the parent spec remains open.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c5189bd35d36e0e404c0980cb986bdc970d4b8af, 3779584e72, b5ea272612, 5adb6681c2c6eb1cc2f69668d3caac47f13f6659, 192dd9ceb200fc5ccae45f90b4083b825f1ce133, e988ff1d22
+- Tests: Real scheduled source-only standalone on c5189bd3:17stages; final-c5189bd3/standalone/summary.json, Exact148-test five-consumer Activity warm quick on c5189bd3:444.463s; final-c5189bd3/activity/summary.json, env -u BASH_ENV /bin/bash model/scripts/test-model-wiring.sh, cargo test --locked -p xtask --test main supervision_ -- --test-threads=1 (5passed), cargo test --locked -p temporal-xtask --bin temporal-xtask gate::tests:: -- --nocapture (9passed), cargo test --locked -p temporal-xtask --test main public_fmt_finishes_while_host_lease_is_held -- --exact --test-threads=1 (1passed), Scoped xtask/temporal-xtask clippy and rustfmt; review-fixes/supervision/evidence.json, apalache/verification.json, Flow Claude Opus5.5 high three-lens review + single follow-up:SHIP
 - PRs:

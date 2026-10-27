@@ -1,0 +1,42 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "nextest",
+    "list",
+    "--workspace",
+    "--locked",
+    "--message-format",
+    "json",
+    "--run-ignored",
+    "all"
+  ],
+  "cwd": "/tmp/umpire-fn25417-final-c5189bd35d36-1356708/proof-TmDzNQ/framework",
+  "started_utc": "2026-10-27T17:46:46.823807+00:00",
+  "source_sha256": "9f2fa3dd4543f392e6a14c487a9a4a4b05727d25339eac4784c26ab40890b1b0",
+  "environment": {
+    "CARGO_TARGET_DIR": "/tmp/umpire-fn25417-final-c5189bd35d36-1356708/proof-TmDzNQ/target",
+    "CARGO_HOME": "/home/agent/.cargo",
+    "TMPDIR": "/tmp/umpire-fn25417-final-c5189bd35d36-1356708/proof-TmDzNQ/target/tmp",
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_INCREMENTAL": "0",
+    "GOFLAGS": "-p=1",
+    "GOMAXPROCS": "1",
+    "UMPIRE_BACKENDS": "require",
+    "UMPIRE_APALACHE": "skip",
+    "UMPIRE_QUICK_CACHE": "0",
+    "UMPIRE_CACHE_DISABLE": "1",
+    "MISE_AUTO_INSTALL": "false",
+    "MISE_EXEC_AUTO_INSTALL": "false",
+    "MISE_TRUSTED_CONFIG_PATHS": "/tmp/umpire-fn25417-final-c5189bd35d36-1356708/proof-TmDzNQ/framework:/tmp/umpire-fn25417-final-c5189bd35d36-1356708/proof-TmDzNQ/target",
+    "NEXTEST_PROFILE": "required",
+    "NEXTEST_TEST_THREADS": "4"
+  },
+  "exit_code": 0,
+  "seconds": 5.397719336004229,
+  "free_after_bytes": 57086107648,
+  "stdout_sha256": "d8e1e9a63ffe5d67f365aec57004bf50d0dac6c9db9242ec9e2e7b20743443ec",
+  "stderr_sha256": "a78e7572557cbecab631c7cc20f6d96853eab219bfa48491d4b9c91720e51859"
+}

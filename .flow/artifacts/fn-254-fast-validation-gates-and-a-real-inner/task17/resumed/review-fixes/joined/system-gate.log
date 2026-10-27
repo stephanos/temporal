@@ -1,0 +1,19 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/xtask)
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.19s
+     Running unittests src/main.rs (/home/agent/.cache/codex-build/fn25417-work-counts/debug/deps/temporal_xtask-5a4236ebf14b37f6)
+
+running 9 tests
+test gate::tests::missing_tool_control_child ... ok
+test gate::tests::test_policy_control_child ... ok
+test gate::tests::run_control_child ... ok
+test gate::tests::invalid_working_directory_names_the_stage ... ok
+Temporal stage control failed (exit 37)
+test gate::tests::full_gate_overrides_cache_and_preserves_failure ... ok
+test gate::tests::missing_tool_reports_the_failed_stage ... ok
+test gate::tests::test_stage_propagates_required_policy_and_preserves_skipped_defaults ... ok
+test gate::tests::optional_apalache_is_prepared_before_combined_scheduling ... ok
+test gate::tests::actual_temporal_gate_wiring_and_named_failures ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 12.93s
+

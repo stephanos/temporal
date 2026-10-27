@@ -1,0 +1,109 @@
+{
+  "root": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-controller-admission",
+  "files": {
+    "red.json": {
+      "sha256": "66654485d01bda0b2fc805e10e36f3b85059ca11994ecb77edc13005587e8c02",
+      "bytes": 627
+    },
+    "ordinary-noop.json": {
+      "sha256": "a4cae66da0966c24f9423c402735996cae2a33546ea18cba217f6ad289aa63ed",
+      "bytes": 511
+    },
+    "fixture-prepare-error.log": {
+      "sha256": "0c526cc68197cbc694dd4489ed1af93c8732a072bcb8a596dc6c27f26ae382ef",
+      "bytes": 990
+    },
+    "fixture-prepare-error.json": {
+      "sha256": "66654485d01bda0b2fc805e10e36f3b85059ca11994ecb77edc13005587e8c02",
+      "bytes": 627
+    },
+    "carrier-behavior-red.log": {
+      "sha256": "bb87a0eaeaff24958462e83ec1d2040fe741e3333691be00715b8cfb6db608a5",
+      "bytes": 1588
+    },
+    "replacement-red.log": {
+      "sha256": "0c526cc68197cbc694dd4489ed1af93c8732a072bcb8a596dc6c27f26ae382ef",
+      "bytes": 990
+    },
+    "red-binaries.json": {
+      "sha256": "d83e4f86fa628f8c05d1ffa5cc7fc5fa01510693e1880981d9f8e747fad649c2",
+      "bytes": 1027
+    },
+    "ordinary-noop.log": {
+      "sha256": "d572e02c776634320dd9d134cee6c92bd30ed736824f21a5191474bc7e9fea56",
+      "bytes": 398
+    },
+    "carrier-behavior-red.json": {
+      "sha256": "e3240956adf6b978ceb8a9f6a21236c2ec7bd371e316a3450c8c0f0fedc07bd7",
+      "bytes": 533
+    },
+    "system-fmt.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "carrier-green.log": {
+      "sha256": "955b8984f524d6672daf5fca9c8b3506472d6f02f6d0c8d9bd52e35869925e76",
+      "bytes": 546
+    },
+    "scheduler-controls.log": {
+      "sha256": "72fb8c7a4b5b5d0d5ab1186ad9bd8a9fe3b1ccf162a5e057aaa44e1732a4ad91",
+      "bytes": 1301
+    },
+    "checks.json": {
+      "sha256": "5cb50b8b5e2479257a51c36243e268b1272930adfb2efa9ebe06a90c42dcb5e5",
+      "bytes": 3488
+    },
+    "producer-controls.log": {
+      "sha256": "1134c7cd3b1328f4cdfdf110ae616f145d7f815316d4fa2fad94c823947ba216",
+      "bytes": 3218
+    },
+    "system-clippy.log": {
+      "sha256": "baef50d790516159dcd14ecce8b16cf00a337be82b8ea8effc5ad4b6121cd93a",
+      "bytes": 500
+    },
+    "green.json": {
+      "sha256": "8d1b3a557ffcbbbd62bf84bd6a8649066e6b8d1c7b52706f82aca946b2218ad5",
+      "bytes": 1223
+    },
+    "replacement-behavior-red.log": {
+      "sha256": "94c0facd460edebcfea267e505d75712a47340bf4dfcdb4cb1dbffac30f2c6a7",
+      "bytes": 1222
+    },
+    "replacement-green.log": {
+      "sha256": "f0b32fde632f84a5c87cc01f6ba030f0d9e363de8e51483a15e2e8cd0882c7dc",
+      "bytes": 545
+    },
+    "framework-fmt.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "framework-clippy.log": {
+      "sha256": "40d9f7411c332e3cd7ac12a4bce5b2cbd83b4fffac69d4466c2409c181381cfa",
+      "bytes": 519
+    },
+    "binaries/carrier-green": {
+      "sha256": "16760fecdf3810afd41a24c47c0d7bb30fb39655564924e31de84ae1ab77f748",
+      "bytes": 20768264
+    },
+    "binaries/carrier-red": {
+      "sha256": "aa737ba9b37b04513f281140ae9a757ec4dc500afa21a6b4883b6fcc910c1062",
+      "bytes": 20740272
+    },
+    "binaries/controller-green": {
+      "sha256": "57a86043513a93f396bd4db3e8a301fb2302b735ae7209940fec7cd7e1a45ef7",
+      "bytes": 17389112
+    },
+    "binaries/regression-red": {
+      "sha256": "5bbe00f9132f5b2a1a6e565e9e76752fda51e905e75d9408269d6c2684ee88d6",
+      "bytes": 19508488
+    },
+    "binaries/regression-green": {
+      "sha256": "ce2ea655c0803199a79a958816f141c4d93bac93f1906221e5f25b980ca367ed",
+      "bytes": 19524856
+    },
+    "binaries/controller-before": {
+      "sha256": "5bb57bea4707cf55d22908fe1e3bda7b428515dcf1adbe30e4c6a3212c64f19c",
+      "bytes": 17361440
+    }
+  }
+}

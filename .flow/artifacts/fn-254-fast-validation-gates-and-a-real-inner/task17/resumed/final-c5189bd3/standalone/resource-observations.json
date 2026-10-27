@@ -1,0 +1,11 @@
+{
+  "interval_seconds": 0.5,
+  "sampled_peak_java_processes": 4,
+  "sampled_peak_java_rss_kib": 352592,
+  "sampled_java_scope_locator_leaks": 0,
+  "heap_arguments": [
+    "-Xmx512m"
+  ],
+  "all_owned_processes_absent": true,
+  "limitation": "Sampled observations are not hard RSS or process-peak limits; conservative policy remains4heap-capped checker JVMs."
+}
