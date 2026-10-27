@@ -561,6 +561,148 @@ fn validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_fai
     }
 }
 
+fn finish_before_deadline(mut child: std::process::Child) -> (bool, Output) {
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
+    loop {
+        if child.try_wait().unwrap().is_some() {
+            return (true, child.wait_with_output().unwrap());
+        }
+        if std::time::Instant::now() >= deadline {
+            child.kill().unwrap();
+            return (false, child.wait_with_output().unwrap());
+        }
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    }
+}
+
+#[test]
+fn supervision_public_fmt_finishes_while_host_lease_is_held() {
+    let fixture = Fixture::new();
+    let _lease = umpire_backend_process::JvmLease::inherited_or_acquire().unwrap();
+    for expected in [0, 37] {
+        fixture.clear();
+        let mut command = fixture.command(false);
+        command
+            .arg("fmt")
+            .env_remove("UMPIRE_JVM_LEASE_FD")
+            .env("CONTROL_EXPECT_FMT", "cargo fmt --all")
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped());
+        if expected != 0 {
+            command.env("CONTROL_FAIL", "fmt");
+        }
+        let (completed, output) = finish_before_deadline(command.spawn().unwrap());
+        assert!(completed, "public fmt waited for the unrelated host lease: {output:?}");
+        assert_status(&output, expected);
+        assert_eq!(fixture.labels(), ["fmt"]);
+        assert!(fs::read_to_string(&fixture.log).unwrap().ends_with("cargo fmt --all\n"));
+    }
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn supervision_public_fmt_reaps_background_children_before_returning_failure() {
+    let fixture = Fixture::new();
+    Fixture::script(
+        &fixture.bin.join("mise"),
+        &format!("{MISE_SCRIPT}\nsleep 30 &\nprintf '%s' $! > \"$CONTROL_ROOT/fmt-child\"\n"),
+    );
+    let output = fixture
+        .command(false)
+        .arg("fmt")
+        .env("CONTROL_EXPECT_FMT", "cargo fmt --all")
+        .env("CONTROL_FAIL", "fmt")
+        .output()
+        .unwrap();
+    assert_status(&output, 37);
+    let pid = fs::read_to_string(fixture.root.join("fmt-child")).unwrap();
+    let alive = Command::new("/bin/kill")
+        .args(["-0", &pid])
+        .stderr(std::process::Stdio::null())
+        .status()
+        .unwrap()
+        .success();
+    if alive {
+        Command::new("/bin/kill").args(["-KILL", &pid]).status().unwrap();
+    }
+    assert!(!alive, "public fmt returned while its background child was alive");
+}
+
+#[test]
+fn supervision_scratch_is_private_and_removed_after_success_and_failure() {
+    let fixture = Fixture::new();
+    let temporary = fixture.caller.join("scratch");
+    fs::create_dir(&temporary).unwrap();
+    Fixture::script(
+        &fixture.bin.join("mise"),
+        &format!(
+            "{MISE_SCRIPT}\ntouch \"$CONTROL_ROOT/entered\"\nremaining=500\nwhile [ ! -f \"$CONTROL_ROOT/release\" ]; do\n remaining=$((remaining - 1)); [ \"$remaining\" -gt 0 ] || exit 97; sleep 0.01\ndone\n"
+        ),
+    );
+    for expected in [0, 37] {
+        let mut command = fixture.command(false);
+        command.args(["gate", "--stage", "fmt"]).env("TMPDIR", &temporary);
+        if expected != 0 {
+            command.env("CONTROL_FAIL", "fmt");
+        }
+        let mut child = command.spawn().unwrap();
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
+        while !fixture.root.join("entered").exists() {
+            if child.try_wait().unwrap().is_some() || std::time::Instant::now() >= deadline {
+                child.kill().ok();
+                panic!("supervised leaf did not start: {:?}", child.wait().unwrap());
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        }
+        let mut directories = fs::read_dir(&temporary)
+            .unwrap()
+            .map(|entry| entry.unwrap().path())
+            .collect::<Vec<_>>();
+        if temporary.join("umpire-command").is_dir() {
+            directories = fs::read_dir(temporary.join("umpire-command"))
+                .unwrap()
+                .map(|entry| entry.unwrap().path())
+                .collect();
+        }
+        let permissions = directories
+            .iter()
+            .filter(|path| path.join("admission.json").is_file())
+            .map(|path| (path.clone(), fs::metadata(path).unwrap().permissions().mode() & 0o777))
+            .collect::<Vec<_>>();
+        write(&fixture.root.join("release"), "release");
+        let (completed, output) = finish_before_deadline(child);
+        assert!(completed, "supervisor did not finish: {output:?}");
+        assert_status(&output, expected);
+        assert_eq!(permissions.len(), 1, "missing live supervision scratch: {directories:?}");
+        assert_eq!(permissions[0].1, 0o700, "supervisor scratch exposes logs: {permissions:?}");
+        assert!(!permissions[0].0.exists(), "supervisor scratch was retained");
+        assert_eq!(fs::read_dir(&temporary).unwrap().count(), 0);
+        fs::remove_file(fixture.root.join("entered")).unwrap();
+        fs::remove_file(fixture.root.join("release")).unwrap();
+    }
+}
+
+#[test]
+fn supervision_ignores_obstructed_legacy_shared_scratch_parent() {
+    let fixture = Fixture::new();
+    let temporary = fixture.caller.join("scratch");
+    fs::create_dir(&temporary).unwrap();
+    write(&temporary.join("umpire-command"), "belongs to another user");
+    let output = fixture
+        .command(false)
+        .args(["gate", "--stage", "fmt"])
+        .env("TMPDIR", &temporary)
+        .output()
+        .unwrap();
+    assert_status(&output, 0);
+    assert_eq!(fixture.labels(), ["fmt"]);
+    assert_eq!(
+        fs::read_to_string(temporary.join("umpire-command")).unwrap(),
+        "belongs to another user"
+    );
+    assert_eq!(fs::read_dir(&temporary).unwrap().count(), 1);
+}
+
 #[test]
 fn convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status() {
     let fixture = Fixture::new();

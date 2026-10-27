@@ -1,0 +1,25 @@
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-supervision-reviewfix/model/umpire/dev/guest-driver)
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-supervision-reviewfix/model/umpire/backends/process)
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-supervision-reviewfix/model/umpire/dev/xtask)
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-supervision-reviewfix/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.87s
+     Running tests/main.rs (/home/agent/.cache/codex-build/fn25417-work-counts/debug/deps/main-25461879b6726a59)
+
+running 1 test
+test public_fmt_finishes_while_host_lease_is_held ... FAILED
+
+failures:
+
+---- public_fmt_finishes_while_host_lease_is_held stdout ----
+
+thread 'public_fmt_finishes_while_host_lease_is_held' (1722467) panicked at dev/xtask/tests/main.rs:101:9:
+public bridge fmt waited for the unrelated host lease: Output { status: ExitStatus(unix_wait_status(9)), stdout: "", stderr: "" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    public_fmt_finishes_while_host_lease_is_held
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6 filtered out; finished in 5.01s
+
+error: test failed, to rerun pass `-p temporal-xtask --test main`

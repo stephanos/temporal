@@ -1,0 +1,4 @@
+    Checking umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-supervision-reviewfix/model/umpire/dev/guest-driver)
+    Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-supervision-reviewfix/model/umpire/backends/process)
+    Checking xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-supervision-reviewfix/model/umpire/dev/xtask)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.65s

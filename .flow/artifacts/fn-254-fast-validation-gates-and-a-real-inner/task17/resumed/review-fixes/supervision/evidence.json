@@ -1,0 +1,90 @@
+{
+  "base": "884794b825",
+  "branch": "work/fn25417-supervision-reviewfix",
+  "scope": [
+    "remove fmt only from both public leased dispatch lists",
+    "private TempDir supervisor scratch; explicit close plus RAII on early returns"
+  ],
+  "red": {
+    "framework": {
+      "command": "env -u BASH_ENV CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn25417-work-counts CARGO_BUILD_JOBS=1 mise exec -- cargo test --locked -p xtask --test main supervision_ -- --test-threads=1",
+      "cwd": "model/umpire",
+      "exit": 101,
+      "expected_failures": [
+        "held independent host lease blocks public fmt",
+        "live supervisor scratch permissions 0755 rather than 0700",
+        "legacy shared scratch parent obstruction refuses command"
+      ],
+      "passed_controls": [
+        "existing outer supervision streaming",
+        "public fmt owned background child reaping"
+      ]
+    },
+    "bridge": {
+      "command": "env -u BASH_ENV CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn25417-work-counts CARGO_BUILD_JOBS=1 UMPIRE_CONTROL_FRAMEWORK_XTASK=/home/agent/.cache/codex-build/fn25417-work-counts/debug/xtask mise exec -- cargo test --locked -p temporal-xtask --test main public_fmt_finishes_while_host_lease_is_held -- --exact --test-threads=1",
+      "cwd": "model",
+      "exit": 101,
+      "expected_failure": "actual public bridge fmt blocks while independently held host lease remains held"
+    }
+  },
+  "green": {
+    "framework": {
+      "exit": 0,
+      "passed": 5,
+      "seconds": 0.54
+    },
+    "bridge": {
+      "exit": 0,
+      "passed": 1,
+      "seconds": 0.11
+    },
+    "clippy": [
+      {
+        "cwd": "model/umpire",
+        "command": "env -u BASH_ENV CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn25417-work-counts CARGO_BUILD_JOBS=1 mise exec -- cargo clippy --locked -p xtask --lib --bin xtask --test main -- -D warnings",
+        "exit": 0
+      },
+      {
+        "cwd": "model",
+        "command": "env -u BASH_ENV CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn25417-work-counts CARGO_BUILD_JOBS=1 mise exec -- cargo clippy --locked -p temporal-xtask --bin temporal-xtask --test main -- -D warnings",
+        "exit": 0
+      }
+    ],
+    "format": {
+      "cwd": "model/umpire",
+      "command": "env -u BASH_ENV mise exec -- rustfmt --edition 2024 --config-path rustfmt.toml --config skip_children=true --check dev/xtask/src/main.rs dev/xtask/src/gate.rs dev/xtask/tests/gate_wiring.rs ../dev/xtask/src/main.rs ../dev/xtask/tests/main.rs",
+      "exit": 0
+    }
+  },
+  "runtime_assertions": [
+    "framework and bridge actual public fmt finish before timeout with independent host lease held through status/argv checks",
+    "cargo fmt --all exact argv and statuses 0/37",
+    "Linux public fmt reaps background child before failure status",
+    "supervisor scratch mode 0700 while active; removed after statuses 0/37",
+    "legacy umpire-command obstruction remains untouched and does not block gate stage"
+  ],
+  "notes": [
+    "tempfile3.27 default tempdir mode was 0755 in first intermediate fix attempt; final builder explicitly requests0700 using existing backend Scratch pattern",
+    "No JVM/Go/full-suite/standalone execution",
+    "Clippy test-only map_unwrap_or warning corrected before final pass",
+    "Explicit TempDir.close retains cleanup-error propagation; RAII also cleans early-error paths",
+    "Committed compact green logs omit trailing blank line; raw logs remain outside worktree"
+  ],
+  "resources": {
+    "target": "/home/agent/.cache/codex-build/fn25417-work-counts",
+    "jobs": 1,
+    "target_after": "1.9GiB",
+    "approximate_growth": "0.2GiB",
+    "free_after": "64GiB",
+    "lane": "released; no running terminal sessions"
+  },
+  "logs": {
+    "framework-red.log": "6d2b291a3e4047ee9fec691fa85b8528895428e0c3479640ee32f8435fea2062",
+    "bridge-red.log": "ee91693f73cae9d0a11260a7dfda42b615bc692f9c982cf75132292f2a428015",
+    "framework-green.log": "47e11ffc81e48fce83d52a6fbf193227e72fad409a299d6d766d4bbf139d2c2c",
+    "bridge-green.log": "8b764c0896757940acba23d267be59348b67f810329b287240f4304fe422aa6e",
+    "framework-clippy.log": "15b3ac6e33cbd466390f50605fb179e1cc1aecf413a8475021c74d785684ea24",
+    "bridge-clippy.log": "77636de8b47b9677bd79c455fbb4f8389c44255def092d9a32a86dca4bb5b810",
+    "fmt-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
