@@ -39,6 +39,12 @@ Preserve final .16 provider interfaces and runtime admission. Native Make contro
 must cover current prerequisites/bootstrap/quick/CI-floor cases, and all four
 remaining shell controls need native coverage before deletion. Task execution
 continues to require committed .16 closure; this read-only report advances no dependency.
+
+The detailed `task15/script-control-map-60f1c762.json` pins all29script blobs,
+caller references, behavioral vectors and31case mappings for the four remaining
+controls to the frozen .16 candidate. It identifies adaptation gaps and retains
+`native_preparation_validated=false` and `dependency_advancement=false`; compile,
+runtime validation and final acceptance mapping still follow committed .16 closure.
 ## Acceptance
 - [ ] `find model -name '*.sh' -not -path '*/target/*' -not -path '*/archived/*' -not -path '*/design/*'` lists only the xtask bootstrap script(s); the archived and design probes are out of scope.
 - [ ] Every removed script's job is reached through `cargo xtask <cmd>`, a guest-driver subcommand or a Makefile recipe. Root `Makefile`, the framework gate and the docs call the new forms, and an `rg` check finds no references to deleted scripts in active source callers, maintained tests or maintained user/developer documentation. Preserve historical specs, completion records, review artifacts and archived/design evidence that name the former scripts.
