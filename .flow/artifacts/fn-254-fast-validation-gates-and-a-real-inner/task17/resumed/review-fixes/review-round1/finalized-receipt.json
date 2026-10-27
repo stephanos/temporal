@@ -1,0 +1,144 @@
+{
+  "base": "c958d34af0",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "claude-opus-5-5",
+      "session_id": "16e2f742-a1a6-4dd0-9b67-9382ca3055aa",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "claude-opus-5-5",
+      "session_id": "0a6804d4-b083-4182-a638-be7fe1b0181a",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "claude-opus-5-5",
+      "session_id": "2c9bec3b-9097-463e-ba02-e2f9fc033e7d",
+      "verdict": "SHIP"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "claude",
+    "baseSha": "c958d34af0c1f00479ddabf6b207aa2949200201",
+    "headSha": "884794b82546a6a029f8bf4ba2faa98e84afcf8f",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "c958d34af0c1f00479ddabf6b207aa2949200201",
+          "headSha": "884794b82546a6a029f8bf4ba2faa98e84afcf8f",
+          "path": "model/dev/xtask/src/gate.rs",
+          "side": "head",
+          "startLine": 139
+        },
+        "body": "correctness:1. The combined model:all graph dispatches framework leaves directly, bypassing Gate::full_inner and its UMPIRE_APALACHE=require fetch. On a clean checkout the required Apalache tests refuse the missing pinned JAR; the previous Make caller provisioned it first.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-af9fd73b857ee0305dbdebaf47d374ade955a3ddba0fef656a2bf8f19e48c355",
+        "id": "finding-e3dd092d30e209a102f471c6b5843fae",
+        "lastSeenReceiptId": "review-af9fd73b857ee0305dbdebaf47d374ade955a3ddba0fef656a2bf8f19e48c355",
+        "ordinal": 1,
+        "rIds": [
+          "R4",
+          "R7"
+        ],
+        "severity": "P1",
+        "status": "open",
+        "suggestion": "Restore explicit optional provisioning before the combined graph and cover the required/default/failure paths without routine auto-install.",
+        "title": "Combined required-Apalache gate bypasses explicit provisioning"
+      },
+      {
+        "anchor": {
+          "baseSha": "c958d34af0c1f00479ddabf6b207aa2949200201",
+          "headSha": "884794b82546a6a029f8bf4ba2faa98e84afcf8f",
+          "path": ".github/workflows/umpire.yml",
+          "side": "head",
+          "startLine": 25
+        },
+        "body": "contracts:1. All four Umpire jobs install mise2026.8.16 while both task configurations now require2026.10.11. The pinned binary refuses these configs before their public gate or Go commands run.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-af9fd73b857ee0305dbdebaf47d374ade955a3ddba0fef656a2bf8f19e48c355",
+        "id": "finding-29b4625222e7f7e544fff42b7d46697d",
+        "lastSeenReceiptId": "review-af9fd73b857ee0305dbdebaf47d374ade955a3ddba0fef656a2bf8f19e48c355",
+        "ordinal": 2,
+        "rIds": [],
+        "severity": "P1",
+        "status": "open",
+        "suggestion": "Pin the verified2026.10.11 release and its correct extracted Linux x64 binary SHA256 in each job, and verify the workflow/config compatibility.",
+        "title": "CI mise pin is older than both newly required config floors"
+      },
+      {
+        "anchor": {
+          "baseSha": "c958d34af0c1f00479ddabf6b207aa2949200201",
+          "headSha": "884794b82546a6a029f8bf4ba2faa98e84afcf8f",
+          "path": "model/umpire/dev/xtask/src/main.rs",
+          "side": "head",
+          "startLine": 80
+        },
+        "body": "correctness:2, contracts:2 and integration's second finding describe the same defect. Both dispatchers route fmt through leased supervise, so formatting in one checkout waits for unrelated gate or quick work despite launching no JVM.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-af9fd73b857ee0305dbdebaf47d374ade955a3ddba0fef656a2bf8f19e48c355",
+        "id": "finding-947aa585f8c09d7021ea658375d150f8",
+        "lastSeenReceiptId": "review-af9fd73b857ee0305dbdebaf47d374ade955a3ddba0fef656a2bf8f19e48c355",
+        "ordinal": 3,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Remove fmt from both leased command lists, preserving owned leaf execution and exact formatting arguments/status.",
+        "title": "Formatting unnecessarily waits on the host-wide JVM lease"
+      },
+      {
+        "anchor": {
+          "baseSha": "c958d34af0c1f00479ddabf6b207aa2949200201",
+          "headSha": "884794b82546a6a029f8bf4ba2faa98e84afcf8f",
+          "path": "model/umpire/dev/xtask/src/gate.rs",
+          "side": "head",
+          "startLine": 401
+        },
+        "body": "integration's first finding. A first user creates the fixed TMPDIR/umpire-command parent with ordinary permissions. A second user cannot create a command directory there; an attacker-owned parent can also expose or replace another user's redirected logs. This parent was introduced for every supervised public command.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-af9fd73b857ee0305dbdebaf47d374ade955a3ddba0fef656a2bf8f19e48c355",
+        "id": "finding-d1f1584c3f99d7b2539c1dab71f1a86b",
+        "lastSeenReceiptId": "review-af9fd73b857ee0305dbdebaf47d374ade955a3ddba0fef656a2bf8f19e48c355",
+        "ordinal": 4,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Use the existing tempfile private temporary-directory mechanism or a validated private per-user parent.",
+        "title": "Shared supervisor scratch parent prevents a second user from running commands"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-af9fd73b857ee0305dbdebaf47d374ade955a3ddba0fef656a2bf8f19e48c355"
+  },
+  "focus": "Review task17 production code and tests against its full acceptance: one authoritative mise DAG with native supervision only; nextest and separate doctest equivalence; caller/target/cache/no-auto-install contracts; shared cross-invocation JVM lease and isolated-child descriptor handoff; fail-fast, named simultaneous failures, owned cancellation and reaping; strict lossless exclusive stage/count receipts and child authority; startup controller role frozen across executable replacement. Latest accepted evidence is task17/resumed/final-c5189bd3/summary.json, standalone/summary.json and activity/summary.json, plus controller-admission-replacement. Earlier owner-stop, failed standalone and pending producer records are historical and superseded. Source candidate c5189bd3 has no production changes through this review HEAD. Preserve explicit owner Darwin execution deferral; unadapted Go counts and mixed-control TLC unknowns remain null and task12 owns budget admission, while task8 owns unrelated combined final gates and unmet timing targets. Task257 retirement and future task8 cost hypotheses are context only. Find concrete defects in changed behavior; do not demand excluded downstream milestones or reduced coverage.",
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.17",
+  "introduced_count": 4,
+  "mode": "claude",
+  "model": "claude-opus-5-5",
+  "pre_existing_count": 0,
+  "review": "Coordinator merge of review round69374ba736a74a3cbf466335e820aa75.\nOriginal draw reports remain unchanged. Contracts used a multi-file anchor and\nintegration used an unparseable finding layout, so this file repairs their format.\nThe NEEDS_WORK verdict below is the draws' worst verdict, not a new verdict.\n\n## Issue 1\n- **Severity**: P1\n- **Title**: Combined required-Apalache gate bypasses explicit provisioning\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: model/dev/xtask/src/gate.rs:139\n- **R-IDs**: R4, R7\n- **Problem**: correctness:1. The combined model:all graph dispatches framework leaves directly, bypassing Gate::full_inner and its UMPIRE_APALACHE=require fetch. On a clean checkout the required Apalache tests refuse the missing pinned JAR; the previous Make caller provisioned it first.\n- **Suggestion**: Restore explicit optional provisioning before the combined graph and cover the required/default/failure paths without routine auto-install.\n\n## Issue 2\n- **Severity**: P1\n- **Title**: CI mise pin is older than both newly required config floors\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: .github/workflows/umpire.yml:25\n- **Problem**: contracts:1. All four Umpire jobs install mise2026.8.16 while both task configurations now require2026.10.11. The pinned binary refuses these configs before their public gate or Go commands run.\n- **Suggestion**: Pin the verified2026.10.11 release and its correct extracted Linux x64 binary SHA256 in each job, and verify the workflow/config compatibility.\n\n## Issue 3\n- **Severity**: P2\n- **Title**: Formatting unnecessarily waits on the host-wide JVM lease\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: model/umpire/dev/xtask/src/main.rs:80\n- **Problem**: correctness:2, contracts:2 and integration's second finding describe the same defect. Both dispatchers route fmt through leased supervise, so formatting in one checkout waits for unrelated gate or quick work despite launching no JVM.\n- **Suggestion**: Remove fmt from both leased command lists, preserving owned leaf execution and exact formatting arguments/status.\n\n## Issue 4\n- **Severity**: P2\n- **Title**: Shared supervisor scratch parent prevents a second user from running commands\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: model/umpire/dev/xtask/src/gate.rs:401\n- **Problem**: integration's first finding. A first user creates the fixed TMPDIR/umpire-command parent with ordinary permissions. A second user cannot create a command directory there; an attacker-owned parent can also expose or replace another user's redirected logs. This parent was introduced for every supervised public command.\n- **Suggestion**: Use the existing tempfile private temporary-directory mechanism or a validated private per-user parent.\n\n```json\n{\"classification_counts\":{\"introduced\":4,\"pre_existing\":0},\"unaddressed\":[],\"suppressed_count\":{\"25\":2,\"50\":2}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "review_reservation_id": "69374ba736a74a3cbf466335e820aa75",
+  "rid": "69374ba736a74a3cbf466335e820aa75",
+  "session_id": "16e2f742-a1a6-4dd0-9b67-9382ca3055aa",
+  "spec": "claude:claude-opus-5-5:high",
+  "suppressed_count": {
+    "25": 2,
+    "50": 2
+  },
+  "timestamp": "2026-10-27T18:31:12.215176Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "NEEDS_WORK"
+}

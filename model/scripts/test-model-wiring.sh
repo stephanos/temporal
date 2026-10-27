@@ -1,6 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/../.."
+for config in mise.toml model/umpire/mise.toml; do
+  minimum=$(sed -n 's/^min_version = "\([^"]*\)"/\1/p' "$config")
+  [ -n "$minimum" ]
+  awk -v minimum="$minimum" '
+    function older(value, floor, current, required, i) {
+      split(value, current, /[.]/); split(floor, required, /[.]/)
+      for (i = 1; i <= 3; i++) {
+        if (current[i] + 0 != required[i] + 0) return current[i] + 0 < required[i] + 0
+      }
+      return 0
+    }
+    /uses: jdx\/mise-action@/ { mise = 1; next }
+    mise && /^[[:space:]]*version:/ {
+      version = $0; gsub(/[[:space:]"]/, "", version); sub(/^version:/, "", version)
+      seen++; mise = 0
+      if (older(version, minimum)) {
+        printf "CI mise %s is below required %s\n", version, minimum > "/dev/stderr"
+        exit 1
+      }
+    }
+    END { if (!seen) exit 1 }
+  ' .github/workflows/umpire.yml
+done
 control=$(mktemp -d)
 trap 'rm -rf "${control:?}"' EXIT
 mkdir -p "$control/model/umpire/scripts" "$control/model/dev/xtask/src" "$control/bin"

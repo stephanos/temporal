@@ -22,8 +22,8 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
         with:
-          version: "2026.8.16"
-          sha256: "cff4832ded79af2951e800bddcb5a22acac58630d765a2d062c1180680a0bb35"
+          version: "2026.10.11"
+          sha256: "f9612efcddda0ae55b62d3b6f82a6c860d5b54ebee0807d4f1a1d578055e1607"
           cache: false
           working_directory: model/umpire
       - name: Run the independent framework gate
@@ -36,8 +36,8 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
         with:
-          version: "2026.8.16"
-          sha256: "cff4832ded79af2951e800bddcb5a22acac58630d765a2d062c1180680a0bb35"
+          version: "2026.10.11"
+          sha256: "f9612efcddda0ae55b62d3b6f82a6c860d5b54ebee0807d4f1a1d578055e1607"
           cache: false
       - name: Run the combined Model gate
         run: make model-check
@@ -53,8 +53,8 @@ jobs:
           cache: false
       - uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
         with:
-          version: "2026.8.16"
-          sha256: "cff4832ded79af2951e800bddcb5a22acac58630d765a2d062c1180680a0bb35"
+          version: "2026.10.11"
+          sha256: "f9612efcddda0ae55b62d3b6f82a6c860d5b54ebee0807d4f1a1d578055e1607"
           cache: false
       - name: Run package-local Testpilot and Umpire tests
         run: mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/...
@@ -72,8 +72,8 @@ jobs:
           cache: false
       - uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
         with:
-          version: "2026.8.16"
-          sha256: "cff4832ded79af2951e800bddcb5a22acac58630d765a2d062c1180680a0bb35"
+          version: "2026.10.11"
+          sha256: "f9612efcddda0ae55b62d3b6f82a6c860d5b54ebee0807d4f1a1d578055e1607"
           cache: false
       - name: Run the canary's unit tests
         run: mise exec -- go test -count=1 -tags test_dep ./tools/canary/...
