@@ -1,0 +1,35 @@
+{
+  "status": "complete",
+  "target_removed": "/tmp/umpire-fn25416-final-60f1c762a618-2177111/proof-HGEaQg/target",
+  "worker_release": "Explicit RELEASE confirmed by conductor from provisioning_adapt for ONLY census freeguard child target, PIDs 2177111/2179557 reaped. Worker preserved 915 files / 88557776 bytes with verified hashes under failed-proof-census-preserved. All sibling source/raw/root logs and parent target/xtask-bootstrap remain protected.\n",
+  "archive": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn25416-freeguard-20261027T203337Z/retained-proof-output.tar.gz",
+  "archive_sha256": "d9556d66d4b9e594eec8c8ec4c5c4d5ba08ab51ba689148e45e73697464cc7c4",
+  "manifest_sha256": "cb1b1bb7b4ba31d1241a55789e7514bb399e08e2ddc025f632a165c177feb7c1",
+  "archive_members_verified_against_originals": 7341,
+  "source_and_raw_seals_verified_before_and_after": 1212,
+  "cache_allocated_bytes_removed": 5193986048,
+  "preserved_archive_bytes": 652044102,
+  "net_reclaimed_estimate_bytes": 4538504518,
+  "free_before_clean_bytes": 35803500544,
+  "free_after_bytes": 41097007104,
+  "cargo_exit": 101,
+  "cargo_output": "error: cannot clean `/tmp/umpire-fn25416-final-60f1c762a618-2177111/proof-HGEaQg/target`: missing or invalid `CACHEDIR.TAG` file\n  |\n  = note: cleaning has been aborted to prevent accidental deletion of unrelated files\n",
+  "exact_directory_fallback": true,
+  "live_check_immediately_before_clean": {
+    "matching_processes": [],
+    "unreadable_system_pids": [
+      10,
+      542,
+      557
+    ]
+  },
+  "protected_paths_present": [
+    "/tmp/umpire-fn25416-final-60f1c762a618-2177111/proof-HGEaQg/framework",
+    "/tmp/umpire-fn25416-final-60f1c762a618-2177111/proof-HGEaQg/inputs.json",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/xtask-bootstrap",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt",
+    "/home/agent/.cache/codex-build/tmp"
+  ],
+  "free_after_immediate_bytes": 35803500544
+}
