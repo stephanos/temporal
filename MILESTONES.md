@@ -11,7 +11,7 @@ repair. Its five-consumer Activity warm run passed all 148 tests and 25 compiler
 controls in 444.463 s; the 60 s target remains unmet. Review fixes align CI's mise
 pin, restore combined Apalache opt-in, keep formatting outside JVM admission and
 make supervisor scratch private. Focused joined controls pass; follow-up review
-returned SHIP and .17 is closed. Provisioning .16 is next. About 10 GiB of idle validation caches were reclaimed
+returned SHIP and .17 is closed. Provisioning .16 is active in its isolated worktree. About 10 GiB of idle validation caches were reclaimed
 with verified proof-output recovery. Go-host count producers and mixed-control
 TLC unknowns remain with .12. macOS validation remains owner-deferred.
 
@@ -119,7 +119,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
 | fn-254.12 | ⬜ todo | Budget parser/retry candidate retained; consume .17 Rust/TLC receipts, add actual Go-host counts, then admit tables against final .15/.16 interfaces. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
 | fn-254.15 | ⬜ todo | Native ports/callers assembled; only two bootstraps and four control shells remain. Complete native fixture adaptation before removing control shells and validating (R7) |
-| fn-254.16 | ⬜ todo | Mise TLC/opt-in Apalache provisioning candidate prepared; runtime hash/path admission retained. Integrate after .17, then validate installs and failures (R7) |
+| fn-254.16 | 🔄 in progress | Validate the retained mise TLC/opt-in Apalache provider against closed .17: actual clean installs, runtime hash/path admission and failure controls, then review/integrate (R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 
