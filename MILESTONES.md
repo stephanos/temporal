@@ -8,7 +8,9 @@ The frozen `c5189bd35d` candidate passed the scheduled source-only standalone
 gate: all 17 stages, with 903 tests discovered, 900 executed and three ignored.
 Parent-child receipts include the separate doctests after the controller admission
 repair. Its five-consumer Activity warm run passed all 148 tests and 25 compiler
-controls in 444.463 s; the 60 s target remains unmet. Final implementation review
+controls in 444.463 s; the 60 s target remains unmet. Review fixes align CI's mise
+pin, restore combined Apalache opt-in, keep formatting outside JVM admission and
+make supervisor scratch private. Focused joined controls pass; follow-up review
 remains before .17 can close. About 10 GiB of idle validation caches were reclaimed
 with verified proof-output recovery. Go-host count producers and mixed-control
 TLC unknowns remain with .12. macOS validation remains owner-deferred.
@@ -56,8 +58,9 @@ passed in 990.582 s on `c5189bd35d`, including all 896 nextest tests and four do
 bodies, with matching parent-child receipt authority and all owned processes reaped.
 The current Activity warm run passed in 444.463 s with exactly five consumers,
 148 tests, 23 negative/two positive compiler controls and three documentation targets;
-14 verified TLC cache hits avoided model executions. Final review remains before
-.17 closure. The owner deferred macOS validation on 2026-10-27; Darwin behavior is
+14 verified TLC cache hits avoided model executions. Post-review fixes pass focused
+CI, opt-in provisioning, formatting and supervision controls; follow-up review
+remains before .17 closure. The owner deferred macOS validation on 2026-10-27; Darwin behavior is
 preserved, with no runtime acceptance claim.
 Remaining work includes provisioning, native control ports, budget admission and
 final combined-gate measurements. Downstream candidates are unvalidated and not integrated into `umpire`;
@@ -117,7 +120,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.12 | ⬜ todo | Budget parser/retry candidate retained; consume .17 Rust/TLC receipts, add actual Go-host counts, then admit tables against final .15/.16 interfaces. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
 | fn-254.15 | ⬜ todo | Native ports/callers assembled; only two bootstraps and four control shells remain. Complete native fixture adaptation before removing control shells and validating (R7) |
 | fn-254.16 | ⬜ todo | Mise TLC/opt-in Apalache provisioning candidate prepared; runtime hash/path admission retained. Integrate after .17, then validate installs and failures (R7) |
-| fn-254.17 | 🔄 in progress | Final scheduled standalone and exact Activity scope pass on c5189bd3; warm Activity 444.463 s misses target. Final review remains; macOS validation owner-deferred (R4, R5, R7) |
+| fn-254.17 | 🔄 in progress | Scheduled standalone and exact Activity scope pass on c5189bd3; warm Activity 444.463 s misses target. Four review fixes pass joined controls; follow-up review remains. macOS validation owner-deferred (R4, R5, R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 

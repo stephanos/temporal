@@ -8,7 +8,7 @@ Make the production validation paths use available parallelism without omitting 
 
 **Size:** M
 **Files:** existing framework/Temporal native gate and test-runner leaves; quick execution; mise task definitions; their wiring/standalone controls and entry-point documentation.
-**Touches:** [Makefile, model/scripts/time-gate.sh, mise.toml, model/umpire/mise.toml, model/dev/xtask/src/gate.rs, model/dev/xtask/src/test_run.rs, model/dev/xtask/src/main.rs, model/umpire/dev/xtask/src/gate.rs, model/umpire/dev/xtask/src/gate/**, model/umpire/backends/process/src/support.rs, model/umpire/backends/process/src/syscall.rs, model/umpire/backends/process/src/work.rs, model/umpire/backends/tlc/src/runner.rs, model/umpire/backends/process/tests/**, model/umpire/backends/process/Cargo.toml, model/umpire/dev/xtask/Cargo.toml, model/dev/xtask/Cargo.toml, model/umpire/Cargo.lock, model/Cargo.lock, model/umpire/dev/xtask/src/test_run.rs, model/umpire/dev/xtask/src/main.rs, model/umpire/dev/xtask/src/quick/**, model/umpire/dev/xtask/tests/**, model/scripts/test-model-validate.sh, model/scripts/test-time-gate.sh, model/umpire/README.md, model/umpire/dev/xtask/README.md, model/README.md]
+**Touches:** [.github/workflows/umpire.yml, model/dev/xtask/tests/main.rs, Makefile, model/scripts/time-gate.sh, mise.toml, model/umpire/mise.toml, model/dev/xtask/src/gate.rs, model/dev/xtask/src/test_run.rs, model/dev/xtask/src/main.rs, model/umpire/dev/xtask/src/gate.rs, model/umpire/dev/xtask/src/gate/**, model/umpire/backends/process/src/support.rs, model/umpire/backends/process/src/syscall.rs, model/umpire/backends/process/src/work.rs, model/umpire/backends/tlc/src/runner.rs, model/umpire/backends/process/tests/**, model/umpire/backends/process/Cargo.toml, model/umpire/dev/xtask/Cargo.toml, model/dev/xtask/Cargo.toml, model/umpire/Cargo.lock, model/Cargo.lock, model/umpire/dev/xtask/src/test_run.rs, model/umpire/dev/xtask/src/main.rs, model/umpire/dev/xtask/src/quick/**, model/umpire/dev/xtask/tests/**, model/scripts/test-model-validate.sh, model/scripts/test-time-gate.sh, model/umpire/README.md, model/umpire/dev/xtask/README.md, model/README.md]
 
 ### Ownership and order
 - Consume completed .6's correct source-consumer selection, .11's isolated validation contract and .5's smaller independently schedulable cases. Keep all .6 direct consumer mappings and reverse dependencies; speed cannot come from selecting fewer affected packages.
@@ -106,6 +106,25 @@ replacement red/green evidence is under `controller-admission-replacement/`.
 Final implementation review remains before task closure. Go/unadapted counts
 and mixed-control TLC unknowns remain explicit nulls for .12 admission; full
 combined-gate measurements remain .8 obligations. macOS execution is owner-deferred.
+
+### Final review repair checkpoint (2026-10-27)
+
+The three-lens Claude Opus5.5 review finalized NEEDS_WORK on `884794b825`.
+Four concrete findings are repaired: CI's mise pin now meets both admitted
+config floors with the verified official Linux x64 binary checksum; combined
+required-Apalache mode restores explicit provisioning before the graph;
+public formatting bypasses the JVM lease in both dispatchers; supervisor
+scratch uses an independently created private0700 TempDir.
+
+Behavioral controls failed before the fixes and pass after them. The joined
+source checkpoint `192dd9ceb2` passes five framework supervision controls,
+nine Temporal gate controls and the actual bridge formatting control; scoped
+clippy and formatting also pass. CI recipe wiring passes after its compatibility
+control reproduced the stale pin. The real standalone and warm Activity evidence
+remains explicitly attached to `c5189bd35d`; focused post-review deltas do not
+claim another full-suite execution. The graph, count producers, process backend,
+registry dependencies, Model semantics and guest driver are unchanged by these
+repairs. Follow-up review remains before closure.
 ## Acceptance
 - [ ] Production Rust unit/integration gate paths, including correctly scoped quick tests, use pinned nextest with matching package/binary/test/ignored coverage; Cargo doctests and compiler-only probes retain their distinct roles. Target/filter, empty-selection, failure and timing controls pass.
 - [ ] One authoritative stage DAG schedules dependency-independent work with the verified mise capability or a documented concrete native requirement; no parallel duplicate graph/scheduler remains. Public xtask gate/validate and Make/CI/standalone contracts are preserved with scheduling beneath them. A mise-based scheduler declares the verified minimum version in both task configs without runtime probes. Shared target/generated-output/caller/standalone obligations are preserved.
