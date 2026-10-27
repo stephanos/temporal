@@ -11,7 +11,7 @@ repair. Its five-consumer Activity warm run passed all 148 tests and 25 compiler
 controls in 444.463 s; the 60 s target remains unmet. Review fixes align CI's mise
 pin, restore combined Apalache opt-in, keep formatting outside JVM admission and
 make supervisor scratch private. Focused joined controls pass; follow-up review
-returned SHIP and .17 is closed. Provisioning .16 is active in its isolated worktree. About 10 GiB of idle validation caches were reclaimed
+returned SHIP and .17 is closed. Provisioning .16 is active in its isolated worktree. About 22 GiB of idle validation caches were reclaimed
 with verified proof-output recovery. Go-host count producers and mixed-control
 TLC unknowns remain with .12. macOS validation remains owner-deferred.
 

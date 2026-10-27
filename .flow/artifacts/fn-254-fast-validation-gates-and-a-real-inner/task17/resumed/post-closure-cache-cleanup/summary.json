@@ -1,0 +1,100 @@
+{
+  "status": "complete",
+  "targets_removed": [
+    "/tmp/umpire-fn25417-final-c5189bd35d36-1356708/proof-TmDzNQ/target",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-standalone-renewal/target",
+    "/home/agent/.cache/codex-build/fn25417-work-counts"
+  ],
+  "recovery": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn25417-post-close-20261027T190431Z",
+  "archive": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn25417-post-close-20261027T190431Z/retained-proof-output.tar.gz",
+  "archive_sha256": "57e9f242299a28a2bb16e1588285ebce7a2cd06e7c0e4f404e9c25f59634f87b",
+  "manifest_sha256": "0ba8f7bf7c778d2fad0b46a7fee59a4f11b6b53fc2e5298bee30d45c07423b45",
+  "archive_members_verified_against_originals": 18475,
+  "cache_allocated_bytes_removed": 13938483200,
+  "archive_bytes": 1419721562,
+  "net_reclaimed_estimate_bytes": 12510566135,
+  "free_before_bytes": 54065672192,
+  "free_after_bytes": 60103229440,
+  "identity_before": {
+    "child_source_entries": 1207,
+    "raw_logs": 10,
+    "native_hashes": 2,
+    "old_cleaned_targets_absent": 5,
+    "old_recovery_manifest_sha256": "009395ca548b4528ff89d3e7a030b5fa758768e56d952146b46dffa63b25dae0"
+  },
+  "identity_after": {
+    "child_source_entries": 1207,
+    "raw_logs": 10,
+    "native_hashes": "verified_before_removal",
+    "old_cleaned_targets_absent": 5,
+    "old_recovery_manifest_sha256": "009395ca548b4528ff89d3e7a030b5fa758768e56d952146b46dffa63b25dae0"
+  },
+  "protected_paths_present": {
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation": true,
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt": true,
+    "/home/agent/.cache/codex-build/tmp": true,
+    "/home/agent/.cache/codex-build/cargo-target": true,
+    "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn25417-disk-20261027T170723Z/retained-proof-output.tar.gz": true,
+    "/tmp/umpire-fn25417-final-c5189bd35d36-1356708/proof-TmDzNQ/framework": true
+  },
+  "old_cleaned_targets_absent": [
+    "/tmp/umpire-fn25417-standalone-dc7feca3/proof-Mxf6U4/target",
+    "/tmp/umpire-fn25417-standalone-dc7feca3/proof-SuPdUL/target",
+    "/tmp/umpire-fn25417-standalone-dc7feca3/proof-esl66Z/target",
+    "/tmp/umpire-fn25417-standalone-dc7feca3/proof-hlnVzv/target",
+    "/tmp/umpire-fn25417-standalone-8350ba8f/proof-zBSpnB/target"
+  ],
+  "results": [
+    {
+      "target": "/tmp/umpire-fn25417-final-c5189bd35d36-1356708/proof-TmDzNQ/target",
+      "live_check_immediately_before_clean": {
+        "matching_processes": [],
+        "unreadable_system_pids": [
+          10,
+          542,
+          557
+        ]
+      },
+      "cargo_exit": 101,
+      "cargo_output": "error: cannot clean `/tmp/umpire-fn25417-final-c5189bd35d36-1356708/proof-TmDzNQ/target`: missing or invalid `CACHEDIR.TAG` file\n  |\n  = note: cleaning has been aborted to prevent accidental deletion of unrelated files\n",
+      "exact_directory_fallback": true
+    },
+    {
+      "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-standalone-renewal/target",
+      "live_check_immediately_before_clean": {
+        "matching_processes": [],
+        "unreadable_system_pids": [
+          10,
+          542,
+          557
+        ]
+      },
+      "cargo_exit": 101,
+      "cargo_output": "error: cannot clean `/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-standalone-renewal/target`: missing or invalid `CACHEDIR.TAG` file\n  |\n  = note: cleaning has been aborted to prevent accidental deletion of unrelated files\n",
+      "exact_directory_fallback": true
+    },
+    {
+      "target": "/home/agent/.cache/codex-build/fn25417-work-counts",
+      "live_check_immediately_before_clean": {
+        "matching_processes": [],
+        "unreadable_system_pids": [
+          10,
+          542,
+          557
+        ]
+      },
+      "cargo_exit": 0,
+      "cargo_output": "     Removed 10526 files, 2.0GiB total\n",
+      "exact_directory_fallback": false
+    }
+  ],
+  "source_seals_verified_before_and_after": {
+    "child_inputs_manifest_sha256": "34b8a4432f5ec1401ff79caa395841d07231051b0ff60fe935b3472a0b65c8ab",
+    "raw_output_manifest_sha256": "48aaeade91f370307bf0b504764658fa2351e7756efd9b221088215afddcd2ec",
+    "preserved_parent_native_sha256": {
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-standalone-renewal/target/xtask-bootstrap/debug/xtask": "d4c9f5d6104a4b4cbc8a8a7e300df804ab5796de36c17c30c319287891cb10db",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-standalone-renewal/target/xtask-bootstrap/debug/umpire-guest-driver": "2bca7d08c3734750b41126e33a60c2e76fd66917001a2c82e9b5f72dc546c368"
+    }
+  },
+  "preservation_classification": "Every noncompiler file/symlink preserved with path, size, mode and SHA256/link; only Go build cache, generated documentation, Cargo-profile incremental state and compiler-object extensions omitted. Child source and raw logs kept in place."
+}
