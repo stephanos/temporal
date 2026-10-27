@@ -7,6 +7,7 @@ use std::{
     os::unix::ffi::{OsStrExt, OsStringExt},
     path::Path,
     process::Command,
+    sync::OnceLock,
 };
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
@@ -581,14 +582,27 @@ fn inventory_command(command: &Command) -> io::Result<Command> {
     Ok(inventory)
 }
 
+static CONTROLLER: OnceLock<bool> = OnceLock::new();
+
 /// Only the configured native gate executable owns test-count interception.
-/// Test binaries inherit backend observation scope, but cannot intercept their own mock runners.
+/// Freeze verification before Cargo can replace this process's running executable.
+/// Test binaries retain their rejected role even if a configured path changes later.
 pub fn owns_controller() -> io::Result<bool> {
-    let executable = std::env::current_exe()?;
-    Ok(["UMPIRE_GATE_EXECUTABLE", "UMPIRE_GATE_CONTROLLER_EXECUTABLE"]
-        .into_iter()
-        .filter_map(std::env::var_os)
-        .any(|path| fs::canonicalize(path).is_ok_and(|path| path == executable)))
+    if let Some(admitted) = CONTROLLER.get() {
+        return Ok(*admitted);
+    }
+    let configured =
+        ["UMPIRE_GATE_EXECUTABLE", "UMPIRE_GATE_CONTROLLER_EXECUTABLE"].map(std::env::var_os);
+    let admitted = if configured.iter().all(Option::is_none) {
+        false
+    } else {
+        let executable = std::env::current_exe()?;
+        configured
+            .into_iter()
+            .flatten()
+            .any(|path| fs::canonicalize(path).is_ok_and(|path| path == executable))
+    };
+    Ok(*CONTROLLER.get_or_init(|| admitted))
 }
 
 /// Capture actual completed test suites through the existing owned process controller.
@@ -990,6 +1004,31 @@ mod tests {
         assert_eq!(value["state"], "failed");
         assert!(value["counts"].is_null());
         assert!(value["count_error"].as_str().is_some_and(|value| value.contains("completion")));
+        Ok(())
+    }
+
+    #[test]
+    fn rejected_controller_child() -> io::Result<()> {
+        let Some(marker) = std::env::var_os("CONTROLLER_ROLE_MARKER") else { return Ok(()) };
+        assert!(!owns_controller()?);
+        fs::remove_file(&marker)?;
+        std::os::unix::fs::symlink(std::env::current_exe()?, &marker)?;
+        assert!(!owns_controller()?, "a rejected test carrier gained controller admission later");
+        Ok(())
+    }
+
+    #[test]
+    fn test_carrier_rejection_is_frozen_before_configured_path_can_change() -> io::Result<()> {
+        let directory = tempfile::tempdir()?;
+        let marker = directory.path().join("controller");
+        std::os::unix::fs::symlink("/bin/true", &marker)?;
+        let output = Command::new(std::env::current_exe()?)
+            .args(["--exact", "gate::work_counts::tests::rejected_controller_child", "--nocapture"])
+            .env("CONTROLLER_ROLE_MARKER", &marker)
+            .env("UMPIRE_GATE_EXECUTABLE", &marker)
+            .env_remove("UMPIRE_GATE_CONTROLLER_EXECUTABLE")
+            .output()?;
+        assert!(output.status.success(), "{output:?}");
         Ok(())
     }
 
