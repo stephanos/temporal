@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "date_utc": "2026-10-27",
+  "kind": "owner-requested-session-wrap",
+  "owner_request": "wrap up the current tasks and then stop",
+  "full_goal_complete": false,
+  "execution": "Source unit checkpointed. Pause goal after final wrap commit; no further work until owner resumes.",
+  "main_branch": "umpire",
+  "main_before_wrap": "d67174c342f09a048a57dc8bb388be4f3709f01a",
+  "canonical_statuses_verified": {
+    "fn-254-fast-validation-gates-and-a-real-inner.16": "blocked",
+    "fn-255-thorough-framework-testing-generated.3": "blocked",
+    "fn-257-extract-the-standalone-umpire": {
+      "status": "done",
+      "retired_reason": "moot",
+      "delivered": false
+    }
+  },
+  "provisioning": {
+    "branch": "work/fn25416-provider-adapt",
+    "head": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+    "clean": true,
+    "standalone_accepted": false,
+    "reviewed": false,
+    "integrated": false,
+    "evidence": "resource-hold-draft.json",
+    "proof_attempts": "standalone-attempts.json",
+    "native_build_identity": "standalone-native-build-final.json",
+    "retry_harness": "retry-harness/",
+    "preservation_hashes": "preservation-manifest.json"
+  },
+  "fuzz_source_preparation": {
+    "branch": "work/fn2553-stable-harness",
+    "head": "7010baad96ec230bd45eff977d218ab192f8464c",
+    "worktree": ".worktrees/fn2553-stable-harness",
+    "clean": true,
+    "integrated": false,
+    "built": false,
+    "runtime_validated": false,
+    "handover": ".flow/artifacts/fn-255-thorough-framework-testing-generated/task3/source-preparation-7010baad96.json"
+  },
+  "verification": [
+    "Frozen provider source and both native binary hashes verified",
+    "Four retry-harness hashes verified",
+    "Fuzz checkpoint clean and all 52 source hashes verified; all 45 original candidate hashes unchanged",
+    "Direct pinned rustfmt --check on 19 changed Rust files passed; no compiler/test run",
+    "Source whitespace check passed excluding intentionally preserved corpus whitespace",
+    "Flow fn254/fn255 structure valid; fn254 retains historical unreachable evidence-commit warnings"
+  ],
+  "free_bytes_at_wrap": 34591551488,
+  "preserve": [
+    "Unmerged/dirty worktrees and branches including provider, stable fuzz split and original dirty fuzz preparation",
+    "Existing .recovery archives, extraction recovery bundles and retained source/proof artifacts"
+  ],
+  "wrap_actions_not_performed": [
+    "Pushes",
+    "PRs",
+    "Source integration",
+    "Destructive cleanup",
+    "Builds",
+    "Runtime validation"
+  ],
+  "first_action_on_explicit_resume": "Check canonical Flow and disk. Provisioning has priority: require >=50GiB free, verify 60f source/harness/native identities and admit a NEW unique full-proof output with unchanged 30GiB safety guard. Clear its Flow block only after renewed admission. After accepted proof, review, committed closure and integration, continue fn254.15/.12/.8 in order. Fn255 execution remains blocked on committed fn254.12 admission."
+}

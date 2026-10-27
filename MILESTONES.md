@@ -4,6 +4,10 @@ The owner's overview of open work, execution order and blockers.
 
 As of 2026-10-27.
 
+The owner requested wrapping current work and stopping. Execution is paused after
+the retained checkpoints; resume requires a new owner instruction. Open Flow
+tasks and unvalidated candidates remain open.
+
 The frozen `c5189bd35d` candidate passed the scheduled source-only standalone
 gate: all 17 stages, with 903 tests discovered, 900 executed and three ignored.
 Parent-child receipts include the separate doctests after the controller admission
@@ -11,7 +15,7 @@ repair. Its five-consumer Activity warm run passed all 148 tests and 25 compiler
 controls in 444.463 s; the 60 s target remains unmet. Review fixes align CI's mise
 pin, restore combined Apalache opt-in, keep formatting outside JVM admission and
 make supervisor scratch private. Focused joined controls pass; follow-up review
-returned SHIP and .17 is closed. Provisioning .16 is active in its isolated worktree. About 32 GiB of idle validation caches were reclaimed
+returned SHIP and .17 is closed. Provisioning .16 is frozen and blocked in its isolated worktree. About 32 GiB of idle validation caches were reclaimed
 with verified proof-output recovery. Go-host count producers and mixed-control
 TLC unknowns remain with .12. macOS validation remains owner-deferred.
 
@@ -119,7 +123,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
 | fn-254.12 | ⬜ todo | Budget parser/retry candidate retained; consume .17 Rust/TLC receipts, add actual Go-host counts, then admit tables against final .15/.16 interfaces. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
 | fn-254.15 | ⬜ todo | Integrated tree has 29 active shell paths; retained source candidate reduces these to two bootstraps/four controls. Adapt ports to .17 supervision and final .16 interfaces, finish native controls and validate (R7) |
-| fn-254.16 | 🔄 in progress | Focused and real provider controls pass on frozen 60f1c762. Full standalone needs renewal after sampler/resource interruptions; wait for disk headroom, then proof/review/integration (R7) |
+| fn-254.16 | ⛔ blocked | Focused and real provider controls pass on frozen 60f1c762. Full standalone remains unaccepted; after owner resume and ≥50 GiB headroom, renew proof/review/integration. [Retained validation state](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/session-wrap-20261027/resource-hold-draft.json) (R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 
@@ -160,7 +164,7 @@ The [renewed plan review](.flow/artifacts/fn-255-thorough-framework-testing-gene
 | Name | Status | What |
 | --- | --- | --- |
 | fn-255.2 | ⛔ blocked | Adapt retained differential-harness candidate to the admitted source design; validate shrinking and fixture pinning (R1) |
-| fn-255.3 | ⛔ blocked | [Nine target sources and 23 seeds inventoried](.flow/artifacts/fn-255-thorough-framework-testing-generated/task3/readiness-20261027.json); tool pins, supervision/output isolation and execution controls pending (R2) |
+| fn-255.3 | ⛔ blocked | [Stable harness/nine-wrapper source split retained on 7010baad96](.flow/artifacts/fn-255-thorough-framework-testing-generated/task3/source-preparation-7010baad96.json), unbuilt and unintegrated; budgets, pins, locks, native admission and runtime controls remain (R2) |
 | fn-255.4 | ⛔ blocked | [Four-file runner candidate is unregistered](.flow/artifacts/fn-255-thorough-framework-testing-generated/task4/readiness-20261027.json); tool pin, fixed smoke manifest, budget admission and measured triage pending (R3) |
 | fn-255.5 | ⛔ blocked | Miri ABI candidate prepared and under source review; .3 pin, registration and actual Miri runs pending (R4) |
 | fn-255.6 | ⛔ blocked | Coverage runner/parser candidate prepared and under source review; .2/.3 integration and measured guidance pending (R5) |

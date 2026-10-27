@@ -34,8 +34,8 @@ The isolated follow-up successfully installed the actual official Apalache relea
 Run after priority .17. Preserve its single stage graph, public entry points and nextest/resource contract while replacing provisioning internals. Download cleanup must not delay .5/.17's validation speedups or recreate orchestration in the tool provider.
 
 ## Done summary
-TBD
-
+Blocked:
+Source preparation is frozen and clean at work/fn25416-provider-adapt 60f1c762a618d32478b58ae4e79c151f4355aeb3. Focused provider controls passed, but the mandatory full standalone proof remains unaccepted after sampler and free-space interruptions. New full-proof admission requires at least 50 GiB free while retaining the existing 30 GiB safety guard. Current space is below that threshold; no proof is running. The owner requested wrapping current work and stopping on 2026-10-27. Preserve this source/evidence and do not launch validation automatically. On an explicit resume, verify head/source and harness/native hashes, sufficient space, and renew admission before clearing the block; review, closure and integration remain outstanding.
 ## Evidence
 - Commits:
 - Tests:
