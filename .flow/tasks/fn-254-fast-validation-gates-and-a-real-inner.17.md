@@ -59,6 +59,10 @@ Use `.flow/tmp/fn254-throughput-plan/{repo-scout,spec-scout,gaps}.md`, .5's fixt
 ### Owner macOS validation deferral (2026-10-27)
 
 The owner answered the runner question with **“skip osx validation for nw”**. Do not run or install a macOS validation toolchain for the current milestone pass. Continue Linux proof, review and subsequent milestones. Preserve Darwin code and Checker prevention; make no Darwin runtime acceptance or universal descendant-cleanup claim. Keep the deferred validation visible in MILESTONES.md and final proof records until the owner resumes it. This is a validation deferral, not removal of platform support.
+
+### Owner stop checkpoint (2026-10-27)
+
+The owner cleared the persistent goal and requested **“stop after inflight tasks”**. All in-flight quick validation and evidence preservation finished; all workers and leases are released. The production standalone gate **did not run**: its prepared control runner failed during import before launching a process. No final implementation review started. Keep this task open with standalone renewal and review pending; source/evidence checkpoints are committed, and no downstream milestone starts until the owner resumes. The retained stopped checkpoint is `task17/resumed/owner-stop-checkpoint/checkpoint.json`.
 ## Acceptance
 - [ ] Production Rust unit/integration gate paths, including correctly scoped quick tests, use pinned nextest with matching package/binary/test/ignored coverage; Cargo doctests and compiler-only probes retain their distinct roles. Target/filter, empty-selection, failure and timing controls pass.
 - [ ] One authoritative stage DAG schedules dependency-independent work with the verified mise capability or a documented concrete native requirement; no parallel duplicate graph/scheduler remains. Public xtask gate/validate and Make/CI/standalone contracts are preserved with scheduling beneath them. A mise-based scheduler declares the verified minimum version in both task configs without runtime probes. Shared target/generated-output/caller/standalone obligations are preserved.
