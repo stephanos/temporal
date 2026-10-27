@@ -80,6 +80,32 @@ package token, and inherited scheduler metadata in a gate fixture. Focused
 repairs pass; its failed full run is evidence of incomplete validation. Renew
 the actual standalone on the final producer candidate before review or closure.
 
+
+### Current frozen-candidate acceptance checkpoint (2026-10-27)
+
+The resumed scheduled standalone on `c5189bd35d36e0e404c0980cb986bdc970d4b8af`
+passed all 17 stages in 990.582 s. Its child receipt includes all 896 successful
+nextest identities and four successful doctest bodies: 903 discovered, 900 executed,
+three ignored, zero skipped. Parent-child path bytes, digest and exclusive count
+authority agree; source seals match and all owned processes were reaped.
+This supersedes the earlier owner-stop and failed/count-incomplete standalone
+checkpoints as current acceptance evidence; those records remain historical.
+
+The same-source Activity setup passed in 598.237 s and the valid warm retry in
+444.463 s: exactly five consumers, 148 tests, 23 negative/two positive compiler
+controls and three documentation targets. The warm run retained 14 verified TLC
+cache hits and no model-checker executions; the 60 s target remains unmet.
+An earlier warm attempt was cancelled by the measurement harness and selected
+190 tests because untracked proof files widened its filter. It is retained as
+failed harness evidence, not an accepted measurement. The retry fixed only
+transient scratch-directory sampling and isolated owned evidence outside the
+checkout. Model probe bytes were restored exactly; no Model semantics changed.
+
+Current final proof is under `task17/resumed/final-c5189bd3/`. Controller
+replacement red/green evidence is under `controller-admission-replacement/`.
+Final implementation review remains before task closure. Go/unadapted counts
+and mixed-control TLC unknowns remain explicit nulls for .12 admission; full
+combined-gate measurements remain .8 obligations. macOS execution is owner-deferred.
 ## Acceptance
 - [ ] Production Rust unit/integration gate paths, including correctly scoped quick tests, use pinned nextest with matching package/binary/test/ignored coverage; Cargo doctests and compiler-only probes retain their distinct roles. Target/filter, empty-selection, failure and timing controls pass.
 - [ ] One authoritative stage DAG schedules dependency-independent work with the verified mise capability or a documented concrete native requirement; no parallel duplicate graph/scheduler remains. Public xtask gate/validate and Make/CI/standalone contracts are preserved with scheduling beneath them. A mise-based scheduler declares the verified minimum version in both task configs without runtime probes. Shared target/generated-output/caller/standalone obligations are preserved.

@@ -1,0 +1,10 @@
+{
+  "sample_interval_seconds": 0.5,
+  "sampled_peak_java_processes": 1,
+  "sampled_java_scope_locator_leaks": 0,
+  "heap_arguments": [
+    "-Xmx512m"
+  ],
+  "all_owned_pids_absent": true,
+  "limitation": "Polling is observational; setup-and-cancelled samples include both original invocations."
+}

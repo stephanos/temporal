@@ -1,0 +1,59 @@
+{
+  "status": "accepted standalone; Activity renewal separately in flight",
+  "head": "c5189bd35d36e0e404c0980cb986bdc970d4b8af",
+  "command": [
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-standalone-renewal/target/xtask-bootstrap/debug/xtask",
+    "gate",
+    "--scheduled-stage",
+    "standalone"
+  ],
+  "seconds": 990.5818234309991,
+  "stages": 17,
+  "nextest_passed": 896,
+  "nextest_ignored": 2,
+  "doctests": {
+    "suite_summaries": 24,
+    "passed": 4,
+    "failed": 0,
+    "ignored": 1,
+    "measured": 0,
+    "filtered_out": 0
+  },
+  "combined_counts": {
+    "discovered": 903,
+    "executed": 900,
+    "ignored": 3,
+    "skipped": 0,
+    "tlc_configurations": null,
+    "tlc_launches": null
+  },
+  "parent_child_authority": {
+    "embedded_children": 1,
+    "parent_counts": {
+      "discovered": null,
+      "executed": null,
+      "ignored": null,
+      "skipped": null,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "digest": "dfb464dcbf966851c0ea963805420149cd9a63382ee4a363ef32fbd023c4defe",
+    "raw_os_path_bytes_verified": true
+  },
+  "all896actual_nextest_identities_confirmed": true,
+  "source_before_sha256": "9f2fa3dd4543f392e6a14c487a9a4a4b05727d25339eac4784c26ab40890b1b0",
+  "source_after_sha256": "9f2fa3dd4543f392e6a14c487a9a4a4b05727d25339eac4784c26ab40890b1b0",
+  "resources": {
+    "interval_seconds": 0.5,
+    "sampled_peak_java_processes": 4,
+    "sampled_peak_java_rss_kib": 352592,
+    "sampled_java_scope_locator_leaks": 0,
+    "heap_arguments": [
+      "-Xmx512m"
+    ],
+    "all_owned_processes_absent": true,
+    "limitation": "Sampled observations are not hard RSS or process-peak limits; conservative policy remains4heap-capped checker JVMs."
+  },
+  "unsupported_go_counts": "null; task12 producer/budget admission remains open",
+  "macos": "owner-deferred; no runtime acceptance claim"
+}

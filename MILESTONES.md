@@ -4,13 +4,14 @@ The owner's overview of open work, execution order and blockers.
 
 As of 2026-10-27.
 
-Full source-only standalone execution passed all 17 stages on `8350ba8f03`,
-but its work-count receipt omitted the separate doctests after Cargo replaced
-the running controller executable. Acceptance remains open for the controller
-admission repair, scheduled parent-child proof, current Activity timing and
-review. About 10 GiB of idle validation caches were reclaimed with verified
-proof-output recovery. Go-host count producers and mixed-control TLC unknowns
-remain with .12. macOS validation remains owner-deferred.
+The frozen `c5189bd35d` candidate passed the scheduled source-only standalone
+gate: all 17 stages, with 903 tests discovered, 900 executed and three ignored.
+Parent-child receipts include the separate doctests after the controller admission
+repair. Its five-consumer Activity warm run passed all 148 tests and 25 compiler
+controls in 444.463 s; the 60 s target remains unmet. Final implementation review
+remains before .17 can close. About 10 GiB of idle validation caches were reclaimed
+with verified proof-output recovery. Go-host count producers and mixed-control
+TLC unknowns remain with .12. macOS validation remains owner-deferred.
 
 ## Keeping this page current
 
@@ -46,10 +47,20 @@ The owner lifted the validation hold on 2026-10-26. Resume focused fn-254 checks
 and retain unvalidated candidates until their required evidence and reviews pass.
 The fn-254.5 fixture/compiler checkpoint is reviewed and closed on `umpire`: all 24 cases,
 Temporal compiler/activity checks, 61 parser rows plus 18 compiler refusals, bounded profiles
-and snapshot repair controls passed. Candidates for .15/.16 and .12 remain in the isolated source-assembly branch.
-Task .17's shared mise task graph, batched runner and supervisor source are joined on `umpire`. The pre-lifecycle Cargo and nextest inventories match 860 framework and 235 Temporal identities; affected inventories and the exact 148-test activity scope are renewed. Lifecycle custody and explicit compile-only admission for the facade/IR derive are joined: 52 process, 67 framework caller, 14 Temporal caller and 28 public graph controls pass. The real public process run preserves inherited-context owner-EOF status125. Six-consumer Kettle quick passed in 173.142 s; five-consumer activity passed in 354.645 s and its warm follow-up in 321.299 s. Compiler admission dominates the activity loop; all consumers, compiler controls and snapshots remain intact. Real standalone renewal and review remain. The owner deferred macOS validation on 2026-10-27; Darwin behavior is preserved, with no runtime acceptance claim.
-Remaining work includes joined graph/resource proof, actual receipt counters, budget wiring and native control ports.
-Candidates are unvalidated and not integrated into `umpire`;
+and snapshot repair controls passed. The .16 provider candidate is adapted in its own
+worktree; .15/.12 candidates remain in the isolated source-assembly branch.
+Task .17's shared mise task graph, batched nextest runner, supervisor and Rust/TLC
+receipt producers are joined on `umpire`. Inventory, lifecycle, cross-invocation
+lease/handoff and public graph controls pass. The final real scheduled standalone
+passed in 990.582 s on `c5189bd35d`, including all 896 nextest tests and four doctest
+bodies, with matching parent-child receipt authority and all owned processes reaped.
+The current Activity warm run passed in 444.463 s with exactly five consumers,
+148 tests, 23 negative/two positive compiler controls and three documentation targets;
+14 verified TLC cache hits avoided model executions. Final review remains before
+.17 closure. The owner deferred macOS validation on 2026-10-27; Darwin behavior is
+preserved, with no runtime acceptance claim.
+Remaining work includes provisioning, native control ports, budget admission and
+final combined-gate measurements. Downstream candidates are unvalidated and not integrated into `umpire`;
 preparation does not advance Flow dependencies or mark tasks complete. Integrate shared CLI/configuration
 changes in dependency order. fn-246.9/.13 have retained source/proof checkpoints awaiting integration and closure.
 The owner-approved admission policy is one coordinator, up to four implementation
@@ -85,10 +96,12 @@ realization tests. The corrected six-consumer Kettle quick run took 129.783 s wa
 The current .17 edited-source Kettle run took 173.142 s: 45.465 s in inventory/build
 and 110.616 s in its test phase. It retained the existing positive TLC cache and fresh
 negative executions; the 60 s target remains unmet. See [the current proof](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/kettle-semantic-renewal/summary.json).
-The retained pre-counter five-consumer activity runs took 354.645 s initially and 321.299 s warm,
-with all 148 selected tests and 23 negative/two positive compiler controls passing.
-The warm run had 14 verified TLC hits and no model-checker executions; compiler admission
-still dominated. These measurements leave the 60 s target unmet; they precede the count-producer checkpoint.
+The current five-consumer Activity runs on `c5189bd35d` took 598.237 s for setup
+and 444.463 s warm, with all 148 selected tests and 23 negative/two positive
+compiler controls passing. The warm run had 14 verified TLC hits and no
+model-checker executions; its test phase alone took 346.122 s. The 60 s target
+remains unmet. Earlier pre-counter warm timing was 321.299 s under different
+build/cache conditions; these runs do not establish a causal speed comparison.
 macOS validation is owner-deferred for now; the Linux proof does not establish Darwin cleanup.
 Fixture/compiler batching and nextest scheduling address gate costs.
 Coverage stays: TLC remains the independent checker, and `model-validate` never uses the new TLC result cache.
@@ -104,7 +117,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.12 | ⬜ todo | Budget parser/retry candidate retained; consume .17 Rust/TLC receipts, add actual Go-host counts, then admit tables against final .15/.16 interfaces. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
 | fn-254.15 | ⬜ todo | Native ports/callers assembled; only two bootstraps and four control shells remain. Complete native fixture adaptation before removing control shells and validating (R7) |
 | fn-254.16 | ⬜ todo | Mise TLC/opt-in Apalache provisioning candidate prepared; runtime hash/path admission retained. Integrate after .17, then validate installs and failures (R7) |
-| fn-254.17 | 🔄 in progress | All 17 standalone stages pass on 8350; controller replacement caused omitted doctest counts. Repair, scheduled parent-child proof, current Activity timing and review remain; macOS validation owner-deferred (R4, R5, R7) |
+| fn-254.17 | 🔄 in progress | Final scheduled standalone and exact Activity scope pass on c5189bd3; warm Activity 444.463 s misses target. Final review remains; macOS validation owner-deferred (R4, R5, R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 

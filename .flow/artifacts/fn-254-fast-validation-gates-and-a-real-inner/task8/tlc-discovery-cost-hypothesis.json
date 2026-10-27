@@ -1,0 +1,32 @@
+{
+  "status": "Research hypothesis; no implementation or measured savings",
+  "scope": "Potential fn-254.8 cost investigation; does not change fn-254.17 acceptance",
+  "researcher": "activity_cost_path",
+  "evidence_candidate": "8350ba8f03312d6675145693614b6276672f6941",
+  "event_source": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-8350ba8f/production-proof/gate-receipts/gate-1145344-1793118659378976027/work/framework/tests/*.event",
+  "observed_attempt_classification": {
+    "all_attempts": 836,
+    "tlc_help_probes": 119,
+    "model_configuration_attempts": 717,
+    "confirmed_starts": 752,
+    "confirmed_help_probes": 119,
+    "confirmed_model_starts": 633,
+    "unconfirmed_configuration_controls": 84,
+    "processes_with_help_probes": 56,
+    "processes_with_repeated_help_probes": 32,
+    "maximum_probes_in_one_process": 11
+  },
+  "source_findings": [
+    "Tlc::discover admits the pinned JAR, then runs heap-capped tlc2.TLC -h and checks the expected exit/version banner on each discovery.",
+    "The checked-exploration helper rediscovers TLC for each exploration; discovery has no within-process probe cache.",
+    "The separate Java -version quick-cache identity is per check_module and does not cache TLC discovery or its help probe.",
+    "Task14 removed prerequisite installation/version preflight; it did not remove this actual TLC startup/version admission."
+  ],
+  "candidate_experiment": "Only consider reuse after specifying the exact identity and lifetime contract. Preserve runtime JAR hashing/path admission, actual startup/version validation, failure propagation and all semantic controls.",
+  "limits": [
+    "Counts describe retained8350 evidence, not the finalc518 run.",
+    "No wall-clock savings measured or predicted.",
+    "A JAR checksum alone does not establish Java execution or the TLC startup contract.",
+    "Unconfirmed controls remain unknown; task12 must resolve count-table admission independently."
+  ]
+}
