@@ -236,7 +236,7 @@ fn stage_receipts_label_formatting_and_preserve_success_and_failure_statuses() -
 }
 
 #[test]
-fn stage_receipt_reports_elapsed_and_spawn_failure_without_success_status() -> TestResult {
+fn stage_receipt_reports_missing_tool_as_failed_status() -> TestResult {
     let root = tempfile::tempdir()?;
     let mut log = Vec::new();
     let result = super::execute(
@@ -244,6 +244,24 @@ fn stage_receipt_reports_elapsed_and_spawn_failure_without_success_status() -> T
         Path::new("/selected/workspace"),
         &["selected-package".into()],
         Command::new(root.path().join("missing-program")),
+        &mut log,
+    );
+    assert_eq!(result?, 1);
+    assert_stage_receipt(&log, "test", "1")?;
+    Ok(())
+}
+
+#[test]
+fn stage_receipt_reports_elapsed_and_spawn_failure_without_success_status() -> TestResult {
+    let root = tempfile::tempdir()?;
+    let mut log = Vec::new();
+    let mut command = Command::new("/bin/true");
+    command.current_dir(root.path().join("missing-directory"));
+    let result = super::execute(
+        "test",
+        Path::new("/selected/workspace"),
+        &["selected-package".into()],
+        command,
         &mut log,
     );
     assert!(result.is_err());
@@ -624,8 +642,14 @@ esac
     )?;
     let workspace = super::WorkspaceSelection {
         workspace: root.into(),
-        packages: vec!["api".into(), "guest".into(), "fixtures".into()],
-        doctests: BTreeSet::from(["api".into()]),
+        packages: vec![
+            "api".into(),
+            "guest".into(),
+            "fixtures".into(),
+            "umpire".into(),
+            "umpire-ir-derive".into(),
+        ],
+        doctests: BTreeSet::from(["api".into(), "umpire".into(), "umpire-ir-derive".into()]),
     };
     let options = Options {
         mappings: vec![("/feature".into(), "fixtures".into())],
@@ -645,7 +669,7 @@ esac
             &workspace,
             &options,
             &["/feature/activity/model.rs".into()],
-            &BTreeSet::from(["guest".into()]),
+            &BTreeSet::from(["guest".into(), "umpire".into(), "umpire-ir-derive".into()]),
             || {
                 let mut command = Command::new("/bin/sh");
                 command
@@ -663,18 +687,149 @@ esac
         let calls = fs::read_to_string(root.join("calls"))?;
         let lines = calls.lines().collect::<Vec<_>>();
         assert_eq!(lines.len(), count, "{calls}");
-        assert_eq!(lines[0], "check --locked --all-targets -p guest");
+        assert_eq!(lines[0], "check --locked --all-targets -p guest -p umpire -p umpire-ir-derive");
         if count >= 3 {
             assert!(lines[2].starts_with("nextest run "), "{calls}");
-            assert!(lines[2].contains("-p api -p guest -p fixtures"), "{calls}");
+            assert!(
+                lines[2].contains("-p api -p guest -p fixtures -p umpire -p umpire-ir-derive"),
+                "{calls}"
+            );
             assert!(
                 lines[2].contains("kind(test) & binary(=fixtures) & test(=fixtures)"),
                 "{calls}"
             );
         }
         if count == 4 {
-            assert_eq!(lines[3], "test --doc --locked -p api -- --nocapture");
+            assert_eq!(
+                lines[3],
+                "test --doc --locked -p api -p umpire -p umpire-ir-derive -- --nocapture"
+            );
         }
+    }
+    Ok(())
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn quick_leaf_reaps_background_children_and_preserves_failed_status() -> TestResult {
+    let directory = tempfile::tempdir()?;
+    let pid = directory.path().join("child.pid");
+    let mut command = Command::new("/bin/sh");
+    command
+        .args(["-c", "sleep 30 & printf '%s' $! > \"$CONTROL_PID\"; exit 37"])
+        .env("CONTROL_PID", &pid);
+    assert_eq!(
+        super::execute("test", directory.path(), &["member".into()], command, Vec::new())?,
+        37
+    );
+    let pid = fs::read_to_string(pid)?;
+    let alive = Command::new("/bin/kill")
+        .args(["-0", &pid])
+        .stderr(std::process::Stdio::null())
+        .status()?
+        .success();
+    if alive {
+        Command::new("/bin/kill").args(["-KILL", &pid]).status()?;
+    }
+    assert!(!alive, "quick returned while its background child was alive");
+    Ok(())
+}
+
+#[test]
+fn global_fallback_compiles_zero_harness_members_and_keeps_their_tests_and_doctests() -> TestResult
+{
+    let root = Path::new("/framework");
+    let mut data: serde_json::Value = serde_json::from_slice(&metadata(
+        "framework",
+        &[
+            ("api", "api", &[]),
+            ("facade", "umpire", &["api"]),
+            ("derive", "umpire-ir-derive", &[]),
+            ("unknown", "unknown", &[]),
+        ],
+        &["api", "facade", "derive", "unknown"],
+    ))?;
+    for (index, directory, kind) in [(1, "author/umpire", "lib"), (2, "ir/derive", "proc-macro")] {
+        data["packages"][index]["manifest_path"] =
+            serde_json::json!(root.join(directory).join("Cargo.toml"));
+        data["packages"][index]["targets"] = serde_json::json!([{"kind": [kind], "doctest": true}]);
+    }
+    let mut graph = Graph::default();
+    graph.add(root, &serde_json::to_vec(&data)?)?;
+    let options = Options { always: BTreeSet::from(["api".into()]), ..Options::default() };
+    let selection = graph.select(&options, vec![root.join("Cargo.toml")])?;
+    let workspace = &selection.workspaces[0];
+    assert_eq!(workspace.packages, ["api", "umpire", "umpire-ir-derive", "unknown"]);
+    assert_eq!(workspace.doctests, BTreeSet::from(["umpire".into(), "umpire-ir-derive".into()]));
+    let compiler_only = workspace
+        .packages
+        .iter()
+        .filter(|name| graph.compiler_only(root, name))
+        .cloned()
+        .collect::<BTreeSet<_>>();
+    assert!(!graph.compiler_only(Path::new("/other-workspace"), "umpire"));
+    let selections = workspace
+        .packages
+        .iter()
+        .map(|name| crate::test_run::Selection {
+            package: name,
+            target: None,
+            filter: None,
+            doctests: workspace.doctests.contains(name),
+        })
+        .collect::<Vec<_>>();
+    let inventory = |names: &[&str]| {
+        serde_json::to_vec(&serde_json::json!({"rust-suites": names.iter().map(|name| {
+        (*name, serde_json::json!({"package-name": name, "binary-name": name, "kind": "lib", "status": "listed", "testcases": {
+            "case": {"ignored": false, "filter-match": {"status": "matches"}}
+        }}))
+    }).collect::<std::collections::BTreeMap<_, _>>()}))
+    };
+    assert!(
+        crate::test_run::run_selected_checked_with(
+            &selections,
+            &compiler_only,
+            |_| Ok((0, inventory(&["api"])?)),
+            |_, _| panic!("unexpected zero-test package admitted"),
+        )
+        .is_err()
+    );
+    for (target, filter) in [(Some("missing"), None), (None, Some("missing"))] {
+        let scoped =
+            [crate::test_run::Selection { package: "umpire", target, filter, doctests: true }];
+        assert!(
+            crate::test_run::run_selected_checked_with(
+                &scoped,
+                &compiler_only,
+                |_| Ok((0, inventory(&[])?)),
+                |_, _| panic!("empty exact selection was admitted as compiler-only"),
+            )
+            .is_err()
+        );
+    }
+    for packages_with_tests in
+        [vec!["api", "unknown"], vec!["api", "umpire", "umpire-ir-derive", "unknown"]]
+    {
+        let mut calls = Vec::new();
+        crate::test_run::run_selected_checked_with(
+            &selections,
+            &compiler_only,
+            |_| Ok((0, inventory(&packages_with_tests)?)),
+            |phase, args| {
+                calls.push((phase.to_owned(), args.join(" ")));
+                Ok(0)
+            },
+        )?;
+        assert_eq!(calls.len(), 2);
+        assert_eq!(calls[0].0, "test");
+        assert!(calls[0].1.contains("-p api -p umpire -p umpire-ir-derive -p unknown"));
+        assert_eq!(
+            calls[1],
+            (
+                "doctest".into(),
+                "test --doc --locked -p umpire -p umpire-ir-derive -- --nocapture".into()
+            )
+        );
     }
     Ok(())
 }

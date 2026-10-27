@@ -130,7 +130,7 @@ struct Selection {
 }
 
 fn captured(command: &mut Command) -> Result<Vec<u8>> {
-    let output = command.output()?;
+    let output = crate::gate::scheduler::execute(command, false, false)?;
     if !output.status.success() {
         return Err(Error::Invalid(format!(
             "{command:?} failed: {}",
@@ -176,7 +176,8 @@ fn cargo(root: &Path, home: &Path, target: &Path) -> Command {
         .env("UMPIRE_QUICK_CACHE_ROOT", target.join("quick-cache"))
         .env("UMPIRE_BACKENDS", "require")
         .env("MISE_AUTO_INSTALL", "false")
-        .env("MISE_EXEC_AUTO_INSTALL", "false");
+        .env("MISE_EXEC_AUTO_INSTALL", "false")
+        .env("MISE_TASK_PGID_MANAGED", "1");
     for name in [
         "RUSTC_WRAPPER",
         "RUSTC_WORKSPACE_WRAPPER",
@@ -219,7 +220,8 @@ fn execute(
     output: impl Write,
 ) -> Result<i32> {
     execute_with(phase, workspace, packages, command, output, |command| {
-        command.status().map(|status| (status, Vec::new()))
+        crate::gate::scheduler::execute(command, true, true)
+            .map(|output| (output.status, output.stdout))
     })
     .map(|(status, _)| status)
 }
@@ -309,7 +311,10 @@ fn test_workspace(
                 &workspace.packages,
                 command,
                 io::stderr().lock(),
-                |command| command.output().map(|output| (output.status, output.stdout)),
+                |command| {
+                    crate::gate::scheduler::execute(command, false, true)
+                        .map(|output| (output.status, output.stdout))
+                },
             )
         },
         |phase, arguments| {

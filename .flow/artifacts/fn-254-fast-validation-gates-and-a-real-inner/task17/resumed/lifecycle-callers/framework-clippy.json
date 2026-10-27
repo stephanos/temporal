@@ -1,0 +1,21 @@
+{
+  "command": [
+    "cargo",
+    "+1.99.1",
+    "clippy",
+    "--manifest-path",
+    "model/umpire/Cargo.toml",
+    "--locked",
+    "-p",
+    "xtask",
+    "--all-targets",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "status": 101,
+  "guard": null,
+  "seconds": 2.036472797393799,
+  "cache_kib": 6465208,
+  "free_bytes": 15649906688
+}

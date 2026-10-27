@@ -337,6 +337,76 @@ fn supervised_inner(
     Ok(code)
 }
 
+/// Execute a leaf controller with owned cleanup and explicit output routing.
+/// Captured channels are returned only after all owned descendants complete.
+pub fn execute(
+    command: &Command,
+    stream_stdout: bool,
+    stream_stderr: bool,
+) -> io::Result<std::process::Output> {
+    execute_inner(command, stream_stdout, stream_stderr, None)
+}
+
+pub(super) fn capture_clean(
+    command: &Command,
+    policy: umpire_backend_process::DescendantPolicy,
+) -> io::Result<std::process::Output> {
+    execute_inner(command, false, false, Some(policy))
+}
+
+fn execute_inner(
+    command: &Command,
+    stream_stdout: bool,
+    stream_stderr: bool,
+    clean_policy: Option<umpire_backend_process::DescendantPolicy>,
+) -> io::Result<std::process::Output> {
+    use umpire_backend_process::{DescendantPolicy, OwnedProcess, run_owned};
+    let caller = env::current_dir()?;
+    if stream_stdout && stream_stderr {
+        return Ok(std::process::Output {
+            status: run_owned(command, &caller)?,
+            stdout: Vec::new(),
+            stderr: Vec::new(),
+        });
+    }
+    let directory = tempfile::tempdir()?;
+    let stdout_path = directory.path().join("stdout.log");
+    let stderr_path = directory.path().join("stderr.log");
+    let stdout = fs::File::create(&stdout_path)?;
+    let stderr = fs::File::create(&stderr_path)?;
+    let mut process = if let Some(policy) = clean_policy {
+        OwnedProcess::spawn_clean(command, &caller, &stdout, &stderr, policy)?
+    } else {
+        OwnedProcess::spawn(command, &caller, &stdout, &stderr, DescendantPolicy::Orchestration)?
+    };
+    let mut output = fs::File::open(&stdout_path)?;
+    let mut errors = fs::File::open(&stderr_path)?;
+    let status = loop {
+        if stream_stdout {
+            relay(&mut output, &mut io::stdout())?;
+        }
+        if stream_stderr {
+            relay(&mut errors, &mut io::stderr())?;
+        }
+        if let Some(status) = process.try_wait()? {
+            break status;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    };
+    drop(process);
+    if stream_stdout {
+        relay(&mut output, &mut io::stdout())?;
+    }
+    if stream_stderr {
+        relay(&mut errors, &mut io::stderr())?;
+    }
+    Ok(std::process::Output {
+        status,
+        stdout: if stream_stdout { Vec::new() } else { fs::read(stdout_path)? },
+        stderr: if stream_stderr { Vec::new() } else { fs::read(stderr_path)? },
+    })
+}
+
 fn relay(input: &mut fs::File, output: &mut dyn Write) -> io::Result<()> {
     io::copy(input, output)?;
     output.flush()
@@ -351,7 +421,8 @@ pub fn run(
 ) -> io::Result<i32> {
     command
         .args(["run", "--force", "--skip-tools", "--task-cache", "off", "--jobs", "4", task])
-        .env("UMPIRE_GATE_RECEIPTS", directory);
+        .env("UMPIRE_GATE_RECEIPTS", directory)
+        .env("MISE_TASK_PGID_MANAGED", "1");
     let code = supervised(&command, directory, expected)?;
     match collect(directory, expected, code == 0) {
         Ok(records) => fs::write(directory.join("stages.jsonl"), records)?,
@@ -440,6 +511,61 @@ mod inventory_controls {
         let mut task = task("gate:tests", "tests", "0");
         task["depends"] = json!([{"task": "gate:docs", "optional": true}]);
         assert!(listing_from_value(&json!([task]), "gate:").is_err());
+    }
+}
+
+#[cfg(test)]
+mod execution_controls {
+    use super::*;
+
+    #[test]
+    fn captured_leaf_preserves_cwd_environment_bytes_and_failed_status() -> io::Result<()> {
+        let directory = tempfile::tempdir()?;
+        let mut command = Command::new("/bin/sh");
+        command
+            .args(["-c", "test \"$PWD\" = \"$CONTROL_DIRECTORY\" || exit 9; printf '%s' \"$CONTROL_BYTES\"; printf error >&2; exit 37"])
+            .current_dir(directory.path())
+            .env("CONTROL_DIRECTORY", directory.path().canonicalize()?)
+            .env("CONTROL_BYTES", "raw\nbytes");
+        let output = execute(&command, false, false)?;
+        assert_eq!(output.status.code(), Some(37));
+        assert_eq!(output.stdout, b"raw\nbytes");
+        assert_eq!(output.stderr, b"error");
+        Ok(())
+    }
+
+    #[test]
+    fn unconfigured_leaf_uses_the_callers_working_directory() -> io::Result<()> {
+        let output = execute(&Command::new("/bin/pwd"), false, false)?;
+        assert!(output.status.success());
+        let mut expected =
+            env::current_dir()?.canonicalize()?.into_os_string().into_encoded_bytes();
+        expected.push(b'\n');
+        assert_eq!(output.stdout, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn captured_leaf_preserves_signal_status() -> io::Result<()> {
+        let mut command = Command::new("/bin/sh");
+        command.args(["-c", "kill -TERM $$"]);
+        let output = execute(&command, false, false)?;
+        assert_eq!(
+            output.status.code().unwrap_or_else(|| 128 + output.status.signal().unwrap_or(0)),
+            143
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn streamed_channels_are_not_returned_as_captured_output() -> io::Result<()> {
+        let mut command = Command::new("/bin/sh");
+        command.args(["-c", "printf output; printf error >&2; exit 37"]);
+        let output = execute(&command, true, true)?;
+        assert_eq!(output.status.code(), Some(37));
+        assert_eq!(output.stdout, b"");
+        assert_eq!(output.stderr, b"");
+        Ok(())
     }
 }
 

@@ -1,0 +1,18 @@
+    Checking umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-lifecycle-callers/model/umpire/dev/guest-driver)
+    Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-lifecycle-callers/model/umpire/backends/process)
+    Checking xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-lifecycle-callers/model/umpire/dev/xtask)
+error: this argument is passed by value, but not consumed in the function body
+  --> dev/xtask/src/gate.rs:89:44
+   |
+89 |     fn execute(&self, name: &str, command: Command) -> Result<i32> {
+   |                                            ^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#needless_pass_by_value
+   = note: `-D clippy::needless-pass-by-value` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::needless_pass_by_value)]`
+help: consider taking a reference instead
+   |
+89 |     fn execute(&self, name: &str, command: &Command) -> Result<i32> {
+   |                                            +
+
+error: could not compile `xtask` (lib) due to 1 previous error

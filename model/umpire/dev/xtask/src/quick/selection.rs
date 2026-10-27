@@ -93,6 +93,8 @@ impl Graph {
 
     pub(super) fn compiler_only(&self, root: &Path, package: &str) -> bool {
         [
+            "author/umpire",
+            "ir/derive",
             "reference/kettle/guest",
             "protocol/runtime/guests/stock",
             "protocol/runtime/guests/control",

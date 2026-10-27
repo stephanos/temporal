@@ -161,7 +161,12 @@ pub(super) fn admit(manifest: &Path, gate: &Gate) -> Result<PathBuf> {
     Ok(records)
 }
 
-fn clean_command(gate: &Gate, root: &Path, target: &Path, program: &str) -> Result<Command> {
+fn clean_command(
+    gate: &Gate,
+    root: &Path,
+    target: &Path,
+    program: impl AsRef<std::ffi::OsStr>,
+) -> Result<Command> {
     let mut command = Command::new(program);
     command.env_clear();
     for name in [
@@ -224,7 +229,8 @@ fn clean_command(gate: &Gate, root: &Path, target: &Path, program: &str) -> Resu
         .env("UMPIRE_CACHE_DISABLE", "1")
         .env("UMPIRE_STANDALONE_CHILD", "1")
         .env("MISE_AUTO_INSTALL", "false")
-        .env("MISE_EXEC_AUTO_INSTALL", "false");
+        .env("MISE_EXEC_AUTO_INSTALL", "false")
+        .env("MISE_TASK_PGID_MANAGED", "1");
     super::admission::configure_clean(&mut command);
     crate::test_run::configure(
         &mut command,
@@ -315,27 +321,14 @@ fn tool_versions(gate: &Gate, root: &Path, target: &Path, manifest: &Path) -> Re
         selected.push("cargo-nextest");
     }
     for tool in selected {
-        let mut command = clean_command(gate, root, target, "mise")?;
-        command.args([
-            "exec",
-            "--",
-            tool,
-            if tool == "java" {
-                "-version"
-            } else if tool == "go" {
-                "version"
-            } else {
-                "--version"
-            },
-        ]);
-        let output = command.output()?;
         let mut which = clean_command(gate, root, target, "mise")?;
         if matches!(tool, "rustc" | "cargo") {
             which.args(["exec", "--", "rustc", "--print", "sysroot"]);
         } else {
             which.args(["which", tool]);
         }
-        let selected = which.output()?;
+        let selected =
+            scheduler::capture_clean(&which, super::lease::DescendantPolicy::Orchestration)?;
         if !selected.status.success() {
             return Err(Error::Invalid(format!("standalone tool path admission failed: {tool}")));
         }
@@ -348,7 +341,17 @@ fn tool_versions(gate: &Gate, root: &Path, target: &Path, manifest: &Path) -> Re
             selected_path
         };
         let selected_path = fs::canonicalize(selected_path)?;
-        tools.insert(tool.into(), serde_json::json!({"exit": output.status.code(), "stdout": String::from_utf8_lossy(&output.stdout), "stderr": String::from_utf8_lossy(&output.stderr), "executable": selected_path, "executable_sha256": digest(&fs::read(&selected_path)?)}));
+        let executable_sha256 = digest(&fs::read(&selected_path)?);
+        let output = if tool == "java" {
+            let mut command = clean_command(gate, root, target, selected_path.as_os_str())?;
+            command.arg("-version");
+            scheduler::capture_clean(&command, super::lease::DescendantPolicy::Checker)?
+        } else {
+            let mut command = clean_command(gate, root, target, "mise")?;
+            command.args(["exec", "--", tool, if tool == "go" { "version" } else { "--version" }]);
+            scheduler::capture_clean(&command, super::lease::DescendantPolicy::Orchestration)?
+        };
+        tools.insert(tool.into(), serde_json::json!({"exit": output.status.code(), "stdout": String::from_utf8_lossy(&output.stdout), "stderr": String::from_utf8_lossy(&output.stderr), "executable": selected_path, "executable_sha256": executable_sha256}));
         fs::write(manifest.with_file_name("tools.json"), serde_json::to_vec_pretty(&tools)?)?;
         if !output.status.success() {
             return Err(Error::Invalid(format!("standalone pinned tool admission failed: {tool}")));
@@ -448,7 +451,8 @@ fn gate_inventory_command(root: &Path) -> Command {
         .current_dir(root)
         .env("UMPIRE_FRAMEWORK_ROOT", root)
         .env("MISE_AUTO_INSTALL", "false")
-        .env("MISE_EXEC_AUTO_INSTALL", "false");
+        .env("MISE_EXEC_AUTO_INSTALL", "false")
+        .env("MISE_TASK_PGID_MANAGED", "1");
     command
 }
 fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64) -> Result<i32> {

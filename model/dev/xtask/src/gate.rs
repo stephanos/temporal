@@ -15,7 +15,8 @@ fn admit_command(name: &str, command: &mut Command) -> io::Result<()> {
         .env("UMPIRE_QUICK_CACHE", "0")
         .env("UMPIRE_CACHE_DISABLE", "1")
         .env("MISE_AUTO_INSTALL", "false")
-        .env("MISE_EXEC_AUTO_INSTALL", "false");
+        .env("MISE_EXEC_AUTO_INSTALL", "false")
+        .env("MISE_TASK_PGID_MANAGED", "1");
     if name == "tests" || name == "source-boundary" {
         crate::test_run::configure(
             command,
@@ -41,7 +42,7 @@ fn admit_command(name: &str, command: &mut Command) -> io::Result<()> {
 
 pub(crate) fn stage(root: &Path, name: &str, mut command: Command) -> io::Result<i32> {
     admit_command(name, &mut command)?;
-    let status = if std::env::var_os("UMPIRE_TIME_STEPS").is_some_and(|value| value == "1") {
+    let output = if std::env::var_os("UMPIRE_TIME_STEPS").is_some_and(|value| value == "1") {
         let mut timer = Command::new("/bin/bash");
         timer
             .arg(root.join("umpire/scripts/time-gate.sh"))
@@ -56,12 +57,12 @@ pub(crate) fn stage(root: &Path, name: &str, mut command: Command) -> io::Result
                 timer.env_remove(key);
             }
         }
-        timer.status()
+        scheduler::execute(&timer, true, true)
     } else {
-        command.current_dir(root).status()
+        scheduler::execute(command.current_dir(root), true, true)
     }
     .map_err(|error| io::Error::other(format!("Temporal stage {name}: {error}")))?;
-    let code = status.code().unwrap_or_else(|| 128 + status.signal().unwrap_or(0));
+    let code = output.status.code().unwrap_or_else(|| 128 + output.status.signal().unwrap_or(0));
     if code != 0 {
         let _ = writeln!(io::stderr(), "Temporal stage {name} failed (exit {code})");
     }
@@ -94,7 +95,8 @@ fn mise(root: &Path) -> io::Result<Command> {
         .env("UMPIRE_QUICK_CACHE", "0")
         .env("UMPIRE_CACHE_DISABLE", "1")
         .env("MISE_AUTO_INSTALL", "false")
-        .env("MISE_EXEC_AUTO_INSTALL", "false");
+        .env("MISE_EXEC_AUTO_INSTALL", "false")
+        .env("MISE_TASK_PGID_MANAGED", "1");
     if let Some(target) = std::env::var_os("CARGO_TARGET_DIR") {
         let target = std::path::PathBuf::from(target);
         command.env(
@@ -141,9 +143,10 @@ fn framework_executable(root: &Path) -> io::Result<std::process::Output> {
     command
         .arg(root.join("scripts/xtask.sh"))
         .env("MISE_AUTO_INSTALL", "false")
-        .env("MISE_EXEC_AUTO_INSTALL", "false");
+        .env("MISE_EXEC_AUTO_INSTALL", "false")
+        .env("MISE_TASK_PGID_MANAGED", "1");
     admit_command("bootstrap", &mut command)?;
-    let output = command.output()?;
+    let output = scheduler::execute(&command, false, false)?;
     io::stderr().write_all(&output.stderr)?;
     Ok(output)
 }
@@ -193,7 +196,7 @@ pub(crate) fn run_stage(root: &Path, name: &str) -> io::Result<i32> {
                     let mut command = cargo(&[]);
                     command.args(args).current_dir(root);
                     admit_command("source-boundary", &mut command)?;
-                    let output = command.output()?;
+                    let output = scheduler::execute(&command, false, false)?;
                     io::stderr().write_all(&output.stderr)?;
                     let code = output.status.code().unwrap_or(1);
                     if code != 0 {
@@ -304,10 +307,38 @@ mod tests {
     }
 
     #[test]
-    fn spawn_failure_names_the_stage() {
-        let error = stage(Path::new("/"), "missing-tool", Command::new("/missing/temporal-tool"))
-            .unwrap_err();
-        assert!(error.to_string().contains("missing-tool"));
+    fn missing_tool_control_child() {
+        if std::env::var_os("TEMPORAL_MISSING_TOOL_CONTROL").is_none() {
+            return;
+        }
+        std::process::exit(
+            stage(Path::new("/"), "missing-tool", Command::new("/missing/temporal-tool")).unwrap(),
+        );
+    }
+
+    #[test]
+    fn missing_tool_reports_the_failed_stage() {
+        let output = Command::new(std::env::current_exe().unwrap())
+            .args(["--exact", "gate::tests::missing_tool_control_child", "--nocapture"])
+            .env("TEMPORAL_MISSING_TOOL_CONTROL", "1")
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(1));
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(stderr.contains("cannot execute backend subprocess"));
+        assert!(stderr.contains("Temporal stage missing-tool failed (exit 1)"));
+    }
+
+    #[test]
+    fn invalid_working_directory_names_the_stage() {
+        let missing = std::env::temp_dir().join(format!(
+            "temporal-missing-cwd-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()
+        ));
+        assert!(!missing.exists());
+        let error = stage(&missing, "missing-cwd", Command::new("/bin/sh")).unwrap_err();
+        assert!(error.to_string().contains("missing-cwd"));
     }
 
     #[test]
