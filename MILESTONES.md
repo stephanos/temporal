@@ -37,7 +37,7 @@ The owner lifted the validation hold on 2026-10-26. Resume focused fn-254 checks
 and retain unvalidated candidates until their required evidence and reviews pass.
 The fn-254.5 fixture/compiler checkpoint is reviewed and closed on `umpire`: all 24 cases,
 Temporal compiler/activity checks, 61 parser rows plus 18 compiler refusals, bounded profiles
-and snapshot repair controls passed. Candidates for .15/.16/.17 and .12 remain in the isolated source-assembly branch.
+and snapshot repair controls passed. Candidates for .15/.16 and .12 remain in the isolated source-assembly branch.
 Task .17's shared mise task graph, batched runner and supervisor source are joined on `umpire`. Focused quick/process checks pass; joined graph, shared admission and real standalone/throughput proofs remain. Darwin escaped-descendant cleanup is unresolved.
 Remaining work includes joined graph/resource proof, actual receipt counters, budget wiring and native control ports.
 Candidates are unvalidated and not integrated into `umpire`;

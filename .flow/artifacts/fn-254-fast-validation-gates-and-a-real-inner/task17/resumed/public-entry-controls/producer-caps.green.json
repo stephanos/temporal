@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/bin/bash",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/test-time-gate.sh"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 0.2626596669997525,
+  "log_sha256": "33542ea8e11f1092582935ad6883e7e2ea6a7c27f00d4a033a16385abe0a08fc",
+  "source_files": {
+    "Makefile": "bd4d904aa5d7222c81765695bb908330ba60120779d2ac494da05eac32b39a70",
+    "model/scripts/time-gate.sh": "a05fa9d3a94458784b3c3d52ea76a16b817bae263df501669b01725fdbda281f",
+    "model/scripts/test-model-validate.sh": "836fca71c224a57c1d599155fae0f73ec0f4ff2b751e6ee1650addbc71038580",
+    "model/scripts/test-model-wiring.sh": "fbe3d36eb3880f3aee611127799d88702632640c921bfef9a838e836be79e173"
+  },
+  "scope": "RealMake/timer controlledchildren;leasedDAGproducerplacement/coldcompilerconditionalflags/modes/cache/failure/status+cleanup; notproductionsemanticcoverage",
+  "integration_pending": "New31stnativeDAGstage joinsrootthinmodel-prerequisitesleaf; nativecompile/frozenresource/realworkloadproofstillpending"
+}

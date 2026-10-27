@@ -1257,17 +1257,23 @@ ensure-no-changes:
 endif
 
 ##### model: Umpire in Rust (fn-210) #####
-RUST_MODEL_CARGO := MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false mise exec -- cargo
-RUST_MODEL_FRAMEWORK = helper=$$(/bin/bash "$(CURDIR)/model/umpire/scripts/xtask.sh") && "$$helper"
+RUST_MODEL_COMPILER_ENV = $(if $(filter require,$(UMPIRE_BACKENDS) $(UMPIRE_APALACHE)),CARGO_BUILD_JOBS=1)
+RUST_MODEL_CARGO = MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false $(RUST_MODEL_COMPILER_ENV) mise exec -- cargo
+RUST_MODEL_FRAMEWORK = helper=$$($(RUST_MODEL_COMPILER_ENV) /bin/bash "$(CURDIR)/model/umpire/scripts/xtask.sh") && "$$helper"
 
-.PHONY: model-check model-quick model-fmt model-update model-time model-validate
+.PHONY: model-check model-prerequisites model-quick model-fmt model-update model-time model-validate
+model-quick: RUST_MODEL_COMPILER_ENV = CARGO_BUILD_JOBS=1
 model-quick:
 	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- quick
 
 model-check: override export UMPIRE_QUICK_CACHE = 0
 model-check: override export UMPIRE_CACHE_DISABLE = 1
-model-check: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(API_BINPB)
+model-check:
 	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- gate
+
+model-prerequisites: override export UMPIRE_QUICK_CACHE = 0
+model-prerequisites: override export UMPIRE_CACHE_DISABLE = 1
+model-prerequisites: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(API_BINPB)
 
 model-fmt:
 	@$(RUST_MODEL_FRAMEWORK) fmt

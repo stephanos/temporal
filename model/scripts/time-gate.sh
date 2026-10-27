@@ -51,7 +51,11 @@ printf 'inner source: %s\ninner command: helper=$(bash "%s/model/umpire/scripts/
 touch "$root/model/$inner_file"
 framework_inner() {
   local helper
-  helper=$(/bin/bash "$root/model/umpire/scripts/xtask.sh") || return "$?"
+  if [ "${UMPIRE_BACKENDS:-}" = require ] || [ "${UMPIRE_APALACHE:-}" = require ]; then
+    helper=$(CARGO_BUILD_JOBS=1 /bin/bash "$root/model/umpire/scripts/xtask.sh") || return "$?"
+  else
+    helper=$(/bin/bash "$root/model/umpire/scripts/xtask.sh") || return "$?"
+  fi
   MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false UMPIRE_QUICK_CACHE=0 UMPIRE_CACHE_DISABLE=1 \
     "$helper" test-run --package "$inner_crate"
 }

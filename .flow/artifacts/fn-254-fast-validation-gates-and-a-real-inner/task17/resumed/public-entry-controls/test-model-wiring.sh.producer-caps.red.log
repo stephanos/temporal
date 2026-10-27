@@ -1,0 +1,4 @@
+combined gate wiring expected <temporal|/tmp/umpire-fn25417-public-entry/tmp.PRWc1f26jo|exec -- cargo run --manifest-path /tmp/umpire-fn25417-public-entry/tmp.PRWc1f26jo/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- gate|0|1>, got <producer|control-go
+producer|control-grpc
+producer|control-api
+temporal|/tmp/umpire-fn25417-public-entry/tmp.PRWc1f26jo|exec -- cargo run --manifest-path /tmp/umpire-fn25417-public-entry/tmp.PRWc1f26jo/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- gate|0|1>

@@ -12,6 +12,7 @@ export UMPIRE_INNER_SOURCE=inner.rs UMPIRE_INNER_CRATE=control-checker
 export CONTROL_LOG="$control/calls" CONTROL_MODEL="$control" TMPDIR="$control/output"
 export UMPIRE_GATE_BUDGET=-1 UMPIRE_INNER_BUDGET=-1
 export CARGO_HOME=relative-home CARGO_TARGET_DIR=relative-target
+export CARGO_BUILD_JOBS=99
 unset UMPIRE_BACKENDS UMPIRE_APALACHE MAKEFLAGS MFLAGS MAKEOVERRIDES
 printf 'COLOR = "%%s\\n"\n' > "$control/Makefile"
 awk '/^model-(time|validate):/ {copy=1} copy {print} copy && /^$/ {copy=0}' Makefile >> "$control/Makefile"
@@ -26,6 +27,11 @@ cat > "$control/model/umpire/scripts/xtask.sh" <<'BOOTSTRAP'
 if [ "${CONTROL_BOOTSTRAP_STATUS:-0}" -ne 0 ]; then
   printf 'bootstrap failed\n' >&2
   exit "$CONTROL_BOOTSTRAP_STATUS"
+fi
+if [ "${UMPIRE_BACKENDS:-}" = require ] || [ "${UMPIRE_APALACHE:-}" = require ]; then
+  [ "$CARGO_BUILD_JOBS" = 1 ] || { printf 'required bootstrap expected one compiler, got %s\n' "$CARGO_BUILD_JOBS" >&2; exit 91; }
+else
+  [ "$CARGO_BUILD_JOBS" = 99 ]
 fi
 printf '%s\n' "$CONTROL_MODEL/bin/framework"
 BOOTSTRAP
