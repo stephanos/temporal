@@ -149,6 +149,14 @@ pub(crate) fn run(root: &Path) -> io::Result<i32> {
     let framework = std::ffi::OsString::from_vec(
         bootstrap.stdout.strip_suffix(b"\n").unwrap_or(&bootstrap.stdout).to_owned(),
     );
+    if std::env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require") {
+        let mut command = Command::new(&framework);
+        command.arg("fetch-apalache").arg(root.join("umpire"));
+        let code = stage(root, "apalache", command)?;
+        if code != 0 {
+            return Ok(code);
+        }
+    }
     let expected = scheduler::inventory(mise(root)?, "")?;
     let caller = std::env::current_dir()?;
     let target = std::env::var_os("CARGO_TARGET_DIR").map_or_else(
@@ -439,7 +447,11 @@ esac
 
     fn control_directory() -> std::path::PathBuf {
         use std::fs;
-        let root = std::env::temp_dir().join(format!("temporal-gate-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!(
+            "temporal-gate-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()
+        ));
         fs::create_dir_all(root.join("scripts/tests")).unwrap();
         fs::create_dir_all(root.join("bin")).unwrap();
         fs::create_dir_all(root.join("umpire/scripts")).unwrap();
@@ -471,6 +483,137 @@ case "$*" in
 esac
 "#.replace("BODY", body);
         format!("#!/bin/bash\nset -eu\n{scheduler}\n{nextest}\n{body}")
+    }
+
+    fn apalache_control_directory() -> std::path::PathBuf {
+        use std::{fs, os::unix::fs::PermissionsExt};
+        let root = control_directory();
+        let framework = root.join("bin/framework");
+        let body = CONTROL_BODY;
+        fs::write(
+            &framework,
+            format!(
+                r#"#!/bin/bash
+set -eu
+[ "$#" = 2 ] && [ "$1" = fetch-apalache ] && [ "$2" = "$UMPIRE_GATE_CONTROL_ROOT/umpire" ] || exit 91
+[ "$MISE_AUTO_INSTALL:$MISE_EXEC_AUTO_INSTALL:$MISE_TASK_PGID_MANAGED" = false:false:1 ] || exit 92
+[ "$UMPIRE_APALACHE:$UMPIRE_GATE_CONTROL_SENTINEL" = require:inherited ] || exit 93
+printf 'fetch stdout\n'
+printf 'fetch stderr\n' >&2
+label=apalache
+{body}
+"#
+            ),
+        )
+        .unwrap();
+        fs::set_permissions(&framework, fs::Permissions::from_mode(0o755)).unwrap();
+        fs::write(
+            root.join("scripts/xtask.sh"),
+            format!(
+                "#!/bin/bash\nlabel=bootstrap\n{body}\nprintf '%s\\n' '{}'\n",
+                framework.display()
+            ),
+        )
+        .unwrap();
+        fs::write(
+            root.join("scripts/retired-names.sh"),
+            format!("#!/bin/bash\nset -eu\nlabel=retired\n{body}"),
+        )
+        .unwrap();
+        let inventory = control_inventory(&["retired-names"]);
+        let scheduler = format!(
+            r#"
+if [ "$*" = "tasks ls --json" ]; then
+  label=inventory
+  BODY
+  printf '%s\n' '{inventory}'
+  exit 0
+fi
+if [ "$*" = "run --force --skip-tools --task-cache off --jobs 4 model:all" ]; then
+  label=graph
+  BODY
+  UMPIRE_GATE_STAGE=retired-names UMPIRE_GATE_CONTROL_STAGE=retired-names "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" --exact gate::tests::run_control_child --nocapture
+  exit $?
+fi
+exit 94
+"#
+        )
+        .replace("BODY", body);
+        let mise = root.join("bin/mise");
+        fs::write(&mise, control_mise_script(&scheduler)).unwrap();
+        fs::set_permissions(&mise, fs::Permissions::from_mode(0o755)).unwrap();
+        root
+    }
+
+    #[test]
+    fn optional_apalache_is_prepared_before_combined_scheduling() {
+        use std::fs;
+        let root = apalache_control_directory();
+        let log = root.join("calls");
+        for (mode, failure, expected) in [
+            (Some("require"), "", "bootstrap\napalache\ninventory\ngraph\nretired\n"),
+            (Some("require"), "apalache", "bootstrap\napalache\n"),
+            (None, "", "bootstrap\ninventory\ngraph\nretired\n"),
+            (Some("skip"), "", "bootstrap\ninventory\ngraph\nretired\n"),
+        ] {
+            for timed in ["0", "1"] {
+                fs::write(&log, "").unwrap();
+                let mut child = Command::new(std::env::current_exe().unwrap());
+                child
+                    .args(["--exact", "gate::tests::run_control_child", "--nocapture"])
+                    .env("UMPIRE_GATE_CONTROL_ROOT", &root)
+                    .env("UMPIRE_GATE_CONTROL_LOG", &log)
+                    .env("UMPIRE_GATE_CONTROL_STATUS", if failure.is_empty() { "0" } else { "37" })
+                    .env("UMPIRE_GATE_CONTROL_FAILURE", failure)
+                    .env("UMPIRE_GATE_CONTROL_SENTINEL", "inherited")
+                    .env("UMPIRE_QUICK_CACHE", "1")
+                    .env("UMPIRE_CACHE_DISABLE", "0")
+                    .env("CARGO_HOME", "control-relative-home")
+                    .env("CARGO_TARGET_DIR", "control-relative-target")
+                    .env("UMPIRE_GATE_CONTROL_CALLER", &root)
+                    .env("UMPIRE_BACKENDS", "skip")
+                    .env("UMPIRE_TIME_STEPS", timed)
+                    .env(
+                        "PATH",
+                        format!(
+                            "{}:{}",
+                            root.join("bin").display(),
+                            std::env::var("PATH").unwrap()
+                        ),
+                    )
+                    .current_dir(&root)
+                    .env_remove("UMPIRE_APALACHE");
+                if let Some(mode) = mode {
+                    child.env("UMPIRE_APALACHE", mode);
+                }
+                let output = child.output().unwrap();
+                assert!(output.status.success(), "mode={mode:?}, timed={timed}: {output:?}");
+                assert_eq!(
+                    fs::read_to_string(&log).unwrap(),
+                    expected,
+                    "mode={mode:?}, timed={timed}"
+                );
+                if mode == Some("require") {
+                    let stdout = String::from_utf8_lossy(&output.stdout);
+                    let stderr = String::from_utf8_lossy(&output.stderr);
+                    if timed == "0" {
+                        assert!(stdout.contains("fetch stdout"));
+                        assert!(stderr.contains("fetch stderr"));
+                    } else if failure.is_empty() {
+                        assert!(stdout.contains("apalache"));
+                        assert!(!stdout.contains("fetch stdout"));
+                        assert!(!stderr.contains("fetch stderr"));
+                    } else {
+                        assert!(stderr.contains("fetch stdout"));
+                        assert!(stderr.contains("fetch stderr"));
+                    }
+                    if !failure.is_empty() {
+                        assert!(stderr.contains("Temporal stage apalache failed (exit 37)"));
+                    }
+                }
+            }
+        }
+        fs::remove_dir_all(root).unwrap();
     }
 
     #[test]
