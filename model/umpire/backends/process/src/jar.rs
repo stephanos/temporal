@@ -178,11 +178,18 @@ mod tests {
         let jar = scratch.path().join(relative).join("tla2tools.jar");
         fs::write(&jar, b"corrupt installed payload")?;
         let probed = Cell::new(false);
-        let admit = || PinnedJar::admit_mise(scratch.path(), "build/tlc",
-            crate::tool_provider::JarTool::Tlc, EMPTY, |_, _| {
-                probed.set(true);
-                Ok(())
-            });
+        let admit = || {
+            PinnedJar::admit_mise(
+                scratch.path(),
+                "build/tlc",
+                crate::tool_provider::JarTool::Tlc,
+                EMPTY,
+                |_, _| {
+                    probed.set(true);
+                    Ok(())
+                },
+            )
+        };
         assert!(admit().is_err_and(|error| error.0.contains("integrity mismatch")));
         fs::remove_file(&jar)?;
         std::os::unix::fs::symlink(scratch.path().join("build/tool/tool.jar"), &jar)?;

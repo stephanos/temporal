@@ -179,8 +179,15 @@ impl OwnedProcess {
         stderr: &File,
         policy: DescendantPolicy,
     ) -> std::io::Result<Self> {
-        crate::syscall::Running::spawn_with_policy(command, directory, stdout, stderr, policy)
-            .map(Self)
+        match policy {
+            DescendantPolicy::Checker => {
+                crate::syscall::Running::spawn(command, directory, stdout, stderr)
+            }
+            DescendantPolicy::Orchestration => crate::syscall::Running::spawn_with_policy(
+                command, directory, stdout, stderr, policy,
+            ),
+        }
+        .map(Self)
     }
 
     /// Start with the explicit policy and only supplied environment values.
@@ -428,6 +435,28 @@ pub fn run_process_cancelled(
     dump: Option<&Path>,
     cancelled: &AtomicBool,
 ) -> Result<(ExitStatus, String), ProcessFailure> {
+    run_process_cancelled_with_policy(
+        command,
+        directory,
+        label,
+        limits,
+        dump,
+        cancelled,
+        DescendantPolicy::Checker,
+    )
+}
+
+/// Capture bounded output using the established supervisor and explicit descendant policy.
+#[allow(clippy::too_many_arguments)]
+pub fn run_process_cancelled_with_policy(
+    command: &mut Command,
+    directory: &Path,
+    label: &str,
+    limits: Limits,
+    dump: Option<&Path>,
+    cancelled: &AtomicBool,
+    policy: DescendantPolicy,
+) -> Result<(ExitStatus, String), ProcessFailure> {
     let stdout = directory.join(format!("{label}.stdout"));
     let stderr = directory.join(format!("{label}.stderr"));
     let open =
@@ -437,7 +466,7 @@ pub fn run_process_cancelled(
     if cancelled.load(Ordering::Relaxed) {
         return Err(Refusal(format!("subprocess cancelled ({label})")).into());
     }
-    let mut child = crate::syscall::Running::spawn(command, directory, &out, &err)
+    let mut child = OwnedProcess::spawn(command, directory, &out, &err, policy)
         .map_err(|error| Refusal(format!("cannot spawn {label}: {error}")))?;
     let start = Instant::now();
     let observation = crate::work::spawned(command)?;

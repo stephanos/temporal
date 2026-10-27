@@ -29,27 +29,24 @@ POSIX character classes. The shell resolves the compiled tool once through
 isolated caller controls. `cargo test -p xtask --test main --locked` covers
 the stream contract, active spellings, historical exclusions and tool failures.
 
-## Apalache installer
+## Checker provisioning
 
-`fetch-apalache [framework-root]` admits the official pinned Apalache jar. The
+`fetch-tlc [framework-root]` and `fetch-apalache [framework-root]` provision the
+pinned official releases through framework-owned mise HTTP declarations. The
 optional root defaults to the admitted framework tool root. Local Cargo, mise and
-Rust-toolchain configuration must exist; parent directories are never searched. Missing
-cache components are created. Success
-prints the absolute jar path followed by a newline and exits 0. Failures exit 1
-with `xtask: <native error>` on stderr; curl can also write its own diagnostics.
-Paths are OS arguments, including non-UTF-8 paths on Unix. No Python diagnostic,
-exception type or output encoding compatibility is promised.
+Rust-toolchain configuration must exist; parent directories are never searched.
+Success prints the admitted absolute JAR path and exits 0. Failures exit 1 with
+`xtask: <native error>` on stderr; mise diagnostics also go to stderr.
+Paths are OS arguments, including non-UTF-8 paths on Unix.
 
-The installer requires curl and Unix filesystem admission. It stores the jar at
-`build/apalache/apalache-<version>/lib/apalache.jar`, locks a persistent
-regular `.install.lock` using `File::lock()`, and refuses symlink components,
-wrong existing jars and partial installations. Download and validation use a
-private 0700 staging directory. The archive hash is checked before gzip/tar
-parsing, the exact regular jar member is hashed before publication, and the
-validated directory is renamed into place while holding the lock. Staging is
-removed on success and failure. Installation pins live only in
-`src/apalache_pins.rs`, included by the runtime backend as well as xtask.
+Jar-only mise data, cache and configuration remain under `build/mise-jars`.
+Apalache requires the explicit optional environment; routine installs select TLC.
+Mise owns download checksums, extraction and concurrent installation. Runtime
+admission still rejects missing, partial, corrupt, escaping or symlinked JARs
+and checks the separate Apalache JAR hash. Execution disables auto-install.
 The production command accepts no URL, version, archive or hash overrides.
+See [provider controls](../../mise-tools/README.md) for the changed cleanup and
+publication contracts and the validation obligations.
 
 `test-run` serves the gate's `tests` stage and `update`. It inherits their working
 directory and admitted environment, runs unit/integration suites through pinned

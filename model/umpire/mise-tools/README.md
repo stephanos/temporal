@@ -35,5 +35,6 @@ controls and renew real clean installs/admission, bad checksum, partial trees,
 concurrent installs, interruption/cleanup and archive path-safety controls against
 these inputs. Do not infer hostile-archive safety from the pinned happy path.
 
-No lockfile is adopted here. Existing unused installer dependencies are retained
-for the conductor to remove together with any necessary lockfile change.
+No lockfile is adopted here. The retired installer was the last tar/flate2 consumer; their direct dependencies
+are removed. Both workspace lockfiles prune their now-unreachable package closure; the admitted
+validation lane must confirm locked Cargo admission.

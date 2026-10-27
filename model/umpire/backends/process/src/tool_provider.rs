@@ -19,15 +19,24 @@ pub enum JarTool {
 impl JarTool {
     /// Exact version selector, never an alias.
     pub fn selector(self) -> &'static str {
-        match self { Self::Tlc => "http:tlc@1.7.4", Self::Apalache => "http:apalache@0.62.4" }
+        match self {
+            Self::Tlc => "http:tlc@1.7.4",
+            Self::Apalache => "http:apalache@0.62.4",
+        }
     }
 
     fn installation(self) -> &'static str {
-        match self { Self::Tlc => "http-tlc/1.7.4", Self::Apalache => "http-apalache/0.62.4" }
+        match self {
+            Self::Tlc => "http-tlc/1.7.4",
+            Self::Apalache => "http-apalache/0.62.4",
+        }
     }
 
     fn jar(self) -> &'static str {
-        match self { Self::Tlc => "tla2tools.jar", Self::Apalache => "lib/apalache.jar" }
+        match self {
+            Self::Tlc => "tla2tools.jar",
+            Self::Apalache => "lib/apalache.jar",
+        }
     }
 }
 
@@ -46,7 +55,9 @@ pub fn contained(root: &Path, relative: &Path) -> io::Result<PathBuf> {
         let meta = fs::symlink_metadata(&path).map_err(|error| {
             if error.kind() == io::ErrorKind::NotFound {
                 refusal(format!("missing pinned jar {}", path.display()))
-            } else { error }
+            } else {
+                error
+            }
         })?;
         if meta.is_symlink() {
             return Err(refusal(format!("pinned jar path contains a symlink: {}", path.display())));
@@ -94,9 +105,12 @@ pub fn command(root: &Path, tool: JarTool) -> io::Result<Command> {
     let mut command = Command::new("mise");
     // Inherited mise selectors must not admit Temporal or user configuration.
     for (key, _) in std::env::vars_os() {
-        if key.to_string_lossy().starts_with("MISE_") { command.env_remove(key); }
+        if key.to_string_lossy().starts_with("MISE_") {
+            command.env_remove(key);
+        }
     }
-    command.current_dir(&context)
+    command
+        .current_dir(&context)
         .env("MISE_DATA_DIR", owned.join("data"))
         .env("MISE_CACHE_DIR", owned.join("cache"))
         .env("MISE_STATE_DIR", owned.join("state"))
@@ -110,7 +124,9 @@ pub fn command(root: &Path, tool: JarTool) -> io::Result<Command> {
         .env("MISE_NOT_FOUND_AUTO_INSTALL", "false")
         .env("MISE_YES", "1")
         .env("MISE_COLOR", "0");
-    if matches!(tool, JarTool::Apalache) { command.args(["--env", "apalache"]); }
+    if matches!(tool, JarTool::Apalache) {
+        command.args(["--env", "apalache"]);
+    }
     Ok(command)
 }
 
@@ -133,14 +149,22 @@ fn supervised(
     limits: crate::Limits,
     cancelled: &AtomicBool,
 ) -> io::Result<(ExitStatus, String, String)> {
-    let scratch = crate::Scratch::new_in(root, "build/mise-jars/runs")
-        .map_err(io::Error::other)?;
+    let scratch = crate::Scratch::new_in(root, "build/mise-jars/runs").map_err(io::Error::other)?;
     let result = (|| {
         let (status, output) = crate::run_process_cancelled_with_policy(
-            command, scratch.path(), label, limits, None, cancelled,
+            command,
+            scratch.path(),
+            label,
+            limits,
+            None,
+            cancelled,
             crate::DescendantPolicy::Orchestration,
-        ).map_err(|failure| crate::Refusal(format!("{}; {}", failure.refusal, failure.output)))?;
-        let stdout = crate::bounded_text(&scratch.path().join(format!("{label}.stdout")), limits.output_bytes)?;
+        )
+        .map_err(|failure| crate::Refusal(format!("{}; {}", failure.refusal, failure.output)))?;
+        let stdout = crate::bounded_text(
+            &scratch.path().join(format!("{label}.stdout")),
+            limits.output_bytes,
+        )?;
         Ok::<_, crate::Refusal>((status, stdout, output))
     })();
     scratch.finish(result).map_err(io::Error::other)
@@ -163,18 +187,24 @@ pub fn resolve_cancelled(
     let relative = Path::new("build/mise-jars/data/installs").join(tool.installation());
     let mut command = command(&root, tool)?;
     command.args(["where", tool.selector()]);
-    let (status, location, output) = supervised(&root, &mut command, "mise-where", limits, cancelled)?;
+    let (status, location, output) =
+        supervised(&root, &mut command, "mise-where", limits, cancelled)?;
     if !status.success() || Path::new(location.trim()) != root.join(relative) {
-        return Err(refusal(format!("mise did not resolve the exact pinned installation: {status}; {output}")));
+        return Err(refusal(format!(
+            "mise did not resolve the exact pinned installation: {status}; {output}"
+        )));
     }
     Ok(jar)
 }
 
 /// Explicit provisioning with a bounded subprocess; mise owns extraction and install locking.
 pub fn install(root: &Path, tool: JarTool) -> io::Result<PathBuf> {
-    install_cancelled(root, tool,
+    install_cancelled(
+        root,
+        tool,
         crate::Limits { timeout: Duration::from_secs(180), ..crate::Limits::default() },
-        &AtomicBool::new(false))
+        &AtomicBool::new(false),
+    )
 }
 
 /// Provision using existing process supervision and a caller-owned cancellation token.
@@ -188,9 +218,15 @@ pub fn install_cancelled(
     command.args(["install", tool.selector()]);
     let (status, _, output) = supervised(root, &mut command, "mise-install", limits, cancelled)?;
     io::stderr().write_all(output.as_bytes())?;
-    if !status.success() { return Err(refusal(format!("mise jar installation failed: {status}"))); }
-    resolve_cancelled(root, tool,
-        crate::Limits { timeout: limits.timeout.min(Duration::from_secs(60)), ..limits }, cancelled)
+    if !status.success() {
+        return Err(refusal(format!("mise jar installation failed: {status}")));
+    }
+    resolve_cancelled(
+        root,
+        tool,
+        crate::Limits { timeout: limits.timeout.min(Duration::from_secs(60)), ..limits },
+        cancelled,
+    )
 }
 
 #[cfg(test)]
@@ -208,17 +244,56 @@ mod tests {
         for tool in [JarTool::Tlc, JarTool::Apalache] {
             let command = command(root.as_path(), tool)?;
             let args: Vec<_> = command.get_args().collect();
-            if matches!(tool, JarTool::Tlc) { assert!(args.is_empty()); }
-            else { assert_eq!(args, ["--env", "apalache"]); }
-            let environment: std::collections::BTreeMap<_, _> = command.get_envs().collect();
-            for key in ["MISE_AUTO_INSTALL", "MISE_EXEC_AUTO_INSTALL", "MISE_NOT_FOUND_AUTO_INSTALL"] {
-                assert_eq!(environment.get(std::ffi::OsStr::new(key)),
-                    Some(&Some(std::ffi::OsStr::new("false"))));
+            if matches!(tool, JarTool::Tlc) {
+                assert!(args.is_empty());
+            } else {
+                assert_eq!(args, ["--env", "apalache"]);
             }
-            assert_eq!(command.get_current_dir(), Some(root.as_path().join("mise-tools").as_path()));
-            assert_eq!(environment.get(std::ffi::OsStr::new("MISE_CEILING_PATHS")),
-                Some(&Some(root.as_path().as_os_str())));
+            let environment: std::collections::BTreeMap<_, _> = command.get_envs().collect();
+            for key in
+                ["MISE_AUTO_INSTALL", "MISE_EXEC_AUTO_INSTALL", "MISE_NOT_FOUND_AUTO_INSTALL"]
+            {
+                assert_eq!(
+                    environment.get(std::ffi::OsStr::new(key)),
+                    Some(&Some(std::ffi::OsStr::new("false")))
+                );
+            }
+            assert_eq!(
+                command.get_current_dir(),
+                Some(root.as_path().join("mise-tools").as_path())
+            );
+            assert_eq!(
+                environment.get(std::ffi::OsStr::new("MISE_CEILING_PATHS")),
+                Some(&Some(root.as_path().as_os_str()))
+            );
         }
+        Ok(())
+    }
+
+    #[test]
+    fn exact_installations_reject_partial_trees_directories_and_symlinks() -> io::Result<()> {
+        let scratch = tempfile::tempdir()?;
+        let root = scratch.path().canonicalize()?;
+        for tool in [JarTool::Tlc, JarTool::Apalache] {
+            let install = root.join("build/mise-jars/data/installs").join(tool.installation());
+            let jar = install.join(tool.jar());
+            fs::create_dir_all(jar.parent().ok_or_else(|| refusal("jar needs parent"))?)?;
+            assert!(installed_jar(&root, tool).is_err());
+            fs::create_dir(&jar)?;
+            assert!(
+                installed_jar(&root, tool).is_err_and(|e| e.to_string().contains("regular file"))
+            );
+            fs::remove_dir(&jar)?;
+            fs::write(&jar, b"payload")?;
+            assert_eq!(installed_jar(&root, tool)?, jar);
+            fs::remove_file(&jar)?;
+            let outside = root.join("outside.jar");
+            fs::write(&outside, b"payload")?;
+            std::os::unix::fs::symlink(&outside, &jar)?;
+            assert!(installed_jar(&root, tool).is_err_and(|e| e.to_string().contains("symlink")));
+        }
+        assert!(contained(&root, Path::new("../outside.jar")).is_err());
+        assert!(contained(&root, Path::new("/outside.jar")).is_err());
         Ok(())
     }
 
@@ -238,8 +313,13 @@ mod tests {
         let scratch = tempfile::tempdir()?;
         let root = scratch.path().canonicalize()?;
         let mut command = fixture(&root, "/bin/sh -c 'printf child-helper'");
-        let (status, stdout, _) = supervised(&root, &mut command, "helper-child",
-            crate::Limits::default(), &AtomicBool::new(false))?;
+        let (status, stdout, _) = supervised(
+            &root,
+            &mut command,
+            "helper-child",
+            crate::Limits::default(),
+            &AtomicBool::new(false),
+        )?;
         assert!(status.success());
         assert_eq!(stdout, "child-helper");
         cleaned(&root)
@@ -250,16 +330,25 @@ mod tests {
         let scratch = tempfile::tempdir()?;
         let root = scratch.path().canonicalize()?;
         let mut command = fixture(&root, "touch should-not-run");
-        let error = supervised(&root, &mut command, "cancelled", crate::Limits::default(),
-            &AtomicBool::new(true)).err().ok_or_else(|| refusal("cancelled process ran"))?;
+        let error = supervised(
+            &root,
+            &mut command,
+            "cancelled",
+            crate::Limits::default(),
+            &AtomicBool::new(true),
+        )
+        .err()
+        .ok_or_else(|| refusal("cancelled process ran"))?;
         assert!(error.to_string().contains("cancelled"));
         assert!(!root.join("should-not-run").exists());
         cleaned(&root)?;
 
         let mut command = fixture(&root, "sleep 30");
-        let limits = crate::Limits { timeout: Duration::from_millis(20), ..crate::Limits::default() };
+        let limits =
+            crate::Limits { timeout: Duration::from_millis(20), ..crate::Limits::default() };
         let error = supervised(&root, &mut command, "timeout", limits, &AtomicBool::new(false))
-            .err().ok_or_else(|| refusal("timed process completed"))?;
+            .err()
+            .ok_or_else(|| refusal("timed process completed"))?;
         assert!(error.to_string().contains("limit"));
         cleaned(&root)
     }
@@ -272,8 +361,12 @@ mod tests {
         fs::create_dir_all(&destination)?;
         let mut command = fixture(&root, "printf partial > partial-download; sleep 30");
         command.current_dir(&destination);
-        let limits = crate::Limits { timeout: Duration::from_millis(30), ..crate::Limits::default() };
-        assert!(supervised(&root, &mut command, "interrupted", limits, &AtomicBool::new(false)).is_err());
+        let limits =
+            crate::Limits { timeout: Duration::from_millis(30), ..crate::Limits::default() };
+        assert!(
+            supervised(&root, &mut command, "interrupted", limits, &AtomicBool::new(false))
+                .is_err()
+        );
         assert!(installed_jar(&root, JarTool::Tlc).is_err());
         // Installer leftovers are mise-owned; our cleanup must not delete a shared installation.
         assert!(destination.is_dir());
@@ -289,7 +382,13 @@ mod tests {
         std::thread::scope(|scope| {
             let worker = scope.spawn(|| {
                 let mut command = fixture(&root, "printf ready > started; sleep 30");
-                supervised(&root, &mut command, "cancel-running", crate::Limits::default(), &cancelled)
+                supervised(
+                    &root,
+                    &mut command,
+                    "cancel-running",
+                    crate::Limits::default(),
+                    &cancelled,
+                )
             });
             let started = std::time::Instant::now();
             while !root.join("started").exists() && started.elapsed() < Duration::from_secs(10) {
@@ -308,15 +407,26 @@ mod tests {
         let scratch = tempfile::tempdir()?;
         let root = scratch.path().canonicalize()?;
         std::thread::scope(|scope| {
-            let workers: Vec<_> = [0, 42].into_iter().map(|code| {
-                let root = &root;
-                scope.spawn(move || {
-                    let mut command = fixture(root, &format!("printf provider-output; exit {code}"));
-                    supervised(root, &mut command, "mise-install", crate::Limits::default(), &AtomicBool::new(false))
+            let workers: Vec<_> = [0, 42]
+                .into_iter()
+                .map(|code| {
+                    let root = &root;
+                    scope.spawn(move || {
+                        let mut command =
+                            fixture(root, &format!("printf provider-output; exit {code}"));
+                        supervised(
+                            root,
+                            &mut command,
+                            "mise-install",
+                            crate::Limits::default(),
+                            &AtomicBool::new(false),
+                        )
+                    })
                 })
-            }).collect();
+                .collect();
             for (worker, expected) in workers.into_iter().zip([0, 42]) {
-                let (status, stdout, output) = worker.join()
+                let (status, stdout, output) = worker
+                    .join()
                     .map_err(|_| refusal("concurrent supervision worker panicked"))??;
                 assert_eq!(status.code(), Some(expected));
                 assert_eq!(stdout, "provider-output");
@@ -325,5 +435,4 @@ mod tests {
             cleaned(&root)
         })
     }
-
 }
