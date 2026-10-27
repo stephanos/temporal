@@ -1,0 +1,13 @@
+One current Activity quick at ROOT 22f2c6664284512f65b6a1ad13e988e69fe16161
+
+Native Rust input and executable hashes exactly match the prior Kettle build receipt; only metadata changed. The build projection records that reuse rather than claiming a new native build. Code reads/builds/run used ROOT; artifacts live in this worktree.
+
+Exactly one public Temporal quick ran with the original nonsemantic activity model comment edit and the existing cache. It selected all five consumers with the exact temporal-tests fixtures binary/test. Exit 0, wall 354.645s; stages: fmt 0.157s, clippy 29.489s, compiler-only 12.565s, inventory 44.372s, test 241.469s, docs 26.032s. Actual nextest test execution was 201.389s. No separate baseline, cold/warm run or cache clear/rename occurred.
+
+Actual 148 tests passed, 0 selected ignored. The focused filter excludes 40 other tests and 2 binaries; these are not relabeled as selected ignored cases. Every expected logical tuple from the prior actual shipping-profile 148 inventory is matched by current direct libtest pass output and the all-passed summary; no redundant post-restoration Cargo rebuild/list ran. Nested compiler output independently records 23 negative and 2 positive UI cases. All three eligible Cargo doctest targets completed with zero doctest bodies.
+
+The activity fixture emitted native/interpreter agreements at 18 states/63 edges. Seven Activity configuration misses launched 14 fresh TLC records; the same single workload then hit all seven configurations. Existing 319 cache files retain their hashes; 35 new files store the seven verified bundles. Full raw fixture/cache output and exact identities remain retained.
+
+The 200ms sampler observed 14 model JVM processes, one concurrent fixture owner and one concurrent JVM, all sampled model heaps capped at -Xmx512m. Sampled maximum JVM RSS 176032KiB is an observation, not a hard peak. No short discovery process was caught in this run; prior Kettle discovery observations project only through unchanged process/tool inputs. Scope locators were absent from Java samples, and their FD9 never matched the canonical native host-lease device/inode. Numeric FD9 reuse for JVM sockets is permitted.
+
+Observed owned processes were absent before source restoration. Original model bytes are restored; ROOT is git-clean. All 1,566 tracked compilation inputs, all 372 current tracked model snapshots (including the historical 202 subset), both locks/119 registry tuples and tooling executable hashes are unchanged. Combined target+privateGoCache+privateTMP growth was 2,068,472,574 bytes; final free space approximately 9.8GiB. No production standalone or other full-model gate ran.
