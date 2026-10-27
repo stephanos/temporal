@@ -25,7 +25,7 @@ copied to another custom cache. Exact install directories under
 | Custom staging cleanup, interrupted download | Delegated to mise. Cleanup can be best effort; this does not promise the former custom staging cleanup-error behavior. |
 | Java and checker version admission | Existing bounded backend runtime probes remain; no prerequisite presence/version preflight is added. |
 | Default/required backend modes | Gate ownership and opt-in selection remain with the existing stage graph. |
-| Non-UTF-8 framework root | The scoped mise provider refuses the canonical root with `InvalidInput` before starting mise or creating data/capture directories. This narrows the retired downloader's OS-path support. |
+| Framework root encoding and isolation | The provider requires a UTF-8 canonical root representable as one mise path-list entry. Unsupported roots receive `InvalidInput` before mise or data/capture creation. This narrows the retired downloader's OS-path support. |
 
 The jar environment owns default and optional mise lockfiles and requires locked
 resolution. This avoids HTTP remote-version metadata refresh while mise retains
@@ -57,10 +57,15 @@ retains the exact release, fixture, failure and control-mapping evidence under
 [task16](../../../.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task16/).
 
 The pinned mise release serializes its actual working directory into a UTF-8
-template context. Scoped relative settings and even entirely relative
-config/data/cache paths still abort there for a non-UTF-8 root; absolute installed
-paths also lose bytes in mise's `where` output. The provider therefore refuses
-that root explicitly instead of exposing the upstream panic. UTF-8 spaces and
-shell metacharacters remain OS arguments. This restriction belongs to the jar
-provider; guest-driver and other native path/receipt handling retain their
-existing OS-path contracts.
+template context. Scoped relative settings and entirely relative config/data/cache
+paths still abort there for a non-UTF-8 root; absolute installed paths also lose
+bytes in mise's `where` output. The provider refuses that root explicitly.
+
+The ceiling and trusted-config settings are encoded through `std::env::join_paths`.
+On Unix this refuses a root containing `:`: passing that raw path instead makes
+mise split it into unrelated paths, bypassing the intended ceiling and loading
+parent configuration. Admission checks the canonical root, including ASCII
+aliases and relative arguments, before creating owned data. Supported spaces,
+quotes, shell metacharacters and Unicode remain ordinary OS-path arguments.
+These restrictions belong to the jar provider; guest-driver and other native
+path/receipt handling retain their existing OS-path contracts.

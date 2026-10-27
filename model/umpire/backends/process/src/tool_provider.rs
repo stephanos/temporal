@@ -98,7 +98,17 @@ pub fn command(root: &Path, tool: JarTool) -> io::Result<Command> {
             "mise jar provider requires a UTF-8 framework root",
         ));
     }
+    let path_list = |path: &Path| {
+        std::env::join_paths([path]).map_err(|error| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("mise jar provider root cannot be represented in a path list: {error}"),
+            )
+        })
+    };
+    let ceiling = path_list(&root)?;
     let context = contained(&root, Path::new("mise-tools"))?;
+    let trusted = path_list(&context)?;
     for config in
         ["mise.toml", "mise.apalache.toml", "empty.toml", "mise.lock", "mise.apalache.lock"]
     {
@@ -125,8 +135,8 @@ pub fn command(root: &Path, tool: JarTool) -> io::Result<Command> {
         .env("MISE_CONFIG_DIR", owned.join("config"))
         .env("MISE_GLOBAL_CONFIG_FILE", context.join("empty.toml"))
         .env("MISE_SYSTEM_CONFIG_FILE", context.join("empty.toml"))
-        .env("MISE_CEILING_PATHS", &root)
-        .env("MISE_TRUSTED_CONFIG_PATHS", &context)
+        .env("MISE_CEILING_PATHS", ceiling)
+        .env("MISE_TRUSTED_CONFIG_PATHS", trusted)
         .env("MISE_LOCKED", "true")
         .env("MISE_AUTO_INSTALL", "false")
         .env("MISE_EXEC_AUTO_INSTALL", "false")
@@ -242,12 +252,10 @@ pub fn install_cancelled(
 mod tests {
     use super::*;
 
-    #[test]
-    #[cfg(target_os = "linux")]
-    fn non_utf8_root_refuses_before_mise_or_data_side_effects() -> io::Result<()> {
-        use std::{ffi::OsString, os::unix::ffi::OsStringExt};
+    #[cfg(unix)]
+    fn unsupported_root(name: std::ffi::OsString, message: &str) -> io::Result<()> {
         let scratch = tempfile::tempdir_in("/tmp")?;
-        let root = scratch.path().join(OsString::from_vec(b"framework-\xff".to_vec()));
+        let root = scratch.path().join(name);
         fs::create_dir_all(root.join("mise-tools"))?;
         for file in
             ["mise.toml", "mise.apalache.toml", "empty.toml", "mise.lock", "mise.apalache.lock"]
@@ -258,15 +266,34 @@ mod tests {
         std::os::unix::fs::symlink(&root, &alias)?;
         for input in [&root, &alias] {
             for tool in [JarTool::Tlc, JarTool::Apalache] {
-                let result = command(input, tool);
-                assert!(
-                    matches!(&result, Err(error) if error.kind() == io::ErrorKind::InvalidInput),
-                    "{result:?}"
-                );
+                let error = command(input, tool)
+                    .err()
+                    .ok_or_else(|| refusal("unsupported provider root admitted"))?;
+                assert_eq!(error.kind(), io::ErrorKind::InvalidInput);
+                assert!(error.to_string().starts_with(message), "{error}");
                 assert!(!root.join("build").exists());
             }
         }
         Ok(())
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn non_utf8_root_refuses_before_mise_or_data_side_effects() -> io::Result<()> {
+        use std::{ffi::OsString, os::unix::ffi::OsStringExt};
+        unsupported_root(
+            OsString::from_vec(b"framework-\xff".to_vec()),
+            "mise jar provider requires a UTF-8 framework root",
+        )
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn path_list_root_refuses_before_mise_or_data_side_effects() -> io::Result<()> {
+        unsupported_root(
+            "framework:colon".into(),
+            "mise jar provider root cannot be represented in a path list",
+        )
     }
 
     #[test]

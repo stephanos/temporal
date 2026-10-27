@@ -22,12 +22,10 @@ fn dispatch_usage_failure_is_nonzero_and_structured() {
     }
 }
 
-#[test]
-#[cfg(target_os = "linux")]
-fn non_utf8_provider_root_has_a_native_status_one_refusal_before_mise() {
-    use std::{ffi::OsString, os::unix::ffi::OsStringExt};
+#[cfg(unix)]
+fn unsupported_root(name: std::ffi::OsString, message: &str) {
     let scratch = tempfile::tempdir_in("/tmp").unwrap();
-    let root = scratch.path().join(OsString::from_vec(b"framework-\xff".to_vec()));
+    let root = scratch.path().join(name);
     fs::create_dir_all(root.join("mise-tools")).unwrap();
     for file in ["Cargo.toml", "mise.toml", "rust-toolchain.toml"] {
         fs::write(root.join(file), "fixture").unwrap();
@@ -57,14 +55,32 @@ fn non_utf8_provider_root_has_a_native_status_one_refusal_before_mise() {
             assert_eq!(output.status.code(), Some(1));
             assert_eq!(output.stdout, b"");
             assert!(
-                String::from_utf8_lossy(&output.stderr)
-                    .starts_with("xtask: mise jar provider requires a UTF-8 framework root"),
+                String::from_utf8_lossy(&output.stderr).starts_with(&format!("xtask: {message}")),
                 "{output:?}"
             );
             assert!(!log.exists());
             assert!(!root.join("build").exists());
         }
     }
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn non_utf8_provider_root_has_a_native_status_one_refusal_before_mise() {
+    use std::{ffi::OsString, os::unix::ffi::OsStringExt};
+    unsupported_root(
+        OsString::from_vec(b"framework-\xff".to_vec()),
+        "mise jar provider requires a UTF-8 framework root",
+    );
+}
+
+#[test]
+#[cfg(unix)]
+fn path_list_provider_root_has_a_native_status_one_refusal_before_mise() {
+    unsupported_root(
+        "framework:colon".into(),
+        "mise jar provider root cannot be represented in a path list",
+    );
 }
 
 #[test]
