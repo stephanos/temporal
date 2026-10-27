@@ -151,17 +151,20 @@ impl From<std::io::Error> for ProcessFailure {
 pub enum DescendantPolicy {
     /// Preserve checker isolation, including Darwin descendant prevention.
     Checker,
-    /// Allow development tools to spawn children. Linux retains subreaper cleanup.
-    /// Darwin cleans the target process group and reaps its direct child; escaped
-    /// process groups and adopted descendants are outside that ownership contract.
+    /// Allow trusted development carriers to spawn children. Native guardians
+    /// share cancellation and retain hierarchical completion custody; carriers
+    /// such as nextest must forward cancellation and wait for their own groups.
+    /// Linux additionally retains subreaper cleanup.
     Orchestration,
 }
 
 /// An owned subprocess supervised through a parent-liveness pipe.
 /// Dropping closes that pipe and waits for supervisor cleanup. Abrupt owner death
 /// also closes the pipe. Input is `/dev/null`; supplied files receive raw output.
-/// Stop signals retain their shell status (`128 + signal`). Darwin orchestration
-/// cannot own detached groups or reap descendants adopted by the operating system.
+/// Stop signals retain their shell status (`128 + signal`). Orchestration inherits
+/// completion/cancellation pipes through trusted carriers. Nested native guardians
+/// independently observe root cancellation and retain custody through their own
+/// direct waits; arbitrary uncooperative detached children are outside that contract.
 pub struct OwnedProcess(crate::syscall::Running);
 
 impl OwnedProcess {
@@ -180,6 +183,28 @@ impl OwnedProcess {
             .map(Self)
     }
 
+    /// Start with the explicit policy and only supplied environment values.
+    /// Inherited lease and lifecycle custody are still verified; Checker targets
+    /// receive neither capability nor locator.
+    pub fn spawn_clean(
+        command: &Command,
+        directory: &Path,
+        stdout: &File,
+        stderr: &File,
+        policy: DescendantPolicy,
+    ) -> std::io::Result<Self> {
+        let lease = JvmLease::inherited_file()?;
+        crate::syscall::Running::spawn_with_custody(
+            command,
+            directory,
+            (stdout, stderr),
+            policy,
+            lease.as_ref(),
+            false,
+        )
+        .map(Self)
+    }
+
     /// Start orchestration retaining shared lease custody through descendant cleanup.
     pub fn spawn_leased(
         command: &Command,
@@ -193,6 +218,8 @@ impl OwnedProcess {
 
     /// As `spawn_leased`, using only explicitly supplied command environment values.
     /// Use this for a command prepared with `env_clear`, which cannot be introspected.
+    /// Verified inherited lifecycle capabilities are propagated into that clean
+    /// environment along with the lease.
     pub fn spawn_leased_clean(
         command: &Command,
         directory: &Path,

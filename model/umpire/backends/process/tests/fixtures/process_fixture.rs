@@ -79,6 +79,7 @@ mod fixture {
 
     fn checker_owner(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
         let directory = Path::new(&args[2]);
+        fs::write(directory.join("checker-owner-pid"), process::id().to_string())?;
         let mut target = Command::new(env::current_exe()?);
         target.args(["checker-target", &args[3], &args[4]]);
         let (status, output) = umpire_backend_process::run_process(
@@ -100,6 +101,11 @@ mod fixture {
             "Checker target received lease locator"
         );
         assert!(syscall::inherited_lease().is_err(), "Checker target received FD9 capability");
+        for name in ["UMPIRE_COMPLETION_FD", "UMPIRE_CANCELLATION_FD"] {
+            assert!(env::var_os(name).is_none(), "Checker target received lifecycle locator");
+        }
+        assert!(syscall::inherited_descriptor(10).is_err(), "Checker target received FD10");
+        assert!(syscall::inherited_descriptor(11).is_err(), "Checker target received FD11");
         fs::write(&args[2], format!("{} {}", process::id(), parent_pid()?))?;
         let started = std::time::Instant::now();
         while !Path::new(&args[3]).exists() {
@@ -107,6 +113,80 @@ mod fixture {
             thread::sleep(Duration::from_millis(5));
         }
         Ok(())
+    }
+
+    fn lifecycle_stages(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
+        let directory = Path::new(&args[2]);
+        if args[1] == "lifecycle-stages" {
+            use umpire_backend_process::{JvmLease, OwnedProcess};
+            let allocation = JvmLease::inherited_or_acquire()?;
+            let output = fs::File::create(directory.join("clean.out"))?;
+            let errors = fs::File::create(directory.join("clean.err"))?;
+            let mut command = Command::new(env::current_exe()?);
+            command.env_clear().arg("lifecycle-clean-stage").arg(directory);
+            let mut child = OwnedProcess::spawn_leased_clean(
+                &command,
+                directory,
+                &output,
+                &errors,
+                &allocation,
+            )?;
+            loop {
+                if let Some(status) = child.try_wait()? {
+                    assert!(status.success());
+                    break;
+                }
+                thread::sleep(Duration::from_millis(5));
+            }
+        } else {
+            for _ in 0..2 {
+                let mut command = Command::new(env::current_exe()?);
+                command.arg("echo");
+                assert!(umpire_backend_process::run_owned(&command, directory)?.success());
+            }
+            fs::write(directory.join("stages"), "two stages finished")?;
+        }
+        Ok(())
+    }
+
+    fn lifecycle_carrier(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
+        use umpire_backend_process::{DescendantPolicy, OwnedProcess};
+        let directory = Path::new(&args[2]);
+        let output = fs::File::create(directory.join("nested.out"))?;
+        let errors = fs::File::create(directory.join("nested.err"))?;
+        let mut command = Command::new(env::current_exe()?);
+        command
+            .arg("checker-owner")
+            .arg(directory)
+            .arg(directory.join("ready"))
+            .arg(directory.join("checker-release"));
+        let _nested = OwnedProcess::spawn(
+            &command,
+            directory,
+            &output,
+            &errors,
+            DescendantPolicy::Orchestration,
+        )?;
+        while !directory.join("carrier-release").exists() {
+            thread::sleep(Duration::from_millis(5));
+        }
+        process::exit(37);
+    }
+
+    fn group_sleep(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
+        if args[1] == "group-ready" {
+            assert_eq!(process::id(), rustix::process::getpgrp().as_raw_pid().cast_unsigned());
+            fs::write(&args[2], "separate group ready")?;
+            sleep();
+            Ok(())
+        } else {
+            Err(Command::new(env::current_exe()?)
+                .arg("group-ready")
+                .arg(&args[2])
+                .process_group(0)
+                .exec()
+                .into())
+        }
     }
 
     pub(super) fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -118,6 +198,7 @@ mod fixture {
                 sleep();
             }
             "sleep" => sleep(),
+            "group-ready" | "group-sleep" => group_sleep(&args)?,
             "tree" => {
                 let mut input = String::new();
                 io::stdin().read_to_string(&mut input)?;
@@ -134,6 +215,8 @@ mod fixture {
             }
             "owner" => owner(&args)?,
             "checker-owner" => checker_owner(&args)?,
+            "lifecycle-stages" | "lifecycle-clean-stage" => lifecycle_stages(&args)?,
+            "lifecycle-carrier" => lifecycle_carrier(&args)?,
             "checker-target" => checker_target(&args)?,
             "lease-child" => {
                 let _lease = umpire_backend_process::JvmLease::inherited_or_acquire()?;
