@@ -59,8 +59,10 @@ dependencies while the underlying crates remain independently usable. Backend ad
 supervision through `umpire-backend-process` and typed assignments through `umpire-tla`;
 `umpire-apalache` has no dependency on `umpire-tlc`. Process supervision is native Rust;
 parent-side rustix/tempfile support surrounds an audited allocation-free raw-libc child path.
-Linux owns adopted descendants; Darwin prevents descendants and refuses root. Other platforms
-refuse. Apalache remains opt-in with `UMPIRE_APALACHE=require`; TLC requires `UMPIRE_BACKENDS=require`.
+Checker supervision owns adopted descendants on Linux; on Darwin it prevents descendants
+and refuses root. Native validation controllers use a separate orchestration policy with
+inherited cancellation/completion custody; its Darwin runtime proof remains open. Other
+platforms refuse. Apalache remains opt-in with `UMPIRE_APALACHE=require`; TLC requires `UMPIRE_BACKENDS=require`.
 `author/umpire/tests/consumer` proves authoring with one renamed facade dependency.
 `protocol/runtime/guests` contains stock/control guest packages; `reference/kettle/guest`
 contains the reference guest. The Temporal guest and extension remain under `model/temporal/`.

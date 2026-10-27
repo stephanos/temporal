@@ -51,11 +51,11 @@ removed on success and failure. Installation pins live only in
 `src/apalache_pins.rs`, included by the runtime backend as well as xtask.
 The production command accepts no URL, version, archive or hash overrides.
 
-`test-run` is an internal no-argument subprocess route used by the gate's `tests`
-stage and `update`. It inherits their working directory and admitted environment,
-and currently runs exactly one `mise exec -- cargo test --workspace --locked --quiet`,
-including Cargo's doctests. Test sequencing belongs in `src/test_run.rs`; callers
-only select this route. Child exit codes and signal statuses propagate to the gate.
+`test-run` serves the gate's `tests` stage and `update`. It inherits their working
+directory and admitted environment, runs unit/integration suites through pinned
+nextest, then runs Cargo doctests separately. Test sequencing belongs in
+`src/test_run.rs`; callers select this route. Child failures retain their public
+exit codes, including shell signal status `128 + signal`.
 
 ## Stage graph and host admission
 
@@ -63,9 +63,13 @@ only select this route. Child exit codes and signal statuses propagate to the ga
 
 One supervisor retains the host lease through each public gate, quick or test invocation and descendant cleanup. Leased descendants receive a validated file descriptor, including the clean standalone child. Mise owns dependency scheduling; native supervision polls failed stage receipts and cancels owned work when descendant pipes keep mise pending. Independent read-only checks can overlap. Shared Cargo targets, generated outputs, JVM phases and Go work retain conservative graph barriers until combined admission proves additional overlap.
 
+Substantive leaf controllers use native ownership. Guardians share root cancellation and retain parent completion custody through direct-child waits; clean standalone commands preserve that verified context. Checker Java receives no lease or lifecycle descriptors. Linux retains subreaper cleanup for escaped descendants. Darwin relies on admitted controllers forwarding cancellation and waiting for their own groups; its non-root runtime proof remains open. Descriptor closure or an elapsed grace period alone does not establish reaping.
+
 Invocation records preserve public stage names and qualify their scope as `framework/<stage>` or `system/<stage>`. Every expected stage receives a success, failure, skipped, cancelled, not-started or partial record in logical order. Missing or invalid successful receipts fail. Parent and isolated-child suites remain separate authorities. Raw stage timings and counts feed the later budget task; inclusive parent time is not the sum of overlapping stage times.
 
 `test-run --package NAME` uses the selected runner's exact package inventory, nextest policy and eligible scoped Cargo doctests. Full workspace test execution retains its separate doctest phase.
+
+Global quick also compiles the explicitly admitted zero-harness facade, IR derive and guest packages with `cargo check --all-targets`. Their eligible doctests remain selected, and any newly discovered tests run. Unknown empty packages and missing target/name selections fail admission.
 
 Required and quick validation cap each Cargo queue at one build job and Go at `-p=1` with `GOMAXPROCS=1`; other caller Go flags remain intact. Clean standalone children receive only their explicit clean settings and these caps. Backend-skipped native commands keep caller CPU defaults. The DAG admits at most one external heavy phase beside up to three read-only task owners. Within a required nextest phase, four test slots permit at most four nested one-job compiler queues, or two JVM owners with two recovery JVMs each and up to two other test owners. Cargo may wait for a build script’s Go child; that live ancestry does not add an independent compiler queue. These are queue and JVM-owner bounds, not CPU affinity or total RSS limits. `admission.json` records the actual child compiler/Go settings; scoped stage reports record outcomes separately.
 

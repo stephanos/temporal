@@ -38,7 +38,7 @@ and retain unvalidated candidates until their required evidence and reviews pass
 The fn-254.5 fixture/compiler checkpoint is reviewed and closed on `umpire`: all 24 cases,
 Temporal compiler/activity checks, 61 parser rows plus 18 compiler refusals, bounded profiles
 and snapshot repair controls passed. Candidates for .15/.16 and .12 remain in the isolated source-assembly branch.
-Task .17's shared mise task graph, batched runner and supervisor source are joined on `umpire`. Cargo and nextest inventories match all 860 framework and 235 Temporal identities; actual edits retain the six/five consumer scopes. The narrower activity inventory stopped at its cache-growth limit, and global quick exposed two legitimate zero-harness packages needing explicit compile-only admission. Lifecycle cancellation and completion controls are being implemented in isolated lanes; real quick/standalone throughput and non-root Darwin cleanup proofs remain.
+Task .17's shared mise task graph, batched runner and supervisor source are joined on `umpire`. The pre-lifecycle Cargo and nextest inventories match 860 framework and 235 Temporal identities; actual edits retain the six/five consumer scopes. Lifecycle custody and explicit compile-only admission for the facade/IR derive are now joined: 52 process, 67 framework caller, 14 Temporal caller and 28 public graph controls pass, including meaningful regression mutations. Renew the narrower activity inventory, real quick/standalone throughput and non-root Darwin cleanup proof.
 Remaining work includes joined graph/resource proof, actual receipt counters, budget wiring and native control ports.
 Candidates are unvalidated and not integrated into `umpire`;
 preparation does not advance Flow dependencies or mark tasks complete. Integrate shared CLI/configuration
@@ -114,7 +114,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.12 | ⬜ todo | Budget parser/count/retry candidate assembled; real receipt producers and native wiring underway. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
 | fn-254.15 | ⬜ todo | Native ports/callers assembled; only two bootstraps and four control shells remain. Complete native fixture adaptation before removing control shells and validating (R7) |
 | fn-254.16 | ⬜ todo | Mise TLC/opt-in Apalache provisioning candidate prepared; runtime hash/path admission retained. Integrate after .17, then validate installs and failures (R7) |
-| fn-254.17 | 🔄 in progress | Priority 0: graph/runner/supervisor joined; full Cargo/nextest inventories match (860 framework, 235 Temporal), selectors retain six/five consumers. Finish activity scope, global compile-only admission, lifecycle custody, real quick/standalone timing and Darwin cleanup proof (R4, R5, R7) |
+| fn-254.17 | 🔄 in progress | Priority 0: graph/runner/lifecycle custody joined; process/caller/public graph controls pass. Pre-lifecycle inventories match (860 framework, 235 Temporal), selectors retain six/five consumers. Renew affected inventories, real quick/standalone timing and Darwin cleanup proof (R4, R5, R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 
