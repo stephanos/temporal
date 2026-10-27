@@ -1,0 +1,24 @@
+{
+  "command": [
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/xtask-bootstrap/debug/xtask",
+    "test-run",
+    "--package",
+    "quick-output-canary"
+  ],
+  "cwd": "/tmp/umpire-quick-output-qbwcq94v",
+  "exit_code": 0,
+  "elapsed_seconds": 0.21087720799914678,
+  "binary_sha256": "0890797d0f6729f50d91a43e2c79434c3588cce9688f93ce203abdb6d7989ab8",
+  "fixture_files": {
+    "Cargo.toml": "[package]\nname = \"quick-output-canary\"\nversion = \"0.0.0\"\nedition = \"2024\"\n[workspace]\n[lib]\ndoctest = false\n",
+    "Cargo.lock": "version = 4\n\n[[package]]\nname = \"quick-output-canary\"\nversion = \"0.0.0\"\n",
+    "src/lib.rs": "#[test]\nfn successful_output() { println!(\"quick-output-canary-visible\"); }\n",
+    ".config/nextest.toml": "[profile.required]\ntest-threads = 4\n",
+    "mise.toml": "[tools]\nrust = \"1.99.1\"\n\"github:nextest-rs/nextest\" = \"0.9.149\"\n"
+  },
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "583b119661417095b8cedf9b30408de473ea5d79f90effbeca8fdf32bfbabb79",
+  "canary_visible": false,
+  "root_source": "be7aeb36e2",
+  "expected_regression": "OldCargo quick used --nocapture; selectednextestsuccess-outputnever hides successful cache labels"
+}

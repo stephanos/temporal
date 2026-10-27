@@ -324,7 +324,7 @@ fn run_selected(
         "--final-status-level",
         "slow",
         "--success-output",
-        "never",
+        "immediate",
         "--failure-output",
         "immediate-final",
         "--no-tests",
