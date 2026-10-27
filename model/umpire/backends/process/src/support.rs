@@ -146,6 +146,210 @@ impl From<std::io::Error> for ProcessFailure {
     }
 }
 
+/// Descendant ownership policy for the established native subprocess supervisor.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum DescendantPolicy {
+    /// Preserve checker isolation, including Darwin descendant prevention.
+    Checker,
+    /// Allow development tools to spawn children. Linux retains subreaper cleanup.
+    /// Darwin cleans the target process group and reaps its direct child; escaped
+    /// process groups and adopted descendants are outside that ownership contract.
+    Orchestration,
+}
+
+/// An owned subprocess supervised through a parent-liveness pipe.
+/// Dropping closes that pipe and waits for supervisor cleanup. Abrupt owner death
+/// also closes the pipe. Input is `/dev/null`; supplied files receive raw output.
+/// Stop signals retain their shell status (`128 + signal`). Darwin orchestration
+/// cannot own detached groups or reap descendants adopted by the operating system.
+pub struct OwnedProcess(crate::syscall::Running);
+
+impl OwnedProcess {
+    /// Start a process using the explicit descendant policy and caller-owned output files.
+    /// Explicit command arguments, environment additions/removals and cwd are used.
+    /// The inherited environment remains the process environment (`env_clear` is not
+    /// supported). Command stdio settings are replaced by the descriptors above.
+    pub fn spawn(
+        command: &Command,
+        directory: &Path,
+        stdout: &File,
+        stderr: &File,
+        policy: DescendantPolicy,
+    ) -> std::io::Result<Self> {
+        crate::syscall::Running::spawn_with_policy(command, directory, stdout, stderr, policy)
+            .map(Self)
+    }
+
+    /// Start orchestration retaining shared lease custody through descendant cleanup.
+    pub fn spawn_leased(
+        command: &Command,
+        directory: &Path,
+        stdout: &File,
+        stderr: &File,
+        lease: &JvmLease,
+    ) -> std::io::Result<Self> {
+        Self::spawn_with_lease(command, directory, stdout, stderr, lease, true)
+    }
+
+    /// As `spawn_leased`, using only explicitly supplied command environment values.
+    /// Use this for a command prepared with `env_clear`, which cannot be introspected.
+    pub fn spawn_leased_clean(
+        command: &Command,
+        directory: &Path,
+        stdout: &File,
+        stderr: &File,
+        lease: &JvmLease,
+    ) -> std::io::Result<Self> {
+        Self::spawn_with_lease(command, directory, stdout, stderr, lease, false)
+    }
+
+    fn spawn_with_lease(
+        command: &Command,
+        directory: &Path,
+        stdout: &File,
+        stderr: &File,
+        lease: &JvmLease,
+        inherit_environment: bool,
+    ) -> std::io::Result<Self> {
+        lease.verify()?;
+        crate::syscall::Running::spawn_with_custody(
+            command,
+            directory,
+            (stdout, stderr),
+            DescendantPolicy::Orchestration,
+            Some(&lease.file),
+            inherit_environment,
+        )
+        .map(Self)
+    }
+
+    /// Poll the supervisor; dropping a pending process cancels and waits for cleanup.
+    pub fn try_wait(&mut self) -> std::io::Result<Option<ExitStatus>> {
+        self.0.try_wait()
+    }
+}
+
+/// One same-user host allocation shared across repositories and isolated copies.
+/// The kernel releases it after the last inherited/duplicated descriptor closes.
+/// No pathname is removed and no PID or environment marker grants authority.
+pub struct JvmLease {
+    file: File,
+    root: PathBuf,
+    directory: (u64, u64),
+}
+
+impl JvmLease {
+    fn host_root() -> std::io::Result<PathBuf> {
+        Ok(fs::canonicalize("/tmp")?
+            .join(format!("umpire-validation-{}", rustix::process::getuid().as_raw())))
+    }
+
+    /// Wait for the exclusive host allocation; targets, Cargo homes and TMPDIR do not alter it.
+    pub fn acquire() -> std::io::Result<Self> {
+        Self::acquire_in(Self::host_root()?)
+    }
+
+    /// Adopt an actually inherited descriptor, or acquire a new outer allocation.
+    /// A present malformed locator, foreign descriptor or contended description refuses.
+    pub fn inherited_or_acquire() -> std::io::Result<Self> {
+        match std::env::var_os(crate::syscall::LEASE_ENV) {
+            None => Self::acquire(),
+            Some(value) if value == crate::syscall::LEASE_FD.to_string().as_str() => {
+                let root = Self::host_root()?;
+                let directory = Self::directory(&root)?;
+                let file = crate::syscall::inherited_lease()?;
+                let lease = Self { file, root, directory };
+                lease.verify()?;
+                lease.file.try_lock().map_err(|error| {
+                    std::io::Error::other(format!("inherited JVM lease is not exclusive: {error}"))
+                })?;
+                lease.verify()?;
+                Ok(lease)
+            }
+            Some(_) => Err(std::io::Error::other("invalid inherited JVM lease descriptor locator")),
+        }
+    }
+
+    fn acquire_in(root: PathBuf) -> std::io::Result<Self> {
+        use std::os::unix::fs::OpenOptionsExt;
+        let directory = Self::directory(&root)?;
+        let file = fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .truncate(false)
+            .mode(0o600)
+            .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK)
+            .open(root.join("jvm.lock"))?;
+        let lease = Self { file, root, directory };
+        lease.verify()?;
+        lease.file.lock()?;
+        lease.verify()?;
+        Ok(lease)
+    }
+
+    fn directory(root: &Path) -> std::io::Result<(u64, u64)> {
+        use std::os::unix::fs::DirBuilderExt;
+        match fs::DirBuilder::new().mode(0o700).create(root) {
+            Ok(()) => (),
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => (),
+            Err(error) => return Err(error),
+        }
+        let metadata = fs::symlink_metadata(root)?;
+        if !metadata.is_dir()
+            || metadata.uid() != rustix::process::getuid().as_raw()
+            || metadata.mode() & 0o777 != 0o700
+            || fs::canonicalize(root)? != root
+        {
+            return Err(std::io::Error::other(
+                "JVM lease directory is not a private stable owned directory",
+            ));
+        }
+        Ok((metadata.dev(), metadata.ino()))
+    }
+
+    fn verify(&self) -> std::io::Result<()> {
+        if Self::directory(&self.root)? != self.directory {
+            return Err(std::io::Error::other("JVM lease directory changed"));
+        }
+        let opened = self.file.metadata()?;
+        let named = fs::symlink_metadata(self.root.join("jvm.lock"))?;
+        let uid = rustix::process::getuid().as_raw();
+        if !opened.is_file()
+            || !named.is_file()
+            || opened.nlink() != 1
+            || named.nlink() != 1
+            || opened.uid() != uid
+            || named.uid() != uid
+            || opened.mode() & 0o777 != 0o600
+            || named.mode() & 0o777 != 0o600
+            || (opened.dev(), opened.ino()) != (named.dev(), named.ino())
+        {
+            return Err(std::io::Error::other(
+                "JVM lease is not a stable private owned regular file",
+            ));
+        }
+        Ok(())
+    }
+}
+
+/// Run development orchestration with inherited raw stdout/stderr and owned cleanup.
+/// Uses the orchestration policy above and `/dev/null` input. No wall/output limit
+/// is imposed; callers needing budgets should poll `OwnedProcess` and drop on refusal.
+pub fn run_owned(command: &Command, directory: &Path) -> std::io::Result<ExitStatus> {
+    use std::os::fd::AsFd;
+    let stdout = File::from(std::io::stdout().as_fd().try_clone_to_owned()?);
+    let stderr = File::from(std::io::stderr().as_fd().try_clone_to_owned()?);
+    let mut process =
+        OwnedProcess::spawn(command, directory, &stdout, &stderr, DescendantPolicy::Orchestration)?;
+    loop {
+        if let Some(status) = process.try_wait()? {
+            return Ok(status);
+        }
+        thread::sleep(Duration::from_millis(5));
+    }
+}
+
 pub fn run_process(
     command: &mut Command,
     directory: &Path,
@@ -290,4 +494,187 @@ pub fn bounded_text(path: &Path, limit: u64) -> Result<String, Refusal> {
         return Err(Refusal(format!("file exceeds bounded read limit: {}", path.display())));
     }
     Ok(text)
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod lease_tests {
+    use super::*;
+    use std::os::unix::fs::{OpenOptionsExt, symlink};
+
+    #[test]
+    fn admission_refuses_symlink_directory_and_foreign_file_without_writing() {
+        let temporary = tempfile::tempdir().unwrap();
+        let foreign = temporary.path().join("foreign");
+        fs::create_dir(&foreign).unwrap();
+        let root = temporary.path().join("host");
+        symlink(&foreign, &root).unwrap();
+        assert!(JvmLease::acquire_in(root.clone()).is_err());
+        fs::remove_file(&root).unwrap();
+        fs::create_dir(&root).unwrap();
+        fs::set_permissions(&root, fs::Permissions::from_mode(0o700)).unwrap();
+        let victim = temporary.path().join("victim");
+        fs::write(&victim, "unchanged").unwrap();
+        symlink(&victim, root.join("jvm.lock")).unwrap();
+        assert!(JvmLease::acquire_in(root).is_err());
+        assert_eq!(fs::read_to_string(victim).unwrap(), "unchanged");
+    }
+
+    #[test]
+    fn admission_refuses_hardlinks_fifo_and_public_permissions() {
+        let temporary = tempfile::tempdir().unwrap();
+        let root = temporary.path().join("host");
+        let lease = JvmLease::acquire_in(root.clone()).unwrap();
+        drop(lease);
+        fs::hard_link(root.join("jvm.lock"), temporary.path().join("alias")).unwrap();
+        assert!(JvmLease::acquire_in(root.clone()).is_err());
+        fs::remove_file(temporary.path().join("alias")).unwrap();
+        fs::set_permissions(root.join("jvm.lock"), fs::Permissions::from_mode(0o644)).unwrap();
+        assert!(JvmLease::acquire_in(root.clone()).is_err());
+        fs::remove_file(root.join("jvm.lock")).unwrap();
+        assert!(Command::new("mkfifo").arg(root.join("jvm.lock")).status().unwrap().success());
+        assert!(JvmLease::acquire_in(root.clone()).is_err());
+        fs::remove_file(root.join("jvm.lock")).unwrap();
+        fs::set_permissions(&root, fs::Permissions::from_mode(0o755)).unwrap();
+        assert!(JvmLease::acquire_in(root).is_err());
+    }
+
+    #[test]
+    fn file_replacement_during_wait_refuses_after_original_owner_releases() {
+        let temporary = tempfile::tempdir().unwrap();
+        let root = temporary.path().join("host");
+        let owner = JvmLease::acquire_in(root.clone()).unwrap();
+        let path = root.join("jvm.lock");
+        let waiting_file =
+            fs::OpenOptions::new().read(true).write(true).mode(0o600).open(&path).unwrap();
+        assert!(matches!(waiting_file.try_lock(), Err(fs::TryLockError::WouldBlock)));
+        let waiting =
+            JvmLease { file: waiting_file, root: root.clone(), directory: owner.directory };
+        waiting.verify().unwrap();
+        fs::rename(&path, root.join("old.lock")).unwrap();
+        fs::OpenOptions::new().write(true).create_new(true).mode(0o600).open(&path).unwrap();
+        drop(owner);
+        waiting.file.lock().unwrap();
+        assert!(waiting.verify().is_err());
+    }
+
+    #[test]
+    fn kernel_lock_releases_without_unlinking_or_stale_pid_recovery() {
+        let temporary = tempfile::tempdir().unwrap();
+        let root = temporary.path().join("host");
+        let lease = JvmLease::acquire_in(root.clone()).unwrap();
+        let inode = lease.file.metadata().unwrap().ino();
+        drop(lease);
+        let next = JvmLease::acquire_in(root).unwrap();
+        assert_eq!(next.file.metadata().unwrap().ino(), inode);
+    }
+    #[cfg(target_os = "linux")]
+    fn control(role: &str, directory: &Path) -> Command {
+        let mut command = Command::new(std::env::current_exe().unwrap());
+        command
+            .args(["--exact", "support::lease_tests::lifecycle_child", "--nocapture"])
+            .env("UMPIRE_LEASE_CONTROL_ROLE", role)
+            .env("UMPIRE_LEASE_CONTROL_DIR", directory);
+        command
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn leased_owner_death_excludes_contender_until_escaped_child_is_reaped() {
+        let directory = tempfile::tempdir().unwrap();
+        let status = run_owned(&control("harness", directory.path()), directory.path()).unwrap();
+        assert!(status.success());
+        assert_eq!(fs::read_to_string(directory.path().join("acquired")).unwrap(), "verified");
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn lifecycle_child() -> std::io::Result<()> {
+        let Ok(role) = std::env::var("UMPIRE_LEASE_CONTROL_ROLE") else { return Ok(()) };
+        let directory = PathBuf::from(std::env::var_os("UMPIRE_LEASE_CONTROL_DIR").unwrap());
+        let path = directory.join("pids");
+        match role.as_str() {
+            "owner" => {
+                let lease = JvmLease::acquire_in(directory.join("host"))?;
+                let out = File::create(directory.join("out"))?;
+                let err = File::create(directory.join("err"))?;
+                let mut child = OwnedProcess::spawn_leased(
+                    &control("tree", &directory),
+                    &directory,
+                    &out,
+                    &err,
+                    &lease,
+                )?;
+                loop {
+                    if child.try_wait()?.is_some() {
+                        break;
+                    }
+                    thread::sleep(Duration::from_millis(5));
+                }
+            }
+            "tree" => {
+                let mut escaped = Command::new("setsid").args(["/bin/sleep", "60"]).spawn()?;
+                fs::write(&path, format!("{} {}", std::process::id(), escaped.id()))?;
+                let parent = fs::read_to_string("/proc/self/status")?;
+                let parent = parent.lines().find_map(|l| l.strip_prefix("PPid:")).unwrap().trim();
+                fs::write(directory.join("supervisor"), parent)?;
+                thread::sleep(Duration::from_secs(60));
+                escaped.wait()?;
+            }
+            "contender" => {
+                let _lease = JvmLease::acquire_in(directory.join("host"))?;
+                for pid in fs::read_to_string(&path)?.split_whitespace() {
+                    assert!(
+                        !Path::new("/proc").join(pid).exists(),
+                        "lease released before owned PID{pid} was reaped"
+                    );
+                }
+                fs::write(directory.join("acquired"), "verified")?;
+            }
+            "harness" => {
+                crate::syscall::set_subreaper()?;
+                let mut owner = control("owner", &directory).spawn()?;
+                let started = Instant::now();
+                while !path.exists() || !directory.join("supervisor").exists() {
+                    assert!(
+                        started.elapsed() < Duration::from_secs(5),
+                        "owner did not become ready"
+                    );
+                    thread::sleep(Duration::from_millis(5));
+                }
+                let supervisor = fs::read_to_string(directory.join("supervisor"))?;
+                let file =
+                    fs::metadata(format!("/proc/{}/fd/9", supervisor.trim())).map_err(|error| {
+                        std::io::Error::other(format!("supervisor lost lease custody: {error}"))
+                    })?;
+                let named = fs::metadata(directory.join("host/jvm.lock"))?;
+                assert_eq!(
+                    (file.dev(), file.ino()),
+                    (named.dev(), named.ino()),
+                    "supervisor lost custody"
+                );
+                let mut contender = control("contender", &directory).spawn()?;
+                thread::sleep(Duration::from_millis(25));
+                assert!(contender.try_wait()?.is_none());
+                assert!(!directory.join("acquired").exists());
+                owner.kill()?;
+                owner.wait()?;
+                let started = Instant::now();
+                loop {
+                    if let Some(status) = contender.try_wait()? {
+                        assert!(status.success());
+                        break;
+                    }
+                    assert!(
+                        started.elapsed() < Duration::from_secs(5),
+                        "lease did not release after abrupt owner death"
+                    );
+                    thread::sleep(Duration::from_millis(5));
+                }
+                crate::syscall::reap_owned_children()?;
+            }
+            _ => panic!("unknown lease lifecycle role"),
+        }
+        Ok(())
+    }
 }

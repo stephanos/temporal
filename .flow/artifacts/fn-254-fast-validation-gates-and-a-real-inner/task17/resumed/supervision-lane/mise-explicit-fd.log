@@ -1,0 +1,9 @@
+[p] $ /usr/bin/python3 /tmp/umpire-mise-fd-probe-ctc0nlej/leaf.py
+[q] $ /usr/bin/python3 /tmp/umpire-mise-fd-probe-ctc0nlej/leaf.py
+[q] {"pid": 564971, "fd": 9, "dev": 29, "ino": 9754942, "separate_handle_blocked": true}
+[p] {"pid": 564972, "fd": 9, "dev": 29, "ino": 9754942, "separate_handle_blocked": true}
+[q] Finished in 39.4ms
+[p] Finished in 48.2ms
+[join] $ /usr/bin/true
+[join] Finished in 2.2ms
+Finished in 65.5ms

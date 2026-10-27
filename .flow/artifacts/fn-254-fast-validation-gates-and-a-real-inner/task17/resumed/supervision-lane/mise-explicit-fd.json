@@ -1,0 +1,21 @@
+{
+  "command": [
+    "mise",
+    "run",
+    "--force",
+    "--skip-tools",
+    "--task-cache",
+    "off",
+    "--jobs",
+    "2",
+    "join"
+  ],
+  "cwd": "/tmp/umpire-mise-fd-probe-ctc0nlej",
+  "config": "[tasks.p]\nrun = \"/usr/bin/python3 /tmp/umpire-mise-fd-probe-ctc0nlej/leaf.py\"\n[tasks.q]\nrun = \"/usr/bin/python3 /tmp/umpire-mise-fd-probe-ctc0nlej/leaf.py\"\n[tasks.join]\ndepends = [\"p\", \"q\"]\nrun = \"/usr/bin/true\"\n",
+  "python_leaf": "import os,fcntl,json,pathlib; f=os.fstat(9); p=pathlib.Path(os.environ['PROBE_ROOT']); n=os.stat(p/'lease'); assert(f.st_dev,f.st_ino)==(n.st_dev,n.st_ino); fcntl.flock(9,fcntl.LOCK_EX|fcntl.LOCK_NB); g=open(p/'lease','r+'); blocked=False\ntry: fcntl.flock(g,fcntl.LOCK_EX|fcntl.LOCK_NB)\nexcept BlockingIOError: blocked=True\nassert blocked; print(json.dumps({'pid':os.getpid(),'fd':9,'dev':f.st_dev,'ino':f.st_ino,'separate_handle_blocked':blocked})); (p/(os.environ['MISE_TASK_NAME']+'.json')).write_text('verified')",
+  "exit_code": 0,
+  "elapsed_seconds": 0.14662158400096814,
+  "fd": 9,
+  "authority": "same inherited open file description; cloned lock succeeds, separate open lock refuses",
+  "output": "[p] $ /usr/bin/python3 /tmp/umpire-mise-fd-probe-ctc0nlej/leaf.py\n[q] $ /usr/bin/python3 /tmp/umpire-mise-fd-probe-ctc0nlej/leaf.py\n[q] {\"pid\": 564971, \"fd\": 9, \"dev\": 29, \"ino\": 9754942, \"separate_handle_blocked\": true}\n[p] {\"pid\": 564972, \"fd\": 9, \"dev\": 29, \"ino\": 9754942, \"separate_handle_blocked\": true}\n[q] Finished in 39.4ms\n[p] Finished in 48.2ms\n[join] $ /usr/bin/true\n[join] Finished in 2.2ms\nFinished in 65.5ms\n"
+}

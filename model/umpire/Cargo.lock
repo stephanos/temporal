@@ -1379,6 +1379,7 @@ dependencies = [
  "tempfile",
  "thiserror",
  "toml",
+ "umpire-backend-process",
  "umpire-guest-driver",
 ]
 

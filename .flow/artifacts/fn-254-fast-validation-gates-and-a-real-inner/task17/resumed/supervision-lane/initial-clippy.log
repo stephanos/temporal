@@ -1,0 +1,32 @@
+    Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-supervision-resumed/model/umpire/backends/process)
+error: this function has too many arguments (7/6)
+   --> backends/process/src/syscall.rs:114:9
+    |
+114 | /         pub(crate) fn spawn_with_custody(
+115 | |             command: &Command,
+116 | |             fallback_directory: &Path,
+117 | |             out: &File,
+...   |
+121 | |             inherit_environment: bool,
+122 | |         ) -> io::Result<Self> {
+    | |_____________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#too_many_arguments
+    = note: `-D clippy::too-many-arguments` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::too_many_arguments)]`
+
+error: this function has too many arguments (7/6)
+   --> backends/process/src/syscall.rs:322:9
+    |
+322 | /         fn context(
+323 | |             &mut self,
+324 | |             input: RawFd,
+325 | |             output: RawFd,
+...   |
+329 | |             lease: RawFd,
+330 | |         ) -> ChildContext {
+    | |_________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#too_many_arguments
+
+error: could not compile `umpire-backend-process` (lib) due to 2 previous errors

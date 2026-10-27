@@ -583,3 +583,93 @@ fn owned_child_reaping_includes_other_process_groups() -> Result<(), Refusal> {
     assert!(status.success(), "any-child wait failed: {status}: {output}");
     scratch.finish(Ok(()))
 }
+
+#[test]
+fn orchestration_preserves_streams_status_environment_and_cwd() -> Result<(), Refusal> {
+    use umpire_backend_process::{DescendantPolicy, OwnedProcess};
+    let scratch = Scratch::new(&root()?)?;
+    let stdout = fs::File::create(scratch.path().join("out"))?;
+    let stderr = fs::File::create(scratch.path().join("err"))?;
+    let mut command = Command::new("/bin/sh");
+    command.args(["-c", "printf '%s' \"$UMPIRE_OWNED_VALUE\"; printf error >&2; test \"$PWD\" = \"$UMPIRE_OWNED_CWD\" || exit 99; exit 37"])
+        .env("UMPIRE_OWNED_VALUE", "actual-output").env("UMPIRE_OWNED_CWD", scratch.path()).current_dir(scratch.path());
+    let mut child = OwnedProcess::spawn(
+        &command,
+        scratch.path(),
+        &stdout,
+        &stderr,
+        DescendantPolicy::Orchestration,
+    )?;
+    let start = Instant::now();
+    loop {
+        if let Some(status) = child.try_wait()? {
+            assert_eq!(status.code(), Some(37));
+            break;
+        }
+        assert!(start.elapsed() < Duration::from_secs(5));
+        thread::sleep(Duration::from_millis(5));
+    }
+    assert_eq!(fs::read_to_string(scratch.path().join("out"))?, "actual-output");
+    assert_eq!(fs::read_to_string(scratch.path().join("err"))?, "error");
+    scratch.finish(Ok(()))
+}
+
+#[test]
+fn leased_child_adopts_real_descriptor_and_rejects_forged_locator() -> Result<(), Refusal> {
+    use umpire_backend_process::{JvmLease, OwnedProcess};
+    let scratch = Scratch::new(&root()?)?;
+    let lease = JvmLease::inherited_or_acquire()?;
+    let stdout = fs::File::create(scratch.path().join("out"))?;
+    let stderr = fs::File::create(scratch.path().join("err"))?;
+    let mut command = fixture("lease-child");
+    command.arg(scratch.path().join("adopted"));
+    let mut child = OwnedProcess::spawn_leased(&command, scratch.path(), &stdout, &stderr, &lease)?;
+    let start = Instant::now();
+    loop {
+        if let Some(status) = child.try_wait()? {
+            assert!(status.success(), "{}", fs::read_to_string(scratch.path().join("err"))?);
+            break;
+        }
+        assert!(start.elapsed() < Duration::from_secs(5), "inherited lock deadlocked");
+        thread::sleep(Duration::from_millis(5));
+    }
+    assert_eq!(fs::read_to_string(scratch.path().join("adopted"))?, "verified");
+    let output = command.env("UMPIRE_JVM_LEASE_FD", "1").output()?;
+    assert!(!output.status.success(), "forged descriptor locator admitted");
+    let foreign = scratch.path().join("foreign");
+    fs::write(&foreign, "unrelated")?;
+    let output = Command::new("/bin/sh")
+        .args(["-c", "exec 9<\"$1\"; exec \"$2\" lease-child \"$3\"", "forged"])
+        .arg(&foreign)
+        .arg(FIXTURE)
+        .arg(scratch.path().join("forged"))
+        .env("UMPIRE_JVM_LEASE_FD", "9")
+        .output()?;
+    assert!(!output.status.success(), "foreign regular descriptor admitted");
+    assert!(!scratch.path().join("forged").exists());
+    assert_eq!(fs::read_to_string(foreign)?, "unrelated");
+    scratch.finish(Ok(()))
+}
+
+#[test]
+fn leased_clean_command_preserves_only_explicit_environment() -> Result<(), Refusal> {
+    use umpire_backend_process::{JvmLease, OwnedProcess};
+    let scratch = Scratch::new(&root()?)?;
+    let lease = JvmLease::inherited_or_acquire()?;
+    let stdout = fs::File::create(scratch.path().join("out"))?;
+    let stderr = fs::File::create(scratch.path().join("err"))?;
+    let mut command = Command::new("/bin/sh");
+    command.env_clear().env("ONLY_THIS", "kept").args(["-c", "test \"${HOME-unset}\" = unset && test \"$ONLY_THIS\" = kept && test \"$UMPIRE_JVM_LEASE_FD\" = 9"]);
+    let mut child =
+        OwnedProcess::spawn_leased_clean(&command, scratch.path(), &stdout, &stderr, &lease)?;
+    let start = Instant::now();
+    loop {
+        if let Some(status) = child.try_wait()? {
+            assert!(status.success());
+            break;
+        }
+        assert!(start.elapsed() < Duration::from_secs(5));
+        thread::sleep(Duration::from_millis(5));
+    }
+    scratch.finish(Ok(()))
+}
