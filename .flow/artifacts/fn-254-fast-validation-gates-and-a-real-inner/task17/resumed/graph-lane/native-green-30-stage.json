@@ -1,0 +1,82 @@
+{
+  "created_utc": "2026-10-27T00:57:48.190511+00:00",
+  "source_commit": "0689dff054",
+  "graph_stage_count": 30,
+  "framework_stage_count": 18,
+  "passing_checks": {
+    "final-lib": {
+      "receipt_sha256": "8035e137b51635936a1b0fee8cd830973f7513bcf7501338b1f963c79bfa1d4f",
+      "log_sha256": "178f87fa8affbf1e4fbf0a5c792f2c5fc4cb195decb357425d45a91fd1de8fbc",
+      "seconds": 2.2600454170005833,
+      "test_result": [
+        "test result: ok. 59 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s"
+      ]
+    },
+    "final-graph": {
+      "receipt_sha256": "4d7923d1205a10330280a6b31d582b871d4ec5930deea4ded83ce8ac00ef89b4",
+      "log_sha256": "45ab293e4820328c5cb53ce61bb503b689b37536dbb9da23842bb515d074235d",
+      "seconds": 16.697375757999907,
+      "test_result": [
+        "test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 14.34s"
+      ]
+    },
+    "final-standalone-controls": {
+      "receipt_sha256": "adb5c50a736ef9df1e161fdd2004fe8365711adefc09d5964fa37994ff2ce5de",
+      "log_sha256": "26b099a3374c0b14eaca3c363b0ffb687849d1912f24c23a806ebc1c1ee25761",
+      "seconds": 1.0831712090002839,
+      "test_result": [
+        "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 40 filtered out; finished in 0.08s"
+      ]
+    },
+    "final-temporal": {
+      "receipt_sha256": "9b0b899fbc2e28211c830379273517a12a6fd7af6352bd179d6574ff2e8b400c",
+      "log_sha256": "c9e8335b325e00b543210cbce05a3a21d3473743d7430f0c1a1728ca0cf18328",
+      "seconds": 4.258516834999682,
+      "test_result": [
+        "test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.39s"
+      ]
+    },
+    "clippy-framework-final": {
+      "receipt_sha256": "320d9b4db64d132140acdcc6474b5dab72708aa6bbe6d433631176898d2203e8",
+      "log_sha256": "7a74baf42f23c99045e0d3de6242ec9e9225eb1c49e121af5c1f268b21fa0d53",
+      "seconds": 2.1728319180001563,
+      "test_result": []
+    },
+    "clippy-temporal-current-30": {
+      "receipt_sha256": "4aa6637aff535a71e1c2c8269d29e7fc0e82cc387d2eac0107a4f97bf48bd88c",
+      "log_sha256": "da617cec9cb409cc7d90040e129ad90b46ac0d3bfc0d87a5184fe72f43403805",
+      "seconds": 1.1246653750004043,
+      "test_result": []
+    }
+  },
+  "fmt_receipt_sha256": "db864ddeb49cabb54b0494f85ea4e5d05b2f8e2b07537e8e8ba2b3cf096d2173",
+  "native_counts": {
+    "framework_lib": 59,
+    "framework_graph_wiring": 28,
+    "framework_standalone_controls": 6,
+    "temporal_bin": 13,
+    "framework_main_total": 46,
+    "unchanged_main_not_rerun": 12
+  },
+  "scope": "Native xtask and actualmise control tools only. NoactualJVM/Go/guest/model/fullworkspace/realstandalone execution.",
+  "counterexamples": [
+    "Local graph inventory shadowed sourceinventoryfunction (fixed).",
+    "Outer selfcommand fallbackcwd changedcallerrelativeCargo-home/target; nowexplicitoriginalcwd (RED\u2192GREEN).",
+    "Checked inner metadata/list/run/docs and namedinventoryfailures neededexpandedexactcontrols (fixed).",
+    "Completed partialstateexit0 mustrefuse (covered).",
+    "Default outer output buffered; separatestdout/stderr relays nowstreamduringpoll anddrainaftercleanup. Controlobservesearlymarkerbeforecompletionexactlyonce.",
+    "Actualmise failedleaf withactivesiblingdescendant isreapedbeforestatus37returns (controlpasses).",
+    "Cleanstandalone settings mustnotrevive parentGOFLAGS (realchildcontrolpasses).",
+    "Specific duENOENT rmeta samplingrace abortedoneguard; noprimitivepassingreceiptclaimedforthatrun. Guardnowrecordsandtoleraresonlythatmeasurementrace; othermeasurementerrorscancelownedchild."
+  ],
+  "resource_policy": {
+    "required_or_quick": "Cargoqueuejobs1,Go -p1,GOMAXPROCS1; nativebackend-skippedcallerCPUdefaults retained; otherGoFlagsretained.",
+    "clean_child": "ExplicitcleanGo/cargocaps only, FD9custody; no parentGOFlags revival.",
+    "receipts": "admission.json recordsactualchildcompiler/Gosettings. Stageoutcomesremainqualifiedscope/name inlogicalorder.",
+    "source_bound": "oneexternalheavygraphphase plusupto3readonlyowners; requirednextestglobal4 allows4nestedone-jobqueues or2JVMowners(recovery2each)+2otherowners. No CPUaffinity/totalRSSguaranteeclaimed.",
+    "phase_growth_bytes": 51503104,
+    "phase_budget_bytes": 1610612736,
+    "free_guard_bytes": 8589934592
+  },
+  "next": "Approved31stTemporalprerequisiteproducer stage follows asaseparatepost-greencheckpoint. RootownsMakeleaf/coldbootstrapcallerprefix. Frozenjoinedrealquick/JVM/independentlease/standaloneproofremainsrootadmission; Darwin escaped/adopted cleanup unproved."
+}
