@@ -485,7 +485,7 @@ fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64
         let path = output.join("stages.jsonl");
         umpire_backend_process::work::record(
             "child-receipts",
-            &format!("{}\t{}", path.display(), digest(records.as_bytes())),
+            &format!("{}\t{}", super::work_counts::encode_path(&path), digest(records.as_bytes())),
         )?;
     }
     let mut binaries = serde_json::Map::new();

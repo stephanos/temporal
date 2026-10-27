@@ -10,7 +10,7 @@ static NEXT: AtomicU64 = AtomicU64::new(0);
 /// Maximum completed producer events in one stage.
 pub const MAX_EVENTS: u64 = 100_000;
 /// Maximum bytes in one producer observation.
-pub const MAX_EVENT_BYTES: usize = 4096;
+pub const MAX_EVENT_BYTES: usize = 16_384;
 
 /// Resolve only the current stage's already-created observation directory.
 pub fn directory() -> io::Result<Option<PathBuf>> {

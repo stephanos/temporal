@@ -4,6 +4,7 @@ use std::{
     collections::{BTreeMap, BTreeSet, VecDeque},
     fs,
     io::{self, Write},
+    os::unix::ffi::{OsStrExt, OsStringExt},
     path::Path,
     process::Command,
 };
@@ -75,6 +76,45 @@ fn event_paths(directory: &Path) -> io::Result<Vec<std::path::PathBuf>> {
     Ok(paths)
 }
 
+/// Encode an OS path without record separators or Unicode conversion.
+pub(super) fn encode_path(path: &Path) -> String {
+    let bytes = path.as_os_str().as_bytes();
+    let mut encoded = String::with_capacity(bytes.len() * 2);
+    for &byte in bytes {
+        encoded.push(char::from(b"0123456789abcdef"[usize::from(byte >> 4)]));
+        encoded.push(char::from(b"0123456789abcdef"[usize::from(byte & 15)]));
+    }
+    encoded
+}
+
+fn decode_path(encoded: &str) -> io::Result<std::path::PathBuf> {
+    if encoded.is_empty() || !encoded.len().is_multiple_of(2) {
+        return Err(io::Error::other("invalid encoded child path"));
+    }
+    let bytes = encoded
+        .as_bytes()
+        .as_chunks::<2>()
+        .0
+        .iter()
+        .map(|pair| {
+            let text = std::str::from_utf8(pair).map_err(io::Error::other)?;
+            u8::from_str_radix(text, 16).map_err(io::Error::other)
+        })
+        .collect::<io::Result<Vec<_>>>()?;
+    raw_path(bytes)
+}
+
+fn raw_path(bytes: Vec<u8>) -> io::Result<std::path::PathBuf> {
+    if bytes.contains(&0) {
+        return Err(io::Error::other("NUL in child path"));
+    }
+    let path = std::path::PathBuf::from(std::ffi::OsString::from_vec(bytes));
+    if !path.is_absolute() {
+        return Err(io::Error::other("relative child path"));
+    }
+    Ok(path)
+}
+
 fn child_receipt(path: &Path, digest: &str) -> io::Result<serde_json::Value> {
     let records = fs::read_to_string(path)?;
     if umpire_backend_process::bytes_sha256(records.as_bytes()) != digest {
@@ -87,8 +127,7 @@ fn child_receipt(path: &Path, digest: &str) -> io::Result<serde_json::Value> {
     if stages.is_empty() {
         return Err(io::Error::other("empty child count authority"));
     }
-    let value =
-        serde_json::json!({"path": path, "sha256": digest, "records": records, "stages": stages});
+    let value = serde_json::json!({"path": path.to_str(), "path_bytes": path.as_os_str().as_bytes(), "sha256": digest, "records": records, "stages": stages});
     validate_child(&value)?;
     Ok(value)
 }
@@ -129,7 +168,7 @@ pub fn validate_receipt(receipt: &serde_json::Value) -> io::Result<()> {
     if let Some(children) = children {
         let mut paths = BTreeSet::new();
         for child in children {
-            if !paths.insert(child["path"].as_str()) {
+            if !paths.insert(serde_json::from_value::<Vec<u8>>(child["path_bytes"].clone())?) {
                 return Err(io::Error::other("duplicate child count authority"));
             }
             validate_child(child)?;
@@ -158,7 +197,8 @@ fn validate_totals(counts: &WorkCounts, required: bool) -> io::Result<()> {
 fn validate_child(child: &serde_json::Value) -> io::Result<()> {
     let records =
         child["records"].as_str().ok_or_else(|| io::Error::other("missing child count records"))?;
-    if !child["path"].as_str().is_some_and(|path| Path::new(path).is_absolute())
+    let path = raw_path(serde_json::from_value::<Vec<u8>>(child["path_bytes"].clone())?)?;
+    if child["path"] != serde_json::json!(path.to_str())
         || child["sha256"] != umpire_backend_process::bytes_sha256(records.as_bytes())
     {
         return Err(io::Error::other("invalid child count provenance"));
@@ -256,16 +296,13 @@ pub fn collect(directory: &Path) -> io::Result<WorkCounts> {
                 }
             }
             ["1", "child-receipts", path, digest] => {
-                let path = Path::new(path);
-                if !path.is_absolute()
-                    || counts
-                        .child_receipts
-                        .iter()
-                        .any(|value| value["path"] == path.to_string_lossy().as_ref())
-                {
+                let path = decode_path(path)?;
+                if counts.child_receipts.iter().any(|value| {
+                    value["path_bytes"] == serde_json::json!(path.as_os_str().as_bytes())
+                }) {
                     return Err(io::Error::other("invalid or duplicate child count authority"));
                 }
-                counts.child_receipts.push(child_receipt(path, digest)?);
+                counts.child_receipts.push(child_receipt(&path, digest)?);
             }
             _ => return Err(io::Error::other("unknown work observation")),
         }
@@ -1076,16 +1113,49 @@ mod tests {
         Ok(())
     }
 
+    fn child_records() -> &'static [u8] {
+        b"{\"stage\":\"tests\",\"scope\":\"framework\",\"state\":\"success\",\"exit\":0,\"seconds\":0.0,\"count_authority\":\"exclusive-stage\",\"count_error\":null,\"counts\":{\"discovered\":3,\"executed\":3,\"ignored\":0,\"skipped\":0,\"tlc_launches\":null,\"tlc_configurations\":null}}\n"
+    }
+
+    #[test]
+    fn child_authority_paths_preserve_tabs_and_non_unicode_bytes() -> io::Result<()> {
+        for name in [b"child\tpath.json".as_slice(), b"child-\xff.json".as_slice()] {
+            let directory = tempfile::tempdir()?;
+            let file = directory.path().join(std::ffi::OsString::from_vec(name.to_vec()));
+            fs::write(&file, child_records())?;
+            let digest = umpire_backend_process::bytes_sha256(child_records());
+            let observations = tempfile::tempdir()?;
+            event(
+                observations.path(),
+                0,
+                &format!("1\tchild-receipts\t{}\t{digest}\n", encode_path(&file)),
+            )?;
+            assert_eq!(decode_path(&encode_path(&file))?, file);
+            let counts = collect(observations.path())?;
+            assert_eq!(
+                counts.child_receipts[0]["path_bytes"],
+                serde_json::json!(file.as_os_str().as_bytes())
+            );
+            let parent = serde_json::json!({"stage":"standalone","state":"success","count_authority":"exclusive-stage",
+                "counts":WorkCounts::default(),"count_error":null,"child_count_receipts":counts.child_receipts});
+            validate_receipt(&parent)?;
+        }
+        for malformed in ["", "0", "zz", "00", "61"] {
+            assert!(decode_path(malformed).is_err());
+        }
+        Ok(())
+    }
+
     #[test]
     fn child_count_authority_is_embedded_without_inclusive_parent_summing() -> io::Result<()> {
         let directory = tempfile::tempdir()?;
         let child = tempfile::NamedTempFile::new()?;
-        fs::write(child.path(), b"{\"stage\":\"tests\",\"scope\":\"framework\",\"state\":\"success\",\"exit\":0,\"seconds\":0.0,\"count_authority\":\"exclusive-stage\",\"count_error\":null,\"counts\":{\"discovered\":3,\"executed\":3,\"ignored\":0,\"skipped\":0,\"tlc_launches\":null,\"tlc_configurations\":null}}\n")?;
+        fs::write(child.path(), child_records())?;
         let digest = umpire_backend_process::bytes_sha256(&fs::read(child.path())?);
         event(
             directory.path(),
             0,
-            &format!("1\tchild-receipts\t{}\t{digest}\n", child.path().display()),
+            &format!("1\tchild-receipts\t{}\t{digest}\n", encode_path(child.path())),
         )?;
         let observed = collect(directory.path())?;
         assert_eq!(observed.executed, None);
