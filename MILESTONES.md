@@ -38,7 +38,7 @@ and retain unvalidated candidates until their required evidence and reviews pass
 The fn-254.5 fixture/compiler checkpoint is reviewed and closed on `umpire`: all 24 cases,
 Temporal compiler/activity checks, 61 parser rows plus 18 compiler refusals, bounded profiles
 and snapshot repair controls passed. Candidates for .15/.16 and .12 remain in the isolated source-assembly branch.
-Task .17's shared mise task graph, batched runner and supervisor source are joined on `umpire`. The pre-lifecycle Cargo and nextest inventories match 860 framework and 235 Temporal identities; affected inventories and the exact 148-test activity scope are renewed. Lifecycle custody and explicit compile-only admission for the facade/IR derive are joined: 52 process, 67 framework caller, 14 Temporal caller and 28 public graph controls pass. The real public process run also preserves inherited-context owner-EOF status125. Actual six-consumer Kettle quick passed 278 tests with two ignored in 173.142 s; four sampled JVMs retained the configured bounds and fresh negative checks. Activity execution, real standalone throughput and non-root Darwin cleanup proof remain.
+Task .17's shared mise task graph, batched runner and supervisor source are joined on `umpire`. The pre-lifecycle Cargo and nextest inventories match 860 framework and 235 Temporal identities; affected inventories and the exact 148-test activity scope are renewed. Lifecycle custody and explicit compile-only admission for the facade/IR derive are joined: 52 process, 67 framework caller, 14 Temporal caller and 28 public graph controls pass. The real public process run preserves inherited-context owner-EOF status125. Six-consumer Kettle quick passed in 173.142 s; five-consumer activity passed in 354.645 s and its warm follow-up in 321.299 s. Compiler admission dominates the activity loop; all consumers, compiler controls and snapshots remain intact. Real standalone renewal and review remain. The owner deferred macOS validation on 2026-10-27; Darwin behavior is preserved, with no runtime acceptance claim.
 Remaining work includes joined graph/resource proof, actual receipt counters, budget wiring and native control ports.
 Candidates are unvalidated and not integrated into `umpire`;
 preparation does not advance Flow dependencies or mark tasks complete. Integrate shared CLI/configuration
@@ -103,6 +103,11 @@ realization tests. The corrected six-consumer Kettle quick run took 129.783 s wa
 The current .17 edited-source Kettle run took 173.142 s: 45.465 s in inventory/build
 and 110.616 s in its test phase. It retained the existing positive TLC cache and fresh
 negative executions; the 60 s target remains unmet. See [the current proof](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/kettle-semantic-renewal/summary.json).
+The current five-consumer activity runs took 354.645 s initially and 321.299 s warm,
+with all 148 selected tests and 23 negative/two positive compiler controls passing.
+The warm run had 14 verified TLC hits and no model-checker executions; compiler admission
+still dominated. These current-candidate measurements leave the 60 s target unmet.
+macOS validation is owner-deferred for now; the Linux proof does not establish Darwin cleanup.
 Fixture/compiler batching and nextest scheduling address gate costs.
 Coverage stays: TLC remains the independent checker, and `model-validate` never uses the new TLC result cache.
 cargo-nextest approved, pinned via mise. The framework's checks move into `model/umpire` and must pass on that
@@ -117,7 +122,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.12 | ⬜ todo | Budget parser/count/retry candidate assembled; real receipt producers and native wiring underway. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
 | fn-254.15 | ⬜ todo | Native ports/callers assembled; only two bootstraps and four control shells remain. Complete native fixture adaptation before removing control shells and validating (R7) |
 | fn-254.16 | ⬜ todo | Mise TLC/opt-in Apalache provisioning candidate prepared; runtime hash/path admission retained. Integrate after .17, then validate installs and failures (R7) |
-| fn-254.17 | 🔄 in progress | Priority 0: graph/runner/lifecycle custody joined; native controls and affected inventories pass. Six-consumer Kettle quick passes in 173.142 s, above target. Finish five-consumer activity execution, real standalone timing and Darwin cleanup proof (R4, R5, R7) |
+| fn-254.17 | 🔄 in progress | Priority 0: native controls, inventories and real six/five-consumer quick runs pass; 173.142 s Kettle and 321.299 s warm activity miss target. Finish real standalone renewal and review. macOS validation owner-deferred (R4, R5, R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 
