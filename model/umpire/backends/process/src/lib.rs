@@ -3,6 +3,7 @@ mod fingerprint;
 mod jar;
 mod support;
 mod syscall;
+pub mod work;
 pub use fingerprint::{bytes_sha256, structural_sha256};
 pub use jar::PinnedJar;
 pub use support::*;

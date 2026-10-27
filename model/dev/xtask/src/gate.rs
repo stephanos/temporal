@@ -6,6 +6,7 @@ use std::{
     path::Path,
     process::Command,
 };
+use xtask::gate::work_counts;
 
 fn admit_command(name: &str, command: &mut Command) -> io::Result<()> {
     let caller = std::env::current_dir()?;
@@ -40,9 +41,30 @@ fn admit_command(name: &str, command: &mut Command) -> io::Result<()> {
     Ok(())
 }
 
-pub(crate) fn stage(root: &Path, name: &str, mut command: Command) -> io::Result<i32> {
+pub(crate) fn stage(root: &Path, name: &str, command: Command) -> io::Result<i32> {
+    stage_with_inventory(root, name, command, None)
+}
+
+fn stage_with_inventory(
+    root: &Path,
+    name: &str,
+    mut command: Command,
+    inventory: Option<&[u8]>,
+) -> io::Result<i32> {
     admit_command(name, &mut command)?;
-    let output = if std::env::var_os("UMPIRE_TIME_STEPS").is_some_and(|value| value == "1") {
+    command.current_dir(root);
+    let started = std::time::Instant::now();
+    let observed = if work_counts::owns_controller()? {
+        work_counts::observe_streamed(&command, inventory, true, true)?
+    } else {
+        None
+    };
+    let observed_test = observed.is_some();
+    let output = if let Some(output) = observed {
+        io::stdout().write_all(&output.stdout)?;
+        io::stderr().write_all(&output.stderr)?;
+        Ok(output)
+    } else if std::env::var_os("UMPIRE_TIME_STEPS").is_some_and(|value| value == "1") {
         let mut timer = Command::new("/bin/bash");
         timer
             .arg(root.join("umpire/scripts/time-gate.sh"))
@@ -57,12 +79,18 @@ pub(crate) fn stage(root: &Path, name: &str, mut command: Command) -> io::Result
                 timer.env_remove(key);
             }
         }
-        scheduler::execute(&timer, true, true)
+        scheduler::execute_with_inventory(&timer, true, true, inventory)
     } else {
-        scheduler::execute(command.current_dir(root), true, true)
+        scheduler::execute_with_inventory(command.current_dir(root), true, true, inventory)
     }
     .map_err(|error| io::Error::other(format!("Temporal stage {name}: {error}")))?;
     let code = output.status.code().unwrap_or_else(|| 128 + output.status.signal().unwrap_or(0));
+    if observed_test
+        && code == 0
+        && std::env::var_os("UMPIRE_TIME_STEPS").is_some_and(|value| value == "1")
+    {
+        writeln!(io::stdout(), "{name:<32} {:6.3}s", started.elapsed().as_secs_f64())?;
+    }
     if code != 0 {
         let _ = writeln!(io::stderr(), "Temporal stage {name} failed (exit {code})");
     }
@@ -134,6 +162,7 @@ pub(crate) fn run(root: &Path) -> io::Result<i32> {
     let mut command = mise(root)?;
     command
         .env("UMPIRE_TEMPORAL_GATE_EXECUTABLE", std::env::current_exe()?)
+        .env("UMPIRE_GATE_CONTROLLER_EXECUTABLE", std::env::current_exe()?)
         .env("UMPIRE_GATE_EXECUTABLE", framework);
     scheduler::run(command, "model:all", &records, &expected)
 }
@@ -189,7 +218,7 @@ pub(crate) fn run_stage(root: &Path, name: &str) -> io::Result<i32> {
                 filter: None,
                 doctests: false,
             };
-            return xtask::test_run::run_selected_checked_with(
+            return xtask::test_run::run_selected_observed_with(
                 &[selection],
                 &BTreeSet::new(),
                 |args| {
@@ -207,10 +236,11 @@ pub(crate) fn run_stage(root: &Path, name: &str) -> io::Result<i32> {
                     }
                     Ok((code, output.stdout))
                 },
-                |_, args| {
+                |_, args, inventory| {
                     let mut command = cargo(&[]);
                     command.args(args);
-                    stage(root, "source-boundary", command).map_err(Into::into)
+                    stage_with_inventory(root, "source-boundary", command, inventory)
+                        .map_err(Into::into)
                 },
             )
             .map_err(io::Error::other);
@@ -361,6 +391,11 @@ mod tests {
 [ "$CARGO_TARGET_DIR" = "$UMPIRE_GATE_CONTROL_CALLER/control-relative-target" ] || exit 7
 printf '%s\n' "$label" >> "$UMPIRE_GATE_CONTROL_LOG"
 [ "$label" != "${UMPIRE_GATE_CONTROL_FAILURE:-}" ] || exit 37
+case " $* " in
+ *' cargo nextest run '*' --message-format '*) printf '%s\n' '{"type":"test","event":"ok","name":"umpire-temporal-tests::boundary$control"}' ;;
+ *' cargo test --doc '*) printf '%s\n' 'running 0 tests' 'test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.1s' ;;
+esac
+
 "#;
 
     const CONTROL_STAGES: [(&str, &str); 15] = [
@@ -426,12 +461,13 @@ case "$*" in
    [ -z "${MAKEFLAGS+x}${MFLAGS+x}" ] || exit 93
    label=prerequisites ;;
  'exec -- cargo nextest list'*)
-   label=boundary-inventory
+   case " $* " in *' --workspace '*) label=work-inventory ;; *) label=boundary-inventory
    BODY
-   printf '%s\n' '{"rust-suites":{"boundary":{"package-name":"umpire-temporal-tests","binary-name":"boundary","kind":"test","status":"listed","testcases":{"control":{"ignored":false,"filter-match":{"status":"matches"}}}}}}'
+   ;; esac
+   printf '%s\n' '{"test-count":1,"rust-suites":{"boundary":{"package-name":"umpire-temporal-tests","binary-name":"boundary","kind":"test","status":"listed","testcases":{"control":{"ignored":false,"filter-match":{"status":"matches"}}}}}}'
    exit 0 ;;
  'exec -- cargo nextest run'*' -p umpire-temporal-tests '*) label=boundary-tests ;;
- *) label="$*" ;;
+ *) label="$*"; label="${label% --message-format libtest-json --message-format-version 0.1}" ;;
 esac
 "#.replace("BODY", body);
         format!("#!/bin/bash\nset -eu\n{scheduler}\n{nextest}\n{body}")
@@ -474,7 +510,7 @@ if [ "$*" = "tasks ls --json" ]; then
 fi
 if [ "$*" = "run --force --skip-tools --task-cache off --jobs 4 model:all" ]; then
   for stage_name in {names}; do
-    UMPIRE_GATE_CONTROL_STAGE=$stage_name "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" --exact gate::tests::run_control_child --nocapture || exit $?
+    UMPIRE_GATE_STAGE=$stage_name UMPIRE_GATE_CONTROL_STAGE=$stage_name "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" --exact gate::tests::run_control_child --nocapture || exit $?
   done
   exit 0
 fi

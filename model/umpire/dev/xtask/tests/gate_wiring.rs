@@ -105,9 +105,9 @@ if [ "$1" = run ]; then
   if [ "$stage" = standalone ] && [ "$aggregate" = gate:child ]; then
    continue
   fi
-  "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage "$stage"
+  UMPIRE_GATE_STAGE="$stage" "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage "$stage"
   if [ "${CONTROL_RECEIPT_FAULT:-}" = duplicate ]; then
-   "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage "$stage"
+   UMPIRE_GATE_STAGE="$stage" "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage "$stage"
   fi
  done
  case "${CONTROL_RECEIPT_FAULT:-}" in
@@ -123,7 +123,7 @@ case "$1 $2" in
  'cargo metadata') case " $* " in *' --no-deps '*) label=inner-metadata ;; *) label=source-boundary ;; esac ;;
  'cargo fmt') label=fmt; [ "$*" = "${CONTROL_EXPECT_FMT:-cargo fmt --all --check}" ] ;;
  'cargo doc') label=docs; [ "$*" = 'cargo doc --workspace --no-deps --quiet' ]; [ "$RUSTDOCFLAGS" = '-D warnings' ] ;;
- 'cargo nextest') if [ "$3" = list ]; then label=inner-inventory; else label=tests; fi ;;
+ 'cargo nextest') if [ "$3" = list ]; then case " $* " in *' --workspace '*) label=test-inventory ;; *) label=inner-inventory ;; esac; else label=tests; fi ;;
  'cargo test') case " $* " in *' --doc '*) label=doctests ;; *) label=tests ;; esac ;;
  'cargo build') label=wasm32-wasip1 ;;
  'cargo clippy') case " $* " in *' --target '*) label=core-wasm-clippy ;; *) label=clippy; [ "$*" = 'cargo clippy --workspace --all-targets --all-features -- -D warnings' ] ;; esac ;;
@@ -273,8 +273,14 @@ fi
 if [ "$label" = inner-metadata ]; then
  printf '{{"workspace_members":["checker"],"packages":[{{"id":"checker","name":"umpire-checker","targets":[{{"kind":["lib"],"doctest":true}}]}}]}}\n'
 fi
-if [ "$label" = inner-inventory ]; then
- printf '{{"rust-suites":{{"checker":{{"package-name":"umpire-checker","binary-name":"umpire_checker","kind":"lib","status":"listed","testcases":{{"control":{{"ignored":false,"filter-match":{{"status":"matches"}}}}}}}}}}}}\n'
+if [ "$label" = inner-inventory ] || [ "$label" = test-inventory ]; then
+ printf '{{"test-count":1,"rust-suites":{{"checker":{{"package-name":"umpire-checker","binary-name":"umpire_checker","kind":"lib","status":"listed","testcases":{{"control":{{"ignored":false,"filter-match":{{"status":"matches"}}}}}}}}}}}}\n'
+fi
+if [ "$label" = tests ]; then
+ case " $* " in *' --message-format '*) printf '%s\n' '{{"type":"test","event":"ok","name":"umpire-checker::umpire_checker$control"}}' ;; esac
+fi
+if [ "$label" = doctests ]; then
+ printf '%s\n' 'running 1 test' 'test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.1s'
 fi
 if [ "$label" = source-boundary ]; then
  printf '{{"packages":[{{"source":null,"manifest_path":"%s/Cargo.toml"}}]}}\n' "$CONTROL_ROOT"
@@ -331,6 +337,7 @@ fi
             .unwrap_or_default()
             .lines()
             .map(|line| line.split('|').next().unwrap().into())
+            .filter(|label: &String| label != "test-inventory")
             .collect()
     }
     fn clear(&self) {
@@ -848,7 +855,8 @@ fn scheduled_stage_atomically_commits_success_failure_and_scanner_error_receipts
                 .collect::<Vec<_>>();
             assert!(
                 published.iter().all(|name| {
-                    name == &std::ffi::OsString::from(format!("{stage}.json"))
+                    name == "work"
+                        || name == &std::ffi::OsString::from(format!("{stage}.json"))
                         || name == &std::ffi::OsString::from(format!("{stage}.claim"))
                 }),
                 "partial receipt files: {published:?}"
@@ -1196,15 +1204,11 @@ fn actual_mise_failed_leaf_reaps_its_active_sibling_descendant_before_return() {
 #[test]
 fn outer_supervision_streams_separate_diagnostics_before_scheduler_completion() {
     let fixture = Fixture::new();
-    let stderr = fixture.caller.join("stream.stderr");
-    let mut child = fixture
-        .command(false)
-        .arg("gate")
-        .env("CONTROL_RECEIPT_FAULT", "stream")
-        .stdout(std::process::Stdio::null())
-        .stderr(fs::File::create(&stderr).unwrap())
-        .spawn()
-        .unwrap();
+    let lease = umpire_backend_process::JvmLease::inherited_or_acquire().unwrap();
+    let mut command = fixture.command(false);
+    command.arg("gate").env("CONTROL_RECEIPT_FAULT", "stream");
+    let (mut child, directory) = spawn_owned(&command, &fixture.caller, &lease);
+    let stderr = directory.path().join("stderr");
     let mut observed = false;
     for _ in 0..200 {
         if fs::read_to_string(&stderr).unwrap().contains("streamed-early-diagnostic") {
@@ -1215,8 +1219,11 @@ fn outer_supervision_streams_separate_diagnostics_before_scheduler_completion() 
     }
     let pending = child.try_wait().unwrap().is_none();
     write(&fixture.root.join("stream-release"), "release");
-    let status = child.wait().unwrap();
-    assert_eq!(status.code(), Some(37));
+    let output = finish_owned((child, directory));
+    assert_status(&output, 37);
     assert!(observed && pending, "diagnostic was buffered until scheduler completion");
-    assert_eq!(fs::read_to_string(stderr).unwrap().matches("streamed-early-diagnostic").count(), 1);
+    assert_eq!(
+        String::from_utf8_lossy(&output.stderr).matches("streamed-early-diagnostic").count(),
+        1
+    );
 }

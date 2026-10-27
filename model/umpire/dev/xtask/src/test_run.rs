@@ -88,7 +88,7 @@ pub fn run_package(package: &str) -> crate::Result<i32> {
         filter: None,
         doctests: package_doctests(package, &output.stdout)?,
     }];
-    run_selected_checked_with(
+    run_selected_observed_with(
         &selections,
         &std::collections::BTreeSet::new(),
         |arguments| {
@@ -98,9 +98,14 @@ pub fn run_package(package: &str) -> crate::Result<i32> {
                 output.stdout,
             ))
         },
-        |_, arguments| {
-            let status =
-                crate::gate::scheduler::execute(cargo().args(arguments), true, true)?.status;
+        |_, arguments, inventory| {
+            let status = crate::gate::scheduler::execute_with_inventory(
+                cargo().args(arguments),
+                true,
+                true,
+                inventory,
+            )?
+            .status;
             Ok(status.code().unwrap_or_else(|| 128 + status.signal().unwrap_or(0)))
         },
     )
@@ -277,8 +282,23 @@ fn admit_inventory(
 pub fn run_selected_checked_with(
     selections: &[Selection<'_>],
     compiler_only: &std::collections::BTreeSet<String>,
+    inventory: impl FnMut(&[String]) -> crate::Result<(i32, Vec<u8>)>,
+    mut execute: impl FnMut(&str, &[String]) -> crate::Result<i32>,
+) -> crate::Result<i32> {
+    run_selected_observed_with(selections, compiler_only, inventory, |phase, arguments, _| {
+        execute(phase, arguments)
+    })
+}
+
+/// Admit and hand the exact discovered inventory to one scoped test dispatch.
+///
+/// # Errors
+/// Rejects malformed inventories, unexpectedly empty selections and failed runners.
+pub fn run_selected_observed_with(
+    selections: &[Selection<'_>],
+    compiler_only: &std::collections::BTreeSet<String>,
     mut inventory: impl FnMut(&[String]) -> crate::Result<(i32, Vec<u8>)>,
-    execute: impl FnMut(&str, &[String]) -> crate::Result<i32>,
+    mut execute: impl FnMut(&str, &[String], Option<&[u8]>) -> crate::Result<i32>,
 ) -> crate::Result<i32> {
     if selections.is_empty() {
         return Err(crate::Error::Invalid("quick test selection is empty".into()));
@@ -293,7 +313,9 @@ pub fn run_selected_checked_with(
         return Ok(status);
     }
     let binaries = admit_inventory(selections, compiler_only, &bytes)?;
-    run_selected(selections, binaries, execute)
+    run_selected(selections, binaries, |phase, arguments| {
+        execute(phase, arguments, (phase == "test").then_some(bytes.as_slice()))
+    })
 }
 
 /// Run one selected nextest batch, then corresponding Cargo doctests.

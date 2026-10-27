@@ -598,6 +598,10 @@ impl Tlc {
             .arg(&dump)
             .arg(name)
             .current_dir(directory);
+        if umpire_backend_process::work::directory()?.is_some() {
+            let source = fs::read(directory.join(format!("{name}.tla")))?;
+            command.env("UMPIRE_TLC_CONFIGURATION", structural_sha256(&(source, cfg)));
+        }
         let (status, output) =
             run_process(&mut command, directory, label, self.limits, Some(&dump))?;
         let tla = fs::read_to_string(directory.join(format!("{name}.tla")))?;

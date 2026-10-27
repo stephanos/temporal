@@ -16,6 +16,7 @@ mod boundary;
 pub mod lease;
 pub mod scheduler;
 mod standalone;
+pub mod work_counts;
 
 struct Gate {
     root: PathBuf,
@@ -295,7 +296,9 @@ impl Gate {
         }
         let directory = scheduler::directory(&self.target.join("gate-receipts"))?;
         let mut command = self.command("mise");
-        command.env("UMPIRE_GATE_EXECUTABLE", env::current_exe()?);
+        command
+            .env("UMPIRE_GATE_EXECUTABLE", env::current_exe()?)
+            .env("UMPIRE_GATE_CONTROLLER_EXECUTABLE", env::current_exe()?);
         if self.timed {
             command.env("UMPIRE_TIME_STEPS", "1");
         }

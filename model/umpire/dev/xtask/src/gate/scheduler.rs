@@ -1,4 +1,5 @@
 //! Invocation receipts around the mise-owned task graph.
+use super::work_counts;
 use std::{
     collections::BTreeSet,
     env, fs,
@@ -155,6 +156,7 @@ fn scheduled_with(
     if !scope.bytes().all(|byte| byte.is_ascii_alphanumeric() || byte == b'-') {
         return Err(io::Error::other("invalid stage receipt scope"));
     }
+    let observations = directory.join("work").join(&scope).join(name);
     let directory = if scope.is_empty() { directory } else { directory.join(&scope) };
     fs::create_dir_all(&directory)?;
     let claim = directory.join(format!("{name}.claim"));
@@ -167,16 +169,46 @@ fn scheduled_with(
         }
         return Err(io::Error::other(format!("stage {name} receipt admission: {error}")));
     }
+    fs::create_dir_all(
+        observations.parent().ok_or_else(|| io::Error::other("missing work parent"))?,
+    )?;
+    fs::create_dir(&observations)?;
     let started = Instant::now();
     let result = run();
-    let receipt = serde_json::json!({
+    let counts = work_counts::collect(&observations).and_then(|counts| {
+        if name == "tests" && skipped.is_none() && counts.executed.is_none() {
+            return Err(io::Error::other("missing test producer observations"));
+        }
+        Ok(counts)
+    });
+    let count_error = counts.as_ref().err().map(ToString::to_string);
+    let mut result = match result {
+        Ok(0) if count_error.is_some() => Err(io::Error::other(format!(
+            "stage {name} work observations: {}",
+            count_error.as_deref().unwrap_or_default()
+        ))),
+        other => other,
+    };
+    let mut receipt = serde_json::json!({
         "stage": name, "scope": scope,
         "state": if skipped.is_some() { "skipped" } else if result.as_ref().is_ok_and(|code| *code == 0) { "success" } else { "failed" },
         "reason": skipped,
         "exit": result.as_ref().copied().unwrap_or(1),
         "error": result.as_ref().err().map(ToString::to_string),
         "seconds": started.elapsed().as_secs_f64(),
+        "child_count_receipts": counts.as_ref().ok().map(|counts| &counts.child_receipts),
+        "counts": counts.ok(), "count_error": count_error,
+        "count_authority": "exclusive-stage",
     });
+    if let Err(error) = work_counts::validate_receipt(&receipt) {
+        receipt["count_error"] = error.to_string().into();
+        if result.as_ref().is_ok_and(|code| *code == 0) {
+            receipt["state"] = "failed".into();
+            receipt["exit"] = 1.into();
+            receipt["error"] = error.to_string().into();
+            result = Err(error);
+        }
+    }
     let partial = directory.join(format!("{name}.partial"));
     let mut file = fs::OpenOptions::new().write(true).create_new(true).open(&partial)?;
     serde_json::to_writer(&mut file, &receipt)?;
@@ -191,6 +223,9 @@ pub(super) fn collect(directory: &Path, expected: &[String], success: bool) -> i
     let mut paths = Vec::new();
     for entry in fs::read_dir(directory)? {
         let path = entry?.path();
+        if path.file_name().is_some_and(|name| name == "work") {
+            continue;
+        }
         if path.is_dir() {
             let scope = path.file_name().and_then(|n| n.to_str()).unwrap_or_default();
             if !expected.iter().any(|name| name.starts_with(&format!("{scope}/"))) {
@@ -234,6 +269,7 @@ pub(super) fn collect(directory: &Path, expected: &[String], success: bool) -> i
                 || value["scope"].as_str().unwrap_or("")
                     != name.split_once('/').map_or("", |(scope, _)| scope)
                 || !value["exit"].is_i64()
+                || work_counts::validate_receipt(&value).is_err()
                 || !claimed
             {
                 return Err(io::Error::other(format!("invalid stage receipt: {name}")));
@@ -259,7 +295,8 @@ pub(super) fn collect(directory: &Path, expected: &[String], success: bool) -> i
             }
             serde_json::json!({"stage": name.rsplit('/').next().unwrap_or(name), "scope": name.split_once('/').map_or("", |(scope, _)| scope),
                 "state": if claimed { "cancelled" } else { "not-started" },
-                "exit": null, "seconds": null})
+                "exit": null, "seconds": null, "counts": null, "count_error": "stage did not complete",
+                "count_authority": "exclusive-stage", "child_count_receipts": []})
         };
         serde_json::to_writer(&mut records, &value)?;
         records.push(b'\n');
@@ -344,6 +381,24 @@ pub fn execute(
     stream_stdout: bool,
     stream_stderr: bool,
 ) -> io::Result<std::process::Output> {
+    execute_with_inventory(command, stream_stdout, stream_stderr, None)
+}
+
+/// Execute tests with the inventory just admitted by their scoped caller.
+pub fn execute_with_inventory(
+    command: &Command,
+    stream_stdout: bool,
+    stream_stderr: bool,
+    inventory: Option<&[u8]>,
+) -> io::Result<std::process::Output> {
+    let observed = if work_counts::owns_controller()? {
+        work_counts::observe_streamed(command, inventory, stream_stdout, stream_stderr)?
+    } else {
+        None
+    };
+    if let Some(output) = observed {
+        return Ok(output);
+    }
     execute_inner(command, stream_stdout, stream_stderr, None)
 }
 
@@ -354,15 +409,33 @@ pub(super) fn capture_clean(
     execute_inner(command, false, false, Some(policy))
 }
 
-fn execute_inner(
+pub(super) fn execute_inner(
     command: &Command,
     stream_stdout: bool,
     stream_stderr: bool,
     clean_policy: Option<umpire_backend_process::DescendantPolicy>,
 ) -> io::Result<std::process::Output> {
+    execute_captured(command, stream_stdout, stream_stderr, clean_policy, false)
+}
+
+pub(super) fn execute_observed(
+    command: &Command,
+    stream_stdout: bool,
+    stream_stderr: bool,
+) -> io::Result<std::process::Output> {
+    execute_captured(command, stream_stdout, stream_stderr, None, true)
+}
+
+fn execute_captured(
+    command: &Command,
+    stream_stdout: bool,
+    stream_stderr: bool,
+    clean_policy: Option<umpire_backend_process::DescendantPolicy>,
+    retain_stdout: bool,
+) -> io::Result<std::process::Output> {
     use umpire_backend_process::{DescendantPolicy, OwnedProcess, run_owned};
     let caller = env::current_dir()?;
-    if stream_stdout && stream_stderr {
+    if stream_stdout && stream_stderr && !retain_stdout {
         return Ok(std::process::Output {
             status: run_owned(command, &caller)?,
             stdout: Vec::new(),
@@ -402,7 +475,7 @@ fn execute_inner(
     }
     Ok(std::process::Output {
         status,
-        stdout: if stream_stdout { Vec::new() } else { fs::read(stdout_path)? },
+        stdout: if stream_stdout && !retain_stdout { Vec::new() } else { fs::read(stdout_path)? },
         stderr: if stream_stderr { Vec::new() } else { fs::read(stderr_path)? },
     })
 }
@@ -442,6 +515,7 @@ pub fn run(
                             "stage": name.rsplit('/').next().unwrap_or(name),
                             "scope": name.split_once('/').map_or("", |(scope, _)| scope),
                             "state": "partial", "exit": null, "seconds": null,
+                            "counts": null, "count_error": "partial stage receipt", "count_authority": "exclusive-stage", "child_count_receipts": [],
                         })
                     });
                 value["receipt_error"] = error.to_string().into();
@@ -581,7 +655,7 @@ mod receipt_controls {
             directory.join(format!("{name}.json")),
             serde_json::to_vec(&serde_json::json!({
                 "scope": scope, "stage": stage, "state": if exit == 0 { "success" } else { "failed" },
-                "exit": exit, "seconds": 0.0,
+                "exit": exit, "seconds": 0.0, "counts": work_counts::WorkCounts::default(), "count_error": null, "count_authority": "exclusive-stage",
             }))?,
         )
     }

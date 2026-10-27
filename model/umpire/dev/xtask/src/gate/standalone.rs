@@ -481,6 +481,13 @@ fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64
     let actual = stages.iter().filter_map(|value| value["stage"].as_str()).collect::<Vec<_>>();
     let stages_complete = actual.iter().copied().eq(expected.iter().map(String::as_str))
         && stages.iter().all(|value| value["exit"] == 0);
+    if stages_complete && super::work_counts::owns_controller()? {
+        let path = output.join("stages.jsonl");
+        umpire_backend_process::work::record(
+            "child-receipts",
+            &format!("{}\t{}", path.display(), digest(records.as_bytes())),
+        )?;
+    }
     let mut binaries = serde_json::Map::new();
     for name in [
         "debug/xtask",

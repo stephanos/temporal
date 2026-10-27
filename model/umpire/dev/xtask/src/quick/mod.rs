@@ -299,7 +299,7 @@ fn test_workspace(
             return Ok(status);
         }
     }
-    crate::test_run::run_selected_checked_with(
+    crate::test_run::run_selected_observed_with(
         &selections,
         compiler_only,
         |arguments| {
@@ -317,10 +317,21 @@ fn test_workspace(
                 },
             )
         },
-        |phase, arguments| {
+        |phase, arguments, inventory| {
             let mut command = cargo();
             command.args(arguments);
-            execute(phase, &workspace.workspace, &workspace.packages, command, io::stderr().lock())
+            execute_with(
+                phase,
+                &workspace.workspace,
+                &workspace.packages,
+                command,
+                io::stderr().lock(),
+                |command| {
+                    crate::gate::scheduler::execute_with_inventory(command, true, true, inventory)
+                        .map(|output| (output.status, output.stdout))
+                },
+            )
+            .map(|(status, _)| status)
         },
     )
 }

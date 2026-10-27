@@ -440,6 +440,7 @@ pub fn run_process_cancelled(
     let mut child = crate::syscall::Running::spawn(command, directory, &out, &err)
         .map_err(|error| Refusal(format!("cannot spawn {label}: {error}")))?;
     let start = Instant::now();
+    let observation = crate::work::spawned(command)?;
     let result = (|| loop {
         if cancelled.load(Ordering::Relaxed) {
             return Err(Refusal(format!("subprocess cancelled ({label})")));
@@ -488,7 +489,12 @@ pub fn run_process_cancelled(
         }
         Ok(status)
     });
+    let observation = crate::work::finished(observation.as_deref(), &output);
     match result {
+        Ok(status) if status.success() => {
+            observation?;
+            Ok((status, output))
+        }
         Ok(status) => Ok((status, output)),
         Err(refusal) => Err(ProcessFailure { refusal, output }),
     }
