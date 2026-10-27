@@ -65,7 +65,7 @@ One supervisor retains the host lease through each public gate, quick or test in
 
 Substantive leaf controllers use native ownership. Guardians share root cancellation and retain parent completion custody through direct-child waits; clean standalone commands preserve that verified context. Checker Java receives no lease or lifecycle descriptors. Linux retains subreaper cleanup for escaped descendants. Darwin relies on admitted controllers forwarding cancellation and waiting for their own groups; its non-root runtime proof remains open. Descriptor closure or an elapsed grace period alone does not establish reaping.
 
-Invocation records preserve public stage names and qualify their scope as `framework/<stage>` or `system/<stage>`. Every expected stage receives a success, failure, skipped, cancelled, not-started or partial record in logical order. Missing or invalid successful receipts fail. Parent and isolated-child suites remain separate authorities. Raw stage timings and counts feed the later budget task; inclusive parent time is not the sum of overlapping stage times.
+Invocation records preserve public stage names and qualify them with `framework/` or the consumer-defined scope prefix. Every expected stage receives a success, failure, skipped, cancelled, not-started or partial record in logical order. Missing or invalid successful receipts fail. Parent and isolated-child suites remain separate authorities. Raw stage timings and counts feed the later budget task; inclusive parent time is not the sum of overlapping stage times.
 
 `test-run --package NAME` uses the selected runner's exact package inventory, nextest policy and eligible scoped Cargo doctests. Full workspace test execution retains its separate doctest phase.
 

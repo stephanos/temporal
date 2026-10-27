@@ -1,0 +1,17 @@
+{"error":null,"exit":0,"reason":null,"scope":"framework","seconds":18.157548009,"stage":"proto-tools","state":"success"}
+{"error":null,"exit":0,"reason":null,"scope":"framework","seconds":0.699327583,"stage":"retired-names","state":"success"}
+{"error":null,"exit":0,"reason":null,"scope":"framework","seconds":0.112045291,"stage":"timing-controls","state":"success"}
+{"error":null,"exit":0,"reason":null,"scope":"framework","seconds":0.209566083,"stage":"capability-controls","state":"success"}
+{"error":"framework stage source-boundary failed: framework forbidden name: dev/xtask/src/test_run.rs:611","exit":1,"reason":null,"scope":"framework","seconds":0.525310583,"stage":"source-boundary","state":"failed"}
+{"error":null,"exit":0,"reason":null,"scope":"framework","seconds":0.1531015,"stage":"protobuf-controls","state":"success"}
+{"error":null,"exit":0,"reason":null,"scope":"framework","seconds":0.04771025,"stage":"protobuf-freshness","state":"success"}
+{"error":null,"exit":0,"reason":null,"scope":"framework","seconds":0.044362166,"stage":"kettle-protobuf-freshness","state":"success"}
+{"error":null,"exit":0,"reason":null,"scope":"framework","seconds":0.646325792,"stage":"fmt","state":"success"}
+{"exit":null,"scope":"framework","seconds":null,"stage":"clippy","state":"not-started"}
+{"exit":null,"scope":"framework","seconds":null,"stage":"docs","state":"not-started"}
+{"exit":null,"scope":"framework","seconds":null,"stage":"tests","state":"not-started"}
+{"exit":null,"scope":"framework","seconds":null,"stage":"wasm32-wasip1","state":"not-started"}
+{"exit":null,"scope":"framework","seconds":null,"stage":"core-wasm-clippy","state":"not-started"}
+{"exit":null,"scope":"framework","seconds":null,"stage":"wasm-guest","state":"not-started"}
+{"exit":null,"scope":"framework","seconds":null,"stage":"go-host","state":"not-started"}
+{"exit":null,"scope":"framework","seconds":null,"stage":"kettle-go-host","state":"not-started"}

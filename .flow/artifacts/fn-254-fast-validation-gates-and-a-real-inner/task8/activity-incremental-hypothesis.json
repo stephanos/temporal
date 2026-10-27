@@ -1,0 +1,37 @@
+{
+  "status": "unmeasured hypothesis; no implementation or acceptance change",
+  "basis": "task17/resumed/activity-warm-followup/summary.json and stderr; read-only source inspection",
+  "observed_seconds": {
+    "whole_quick": 321.299,
+    "inventory": 46.375,
+    "test_stage": 235.34,
+    "nextest": 190.648,
+    "registry_negative": 49.159,
+    "generated_api_positive": 110.957,
+    "registry_positive": 170.342
+  },
+  "coverage": {
+    "tests": 148,
+    "negative_compiler_controls": 23,
+    "positive_compiler_controls": 2,
+    "tlc_hits": 14,
+    "model_executions": 0
+  },
+  "measurement_caution": "Compiler case durations include waiting on trybuild shared project lock; do not sum them or infer causal savings from different warm states.",
+  "source_chain": [
+    "model/temporal/api/build.rs produces OUT_DIR/annotation-api.binpb and passes it to System::generate",
+    "model/umpire/catalog/build/src/system.rs registers generated descriptor with cargo:rerun-if-changed",
+    "model/temporal/api/system.rs::link_descriptors invokes the actual Go linker",
+    "cmd/tools/getproto/main.go unconditionally writes linked descriptor bytes"
+  ],
+  "hypothesis": "Rewriting unchanged generated descriptor bytes may invalidate a warm API build repeatedly. Retained logs alone do not prove the dirty cause.",
+  "bounded_experiment": "After higher-priority validation releases capacity, capture Cargo fingerprint dirty reasons for an unchanged warm transition. If confirmed, measure write-if-bytes-differ publication without skipping admitted linker execution or failure handling.",
+  "preserve": [
+    "all declared source inputs and descriptor freshness",
+    "all 148 test identities and exact compiler diagnostics",
+    "23 negative and 2 executed positive compiler controls",
+    "all five consumers and separate doctests",
+    ".5 compile-fail-only batching; do not recombine positives with negatives"
+  ],
+  "claimed_savings": null
+}

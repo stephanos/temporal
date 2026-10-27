@@ -8,7 +8,7 @@ Make the production validation paths use available parallelism without omitting 
 
 **Size:** M
 **Files:** existing framework/Temporal native gate and test-runner leaves; quick execution; mise task definitions; their wiring/standalone controls and entry-point documentation.
-**Touches:** [Makefile, model/scripts/time-gate.sh, mise.toml, model/umpire/mise.toml, model/dev/xtask/src/gate.rs, model/dev/xtask/src/test_run.rs, model/dev/xtask/src/main.rs, model/umpire/dev/xtask/src/gate.rs, model/umpire/dev/xtask/src/gate/**, model/umpire/backends/process/src/support.rs, model/umpire/backends/process/src/syscall.rs, model/umpire/backends/process/tests/**, model/umpire/backends/process/Cargo.toml, model/umpire/dev/xtask/Cargo.toml, model/dev/xtask/Cargo.toml, model/umpire/Cargo.lock, model/Cargo.lock, model/umpire/dev/xtask/src/test_run.rs, model/umpire/dev/xtask/src/main.rs, model/umpire/dev/xtask/src/quick/**, model/umpire/dev/xtask/tests/**, model/scripts/test-model-validate.sh, model/scripts/test-time-gate.sh, model/umpire/README.md, model/umpire/dev/xtask/README.md, model/README.md]
+**Touches:** [Makefile, model/scripts/time-gate.sh, mise.toml, model/umpire/mise.toml, model/dev/xtask/src/gate.rs, model/dev/xtask/src/test_run.rs, model/dev/xtask/src/main.rs, model/umpire/dev/xtask/src/gate.rs, model/umpire/dev/xtask/src/gate/**, model/umpire/backends/process/src/support.rs, model/umpire/backends/process/src/syscall.rs, model/umpire/backends/process/src/work.rs, model/umpire/backends/tlc/src/runner.rs, model/umpire/backends/process/tests/**, model/umpire/backends/process/Cargo.toml, model/umpire/dev/xtask/Cargo.toml, model/dev/xtask/Cargo.toml, model/umpire/Cargo.lock, model/Cargo.lock, model/umpire/dev/xtask/src/test_run.rs, model/umpire/dev/xtask/src/main.rs, model/umpire/dev/xtask/src/quick/**, model/umpire/dev/xtask/tests/**, model/scripts/test-model-validate.sh, model/scripts/test-time-gate.sh, model/umpire/README.md, model/umpire/dev/xtask/README.md, model/README.md]
 
 ### Ownership and order
 - Consume completed .6's correct source-consumer selection, .11's isolated validation contract and .5's smaller independently schedulable cases. Keep all .6 direct consumer mappings and reverse dependencies; speed cannot come from selecting fewer affected packages.
@@ -63,6 +63,23 @@ The owner answered the runner question with **“skip osx validation for nw”**
 ### Owner stop checkpoint (2026-10-27)
 
 The owner cleared the persistent goal and requested **“stop after inflight tasks”**. All in-flight quick validation and evidence preservation finished; all workers and leases are released. The production standalone gate **did not run**: its prepared control runner failed during import before launching a process. No final implementation review started. Keep this task open with standalone renewal and review pending; source/evidence checkpoints are committed, and no downstream milestone starts until the owner resumes. The retained stopped checkpoint is `task17/resumed/owner-stop-checkpoint/checkpoint.json`.
+### Producer boundary confirmed during resumed validation (2026-10-27)
+
+Approach 4 requires complete stage/count receipts; .12's Final producer graph
+consumes this task's invocation-local timing/count receipts. Current stage-only
+JSON and raw logs do not satisfy structured count production. Integrate the
+retained observation candidate here, preserving discovered/executed/ignored/skipped
+test distinctions and actual TLC launches/configurations. Unknown or incomplete
+observations cannot become zero; reject duplicate/missing/partial producers.
+Keep isolated-child counts authoritative in the child, without double-charging
+inclusive parent work. .12 still owns table admission, calibration, budget
+enforcement and retry; none is required to produce these observations.
+
+The resumed real standalone found stale fixture paths, a system-specific mock
+package token, and inherited scheduler metadata in a gate fixture. Focused
+repairs pass; its failed full run is evidence of incomplete validation. Renew
+the actual standalone on the final producer candidate before review or closure.
+
 ## Acceptance
 - [ ] Production Rust unit/integration gate paths, including correctly scoped quick tests, use pinned nextest with matching package/binary/test/ignored coverage; Cargo doctests and compiler-only probes retain their distinct roles. Target/filter, empty-selection, failure and timing controls pass.
 - [ ] One authoritative stage DAG schedules dependency-independent work with the verified mise capability or a documented concrete native requirement; no parallel duplicate graph/scheduler remains. Public xtask gate/validate and Make/CI/standalone contracts are preserved with scheduling beneath them. A mise-based scheduler declares the verified minimum version in both task configs without runtime probes. Shared target/generated-output/caller/standalone obligations are preserved.

@@ -608,7 +608,7 @@ esac
             Selection { package: "macros", target: None, filter: None, doctests: true },
             Selection { package: "guest", target: None, filter: None, doctests: false },
             Selection {
-                package: "temporal-tests",
+                package: "system-tests",
                 target: Some("fixtures"),
                 filter: Some("fixtures"),
                 doctests: true,
@@ -634,7 +634,7 @@ esac
             concat!(
                 "(package(=api)) | (package(=realization)) | ",
                 "(package(=macros)) | (package(=guest)) | ",
-                "(package(=temporal-tests) & kind(test) & binary(=fixtures) & test(=fixtures))"
+                "(package(=system-tests) & kind(test) & binary(=fixtures) & test(=fixtures))"
             )
         );
         assert!(calls[0].1.windows(2).any(|args| args == ["--no-tests", "fail"]));
@@ -712,7 +712,7 @@ esac
         let selections = [
             Selection { package: "api", target: None, filter: None, doctests: true },
             Selection {
-                package: "temporal-tests",
+                package: "system-tests",
                 target: Some("fixtures"),
                 filter: Some("fixtures"),
                 doctests: false,
@@ -722,11 +722,11 @@ esac
         let api = ("api", "api", "lib", "api_test", false, "matches");
         for fixture in [
             ("other", "fixtures", "test", "fixtures", false, "matches"),
-            ("temporal-tests", "other", "test", "fixtures", false, "matches"),
-            ("temporal-tests", "fixtures", "lib", "fixtures", false, "matches"),
-            ("temporal-tests", "fixtures", "test", "other", false, "matches"),
-            ("temporal-tests", "fixtures", "test", "fixtures", true, "matches"),
-            ("temporal-tests", "fixtures", "test", "fixtures", false, "mismatch"),
+            ("system-tests", "other", "test", "fixtures", false, "matches"),
+            ("system-tests", "fixtures", "lib", "fixtures", false, "matches"),
+            ("system-tests", "fixtures", "test", "other", false, "matches"),
+            ("system-tests", "fixtures", "test", "fixtures", true, "matches"),
+            ("system-tests", "fixtures", "test", "fixtures", false, "mismatch"),
         ] {
             assert!(
                 admit_inventory(&selections, &compiler_only, &inventory(&[api, fixture])).is_err()
@@ -735,7 +735,7 @@ esac
         assert!(admit_inventory(&selections, &compiler_only, &inventory(&[api])).is_err());
         assert!(admit_inventory(&selections, &compiler_only, b"{}").is_err());
         assert!(admit_inventory(&selections, &compiler_only, b"truncated").is_err());
-        let fixture = ("temporal-tests", "fixtures", "test", "fixtures", false, "matches");
+        let fixture = ("system-tests", "fixtures", "test", "fixtures", false, "matches");
         assert!(admit_inventory(&selections, &compiler_only, &inventory(&[fixture])).is_err());
         assert!(admit_inventory(&selections, &compiler_only, &inventory(&[api, fixture])).is_ok());
     }

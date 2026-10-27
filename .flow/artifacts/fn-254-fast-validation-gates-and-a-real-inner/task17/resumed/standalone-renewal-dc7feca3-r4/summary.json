@@ -1,0 +1,268 @@
+{
+  "status": "INCOMPLETE: actual standalone renewed and failed; repaired test fixtures pass focused checks; final standalone deferred until stage-count producer integration",
+  "head": "dc7feca3c497f039c3d2e6f755bddeddb59a7c1d",
+  "production_run": {
+    "exit_code": 100,
+    "elapsed_seconds": 620.5666236710022,
+    "nextest_run_id": "999b37f2-b33b-4146-b010-7ee6b8a24630",
+    "selected_nonignored": 871,
+    "binaries": 69,
+    "ignored": 2,
+    "executed": 659,
+    "passed": 658,
+    "failed": 1,
+    "unexecuted_due_fail_fast": 212,
+    "execution_seconds": 165.331,
+    "doctests": "not reached after nextest failure",
+    "failure": "gate_wiring::concurrent_duplicate_stage_claim_runs_leaf_exactly_once_and_preserves_receipt inherited UMPIRE_GATE_SCOPE=framework but expected unscoped receipt path"
+  },
+  "stages": [
+    {
+      "error": null,
+      "exit": 0,
+      "reason": null,
+      "scope": "framework",
+      "seconds": 23.210033636,
+      "stage": "proto-tools",
+      "state": "success"
+    },
+    {
+      "error": null,
+      "exit": 0,
+      "reason": null,
+      "scope": "framework",
+      "seconds": 1.877922084,
+      "stage": "retired-names",
+      "state": "success"
+    },
+    {
+      "error": null,
+      "exit": 0,
+      "reason": null,
+      "scope": "framework",
+      "seconds": 0.131150875,
+      "stage": "timing-controls",
+      "state": "success"
+    },
+    {
+      "error": null,
+      "exit": 0,
+      "reason": null,
+      "scope": "framework",
+      "seconds": 0.403844875,
+      "stage": "capability-controls",
+      "state": "success"
+    },
+    {
+      "error": null,
+      "exit": 0,
+      "reason": null,
+      "scope": "framework",
+      "seconds": 0.848500125,
+      "stage": "source-boundary",
+      "state": "success"
+    },
+    {
+      "error": null,
+      "exit": 0,
+      "reason": null,
+      "scope": "framework",
+      "seconds": 0.16700825,
+      "stage": "protobuf-controls",
+      "state": "success"
+    },
+    {
+      "error": null,
+      "exit": 0,
+      "reason": null,
+      "scope": "framework",
+      "seconds": 0.058683417,
+      "stage": "protobuf-freshness",
+      "state": "success"
+    },
+    {
+      "error": null,
+      "exit": 0,
+      "reason": null,
+      "scope": "framework",
+      "seconds": 0.047504583,
+      "stage": "kettle-protobuf-freshness",
+      "state": "success"
+    },
+    {
+      "error": null,
+      "exit": 0,
+      "reason": null,
+      "scope": "framework",
+      "seconds": 1.305513209,
+      "stage": "fmt",
+      "state": "success"
+    },
+    {
+      "error": null,
+      "exit": 0,
+      "reason": null,
+      "scope": "framework",
+      "seconds": 90.191171459,
+      "stage": "clippy",
+      "state": "success"
+    },
+    {
+      "error": null,
+      "exit": 0,
+      "reason": null,
+      "scope": "framework",
+      "seconds": 38.092729435,
+      "stage": "docs",
+      "state": "success"
+    },
+    {
+      "error": null,
+      "exit": 100,
+      "reason": null,
+      "scope": "framework",
+      "seconds": 421.670908243,
+      "stage": "tests",
+      "state": "failed"
+    },
+    {
+      "exit": null,
+      "scope": "framework",
+      "seconds": null,
+      "stage": "wasm32-wasip1",
+      "state": "not-started"
+    },
+    {
+      "exit": null,
+      "scope": "framework",
+      "seconds": null,
+      "stage": "core-wasm-clippy",
+      "state": "not-started"
+    },
+    {
+      "exit": null,
+      "scope": "framework",
+      "seconds": null,
+      "stage": "wasm-guest",
+      "state": "not-started"
+    },
+    {
+      "exit": null,
+      "scope": "framework",
+      "seconds": null,
+      "stage": "go-host",
+      "state": "not-started"
+    },
+    {
+      "exit": null,
+      "scope": "framework",
+      "seconds": null,
+      "stage": "kettle-go-host",
+      "state": "not-started"
+    }
+  ],
+  "repairs": [
+    {
+      "path": "model/umpire/dev/xtask/src/quick/tests.rs",
+      "change": "Use current author/dsl layout in mock manifest and selected source path"
+    },
+    {
+      "path": "model/umpire/dev/xtask/src/test_run.rs",
+      "change": "Replace extension-specific mock package token with system-tests in two cfg(test) cases, preserving exact filter expectations"
+    },
+    {
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "change": "Clear parent gate scope/stage/order from fixture command alongside existing receipt/executable isolation"
+    }
+  ],
+  "focused_validation": {
+    "three_regressions": "3 passed under pinned required nextest profile",
+    "scope_reproduction": {
+      "command": [
+        "/tmp/umpire-fn25417-standalone-dc7feca3/proof-esl66Z/target/debug/deps/main-0f7e6d5d62e6cfac",
+        "--exact",
+        "gate_wiring::concurrent_duplicate_stage_claim_runs_leaf_exactly_once_and_preserves_receipt",
+        "--nocapture"
+      ],
+      "environment": {
+        "UMPIRE_GATE_SCOPE": "framework"
+      },
+      "seconds": 0.16732162499829428,
+      "exit": 101
+    },
+    "gate_wiring_repair": {
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "nextest",
+        "run",
+        "--locked",
+        "-p",
+        "xtask",
+        "--test",
+        "main",
+        "--profile",
+        "required",
+        "-E",
+        "test(gate_wiring::)"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-standalone-renewal/target",
+        "UMPIRE_GATE_SCOPE": "framework",
+        "UMPIRE_GATE_STAGE": "tests",
+        "UMPIRE_GATE_ORDER": "11",
+        "NEXTEST_PROFILE": "required",
+        "NEXTEST_TEST_THREADS": "4"
+      },
+      "exit": 0,
+      "seconds": 97.74780163000105
+    },
+    "fmt": {
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+      "exit": 0,
+      "seconds": 1.4598322500023642
+    }
+  },
+  "resource_observation": {
+    "observation_interval_seconds": 0.5,
+    "samples": 98,
+    "sampled_peak_java_processes": 3,
+    "java_samples_with_lease_or_lifecycle_environment": 0,
+    "unique_java_pids": 86,
+    "sampled_peak_total_java_rss_kib": 258176,
+    "heap_arguments": [
+      "-Xmx512m"
+    ],
+    "all_observed_owned_pids_absent": true,
+    "limitation": "Polling is observational and is not a hard process or RSS peak proof; failed standalone did not finish suite."
+  },
+  "inventory": {
+    "path": "current-nextest-all.json",
+    "sha256": "aeed98b63ac8ad99e818b2a3e6bd5cb311c26ec133b4e5857b6f0762088eb72d",
+    "receipt": "current-nextest-list-receipt.json"
+  },
+  "repair_input_seal": {
+    "path": "repair-source-after.json",
+    "sha256": "88a9a7833c8a33513d639ffb77691e5592d64f22c3563a414c65a90915a607eb"
+  },
+  "raw_evidence": "raw-output-manifest.json retains original paths, scratch destinations, exact sizes and SHA256; prior failed attempts have their own manifests",
+  "build_lane_released": true,
+  "owned_live_pids": [],
+  "free_bytes_at_handoff": 76545986560,
+  "macos": "deferred by explicit owner instruction; no runtime acceptance claim",
+  "production_sources_edited": false,
+  "production_edit_note": "Only tests under cfg(test) and integration-test fixture commands changed; root separately corrected generic README phrasing.",
+  "next": "Root integrates missing stage-count producer, then performs a fresh real standalone run and final implementation review before fn254.17 completion."
+}

@@ -4,11 +4,12 @@ The owner's overview of open work, execution order and blockers.
 
 As of 2026-10-27.
 
-The owner stopped this session after in-flight work. All validation workers and
-leases are released; no review or downstream milestone is queued. Task .17 remains
-open: the standalone control runner failed before launching the gate, so real
-standalone renewal and final review still need owner resumption. macOS validation
-remains owner-deferred. [Stopped checkpoint](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/owner-stop-checkpoint/checkpoint.json).
+Work resumed on fn-254.17 after the owner closed fn-257 for now. Real isolated
+validation exposed three test-fixture defects; their focused checks now pass.
+The full run stopped after 658 passes and one failure, leaving 212 tests and
+later stages unexecuted. Exact inventory reconciliation retains every earlier
+identity. Structured work-count producers are being integrated before renewed
+standalone proof and final review. macOS validation remains owner-deferred.
 
 ## Keeping this page current
 
@@ -102,7 +103,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.12 | ⬜ todo | Budget parser/count/retry candidate assembled; real receipt producers and native wiring underway. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
 | fn-254.15 | ⬜ todo | Native ports/callers assembled; only two bootstraps and four control shells remain. Complete native fixture adaptation before removing control shells and validating (R7) |
 | fn-254.16 | ⬜ todo | Mise TLC/opt-in Apalache provisioning candidate prepared; runtime hash/path admission retained. Integrate after .17, then validate installs and failures (R7) |
-| fn-254.17 | 🔄 in progress | Owner stopped the session; no active validation. Native controls and real six/five-consumer quick runs pass, but timing targets miss. Standalone never launched; renewal and review remain. macOS validation owner-deferred (R4, R5, R7) |
+| fn-254.17 | 🔄 in progress | Real standalone exposed test-fixture defects; focused repairs pass. Structured count producers remain under integration, then full standalone renewal and review. Prior complete quick runs miss timing targets; macOS validation owner-deferred (R4, R5, R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 
