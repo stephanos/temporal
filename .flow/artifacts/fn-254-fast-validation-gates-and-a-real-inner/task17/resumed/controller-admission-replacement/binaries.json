@@ -1,0 +1,29 @@
+{
+  "root": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-controller-admission",
+  "files": {
+    "binaries/carrier-green": {
+      "sha256": "16760fecdf3810afd41a24c47c0d7bb30fb39655564924e31de84ae1ab77f748",
+      "bytes": 20768264
+    },
+    "binaries/carrier-red": {
+      "sha256": "aa737ba9b37b04513f281140ae9a757ec4dc500afa21a6b4883b6fcc910c1062",
+      "bytes": 20740272
+    },
+    "binaries/controller-green": {
+      "sha256": "57a86043513a93f396bd4db3e8a301fb2302b735ae7209940fec7cd7e1a45ef7",
+      "bytes": 17389112
+    },
+    "binaries/regression-red": {
+      "sha256": "5bbe00f9132f5b2a1a6e565e9e76752fda51e905e75d9408269d6c2684ee88d6",
+      "bytes": 19508488
+    },
+    "binaries/regression-green": {
+      "sha256": "ce2ea655c0803199a79a958816f141c4d93bac93f1906221e5f25b980ca367ed",
+      "bytes": 19524856
+    },
+    "binaries/controller-before": {
+      "sha256": "5bb57bea4707cf55d22908fe1e3bda7b428515dcf1adbe30e4c6a3212c64f19c",
+      "bytes": 17361440
+    }
+  }
+}
