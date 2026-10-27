@@ -1,0 +1,29 @@
+{
+  "scope": "B design-only; no implementation/build/probe/workload execution",
+  "A_commit": "e8a2ae2e28",
+  "root_head_during_design": "be7aeb36e29de5a7137501757f1d1009db416bed",
+  "A_backend_source_sha256": {
+    "model/umpire/backends/process/src/support.rs": "006fbc7f079a4b35b22c64f188ce4a4ba2624ca76a103e5b6722197019f9521c",
+    "model/umpire/backends/process/src/syscall.rs": "f8bb42d9b017e3658b82af7fefec9ed5120e903494df60badc6804446ff778be"
+  },
+  "current_root_context_sha256": {
+    "model/umpire/dev/xtask/src/gate/scheduler.rs": "95141e87213e853d575df3453da9b5fa71ed6230a51ad505427724ae1b1eeb2f",
+    "model/umpire/dev/xtask/src/main.rs": "6abca35428733a04b0afb3b3a0bfeedee583df9db6c0d7abeba5b61b33072444",
+    "model/.config/nextest.toml": "be831217aecd45c0a9e093af71b2142870576bd27f1f58e2f2fe5b87fae663c2",
+    "model/umpire/.config/nextest.toml": "d2afb9dce3c7aee1e81ee9da3f11c3e83187709546f396d0eddd28e7c040a36e",
+    "mise.toml": "4ab74ce93a5940fa65aa9c0dff31e41071bf8f98c511eca39cac939d692ee1fc",
+    "model/umpire/mise.toml": "17e680c4d4ce2aa8c2a01c006ea58c4b07405f7e18bdbebfe43dd72eba7b0ec0"
+  },
+  "retained_primary_report_sha256": "96acc71d438740a49757fce189e470775cc044bd667b270d8b42b6c2ec6afdcb",
+  "later_primary_handoff": "assembly_inventory completed message: exactpinnedmise/nextest URLs cited in proposal.md; no new research/reruns requested",
+  "proposal_sha256": "52d9b54048a08edeb4e4d5f1f10bf496f7e096fcc36cac283293ad413f3f0fc4",
+  "not_implemented": [
+    "cooperativeSIGINTstate machine",
+    "grace/clock/deadline changes",
+    "MISE_TASK_PGID_MANAGED propagation",
+    "controller acknowledgement",
+    "Darwin descendant ownership"
+  ],
+  "material_gap": "Ahostexclusion != cleanup-before-return; marker+grace != Darwin adopted/escaped ownership",
+  "finished_utc": "2026-10-27T01:30:41.908696+00:00"
+}
