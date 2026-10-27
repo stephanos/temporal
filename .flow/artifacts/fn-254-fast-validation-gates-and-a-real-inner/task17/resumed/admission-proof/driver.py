@@ -31,7 +31,7 @@ def source_files(root):
     for folder in ['model/umpire/dev/xtask', 'model/dev/xtask', 'model/umpire/dev/guest-driver', 'model/umpire/backends/process']:
         paths.update(path.relative_to(root).as_posix() for path in (root / folder).rglob('*.rs'))
         paths.add(folder + '/Cargo.toml')
-    paths.update(['Makefile', 'mise.toml', 'model/umpire/mise.toml', 'model/Cargo.toml', 'model/umpire/Cargo.toml', 'model/Cargo.lock', 'model/umpire/Cargo.lock', 'model/rust-toolchain.toml', 'model/umpire/rust-toolchain.toml', 'model/.config/nextest.toml', 'model/umpire/.config/nextest.toml', 'model/umpire/dev/xtask/src/gate/tasks.toml', 'model/scripts/time-gate.sh', 'model/scripts/test-time-gate.sh', 'model/scripts/test-model-validate.sh'])
+    paths.update(['Makefile', 'mise.toml', 'model/umpire/mise.toml', 'model/Cargo.toml', 'model/umpire/Cargo.toml', 'model/Cargo.lock', 'model/umpire/Cargo.lock', 'model/rust-toolchain.toml', 'model/umpire/rust-toolchain.toml', 'model/.config/nextest.toml', 'model/umpire/.config/nextest.toml', 'model/umpire/dev/xtask/src/gate/tasks.toml', 'model/scripts/time-gate.sh', 'model/scripts/test-time-gate.sh', 'model/scripts/test-model-validate.sh', 'model/umpire/scripts/xtask.sh', 'model/scripts/xtask.sh', 'mise.lock', 'model/umpire/mise.lock'])
     paths.update(name for name in ['model/.cargo/config.toml', 'model/umpire/.cargo/config.toml'] if (root / name).exists())
     return {path: SHA(root / path) for path in sorted(paths)}
 
@@ -193,6 +193,12 @@ def one_case(base, output, binary, name, holder_kind, kill=False, nested=False):
         assert wait_child(other) == 0
         until(lambda: (reap() is None) and all(not Path('/proc', str(pid)).exists() for pid in observed))
         result.update(holder_exit=owner_code, contender_exit=other.returncode, holder_events=events(holder['control']), contender_events=events(contender['control']), owned_processes_before_release=tree, all_observed_owned_processes_absent=True, different_roots_targets_cargo_homes_tmpdirs=all(holder[key] != contender[key] for key in ['root', 'target', 'home', 'tmp']))
+        if nested:
+            child_events = events(Path(nested_context['environment']['ADMISSION_CONTROL']))
+            child_authority = [row for row in child_events if row['kind'] == 'authority']
+            holder_authority = next(row for row in events(holder['control']) if row['kind'] == 'authority')
+            assert child_authority and all((row['dev'], row['ino']) == (holder_authority['dev'], holder_authority['ino']) for row in child_authority)
+            result['copied_child_evidence'] = dict(events=child_events, manifest=json.loads(Path(nested_context['manifest']).read_text()), binary_sha256=SHA(Path(nested_context['binary'])), same_host_lock_identity=True, guest_driver='explicit nonexecuted fixture placeholder; production standalone renewal still required')
     finally:
         for child in children:
             if child.poll() is None:
