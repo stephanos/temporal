@@ -1,0 +1,2809 @@
+{
+  "scope": "Actual nextest inventory joined to all-passed summary and direct libtest name output; nested UI cases retained separately",
+  "identities": [
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "lib",
+      "binary": "umpire_apalache",
+      "name": "tests::fake_execution_failures_never_pass_and_scratch_is_removed",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "lib",
+      "binary": "umpire_apalache",
+      "name": "tests::native_depth_is_checked_and_truncation_never_establishes_a_bound",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "lib",
+      "binary": "umpire_apalache",
+      "name": "tests::pinned_outcomes_require_consistent_property_bound_exit_and_completion",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "lib",
+      "binary": "umpire_apalache",
+      "name": "tests::successful_substring_is_not_a_bounded_proof",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "lib",
+      "binary": "umpire_apalache",
+      "name": "tests::traces_have_one_aggregate_budget_and_deterministic_order",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "lib",
+      "binary": "umpire_apalache",
+      "name": "tests::unchanged_monitor_can_omit_redundant_per_state_checks",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "lib",
+      "binary": "umpire_apalache",
+      "name": "tests::version_admission_rejects_missing_wrong_and_failed_release_output",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "controls::pinned_installer_and_runner_agree",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "controls::real_arithmetic_faults_are_reachable_and_guards_remain_total",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "controls::real_arithmetic_refusal_follows_a_replayed_valid_prefix",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "controls::real_discarded_condition_keeps_its_evaluation_guard",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "controls::real_evaluated_start_failure_cannot_disappear_into_an_empty_range",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "controls::real_fact_witnesses_replay_exact_vectors_and_stutters",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "controls::real_kettle_checks_source_safety_and_history",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "controls::real_kettle_negative_is_replayed_and_tampering_fails",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "controls::real_later_start_fault_preserves_partial_binding",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "controls::real_payload_identity_and_outcome_history_are_typed",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "controls::real_postcondition_filter_excludes_unrelated_actions",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "controls::real_start_evaluation_respects_field_order_before_empty_domains",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "controls::real_typed_payload_rejection_and_after_claims_replay",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "controls::real_typed_vector_projection_keeps_eager_fallback_errors",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "controls::real_vector_witness_replays_typed_sequence",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "controls::strict_envelope_presence_and_object_controls",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "controls::strict_envelope_resource_controls",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "controls::strict_envelope_world_and_state_bounds",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "decode::declared_wire_types_must_match_the_source_schema",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "decode::observer_only_safety_assignment_keeps_strict_schema_empty_state_refusal",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "decode::optional_integer_itf_uses_the_exact_declared_code_set",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "decode::typed_itf_checks_declarations_shapes_and_limits",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "decode::typed_itf_preserves_composites_and_refuses_retired_set_shapes",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "replay::arithmetic_refusal_is_distinct_and_requires_the_exact_native_boundary",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "replay::colliding_renderings_cannot_replace_typed_replay_or_reenumerate_native_inputs",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "replay::exact_payload_outcome_history_and_specific_claim_are_replayed",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "replay::replay_refuses_an_undeclared_property_before_reading_a_witness",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "replay::retained_pinned_kettle_witness_replays_deterministically",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-apalache",
+      "kind": "test",
+      "binary": "main",
+      "name": "replay::selected_property_category_cannot_alias_authored_names",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "action_inputs_tests::actual_tlc_agrees_and_replays_in_both_selected_worlds",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "action_inputs_tests::bounded_claims_carry_no_fairness_obligation",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "action_inputs_tests::each_source_binding_carries_its_selected_catalog_into_every_configuration",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "action_inputs_tests::exact_payload_fairness_mutations_disagree_with_the_native_verdicts",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "action_inputs_tests::two_selected_worlds_differ_in_domains_counts_transitions_and_verdicts",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::accepted_self_loops",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::action_inputs",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::changed_state",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::kettle_cut",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::kettle_progress",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::optional_facts",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::optional_ticks",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::parameterized_world",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::phased_rejection",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::progress_continuous",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::progress_dead_end",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::progress_excluded_prefix",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::progress_fulfilled",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::progress_graph",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::progress_intermittent",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::progress_scope_exit",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::progress_self_loop",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::progress_target_barrier",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::progress_trigger_stops",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::progress_two_lobes",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::rejecting_steps",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::sample_kettle",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::shared_returns",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "fixtures::world_fairness",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "interpreted::backend_controls_agree",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "interpreted::checked_arithmetic_fails_as_compiled",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "interpreted::every_claim_has_its_own_callback",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "interpreted::fact_only_tree_mutant_disagrees",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "interpreted::interpreted_fact_decoder_checks_admitted_values",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "interpreted::interpreted_facts_evaluate_disabled_tail",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "interpreted::interpreted_facts_fail_closed",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "interpreted::length_differences_agree_on_every_back_end",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "interpreted::length_sums_and_products_are_refused",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "interpreted::lifter_controls_agree",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "interpreted::rewrite_visits_replacement_children_in_preorder",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "interpreted::seeded_mutant_trees_disagree",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "interpreted::start_domains_evaluate_lazily",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "interpreted::timing",
+      "ignored": true,
+      "status": "ignored",
+      "direct_pass_name_count": 0
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "interpreted_agrees_with_compiled",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "optional_facts_tests::native_facts_preserve_enabledness_outcome_and_guard_priority",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "optional_facts_tests::required_tlc_replays_four_distinct_fact_witnesses_and_clearing",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "optional_facts_tests::selected_world_changes_only_the_authored_overlap_fact",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "optional_facts_tests::source_only_fact_substitution_fails_native_replay",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "optional_ticks_tests::optional_ticks_bindings_preserve_correlated_deduplicated_and_empty_starts",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "optional_ticks_tests::optional_ticks_every_cfg_carries_the_same_selected_world",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "optional_ticks_tests::optional_ticks_exact_countdown_and_interpreted_parity",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "optional_ticks_tests::optional_ticks_factory_and_native_validity_boundaries",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "optional_ticks_tests::optional_ticks_false_cross_step_claim_has_an_exact_native_witness",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "optional_ticks_tests::optional_ticks_refuses_legal_world_swaps_in_each_cfg_family",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "optional_ticks_tests::optional_ticks_required_tlc_replays_exact_countdown_witnesses",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "optional_ticks_tests::optional_ticks_selected_world_identity_rejects_another_legal_selection",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "optional_ticks_tests::optional_ticks_source_only_mutant_disagrees_with_compiled_model",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "parameterized_world_tests::actual_tlc_replays_the_false_claim_in_the_same_selected_world",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "parameterized_world_tests::each_selected_world_checks_natively",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "parameterized_world_tests::each_source_binding_preserves_selection_and_empty_starts",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "phased_rejection_tests::a_computed_rejection_agrees_with_the_literal",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "phased_rejection_tests::a_stale_rejecting_claim_cannot_discharge_current_claim_fairness",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "phased_rejection_tests::closure_laws_keep_source_order_and_the_stock_outcome",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "phased_rejection_tests::emitted_outcome_and_action_mutations_fail_agreement",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "phased_rejection_tests::rejecting_after_a_mutation_fails_in_tlc",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "phased_rejection_tests::the_steps_accept_counterexample_is_a_rejected_payload_edge",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "sample_kettle_tests::examples::archived_enabledness_table_keeps_every_positive_and_disabled_row",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "sample_kettle_tests::examples::boundary_from_99_to_100_and_the_failover_guard",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "sample_kettle_tests::examples::switched_on_at_room_temperature_beeps_after_80_heats_and_the_failover",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "sample_kettle_tests::explorations::a_budget_of_10_answers_unknown_and_a_counterexample_before_a_cut_stands",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "sample_kettle_tests::explorations::beeps_only_when_off_holds_quiet_hot_and_heating_and_a_heating_beeping_start_refutes_it",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "sample_kettle_tests::explorations::claims_hold_from_room_and_coldest_and_boils_in_81_steps_from_room",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "sample_kettle_tests::explorations::every_start_from_minus_40_to_40_boils_within_141_steps",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "sample_kettle_tests::explorations::failing_over_above_boiling_refutes_fails_over_at_boiling",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "sample_kettle_tests::explorations::never_beeps_is_refuted_by_press_80_heats_and_failover",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "sample_kettle_tests::explorations::without_the_heater_fails_over_at_boiling_is_never_triggered",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "shared_returns_tests::sequential_returns_share_definitions_in_unit_and_payload_steps",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "world_fairness_tests::world_fairness_exact_selected_values_ordinals_and_wf_obligations",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "world_fairness_tests::world_fairness_legal_world_swaps_refuse_in_all_five_cfg_families",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "world_fairness_tests::world_fairness_metadata_only_mutations_refuse_before_tlc",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "world_fairness_tests::world_fairness_required_tlc_agrees_and_replays_at_each_maximum",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "world_fairness_tests::world_fairness_required_tlc_mutants_replay_heartbeat_and_starvation",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "world_fairness_tests::world_fairness_selected_worlds_agree_compiled_and_embedded",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-fixtures",
+      "kind": "test",
+      "binary": "fixtures",
+      "name": "world_fairness_tests::world_fairness_source_only_selectors_and_leaves_discriminate",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-reference-kettle",
+      "kind": "test",
+      "binary": "exhaustiveness",
+      "name": "kettle_exhaustiveness_names_every_missing_declaration",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-reference-kettle",
+      "kind": "test",
+      "binary": "live_snapshots",
+      "name": "import_live_candidates",
+      "ignored": true,
+      "status": "ignored",
+      "direct_pass_name_count": 0
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-reference-kettle",
+      "kind": "test",
+      "binary": "main",
+      "name": "annotations::generated_dispatch_refuses_unknown_routes_and_preserves_out_of_scope_bytes",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-reference-kettle",
+      "kind": "test",
+      "binary": "main",
+      "name": "annotations::generic_fill_preserves_supplied_keys_and_response_wire_bytes",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-reference-kettle",
+      "kind": "test",
+      "binary": "main",
+      "name": "annotations::scoped_limits_and_nested_predicates_inspect_actual_wire_values",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-reference-kettle",
+      "kind": "test",
+      "binary": "main",
+      "name": "descriptor::descriptor_additions_name_the_unreviewed_field_enum_and_method",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-reference-kettle",
+      "kind": "test",
+      "binary": "main",
+      "name": "probes::classification_requires_live_evidence_and_correlated_predictions",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-reference-kettle",
+      "kind": "test",
+      "binary": "main",
+      "name": "probes::coverage_matches_catalog_golden",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-reference-kettle",
+      "kind": "test",
+      "binary": "main",
+      "name": "probes::inventory_and_preparation_are_deterministic",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-reference-kettle",
+      "kind": "test",
+      "binary": "main",
+      "name": "probes::observations_require_exact_inventory",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-reference-kettle",
+      "kind": "test",
+      "binary": "main",
+      "name": "probes::stateful_prerequisites_and_inapplicable_mutations_never_dispatch",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-reference-kettle",
+      "kind": "test",
+      "binary": "main",
+      "name": "realization::callback_requires_exact_state_identity_and_enabled_action",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-reference-kettle",
+      "kind": "test",
+      "binary": "main",
+      "name": "realization::describe_never_infers_a_transition",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-reference-kettle",
+      "kind": "test",
+      "binary": "main",
+      "name": "realization::exact_receipts_reject_wrong_state_or_action",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-reference-kettle",
+      "kind": "test",
+      "binary": "main",
+      "name": "realization::explore_retains_canonical_report",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-reference-kettle",
+      "kind": "test",
+      "binary": "main",
+      "name": "realization::healthy_trace_answer_does_not_commit_and_receipt_commits_once",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-reference-kettle",
+      "kind": "test",
+      "binary": "main",
+      "name": "realization::heat_projects_reach_with_an_exact_target_and_method_owned_evidence",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-reference-kettle",
+      "kind": "test",
+      "binary": "main",
+      "name": "realization::malformed_evidence_refuses_without_advancing",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "lib",
+      "binary": "umpire_suite",
+      "name": "coverage::tests::catalog_validation_and_row_classification_avoid_quadratic_equality_scans",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "lib",
+      "binary": "umpire_suite",
+      "name": "coverage::tests::classifies_retained_outcomes_and_equal_display_actions_by_typed_identity",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "lib",
+      "binary": "umpire_suite",
+      "name": "coverage::tests::progress_uses_the_combined_evaluator_on_witness_states",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "lib",
+      "binary": "umpire_suite",
+      "name": "coverage::tests::refuses_invalid_metadata_and_panicking_callbacks",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "lib",
+      "binary": "umpire_suite",
+      "name": "coverage::tests::undeclared_and_complete_empty_catalogs_remain_distinct",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "lib",
+      "binary": "umpire_suite",
+      "name": "search::tests::bounded_gap_loops_do_not_spend_work_once_their_labels_are_dominated",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "lib",
+      "binary": "umpire_suite",
+      "name": "search::tests::cut_graph_answers_only_settled_searches",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "lib",
+      "binary": "umpire_suite",
+      "name": "search::tests::exact_outcome_retains_the_selected_row",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "lib",
+      "binary": "umpire_suite",
+      "name": "search::tests::finds_a_global_shortest_match_and_searches_before_the_first_node",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "lib",
+      "binary": "umpire_suite",
+      "name": "search::tests::only_explicit_gaps_consume_intervening_edges",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "lib",
+      "binary": "umpire_suite",
+      "name": "search::tests::seeded_walks_retain_loops_and_refuse_too_short_a_horizon",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "main",
+      "name": "alternative_search::along_keeps_predicate_failure_ahead_of_unrelated_skips",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "main",
+      "name": "alternative_search::along_preserves_skipped_step_refusals_for_structural_and_legacy_paths",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "main",
+      "name": "alternative_search::skipped_deep_effect_cannot_hide_a_shorter_alternative",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "main",
+      "name": "declared_world::complete_starts_keep_correlation_first_occurrence_and_deduplication",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "main",
+      "name": "explicit_world::cloning_and_formatting_spaces_require_no_world_traits",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "main",
+      "name": "explicit_world::explicit_queries_use_selected_constants_and_starts",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "main",
+      "name": "explicit_world::explicit_runs_retain_the_owned_world_after_space_is_dropped",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "main",
+      "name": "fixtures::fixtures",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "main",
+      "name": "full_patterns::cases_mismatch_and_alternative_budget_precede_model_search",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "main",
+      "name": "full_patterns::cover_refuses_empty_unwitnessed_and_cut_spaces",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "main",
+      "name": "full_patterns::full_grammar_find_and_along_preserve_state_inference",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "main",
+      "name": "full_patterns::model_state_budget_does_not_spend_alternative_capacity",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "main",
+      "name": "full_patterns::sampling_walks_admitted_loops_reproducibly_and_reports_its_bound",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "main",
+      "name": "large_space::state_only_find_answers_over_a_large_space_under_the_default_budget",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "main",
+      "name": "world_domains::contextual_domains_take_the_selected_world",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "main",
+      "name": "world_domains::every_suite_route_admits_the_catalog_under_the_space_limit",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "retained",
+      "name": "cover_and_along_never_replay_effects_or_rebuild_worlds",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "retained",
+      "name": "legacy_spaces_preserve_unconstrained_configuration_and_auto_traits",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "retained",
+      "name": "queries_take_the_state_as_their_one_explicit_generic_argument",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "kind": "test",
+      "binary": "retained",
+      "name": "refused_stories_do_not_construct_the_registered_world",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "lib",
+      "binary": "umpire_tla",
+      "name": "bind::tests::cfg_representation_looks_inside_tuples_and_sequences",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "lib",
+      "binary": "umpire_tla",
+      "name": "emit::optional_tests::optional_default_forces_eager_checked_fallback_in_main_emission",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "lib",
+      "binary": "umpire_tla",
+      "name": "emit::optional_tests::priming_recurses_through_nested_vectors_and_three_children_without_changing_other_leaves",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "lib",
+      "binary": "umpire_tla",
+      "name": "emit::optional_tests::priming_visits_each_nominal_child_and_keeps_world_identity",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "lib",
+      "binary": "umpire_tla",
+      "name": "emit::optional_tests::signed_remainder_asserts_overflow_and_divides_parenthesised_operands",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "lib",
+      "binary": "umpire_tla",
+      "name": "emit::optional_tests::unsigned_division_has_no_overflow_guard",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "lib",
+      "binary": "umpire_tla",
+      "name": "names::optional_tests::rename_visits_nominal_construction_projection_and_both_default_children",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "lib",
+      "binary": "umpire_tla",
+      "name": "names::traversal_tests::rename_override_stops_before_replacement_children",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "lib",
+      "binary": "umpire_tla",
+      "name": "safety::value::optional_tests::negative_literal_divisor_is_parenthesised_in_the_remainder",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "lib",
+      "binary": "umpire_tla",
+      "name": "safety::value::optional_tests::present_optional_requires_fallback_validity_and_checks_some_encoding",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "lib",
+      "binary": "umpire_tla",
+      "name": "safety::value::optional_tests::signed_remainder_requires_nonzero_divisor_and_no_overflow",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "lib",
+      "binary": "umpire_tla",
+      "name": "safety::value::optional_tests::unsigned_division_has_no_overflow_guard",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "lib",
+      "binary": "umpire_tla",
+      "name": "values::tests::composite_values_accept_exact_shapes_only",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "lib",
+      "binary": "umpire_tla",
+      "name": "values::tests::enum_variants_admit_one_fieldless_payload_only",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "lib",
+      "binary": "umpire_tla",
+      "name": "values::tests::nominal_types_validate_descriptor_and_accept_exact_codes",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "emission::real_tlc_empty_half_open_starts_have_no_checked_underflow",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "emission::real_tlc_preserves_ordered_mutations_and_reports_checked_overflow",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "emission::real_tlc_signed_division_and_remainder_use_rust_rounding",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "inputs::a_fair_unit_variant_named_like_a_fair_position_refuses",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "inputs::assumptions_naming_values_outside_the_selected_catalog_refuse_as_natively",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "inputs::catalog_values_outside_their_admitted_types_refuse_at_the_source_declaration",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "inputs::exact_payload_scopes_and_fairness_specialize_the_variant_relation",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "inputs::inputs_bind_in_declaration_product_order_keeping_duplicates_and_empty_variants",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "inputs::inputs_without_a_declared_world_refuse_at_the_variant",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "inputs::internal_payload_actors_keep_their_classification",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "inputs::native_domain_forms_lift_from_the_bound_catalog",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "inputs::payload_patterns_resolve_lexically_through_their_typed_identities",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "inputs::the_catalog_limit_boundary_binds_and_emits",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "inputs::the_source_limit_is_the_native_catalog_limit",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "inputs::unsupported_input_sources_refuse_by_location",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "narrow_remainder::i16_min_remainder_negative_one_refuses",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "narrow_remainder::i8_min_remainder_negative_one_refuses",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_facts::canonical_option_constructor_paths_are_admitted",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_facts::canonical_optional_imports_preserve_the_existing_fact_carrier",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_facts::disabled_handler_tail_arithmetic_is_checked_by_both_emitters",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_facts::fact_tail_world_and_input_references_receive_emitted_names",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_facts::legacy_unit_fact_metadata_remains_exact",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_facts::mixed_unit_handler_clears_the_previous_fact_on_every_real_edge",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_facts::overlapping_action_guards_keep_the_first_matching_fact",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_facts::prefix_effects_and_locals_feed_the_tail_in_ssa_order",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_facts::source_only_constructor_swap_changes_both_emitters",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_facts::unsupported_tail_results_refuse_at_the_source",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_source::canonical_optional_imports_preserve_builtin_identity",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_source::canonical_optional_paths_and_nominal_operations",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_source::option_remains_an_ordinary_fieldless_enum_without_bounded_types",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_source::optional_spellings_remain_ordinary_scalar_names_without_bounded_types",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_source::unsupported_optional_sources_refuse_at_source_locations",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_ticks::binding_preserves_nominal_identity_and_refuses_malformed_fields",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_ticks::exact_optional_decode_includes_before_observers_and_rejects_wrong_kinds",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_ticks::optional_complete_starts_keep_whole_row_correlation_and_empty_selection",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_ticks::present_optional_keeps_eager_errors_in_guard_assignment_and_claim",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_ticks::shared_countdown_keeps_selected_codes_in_all_cfgs_and_before_metadata",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "optional_ticks::source_local_optional_ticks_are_admitted",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "phased::admitted_tree_and_constructor_data_grow_linearly",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "phased::emitted_size_is_linear_in_sequential_conditional_returns",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "phased::large_handlers_compile_with_their_admitted_data",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "phased::rejections_lower_to_typed_outcomes_and_kept_self_loops",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "phased::shared_definitions_never_take_an_authored_name",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "phased::unsupported_phase_rejection_and_law_forms_refuse_at_their_location",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "safety::initialization_growth_stays_linear_in_declared_fields",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "safety::safety_definition_growth_stays_linear",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "safety::safety_has_typed_history_and_preserving_stutter",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "safety::safety_history_names_refuse_collisions_and_temporaries_are_hygienic",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "safety::tlc_declarations_carry_snowcat_types",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "safety::unsupported_source_type_refuses_at_its_declaration",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "sequential_checks::failed_check_does_not_hide_a_later_division_failure",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "shadowing::nested_blocks_and_effect_helpers_preserve_caller_locals",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "source::a_hook_claim_name_collision_refuses_in_tests_rs",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "source::a_world_of_another_machine_refuses_at_this_source",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "source::admission_refuses_type_cfg_resolution_and_observer_collisions",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "source::enum_helper_and_terminal_postcondition_are_admitted",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "source::generated_tla_names_refuse_authored_namespace_collisions",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "source::hand_written_machine_refusal_prints_the_type_as_written",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "source::hook_refusal_in_tests_rs_names_tests_rs",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "source::imports_that_can_rebind_a_macro_read_by_name_refuse",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "source::inherent_enum_into_is_resolved_before_primitive_conversion",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "source::integer_literal_types_follow_field_context_on_either_side",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "source::kettle_source_lifts_registered_properties_and_explicit_assumptions",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "source::path_claims_refuse_builders_chains_and_other_gaps",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "source::progress_bounds_are_fail_closed",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "source::pure_same_impl_helper_is_typed_and_lifted",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "source::repeated_progress_builders_refuse_instead_of_reversing_rust_order",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "source::the_state_struct_keeps_its_authored_name",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "source::unsupported_control_characters_refuse_at_the_authored_literal",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "source::unsupported_expression_refuses_with_source_location",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "vector::bounded_vector_operations_are_lifted_with_safe_defaulted_get",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "vector::conditional_guards_preserve_common_bound_facts",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "vector::length_sums_and_products_refuse_at_their_span",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "vector::real_vector_native_and_tlc_states_and_properties_agree",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "vector::shared_boolean_guards_keep_vector_admission_linear",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "vector::unrelated_conditionals_preserve_vector_length_identity",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "vector::unsupported_vector_operations_and_unbounded_growth_refuse",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "vector::vector_get_keeps_eager_default_failures_when_element_is_present",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "world::bare_world_and_before_parameters_do_not_resolve_as_source_constants",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "world::binding_refuses_malformed_world_and_complete_state_values",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "world::complete_starts_preserve_correlation_deduplicate_and_keep_empty",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "world::declared_world_computed_starts_admit_before_value_binding",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "world::generated_world_constants_avoid_synthesized_action_names",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "world::real_tlc_executes_each_cfg_family_with_both_world_bindings",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "world::scalar_enum_world_and_sequence_starts_use_the_admitted_types",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "world::typed_world_signatures_and_outcome_fields_refuse_by_source_location",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "world::world_free_starts_of_any_name_admit_and_bind",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "world_fairness_binding::empty_selected_restrictions_keep_existing_refusal_and_empty_fair_lists",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "world_fairness_binding::every_selected_registration_and_progress_leaf_is_catalog_checked",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "world_fairness_binding::native_interpretation_selects_before_converting_exact_actions",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "world_fairness_binding::possible_leaf_names_and_post_selection_aliases_are_reserved",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "world_fairness_binding::rebinding_reselects_original_conditional_branches_and_preserves_flat_scopes",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "world_fairness_binding::selected_leaves_keep_authored_world_identity_and_exact_fairness",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "world_fairness_binding::source_plans_resolve_before_any_action_conversion",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "world_fairness_binding::unresolved_embedded_plan_cannot_emit_as_an_empty_scope",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-tla",
+      "kind": "test",
+      "binary": "main",
+      "name": "world_fairness_binding::world_shape_validation_precedes_selection",
+      "ignored": false,
+      "status": "passed",
+      "direct_pass_name_count": 1
+    }
+  ],
+  "nested_ui_successes": {
+    "tests/ui/omitted_action.rs": 1,
+    "tests/ui/omitted_method.rs": 1
+  }
+}
