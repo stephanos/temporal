@@ -20,16 +20,55 @@ mod calls;
 pub(crate) const LEASE_FD: i32 = 9;
 pub(crate) const LEASE_ENV: &str = "UMPIRE_JVM_LEASE_FD";
 
+pub(crate) const COMPLETION_FD: i32 = 10;
+pub(crate) const CANCELLATION_FD: i32 = 11;
+const COMPLETION_ENV: &str = "UMPIRE_COMPLETION_FD";
+const CANCELLATION_ENV: &str = "UMPIRE_CANCELLATION_FD";
+
 pub(crate) fn inherited_lease() -> io::Result<File> {
+    inherited_descriptor(LEASE_FD)
+}
+
+pub(crate) fn inherited_descriptor(source: i32) -> io::Result<File> {
     use std::os::fd::FromRawFd;
-    // SAFETY: fcntl duplicates a live descriptor or fails; the returned descriptor
-    // is newly owned and immediately transferred to File, never borrowing raw FD9.
-    let descriptor = unsafe { libc::fcntl(LEASE_FD, libc::F_DUPFD_CLOEXEC, 10) };
+    // SAFETY: successful duplication creates a unique owned descriptor. Reserved
+    // protocol slots must never be used as temporary duplicate destinations.
+    let descriptor = unsafe { libc::fcntl(source, libc::F_DUPFD_CLOEXEC, 12) };
     if descriptor < 0 {
         return Err(io::Error::last_os_error());
     }
     // SAFETY: successful F_DUPFD_CLOEXEC returned a unique owned descriptor.
     Ok(unsafe { File::from_raw_fd(descriptor) })
+}
+
+fn inherited_lifecycle() -> io::Result<Option<(File, File)>> {
+    use std::os::{fd::AsRawFd, unix::fs::FileTypeExt};
+    match (std::env::var_os(COMPLETION_ENV), std::env::var_os(CANCELLATION_ENV)) {
+        (None, None) => return Ok(None),
+        (Some(completion), Some(cancellation)) if completion == "10" && cancellation == "11" => (),
+        _ => return Err(io::Error::other("invalid inherited lifecycle descriptor locators")),
+    }
+    let completion = inherited_descriptor(COMPLETION_FD)?;
+    let cancellation = inherited_descriptor(CANCELLATION_FD)?;
+    for (file, access) in [(&completion, libc::O_WRONLY), (&cancellation, libc::O_RDONLY)] {
+        // SAFETY: F_GETFL only queries the live, owned descriptor.
+        let flags = unsafe { libc::fcntl(file.as_raw_fd(), libc::F_GETFL) };
+        if !file.metadata()?.file_type().is_fifo() || flags < 0 || flags & libc::O_ACCMODE != access
+        {
+            return Err(io::Error::other(
+                "inherited lifecycle requires directed pipe capabilities",
+            ));
+        }
+    }
+    // SAFETY: poll borrows initialized storage and never consumes broadcast data.
+    let mut poll = libc::pollfd { fd: cancellation.as_raw_fd(), events: libc::POLLIN, revents: 0 };
+    if unsafe { libc::poll(&raw mut poll, 1, 0) } < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    if poll.revents != 0 {
+        return Err(io::Error::other("inherited lifecycle is already cancelled"));
+    }
+    Ok(Some((completion, cancellation)))
 }
 
 #[cfg(any(test, not(any(target_os = "linux", target_os = "macos"))))]
@@ -108,11 +147,7 @@ mod supported {
             err: &File,
             policy: crate::DescendantPolicy,
         ) -> io::Result<Self> {
-            let lease = if policy == crate::DescendantPolicy::Checker {
-                crate::JvmLease::inherited_file()?
-            } else {
-                None
-            };
+            let lease = crate::JvmLease::inherited_file()?;
             Self::spawn_with_custody(
                 command,
                 fallback_directory,
@@ -139,8 +174,29 @@ mod supported {
             )?;
             let delegate_lease =
                 lease.is_some() && policy == crate::DescendantPolicy::Orchestration;
-            let mut prepared =
-                Prepared::new(command, fallback_directory, delegate_lease, inherit_environment)?;
+            let inherited = super::inherited_lifecycle()?;
+            let lifecycle = policy == crate::DescendantPolicy::Orchestration || inherited.is_some();
+            let mut prepared = Prepared::new(
+                command,
+                fallback_directory,
+                delegate_lease,
+                lifecycle && policy == crate::DescendantPolicy::Orchestration,
+                inherit_environment,
+            )?;
+            let (completion_read, completion_write) = io::pipe()?;
+            let (broadcast_read, broadcast_write) = io::pipe()?;
+            let completion_read = duplicate(&completion_read)?;
+            let completion_write = duplicate(&completion_write)?;
+            let cancellation = duplicate(
+                inherited.as_ref().map_or(broadcast_read.as_fd(), |(_, read)| read.as_fd()),
+            )?;
+            let root_writer = if lifecycle && inherited.is_none() {
+                Some(duplicate(&broadcast_write)?)
+            } else {
+                None
+            };
+            let parent_completion =
+                inherited.as_ref().map(|(write, _)| duplicate(write)).transpose()?;
             let (owner_read, owner_write) = io::pipe()?;
             let null = File::open("/dev/null")?;
             let input = duplicate(&owner_read)?;
@@ -153,6 +209,16 @@ mod supported {
                 policy,
                 lease.as_ref().map_or(-1, AsRawFd::as_raw_fd),
                 delegate_lease,
+                (
+                    lifecycle,
+                    [
+                        completion_read.as_raw_fd(),
+                        completion_write.as_raw_fd(),
+                        cancellation.as_raw_fd(),
+                        root_writer.as_ref().map_or(-1, AsRawFd::as_raw_fd),
+                        parent_completion.as_ref().map_or(-1, AsRawFd::as_raw_fd),
+                    ],
+                ),
             );
             let mask = SignalMask::block(&context)?;
             // SAFETY: all child memory and descriptors are live across fork. Only
@@ -206,7 +272,7 @@ mod supported {
     }
 
     fn duplicate(fd: impl AsFd) -> io::Result<OwnedFd> {
-        rustix::io::fcntl_dupfd_cloexec(fd, 10).map_err(Into::into)
+        rustix::io::fcntl_dupfd_cloexec(fd, 12).map_err(Into::into)
     }
 
     struct Prepared {
@@ -237,6 +303,7 @@ mod supported {
             command: &Command,
             fallback_directory: &Path,
             delegate_lease: bool,
+            delegate_lifecycle: bool,
             inherit_environment: bool,
         ) -> io::Result<Self> {
             let api = calls::Api::new()?;
@@ -246,6 +313,13 @@ mod supported {
             environment.remove(OsStr::new(super::LEASE_ENV));
             if delegate_lease {
                 environment.insert(super::LEASE_ENV.into(), super::LEASE_FD.to_string().into());
+            }
+            for name in [super::COMPLETION_ENV, super::CANCELLATION_ENV] {
+                environment.remove(OsStr::new(name));
+            }
+            if delegate_lifecycle {
+                environment.insert(super::COMPLETION_ENV.into(), "10".into());
+                environment.insert(super::CANCELLATION_ENV.into(), "11".into());
             }
             let executable_bytes =
                 executable_candidates(command.get_program(), &directory, &environment)?;
@@ -336,6 +410,7 @@ mod supported {
             policy: crate::DescendantPolicy,
             lease: RawFd,
             delegate_lease: bool,
+            (lifecycle, lifecycle_fds): (bool, [RawFd; 5]),
         ) -> ChildContext {
             ChildContext {
                 api: &raw const self.api,
@@ -352,6 +427,8 @@ mod supported {
                 null,
                 lease,
                 delegate_lease,
+                lifecycle,
+                lifecycle_fds,
                 allow_descendants: policy == crate::DescendantPolicy::Orchestration,
                 #[cfg(target_os = "macos")]
                 default_action: &raw const self.default_action,
@@ -475,6 +552,8 @@ mod supported {
         null: RawFd,
         lease: RawFd,
         delegate_lease: bool,
+        lifecycle: bool,
+        lifecycle_fds: [RawFd; 5],
         allow_descendants: bool,
         #[cfg(target_os = "macos")]
         default_action: *const libc::sigaction,
@@ -511,10 +590,7 @@ mod supported {
             if api.setpgid(0, 0) != 0 || !install_signals(context) {
                 child_error(api, c"cannot establish backend supervisor".as_ptr());
             }
-            if context.lease >= 0 && api.dup2(context.lease, super::LEASE_FD) < 0 {
-                child_error(api, c"cannot retain inherited lease custody".as_ptr());
-            }
-            close_descriptors_with_lease(api, 4, context);
+            prepare_guardian_custody(context);
             #[cfg(target_os = "linux")]
             let children = {
                 if !api.subreaper() {
@@ -533,6 +609,12 @@ mod supported {
             if stopped != 0 {
                 api.exit(128 + stopped);
             }
+            if context.lifecycle {
+                let (cancelled, failed) = pipe_closed(api, 6);
+                if cancelled || failed {
+                    api.exit(125);
+                }
+            }
             let target = fork_without_handlers(api);
             if target < 0 {
                 child_error(api, c"cannot fork backend subprocess".as_ptr());
@@ -540,17 +622,25 @@ mod supported {
             if target == 0 {
                 target_main(context, original_mask);
             }
-            let (status, completed, mut failed) = wait_for_target(context, target);
+            if context.lifecycle {
+                calls::close(api, 5);
+            }
+            let (mut status, mut completed, mut failed) = if context.lifecycle {
+                wait_for_lifecycle(context, target)
+            } else {
+                wait_for_target(context, target)
+            };
             if api.kill(-target, libc::SIGKILL) != 0 && errno(api) != libc::ESRCH {
                 failed = true;
             }
-            if !completed {
-                if api.kill(target, libc::SIGKILL) != 0 && errno(api) != libc::ESRCH {
+            {
+                if !completed && api.kill(target, libc::SIGKILL) != 0 && errno(api) != libc::ESRCH {
                     failed = true;
                 }
                 loop {
-                    let result = calls::waitpid(api, target, ptr::null_mut(), 0);
+                    let result = calls::waitpid(api, target, &raw mut status, 0);
                     if result == target {
+                        completed |= context.lifecycle;
                         break;
                     }
                     if result < 0 && errno(api) != libc::EINTR {
@@ -583,22 +673,103 @@ mod supported {
         }
     }
 
+    unsafe fn prepare_guardian_custody(context: &ChildContext) {
+        unsafe {
+            let api = &*context.api;
+            if context.lease >= 0 && api.dup2(context.lease, super::LEASE_FD) < 0 {
+                child_error(api, c"cannot retain inherited lease custody".as_ptr());
+            }
+            if context.lifecycle {
+                let mut index = 0;
+                while index < 5 {
+                    let source = *context.lifecycle_fds.as_ptr().add(index);
+                    if source >= 0 && api.dup2(source, 4 + index as RawFd) < 0 {
+                        child_error(api, c"cannot retain lifecycle custody".as_ptr());
+                    }
+                    index += 1;
+                }
+            }
+            close_guardian_descriptors(api, context);
+        }
+    }
+
+    unsafe fn pipe_closed(api: &calls::Api, fd: RawFd) -> (bool, bool) {
+        unsafe {
+            let mut poll = libc::pollfd { fd, events: libc::POLLIN, revents: 0 };
+            let result = calls::poll_owner(api, &raw mut poll);
+            (
+                poll.revents & libc::POLLHUP != 0,
+                (result < 0 && errno(api) != libc::EINTR)
+                    || poll.revents & (libc::POLLERR | libc::POLLNVAL | libc::POLLIN) != 0,
+            )
+        }
+    }
+
+    unsafe fn wait_for_lifecycle(
+        context: &ChildContext,
+        target: libc::pid_t,
+    ) -> (libc::c_int, bool, bool) {
+        unsafe {
+            let api = &*context.api;
+            let mut cancelled = false;
+            let mut broadcast_closed = false;
+            let mut failed = false;
+            loop {
+                let (exited, wait_failed) = calls::target_exited(api, target);
+                let (owner_closed, owner_failed) = pipe_closed(api, 0);
+                let (root_cancelled, root_failed) = pipe_closed(api, 6);
+                let (cohort_closed, cohort_failed) = pipe_closed(api, 4);
+                failed |= wait_failed || owner_failed || root_failed || cohort_failed;
+                let stop = STOP_SIGNAL.load(Ordering::Relaxed);
+                if (exited || owner_closed || root_cancelled || stop != 0 || failed) && !cancelled {
+                    cancelled = true;
+                    if context.lifecycle_fds[3] >= 0 {
+                        calls::close(api, 7);
+                        broadcast_closed = true;
+                    }
+                    let signal =
+                        if context.allow_descendants { libc::SIGINT } else { libc::SIGKILL };
+                    if api.kill(-target, signal) != 0 && errno(api) != libc::ESRCH {
+                        failed = true;
+                    }
+                }
+                #[cfg(target_os = "linux")]
+                if exited {
+                    // Linux retains stronger subreaper ownership: adopted raw
+                    // children can keep FD10 open without observing cancellation.
+                    // The caller kills and reaps every descendant before releasing
+                    // this guardian's parent completion writer or lease.
+                    return (0, false, failed);
+                }
+                // Trusted carriers retain FD10 until their children finish; a
+                // nested guardian retains its parent's writer until its own
+                // target wait and cohort drain. EOF alone is not a reap claim.
+                if cohort_closed && (exited || cancelled) {
+                    if context.lifecycle_fds[3] >= 0 && !broadcast_closed {
+                        calls::close(api, 7);
+                    }
+                    return (0, false, failed);
+                }
+            }
+        }
+    }
+
     unsafe fn wait_for_target(
         context: &ChildContext,
         target: libc::pid_t,
     ) -> (libc::c_int, bool, bool) {
         unsafe {
             let api = &*context.api;
-            let mut status = 0;
+            let status = 0;
             let mut completed = false;
             let mut failed = false;
             while STOP_SIGNAL.load(Ordering::Relaxed) == 0 {
-                let result = calls::waitpid(api, target, &raw mut status, libc::WNOHANG);
-                if result == target {
+                let (exited, wait_failed) = calls::target_exited(api, target);
+                if exited {
                     completed = true;
                     break;
                 }
-                if result < 0 && errno(api) != libc::EINTR {
+                if wait_failed {
                     failed = true;
                     break;
                 }
@@ -643,11 +814,14 @@ mod supported {
             {
                 child_error(api, c"cannot prepare backend subprocess".as_ptr());
             }
-            if context.delegate_lease {
-                close_descriptors_with_lease(api, 3, context);
-            } else {
-                close_descriptors(api, 3, context.close_limit);
+            if context.lifecycle
+                && context.allow_descendants
+                && (api.dup2(5, super::COMPLETION_FD) < 0
+                    || api.dup2(6, super::CANCELLATION_FD) < 0)
+            {
+                child_error(api, c"cannot delegate lifecycle custody".as_ptr());
             }
+            close_target_descriptors(api, context);
             if !context.allow_descendants {
                 #[cfg(target_os = "macos")]
                 if !prevent_descendants(api) {
@@ -808,20 +982,35 @@ mod supported {
         }
     }
 
-    unsafe fn close_descriptors_with_lease(api: &calls::Api, first: RawFd, context: &ChildContext) {
-        // The same locked description stays in the supervisor until exit after
-        // descendant reaping, and crosses exec for admitted nested native tools.
+    unsafe fn close_guardian_descriptors(api: &calls::Api, context: &ChildContext) {
         unsafe {
-            if context.lease >= 0 {
-                let mut fd = first;
-                while fd < super::LEASE_FD {
+            let mut fd = 4;
+            while fd < 12 {
+                let keep = (fd == super::LEASE_FD && context.lease >= 0)
+                    || (context.lifecycle && (4..=6).contains(&fd))
+                    || (context.lifecycle && fd == 7 && context.lifecycle_fds[3] >= 0)
+                    || (context.lifecycle && fd == 8 && context.lifecycle_fds[4] >= 0);
+                if !keep {
                     calls::close(api, fd);
-                    fd += 1;
                 }
-                close_descriptors(api, super::LEASE_FD + 1, context.close_limit);
-            } else {
-                close_descriptors(api, first, context.close_limit);
+                fd += 1;
             }
+            close_descriptors(api, 12, context.close_limit);
+        }
+    }
+
+    unsafe fn close_target_descriptors(api: &calls::Api, context: &ChildContext) {
+        unsafe {
+            let mut fd = 3;
+            while fd < 12 {
+                let keep = (fd == super::LEASE_FD && context.delegate_lease)
+                    || (context.lifecycle && context.allow_descendants && fd >= 10);
+                if !keep {
+                    calls::close(api, fd);
+                }
+                fd += 1;
+            }
+            close_descriptors(api, 12, context.close_limit);
         }
     }
 
