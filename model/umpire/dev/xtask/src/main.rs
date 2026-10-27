@@ -60,7 +60,24 @@ fn guest(arguments: Vec<OsString>) -> xtask::Result<i32> {
 }
 
 fn run() -> xtask::Result<i32> {
-    let mut arguments = env::args_os().skip(1);
+    let mut supplied: Vec<_> = env::args_os().skip(1).collect();
+    let _lease = if supplied.first().is_some_and(|arg| arg == "__owned-command") {
+        supplied.remove(0);
+        if env::var_os("UMPIRE_JVM_LEASE_FD").is_none() {
+            return Err(xtask::Error::Invalid("missing owned-command descriptor".into()));
+        }
+        Some(xtask::gate::lease::JvmLease::inherited_or_acquire()?)
+    } else if supplied.first().is_some_and(|arg| {
+        ["gate", "validate", "time", "update", "fmt", "quick", "test-run"]
+            .iter()
+            .any(|name| arg == name)
+    }) && !supplied.iter().any(|arg| arg == "--list")
+    {
+        return xtask::gate::supervise(supplied);
+    } else {
+        None
+    };
+    let mut arguments = supplied.into_iter();
     match arguments.next().as_deref() {
         Some(command) if command == OsStr::new("quick") => xtask::quick::run(arguments.collect()),
         Some(command)
@@ -74,10 +91,13 @@ fn run() -> xtask::Result<i32> {
             )
         }
         Some(command) if command == OsStr::new("test-run") => {
-            if arguments.next().is_some() {
-                return Err(xtask::Error::Invalid("usage: cargo xtask test-run".into()));
+            let args: Vec<_> = arguments.collect();
+            match args.as_slice() {
+                [] => xtask::test_run::run(),
+                [flag, package] if flag == "--package" => xtask::test_run::run_package(
+                    package.to_str().ok_or_else(|| xtask::Error::Invalid("package must be UTF-8".into()))?),
+                _ => Err(xtask::Error::Invalid("usage: cargo xtask test-run [--package NAME]".into())),
             }
-            xtask::test_run::run()
         }
         Some(command) if command == OsStr::new("fetch-apalache") => {
             let root = arguments.next();

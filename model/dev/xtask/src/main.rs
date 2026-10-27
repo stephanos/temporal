@@ -18,15 +18,50 @@ mod test_run;
 
 fn run() -> io::Result<i32> {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
-    if env::args_os().nth(1).is_some_and(|command| command == "gate") {
-        if env::args_os().len() != 2 {
-            return Err(io::Error::other("usage: cargo xtask gate"));
+    let mut supplied: Vec<_> = env::args_os().skip(1).collect();
+    let _lease = if supplied.first().is_some_and(|arg| arg == "__owned-command") {
+        supplied.remove(0);
+        if env::var_os("UMPIRE_JVM_LEASE_FD").is_none() {
+            return Err(io::Error::other("missing owned-command descriptor"));
         }
-        return gate::run(&root);
+        Some(xtask::gate::lease::JvmLease::inherited_or_acquire()?)
+    } else if supplied
+        .first()
+        .is_some_and(|arg| ["gate", "test-run"].iter().any(|name| arg == name))
+        && !supplied.iter().any(|arg| arg == "--list")
+    {
+        return xtask::gate::supervise(supplied).map_err(io::Error::other);
+    } else {
+        None
+    };
+    if supplied.first().is_some_and(|command| command == "test-run") {
+        if supplied.len() != 1 {
+            return Err(io::Error::other("usage: cargo xtask test-run"));
+        }
+        return test_run::run(&root);
+    }
+    if supplied.first().is_some_and(|command| command == "gate") {
+        let arguments: Vec<_> = supplied.into_iter().skip(1).collect();
+        return match arguments.as_slice() {
+            [] => gate::run(&root),
+            [flag] if flag == "--list" => gate::list(&root),
+            [flag, name] if flag == "--stage" || flag == "--scheduled-stage" => {
+                let name =
+                    name.to_str().ok_or_else(|| io::Error::other("gate stage must be UTF-8"))?;
+                if flag == "--stage" {
+                    gate::run_stage(&root, name)
+                } else {
+                    gate::scheduled_stage(&root, name)
+                }
+            }
+            _ => Err(io::Error::other(
+                "usage: cargo xtask gate [--list | --stage NAME | --scheduled-stage NAME]",
+            )),
+        };
     }
     let caller = env::current_dir()?;
     let cargo_home = umpire_guest_driver::context::cargo_home(&caller).map_err(io::Error::other)?;
-    let mut arguments: Vec<_> = env::args_os().skip(1).collect();
+    let mut arguments = supplied;
     if arguments.first().is_some_and(|command| command == "quick") {
         arguments = quick::arguments(&root, arguments.into_iter().skip(1).collect())?;
     }

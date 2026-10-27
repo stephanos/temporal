@@ -6,17 +6,23 @@ use std::{
     process::Command,
 };
 
-pub(crate) fn stage(root: &Path, name: &str, mut command: Command) -> io::Result<i32> {
+fn admit_command(name: &str, command: &mut Command) -> io::Result<()> {
     let caller = std::env::current_dir()?;
     let home = umpire_guest_driver::context::cargo_home(&caller).map_err(io::Error::other)?;
-    command.env("CARGO_HOME", home).env("UMPIRE_QUICK_CACHE", "0").env("UMPIRE_CACHE_DISABLE", "1");
-    if name == "tests" {
+    command
+        .env("CARGO_HOME", home)
+        .env("UMPIRE_QUICK_CACHE", "0")
+        .env("UMPIRE_CACHE_DISABLE", "1")
+        .env("MISE_AUTO_INSTALL", "false")
+        .env("MISE_EXEC_AUTO_INSTALL", "false");
+    if name == "tests" || name == "source-boundary" {
         crate::test_run::configure(
-            &mut command,
+            command,
             std::env::var_os("UMPIRE_BACKENDS").is_some_and(|value| value == "require"),
             std::env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require"),
         );
     }
+
     if let Some(target) = std::env::var_os("CARGO_TARGET_DIR") {
         let target = std::path::PathBuf::from(target);
         command.env(
@@ -24,6 +30,11 @@ pub(crate) fn stage(root: &Path, name: &str, mut command: Command) -> io::Result
             if target.is_absolute() { target } else { caller.join(target) },
         );
     }
+    Ok(())
+}
+
+pub(crate) fn stage(root: &Path, name: &str, mut command: Command) -> io::Result<i32> {
+    admit_command(name, &mut command)?;
     let status = if std::env::var_os("UMPIRE_TIME_STEPS").is_some_and(|value| value == "1") {
         let mut timer = Command::new("/bin/bash");
         timer
@@ -57,59 +68,153 @@ fn script(root: &Path, script: &str, arguments: &[&str]) -> Command {
     command
 }
 
+#[path = "../../../umpire/dev/xtask/src/gate/scheduler.rs"]
+mod scheduler;
+
+fn mise(root: &Path) -> io::Result<Command> {
+    let caller = std::env::current_dir()?;
+    let home = umpire_guest_driver::context::cargo_home(&caller).map_err(io::Error::other)?;
+    let mut command = Command::new("mise");
+    command
+        .current_dir(root.parent().ok_or_else(|| io::Error::other("missing repository root"))?)
+        .env("CARGO_HOME", home)
+        .env("UMPIRE_FRAMEWORK_ROOT", root.join("umpire"))
+        .env("UMPIRE_TEMPORAL_ROOT", root)
+        .env("UMPIRE_QUICK_CACHE", "0")
+        .env("UMPIRE_CACHE_DISABLE", "1")
+        .env("MISE_AUTO_INSTALL", "false")
+        .env("MISE_EXEC_AUTO_INSTALL", "false");
+    if let Some(target) = std::env::var_os("CARGO_TARGET_DIR") {
+        let target = std::path::PathBuf::from(target);
+        command.env(
+            "CARGO_TARGET_DIR",
+            if target.is_absolute() { target } else { caller.join(target) },
+        );
+    }
+    Ok(command)
+}
+
 pub(crate) fn run(root: &Path) -> io::Result<i32> {
-    let guest = root.join("temporal/hosts/go/umpire_temporal_guest.wasm");
-    let mut freshness = script(root, "guest-freshness.sh", &["umpire-temporal-guest"]);
-    freshness.arg(&guest);
-    let stages = [
-        ("temporal-guest-freshness", freshness),
-        ("retired-names", script(root, "retired-names.sh", &[])),
-        ("timing-controls", script(root, "test-time-gate.sh", &[])),
-        (
-            "source-boundary",
-            cargo(&["test", "-p", "umpire-temporal-tests", "--test", "boundary", "--quiet"]),
-        ),
-        ("protobuf-controls", script(root, "tests/proto-go.sh", &[])),
-        ("temporal-protobuf-freshness", script(root, "proto-go.sh", &["temporal", "--check"])),
-        ("fmt", cargo(&["fmt", "--all", "--check"])),
-        (
+    let bootstrap = framework_executable(root)?;
+    if !bootstrap.status.success() {
+        writeln!(
+            io::stderr(),
+            "framework bootstrap failed (exit {})",
+            bootstrap.status.code().unwrap_or(1)
+        )?;
+        return Ok(bootstrap.status.code().unwrap_or(1));
+    }
+    use std::os::unix::ffi::OsStringExt;
+    let framework = std::ffi::OsString::from_vec(
+        bootstrap.stdout.strip_suffix(b"\n").unwrap_or(&bootstrap.stdout).to_owned(),
+    );
+    let expected = scheduler::inventory(mise(root)?, "")?;
+    let caller = std::env::current_dir()?;
+    let target = std::env::var_os("CARGO_TARGET_DIR").map_or_else(
+        || root.join("target"),
+        |path| {
+            let path = std::path::PathBuf::from(path);
+            if path.is_absolute() { path } else { caller.join(path) }
+        },
+    );
+    let records = scheduler::directory(&target.join("gate-receipts"))?;
+    let mut command = mise(root)?;
+    command
+        .env("UMPIRE_TEMPORAL_GATE_EXECUTABLE", std::env::current_exe()?)
+        .env("UMPIRE_GATE_EXECUTABLE", framework);
+    scheduler::run(command, "model:all", &records, &expected)
+}
+
+fn framework_executable(root: &Path) -> io::Result<std::process::Output> {
+    let mut command = Command::new("/bin/bash");
+    command
+        .arg(root.join("scripts/xtask.sh"))
+        .env("MISE_AUTO_INSTALL", "false")
+        .env("MISE_EXEC_AUTO_INSTALL", "false");
+    admit_command("bootstrap", &mut command)?;
+    let output = command.output()?;
+    io::stderr().write_all(&output.stderr)?;
+    Ok(output)
+}
+
+pub(crate) fn list(root: &Path) -> io::Result<i32> {
+    for (name, deps) in scheduler::listing(mise(root)?, "")? {
+        writeln!(io::stdout(), "{name}\t{}", deps.join(","))?;
+    }
+    Ok(0)
+}
+
+pub(crate) fn scheduled_stage(root: &Path, name: &str) -> io::Result<i32> {
+    scheduler::scheduled(name, || run_stage(root, name))
+}
+
+pub(crate) fn run_stage(root: &Path, name: &str) -> io::Result<i32> {
+    let command = match name {
+        "temporal-guest-freshness" => {
+            let mut command = script(root, "guest-freshness.sh", &["umpire-temporal-guest"]);
+            command.arg(root.join("temporal/hosts/go/umpire_temporal_guest.wasm"));
+            command
+        }
+        "retired-names" => script(root, "retired-names.sh", &[]),
+        "timing-controls" => script(root, "test-time-gate.sh", &[]),
+        "source-boundary" => {
+            use std::collections::BTreeSet;
+            let selection = xtask::test_run::Selection {
+                package: "umpire-temporal-tests",
+                target: Some("boundary"),
+                filter: None,
+                doctests: false,
+            };
+            return xtask::test_run::run_selected_checked_with(
+                &[selection],
+                &BTreeSet::new(),
+                |args| {
+                    let mut command = cargo(&[]);
+                    command.args(args).current_dir(root);
+                    admit_command("source-boundary", &mut command)?;
+                    let output = command.output()?;
+                    io::stderr().write_all(&output.stderr)?;
+                    Ok((output.status.code().unwrap_or(1), output.stdout))
+                },
+                |_, args| {
+                    let mut command = cargo(&[]);
+                    command.args(args);
+                    stage(root, "source-boundary", command).map_err(Into::into)
+                },
+            )
+            .map_err(io::Error::other);
+        }
+        "protobuf-controls" => script(root, "tests/proto-go.sh", &[]),
+        "temporal-protobuf-freshness" => script(root, "proto-go.sh", &["temporal", "--check"]),
+        "fmt" => cargo(&["fmt", "--all", "--check"]),
+        "clippy" => cargo(&[
             "clippy",
-            cargo(&[
-                "clippy",
-                "--workspace",
-                "--all-targets",
-                "--all-features",
-                "--",
-                "-D",
-                "warnings",
-            ]),
-        ),
-        ("docs", {
+            "--workspace",
+            "--all-targets",
+            "--all-features",
+            "--",
+            "-D",
+            "warnings",
+        ]),
+        "docs" => {
             let mut command = cargo(&["doc", "--workspace", "--no-deps", "--quiet"]);
             command.env("RUSTDOCFLAGS", "-D warnings");
             command
-        }),
-    ];
-    for (name, command) in stages {
-        let status = stage(root, name, command)?;
-        if status != 0 {
-            return Ok(status);
         }
-    }
-    let status = crate::test_run::run(root)?;
-    if status != 0 {
-        return Ok(status);
-    }
-    let status = stage(root, "wasm-guest", script(root, "tests/build-guests.sh", &[]))?;
-    if status != 0 {
-        return Ok(status);
-    }
-    let mut host = Command::new("mise");
-    host.args(["exec", "--", "go", "-C"])
-        .arg(root.join("temporal/hosts/go"))
-        .args(["test", "-tags", "test_dep", "-count=1", "./..."])
-        .env("CGO_ENABLED", "0");
-    stage(root, "temporal-go-host", host)
+        "tests" => return crate::test_run::run(root),
+        "wasm-guest" => script(root, "tests/build-guests.sh", &[]),
+        "temporal-go-host" => {
+            let mut command = Command::new("mise");
+            command
+                .args(["exec", "--", "go", "-C"])
+                .arg(root.join("temporal/hosts/go"))
+                .args(["test", "-tags", "test_dep", "-count=1", "./..."])
+                .env("CGO_ENABLED", "0");
+            command
+        }
+        _ => return Err(io::Error::other(format!("unknown Temporal stage: {name}"))),
+    };
+    stage(root, name, command)
 }
 
 #[cfg(test)]
@@ -180,6 +285,11 @@ mod tests {
     #[test]
     fn run_control_child() {
         let Some(root) = std::env::var_os("UMPIRE_GATE_CONTROL_ROOT") else { return };
+        if let Some(name) = std::env::var_os("UMPIRE_GATE_CONTROL_STAGE") {
+            let name = name.to_str().unwrap();
+            let status = scheduled_stage(Path::new(&root), name).unwrap();
+            std::process::exit(status);
+        }
         assert_eq!(
             run(Path::new(&root)).unwrap(),
             std::env::var("UMPIRE_GATE_CONTROL_STATUS").unwrap().parse::<i32>().unwrap(),
@@ -198,6 +308,7 @@ mod tests {
             root.join("umpire/scripts/time-gate.sh"),
         )
         .unwrap();
+        fs::write(root.join("scripts/xtask.sh"), "#!/bin/bash\nprintf '/bin/true\\n'\n").unwrap();
         let labels = [
             ("guest-freshness.sh", "guest"),
             ("retired-names.sh", "retired"),
@@ -221,16 +332,12 @@ printf '%s\n' "$label" >> "$UMPIRE_GATE_CONTROL_LOG"
             .unwrap();
         }
         let mise = root.join("bin/mise");
-        fs::write(&mise, format!("#!/bin/bash\nset -eu\nlabel=\"$*\"\n{body}")).unwrap();
-        fs::set_permissions(&mise, fs::Permissions::from_mode(0o755)).unwrap();
         let stages = [
             ("temporal-guest-freshness", "guest"),
             ("retired-names", "retired"),
             ("timing-controls", "timing"),
-            (
-                "source-boundary",
-                "exec -- cargo test -p umpire-temporal-tests --test boundary --quiet",
-            ),
+            ("source-boundary", "boundary-inventory"),
+            ("source-boundary", "boundary-tests"),
             ("protobuf-controls", "proto-controls"),
             ("temporal-protobuf-freshness", "proto"),
             ("fmt", "exec -- cargo fmt --all --check"),
@@ -241,7 +348,7 @@ printf '%s\n' "$label" >> "$UMPIRE_GATE_CONTROL_LOG"
             ("docs", "exec -- cargo doc --workspace --no-deps --quiet"),
             (
                 "tests",
-                "exec -- cargo nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final",
+                "exec -- cargo nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final --no-tests fail",
             ),
             ("tests", "exec -- cargo test --doc --workspace --locked --quiet"),
             ("wasm-guest", "guest-build"),
@@ -250,6 +357,52 @@ printf '%s\n' "$label" >> "$UMPIRE_GATE_CONTROL_LOG"
                 "exec -- go -C PLACEHOLDER/temporal/hosts/go test -tags test_dep -count=1 ./...",
             ),
         ];
+        let mut stage_names = Vec::new();
+        for (name, _) in &stages {
+            if !stage_names.contains(name) {
+                stage_names.push(*name);
+            }
+        }
+        let inventory = serde_json::to_string(
+            &stage_names
+                .iter()
+                .enumerate()
+                .map(|(order, name)| {
+                    serde_json::json!({"name": format!("model:{name}"), "env": [
+                        format!("UMPIRE_GATE_STAGE={name}"), format!("UMPIRE_GATE_ORDER={order}")
+                    ], "depends": []})
+                })
+                .collect::<Vec<_>>(),
+        )
+        .unwrap();
+        let scheduler = format!(
+            r#"
+if [ "$*" = "tasks ls --json" ]; then
+  printf '%s\n' '{inventory}'
+  exit 0
+fi
+if [ "$*" = "run --force --skip-tools --task-cache off --jobs 4 model:all" ]; then
+  for stage_name in {names}; do
+    UMPIRE_GATE_CONTROL_STAGE=$stage_name "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" --exact gate::tests::run_control_child --nocapture || exit $?
+  done
+  exit 0
+fi
+"#,
+            names = stage_names.join(" ")
+        );
+        let nextest = r#"
+case "$*" in
+ 'exec -- cargo nextest list'*)
+   label=boundary-inventory
+   BODY
+   printf '%s\n' '{"rust-suites":{"boundary":{"package-name":"umpire-temporal-tests","binary-name":"boundary","kind":"test","status":"listed","testcases":{"control":{"ignored":false,"filter-match":{"status":"matches"}}}}}}'
+   exit 0 ;;
+ 'exec -- cargo nextest run'*' -p umpire-temporal-tests '*) label=boundary-tests ;;
+ *) label="$*" ;;
+esac
+"#.replace("BODY", body);
+        fs::write(&mise, format!("#!/bin/bash\nset -eu\n{scheduler}\n{nextest}\n{body}")).unwrap();
+        fs::set_permissions(&mise, fs::Permissions::from_mode(0o755)).unwrap();
         let expected =
             stages.map(|(_, label)| label.replace("PLACEHOLDER", &root.to_string_lossy()));
         let log = root.join("calls");

@@ -7,7 +7,7 @@ use std::{
     process::{Command, Output},
 };
 
-const STAGES: &[&str] = &[
+pub(super) const STAGES: &[&str] = &[
     "proto-tools",
     "retired-names",
     "timing-controls",
@@ -71,7 +71,25 @@ impl Fixture {
             _directory: directory,
         };
         write(&fixture.root.join("Cargo.toml"), "[workspace]\nmembers = []\n");
-        write(&fixture.root.join("mise.toml"), "[tools]\n");
+        write(&fixture.root.join("mise.toml"), include_str!("../../../mise.toml"));
+        write(
+            &fixture.root.join("dev/xtask/src/gate/tasks.toml"),
+            include_str!("../src/gate/tasks.toml"),
+        );
+        let tasks = STAGES.iter().enumerate().map(|(index, name)| {
+            let depends = match *name {
+                "protobuf-controls" | "protobuf-freshness" | "kettle-protobuf-freshness" => vec!["gate:proto-tools"],
+                "go-host" => vec!["gate:wasm-guest"],
+                "kettle-go-host" => vec!["gate:wasm-guest", "gate:kettle-protobuf-freshness"],
+                _ => vec![],
+            };
+            serde_json::json!({
+                "name": format!("gate:{name}"),
+                "env": [format!("UMPIRE_GATE_STAGE={name}"), format!("UMPIRE_GATE_ORDER={}", index + 1)],
+                "depends": depends,
+            })
+        }).collect::<Vec<_>>();
+        write(&fixture.root.join("tasks.json"), serde_json::to_vec(&tasks).unwrap());
         write(&fixture.root.join("rust-toolchain.toml"), "[toolchain]\nchannel = 'stable'\n");
         write(
             &fixture.root.join("dev/gate/policy/framework-boundary.txt"),
@@ -95,7 +113,67 @@ impl Fixture {
         );
         Self::script(
             &fixture.bin.join("mise"),
-            r#"[ "$1" = exec ] && [ "$2" = -- ]
+            r#"[ "$PWD" = "$CONTROL_ROOT" ]
+[ "$CARGO_TARGET_DIR" = "$CONTROL_EXPECT_TARGET" ]
+[ "$CARGO_HOME" = "$CONTROL_CALLER/real home" ]
+[ "$UMPIRE_QUICK_CACHE" = 0 ] && [ "$UMPIRE_CACHE_DISABLE" = 1 ]
+[ "$MISE_AUTO_INSTALL" = false ] && [ "$MISE_EXEC_AUTO_INSTALL" = false ]
+if [ "$*" = 'tasks ls --json' ]; then
+ cat "$CONTROL_ROOT/tasks.json"
+ exit 0
+fi
+if [ "$1" = run ]; then
+ if [ -n "${CONTROL_REAL_MISE:-}" ]; then
+  exec "$CONTROL_REAL_MISE" "$@"
+ fi
+ [ "$2 $3 $4 $5 $6 $7 $8" = '--force --skip-tools --task-cache off --jobs 4 gate:all' ] ||
+ [ "$2 $3 $4 $5 $6 $7 $8" = '--force --skip-tools --task-cache off --jobs 4 gate:child' ]
+ aggregate=$8
+ [ "$#" = 8 ]
+ [ -d "$UMPIRE_GATE_RECEIPTS" ]
+ printf '%s\n' "$UMPIRE_GATE_RECEIPTS" >> "$CONTROL_ROOT/invocations"
+ case "${CONTROL_RECEIPT_FAULT:-}" in zero) exit 0 ;; esac
+ case "${CONTROL_RECEIPT_FAULT:-}" in
+  simultaneous)
+   CONTROL_FAIL=proto-tools "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage proto-tools &
+   first=$!
+   CONTROL_FAIL=fmt "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage fmt &
+   second=$!
+   first_status=0; second_status=0
+   wait "$first" || first_status=$?
+   wait "$second" || second_status=$?
+   [ "$first_status:$second_status" = 37:37 ] || exit 96
+   exit 37
+   ;;
+  orphan)
+   /bin/bash -c 'echo $$ > "$CONTROL_ROOT/owned-child"; sleep 5; touch "$CONTROL_ROOT/child-escaped-cleanup"' &
+   remaining=500
+   while [ ! -s "$CONTROL_ROOT/owned-child" ]; do
+    remaining=$((remaining - 1))
+    [ "$remaining" -gt 0 ] || exit 97
+    sleep 0.01
+   done
+   CONTROL_FAIL=fmt "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage fmt
+   exit 98
+   ;;
+ esac
+ for stage in proto-tools retired-names timing-controls capability-controls source-boundary protobuf-controls protobuf-freshness kettle-protobuf-freshness fmt clippy docs tests wasm32-wasip1 core-wasm-clippy wasm-guest go-host kettle-go-host standalone; do
+  if [ "$stage" = standalone ] && [ "$aggregate" = gate:child ]; then
+   continue
+  fi
+  "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage "$stage"
+  if [ "${CONTROL_RECEIPT_FAULT:-}" = duplicate ]; then
+   "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage "$stage"
+  fi
+ done
+ case "${CONTROL_RECEIPT_FAULT:-}" in
+  partial) printf '{' > "$UMPIRE_GATE_RECEIPTS/fmt.json" ;;
+  missing) rm "$UMPIRE_GATE_RECEIPTS/fmt.json" ;;
+  extra) cp "$UMPIRE_GATE_RECEIPTS/fmt.json" "$UMPIRE_GATE_RECEIPTS/unexpected.json" ;;
+ esac
+ exit 0
+fi
+[ "$1" = exec ] && [ "$2" = -- ]
 shift 2
 case "$1 $2" in
  'cargo metadata') label=source-boundary ;;
@@ -132,6 +210,20 @@ set -euo pipefail
 [ "$CARGO_HOME" = "$CONTROL_CALLER/real home" ]
 [ "$UMPIRE_QUICK_CACHE" = 0 ] && [ "$UMPIRE_CACHE_DISABLE" = 1 ]
 [ "$MISE_AUTO_INSTALL" = false ] && [ "$MISE_EXEC_AUTO_INSTALL" = false ]
+if [ "${{CONTROL_OVERLAP:-0}}" = 1 ] && {{ [ "$label" = proto-tools ] || [ "$label" = fmt ]; }}; then
+ case "$label" in
+  proto-tools) peer=fmt ;;
+  fmt) peer=proto-tools ;;
+ esac
+ mkdir "$CONTROL_ROOT/active-$label"
+ remaining=500
+ while [ ! -d "$CONTROL_ROOT/active-$peer" ]; do
+  remaining=$((remaining - 1))
+  [ "$remaining" -gt 0 ] || {{ printf 'independent stages never overlapped\n' >&2; exit 95; }}
+  sleep 0.01
+ done
+ printf '%s\n' "$label" >> "$CONTROL_ROOT/overlap"
+fi
 printf '%s|%s|%s|%s|%s|%s|%s|%s\n' "$label" "$PWD" "$CARGO_TARGET_DIR" "$CARGO_HOME" "$UMPIRE_QUICK_CACHE" "$UMPIRE_CACHE_DISABLE" "${{UMPIRE_BACKENDS:-unset}}" "$*" >> "$CONTROL_LOG"
 if [ "$label" = tests ] && [ -n "${{CONTROL_EXPECT_PROFILE:-}}" ]; then
  [ "${{NEXTEST_PROFILE:-unset}}" = "$CONTROL_EXPECT_PROFILE" ]
@@ -181,6 +273,10 @@ fi
             .env("CONTROL_ROOT", &self.root)
             .env("CONTROL_CALLER", &self.caller)
             .env("CONTROL_LOG", &self.log)
+            .env_remove("UMPIRE_GATE_RECEIPTS")
+            .env_remove("UMPIRE_GATE_EXECUTABLE")
+            .env_remove("CONTROL_RECEIPT_FAULT")
+            .env_remove("CONTROL_REAL_MISE")
             .env("CONTROL_EXPECT_TARGET", expected)
             .env("CARGO_HOME", "cargo home")
             .env("UMPIRE_TIME_STEPS", if timed { "1" } else { "0" })
@@ -272,7 +368,7 @@ fn full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_comm
         assert!(String::from_utf8_lossy(&output.stdout).contains("UMPIRE_APALACHE=skip (default)"));
         let log = fs::read_to_string(&fixture.log).unwrap();
         assert!(log.lines().next().unwrap().contains("|0|1|unset|"));
-        assert!(log.contains("cargo nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final"));
+        assert!(log.contains("cargo nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final --no-tests fail"));
         assert!(log.contains("cargo test --doc --workspace --locked --quiet"));
         assert!(log.contains(
             "cargo build --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --quiet"
@@ -542,7 +638,7 @@ fn test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes() {
     let fixture = Fixture::new();
     for timed in [false, true] {
         for entry in [vec!["gate", "--stage", "tests"], vec!["update"]] {
-            for code in [0, 1, 37, 143] {
+            for code in [0, 1, 4, 37, 143] {
                 fixture.clear();
                 let mut command = fixture.command(timed);
                 command.args(&entry);
@@ -560,7 +656,7 @@ fn test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes() {
                 assert_eq!(fixture.labels(), expected);
                 let log = fs::read_to_string(&fixture.log).unwrap();
                 assert_eq!(log.lines().count(), expected.len());
-                assert!(log.lines().next().unwrap().ends_with("cargo nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final"), "{log}");
+                assert!(log.lines().next().unwrap().ends_with("cargo nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final --no-tests fail"), "{log}");
                 if code == 0 {
                     assert!(
                         log.lines()
@@ -650,6 +746,367 @@ fn required_profile_reaches_gate_update_and_direct_test_children() {
                 "entry={entry:?}, backend={backend}, apalache={apalache}: {output:?}"
             );
             assert_eq!(fixture.labels(), ["tests", "doctests"]);
+        }
+    }
+}
+
+#[test]
+fn scheduled_stage_requires_invocation_directory_before_starting_leaf() {
+    let fixture = Fixture::new();
+    let output =
+        fixture.command(false).args(["gate", "--scheduled-stage", "fmt"]).output().unwrap();
+    assert_status(&output, 1);
+    assert!(stderr(&output).contains("invocation-local stage receipt directory"), "{output:?}");
+    assert!(fixture.labels().is_empty());
+}
+
+#[test]
+fn scheduled_stage_atomically_commits_success_failure_and_scanner_error_receipts() {
+    let fixture = Fixture::new();
+    for timed in [false, true] {
+        for (stage, failure, expected) in
+            [("fmt", false, Some(0)), ("fmt", true, Some(37)), ("source-boundary", false, None)]
+        {
+            fixture.clear();
+            let receipts = tempfile::tempdir_in(&fixture.caller).unwrap();
+            if expected.is_none() {
+                write(&fixture.root.join("planted"), "forbidden_payload");
+            }
+            let mut command = fixture.command(timed);
+            command
+                .args(["gate", "--scheduled-stage", stage])
+                .env("UMPIRE_GATE_RECEIPTS", receipts.path());
+            if failure {
+                command.env("CONTROL_FAIL", "fmt");
+            }
+            let output = command.output().unwrap();
+            assert_status(&output, expected.unwrap_or(1));
+            let receipt: serde_json::Value = serde_json::from_slice(
+                &fs::read(receipts.path().join(format!("{stage}.json"))).unwrap(),
+            )
+            .unwrap();
+            assert_eq!(receipt["stage"], stage);
+            assert_eq!(receipt["exit"].as_i64(), Some(i64::from(expected.unwrap_or(1))));
+            if expected.is_none() {
+                assert_eq!(receipt["state"], "failed");
+                assert!(receipt["error"].is_string());
+            }
+            assert!(receipt["seconds"].as_f64().unwrap().is_finite());
+            assert!(receipt["seconds"].as_f64().unwrap() >= 0.0);
+            let published = fs::read_dir(receipts.path())
+                .unwrap()
+                .map(|entry| entry.unwrap().file_name())
+                .collect::<Vec<_>>();
+            assert!(
+                published.iter().all(|name| {
+                    name == &std::ffi::OsString::from(format!("{stage}.json"))
+                        || name == &std::ffi::OsString::from(format!("{stage}.claim"))
+                }),
+                "partial receipt files: {published:?}"
+            );
+            if expected.is_none() {
+                fs::remove_file(fixture.root.join("planted")).unwrap();
+            }
+        }
+    }
+}
+
+fn spawn_owned(
+    command: &Command,
+    caller: &Path,
+    lease: &umpire_backend_process::JvmLease,
+) -> (umpire_backend_process::OwnedProcess, tempfile::TempDir) {
+    let directory = tempfile::tempdir_in(caller).unwrap();
+    let out = fs::File::create(directory.path().join("stdout")).unwrap();
+    let err = fs::File::create(directory.path().join("stderr")).unwrap();
+    let process = umpire_backend_process::OwnedProcess::spawn_leased(
+        command,
+        directory.path(),
+        &out,
+        &err,
+        lease,
+    )
+    .unwrap();
+    (process, directory)
+}
+
+fn finish_owned(
+    (mut process, directory): (umpire_backend_process::OwnedProcess, tempfile::TempDir),
+) -> std::process::Output {
+    let status = loop {
+        if let Some(status) = process.try_wait().unwrap() {
+            break status;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    };
+    drop(process);
+    std::process::Output {
+        status,
+        stdout: fs::read(directory.path().join("stdout")).unwrap(),
+        stderr: fs::read(directory.path().join("stderr")).unwrap(),
+    }
+}
+
+#[test]
+fn concurrent_duplicate_stage_claim_runs_leaf_exactly_once_and_preserves_receipt() {
+    let fixture = Fixture::new();
+    for timed in [false, true] {
+        fixture.clear();
+        let receipts = tempfile::tempdir_in(&fixture.caller).unwrap();
+        let lease = umpire_backend_process::JvmLease::inherited_or_acquire().unwrap();
+        let mut first_command = fixture.command(timed);
+        first_command
+            .args(["gate", "--scheduled-stage", "fmt"])
+            .env("UMPIRE_GATE_RECEIPTS", receipts.path());
+        let first = spawn_owned(&first_command, &fixture.caller, &lease);
+        let second = spawn_owned(&first_command, &fixture.caller, &lease);
+        let first = finish_owned(first);
+        let second = finish_owned(second);
+        let statuses = [first.status.code().unwrap(), second.status.code().unwrap()];
+        assert!(statuses == [0, 1] || statuses == [1, 0], "{statuses:?}");
+        assert_eq!(fixture.labels(), ["fmt"]);
+        let bytes = fs::read(receipts.path().join("fmt.json")).unwrap();
+        let receipt: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        assert_eq!(receipt["stage"], "fmt");
+        assert_eq!(receipt["exit"], 0);
+        let third = finish_owned(spawn_owned(&first_command, &fixture.caller, &lease));
+        assert_status(&third, 1);
+        assert_eq!(fs::read(receipts.path().join("fmt.json")).unwrap(), bytes);
+        assert_eq!(fixture.labels(), ["fmt"]);
+    }
+}
+
+#[test]
+fn successful_scheduler_status_cannot_replace_complete_unique_atomic_stage_records() {
+    let fixture = Fixture::new();
+    for timed in [false, true] {
+        for fault in ["zero", "duplicate", "partial", "missing", "extra"] {
+            fixture.clear();
+            let output = fixture
+                .command(timed)
+                .arg("gate")
+                .env("CONTROL_RECEIPT_FAULT", fault)
+                .output()
+                .unwrap();
+            assert!(!output.status.success(), "accepted {fault} receipts: {output:?}");
+            assert!(!String::from_utf8_lossy(&output.stdout).contains("gate total"));
+            if fault == "zero" {
+                assert!(fixture.labels().is_empty());
+            } else if fault == "duplicate" {
+                assert_eq!(fixture.labels(), ["proto-tools"]);
+            } else {
+                assert_eq!(
+                    fixture.labels(),
+                    LEAVES.iter().map(|(_, leaf)| *leaf).collect::<Vec<_>>()
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn independent_native_stages_reach_each_other_while_both_are_active() {
+    let fixture = Fixture::new();
+    for timed in [false, true] {
+        fixture.clear();
+        let receipts = tempfile::tempdir_in(&fixture.caller).unwrap();
+        let lease = umpire_backend_process::JvmLease::inherited_or_acquire().unwrap();
+        let mut command = fixture.command(timed);
+        command
+            .args(["gate", "--scheduled-stage", "proto-tools"])
+            .env("UMPIRE_GATE_RECEIPTS", receipts.path())
+            .env("CONTROL_OVERLAP", "1");
+        let first = spawn_owned(&command, &fixture.caller, &lease);
+        let mut command = fixture.command(timed);
+        command
+            .args(["gate", "--scheduled-stage", "fmt"])
+            .env("UMPIRE_GATE_RECEIPTS", receipts.path())
+            .env("CONTROL_OVERLAP", "1");
+        let second = spawn_owned(&command, &fixture.caller, &lease);
+        assert_status(&finish_owned(first), 0);
+        assert_status(&finish_owned(second), 0);
+        let mut overlap = fs::read_to_string(fixture.root.join("overlap"))
+            .unwrap()
+            .lines()
+            .map(str::to_owned)
+            .collect::<Vec<_>>();
+        overlap.sort();
+        assert_eq!(overlap, ["fmt", "proto-tools"]);
+        for stage in ["proto-tools", "fmt"] {
+            fs::remove_dir(fixture.root.join(format!("active-{stage}"))).unwrap();
+            let receipt: serde_json::Value = serde_json::from_slice(
+                &fs::read(receipts.path().join(format!("{stage}.json"))).unwrap(),
+            )
+            .unwrap();
+            assert_eq!(receipt["exit"], 0);
+        }
+        fs::remove_file(fixture.root.join("overlap")).unwrap();
+    }
+}
+
+#[test]
+fn full_gate_publishes_complete_ordered_invocation_local_receipts_on_every_run() {
+    let fixture = Fixture::new();
+    let expected = STAGES.to_vec();
+    let mut directories = std::collections::HashSet::new();
+    for timed in [false, true] {
+        fixture.clear();
+        let output = fixture.command(timed).arg("gate").output().unwrap();
+        assert_status(&output, 0);
+        let invocations = fs::read_to_string(fixture.root.join("invocations")).unwrap();
+        let directory = PathBuf::from(invocations.lines().last().unwrap());
+        assert!(directory.is_absolute());
+        assert!(directory.starts_with(fixture.caller.join("relative target/gate-receipts")));
+        assert!(directories.insert(directory.clone()), "reused invocation {directory:?}");
+        let rows = fs::read_to_string(directory.join("stages.jsonl"))
+            .unwrap()
+            .lines()
+            .map(|line| serde_json::from_str::<serde_json::Value>(line).unwrap())
+            .collect::<Vec<_>>();
+        assert_eq!(rows.len(), expected.len());
+        let actual = rows.iter().map(|row| row["stage"].as_str().unwrap()).collect::<Vec<_>>();
+        assert_eq!(actual, expected);
+        for row in rows {
+            let name = row["stage"].as_str().unwrap();
+            assert_eq!(row["exit"], 0);
+            assert!(row["seconds"].as_f64().unwrap() >= 0.0);
+            assert!(directory.join(format!("{name}.claim")).is_file());
+            let atomic: serde_json::Value =
+                serde_json::from_slice(&fs::read(directory.join(format!("{name}.json"))).unwrap())
+                    .unwrap();
+            assert_eq!(atomic, row);
+        }
+    }
+}
+
+#[test]
+fn simultaneous_failed_native_leaves_both_retain_names_receipts_and_status() {
+    let fixture = Fixture::new();
+    for timed in [false, true] {
+        fixture.clear();
+        let output = fixture
+            .command(timed)
+            .arg("gate")
+            .env("CONTROL_RECEIPT_FAULT", "simultaneous")
+            .output()
+            .unwrap();
+        assert_status(&output, 37);
+        for stage in ["fmt", "proto-tools"] {
+            assert!(
+                stderr(&output).contains(&format!("framework stage {stage} failed (exit 37)")),
+                "{output:?}"
+            );
+            assert!(stderr(&output).contains(&format!("{stage} child diagnostic")), "{output:?}");
+        }
+        let mut labels = fixture.labels();
+        labels.sort();
+        assert_eq!(labels, ["fmt", "proto-tools"]);
+        let invocations = fs::read_to_string(fixture.root.join("invocations")).unwrap();
+        let directory = PathBuf::from(invocations.lines().last().unwrap());
+        let records = fs::read_to_string(directory.join("stages.jsonl"))
+            .unwrap()
+            .lines()
+            .map(|line| serde_json::from_str::<serde_json::Value>(line).unwrap())
+            .collect::<Vec<_>>();
+        assert_eq!(records.len(), STAGES.len());
+        for record in records {
+            if record["stage"] == "proto-tools" || record["stage"] == "fmt" {
+                assert_eq!(record["exit"], 37);
+            } else {
+                assert_eq!(record["state"], "not-started");
+            }
+        }
+    }
+}
+
+#[test]
+fn failed_scheduler_is_waited_and_its_owned_descendant_is_terminated_before_return() {
+    let fixture = Fixture::new();
+    for timed in [false, true] {
+        fixture.clear();
+        let output = fixture
+            .command(timed)
+            .arg("gate")
+            .env("CONTROL_RECEIPT_FAULT", "orphan")
+            .output()
+            .unwrap();
+        assert_status(&output, 37);
+        assert!(stderr(&output).contains("framework stage fmt failed (exit 37)"), "{output:?}");
+        assert_eq!(fixture.labels(), ["fmt"]);
+        assert!(
+            !fixture.root.join("child-escaped-cleanup").exists(),
+            "scheduler left descendant running to completion"
+        );
+        let pid = fs::read_to_string(fixture.root.join("owned-child")).unwrap();
+        let mut gone = false;
+        for _ in 0..100 {
+            let alive = Command::new("/bin/kill")
+                .args(["-0", pid.trim()])
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::null())
+                .status()
+                .unwrap();
+            if !alive.success() {
+                gone = true;
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        }
+        assert!(gone, "owned descendant {pid} survived failed scheduler");
+        fs::remove_file(fixture.root.join("owned-child")).unwrap();
+    }
+}
+
+#[test]
+fn shipping_mise_graph_really_overlaps_independent_native_leaves() {
+    let fixture = Fixture::new();
+    let mise = std::env::split_paths(&std::env::var_os("PATH").unwrap())
+        .map(|path| path.join("mise"))
+        .find(|path| path.is_file())
+        .expect("shipping scheduler mise is required for its integration control");
+    let output = fixture
+        .command(false)
+        .arg("gate")
+        .env("CONTROL_REAL_MISE", mise)
+        .env("MISE_TRUSTED_CONFIG_PATHS", &fixture.root)
+        .env("CONTROL_OVERLAP", "1")
+        .output()
+        .unwrap();
+    assert_status(&output, 0);
+    let mut overlap = fs::read_to_string(fixture.root.join("overlap"))
+        .unwrap()
+        .lines()
+        .map(str::to_owned)
+        .collect::<Vec<_>>();
+    overlap.sort();
+    assert_eq!(overlap, ["fmt", "proto-tools"]);
+    let mut actual = fixture.labels();
+    actual.sort();
+    let mut expected = LEAVES.iter().map(|(_, leaf)| (*leaf).to_owned()).collect::<Vec<_>>();
+    expected.sort();
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn required_test_stage_selects_bounded_profile_and_empty_selection_status_is_preserved() {
+    let fixture = Fixture::new();
+    for timed in [false, true] {
+        for code in [0, 4] {
+            fixture.clear();
+            let mut command = fixture.command(timed);
+            command.args(["gate", "--stage", "tests"]).env("UMPIRE_BACKENDS", "require");
+            if code != 0 {
+                command.env("CONTROL_FAIL", "tests").env("CONTROL_EXIT", code.to_string());
+            }
+            let output = command.output().unwrap();
+            assert_status(&output, code);
+            let log = fs::read_to_string(&fixture.log).unwrap();
+            assert!(log.lines().next().unwrap().ends_with("cargo nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final --no-tests fail"), "{log}");
+            assert_eq!(
+                fixture.labels(),
+                if code == 0 { vec!["tests", "doctests"] } else { vec!["tests"] }
+            );
+            assert!(log.lines().all(|line| line.contains("|0|1|require|")), "{log}");
         }
     }
 }

@@ -1,4 +1,4 @@
-use super::{Gate, STAGES, boundary};
+use super::{Gate, boundary, scheduler};
 use crate::{Error, Result};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -126,7 +126,7 @@ fn snapshot(source: &Path, source_target: &Path, root: &Path, target: &Path) -> 
         excluded: [".git", "target", "build", ".bin"].map(String::from).to_vec(),
     })
 }
-pub(super) fn admit(manifest: &Path, gate: &Gate) -> Result<PathBuf> {
+pub(super) fn verify(manifest: &Path, gate: &Gate) -> Result<()> {
     let bytes =
         fs::read(manifest).map_err(|e| Error::Invalid(format!("standalone provenance: {e}")))?;
     let provenance: Provenance = serde_json::from_slice(&bytes)?;
@@ -141,15 +141,19 @@ pub(super) fn admit(manifest: &Path, gate: &Gate) -> Result<PathBuf> {
     {
         return Err(Error::Invalid("standalone provenance/context mismatch".into()));
     }
+    if inventory(&gate.root, &gate.target)? != provenance.inputs {
+        return Err(Error::Invalid("standalone provenance input hashes changed".into()));
+    }
+    local_configuration(&gate.root)?;
+    Ok(())
+}
+pub(super) fn admit(manifest: &Path, gate: &Gate) -> Result<PathBuf> {
+    verify(manifest, gate)?;
     for name in [".git", ".bin", "target"] {
         if gate.root.join(name).exists() {
             return Err(Error::Invalid(format!("unexpected standalone copied cache: {name}")));
         }
     }
-    if inventory(&gate.root, &gate.target)? != provenance.inputs {
-        return Err(Error::Invalid("standalone provenance input hashes changed".into()));
-    }
-    local_configuration(&gate.root)?;
     let records = manifest.with_file_name("stages.jsonl");
     if records.exists() {
         return Err(Error::Invalid("standalone recursion or reused stage receipt".into()));
@@ -412,7 +416,7 @@ pub(super) fn run(gate: &Gate) -> Result<i32> {
         let mut command = clean_command(gate, &root, &target, program)?;
         command.args(args);
         let setup_started = Instant::now();
-        let code = gate.execute(name, command)?;
+        let code = gate.execute_clean(name, command)?;
         record(
             &output.join("setup.jsonl"),
             name,
@@ -425,7 +429,7 @@ pub(super) fn run(gate: &Gate) -> Result<i32> {
     }
     let mut command = clean_command(gate, &root, &target, "mise")?;
     command.args(["exec", "--", "cargo", "xtask", "gate", "--standalone-child"]).arg(&manifest);
-    let code = gate.execute("standalone-child", command)?;
+    let code = gate.execute_clean("standalone-child", command)?;
     finish(&output, &target, &manifest, code, started.elapsed().as_secs_f64())
 }
 fn artifact(path: &Path) -> serde_json::Value {
@@ -437,19 +441,41 @@ fn artifact(path: &Path) -> serde_json::Value {
     };
     serde_json::json!({"path": path, "sha256": bytes.map(|bytes| digest(&bytes)), "files": files})
 }
+fn gate_inventory_command(root: &Path) -> Command {
+    let mut command = Command::new("mise");
+    command
+        .current_dir(root)
+        .env("UMPIRE_FRAMEWORK_ROOT", root)
+        .env("MISE_AUTO_INSTALL", "false")
+        .env("MISE_EXEC_AUTO_INSTALL", "false");
+    command
+}
 fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64) -> Result<i32> {
     let records = fs::read_to_string(output.join("stages.jsonl")).unwrap_or_default();
     let stages = records
         .lines()
         .map(serde_json::from_str::<serde_json::Value>)
         .collect::<std::result::Result<Vec<_>, _>>()?;
-    let expected = STAGES
-        .iter()
-        .filter(|(name, _)| *name != "standalone")
-        .map(|(name, _)| *name)
-        .collect::<Vec<_>>();
+    let provenance: Provenance = serde_json::from_slice(&fs::read(manifest)?)?;
+    let mut command = gate_inventory_command(&provenance.root);
+    command.env("CARGO_TARGET_DIR", target);
+    let inventory = scheduler::inventory(command, "gate:");
+    let inventory_error = inventory.as_ref().err().map(ToString::to_string);
+    let expected = match inventory {
+        Ok(names) => names,
+        Err(error) if code != 0 => {
+            let _ = error;
+            Vec::new()
+        }
+        Err(error) => return Err(error.into()),
+    }
+    .into_iter()
+    .map(|name| name.rsplit('/').next().unwrap_or(&name).to_owned())
+    .filter(|name| name != "standalone")
+    .collect::<Vec<_>>();
     let actual = stages.iter().filter_map(|value| value["stage"].as_str()).collect::<Vec<_>>();
-    let stages_complete = actual == expected && stages.iter().all(|value| value["exit"] == 0);
+    let stages_complete = actual.iter().copied().eq(expected.iter().map(String::as_str))
+        && stages.iter().all(|value| value["exit"] == 0);
     let mut binaries = serde_json::Map::new();
     for name in [
         "debug/xtask",
@@ -504,7 +530,7 @@ fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64
             "version": 1, "tier": "validate", "backend": "require", "apalache": env::var("UMPIRE_APALACHE").unwrap_or_else(|_| "skip (default)".into()),
             "profile": "dev", "nextest_profile": "required", "compile_jobs": env::var("CARGO_BUILD_JOBS").ok(), "test_threads": crate::test_run::test_threads(env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require"), env::var_os("NEXTEST_TEST_THREADS").as_deref()), "skipped_child_stages": ["standalone"], "seconds": seconds, "child_exit": code, "complete": complete,
             "manifest_sha256": digest(&fs::read(manifest)?), "stages_sha256": digest(records.as_bytes()), "binaries": binaries,
-            "expected_stages": expected, "actual_stages": actual, "source_unchanged": source_unchanged, "artifacts": artifacts,
+            "expected_stages": expected, "inventory_error": inventory_error, "actual_stages": actual, "source_unchanged": source_unchanged, "artifacts": artifacts,
         }))?,
     )?;
     if code != 0 {
