@@ -93,7 +93,9 @@ fn directory(root: &Path, relative: &Path) -> io::Result<PathBuf> {
 pub fn command(root: &Path, tool: JarTool) -> io::Result<Command> {
     let root = root.canonicalize()?;
     let context = contained(&root, Path::new("mise-tools"))?;
-    for config in ["mise.toml", "mise.apalache.toml", "empty.toml"] {
+    for config in
+        ["mise.toml", "mise.apalache.toml", "empty.toml", "mise.lock", "mise.apalache.lock"]
+    {
         if !contained(&context, Path::new(config))?.is_file() {
             return Err(refusal("mise jar configuration is not a regular file"));
         }
@@ -119,6 +121,7 @@ pub fn command(root: &Path, tool: JarTool) -> io::Result<Command> {
         .env("MISE_SYSTEM_CONFIG_FILE", context.join("empty.toml"))
         .env("MISE_CEILING_PATHS", &root)
         .env("MISE_TRUSTED_CONFIG_PATHS", &context)
+        .env("MISE_LOCKED", "true")
         .env("MISE_AUTO_INSTALL", "false")
         .env("MISE_EXEC_AUTO_INSTALL", "false")
         .env("MISE_NOT_FOUND_AUTO_INSTALL", "false")
@@ -238,14 +241,16 @@ mod tests {
         let scratch = tempfile::tempdir()?;
         let root = scratch.path().canonicalize()?;
         fs::create_dir(root.as_path().join("mise-tools"))?;
-        for file in ["mise.toml", "mise.apalache.toml", "empty.toml"] {
+        for file in
+            ["mise.toml", "mise.apalache.toml", "empty.toml", "mise.lock", "mise.apalache.lock"]
+        {
             fs::write(root.as_path().join("mise-tools").join(file), "")?;
         }
         for tool in [JarTool::Tlc, JarTool::Apalache] {
             let command = command(root.as_path(), tool)?;
             let args: Vec<_> = command.get_args().collect();
             if matches!(tool, JarTool::Tlc) {
-                assert!(args.is_empty());
+                assert_eq!(args, [] as [&std::ffi::OsStr; 0]);
             } else {
                 assert_eq!(args, ["--env", "apalache"]);
             }
@@ -258,6 +263,10 @@ mod tests {
                     Some(&Some(std::ffi::OsStr::new("false")))
                 );
             }
+            assert_eq!(
+                environment.get(std::ffi::OsStr::new("MISE_LOCKED")),
+                Some(&Some(std::ffi::OsStr::new("true")))
+            );
             assert_eq!(
                 command.get_current_dir(),
                 Some(root.as_path().join("mise-tools").as_path())

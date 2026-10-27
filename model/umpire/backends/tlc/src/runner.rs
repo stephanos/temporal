@@ -1268,7 +1268,9 @@ mod tests {
                 "escaping cache wrote outside the root before admission"
             );
             fs::create_dir(fake.join("mise-tools"))?;
-            for config in ["mise.toml", "mise.apalache.toml", "empty.toml"] {
+            for config in
+                ["mise.toml", "mise.apalache.toml", "empty.toml", "mise.lock", "mise.apalache.lock"]
+            {
                 fs::write(fake.join("mise-tools").join(config), "")?;
             }
             let error = umpire_backend_process::tool_provider::command(

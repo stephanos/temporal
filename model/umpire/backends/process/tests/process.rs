@@ -393,30 +393,28 @@ fn simulated_darwin_helper_cannot_start_an_escaped_descendant() -> Result<(), Re
 }
 
 #[test]
-#[cfg(target_os = "linux")]
-fn installer_containment_preflight_requires_no_descendants() -> Result<(), Refusal> {
-    if !non_root()? {
-        return Ok(());
-    }
+fn provider_containment_refuses_before_spawning_mise() -> Result<(), Refusal> {
     let scratch = Scratch::new(&root()?)?;
     let workspace = scratch.path().join("workspace");
-    let scripts = workspace.join("scripts");
-    fs::create_dir_all(&scripts)?;
-    let script = scripts.join("fetch-tlc.sh");
-    fs::copy(root()?.join("scripts/fetch-tlc.sh"), &script)?;
+    let context = workspace.join("mise-tools");
+    fs::create_dir_all(&context)?;
+    for name in ["mise.toml", "mise.apalache.toml", "empty.toml", "mise.lock", "mise.apalache.lock"]
+    {
+        fs::write(context.join(name), "")?;
+    }
     let outside = scratch.path().join("outside");
     fs::create_dir(&outside)?;
     std::os::unix::fs::symlink(&outside, workspace.join("build"))?;
-    let (status, output) = run_process(
-        &mut restricted(&script),
-        scratch.path(),
-        "preflight",
-        Limits { timeout: Duration::from_secs(2), ..Limits::default() },
-        None,
-    )?;
-    assert!(!status.success());
-    assert!(output.contains("TLC cache escapes repository"), "{output}");
-    assert!(!outside.join("tlc").exists());
+    for tool in [
+        umpire_backend_process::tool_provider::JarTool::Tlc,
+        umpire_backend_process::tool_provider::JarTool::Apalache,
+    ] {
+        let error = umpire_backend_process::tool_provider::command(&workspace, tool)
+            .err()
+            .ok_or_else(|| Refusal("escaping provider context admitted".into()))?;
+        assert!(error.to_string().contains("symlink"), "{error}");
+    }
+    assert_eq!(fs::read_dir(&outside)?.count(), 0);
     scratch.finish(Ok(()))
 }
 

@@ -26,15 +26,31 @@ copied to another custom cache. Exact install directories under
 | Java and checker version admission | Existing bounded backend runtime probes remain; no prerequisite presence/version preflight is added. |
 | Default/required backend modes | Gate ownership and opt-in selection remain with the existing stage graph. |
 
-This is an UNVALIDATED source-preparation candidate. Its changed config/data paths
-and admission inputs have not been exercised. Existing research proves actual
-TLC and Apalache mise feasibility with different resolver paths, not this provider.
-The source controls cover command selection, failed installs, scoped environment,
-data symlink refusal and runtime corrupt-JAR refusal. Before acceptance, run those
-controls and renew real clean installs/admission, bad checksum, partial trees,
-concurrent installs, interruption/cleanup and archive path-safety controls against
-these inputs. Do not infer hostile-archive safety from the pinned happy path.
+The jar environment owns default and optional mise lockfiles and requires locked
+resolution. This avoids HTTP remote-version metadata refresh while mise retains
+per-version installation coordination. Without those locks, concurrent clean
+installs in mise 2026.10.11 can race while clearing empty HTTP version metadata;
+locked concurrent installs preserve a single installation and return the same
+admitted path. The lockfiles pin the same universal JAR and archive URLs/checksums
+for Linux and macOS, including Linux musl variants.
 
-No lockfile is adopted here. The retired installer was the last tar/flate2 consumer; their direct dependencies
-are removed. Both workspace lockfiles prune their now-unreachable package closure; the admitted
-validation lane must confirm locked Cargo admission.
+Focused controls exercise native command selection, failure statuses, scoped
+configuration, regular-file and symlink admission, corrupted installed JARs,
+partial trees, concurrent installs and cancellation cleanup. Real clean installs
+of both official releases also pass native backend admission and Model execution.
+Download checksums and archive path traversal are enforced by mise. A symlinked
+archive JAR can be extracted by mise but is refused by native admission. The
+provider does not promise the former selected-member-only extraction policy.
+
+Mise owns download and extraction leftovers. The provider removes its own bounded
+capture directory on ordinary success, failure, timeout and cancellation; it does
+not remove shared installation data. The interrupted HTTP control verifies
+cancellation, capture cleanup and a successful explicit retry. It does not turn
+mise's cleanup into the former native staging cleanup-error contract. The retired
+`.install.lock` is no longer a provider input; its custom FIFO/symlink lock tests
+are obsolete, while data/config ancestor and installed-file admission remain.
+
+The retired installer was the last tar/flate2 consumer. Their direct dependencies
+and unreachable package closure are removed from both Cargo workspaces. Task .16
+retains the exact release, fixture, failure and control-mapping evidence under
+[task16](../../../.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task16/).

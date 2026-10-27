@@ -451,4 +451,4 @@ through the existing fetch entry points. Its data/cache/state overrides are loca
 to jar provisioning and lookup; guest-driver Rust, Java and Cargo context is not
 relocated. Default jar provisioning selects TLC, with Apalache available only by
 explicit opt-in. See [provider controls](umpire/mise-tools/README.md) for the
-retained admission requirements and unvalidated replacement controls.
+retained admission requirements and replacement control mapping.

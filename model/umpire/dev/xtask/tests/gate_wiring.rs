@@ -52,6 +52,7 @@ const MISE_SCRIPT: &str = r#"if [ "$PWD" = "$CONTROL_ROOT/mise-tools" ]; then
  [ "$MISE_DATA_DIR" = "$CONTROL_ROOT/build/mise-jars/data" ]
  [ "$MISE_CONFIG_DIR" = "$CONTROL_ROOT/build/mise-jars/config" ]
  [ "$MISE_CEILING_PATHS" = "$CONTROL_ROOT" ]
+ [ "$MISE_LOCKED" = true ]
  [ "$MISE_AUTO_INSTALL:$MISE_EXEC_AUTO_INSTALL" = false:false ]
  [ "$*" = '--env apalache install http:apalache@0.62.4' ]
  printf '%s|%s|%s\n' apalache-install "$PWD" "$*" >> "$CONTROL_LOG"
@@ -217,6 +218,8 @@ impl Fixture {
             ("mise.toml", include_str!("../../../mise-tools/mise.toml")),
             ("mise.apalache.toml", include_str!("../../../mise-tools/mise.apalache.toml")),
             ("empty.toml", include_str!("../../../mise-tools/empty.toml")),
+            ("mise.lock", include_str!("../../../mise-tools/mise.lock")),
+            ("mise.apalache.lock", include_str!("../../../mise-tools/mise.apalache.lock")),
         ] {
             write(&fixture.root.join("mise-tools").join(name), contents);
         }

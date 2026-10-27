@@ -1,3 +1,5 @@
+min_version = "2026.10.11"
+
 [tools."http:tlc"]
 version = "1.7.4"
 url = "https://github.com/tlaplus/tlaplus/releases/download/v1.7.4/tla2tools.jar"

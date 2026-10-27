@@ -13,7 +13,7 @@ fn dispatch_usage_failure_is_nonzero_and_structured() {
         let output =
             Command::new(env!("CARGO_BIN_EXE_xtask")).args([name, ".", "extra"]).output().unwrap();
         assert_eq!(output.status.code(), Some(1));
-        assert!(output.stdout.is_empty());
+        assert_eq!(output.stdout, b"");
         assert!(
             String::from_utf8(output.stderr)
                 .unwrap()
@@ -42,7 +42,9 @@ exit 42
             fs::write(root.path().join(file), "fixture").unwrap();
         }
         fs::create_dir(root.path().join("mise-tools")).unwrap();
-        for file in ["mise.toml", "mise.apalache.toml", "empty.toml"] {
+        for file in
+            ["mise.toml", "mise.apalache.toml", "empty.toml", "mise.lock", "mise.apalache.lock"]
+        {
             fs::write(root.path().join("mise-tools").join(file), "").unwrap();
         }
         let log = root.path().join("args");
@@ -96,7 +98,8 @@ exit 42
         fs::write(root.path().join(file), "fixture").unwrap();
     }
     fs::create_dir(root.path().join("mise-tools")).unwrap();
-    for file in ["mise.toml", "mise.apalache.toml", "empty.toml"] {
+    for file in ["mise.toml", "mise.apalache.toml", "empty.toml", "mise.lock", "mise.apalache.lock"]
+    {
         fs::write(root.path().join("mise-tools").join(file), "").unwrap();
     }
     std::thread::scope(|scope| {
@@ -117,7 +120,7 @@ exit 42
         for worker in workers {
             let output = worker.join().unwrap();
             assert_eq!(output.status.code(), Some(1));
-            assert!(output.stdout.is_empty());
+            assert_eq!(output.stdout, b"");
             let error = String::from_utf8(output.stderr).unwrap();
             assert!(error.contains("failed-provider"));
             assert!(error.contains("mise jar installation failed"));
