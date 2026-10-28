@@ -1,46 +1,253 @@
 //! Pure stage-budget admission over canonical observed counts and supplied inventory.
-use super::work_counts::{CountEvidence, WorkCounts};
-use std::io;
+use super::work_counts::{CountEvidence, MetricEvidence, WorkCounts};
+use serde::{Deserialize, Deserializer};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    io,
+};
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum Limit {
+    Bounded(u64),
+    NotApplicable,
+}
+
+impl<'de> Deserialize<'de> for Limit {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum Value {
+            Bounded(u64),
+            Label(String),
+        }
+        match Value::deserialize(deserializer)? {
+            Value::Bounded(value) => Ok(Self::Bounded(value)),
+            Value::Label(value) if value == "not-applicable" => Ok(Self::NotApplicable),
+            Value::Label(_) => Err(serde::de::Error::custom(
+                "metric limit must be unsigned integer or exact not-applicable string",
+            )),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct StageSpec {
+    reason: String,
+    warm_seconds: f64,
+    discovered: Limit,
+    executed: Limit,
+    ignored: Limit,
+    skipped: Limit,
+    tlc_launches: Limit,
+    tlc_configurations: Limit,
+}
+
+impl StageSpec {
+    fn limits(&self) -> [Limit; 6] {
+        [
+            self.discovered,
+            self.executed,
+            self.ignored,
+            self.skipped,
+            self.tlc_launches,
+            self.tlc_configurations,
+        ]
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct TableSpec {
+    version: u8,
+    admitted: bool,
+    drain_seconds: f64,
+    stages: BTreeMap<String, StageSpec>,
+}
 
 #[derive(Debug)]
-pub(crate) struct Table;
+pub(crate) struct Table {
+    admitted: bool,
+    drain_seconds: f64,
+    stages: BTreeMap<String, StageBudget>,
+}
 #[derive(Debug)]
-pub(crate) struct StageBudget;
+pub(crate) struct StageBudget {
+    name: String,
+    spec: StageSpec,
+}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum TimeDecision {
     WithinBudget,
     RetryRequired,
 }
 
-impl Table {
-    pub(crate) fn parse(_source: &str) -> io::Result<Self> {
-        Err(io::Error::other("stage budget parser not implemented"))
+fn refusal(stage: &str, reason: &str) -> io::Error {
+    io::Error::other(format!("stage {stage} budget: {reason}"))
+}
+
+fn stage_identity(name: &str) -> io::Result<()> {
+    let parts = name.split('/').collect::<Vec<_>>();
+    if parts.len() != 2
+        || parts.iter().any(|part| {
+            part.is_empty()
+                || !part
+                    .bytes()
+                    .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
+                || !part.as_bytes().first().is_some_and(u8::is_ascii_alphanumeric)
+                || !part.as_bytes().last().is_some_and(u8::is_ascii_alphanumeric)
+        })
+    {
+        return Err(refusal(name, "invalid scoped stage identity"));
     }
+    Ok(())
+}
+
+impl Table {
+    pub(crate) fn parse(source: &str) -> io::Result<Self> {
+        let table: TableSpec = toml::from_str(source).map_err(io::Error::other)?;
+        if table.version != 1
+            || !table.drain_seconds.is_finite()
+            || table.drain_seconds <= 0.0
+            || table.stages.is_empty()
+        {
+            return Err(io::Error::other(
+                "invalid stage budget table version, drain bound or empty stages",
+            ));
+        }
+        let mut stages = BTreeMap::new();
+        for (name, spec) in table.stages {
+            stage_identity(&name)?;
+            if spec.reason.trim().is_empty()
+                || !spec.warm_seconds.is_finite()
+                || spec.warm_seconds <= 0.0
+            {
+                return Err(refusal(&name, "missing review reason or invalid warm-time budget"));
+            }
+            let limits = spec.limits();
+            let quartet = &limits[..4];
+            if quartet.iter().any(|limit| matches!(limit, Limit::Bounded(_)))
+                && quartet.contains(&Limit::NotApplicable)
+            {
+                return Err(refusal(
+                    &name,
+                    "test limits must be all numeric or all not-applicable",
+                ));
+            }
+            stages.insert(name.clone(), StageBudget { name, spec });
+        }
+        Ok(Self { admitted: table.admitted, drain_seconds: table.drain_seconds, stages })
+    }
+
     pub(crate) fn validate_inventory(
         &self,
-        _registered: &[String],
-        _selected: &[String],
+        registered: &[String],
+        selected: &[String],
     ) -> io::Result<()> {
-        Err(io::Error::other("stage budget inventory admission not implemented"))
+        for name in registered.iter().chain(selected) {
+            stage_identity(name)?;
+        }
+        let actual: BTreeSet<_> = registered.iter().map(String::as_str).collect();
+        let chosen: BTreeSet<_> = selected.iter().map(String::as_str).collect();
+        if actual.len() != registered.len() || chosen.len() != selected.len() {
+            return Err(io::Error::other("duplicate registered or selected budget stage"));
+        }
+        let declared: BTreeSet<_> = self.stages.keys().map(String::as_str).collect();
+        if declared != actual {
+            let missing = actual.difference(&declared).copied().collect::<Vec<_>>();
+            let phantom = declared.difference(&actual).copied().collect::<Vec<_>>();
+            return Err(io::Error::other(format!(
+                "stage budget registry mismatch: missing {missing:?}, unregistered {phantom:?}"
+            )));
+        }
+        if !chosen.is_subset(&actual) {
+            return Err(io::Error::other("selected budget stage is not registered"));
+        }
+        Ok(())
     }
-    pub(crate) fn budget(&self, _stage: &str) -> io::Result<&StageBudget> {
-        Err(io::Error::other("stage budget lookup not implemented"))
+
+    pub(crate) fn budget(&self, stage: &str) -> io::Result<&StageBudget> {
+        if !self.admitted {
+            return Err(refusal(stage, "table is not admitted"));
+        }
+        self.stages.get(stage).ok_or_else(|| refusal(stage, "missing registered budget"))
     }
+
     pub(crate) fn drain_seconds(&self) -> f64 {
-        0.0
+        self.drain_seconds
     }
 }
 
 impl StageBudget {
     pub(crate) fn check_counts(
         &self,
-        _counts: &WorkCounts,
-        _evidence: &CountEvidence,
+        counts: &WorkCounts,
+        evidence: &CountEvidence,
     ) -> io::Result<()> {
-        Err(io::Error::other("stage count admission not implemented"))
+        evidence
+            .validate_counts(counts)
+            .map_err(|error| refusal(&self.name, &error.to_string()))?;
+        let values = [
+            counts.discovered,
+            counts.executed,
+            counts.ignored,
+            counts.skipped,
+            counts.tlc_launches,
+            counts.tlc_configurations,
+        ];
+        let evidence = [
+            &evidence.tests,
+            &evidence.tests,
+            &evidence.tests,
+            &evidence.tests,
+            &evidence.tlc_launches,
+            &evidence.tlc_configurations,
+        ];
+        for (((metric, limit), actual), evidence) in
+            ["discovered", "executed", "ignored", "skipped", "tlc_launches", "tlc_configurations"]
+                .into_iter()
+                .zip(self.spec.limits())
+                .zip(values)
+                .zip(evidence)
+        {
+            match (limit, actual, evidence) {
+                (Limit::Bounded(maximum), Some(actual), MetricEvidence::Observed { .. }) => {
+                    if actual > maximum {
+                        return Err(refusal(
+                            &self.name,
+                            &format!("{metric} {actual} exceeds {maximum}"),
+                        ));
+                    }
+                }
+                (Limit::NotApplicable, None, MetricEvidence::NotApplicable { .. }) => (),
+                _ => {
+                    return Err(refusal(
+                        &self.name,
+                        &format!("{metric} limit does not match complete count evidence"),
+                    ));
+                }
+            }
+        }
+        Ok(())
     }
-    pub(crate) fn check_time(&self, _seconds: f64, _attempt: u8) -> io::Result<TimeDecision> {
-        Err(io::Error::other("stage time admission not implemented"))
+
+    pub(crate) fn check_time(&self, seconds: f64, attempt: u8) -> io::Result<TimeDecision> {
+        if !seconds.is_finite() || seconds < 0.0 || ![1, 2].contains(&attempt) {
+            return Err(refusal(&self.name, "invalid elapsed time or attempt"));
+        }
+        if seconds / self.spec.warm_seconds <= 1.25 {
+            return Ok(TimeDecision::WithinBudget);
+        }
+        if attempt == 1 {
+            return Ok(TimeDecision::RetryRequired);
+        }
+        Err(refusal(
+            &self.name,
+            &format!(
+                "second attempt {seconds}s exceeds warm budget {}s plus 25%",
+                self.spec.warm_seconds
+            ),
+        ))
     }
 }
 
@@ -172,6 +379,7 @@ mod tests {
             source().replace("drain_seconds = 2.5", "drain_seconds = 0.0"),
             source().replace("drain_seconds = 2.5", "drain_seconds = nan"),
             source().replace("drain_seconds = 2.5", "drain_seconds = inf"),
+            source().replace("warm_seconds = 10.0", "warm_seconds = 0.0"),
             source().replace("warm_seconds = 10.0", "warm_seconds = -1.0"),
             source().replace("warm_seconds = 10.0", "warm_seconds = nan"),
             source().replace("warm_seconds = 10.0", "warm_seconds = inf"),
@@ -181,6 +389,7 @@ mod tests {
                 "reason = 'reviewed'\nextra = true",
             ),
             source().replace("framework/tests", "tests"),
+            source().replace("framework/tests", "Framework/tests"),
             source().replace("framework/tests", "framework/nested/tests"),
             source().replace("framework/tests", "framework/../tests"),
             source().replace("framework/tests", " framework/tests"),
@@ -274,6 +483,11 @@ mod tests {
         let mut invalid = counts();
         invalid.discovered = None;
         assert!(table.budget("framework/tests")?.check_counts(&invalid, &evidence()).is_err());
+        let mut invalid = evidence();
+        invalid.tests = MetricEvidence::Observed {
+            authority: AuthorityRef { id: "bad/path".into(), sha256: "bad".into() },
+        };
+        assert!(table.budget("framework/tests")?.check_counts(&counts(), &invalid).is_err());
         let mut invalid = evidence();
         invalid.version = 2;
         assert!(table.budget("framework/tests")?.check_counts(&counts(), &invalid).is_err());
