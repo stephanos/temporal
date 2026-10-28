@@ -18,6 +18,10 @@ Measure the final gates warm, compare honestly with .1's historical references, 
 - Validation-cost review for spec close, reusing this measurement.
 - Include actual reversible activity edits for both cache-hit and fresh-TLC paths, standalone-copy validation, stage/count budget controls and both full gates. Preserve the baseline's inventory/stage identity mappings and account for bounded budget retries in totals. Root alone edits MILESTONES; update moved tool/workspace guidance in AGENTS, module map and guest/tooling docs using writing-for-agents where applicable.
 
+
+### Native timer carry-forward from .15 review (2026-10-28)
+
+The current native timer preserves the original shell's timestamp-only invalidation. Its SIGKILL control proves source bytes remain unchanged; it does not claim the realistic Model-content-edit R6 measurement. This task still owns that existing obligation: use actual reversible Model/activity edits for cache-hit and fresh-TLC measurements, and preserve source bytes under interruption and failure. Reuse the native scheduler and budget mechanism rather than introducing another timer or leaving edits in the owner's checkout. Also measure the repeated native-control execution cost before changing any selection; preserve every maintained control and honest counts.
 ## Acceptance
 - [ ] Before/after table recorded; every missed target is reported with its cause.
 - [ ] README documents the tiers and the cache limits.

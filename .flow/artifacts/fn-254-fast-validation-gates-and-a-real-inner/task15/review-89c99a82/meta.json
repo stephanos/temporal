@@ -1,0 +1,39 @@
+{
+  "type": "impl_review_fanout",
+  "focus": "Complete the integration lens that timed out in the original three-lens review, and review the demonstrated regression fixes. Current HEAD 89c99a82c0 is green: xtask159, guest-driver38, Temporal xtask39 pass; both strict clippy/fmt checks pass. Original correctness/contracts SHIP reports and explicit integration failure are committed under task15/review-c178882d. Read task15 R7, native dispatch/gate/Make interfaces and final source as needed to assess full integration, even though the delta base is the prior reviewed checkpoint. Fixes restore original mtime-only timing invalidation (actual SIGKILL regression proves byte safety), empty framework target defaults, and a plugin-root-correct missing-generator hint; the new interruption test is selected by native timing-controls. Evidence and RED/GREEN logs are committed under task15/review-fixes-20261028. Full isolated17-stage proof at exact source9bab with938discovered/935executed/3ignored is preserved under task15/standalone-9babff6c; it is not falsely claimed for the later source. Post-review fixes use current focused package/regression checks per working-rules cadence; unrelated broad combined Model runs and final timings remain task8. Keep task17 scheduler/leases/count authority, task16 provider, independent Models, all removed-script controls and source-only framework operation. Duplicated-control cost is a measured task8 follow-up, not permission to drop tests. No Model or Go behavior changes, new production hooks or migration work. Return a verdict and concrete introduced regressions; read committed artifacts instead of requiring scratch paths.",
+  "claim_token": null,
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.15",
+  "standalone": false,
+  "base_branch": "e0a29b99da3127f5973cd7af5d23744428e7ee33",
+  "reviewed_base_sha": "e0a29b99da3127f5973cd7af5d23744428e7ee33",
+  "reviewed_head_sha": "89c99a82c0523e0598d88d47a38685aaffbd85b5",
+  "artifact_sha256": "6955c21d38592fbdb6c57e5f4afc8f1a65643baeaf99488997fa1ef067c40b61",
+  "reservation_id": "47a954e6a0144ff8975c3f0dbe2b9155",
+  "rid": "47a954e6a0144ff8975c3f0dbe2b9155",
+  "primary_axis": "integration",
+  "draws": [
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "unparsed",
+        "reason": "invalid-compact-finding",
+        "block": 2
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "10797867-0c53-4b4a-8ce3-3270f41de3fa",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-28T19:45:14.892319Z",
+      "finished_at": "2026-10-28T19:51:06.452395Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/47a954e6a0144ff8975c3f0dbe2b9155/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/47a954e6a0144ff8975c3f0dbe2b9155/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-8f37faba39e2-fn-254-fast-validation-gates-and-a-real-inner.15.json",
+  "created_at": "2026-10-28T19:51:06.469173Z"
+}

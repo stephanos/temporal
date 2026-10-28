@@ -1,0 +1,16 @@
+{
+  "accepted": true,
+  "reviewed_source": "89c99a82c0523e0598d88d47a38685aaffbd85b5",
+  "framework_touched_packages_discovered": 197,
+  "temporal_discovered": 43,
+  "temporal_ignored": 4,
+  "translated_touched_baseline_missing": [],
+  "current_framework_package_execution": {
+    "xtask": 159,
+    "guest-driver": 38
+  },
+  "current_temporal_execution": 39,
+  "full_proof_source": "9babff6c815beb7cff92d7001f647ddca19663bf",
+  "full_proof_counts_not_relabelled": true,
+  "scope": "Current touched-package inventories and package runs, plus exact prior full-proof and its separately documented post-review delta."
+}
