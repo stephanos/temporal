@@ -13,6 +13,7 @@
     "fn-254-fast-validation-gates-and-a-real-inner.11": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.13": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.14": 0,
+    "fn-254-fast-validation-gates-and-a-real-inner.15": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.16": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.17": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.2": 0,
@@ -2092,6 +2093,74 @@
       "task": "fn-254-fast-validation-gates-and-a-real-inner.16",
       "timestamp": "2026-10-28T17:14:52.028688Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "36f20c0b01eb41e35c7fc6db3e1a115eddbd149412a0813074a8221a6c7b3f5d",
+      "backend": "claude",
+      "base_sha": "a82eb651cf4422a47df2917f6d4e2bd412ce2593",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-702c0004bcf9cbf8136f9662cc090522",
+            "classification": "introduced",
+            "findingId": "finding-702c0004bcf9cbf8136f9662cc090522",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-505cedae6d83b4c9bf8d161cf0c38610",
+            "classification": "introduced",
+            "findingId": "finding-505cedae6d83b4c9bf8d161cf0c38610",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ad7867a913343000a8ba3bb2b57fd456",
+            "classification": "introduced",
+            "findingId": "finding-ad7867a913343000a8ba3bb2b57fd456",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-7cb5fa827280b7a8785df74747c6dc58",
+            "classification": "introduced",
+            "findingId": "finding-7cb5fa827280b7a8785df74747c6dc58",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c178882dd0a492f61d0c1c7c1a873d803c6b85cd",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3266,
+      "output_sha256": "8043772af2e041803ef39a70a856a7b138c1bd80c63d2d3fd2cb673c3ee497cf",
+      "reservation_id": "27c73e11a2c64e60a76d79de9c85cb7f",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.15",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.15",
+      "timestamp": "2026-10-28T19:21:47.354400Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -2099,6 +2168,7 @@
     "impl:fn-254-fast-validation-gates-and-a-real-inner.11": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.13": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.14": 1,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.15": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.16": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.17": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.2": 1,
@@ -2117,6 +2187,7 @@
     "impl:fn-254-fast-validation-gates-and-a-real-inner.11": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.13": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.14": 0,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.15": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.16": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.17": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.2": 0,
@@ -2141,5 +2212,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-28T17:14:52.038164Z"
+  "updated_at": "2026-10-28T19:21:47.359431Z"
 }

@@ -148,7 +148,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
 | fn-254.12 | ⬜ todo | Budget parser/retry candidate retained; consume .17 Rust/TLC receipts, add actual Go-host counts, then admit tables against final .15/.16 interfaces. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
-| fn-254.15 | 🔄 in progress | Native leaves, controls and callers joined; 27 scripts removed, two bootstraps retained. Focused tests, strict lint and fresh17-stage standalone proof pass (938 discovered/935 executed/3ignored). Review remains before closure; .17 supervision/counts and .16 provisioning are retained (R7) |
+| fn-254.15 | 🔄 in progress | Native leaves, controls and callers joined; 27 scripts removed, two bootstraps retained. Focused tests, strict lint and fresh17-stage standalone proof pass (938 discovered/935 executed/3ignored). Two review lenses returned SHIP; integration timed out. Correct demonstrated timing-interruption and empty-target regressions, validate fixes, then finish integration review before closure (R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 
