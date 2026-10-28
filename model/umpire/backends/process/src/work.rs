@@ -230,7 +230,13 @@ impl Artifact {
 }
 
 fn hex(bytes: &[u8]) -> String {
-    bytes.iter().map(|byte| format!("{byte:02x}")).collect()
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut text = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        text.push(char::from(HEX[usize::from(byte >> 4)]));
+        text.push(char::from(HEX[usize::from(byte & 15)]));
+    }
+    text
 }
 fn path_hex(path: &std::path::Path) -> String {
     use std::os::unix::ffi::OsStrExt;
@@ -240,7 +246,7 @@ fn path_hex(path: &std::path::Path) -> String {
 #[derive(Clone, Debug)]
 struct Scope {
     receipts: PathBuf,
-    scope: String,
+    namespace: String,
     stage: String,
 }
 impl Scope {
@@ -255,15 +261,15 @@ impl Scope {
         .canonicalize()?;
         Ok(Some(Self {
             receipts,
-            scope: env::var("UMPIRE_GATE_SCOPE").unwrap_or_default(),
+            namespace: env::var("UMPIRE_GATE_SCOPE").unwrap_or_default(),
             stage: env::var("UMPIRE_GATE_STAGE").map_err(io::Error::other)?,
         }))
     }
     fn identity(&self) -> String {
-        crate::structural_sha256(&(path_hex(&self.receipts), &self.scope, &self.stage))
+        crate::structural_sha256(&(path_hex(&self.receipts), &self.namespace, &self.stage))
     }
     fn authorities(&self) -> io::Result<PathBuf> {
-        let path = self.receipts.join("authorities").join(&self.scope).join(&self.stage);
+        let path = self.receipts.join("authorities").join(&self.namespace).join(&self.stage);
         fs::create_dir_all(&path)?;
         if path.canonicalize()? != path {
             return Err(io::Error::other("escaping accounting authority directory"));
@@ -409,7 +415,7 @@ pub struct TlcInvocation {
 #[derive(Clone, Debug)]
 enum Origin {
     Admitted { java: Artifact, jar: Artifact },
-    Fixture(ProtocolFixture),
+    Fixture(Box<ProtocolFixture>),
 }
 impl TlcInvocation {
     /// Bind the Java/JAR identities inside the backend's successful admission closure.
@@ -420,7 +426,7 @@ impl TlcInvocation {
     }
     /// Carry the private backend renderer's pinned, positively evidenced protocol authority.
     pub fn fixture(fixture: ProtocolFixture) -> Self {
-        Self { origin: Origin::Fixture(fixture) }
+        Self { origin: Origin::Fixture(Box::new(fixture)) }
     }
     pub(crate) fn clean_command(
         &self,

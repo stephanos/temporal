@@ -574,11 +574,21 @@ fn run_process_inner(
             attempt.finish(command, &bytes, cause, result.as_ref().ok().and_then(ExitStatus::code))
         })
         .transpose();
+    finish_process(result, bytes, limits.output_bytes, accounting, observation)
+}
+
+fn finish_process(
+    result: Result<ExitStatus, Refusal>,
+    bytes: Vec<u8>,
+    output_bytes: u64,
+    accounting: std::io::Result<Option<()>>,
+    observation: Option<String>,
+) -> Result<(ExitStatus, String), ProcessFailure> {
     let output = match String::from_utf8(bytes) {
         Ok(output) => output,
         Err(error) => {
             let mut output = String::from_utf8_lossy(error.as_bytes()).into_owned();
-            let limit = usize::try_from(limits.output_bytes).unwrap_or(usize::MAX);
+            let limit = usize::try_from(output_bytes).unwrap_or(usize::MAX);
             output.truncate(output.floor_char_boundary(limit));
             let refusal = match accounting {
                 Ok(_) => format!("non-UTF8 subprocess output: {error}"),
