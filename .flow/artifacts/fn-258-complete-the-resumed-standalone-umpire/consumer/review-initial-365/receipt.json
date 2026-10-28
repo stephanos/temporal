@@ -1,0 +1,189 @@
+{
+  "base": "7c6d9fdcbd",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "claude-fable-5-1",
+      "session_id": "6f6c58ee-c13b-4921-b2ba-fa1bc4efb35b",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "claude-fable-5-1",
+      "session_id": "950e4fba-a96a-4f69-bd04-bf106c6a8c88",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "claude-fable-5-1",
+      "session_id": "34db4e37-0978-48c1-b0a5-ea1b987c10c5",
+      "verdict": "SHIP"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "claude",
+    "baseSha": "7c6d9fdcbd896b4903720350ae6706e32d203a5d",
+    "headSha": "a4e97c8e16e71f5cea515910fe692b738d31a366",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "7c6d9fdcbd896b4903720350ae6706e32d203a5d",
+          "headSha": "a4e97c8e16e71f5cea515910fe692b738d31a366",
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/readiness.json",
+          "side": "head",
+          "startLine": 55
+        },
+        "body": "Task acceptance item 2 requires `go env GOWORK` and `go list -m -json` to show the intended workspace/host module. No readiness log records either command; the parent workspace is evidenced only indirectly (the pre-fix `go.work` error and the passing root-caller compile). Cargo metadata is recorded, the Go side is not.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-b2cb10078283a26c8dc4d200447a0997014b7ed8bb1bcec989ffde4828704262",
+        "id": "finding-850f6e6c0bf072ea20d644d028106205",
+        "lastSeenReceiptId": "review-b2cb10078283a26c8dc4d200447a0997014b7ed8bb1bcec989ffde4828704262",
+        "ordinal": 2,
+        "rIds": [
+          "R4"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Add a readiness log capturing `go env GOWORK` and `go list -m -json github.com/temporalio/umpire/hosts/go umpire.local/temporal` from the pair root, and reference it from `readiness.json`.",
+        "title": "Task acceptance item 2 requires `go env GOWORK` and `go list -m -json` to show the intended workspace/host module"
+      },
+      {
+        "anchor": {
+          "baseSha": "7c6d9fdcbd896b4903720350ae6706e32d203a5d",
+          "headSha": "a4e97c8e16e71f5cea515910fe692b738d31a366",
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/source-adaptation.patch",
+          "side": "head",
+          "startLine": 97
+        },
+        "body": "The actionable missing-sibling precheck is added only to `model-quick`. `model-check` still goes straight to `cargo run --manifest-path model/Cargo.toml`, so with no sibling checkout the failure is Cargo's manifest-load error for `../../umpire/dev/guest-driver`, not the \"place umpire beside the Temporal checkout\" instruction R4 requires. `model-fmt`/`model-update`/`model-time` route through `framework-root.sh` and are fine.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-b2cb10078283a26c8dc4d200447a0997014b7ed8bb1bcec989ffde4828704262",
+        "id": "finding-24681eadb564c778bcd4473397d50064",
+        "lastSeenReceiptId": "review-b2cb10078283a26c8dc4d200447a0997014b7ed8bb1bcec989ffde4828704262",
+        "ordinal": 1,
+        "rIds": [
+          "R4"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Add the same `@/bin/bash \"$(CURDIR)/model/scripts/framework-root.sh\" >/dev/null` line to the `model-check` recipe, and cover it in the setup negative control.",
+        "title": "The actionable missing-sibling precheck is added only to `model-quick`"
+      },
+      {
+        "anchor": {
+          "baseSha": "7c6d9fdcbd896b4903720350ae6706e32d203a5d",
+          "headSha": "a4e97c8e16e71f5cea515910fe692b738d31a366",
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/source-adaptation.patch",
+          "side": "head",
+          "startLine": 447
+        },
+        "body": "`model/docs/paired-checkout.md` inside the candidate names `58a6989f\u2026` as \"the renewed standalone source checkpoint\" while the proved pair is `05473210`. Already listed as a limitation in `readiness.json`, but it is stale content shipped in the candidate.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-b2cb10078283a26c8dc4d200447a0997014b7ed8bb1bcec989ffde4828704262",
+        "id": "finding-f69d2316befaab08f664dbe6b72ac5da",
+        "lastSeenReceiptId": "review-b2cb10078283a26c8dc4d200447a0997014b7ed8bb1bcec989ffde4828704262",
+        "ordinal": 3,
+        "rIds": [
+          "R4"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Either drop the literal checkpoint from the doc and point at `current-source.json`, or refresh it at the task 5 cutover edit.",
+        "title": "`model/docs/paired-checkout"
+      },
+      {
+        "anchor": {
+          "baseSha": "7c6d9fdcbd896b4903720350ae6706e32d203a5d",
+          "headSha": "a4e97c8e16e71f5cea515910fe692b738d31a366",
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/readiness.json",
+          "side": "head",
+          "startLine": 4
+        },
+        "body": "Top-level `framework` is `ac79114a\u2026`, while `current-source.json`, the log manifest and the 054 binding record the pair framework as `05473210`. A reader of `readiness.json` alone gets the wrong pair.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-b2cb10078283a26c8dc4d200447a0997014b7ed8bb1bcec989ffde4828704262",
+        "id": "finding-2df307636044c9b4557948a02cf1ddef",
+        "lastSeenReceiptId": "review-b2cb10078283a26c8dc4d200447a0997014b7ed8bb1bcec989ffde4828704262",
+        "ordinal": 4,
+        "rIds": [
+          "R4"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Add a `superseded_by: readiness-logs/readiness-054-binding.json` pointer or rename the field to `framework_at_initial_checks`.",
+        "title": "Top-level `framework` is `ac79114a\u2026`, while `current-source"
+      },
+      {
+        "anchor": {
+          "baseSha": "7c6d9fdcbd896b4903720350ae6706e32d203a5d",
+          "headSha": "a4e97c8e16e71f5cea515910fe692b738d31a366",
+          "path": "MILESTONES.md",
+          "side": "head",
+          "startLine": 114
+        },
+        "body": "The fn-258.3 row still says \"final paired checks, review and recovery bundle pending\", but this range adds the recovery bundle and its verification (`bundle-recovery-3658582.json:8`) and the 054 paired checks (`readiness-054-binding.json:2`). Only the review remains pending.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-b2cb10078283a26c8dc4d200447a0997014b7ed8bb1bcec989ffde4828704262",
+        "id": "finding-ecd8ff30556fd322580221c0d673374a",
+        "lastSeenReceiptId": "review-b2cb10078283a26c8dc4d200447a0997014b7ed8bb1bcec989ffde4828704262",
+        "ordinal": 5,
+        "rIds": [
+          "R4"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Update the row to \"paired checks and recovery bundle recorded; independent review pending\".",
+        "title": "The fn-258"
+      },
+      {
+        "anchor": {
+          "baseSha": "7c6d9fdcbd896b4903720350ae6706e32d203a5d",
+          "headSha": "a4e97c8e16e71f5cea515910fe692b738d31a366",
+          "path": "common/testing/testpilot/README.md",
+          "side": "head",
+          "startLine": 1
+        },
+        "body": "The candidate rewrites every Go import and `go.mod` identity from `umpire.local/model` to the canonical host module, but `common/testing/testpilot/README.md` and `tools/canary/README.md` still document the retired `umpire.local/model` paths, and `tools/umpire/cmd/umpire/main.go` (patch line 1104) now points readers at `../umpire/hosts/go/README.md`, a path outside the repository. The readiness orphans note (`readiness.json:439`) classifies residual strings as archive or fixture material, which these two READMEs are not.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-b2cb10078283a26c8dc4d200447a0997014b7ed8bb1bcec989ffde4828704262",
+        "id": "finding-905f5073cd7c0fcc768792bc785bb363",
+        "lastSeenReceiptId": "review-b2cb10078283a26c8dc4d200447a0997014b7ed8bb1bcec989ffde4828704262",
+        "ordinal": 6,
+        "rIds": [],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Update the two READMEs in the consumer branch alongside the import rewrite, and name the sibling README by its documented checkout convention rather than a relative path.",
+        "title": "The candidate rewrites every Go import and `go"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-b2cb10078283a26c8dc4d200447a0997014b7ed8bb1bcec989ffde4828704262"
+  },
+  "focus": "Task3 R4 consumer SOURCE READINESS only: actual unmerged consumer3658582 branch paired with standalone05473210. Review consumer/source-adaptation.patch + current-source.json + readiness.json and readiness-logs/readiness-054-binding.json (alltargets/allfeatures compilation,16unit+7integration), allsix Go callers, canonical Go module resolution, ordinaryGo ResetProgram with failing cargo/rustc/mise sentinels, workspace preservation/missing checkout errors, sibling quickcaller, native-symbolic probe, bootstrap/guest/schema forwarding. Earlierguest repro sourced7e;403 changes ONLY reproducedguest,365 ONLY one testfile; currentguest closure report proves ac->054 irrelevant to87-package guest closure; bytehashd171 remains. Sourcebundle recovery using solely ac prerequisite independently verifies365 tree/guest and strictfsck. Candidate stays unmerged; CI activation/publication/sourcecutover and finalpairfullgates are tasks4/5, not accepted here. Source2/R2/R3 verifier and DLCprefetch changes outside task3scope. Allfocused tests green, no Model semantics or golden refresh. Use actual file/line numeric anchors and one field per line for findings.",
+  "id": "fn-258-complete-the-resumed-standalone-umpire.3",
+  "introduced_count": 6,
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "pre_existing_count": 0,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: The actionable missing-sibling precheck is added only to `model-quick`\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: The actionable missing-sibling precheck is added only to `model-quick`. `model-check` still goes straight to `cargo run --manifest-path model/Cargo.toml`, so with no sibling checkout the failure is Cargo's manifest-load error for `../../umpire/dev/guest-driver`, not the \"place umpire beside the Temporal checkout\" instruction R4 requires. `model-fmt`/`model-update`/`model-time` route through `framework-root.sh` and are fine.\n- **Suggestion**: Add the same `@/bin/bash \"$(CURDIR)/model/scripts/framework-root.sh\" >/dev/null` line to the `model-check` recipe, and cover it in the setup negative control.\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/source-adaptation.patch:97\n- **R-IDs**: R4\n\n## Issue 2\n- **Severity**: P2\n- **Title**: Task acceptance item 2 requires `go env GOWORK` and `go list -m -json` to show the intended workspace/host module\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: Task acceptance item 2 requires `go env GOWORK` and `go list -m -json` to show the intended workspace/host module. No readiness log records either command; the parent workspace is evidenced only indirectly (the pre-fix `go.work` error and the passing root-caller compile). Cargo metadata is recorded, the Go side is not.\n- **Suggestion**: Add a readiness log capturing `go env GOWORK` and `go list -m -json github.com/temporalio/umpire/hosts/go umpire.local/temporal` from the pair root, and reference it from `readiness.json`.\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/readiness.json:55\n- **R-IDs**: R4\n\n## Issue 3\n- **Severity**: P3\n- **Title**: `model/docs/paired-checkout\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: `model/docs/paired-checkout.md` inside the candidate names `58a6989f\u2026` as \"the renewed standalone source checkpoint\" while the proved pair is `05473210`. Already listed as a limitation in `readiness.json`, but it is stale content shipped in the candidate.\n- **Suggestion**: Either drop the literal checkpoint from the doc and point at `current-source.json`, or refresh it at the task 5 cutover edit.\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/source-adaptation.patch:447\n- **R-IDs**: R4\n\n## Issue 4\n- **Severity**: P3\n- **Title**: Top-level `framework` is `ac79114a\u2026`, while `current-source\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: Top-level `framework` is `ac79114a\u2026`, while `current-source.json`, the log manifest and the 054 binding record the pair framework as `05473210`. A reader of `readiness.json` alone gets the wrong pair.\n- **Suggestion**: Add a `superseded_by: readiness-logs/readiness-054-binding.json` pointer or rename the field to `framework_at_initial_checks`.\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/readiness.json:4\n- **R-IDs**: R4\n\n## Issue 5\n- **Severity**: P3\n- **Title**: The fn-258\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: The fn-258.3 row still says \"final paired checks, review and recovery bundle pending\", but this range adds the recovery bundle and its verification (`bundle-recovery-3658582.json:8`) and the 054 paired checks (`readiness-054-binding.json:2`). Only the review remains pending.\n- **Suggestion**: Update the row to \"paired checks and recovery bundle recorded; independent review pending\".\n- **File:Line**: MILESTONES.md:114\n- **R-IDs**: R4\n\n## Issue 6\n- **Severity**: P3\n- **Title**: The candidate rewrites every Go import and `go\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: The candidate rewrites every Go import and `go.mod` identity from `umpire.local/model` to the canonical host module, but `common/testing/testpilot/README.md` and `tools/canary/README.md` still document the retired `umpire.local/model` paths, and `tools/umpire/cmd/umpire/main.go` (patch line 1104) now points readers at `../umpire/hosts/go/README.md`, a path outside the repository. The readiness orphans note (`readiness.json:439`) classifies residual strings as archive or fixture material, which these two READMEs are not.\n- **Suggestion**: Update the two READMEs in the consumer branch alongside the import rewrite, and name the sibling README by its documented checkout convention rather than a relative path.\n- **File:Line**: common/testing/testpilot/README.md:1\n\n```json\n{\"classification_counts\": {\"introduced\": 6, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "5dd17a749187465799e1e08c14dfbc90",
+  "rid": "5dd17a749187465799e1e08c14dfbc90",
+  "session_id": "6f6c58ee-c13b-4921-b2ba-fa1bc4efb35b",
+  "spec": "claude:claude-fable-5-1:high",
+  "timestamp": "2026-10-28T07:19:55.710038Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}

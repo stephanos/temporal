@@ -2,7 +2,7 @@
 
 The owner's overview of open work, execution order and blockers.
 
-As of 2026-10-27.
+As of 2026-10-28.
 
 The owner resumed work on 2026-10-27: complete repository migration first, then
 continue this backlog. [fn-258](.flow/specs/fn-258-complete-the-resumed-standalone-umpire.md)
@@ -103,6 +103,10 @@ The standalone preserves current integrated source and both verified histories;
 records remain exact. The consumer candidate includes a regenerated guest reproduced
 in two independent sibling layouts, with unchanged public ABI sections and passing
 host/wire controls. These are source candidates; final gates and cutover remain open.
+The current standalone required-TLC validation passed all 18 parent and 17 isolated
+child stages, with 912 tests/doctests executed and three ignored in each tests stage.
+Its 1,679.762-second gate and 24.162-second edit loop miss their soft targets.
+Proof binaries, receipts and source snapshots are retained and independently recoverable.
 The in-tree framework stays authoritative until publication and verified cutover.
 Destination access remains blocked by SAML/credentials. See [MIGRATE.md](MIGRATE.md).
 
@@ -110,8 +114,8 @@ Destination access remains blocked by SAML/credentials. See [MIGRATE.md](MIGRATE
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-258.2 | 🔄 in progress | Standalone source/history join and adaptation inventory prepared; fresh required-backend gate and source review pending (R2, R3) |
-| fn-258.3 | 🔄 in progress | Actual consumer branch `3658582d` prepared with reproduced guest and local Rust/Go edit proofs; final paired checks, review and recovery bundle pending (R4) |
+| fn-258.2 | 🔄 in progress | Standalone `05473210` required-TLC gate, freshness and source/history inventories pass; final source review pending (R2, R3) |
+| fn-258.3 | 🔄 in progress | Consumer `3f5f6135` fixes review gaps in missing-checkout errors, workspace evidence and docs; recovery refresh and follow-up review pending. Final paired freshness remains .4 (R4) |
 | fn-258.4 | ⬜ todo | Exact final-pair fresh-target, release/parity, generation/guest and local-edit acceptance proofs with timings (R3–R5) |
 | fn-258.5 | ⬜ todo | Complete candidate receiving/recovery dispositions, destination access, authorized publication, pinned CI and source cutover; then resume fn-254 (R1, R4, R6) |
 
