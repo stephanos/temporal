@@ -43,7 +43,7 @@ checkpoint after any framework changes. GitHub destination inspection remains SA
 Backlog order remains **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
 ranks a fast feedback loop among the most important properties. The standalone workspace/driver and independent gate checkpoint are integrated, and the complete isolated proof passed.
-Immediate path: shell ports .15, then budgets .12, consuming the integrated .16 mise provider and closed .17 nextest/stage-DAG checkpoint. Final proof .8 also waits for .7 after committed fn-246 closure. The consumer/cache checkpoint is reviewed and closed; verified configurations cache independently of refuted siblings, and test-only Kettle readers no longer expand unrelated libraries. fn-254 gets first admission to shared build/JVM/review capacity. Already running fn-246.9/.13 work may reach safe checkpoints, and disjoint source work may continue without delaying fn-254. Finish fn-254.7 after committed fn-246 closure.
+Immediate path: budgets .12, consuming the reviewed and integrated .15 native ports, .16 mise provider and .17 nextest/stage-DAG checkpoint. Final proof .8 also waits for .7 after committed fn-246 closure. The consumer/cache checkpoint is reviewed and closed; verified configurations cache independently of refuted siblings, and test-only Kettle readers no longer expand unrelated libraries. fn-254 gets first admission to shared build/JVM/review capacity. Already running fn-246.9/.13 work may reach safe checkpoints, and disjoint source work may continue without delaying fn-254. Finish fn-254.7 after committed fn-246 closure.
 The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246; fn-254.13's workspace move is integrated. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; activity changes
 retain their listed dependencies and follow the current priority/source-ownership order.
 fn-255.3 and .4 (fuzz targets and cargo-mutants) may prepare disjoint source before fn-254 closes; execution waits for committed fn-254.12 budget admission. Shared pins, manifests, decoder seams and native command registrations land serially.
@@ -56,19 +56,19 @@ The owner lifted the validation hold on 2026-10-26. Resume focused fn-254 checks
 and retain unvalidated candidates until their required evidence and reviews pass.
 The fn-254.5 fixture/compiler checkpoint is reviewed and closed on `umpire`: all 24 cases,
 Temporal compiler/activity checks, 61 parser rows plus 18 compiler refusals, bounded profiles
-and snapshot repair controls passed. The .16 provider is reviewed, closed and integrated. The .15 native leaves, controls and callers are joined; 27 scripts are removed and only the two bootstraps remain. Focused xtask, guest-driver, Temporal xtask and TLC checks pass. The fresh17-stage standalone proof passed on `9babff6c81` with938 discovered,935 executed and three ignored; all909 prior inventory identities are retained through four documented renames. Review remains before closure. The .12 budget candidates remain unvalidated donor snapshots. Use committed objects selectively; preserve the dirty source-assembly checkout.
+and snapshot repair controls passed. The .16 provider is reviewed, closed and integrated. The .15 native leaves, controls and callers are reviewed, closed and integrated; 27 scripts are removed and only the two bootstraps remain. Focused xtask, guest-driver, Temporal xtask and TLC checks pass. The fresh17-stage standalone proof passed on `9babff6c81` with938 discovered,935 executed and three ignored; all909 prior inventory identities are retained through four documented renames. Correctness, contracts and the integration follow-up returned SHIP. The current native timer preserves source bytes under interruption through timestamp-only invalidation; realistic content-edit/final timing work remains explicit in .8. The .12 budget candidates remain unvalidated donor snapshots. Use committed objects selectively; preserve the dirty source-assembly checkout.
 Task .17's shared mise task graph, batched nextest runner, supervisor and Rust/TLC
 receipt producers are joined on `umpire`. Inventory, lifecycle, cross-invocation
 lease/handoff and public graph controls pass. The final real scheduled standalone
 passed in 990.582 s on `c5189bd35d`, including all 896 nextest tests and four doctest
 bodies, with matching parent-child receipt authority and all owned processes reaped.
-The current Activity warm run passed in 444.463 s with exactly five consumers,
+The retained Activity warm run passed in 444.463 s with exactly five consumers,
 148 tests, 23 negative/two positive compiler controls and three documentation targets;
 14 verified TLC cache hits avoided model executions. Post-review fixes pass focused
 CI, opt-in provisioning, formatting and supervision controls; follow-up review
 returned SHIP and .17 is closed. The owner deferred macOS validation on 2026-10-27; Darwin behavior is
 preserved, with no runtime acceptance claim.
-Remaining work includes the native port’s review and closure, budget admission and
+Remaining work includes actual Go/TLC count producers, budget admission and
 final combined-gate measurements. Downstream candidates are unvalidated and not integrated into `umpire`;
 preparation does not advance Flow dependencies or mark tasks complete. Integrate shared CLI/configuration
 changes in dependency order. fn-246.9/.13 have retained source/proof checkpoints awaiting integration and closure.
@@ -147,8 +147,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | --- | --- | --- |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
-| fn-254.12 | ⬜ todo | Budget parser/retry candidate retained; consume .17 Rust/TLC receipts, add actual Go-host counts, then admit tables against final .15/.16 interfaces. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
-| fn-254.15 | 🔄 in progress | Native leaves, controls and callers joined; 27 scripts removed, two bootstraps retained. Focused tests, strict lint and fresh17-stage standalone proof pass (938 discovered/935 executed/3ignored). Two review lenses returned SHIP; integration timed out. Timing-interruption, empty-target and provisioning-hint fixes pass regression/package checks and strict lint. Integration-focused review remains before closure (R7) |
+| fn-254.12 | ⬜ todo | Budget parser/retry candidate retained; complete actual Go-host counts and mixed-control TLC provenance, then admit tables against the integrated .15/.16/.17 interfaces. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 

@@ -1,0 +1,17 @@
+{
+  "schema": "fn25415-retention-tools-v1",
+  "status": "prepared_collection_unexecuted",
+  "files": {
+    "collect.py": "22378629f2c272e26bc6fa6d5e9d790461482e1f82dc73718c3d1f96f10e98e1",
+    "verify.py": "0c5ae955a82dc0efb1d4c129773f9466ec9e36b2567f80e157be56ba03ec6dca",
+    "test_controls.py": "c73ad6278b9ee93d73af0b7568191b4110fb3c157fba3f8dd3fe1750981fd79c",
+    "controls.json": "b75b9b94c880017ec6abfa0481ae66cab744aec8ca519e3bd14d4e2119a19cdb",
+    "derived-preparation.json": "9155656eb100d4747c371d878bfef33038e8a2a6c174ef04bb959bd2909f5eef",
+    "README.md": "c646a852f62423752d13e318d4b0b2a627ebc754ec6be8f0a2b49687f5e41388"
+  },
+  "original_preparation_sha256": "cf8af5a758144fd6ece56e0849404d01387b38f5cbf9834b44693022b0ea3228",
+  "original_member_count": 4799,
+  "derived_member_count": 4801,
+  "parent_bootstrap_additions": 2,
+  "cleanup_authorized": false
+}
