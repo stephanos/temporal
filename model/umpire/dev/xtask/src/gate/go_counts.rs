@@ -17,6 +17,12 @@ pub(super) struct Totals {
     pub(super) skipped: u64,
 }
 
+#[derive(Debug, Eq, PartialEq)]
+pub(super) struct Observation {
+    pub(super) totals: Totals,
+    pub(super) failed: bool,
+}
+
 fn invalid(message: &str) -> io::Error {
     io::Error::other(message)
 }
@@ -216,7 +222,8 @@ impl Inventory {
         Ok(Self { packages })
     }
 
-    pub(super) fn observe(&self, bytes: &[u8]) -> io::Result<Totals> {
+    pub(super) fn observe(&self, bytes: &[u8]) -> io::Result<Observation> {
+        let mut failed = false;
         let mut packages = BTreeMap::<String, PackageRun>::new();
         for event in events(bytes)? {
             if event.action == "build-output" {
@@ -292,7 +299,7 @@ impl Inventory {
                 }
             }
         }
-        Ok(totals)
+        Ok(Observation { totals, failed })
     }
 }
 
@@ -435,10 +442,9 @@ mod tests {
     #[test]
     fn top_level_units_match_packages_and_ignore_nested_seed_work() -> io::Result<()> {
         let inventory = Inventory::parse(&stream(&list()))?;
-        assert_eq!(
-            inventory.observe(&stream(&run()))?,
-            Totals { discovered: 4, executed: 3, ignored: 0, skipped: 1 }
-        );
+        let observed = inventory.observe(&stream(&run()))?;
+        assert!(!observed.failed);
+        assert_eq!(observed.totals, Totals { discovered: 4, executed: 3, ignored: 0, skipped: 1 });
         Ok(())
     }
 
@@ -456,7 +462,7 @@ mod tests {
                 event["Test"] = renamed.into();
             }
         }
-        assert_eq!(inventory.observe(&stream(&events))?.executed, 3);
+        assert_eq!(inventory.observe(&stream(&events))?.totals.executed, 3);
         Ok(())
     }
 
@@ -467,10 +473,9 @@ mod tests {
             json!({"Action":"output","Package":"empty","Output":"?   \tempty\t[no test files]\n"}),
             json!({"Action":"skip","Package":"empty"}),
         ]);
-        assert_eq!(
-            Inventory::parse(&empty)?.observe(&empty)?,
-            Totals { discovered: 0, executed: 0, ignored: 0, skipped: 0 }
-        );
+        let observed = Inventory::parse(&empty)?.observe(&empty)?;
+        assert!(!observed.failed);
+        assert_eq!(observed.totals, Totals { discovered: 0, executed: 0, ignored: 0, skipped: 0 });
         assert!(Inventory::parse(b"").is_err());
         Ok(())
     }
@@ -481,10 +486,9 @@ mod tests {
         let mut failed = run();
         failed[11]["Action"] = "fail".into();
         failed[18]["Action"] = "fail".into();
-        assert_eq!(
-            inventory.observe(&stream(&failed))?,
-            Totals { discovered: 4, executed: 3, ignored: 0, skipped: 1 }
-        );
+        let observed = inventory.observe(&stream(&failed))?;
+        assert!(observed.failed);
+        assert_eq!(observed.totals, Totals { discovered: 4, executed: 3, ignored: 0, skipped: 1 });
         Ok(())
     }
 
@@ -589,7 +593,7 @@ mod tests {
         assert!(inventory.observe(&stream(&events)).is_err());
         let mut events = run();
         events[18]["Action"] = "fail".into();
-        assert!(inventory.observe(&stream(&events)).is_ok());
+        assert!(inventory.observe(&stream(&events))?.failed);
         let mut events = run();
         events[11]["Action"] = "fail".into();
         assert!(inventory.observe(&stream(&events)).is_err());
@@ -601,7 +605,7 @@ mod tests {
         let inventory = Inventory::parse(&stream(&list()))?;
         let mut events = run();
         events.insert(0, json!({"ImportPath":"dependency","Action":"build-output","Output":"compiler diagnostic\n"}));
-        assert_eq!(inventory.observe(&stream(&events))?.discovered, 4);
+        assert_eq!(inventory.observe(&stream(&events))?.totals.discovered, 4);
         events.insert(1, json!({"ImportPath":"dependency","Action":"build-fail"}));
         assert!(inventory.observe(&stream(&events)).is_err());
         let mut events = run();
