@@ -1,5 +1,6 @@
 //! Framework validation stages and their native command executor.
 use crate::{Error, Result};
+use count_dispatch::{Contract, NoWorkReason};
 use std::{
     env,
     ffi::{OsStr, OsString},
@@ -174,100 +175,141 @@ impl Gate {
         }
     }
     fn stage(&self, name: &str) -> Result<i32> {
-        let command = match name {
-            "proto-tools" => self.native(&["proto-tools"])?,
-            "retired-names" => {
+        match name {
+            "proto-tools" => Contract::not_applicable(NoWorkReason::ToolProvisioning).run(|| {
+                let command = self.native(&["proto-tools"])?;
+                self.execute(name, &command)
+            }),
+            "retired-names" => Contract::not_applicable(NoWorkReason::NativeScan).run(|| {
                 let code = boundary::retired(&self.root, &self.target)?;
                 if code != 0 {
                     writeln!(io::stderr(), "framework stage {name} failed (exit {code})")?;
                 }
-                return Ok(code);
+                Ok(code)
+            }),
+            "source-boundary" => {
+                Contract::not_applicable(NoWorkReason::NativeScan).run(|| self.boundary())
             }
-            "source-boundary" => return self.boundary(),
-            "standalone" => return standalone::run(self),
-            "timing-controls" => return self.timing_controls(name),
-            "capability-controls" => {
-                return self.controls(
+            "standalone" => {
+                Contract::not_applicable(NoWorkReason::ChildExclusive).run(|| standalone::run(self))
+            }
+            "timing-controls" => Contract::observed().run(|| self.timing_controls(name)),
+            "capability-controls" => Contract::observed().run(|| {
+                self.controls(
                     name,
                     &["native_leaves::capability_controls_enforce_core_and_unsafe_policies"],
-                );
+                )
+            }),
+            "protobuf-controls" => Contract::observed().run(|| {
+                self.controls(name, &["proto::controls::tests::native_protobuf_behavior_controls"])
+            }),
+            "protobuf-freshness" => {
+                Contract::not_applicable(NoWorkReason::ProtobufGeneration).run(|| {
+                    let command = self.native(&["proto-go", "core", "--check"])?;
+                    self.execute(name, &command)
+                })
             }
-            "protobuf-controls" => {
-                return self.controls(
-                    name,
-                    &["proto::controls::tests::native_protobuf_behavior_controls"],
-                );
+            "kettle-protobuf-freshness" => {
+                Contract::not_applicable(NoWorkReason::ProtobufGeneration).run(|| {
+                    let command = self.native(&["proto-go", "kettle", "--check"])?;
+                    self.execute(name, &command)
+                })
             }
-            "protobuf-freshness" => self.native(&["proto-go", "core", "--check"])?,
-            "kettle-protobuf-freshness" => self.native(&["proto-go", "kettle", "--check"])?,
-            "fmt" => self.cargo(&["fmt", "--all", "--check"]),
-            "clippy" => self.cargo(&[
-                "clippy",
-                "--workspace",
-                "--all-targets",
-                "--all-features",
-                "--",
-                "-D",
-                "warnings",
-            ]),
-            "docs" => {
-                let mut c = self.cargo(&["doc", "--workspace", "--no-deps", "--quiet"]);
-                c.env("RUSTDOCFLAGS", "-D warnings");
-                c
-            }
-            "tests" => self.tests()?,
-            "wasm32-wasip1" => self.cargo(&[
-                "build",
-                "--target",
-                "wasm32-wasip1",
-                "-p",
-                "umpire-dsl",
-                "-p",
-                "umpire-checker",
-                "--quiet",
-            ]),
-            "core-wasm-clippy" => self.cargo(&[
-                "clippy",
-                "--target",
-                "wasm32-wasip1",
-                "-p",
-                "umpire-dsl",
-                "-p",
-                "umpire-checker",
-                "--lib",
-                "--locked",
-                "--",
-                "-D",
-                "warnings",
-            ]),
-            "wasm-guest" => self.native(&["build-guests"])?,
-            "go-host" | "kettle-go-host" => {
-                let mut c = self.command("mise");
-                c.args(["exec", "--", "go", "-C"])
-                    .arg(self.root.join(if name == "go-host" {
-                        "hosts/go"
-                    } else {
-                        "reference/kettle"
-                    }))
-                    .args(["test", "-tags", "test_dep", "-count=1", "./..."])
-                    .env("CGO_ENABLED", "0");
-                for (key, file) in [
-                    ("UMPIRE_WASM", "wasm32-wasip1/guest/umpire_stock_guest.wasm"),
-                    ("UMPIRE_KETTLE_WASM", "wasm32-wasip1/guest/umpire_kettle_guest.wasm"),
-                    ("UMPIRE_STATEFUL_WASM", "wasm32-wasip1/guest/stateful_control.wasm"),
-                    ("UMPIRE_CAUGHT_PANIC_WASM", "wasm32-wasip1/guest/caught_panic_control.wasm"),
-                    ("UMPIRE_OVERFLOW_WASM", "wasm32-wasip1/guest/overflow_control.wasm"),
-                    ("UMPIRE_PANIC_NATIVE", "panic-native"),
-                    ("UMPIRE_CURRENT_CONTRACT_NATIVE", "current-contract-native"),
-                ] {
-                    c.env(key, self.target.join(file));
-                }
-                c
-            }
-            _ => return Err(Error::Invalid(format!("unknown framework stage: {name}"))),
-        };
-        self.execute(name, &command)
+            "fmt" => Contract::not_applicable(NoWorkReason::Formatting).run(|| {
+                let command = self.cargo(&["fmt", "--all", "--check"]);
+                self.execute(name, &command)
+            }),
+            "clippy" => Contract::not_applicable(NoWorkReason::CompileOnly).run(|| {
+                let command = self.cargo(&[
+                    "clippy",
+                    "--workspace",
+                    "--all-targets",
+                    "--all-features",
+                    "--",
+                    "-D",
+                    "warnings",
+                ]);
+                self.execute(name, &command)
+            }),
+            "docs" => Contract::not_applicable(NoWorkReason::CompileOnly).run(|| {
+                let command = {
+                    let mut c = self.cargo(&["doc", "--workspace", "--no-deps", "--quiet"]);
+                    c.env("RUSTDOCFLAGS", "-D warnings");
+                    c
+                };
+                self.execute(name, &command)
+            }),
+            "tests" => Contract::observed().run(|| {
+                let command = self.tests()?;
+                self.execute(name, &command)
+            }),
+            "wasm32-wasip1" => Contract::not_applicable(NoWorkReason::CompileOnly).run(|| {
+                let command = self.cargo(&[
+                    "build",
+                    "--target",
+                    "wasm32-wasip1",
+                    "-p",
+                    "umpire-dsl",
+                    "-p",
+                    "umpire-checker",
+                    "--quiet",
+                ]);
+                self.execute(name, &command)
+            }),
+            "core-wasm-clippy" => Contract::not_applicable(NoWorkReason::CompileOnly).run(|| {
+                let command = self.cargo(&[
+                    "clippy",
+                    "--target",
+                    "wasm32-wasip1",
+                    "-p",
+                    "umpire-dsl",
+                    "-p",
+                    "umpire-checker",
+                    "--lib",
+                    "--locked",
+                    "--",
+                    "-D",
+                    "warnings",
+                ]);
+                self.execute(name, &command)
+            }),
+            "wasm-guest" => Contract::not_applicable(NoWorkReason::GuestBuild).run(|| {
+                let command = self.native(&["build-guests"])?;
+                self.execute(name, &command)
+            }),
+            "go-host" | "kettle-go-host" => Contract::observed().run(|| {
+                let command = {
+                    let mut c = self.command("mise");
+                    c.args(["exec", "--", "go", "-C"])
+                        .arg(self.root.join(if name == "go-host" {
+                            "hosts/go"
+                        } else {
+                            "reference/kettle"
+                        }))
+                        .args(["test", "-tags", "test_dep", "-count=1", "./..."])
+                        .env("CGO_ENABLED", "0");
+                    for (key, file) in [
+                        ("UMPIRE_WASM", "wasm32-wasip1/guest/umpire_stock_guest.wasm"),
+                        ("UMPIRE_KETTLE_WASM", "wasm32-wasip1/guest/umpire_kettle_guest.wasm"),
+                        ("UMPIRE_STATEFUL_WASM", "wasm32-wasip1/guest/stateful_control.wasm"),
+                        (
+                            "UMPIRE_CAUGHT_PANIC_WASM",
+                            "wasm32-wasip1/guest/caught_panic_control.wasm",
+                        ),
+                        ("UMPIRE_OVERFLOW_WASM", "wasm32-wasip1/guest/overflow_control.wasm"),
+                        ("UMPIRE_PANIC_NATIVE", "panic-native"),
+                        ("UMPIRE_CURRENT_CONTRACT_NATIVE", "current-contract-native"),
+                    ] {
+                        c.env(key, self.target.join(file));
+                    }
+                    c
+                };
+                self.execute(name, &command)
+            }),
+            _ => Err(Error::Invalid(format!("unknown framework stage: {name}"))),
+        }
     }
+
     fn boundary(&self) -> Result<i32> {
         boundary::check(&self.root, &self.target)?;
         let output = scheduler::execute(
