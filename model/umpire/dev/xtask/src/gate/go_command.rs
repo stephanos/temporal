@@ -278,9 +278,11 @@ mod tests {
     #[test]
     fn three_canonical_stages_preserve_context_and_add_only_json_inventory_flags() -> io::Result<()>
     {
-        for module in
-            ["/model/umpire/hosts/go", "/model/umpire/reference/kettle", "/model/temporal/hosts/go"]
-        {
+        for module in [
+            "/model/umpire/hosts/go",
+            "/model/umpire/reference/kettle",
+            "/model/extension/hosts/go",
+        ] {
             let original = command("/fixture/bin/mise", module);
             let observed = execution(&original)?;
             let listed = inventory(&original)?;
