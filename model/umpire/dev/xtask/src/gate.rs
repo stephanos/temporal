@@ -16,6 +16,7 @@ mod boundary;
 mod budget_attempts;
 mod budget_coordinator;
 mod budgets;
+pub mod count_dispatch;
 mod go_command;
 mod go_counts;
 pub mod lease;
