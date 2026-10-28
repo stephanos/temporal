@@ -17,6 +17,12 @@ pub(super) struct Totals {
     pub(super) skipped: u64,
 }
 
+#[derive(Debug, Eq, PartialEq)]
+pub(super) struct Observation {
+    pub(super) totals: Totals,
+    pub(super) failed: bool,
+}
+
 fn invalid(message: &str) -> io::Error {
     io::Error::other(message)
 }
@@ -96,16 +102,16 @@ impl Event {
 }
 
 fn events(bytes: &[u8]) -> io::Result<Vec<Event>> {
-    if bytes.is_empty()
-        || bytes.len() > MAX_STREAM_BYTES
-        || bytes.last() != Some(&b'\n')
-        || bytes.iter().filter(|byte| **byte == b'\n').count() > MAX_EVENTS
-    {
+    if bytes.is_empty() || bytes.len() > MAX_STREAM_BYTES || bytes.last() != Some(&b'\n') {
         return Err(invalid("empty, oversized or truncated Go JSON stream"));
     }
     bytes
         .split_inclusive(|byte| *byte == b'\n')
-        .map(|line| {
+        .enumerate()
+        .map(|(index, line)| {
+            if index >= MAX_EVENTS {
+                return Err(invalid("Go JSON event count exceeds bound"));
+            }
             if line.len() > MAX_RECORD_BYTES {
                 return Err(invalid("Go JSON record exceeds bound"));
             }
@@ -216,7 +222,8 @@ impl Inventory {
         Ok(Self { packages })
     }
 
-    pub(super) fn observe(&self, bytes: &[u8]) -> io::Result<Totals> {
+    pub(super) fn observe(&self, bytes: &[u8]) -> io::Result<Observation> {
+        let mut failed = false;
         let mut packages = BTreeMap::<String, PackageRun>::new();
         for event in events(bytes)? {
             if event.action == "build-output" {
@@ -225,6 +232,7 @@ impl Inventory {
             if event.build() || event.failed_build.is_some() {
                 return Err(invalid("Go execution build failed"));
             }
+            failed |= event.action == "fail";
             let name = event.package.as_deref().ok_or_else(|| invalid("missing Go package"))?;
             let inventory =
                 self.packages.get(name).ok_or_else(|| invalid("unknown Go execution package"))?;
@@ -292,7 +300,7 @@ impl Inventory {
                 }
             }
         }
-        Ok(totals)
+        Ok(Observation { totals, failed })
     }
 }
 
@@ -322,10 +330,10 @@ struct PackageRun {
 impl PackageRun {
     fn test(&mut self, name: &str, action: &str) -> io::Result<()> {
         if action == "run" {
-            if let Some((root, _)) = name.split_once('/') {
-                if !matches!(self.tests.get(root), Some(Phase::Running | Phase::Paused)) {
-                    return Err(invalid("Go subtest has no active root"));
-                }
+            if let Some((root, _)) = name.split_once('/')
+                && !matches!(self.tests.get(root), Some(Phase::Running | Phase::Paused))
+            {
+                return Err(invalid("Go subtest has no active root"));
             }
             if self.tests.insert(name.to_owned(), Phase::Running).is_some() {
                 return Err(invalid("duplicate Go test run"));
@@ -435,10 +443,9 @@ mod tests {
     #[test]
     fn top_level_units_match_packages_and_ignore_nested_seed_work() -> io::Result<()> {
         let inventory = Inventory::parse(&stream(&list()))?;
-        assert_eq!(
-            inventory.observe(&stream(&run()))?,
-            Totals { discovered: 4, executed: 3, ignored: 0, skipped: 1 }
-        );
+        let observed = inventory.observe(&stream(&run()))?;
+        assert!(!observed.failed);
+        assert_eq!(observed.totals, Totals { discovered: 4, executed: 3, ignored: 0, skipped: 1 });
         Ok(())
     }
 
@@ -456,7 +463,7 @@ mod tests {
                 event["Test"] = renamed.into();
             }
         }
-        assert_eq!(inventory.observe(&stream(&events))?.executed, 3);
+        assert_eq!(inventory.observe(&stream(&events))?.totals.executed, 3);
         Ok(())
     }
 
@@ -467,10 +474,9 @@ mod tests {
             json!({"Action":"output","Package":"empty","Output":"?   \tempty\t[no test files]\n"}),
             json!({"Action":"skip","Package":"empty"}),
         ]);
-        assert_eq!(
-            Inventory::parse(&empty)?.observe(&empty)?,
-            Totals { discovered: 0, executed: 0, ignored: 0, skipped: 0 }
-        );
+        let observed = Inventory::parse(&empty)?.observe(&empty)?;
+        assert!(!observed.failed);
+        assert_eq!(observed.totals, Totals { discovered: 0, executed: 0, ignored: 0, skipped: 0 });
         assert!(Inventory::parse(b"").is_err());
         Ok(())
     }
@@ -481,10 +487,9 @@ mod tests {
         let mut failed = run();
         failed[11]["Action"] = "fail".into();
         failed[18]["Action"] = "fail".into();
-        assert_eq!(
-            inventory.observe(&stream(&failed))?,
-            Totals { discovered: 4, executed: 3, ignored: 0, skipped: 1 }
-        );
+        let observed = inventory.observe(&stream(&failed))?;
+        assert!(observed.failed);
+        assert_eq!(observed.totals, Totals { discovered: 4, executed: 3, ignored: 0, skipped: 1 });
         Ok(())
     }
 
@@ -589,7 +594,7 @@ mod tests {
         assert!(inventory.observe(&stream(&events)).is_err());
         let mut events = run();
         events[18]["Action"] = "fail".into();
-        assert!(inventory.observe(&stream(&events)).is_ok());
+        assert!(inventory.observe(&stream(&events))?.failed);
         let mut events = run();
         events[11]["Action"] = "fail".into();
         assert!(inventory.observe(&stream(&events)).is_err());
@@ -601,7 +606,7 @@ mod tests {
         let inventory = Inventory::parse(&stream(&list()))?;
         let mut events = run();
         events.insert(0, json!({"ImportPath":"dependency","Action":"build-output","Output":"compiler diagnostic\n"}));
-        assert_eq!(inventory.observe(&stream(&events))?.discovered, 4);
+        assert_eq!(inventory.observe(&stream(&events))?.totals.discovered, 4);
         events.insert(1, json!({"ImportPath":"dependency","Action":"build-fail"}));
         assert!(inventory.observe(&stream(&events)).is_err());
         let mut events = run();
