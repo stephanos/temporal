@@ -1,0 +1,15 @@
+{
+  "pid": 4090033,
+  "command": [
+    "python3",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/session-wrap-20261027/retry-harness/proof.py",
+    "--source-root",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt",
+    "--expected-head",
+    "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+    "--output",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-resume-20261028-watchdog-01/proof-output",
+    "--execute"
+  ],
+  "started": 1793205890.7805653
+}

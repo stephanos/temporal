@@ -17,7 +17,7 @@ repair. Its five-consumer Activity warm run passed all 148 tests and 25 compiler
 controls in 444.463 s; the 60 s target remains unmet. Review fixes align CI's mise
 pin, restore combined Apalache opt-in, keep formatting outside JVM admission and
 make supervisor scratch private. Focused joined controls pass; follow-up review
-returned SHIP and .17 is closed. Provisioning .16 is frozen and blocked in its isolated worktree. About 32 GiB of idle validation caches were reclaimed
+returned SHIP and .17 is closed. Provisioning .16 resumed on frozen `60f1c762`; its new guarded standalone proof is running after renewed source, tool-hash and disk admission. [Resume checkpoint](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task16/resume-20261028/resume.json). About 32 GiB of idle validation caches were reclaimed
 with verified proof-output recovery. Go-host count producers and mixed-control
 TLC unknowns remain with .12. macOS validation remains owner-deferred.
 
@@ -150,7 +150,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
 | fn-254.12 | ⬜ todo | Budget parser/retry candidate retained; consume .17 Rust/TLC receipts, add actual Go-host counts, then admit tables against final .15/.16 interfaces. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
 | fn-254.15 | ⬜ todo | Integrated tree has 29 active shell paths; retained source candidate reduces these to two bootstraps/four controls. Adapt ports to .17 supervision and final .16 interfaces, finish native controls and validate (R7) |
-| fn-254.16 | 🔄 in progress | Resumed on 2026-10-28: frozen 60f1c762 and retained proof-tool hashes verified; both source and actual child filesystems admitted above 50 GiB. Preparing a fresh standalone proof with both filesystems monitored at the unchanged 30 GiB floor; review, closure and integration remain open. [Earlier retained state](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/session-wrap-20261027/resource-hold-draft.json) (R7) |
+| fn-254.16 | 🔄 in progress | Resumed on 2026-10-28: frozen 60f1c762 and retained proof-tool hashes verified; both source and actual child filesystems admitted above 50 GiB. Running a fresh standalone proof with both filesystems monitored at the unchanged 30 GiB floor; review, closure and integration remain open. [Earlier retained state](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/session-wrap-20261027/resource-hold-draft.json) (R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 
