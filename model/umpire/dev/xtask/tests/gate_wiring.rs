@@ -48,7 +48,18 @@ const LEAVES: &[(&str, &str)] = &[
     ("kettle-go-host", "kettle-go-host"),
 ];
 
-const MISE_SCRIPT: &str = r#"[ "$PWD" = "$CONTROL_ROOT" ]
+const MISE_SCRIPT: &str = r#"if [ "$PWD" = "$CONTROL_ROOT/mise-tools" ]; then
+ [ "$MISE_DATA_DIR" = "$CONTROL_ROOT/build/mise-jars/data" ]
+ [ "$MISE_CONFIG_DIR" = "$CONTROL_ROOT/build/mise-jars/config" ]
+ [ "$MISE_CEILING_PATHS" = "$CONTROL_ROOT" ]
+ [ "$MISE_LOCKED" = true ]
+ [ "$MISE_AUTO_INSTALL:$MISE_EXEC_AUTO_INSTALL" = false:false ]
+ [ "$*" = '--env apalache install http:apalache@0.62.4' ]
+ printf '%s|%s|%s\n' apalache-install "$PWD" "$*" >> "$CONTROL_LOG"
+ printf 'mise provider diagnostic\n' >&2
+ exit 37
+fi
+[ "$PWD" = "$CONTROL_ROOT" ]
 [ "$CARGO_TARGET_DIR" = "$CONTROL_EXPECT_TARGET" ]
 [ "$CARGO_HOME" = "$CONTROL_CALLER/real home" ]
 [ "$UMPIRE_QUICK_CACHE" = 0 ] && [ "$UMPIRE_CACHE_DISABLE" = 1 ]
@@ -203,7 +214,15 @@ impl Fixture {
             "case $1 in core) label=protobuf-freshness ;; kettle) label=kettle-protobuf-freshness ;; *) exit 90 ;; esac\n[ \"$2\" = --check ]\n",
         );
         Self::script(&fixture.bin.join("mise"), MISE_SCRIPT);
-        Self::script(&fixture.bin.join("curl"), "label=apalache-download\n");
+        for (name, contents) in [
+            ("mise.toml", include_str!("../../../mise-tools/mise.toml")),
+            ("mise.apalache.toml", include_str!("../../../mise-tools/mise.apalache.toml")),
+            ("empty.toml", include_str!("../../../mise-tools/empty.toml")),
+            ("mise.lock", include_str!("../../../mise-tools/mise.lock")),
+            ("mise.apalache.lock", include_str!("../../../mise-tools/mise.apalache.lock")),
+        ] {
+            write(&fixture.root.join("mise-tools").join(name), contents);
+        }
         fixture
     }
     fn script(path: &Path, body: &str) {
@@ -486,18 +505,13 @@ fn required_optional_backend_fetch_failure_is_named_and_prevents_first_stage() {
     let fixture = Fixture::new();
     for timed in [false, true] {
         fixture.clear();
-        let output = fixture
-            .command(timed)
-            .arg("gate")
-            .env("UMPIRE_APALACHE", "require")
-            .env("CONTROL_FAIL", "apalache-download")
-            .output()
-            .unwrap();
+        let output =
+            fixture.command(timed).arg("gate").env("UMPIRE_APALACHE", "require").output().unwrap();
         assert_status(&output, 1);
-        assert!(stderr(&output).contains("Apalache download failed"), "{output:?}");
+        assert!(stderr(&output).contains("mise jar installation failed"), "{output:?}");
         assert!(stderr(&output).contains("37"), "{output:?}");
         assert!(stderr(&output).contains("framework stage apalache failed (exit 1)"), "{output:?}");
-        assert_eq!(fixture.labels(), ["apalache-download"]);
+        assert_eq!(fixture.labels(), ["apalache-install"]);
     }
 }
 

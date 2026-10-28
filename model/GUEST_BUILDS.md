@@ -445,3 +445,10 @@ input. Framework and caller workspace roots are admitted separately. Their canon
 longest-root remaps distinguish framework sources from caller sources, including when
 the framework is nested inside the caller. Root shell entry points preserve the existing
 Temporal guest publication paths while framework-local scripts work without the parent.
+
+Checker provisioning uses the framework's isolated `mise-tools` configuration
+through the existing fetch entry points. Its data/cache/state overrides are local
+to jar provisioning and lookup; guest-driver Rust, Java and Cargo context is not
+relocated. Default jar provisioning selects TLC, with Apalache available only by
+explicit opt-in. See [provider controls](umpire/mise-tools/README.md) for the
+retained admission requirements and replacement control mapping.

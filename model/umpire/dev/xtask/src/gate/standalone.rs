@@ -522,7 +522,7 @@ fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64
         (
             provenance.root.as_path(),
             &[
-                "build/tlc/tla2tools-1.7.4.jar",
+                "build/mise-jars/data/installs/http-tlc/1.7.4/tla2tools.jar",
                 ".bin/protoc-gen-go-v1.36.6",
                 ".bin/protoc-gen-go-grpc-v1.3.0",
             ][..],

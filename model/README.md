@@ -891,9 +891,11 @@ bash model/scripts/fetch-tlc.sh
 make model-validate
 ```
 
+The fetch bridge delegates provisioning to the framework-owned mise HTTP provider
+under `umpire/mise-tools`; Apalache is explicit opt-in and execution never auto-installs.
 The backend admits the official `tla2tools` 1.7.4 artifact by SHA-256 and its TLC 2.19
 version, using the repository's mise-pinned Temurin 27. TLC and Apalache share one admission,
-`umpire_backend_process::PinnedJar::admit`: a symlink-free path inside the workspace cache, an
+`umpire_backend_process::PinnedJar::admit_mise`: a symlink-free exact mise install path, an
 in-process `sha2` digest, the pinned Java, then the tool's version probe. Required runs fail for
 a missing or changed tool, unselected admitted fixtures, incomplete exploration, a state-set or
 property difference, or a counterexample that does not replay through the Model.
