@@ -147,7 +147,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | --- | --- | --- |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
-| fn-254.12 | ⬜ todo | Budget parser/retry candidate retained; complete actual Go-host counts and mixed-control TLC provenance, then admit tables against the integrated .15/.16/.17 interfaces. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
+| fn-254.12 | 🔄 in progress | Budget parser/retry candidate retained; complete actual Go-host counts and mixed-control TLC provenance, then admit tables against the integrated .15/.16/.17 interfaces. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 
