@@ -259,24 +259,26 @@ observable close. Task9's lexical unsafe inventory decreased from 77 to 67 sites
 is a source count, not a proof of runtime safety. Java heap configuration is not an OS
 memory cap, and regular-file polling is not a strict kernel output cap.
 
-Host-only `model/dev/xtask` owns native guest/closure/compiler identity/freshness,
-Apalache installation and retired-name filtering. Bash bootstraps the native tool
-before guest wrappers/flags and disables automatic installs before its first probe.
+Host-only `model/umpire/dev/xtask` owns the framework gate, checker provisioning,
+timing, protobuf generation and retired-name filtering, and delegates guest/closure/
+compiler identity/freshness to `umpire-guest-driver`. `model/dev/xtask` owns the system
+bridge and its controls. The two minimal `xtask.sh` entry points bootstrap native tools
+before guest flags and disable automatic installs before tool execution.
 Rust owns TOML/JSON/pin/readiness admission, including cold and cached paths; missing
 tools fail regardless of CI. Schema 2 and native parser/argument/error contracts replace
 old Python encodings and quirks, with coordinated callers and cache invalidation.
 Raw OS argv, prior wrappers, jobserver/loader inheritance and sidecar-before-compiler
-publication/failure cleanup remain controls. [Native contracts](dev/xtask/README.md).
+publication/failure cleanup remain controls. [Native contracts](umpire/dev/xtask/README.md).
 
-R18 admissions are libc 0.2.191, rustix 1.1.5, tempfile 3.27.0, native toml 1.1.8+spec-1.1.0
+The fn-247 R18 admissions were libc 0.2.191, rustix 1.1.5, tempfile 3.27.0, native toml 1.1.8+spec-1.1.0
 (std/parse/serde), sha2 0.11.1, tar 0.4.46 (no default/xattr) and flate2 1.1.10 (miniz_oxide).
 The [dependency inventory](../.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task6/dependency-inventory.json)
 records 145→152 packages and the seven archive transitive/direct additions; retained
 R18 evidence accounts for each. Before/after six-guest closure maps agree across the
 installer additions; they do not substitute for compilation. [Joined install evidence](../.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task6/joined/README.md)
-records actual fixed-release admission and cached reuse. Archive SHA precedes parsing;
-the exact regular member and jar hash precede locked atomic publication. No arbitrary
-archive input, system tar or reader-parity contract is introduced.
+records actual fixed-release admission and cached reuse. That installer admitted archive SHA before parsing and the exact regular member and JAR
+hash before locked atomic publication. Current checker provisioning delegates downloads,
+extraction and installation coordination to mise; native runtime JAR admission remains.
 
 fn-248 admitted darling 0.24.1 (with darling_core, darling_macro and ident_case 1.0.1),
 heck and prost-types, and removed enum-iterator; the
@@ -1063,7 +1065,7 @@ Rust API generation still reads the upstream image. The build tracks that image 
 service table.
 
 After an API update, `make model-check` requires classification of added fields, enums and RPCs. Review kinds, roles, expectations and reasons with aligned action mappings.
-Regenerate affected Go envelopes with `bash model/scripts/proto-go.sh temporal`. Activity changes also run `make umpire-check-model-slice` and `make umpire-check-model-gaps`; review findings before goldens.
+Regenerate affected Go envelopes with `(cd model && mise exec -- cargo xtask proto-go temporal)`. Activity changes also run `make umpire-check-model-slice` and `make umpire-check-model-gaps`; review findings before goldens.
 
 ### Validation and the first gap report
 

@@ -70,7 +70,7 @@ func newKettleRunWithOptions(t *testing.T, options kettle.Options) *kettleRun {
 	}
 	wasm, err := os.ReadFile(path)
 	if err != nil {
-		t.Fatalf("Kettle guest required; build with scripts/guest.sh umpire-kettle-guest <path>: %v", err)
+		t.Fatalf("Kettle guest required; build from the framework root with mise exec -- cargo xtask guest umpire-kettle-guest <path>: %v", err)
 	}
 	host, err := model.New(ctx, wasm)
 	if err != nil {

@@ -47,7 +47,7 @@ name normal domain dependencies; test-only dependencies do not reverse the produ
 | `umpire-catalog-syntax`, `catalog/syntax`; `umpire-catalog-macros`, `catalog/macros`; `umpire-catalog-build`, `catalog/build` | Admit exhaustive declarations; expose derive entry points; generate descriptor-checked API dispatch and wire mutations. | Macros depend on syntax; syntax on runtime; build support on syntax and runtime. |
 | `umpire-testing`, `dev/testing`; `umpire-fixtures`, `dev/fixtures` | Deterministic fixture discovery/golden comparison; shared Models and authored tests consume the facade. | Testing uses DSL, native checker, TLA+ and TLC; fixtures use author and test support, never system Models. |
 | `umpire-reference-kettle`, `reference/kettle` | Independent reference Model and realization, with its own guest and Go service/parity controls. | Generic DSL, native checker, catalog and runtime; no Temporal extension. |
-| `xtask`, `dev/xtask` | Host-only command front door, pinned Apalache installation and retired-name filtering; executes the dedicated driver for guest commands. | Guest-driver context utilities; no Model-domain dependencies. |
+| `xtask`, `dev/xtask` | Host-only framework gate, timing, checker provisioning, protobuf generation and retired-name filtering; executes the dedicated driver for guest commands. | Guest-driver context utilities, owned process supervision and native tooling support; no Model-domain dependencies. |
 | `umpire-guest-driver`, `dev/guest-driver` | Guest build/closure/compiler/freshness admission, shared tool/caller context and portable remaps. | No CLI/gate or Model-domain dependencies; never part of a guest runtime closure. |
 
 The outer `model/dev/xtask` package is a thin system-workspace command bridge and owns

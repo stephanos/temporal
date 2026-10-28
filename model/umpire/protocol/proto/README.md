@@ -59,7 +59,7 @@ which `umpire_runtime::prost_types` re-exports for realizations and generated co
 `Any` admission stays in `umpire_runtime::AnyMessage`.
 Go uses the framework's pinned protoc-gen-go v1.36.6 and protobuf runtime v1.36.11.
 The separate Go host module and generated Go messages live at `../../hosts/go/`;
-regenerate from the framework root with `bash scripts/proto-go.sh core`.
+regenerate from the framework root with `mise exec -- cargo xtask proto-go core`.
 Use `--check` for byte-for-byte freshness with the pinned local generator.
 System extensions own their upstream schemas; those never become generic protocol inputs.
 
@@ -69,7 +69,7 @@ actual-request Any at tag 4; absent requests retain their original encoding.
 Callback carries a task Any and Reply a request Any. `umpire.annotations.v1`
 owns stateless annotation and generic probe metadata, results and recipe transport.
 System-specific controls remain in their owner's protocol. Regenerate these Go
-messages together with the core contract using `bash scripts/proto-go.sh core`.
+messages together with the core contract using `mise exec -- cargo xtask proto-go core`.
 
 Propose (6) returns a deterministic fully filled request and its typed kind at Response
 tag 9: ACTION (1) names an enabled external Model action; BOOTSTRAP (2) has an empty

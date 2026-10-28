@@ -1,18 +1,19 @@
 # Guest builds: reproduction and diagnostics
 
-`bash model/scripts/guest.sh <crate> <output> [--check]` builds any cdylib with
+From `model/`, `mise exec -- cargo xtask guest <crate> <output> [--check]` builds a cdylib with
 the mise-pinned Rust 1.99.1 compiler, `--locked`, `wasm32-wasip1` and `profile.guest`.
 It discovers the output through Cargo's artifact messages, including custom library
 names. It requires Bash, mise, installed pinned Rust/Cargo, and the `rust-src` component;
-active guest/build helpers require no Python.
+guest/build logic runs in Rust.
 Current guests declare WHOLE_PREFIX_V1 in their ordinary Reset response. All current
 native and wasm producers use the same runtime contract; Host refuses a missing or
 unknown declaration before Driver creation. This wire-format change requires rebuilding
 guests and current records together; historical guest bytes are not preserved.
 The model hash binds an owned copy of the exact loaded guest bytes independently of
 the Reset declaration.
-`xtask.sh` builds the current native front door and dedicated guest driver in `<target>/xtask-bootstrap` before
-installing guest wrappers, flags or cache settings. It prints the absolute binary
+The minimal `scripts/xtask.sh` bootstrap builds the current native front door and
+dedicated guest driver in `<target>/xtask-bootstrap` before installing guest wrappers,
+flags or cache settings. It prints the absolute binary
 path for shell callers. This incremental build also prevents stale cached tools
 from bypassing source changes. Whitespace in checkout and tool paths is supported.
 The atomic `guest-rustc` launcher is an executable copy of the dedicated driver binary,
@@ -66,10 +67,12 @@ reproduction, freshness and existing host controls. Platform evidence is explici
 historical cross-OS certification is not a compatibility gate for the native driver.
 
 
-Native guest commands execute with `model/` as their working directory:
-`xtask guest <crate> <output> [--check]` and
-`xtask guest-freshness <crate> <output>`. Shell entrypoints preserve caller-relative
-output paths; relative target/cache paths retain their model-relative meaning.
+From `model/`, `mise exec -- cargo xtask guest <crate> <output> [--check]` and
+`mise exec -- cargo xtask guest-freshness <crate> <output>` route the five framework
+guest packages to `umpire/` and other packages to the system workspace. Relative
+output, Cargo home and target overrides retain their original caller-relative meaning.
+Already bootstrapped callers can run `umpire-guest-driver guest` or
+`umpire-guest-driver guest-freshness` directly in the selected workspace.
 Cargo artifact input is UTF-8 newline-delimited JSON with a string `reason`;
 `compiler-artifact` records require a typed `target.crate_types` array and
 `filenames` array. Exactly one cdylib `.wasm` path is accepted, including custom
@@ -120,9 +123,11 @@ artifacts, rather than inferring unwind from the profile declaration.
 From the repository root:
 
 ```sh
-cd model/umpire && mise exec -- cargo test -p xtask -p umpire-guest-driver --locked
-bash -n model/scripts/guest.sh model/scripts/tests/build-guests.sh
-CARGO_TARGET_DIR=/absolute/task-owned-target bash model/scripts/tests/build-guests.sh
+(cd model/umpire && mise exec -- cargo test -p xtask -p umpire-guest-driver --locked)
+(cd model && mise exec -- cargo test -p temporal-xtask --locked)
+bash -n model/scripts/xtask.sh model/umpire/scripts/xtask.sh
+(cd model/umpire && CARGO_TARGET_DIR=/absolute/task-owned-target mise exec -- cargo xtask build-guests)
+(cd model && CARGO_TARGET_DIR=/absolute/task-owned-target mise exec -- cargo xtask build-guests)
 CARGO_TARGET_DIR=/absolute/task-owned-target make model-validate
 ```
 
@@ -135,9 +140,9 @@ The 60 s full-gate (raised from 30 s on 2026-10-21) and 10 s inner-loop budgets 
 must be reported. Temporal embeds the committed `temporal/hosts/go/umpire_temporal_guest.wasm`
 through `temporal.Guest()`. Its Go consumers use no Rust or guest-path environment override.
 
-`make umpire-guest` refreshes only that asset through `guest.sh`. `make model-check`
-runs the same builder with `--check` before the other gate steps. Its internal
-`guest-freshness.sh` bootstraps the native tool with `MISE_AUTO_INSTALL=false` and
+`make umpire-guest` refreshes only that asset through the native guest command.
+`make model-check` runs the native `guest-freshness` route before the other gate steps.
+The bootstrap and native commands set `MISE_AUTO_INSTALL=false` and
 `MISE_EXEC_AUTO_INSTALL=false` before tool execution. The builder assumes mise and
 its pinned tools, Rust sources and wasm target are installed. Commands use the
 local toolchain pins directly; missing tools and compiler failures fail for every
@@ -152,8 +157,9 @@ stock/control guests are built for the gate and remain uncommitted.
 Native Rust commands own the former Python lock/compiler, guest/freshness, installer
 and retired-name responsibilities. The workspace `cargo test --workspace --locked`
 stage owns their unit/integration controls and the process controls once; no Python
-unittest or extra package-specific Cargo stage is required. Bash timing, capabilities,
-protobuf and guest-entry scripts remain orchestration. Native TOML/JSON schemas,
+unittest or extra package-specific Cargo stage is required. Timing, capabilities,
+protobuf and guest-entry orchestration now run through native commands and Rust
+controls; only the two minimal xtask bootstraps remain shell. Native TOML/JSON schemas,
 arguments and errors intentionally replace Python quirks; Model meaning, typed
 refusals, lifecycle/mutation controls, raw compiler argv, jobserver/loader inheritance
 and current artifact integrity remain required.
@@ -207,10 +213,10 @@ git -C /absolute/proof/source-a checkout --detach PIN
 git -C /absolute/proof/different-source-b checkout --detach PIN
 test -z "$(git -C /absolute/proof/source-a status --porcelain)"
 test -z "$(git -C /absolute/proof/different-source-b status --porcelain)"
-CARGO_TARGET_DIR=/absolute/independent-target-a bash /absolute/proof/source-a/model/scripts/guest.sh umpire-stock-guest /absolute/proof/stock-a.wasm
-CARGO_TARGET_DIR=/absolute/independent-target-a bash /absolute/proof/source-a/model/scripts/guest.sh umpire-temporal-guest /absolute/proof/temporal-a.wasm
-CARGO_TARGET_DIR=/absolute/independent-target-b bash /absolute/proof/different-source-b/model/scripts/guest.sh umpire-stock-guest /absolute/proof/stock-b.wasm
-CARGO_TARGET_DIR=/absolute/independent-target-b bash /absolute/proof/different-source-b/model/scripts/guest.sh umpire-temporal-guest /absolute/proof/temporal-b.wasm
+(cd /absolute/proof/source-a/model && CARGO_TARGET_DIR=/absolute/independent-target-a mise exec -- cargo xtask guest umpire-stock-guest /absolute/proof/stock-a.wasm)
+(cd /absolute/proof/source-a/model && CARGO_TARGET_DIR=/absolute/independent-target-a mise exec -- cargo xtask guest umpire-temporal-guest /absolute/proof/temporal-a.wasm)
+(cd /absolute/proof/different-source-b/model && CARGO_TARGET_DIR=/absolute/independent-target-b mise exec -- cargo xtask guest umpire-stock-guest /absolute/proof/stock-b.wasm)
+(cd /absolute/proof/different-source-b/model && CARGO_TARGET_DIR=/absolute/independent-target-b mise exec -- cargo xtask guest umpire-temporal-guest /absolute/proof/temporal-b.wasm)
 cmp /absolute/proof/stock-a.wasm /absolute/proof/stock-b.wasm
 cmp /absolute/proof/temporal-a.wasm /absolute/proof/temporal-b.wasm
 sha256sum /absolute/proof/stock-a.wasm /absolute/proof/stock-b.wasm /absolute/proof/temporal-a.wasm /absolute/proof/temporal-b.wasm
@@ -443,8 +449,8 @@ pins. `xtask` executes the dedicated `umpire-guest-driver`; guest caches hash th
 driver's complete executable, the caller workspace's complete lockfile and compiler
 input. Framework and caller workspace roots are admitted separately. Their canonical
 longest-root remaps distinguish framework sources from caller sources, including when
-the framework is nested inside the caller. Root shell entry points preserve the existing
-Temporal guest publication paths while framework-local scripts work without the parent.
+the framework is nested inside the caller. Native system entry points preserve the existing
+Temporal guest publication paths while framework-local commands work without the parent.
 
 Checker provisioning uses the framework's isolated `mise-tools` configuration
 through the existing fetch entry points. Its data/cache/state overrides are local
