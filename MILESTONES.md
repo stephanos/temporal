@@ -4,6 +4,8 @@ The owner's overview of open work, execution order and blockers.
 
 As of 2026-10-28.
 
+Execution is paused at the owner’s request after wrapping the in-flight fn-254.12 checkpoint. No helper or validation process remains running. Resume with actual observer/input-context wiring before admitting budgets or starting further work.
+
 The owner deferred repository migration on 2026-10-28 and resumed this backlog.
 [fn-258](.flow/specs/fn-258-complete-the-resumed-standalone-umpire.md) remains open
 with its source checkpoints, recovery evidence and unfinished validation preserved.
@@ -24,7 +26,7 @@ cache, sources and recovery stores were preserved. [Cleanup proof](.flow/artifac
 The .12 producer checkpoint passes all three public Go stages (170 tests) and a
 mixed TLC proof accounting for 85 protocol fixtures separately from six real
 starts and three configurations. [Count evidence](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task12/count-producers-20261028/summary.json).
-The budget/attempt checkpoint passes all 227 native xtask tests and the Temporal xtask consumer compile check. Strict policy controls and bounded retry coordination pass; scheduled callbacks now retain and verify immutable attempt event manifests. Production applicability, admitted tables and automatic retry wiring remain open; unused preparation warnings are not strict-lint acceptance. [Budget/attempt evidence](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task12/budget-attempts-20261028/summary.json). macOS validation remains owner-deferred.
+The current .12 checkpoint passes 244 framework xtask tests, 39 consumer xtask tests (four ignored helpers) and 66 process tests. Actual native branches publish applicability and event authorities; explicit stage scope is frozen and propagated without environment mutation. Input/image custody and coverage semantics pass fixture controls. Real observer hooks, early image/context wiring, admitted tables and automatic retry remain open; preparation warnings are not strict-lint acceptance. [Pause checkpoint and resume details](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task12/applicability-pause-20261028/summary.json). macOS validation remains owner-deferred.
 
 ## Keeping this page current
 
@@ -152,7 +154,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | --- | --- | --- |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
-| fn-254.12 | 🔄 in progress | Go/TLC producers, strict budget policy, bounded coordination and native attempt manifests verified; 227 xtask tests pass. Next: applicability/input authority, admitted tables and automatic immediate retry; enforcement and closure remain open (R8) |
+| fn-254.12 | 🔄 in progress | Owner-paused after applicability/custody checkpoint:244 framework,39 consumer and66 process tests pass. Resume real observer/context wiring, admitted tables and automatic retry; enforcement and closure remain open (R8) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 

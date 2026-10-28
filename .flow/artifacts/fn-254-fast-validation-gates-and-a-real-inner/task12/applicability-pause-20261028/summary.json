@@ -1,0 +1,177 @@
+{
+  "schema": "fn25412-applicability-input-custody-pause-v1",
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.12",
+  "task_status": "in_progress",
+  "owner_requested_pause": true,
+  "source_commit": "491ca7e948a5c2de942b1108b1d60f885e4c0700",
+  "source_files_sha256": {
+    "model/dev/xtask/src/gate.rs": "c9bcf6aba54bb5f4434c8e77b16632fc77a7d2b95414ffa98baa33482f63bece",
+    "model/umpire/backends/process/src/work.rs": "e678e4c6d41d1a0addb50c14e91119e2f83166b6b542c2ba21f025dd23e51a61",
+    "model/umpire/dev/xtask/src/gate.rs": "717233d23603b07f102c2d061289fecf72abd34c0761f847df44dfad31703e3e",
+    "model/umpire/dev/xtask/src/gate/budget_context.rs": "f50a3cec1f53282cd9aa338d1be8fbe16ab30bd2dfc58afec5155928ee6aef15",
+    "model/umpire/dev/xtask/src/gate/budget_coordinator.rs": "9542bbfa4ed126839dd4de2c6eeac628c0f146751926ce93ba48ab86c1a4503a",
+    "model/umpire/dev/xtask/src/gate/count_dispatch.rs": "bedb4f8cbb92e1816e06a2847104de979777397f8d41a4578e0b0094930685ca",
+    "model/umpire/dev/xtask/src/gate/scheduler.rs": "30ef2f56f7ba0f15527621083f2fe8e23caf47be0e32c85751db5549481499e7",
+    "model/umpire/dev/xtask/src/gate/work_counts.rs": "93f1823331f8a1f254aa053672daa6615fce9013da0846aaad78f50c5354dba8",
+    "model/umpire/dev/xtask/src/gate/work_counts/count_authority.rs": "f96a99904499da5f03978c94711cfab8e6e098d7f84680fe9be366eab90bbf90",
+    "model/umpire/dev/xtask/src/gate/work_counts/count_evidence.rs": "e5c2d5f4e3aff9466306f0be8653b8d1d760472fc76cd63027be57a0b609a5ce",
+    "model/umpire/dev/xtask/tests/gate_wiring.rs": "0a1c32e08f8e572aa59c5a496ece00654b7cf9889ed739b8966367b8fd4bfc83"
+  },
+  "verified": {
+    "framework_xtask": {
+      "passed": 244,
+      "skipped": 0,
+      "exit": 0
+    },
+    "consumer_xtask": {
+      "passed": 39,
+      "ignored_helper_children": 4,
+      "exit": 0
+    },
+    "process_backend": {
+      "passed": 66,
+      "skipped": 0,
+      "exit": 0
+    },
+    "input_custody_fixture_tests": 7,
+    "count_authority_fixture_tests": 5,
+    "dispatch_final_focused": 5,
+    "coordinator_final_neutral_scope_focused": 10,
+    "framework_fmt": 0,
+    "consumer_fmt": 0,
+    "diff_check": 0,
+    "flow": {
+      "valid": true,
+      "errors": [],
+      "historical_warnings_preserved": 13
+    }
+  },
+  "coverage_limits": [
+    "The244-test package proof includes applicability, explicit-scope propagation, seven custody fixtures and five authority fixtures. A subsequent coordinator-only fixture scope rename is verified by the final10 controls and actual consumer source-boundary path. A subsequent failed-payload/recording-failure preservation change is verified by final5 dispatch controls.",
+    "Actual native branches publish completed applicability contracts and exact producer-event authorities; collector rederives evidence against retained events. Numeric fields remain six nullable integers.",
+    "The coverage protocol zero cases are fixture controls only: real observer open/close hooks and early running-image pin/source-tool context wiring are not installed. Production missing coverage remains unknown.",
+    "No full final performance/edited-source/standalone gate or task closure/final cross-family review is claimed.",
+    "Normal library emits unused/unreachable-public preparation warnings; strict lint remains open."
+  ],
+  "remaining": [
+    "real observer coverage hooks and early controller image pin",
+    "actual source/tool/command/tier factories and immutable context wiring",
+    "admitted framework/consumer stage and fn255 workload tables",
+    "automatic default/direct/quick enforcement and in-place immediate drained retry",
+    "documentation, final focused controls, strict lint and cross-family review",
+    "task8 broad final gates/performance proof after its prerequisites"
+  ],
+  "repaired_checks": [
+    "unsupported SHA array LowerHex replaced by explicit existing hex renderer",
+    "dispatch parser uses its own prefixed identity instead of numeric test identity parser",
+    "canonical NoWorkReason reused rather than duplicated",
+    "direct scheduled callbacks admit explicit once-only stage scope and carry it into ordinary child commands without global environment mutation",
+    "consumer uses the existing xtask facade rather than a new process crate dependency",
+    "coordinator test scopes are generic to preserve framework source boundary",
+    "real failed payload status survives terminal-record failure"
+  ],
+  "cleanup": "Both in-flight helpers finished, their worktrees removed normally and fully integrated branches deleted. Shared active cache and unfinished lanes retained. No background runtime handles remain after verification.",
+  "migration": "fn258 remains owner-deferred",
+  "proofs": {
+    "dispatch-red.log.gz": {
+      "sha256": "372ac3c6f4e68987aaba83f664da010a5b89ac3292408bb9f10f9d3e12adae4f",
+      "raw_sha256": "8c1840adcd9d5429b7024ff5a902bcfe6163abe1b89f867fd9dbdd9ca892693e",
+      "raw_bytes": 16793
+    },
+    "context-red.log.gz": {
+      "sha256": "86d436df8cb5e62434d979c376c81a647ed3e039df3e6512b23f56d980b5a555",
+      "raw_sha256": "2449840112cbcd5ff479d4a91e5922727b8728091758b81cf4874a20e107d32c",
+      "raw_bytes": 4751
+    },
+    "context-green.log.gz": {
+      "sha256": "b14dba9caba1b5678bff1fd434ce926f766bb68ed8358b5fc7c2f1d1ae93900e",
+      "raw_sha256": "2abde51917f9014a5c2f53528610bd6dfb14f66eaaf9d34942167bca29c0a117",
+      "raw_bytes": 2630
+    },
+    "authority-red.log.gz": {
+      "sha256": "156e895854c7d4e4f16279ef6deb1f635e57305560f194e4c73877bc9c1c2101",
+      "raw_sha256": "3c1b613b669ce05be34de2ee82be9bd72de2c34bb979ac2015e1260f4a75dd4c",
+      "raw_bytes": 4918
+    },
+    "authority-green.log.gz": {
+      "sha256": "85b3f45fae906dd1c4497422cdd1ae0e42c77b07c33caefdcbed9e7f862eac92",
+      "raw_sha256": "a73cf0ce17e71e0c9d9bf5b72b5b5f3d1fdf7fcc781378aa349dfd8174183794",
+      "raw_bytes": 4941
+    },
+    "authority-green2.log.gz": {
+      "sha256": "5c2b2a70159ad223698bab853a88f33ed6161f6b18b8c7872a98691da90c3f96",
+      "raw_sha256": "440b28d890e45a9d91911da54ddf8657f906a4b83103969dc3d6c046d523614c",
+      "raw_bytes": 4246
+    },
+    "applicability-native-xtask.log.gz": {
+      "sha256": "e4792e8f9e2ca8b377dbfc9302fb8a842552b8a1d86a45156584e3ea7875cd53",
+      "raw_sha256": "aa4e79b3321619b0f5cedee96b76a21538fca816f010a9f415793a067d1ec7af",
+      "raw_bytes": 1733
+    },
+    "applicability-native-xtask2.log.gz": {
+      "sha256": "3403b1ca0b02557d1b26cebdf1e8230e75a7183f07a4cb62906ded6e06e08b8b",
+      "raw_sha256": "5930d5c569b1744aadf437b95f2864137b2d562bf512eb209086012cbb618dc6",
+      "raw_bytes": 106072
+    },
+    "applicability-native-xtask3.log.gz": {
+      "sha256": "ac9dfa24c004b81544b27497e26a00d445336db55620ec3cd7b1f2f0e7398ca0",
+      "raw_sha256": "333373e8677ad53343b30ad5925f53b3d0a0779ef34bdb48b58f6501572aae92",
+      "raw_bytes": 135006
+    },
+    "applicability-native-xtask4.log.gz": {
+      "sha256": "f39d0e6d95cca2ae947391909dba2c08a32e7a6cf4ea568101e151235e037307",
+      "raw_sha256": "d50a3136cc384a609d29b43d9fddc7c8eadf896ef4b50fb328faa27c4099dc61",
+      "raw_bytes": 135004
+    },
+    "direct-scope-red.log.gz": {
+      "sha256": "1832a7bf6277d0b65e3491e183d3c2f8e173970ae4728e27722f5e4ada6fa8fa",
+      "raw_sha256": "265255f7cbf1790eb46345551d6e9358b798eeb2c39ded237bba6abf54fa1225",
+      "raw_bytes": 20913
+    },
+    "direct-scope-red2.log.gz": {
+      "sha256": "8fc524942c60258bc31d2616b5c6166c6c715408d653f987d1996cdbb123e646",
+      "raw_sha256": "ee57b79044112feabc31ac5cc482675634cecbf2cca448add2fdc6730526c27d",
+      "raw_bytes": 21841
+    },
+    "direct-scope-green.log.gz": {
+      "sha256": "d766e4fe4195718a70176108ca26761d0f2011c590eb037ef5a668e4e6e3d914",
+      "raw_sha256": "8017587524af8f324fc2a266b633a8ede3a2c4f727c014bedb4d45d14a5cc2bd",
+      "raw_bytes": 885
+    },
+    "direct-scope-green2.log.gz": {
+      "sha256": "5920e87d3736f39f4d233c37cf741c7960f7792161a76fb9f3ff27b57853d256",
+      "raw_sha256": "2c473a7bc63b79579a635e6482667b1716e49d5e26fade3a51055a81e638a7b4",
+      "raw_bytes": 21237
+    },
+    "applicability-native-temporal.log.gz": {
+      "sha256": "e12fe32ec4544dce7d10723976cf67ccd79d9f0da087b73fcaa4b1a541295cac",
+      "raw_sha256": "700d4b3c47d4642a004cd480ef77dee163318452868ecfdec357a2dbd87ce991",
+      "raw_bytes": 21872
+    },
+    "applicability-native-temporal2.log.gz": {
+      "sha256": "d36d2a85c807b48c67a487eafba29b4b0665fb8d231b0adcd90712c4aa2c05c5",
+      "raw_sha256": "a3ff06c82cf913a07556580a46bd098ca5dbca3e81a0d67af5fcc133e2e48679",
+      "raw_bytes": 94101
+    },
+    "applicability-native-temporal3.log.gz": {
+      "sha256": "a865f61e34f1aec8a3169d9abc5985865ddec681bfb05ce2a72fa53954558614",
+      "raw_sha256": "c9df2d5cccbaab34b08a5f8cd41803f29967d495142f9f2b6d043d6036630a6a",
+      "raw_bytes": 51454
+    },
+    "dispatch-green.log.gz": {
+      "sha256": "b8b50c18e191ede056f74a6eb37f7db36ef06fc5a1c850c4e7aa0a0784fdcb62",
+      "raw_sha256": "86e58c58d5b981d0be11a5f87a37bd8037f862d6e180c0b1930c58acdebcb76a",
+      "raw_bytes": 3777
+    },
+    "applicability-native-process.log.gz": {
+      "sha256": "5bb5a53e0d02d6adb15e14466b3f90dca5eaf0e3e9cf103138ac05d204916f46",
+      "raw_sha256": "9143a7b8d4bf57922fd904fcc188e9927e817cd98195254d56671cf8427d6012",
+      "raw_bytes": 16199
+    },
+    "coordinator-neutral-scope-green.log.gz": {
+      "sha256": "e2b095a01d60e26dff7c433d3d0d10c06bc458ce2f31823f9e7eb8a823af759f",
+      "raw_sha256": "710eda8a9989d6a8a903713b2f44af6c4907d9d401635a03d36270439a278cea",
+      "raw_bytes": 4189
+    }
+  }
+}
