@@ -232,6 +232,7 @@ impl Inventory {
             if event.build() || event.failed_build.is_some() {
                 return Err(invalid("Go execution build failed"));
             }
+            failed |= event.action == "fail";
             let name = event.package.as_deref().ok_or_else(|| invalid("missing Go package"))?;
             let inventory =
                 self.packages.get(name).ok_or_else(|| invalid("unknown Go execution package"))?;
