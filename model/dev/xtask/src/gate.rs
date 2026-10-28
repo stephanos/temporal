@@ -384,7 +384,10 @@ mod tests {
         let Some(root) = std::env::var_os("UMPIRE_GATE_CONTROL_ROOT") else { return };
         if let Some(name) = std::env::var_os("UMPIRE_GATE_CONTROL_STAGE") {
             let name = name.to_str().unwrap();
-            let status = scheduled_stage(Path::new(&root), name).unwrap();
+            let root = Path::new(&root);
+            let tool = root.join("bin/native");
+            let status =
+                scheduler::scheduled(name, || run_stage_with_tool(root, name, &tool)).unwrap();
             std::process::exit(status);
         }
         assert_eq!(
@@ -446,21 +449,38 @@ esac
     }
 
     fn control_directory() -> std::path::PathBuf {
-        use std::fs;
+        use std::{fs, os::unix::fs::PermissionsExt};
         let root = std::env::temp_dir().join(format!(
             "temporal-gate-{}-{}",
             std::process::id(),
             std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()
         ));
-        fs::create_dir_all(root.join("scripts/tests")).unwrap();
+        fs::create_dir_all(root.join("scripts")).unwrap();
         fs::create_dir_all(root.join("bin")).unwrap();
-        fs::create_dir_all(root.join("umpire/scripts")).unwrap();
-        fs::copy(
-            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../umpire/scripts/time-gate.sh"),
-            root.join("umpire/scripts/time-gate.sh"),
-        )
-        .unwrap();
+        fs::create_dir_all(root.join("umpire")).unwrap();
         fs::write(root.join("scripts/xtask.sh"), "#!/bin/bash\nprintf '/bin/true\\n'\n").unwrap();
+        let body = CONTROL_BODY;
+        fs::write(
+            root.join("bin/native"),
+            format!(r#"#!/bin/bash
+set -eu
+[ "$PWD" = "$UMPIRE_GATE_CONTROL_ROOT" ] || exit 90
+[ "$MISE_AUTO_INSTALL:$MISE_EXEC_AUTO_INSTALL:$MISE_TASK_PGID_MANAGED" = false:false:1 ] || exit 91
+case "$*" in
+ 'guest-freshness umpire-temporal-guest '*)
+   [ "$#" = 3 ] && [ "$3" = "$UMPIRE_GATE_CONTROL_ROOT/temporal/hosts/go/umpire_temporal_guest.wasm" ] || exit 92
+   label=guest ;;
+ 'retired-names') label=retired ;;
+ 'timing-controls') label=timing ;;
+ 'proto-controls') label=proto-controls ;;
+ 'proto-go temporal --check') label=proto ;;
+ 'build-guests') label=guest-build ;;
+ *) exit 93 ;;
+esac
+{body}
+"#),
+        ).unwrap();
+        fs::set_permissions(root.join("bin/native"), fs::Permissions::from_mode(0o755)).unwrap();
         root
     }
 
@@ -513,11 +533,6 @@ label=apalache
                 "#!/bin/bash\nlabel=bootstrap\n{body}\nprintf '%s\\n' '{}'\n",
                 framework.display()
             ),
-        )
-        .unwrap();
-        fs::write(
-            root.join("scripts/retired-names.sh"),
-            format!("#!/bin/bash\nset -eu\nlabel=retired\n{body}"),
         )
         .unwrap();
         let inventory = control_inventory(&["retired-names"]);
@@ -620,22 +635,6 @@ exit 94
     fn actual_temporal_gate_wiring_and_named_failures() {
         use std::{fs, os::unix::fs::PermissionsExt};
         let root = control_directory();
-        let labels = [
-            ("guest-freshness.sh", "guest"),
-            ("retired-names.sh", "retired"),
-            ("test-time-gate.sh", "timing"),
-            ("tests/proto-go.sh", "proto-controls"),
-            ("proto-go.sh", "proto"),
-            ("tests/build-guests.sh", "guest-build"),
-        ];
-        let body = CONTROL_BODY;
-        for (file, label) in labels {
-            fs::write(
-                root.join("scripts").join(file),
-                format!("#!/bin/bash\nset -eu\nlabel={label}\n{body}"),
-            )
-            .unwrap();
-        }
         let mise = root.join("bin/mise");
         let stages = CONTROL_STAGES;
         let mut stage_names = Vec::new();
