@@ -107,6 +107,7 @@ Standalone and consumer preparation are reviewed and closed on `umpire`; the con
 child stages, with 912 tests/doctests executed and three ignored in each tests stage.
 Its 1,679.762-second gate and 24.162-second edit loop miss their soft targets.
 Proof binaries, receipts and source snapshots are retained and independently recoverable.
+The idle isolated-child target was then removed, reclaiming 6.20 GiB; recovery still verifies.
 The in-tree framework stays authoritative until publication and verified cutover.
 Destination access remains blocked by SAML/credentials. See [MIGRATE.md](MIGRATE.md).
 
@@ -114,7 +115,7 @@ Destination access remains blocked by SAML/credentials. See [MIGRATE.md](MIGRATE
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-258.4 | ⬜ todo | Exact final-pair fresh-target, release/parity, generation/guest and local-edit acceptance proofs with timings (R3–R5) |
+| fn-258.4 | 🔄 in progress | Standalone named check/time/release commands running; fresh final pair, generation/guest, paired gates and local-edit acceptance follow (R3–R5) |
 | fn-258.5 | ⬜ todo | Complete candidate receiving/recovery dispositions, destination access, authorized publication, pinned CI and source cutover; then resume fn-254 (R1, R4, R6) |
 
 

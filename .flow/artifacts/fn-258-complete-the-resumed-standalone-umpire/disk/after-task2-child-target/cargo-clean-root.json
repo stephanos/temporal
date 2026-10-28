@@ -1,0 +1,16 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "clean",
+    "--target-dir",
+    "/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target"
+  ],
+  "cwd": "/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework",
+  "exit_code": 101,
+  "stdout": "",
+  "stderr": "error: cannot clean `/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target`: missing or invalid `CACHEDIR.TAG` file\n  |\n  = note: cleaning has been aborted to prevent accidental deletion of unrelated files\n",
+  "observed_at": "2026-10-28T14:14:59.820333+00:00"
+}

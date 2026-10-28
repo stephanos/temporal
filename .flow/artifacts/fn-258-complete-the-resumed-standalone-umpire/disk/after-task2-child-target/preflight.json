@@ -1,0 +1,40 @@
+{
+  "observed_at": "2026-10-28T14:14:30.112712+00:00",
+  "authorized_exact_target": "/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target",
+  "task2_closure_commit": "c258547ed5cc7d2ddc2247fce956dc5bb8504d32",
+  "target_identity": {
+    "device": 29,
+    "inode": 7756570,
+    "resolved": "/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target"
+  },
+  "allocated_bytes_before": 6662246400,
+  "df_target_before": "Filesystem        1B-blocks         Used   Available Use% Mounted on\noverlay        210241560576 149451878400 50035486720  75% /\n",
+  "df_host_before": "Filesystem        1B-blocks         Used    Available Use% Mounted on\nhost           994662584320 892403896320 102258688000  90% /Users/stephan/Workspace/skunkworks\n",
+  "ownership": {
+    "matches": [],
+    "unreadable_system_pids": [
+      10,
+      542,
+      557
+    ]
+  },
+  "real_tagged_child_targets": [
+    "/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1",
+    "/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target/tests/runtime-capability-controls/target",
+    "/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target/tests/trybuild/aarch64-unknown-linux-gnu",
+    "/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target/wasm32-wasip1",
+    "/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target/xtask-bootstrap"
+  ],
+  "target_inventory_sha256": "f663559976cf2e44d944f182b0a0b4aaa40737f25070b7a3751abeb63d55f1c9",
+  "protected_before_sha256": "355d1e7d5f2db83aee0555e07ae917addafe1ab80c8b11e695cf73f72318bff2",
+  "recovery_verification": {
+    "source_commit": "05473210b48c3db862f22051eb7154ce98258f98",
+    "source_tree": "46829511b6d582b40f3fa5095f42bdf980c7d466",
+    "unique_objects_verified": 158,
+    "archive_members_verified": 7979,
+    "original_cache_accessed": false,
+    "errors": [],
+    "result": "pass"
+  },
+  "status": "preflight passed; no cleanup performed by this script"
+}

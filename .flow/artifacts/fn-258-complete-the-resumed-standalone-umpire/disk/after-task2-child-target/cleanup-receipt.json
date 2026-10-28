@@ -1,0 +1,43 @@
+{
+  "status": "complete",
+  "removed_exact_path": "/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target",
+  "task2_closure_commit": "c258547ed5cc7d2ddc2247fce956dc5bb8504d32",
+  "allocated_bytes_before": 6662246400,
+  "allocated_bytes_remaining_before_guarded_removal": 4955975680,
+  "allocated_bytes_after": 0,
+  "target_absent": true,
+  "source_receipts_child_root_exactly_preserved": true,
+  "parent_target_metadata_exactly_preserved": true,
+  "protected_named_payload_hashes_preserved": true,
+  "recovery_verification": {
+    "source_commit": "05473210b48c3db862f22051eb7154ce98258f98",
+    "source_tree": "46829511b6d582b40f3fa5095f42bdf980c7d466",
+    "unique_objects_verified": 158,
+    "archive_members_verified": 7979,
+    "original_cache_accessed": false,
+    "errors": [],
+    "result": "pass"
+  },
+  "df_target_before": "Filesystem        1B-blocks         Used   Available Use% Mounted on\noverlay        210241560576 149451878400 50035486720  75% /\n",
+  "df_private_after": "Filesystem        1B-blocks         Used   Available Use% Mounted on\noverlay        210241560576 143501479936 55985885184  72% /\n",
+  "df_host_before": "Filesystem        1B-blocks         Used    Available Use% Mounted on\nhost           994662584320 892403896320 102258688000  90% /Users/stephan/Workspace/skunkworks\n",
+  "df_host_after": "Filesystem        1B-blocks         Used    Available Use% Mounted on\nhost           994662584320 891655290880 103007293440  90% /Users/stephan/Workspace/skunkworks\n",
+  "ownership_immediately_before_removal": {
+    "matches": [],
+    "unreadable_system_pids": [
+      10,
+      542,
+      557
+    ]
+  },
+  "method": "Attempted cargo clean on exact target (refused missing real tag); normally cleaned five real tagged children; guarded literal-path removal of fully inventoried unchanged remainder. No fabricated CACHEDIR.TAG.",
+  "no_other_removals": "No source, worktree, ref, shared/global/Scala cache or parent target removed. Only explicitly released child target was deleted.",
+  "private_free_before_bytes": 50035486720,
+  "private_free_after_bytes": 55985885184,
+  "observed_private_free_gain_bytes": 5950398464,
+  "host_free_before_bytes": 102258688000,
+  "host_free_after_bytes": 103007293440,
+  "free_gain_interpretation": "Removed target allocation is exact before-du6,662,246,400 bytes; filesystem free-space delta also reflects concurrent unrelated activity.",
+  "root_head_after": "c258547ed5cc7d2ddc2247fce956dc5bb8504d32",
+  "root_head_unchanged": true
+}
