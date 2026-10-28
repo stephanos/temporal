@@ -111,7 +111,7 @@ Destination access remains blocked by SAML/credentials. See [MIGRATE.md](MIGRATE
 | Name | Status | What |
 | --- | --- | --- |
 | fn-258.2 | 🔄 in progress | Standalone source/history join and adaptation inventory prepared; fresh required-backend gate and source review pending (R2, R3) |
-| fn-258.3 | 🔄 in progress | Actual consumer branch `4035bb70` prepared with reproduced guest and local Rust/Go edit proofs; final paired checks, review and recovery bundle pending (R4) |
+| fn-258.3 | 🔄 in progress | Actual consumer branch `3658582d` prepared with reproduced guest and local Rust/Go edit proofs; final paired checks, review and recovery bundle pending (R4) |
 | fn-258.4 | ⬜ todo | Exact final-pair fresh-target, release/parity, generation/guest and local-edit acceptance proofs with timings (R3–R5) |
 | fn-258.5 | ⬜ todo | Complete candidate receiving/recovery dispositions, destination access, authorized publication, pinned CI and source cutover; then resume fn-254 (R1, R4, R6) |
 

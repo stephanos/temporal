@@ -1,0 +1,134 @@
+{
+  "files": [
+    {
+      "file": "readiness-logs/readiness-054-binding.json",
+      "size": 2120,
+      "sha256": "28982df49bbebd5bf2c179569e2863c09d18750d2fce183011ee31ca16bd9b9b"
+    },
+    {
+      "file": "readiness-logs/readiness-054-bridge-controls.log",
+      "size": 2660,
+      "sha256": "6c9743ff3204de64a2bcc2f2d2fa32ac8bdd903ad44f9df0e5e8098b26739e60"
+    },
+    {
+      "file": "readiness-logs/readiness-054-guest-closure.json",
+      "size": 3780,
+      "sha256": "2d039f0d0f9b07d38edf951d9df29c49280f3ce61f7da4b12ed0916d3abdb9eb"
+    },
+    {
+      "file": "readiness-logs/readiness-054-results.json",
+      "size": 1089,
+      "sha256": "3e9468cd5344da9130d481546e96d44fe480d189ddadca2cf426bc119d670d7d"
+    },
+    {
+      "file": "readiness-logs/readiness-054-workspace-compilation.log",
+      "size": 1005,
+      "sha256": "ce82f9f15a63742f74bdb6c5cd72f6d26c1e9f8d355414c8ea5fe5e7bc3d4dc4"
+    },
+    {
+      "file": "readiness-logs/readiness-bridge-controls-after-fix.log",
+      "size": 2464,
+      "sha256": "999dd5383da509e5b14b620717bcf8f035ecd24184cf4e5e1af3bd127ec18127"
+    },
+    {
+      "file": "readiness-logs/readiness-bridge-controls-before-fix.log",
+      "size": 4921,
+      "sha256": "4e014e79b4a0f7329bd6c0533898348e9632e3d2e58d0fe5ab3ccb7cdbaa26c2"
+    },
+    {
+      "file": "readiness-logs/readiness-bridge-controls.log",
+      "size": 4921,
+      "sha256": "4e014e79b4a0f7329bd6c0533898348e9632e3d2e58d0fe5ab3ccb7cdbaa26c2"
+    },
+    {
+      "file": "readiness-logs/readiness-changed-go-formatting.log",
+      "size": 40,
+      "sha256": "58000109472d8491aed58a257a269e7104e06dd1f7ea90f9be355fb86959958b"
+    },
+    {
+      "file": "readiness-logs/readiness-go-callers-compilation.log",
+      "size": 782,
+      "sha256": "f4732c1460f99611c529da7c100b468d71e762fd8d3054e5881c88ce028609fa"
+    },
+    {
+      "file": "readiness-logs/readiness-go-no-rust-contract-after-fix.log",
+      "size": 1009,
+      "sha256": "6f59cf8f845bd1cbbd73e9bd5ce5b04655764d1e74e5a783ca9f30332004b24b"
+    },
+    {
+      "file": "readiness-logs/readiness-go-no-rust-contract.log",
+      "size": 546,
+      "sha256": "f095717352191ab44bce80c75aec78c588a10682216c8cfb6645d183a284440d"
+    },
+    {
+      "file": "readiness-logs/readiness-go-no-rust-proof.json",
+      "size": 930,
+      "sha256": "6dece8551dc9202737cdd9a4c57d76e71bb966b8ca03740447e156666f4b365d"
+    },
+    {
+      "file": "readiness-logs/readiness-go-results.json",
+      "size": 1243,
+      "sha256": "c97f3d33930a9764338e0493016e4a9fe829b8ba244c4f6c1243be4f38f43881"
+    },
+    {
+      "file": "readiness-logs/readiness-model-metadata.json",
+      "size": 576405,
+      "sha256": "e49c21a39281a553b28123857b28c690859eae1b0ffbe575c00ac0f528ab77d7"
+    },
+    {
+      "file": "readiness-logs/readiness-native-symbolic-compilation-after-fix.log",
+      "size": 915,
+      "sha256": "529f49318d881876b2a16d7de8a11763985fe92a9734667a8c002f1670a5a0e0"
+    },
+    {
+      "file": "readiness-logs/readiness-native-symbolic-compilation.log",
+      "size": 1945,
+      "sha256": "7c6b33236bf4ef926efad12d89733008ace7c3c37be482a34df70fa3eb84057b"
+    },
+    {
+      "file": "readiness-logs/readiness-native-symbolic-metadata.json",
+      "size": 375983,
+      "sha256": "605ba7f32f57a54e35b1f6410dcb1be3e18f4e45c02e5b442e126797fa8024bd"
+    },
+    {
+      "file": "readiness-logs/readiness-quick-invalid-base.log",
+      "size": 1154,
+      "sha256": "642966cb8aff7a29b6f28f9577297980a547c97273a4767546b0f251136acf37"
+    },
+    {
+      "file": "readiness-logs/readiness-quick-selection.log",
+      "size": 1392,
+      "sha256": "8de5b4aa77082fbfc0dc2475a6b5b19c2fbb17c71cdcb6a552f03d1ce248c353"
+    },
+    {
+      "file": "readiness-logs/readiness-rust-after-fix-results.json",
+      "size": 1302,
+      "sha256": "f77c022dfd0ca0fda2c66494232ffb89714aadf2d1a10138a7c0521935f7ddd1"
+    },
+    {
+      "file": "readiness-logs/readiness-rust-results.json",
+      "size": 913,
+      "sha256": "3cd9eef0afb747031f003054b527780ec036f58c63ccfe3e869f36d4dffe20a8"
+    },
+    {
+      "file": "readiness-logs/readiness-setup-controls.json",
+      "size": 550,
+      "sha256": "1a0e06e9b94771df52ed8d43530845e2a53b8e5f01d5e4fb12533edceaadacbf"
+    },
+    {
+      "file": "readiness-logs/readiness-workspace-compilation.log",
+      "size": 4900,
+      "sha256": "73c32fba5dfe91863794af658cec9b7d0c921420265e58679d32034b85dcc879"
+    },
+    {
+      "file": "readiness-logs/readiness-workspace-formatting.log",
+      "size": 113,
+      "sha256": "b009344c8a7ac4ab878d378ba853bb85d0ed769fba7fbe2e2d83d21dddb99b18"
+    }
+  ],
+  "candidate": "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+  "current_framework": "05473210b48c3db862f22051eb7154ce98258f98",
+  "binding": "readiness-logs/readiness-054-binding.json",
+  "guest_closure": "readiness-logs/readiness-054-guest-closure.json",
+  "fake_child_receipts": "Test-owned simulations only; not live gate evidence."
+}

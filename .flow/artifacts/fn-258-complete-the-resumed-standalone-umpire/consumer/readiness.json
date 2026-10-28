@@ -1,0 +1,262 @@
+{
+  "status": "focused_checks_passed_ready_for_independent_task3_review",
+  "consumer": "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+  "framework": "ac79114a9ad43a9d9fc2a022d07406d217878760",
+  "pair_cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair",
+  "pair_git_head_at_checks": "4035bb70fdf4c7ef074a8f05a02b19fb458c0b1d",
+  "pair_effective_source": "Only model/dev/xtask/tests/main.rs differed during final controls; exact bytes equal committed consumer candidate 3658582dac5b54c1f68c2eb54a312957c97e05b6",
+  "fixed_test_file_sha256": "d369d462c4a55d2fc339f59c1495c209656787ce1bdf7d2a0d4b02e2fb924eea",
+  "metadata": {
+    "model": {
+      "command": "cargo metadata --locked --offline --format-version 1",
+      "local_package_count": 25,
+      "sibling_framework_manifest_count": 18,
+      "framework_manifests": [
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/backends/process/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/catalog/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/catalog/build/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/catalog/macros/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/catalog/syntax/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/backends/native/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/author/dsl/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/author/dsl/macros/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/front/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/dev/guest-driver/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/ir/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/ir/derive/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/protocol/runtime/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/author/suite/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/dev/testing/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/backends/tla/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/backends/tlc/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/dev/xtask/Cargo.toml"
+      ]
+    },
+    "native-symbolic": {
+      "command": "cargo metadata --locked --offline --format-version 1",
+      "local_package_count": 13,
+      "sibling_framework_manifest_count": 12,
+      "framework_manifests": [
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/author/umpire/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/catalog/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/catalog/macros/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/catalog/syntax/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/backends/native/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/author/dsl/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/author/dsl/macros/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/front/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/ir/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/ir/derive/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/protocol/runtime/Cargo.toml",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/author/suite/Cargo.toml"
+      ]
+    }
+  },
+  "checks": {
+    "workspace_all_targets_all_features_check": 0,
+    "bridge_unit_tests": {
+      "passed": 16,
+      "failed": 0
+    },
+    "bridge_integration_tests": {
+      "passed": 7,
+      "failed": 0
+    },
+    "native_symbolic_check": {
+      "exit": 0,
+      "existing_warnings": 2
+    },
+    "workspace_fmt_check": 0,
+    "changed_go_gofmt": {
+      "exit": 0,
+      "files": 38
+    },
+    "root_go_compile_only": {
+      "exit": 0,
+      "packages": [
+        "common/testing/testpilot",
+        "common/testing/testpilot/temporal/act",
+        "tools/canary/controller",
+        "tools/umpire/cmd/umpire",
+        "tools/umpire/temporaldriver",
+        "tests"
+      ]
+    },
+    "go_no_rust_contract": {
+      "argv": [
+        "/home/agent/.local/share/mise/installs/go/1.27.0/bin/go",
+        "test",
+        "-p",
+        "2",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-run",
+        "^TestResetProgramRowsAndScenarioHeader$",
+        "./..."
+      ],
+      "exit": 0,
+      "seconds": 0.8847254580032313,
+      "log": "/home/agent/.cache/codex-build/fn258-consumer/readiness-go-no-rust-contract-after-fix.log",
+      "sentinel_tools": [
+        "cargo",
+        "rustc",
+        "mise"
+      ],
+      "sentinel_exit_code": 89,
+      "sentinel_script_sha256": "43412a5ab216466e08952cd2848722f0e7c6b6b748b14da92891206762114088",
+      "sentinel_lookups": [
+        "/home/agent/.cache/codex-build/tmp/fn258-go-no-rust-verified-psntz2y3/cargo",
+        "/home/agent/.cache/codex-build/tmp/fn258-go-no-rust-verified-psntz2y3/rustc",
+        "/home/agent/.cache/codex-build/tmp/fn258-go-no-rust-verified-psntz2y3/mise"
+      ],
+      "forbidden_tool_invocations": "",
+      "path_scope": "temporary child environment only"
+    },
+    "multi_repo_quick_selection": {
+      "exit": 0,
+      "caller": "Temporal",
+      "other_repository_base": "HEAD",
+      "always_selected": "umpire-temporal-tests",
+      "invalid_caller_base_refused": true
+    },
+    "setup_negative_controls": [
+      {
+        "control": "paired CI setup preserves existing parent workspace/sums",
+        "exit": 1,
+        "output": "::error::Paired checkout destination already exists; preserve it and select a clean runner: /home/agent/.cache/codex-build/tmp/fn258-consumer-readiness-8umb4x5k/go.work\n"
+      },
+      {
+        "control": "missing local sibling gives actionable failure",
+        "exit": 1,
+        "output": "missing sibling Umpire checkout at /home/agent/.cache/codex-build/tmp/fn258-consumer-readiness-8umb4x5k/umpire; place umpire beside the Temporal checkout\n"
+      }
+    ]
+  },
+  "diagnosed_fixes": [
+    {
+      "file": "model/dev/xtask/tests/main.rs",
+      "cause": "Freshness control selected first temporal-xtask recipe, which was quick",
+      "fix": "Require trimmed recipe ending -- gate"
+    },
+    {
+      "file": "model/dev/xtask/tests/main.rs",
+      "cause": "Isolated missing-embed Go fixture inherited a parent workspace that excludes it",
+      "fix": "Set GOWORK=off only for isolated fixture subprocess"
+    }
+  ],
+  "orphans": "No active old generic Go-module imports found; residual in-tree strings are archive material, scanner fixture strings/exclusions, and intentionally inactive workflow paths for task5 activation.",
+  "limitations": [
+    "No broad final standalone/paired gate was run by this readiness lane.",
+    "Missing TLC jar/provider admission is separate from consumer focused checks.",
+    "Independent task3 review and refreshed candidate bundle/source record remain conductor work.",
+    "model/docs/paired-checkout.md still names historical standalone source checkpoint 58a6989; exact current pair is recorded here and in source-checkpoint.json."
+  ],
+  "evidence": [
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-bridge-controls-after-fix.log",
+      "sha256": "999dd5383da509e5b14b620717bcf8f035ecd24184cf4e5e1af3bd127ec18127",
+      "size": 2464
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-bridge-controls-before-fix.log",
+      "sha256": "4e014e79b4a0f7329bd6c0533898348e9632e3d2e58d0fe5ab3ccb7cdbaa26c2",
+      "size": 4921
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-bridge-controls.log",
+      "sha256": "4e014e79b4a0f7329bd6c0533898348e9632e3d2e58d0fe5ab3ccb7cdbaa26c2",
+      "size": 4921
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-changed-go-formatting.log",
+      "sha256": "58000109472d8491aed58a257a269e7104e06dd1f7ea90f9be355fb86959958b",
+      "size": 40
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-go-callers-compilation.log",
+      "sha256": "f4732c1460f99611c529da7c100b468d71e762fd8d3054e5881c88ce028609fa",
+      "size": 782
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-go-no-rust-contract-after-fix.log",
+      "sha256": "6f59cf8f845bd1cbbd73e9bd5ce5b04655764d1e74e5a783ca9f30332004b24b",
+      "size": 1009
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-go-no-rust-contract.log",
+      "sha256": "f095717352191ab44bce80c75aec78c588a10682216c8cfb6645d183a284440d",
+      "size": 546
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-native-symbolic-compilation-after-fix.log",
+      "sha256": "529f49318d881876b2a16d7de8a11763985fe92a9734667a8c002f1670a5a0e0",
+      "size": 915
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-native-symbolic-compilation.log",
+      "sha256": "7c6b33236bf4ef926efad12d89733008ace7c3c37be482a34df70fa3eb84057b",
+      "size": 1945
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-quick-invalid-base.log",
+      "sha256": "642966cb8aff7a29b6f28f9577297980a547c97273a4767546b0f251136acf37",
+      "size": 1154
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-quick-selection.log",
+      "sha256": "8de5b4aa77082fbfc0dc2475a6b5b19c2fbb17c71cdcb6a552f03d1ce248c353",
+      "size": 1392
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-workspace-compilation.log",
+      "sha256": "73c32fba5dfe91863794af658cec9b7d0c921420265e58679d32034b85dcc879",
+      "size": 4900
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-workspace-formatting.log",
+      "sha256": "b009344c8a7ac4ab878d378ba853bb85d0ed769fba7fbe2e2d83d21dddb99b18",
+      "size": 113
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-go-no-rust-proof.json",
+      "sha256": "6dece8551dc9202737cdd9a4c57d76e71bb966b8ca03740447e156666f4b365d",
+      "size": 930
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-go-results.json",
+      "sha256": "c97f3d33930a9764338e0493016e4a9fe829b8ba244c4f6c1243be4f38f43881",
+      "size": 1243
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-model-metadata.json",
+      "sha256": "e49c21a39281a553b28123857b28c690859eae1b0ffbe575c00ac0f528ab77d7",
+      "size": 576405
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-native-symbolic-metadata.json",
+      "sha256": "605ba7f32f57a54e35b1f6410dcb1be3e18f4e45c02e5b442e126797fa8024bd",
+      "size": 375983
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-rust-after-fix-results.json",
+      "sha256": "f77c022dfd0ca0fda2c66494232ffb89714aadf2d1a10138a7c0521935f7ddd1",
+      "size": 1302
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-rust-results.json",
+      "sha256": "3cd9eef0afb747031f003054b527780ec036f58c63ccfe3e869f36d4dffe20a8",
+      "size": 913
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-setup-controls.json",
+      "sha256": "1a0e06e9b94771df52ed8d43530845e2a53b8e5f01d5e4fb12533edceaadacbf",
+      "size": 550
+    }
+  ],
+  "fake_child_control_receipts": {
+    "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-fake-child-control-receipts",
+    "meaning": "Only test-owned simulated child orchestration receipts, not actual gate execution evidence",
+    "relocated_from": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/dev/xtask/control-relative-target"
+  }
+}

@@ -1,0 +1,11 @@
+pair: consumer3658582dac5b54c1f68c2eb54a312957c97e05b6 framework05473210b48c3db862f22051eb7154ce98258f98
+cwd: /home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model
+$ mise exec -- cargo check --workspace --all-targets --all-features --locked
+   Compiling umpire-temporal-api v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/api)
+    Checking xtask v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/dev/xtask)
+    Checking temporal-xtask v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/dev/xtask)
+    Checking umpire-temporal v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/realization)
+    Checking umpire-temporal-tests v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/testing)
+    Checking umpire-temporal-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/guest)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.02s
+exit: 0

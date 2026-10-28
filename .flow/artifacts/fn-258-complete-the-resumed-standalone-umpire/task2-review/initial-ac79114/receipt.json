@@ -1,0 +1,119 @@
+{
+  "base": "26fcbb6bdb",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "claude-fable-5-1",
+      "session_id": "f3e0c461-1be3-4388-a157-29dc50e2b80b",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "claude-fable-5-1",
+      "session_id": "d4f74cda-c7e3-4a50-8a01-f8969eb5aa0c",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "claude-fable-5-1",
+      "session_id": "5810af66-e531-42a0-8dc4-96aa974a9959",
+      "verdict": "SHIP"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "claude",
+    "baseSha": "26fcbb6bdbe273e2b0bf5db2739e4d0e5fa34ffe",
+    "headSha": "7c6d9fdcbd896b4903720350ae6706e32d203a5d",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "26fcbb6bdbe273e2b0bf5db2739e4d0e5fa34ffe",
+          "headSha": "7c6d9fdcbd896b4903720350ae6706e32d203a5d",
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/standalone/adaptation-equivalence.md",
+          "side": "head",
+          "startLine": 9
+        },
+        "body": "Task acceptance requires protobuf freshness pass, but the reviewed artifact set has no core/kettle freshness or source-boundary receipt bound to ac79114. Before closure, retain those actual current-head commands and results. This combines correctness finding1 and contracts finding2.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-bd3b4fb94eaa005dc76196efd1ea163cf5e4fc2d58f7a585b15ab51dd3d814e5",
+        "id": "finding-8aaa89c1422f85475d94dbce4b9e35d8",
+        "lastSeenReceiptId": "review-bd3b4fb94eaa005dc76196efd1ea163cf5e4fc2d58f7a585b15ab51dd3d814e5",
+        "ordinal": 1,
+        "rIds": [
+          "R3"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "title": "Current protobuf and source-boundary receipts are not committed"
+      },
+      {
+        "anchor": {
+          "baseSha": "26fcbb6bdbe273e2b0bf5db2739e4d0e5fa34ffe",
+          "headSha": "7c6d9fdcbd896b4903720350ae6706e32d203a5d",
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/standalone/verify-adaptation.py",
+          "side": "head",
+          "startLine": 63
+        },
+        "body": "The verifier does not read prior_adaptation_after_sha256 or unchanged_since_prior_approved_adaptation. A stale prior hash with unchanged=true passes, despite the prose claiming fifty-one historical adaptations match their approved hash. Compare approved blob bytes to the prior hash when the flag is true, and record the verified count. Source: contracts finding1.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-bd3b4fb94eaa005dc76196efd1ea163cf5e4fc2d58f7a585b15ab51dd3d814e5",
+        "id": "finding-54cd3a61e6fecd21ab9c81c58baf80b1",
+        "lastSeenReceiptId": "review-bd3b4fb94eaa005dc76196efd1ea163cf5e4fc2d58f7a585b15ab51dd3d814e5",
+        "ordinal": 2,
+        "rIds": [
+          "R3"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "title": "Historical adaptation hash claims are not verified"
+      },
+      {
+        "anchor": {
+          "baseSha": "26fcbb6bdbe273e2b0bf5db2739e4d0e5fa34ffe",
+          "headSha": "7c6d9fdcbd896b4903720350ae6706e32d203a5d",
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/standalone/verify-adaptation.py",
+          "side": "head",
+          "startLine": 39
+        },
+        "body": "protected() includes every fixtures path, including fixture-crate Rust source and build.rs. This is correct for the current equal tree, but a future adaptation would be refused even if allowlisted. Restrict payload rules or document that fixture-crate source is intentionally frozen. Source: integration finding1.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-bd3b4fb94eaa005dc76196efd1ea163cf5e4fc2d58f7a585b15ab51dd3d814e5",
+        "id": "finding-45edd1be97a9b4f18b79f1d6c4813b7e",
+        "lastSeenReceiptId": "review-bd3b4fb94eaa005dc76196efd1ea163cf5e4fc2d58f7a585b15ab51dd3d814e5",
+        "ordinal": 3,
+        "rIds": [
+          "R3"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "title": "Protected fixture source needs an explicit freeze rationale"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-bd3b4fb94eaa005dc76196efd1ea163cf5e4fc2d58f7a585b15ab51dd3d814e5"
+  },
+  "focus": "Task2 source readiness only R2/R3: actual standalone ../umpire at ac79114, code diff standalone/source-adaptation.patch is relative to current raw export a92. Inspect actual source or patch for portable Cargo/Go/schema generation/ABI paths, independent-repository quick selection, strict boundary policy admitting exact LICENSE and three generated descriptor lines only. Check source inventory57 adaptations/499 protected records/133 additions122 removals and history join evidence. Current fresh full gate belongs task4 and is live; focused xtask92+quick26+graph3+boundary11+clippy and protobuf/source-boundary controls green. Parent source .17 integrated code is byte-identical apart from allowlisted seam changes. Consumer/cleanup/history-tool fixes are outside task2; do not treat artifact-only tracker diff as absence of migration code changes.",
+  "id": "fn-258-complete-the-resumed-standalone-umpire.2",
+  "introduced_count": 3,
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "pre_existing_count": 0,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/standalone/adaptation-equivalence.md:9\n- **R-IDs**: [R3]\n- **Title**: Current protobuf and source-boundary receipts are not committed\n- **Problem**: Task acceptance requires protobuf freshness pass, but the reviewed artifact set has no core/kettle freshness or source-boundary receipt bound to ac79114. Before closure, retain those actual current-head commands and results. This combines correctness finding1 and contracts finding2.\n\n## Issue 2\n- **Severity**: P3\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/standalone/verify-adaptation.py:63\n- **R-IDs**: [R3]\n- **Title**: Historical adaptation hash claims are not verified\n- **Problem**: The verifier does not read prior_adaptation_after_sha256 or unchanged_since_prior_approved_adaptation. A stale prior hash with unchanged=true passes, despite the prose claiming fifty-one historical adaptations match their approved hash. Compare approved blob bytes to the prior hash when the flag is true, and record the verified count. Source: contracts finding1.\n\n## Issue 3\n- **Severity**: P3\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/standalone/verify-adaptation.py:39\n- **R-IDs**: [R3]\n- **Title**: Protected fixture source needs an explicit freeze rationale\n- **Problem**: protected() includes every fixtures path, including fixture-crate Rust source and build.rs. This is correct for the current equal tree, but a future adaptation would be refused even if allowlisted. Restrict payload rules or document that fixture-crate source is intentionally frozen. Source: integration finding1.\n\nDeclined optional correctness finding2: no failing behavior is identified; retain the documented generated-header/raw-descriptor context controls. This is a format-repaired merge of the actual three SHIP draws, not a new review.\n\n```json\n{\"classification_counts\": {\"introduced\": 3, \"pre_existing\": 0}, \"unaddressed\": []}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "03f6ced6752c44b3a270fab6ff849bec",
+  "rid": "03f6ced6752c44b3a270fab6ff849bec",
+  "session_id": "f3e0c461-1be3-4388-a157-29dc50e2b80b",
+  "spec": "claude:claude-fable-5-1:high",
+  "timestamp": "2026-10-28T06:11:02.482724Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}

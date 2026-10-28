@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "status": "explicit reviewed path and exact-content allowlist after verified history join and test-only lint",
+  "status": "explicit reviewed path and exact-content allowlist after history join, boundary test lint and required-test TLC setup ordering fix",
   "frozen_source_commit": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
   "source_manifest_sha256": "a29ea7017bf9138701d1580e1a466071a1c151b849526a55648484b27175a2c3",
-  "standalone_head": "ac79114a9ad43a9d9fc2a022d07406d217878760",
+  "standalone_head": "05473210b48c3db862f22051eb7154ce98258f98",
   "prior_adaptation_inventory_sha256": "48d9f6f485aaf0bc649be076fe433d4c0dacdd43cb962e868cd15663b951b5c2",
   "modified_paths": {
     ".cargo/config.toml": {
@@ -744,6 +744,26 @@
       "approved_after": {
         "mode": "100644",
         "blob": "d3d6b9e03a3cfac7aeadc03c63f8691149d7633e"
+      }
+    },
+    "dev/xtask/src/gate.rs": {
+      "reason": "Required tests stage supervises existing fetch-tlc.sh before tests and propagates setup failure; backend skip mode and test invocation remain unchanged.",
+      "corroborating_commits": [
+        "05473210b48c3db862f22051eb7154ce98258f98"
+      ],
+      "approved_after": {
+        "mode": "100644",
+        "blob": "b7da732cce0b1367e78e874277a1f096218286d4"
+      }
+    },
+    "dev/xtask/tests/gate_wiring.rs": {
+      "reason": "Gate-caller portability controls supply mandatory boundary-policy fields and verify TLC setup ordering, failure propagation, skip behavior and stage receipts.",
+      "corroborating_commits": [
+        "05473210b48c3db862f22051eb7154ce98258f98"
+      ],
+      "approved_after": {
+        "mode": "100644",
+        "blob": "960fd10bf249e3146cdb9f960e6b7065a993bcb3"
       }
     }
   },

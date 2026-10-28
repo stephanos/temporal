@@ -1,0 +1,14 @@
+{
+  "source_base": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "candidate": "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+  "branch": "refs/heads/work/fn2583-consumers",
+  "bundle": "source-preparation-3658582.bundle",
+  "standalone_pair": "05473210b48c3db862f22051eb7154ce98258f98",
+  "prior_candidates": [
+    "7e655da80b3810807cbd02a3ea29c26ceb9804e4",
+    "4035bb70fdf4c7ef074a8f05a02b19fb458c0b1d"
+  ],
+  "final_delta": "Only model/dev/xtask/tests/main.rs changes after reproduced-guest4035bb70; guest and production code are exact. Current365/054 clean-pair compilation+16/7controls pass; earlier Go/host/guest proofs bind unchanged production/guest build closures.",
+  "source_integration": "unmerged candidate; final publication/CI/cutover remains task5",
+  "bundle_sha256": "701decd699db4421b867f2807283db6af186e88e642802b2800c358b193d7b7a"
+}

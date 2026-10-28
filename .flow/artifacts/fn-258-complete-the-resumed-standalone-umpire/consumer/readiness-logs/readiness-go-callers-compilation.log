@@ -1,0 +1,9 @@
+cwd: /home/agent/.cache/codex-build/tmp/fn258-pair/temporal
+$ /home/agent/.local/share/mise/installs/go/1.27.0/bin/go test -p 2 -tags test_dep -count=1 -run ^$ ./common/testing/testpilot ./common/testing/testpilot/temporal/act ./tools/canary/controller ./tools/umpire/cmd/umpire ./tools/umpire/temporaldriver ./tests
+ok  	go.temporal.io/server/common/testing/testpilot	0.003s [no tests to run]
+ok  	go.temporal.io/server/common/testing/testpilot/temporal/act	0.003s [no tests to run]
+ok  	go.temporal.io/server/tools/canary/controller	0.004s [no tests to run]
+ok  	go.temporal.io/server/tools/umpire/cmd/umpire	0.004s [no tests to run]
+ok  	go.temporal.io/server/tools/umpire/temporaldriver	0.003s [no tests to run]
+ok  	go.temporal.io/server/tests	0.022s [no tests to run]
+exit: 0

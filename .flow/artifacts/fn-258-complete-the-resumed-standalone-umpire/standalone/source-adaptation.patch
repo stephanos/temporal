@@ -2,13 +2,9 @@ diff --git a/.cargo/config.toml b/.cargo/config.toml
 index 32782662..356f4e4f 100644
 --- a/.cargo/config.toml
 +++ b/.cargo/config.toml
-@@ -1,5 +1,5 @@
- [alias]
+@@ -2 +2 @@
 -# The same gate `make model-check` runs, for use from inside model/.
 +# Workspace lint and documentation shortcuts; root Make delegates the full native gate.
- check-all = "clippy --workspace --all-targets --all-features -- -D warnings"
- doc-all = "doc --workspace --no-deps --document-private-items"
- xtask = "run --package xtask --bin xtask --profile dev --"
 diff --git a/.github/workflows/check.yml b/.github/workflows/check.yml
 new file mode 100644
 index 00000000..ea14ac3e
@@ -360,10 +356,7 @@ diff --git a/README.md b/README.md
 index a78217c4..28e23742 100644
 --- a/README.md
 +++ b/README.md
-@@ -7,35 +7,61 @@ fixture tooling and shared Models. `hosts/go/` contains the host, Runner and gen
- protocol packages; `reference/kettle/` contains the independent Kettle integration.
- 
- The framework is an independent Cargo workspace with local tool pins, lockfile,
+@@ -10 +10,8 @@ The framework is an independent Cargo workspace with local tool pins, lockfile,
 -lint and arithmetic policies. From this directory, use the installed pinned tools:
 +lint and arithmetic policies. It needs no system repository, Scala build or prebuilt
 +wasm. See [the design](DESIGN.md) for ownership and retained decisions, and
@@ -373,8 +366,7 @@ index a78217c4..28e23742 100644
 +
 +Install [mise](https://mise.jdx.dev/) and the tools declared in `mise.toml`, then
 +install the Rust components and wasm target declared in `rust-toolchain.toml`:
- 
- ```sh
+@@ -13,5 +20,4 @@ lint and arithmetic policies. From this directory, use the installed pinned tool
 -mise exec -- cargo build --workspace --locked
 -mise exec -- cargo test --workspace --locked
 -mise exec -- cargo fmt --all -- --check
@@ -384,8 +376,7 @@ index a78217c4..28e23742 100644
 +mise exec -- rustup component add rustfmt clippy rust-src rust-analyzer
 +mise exec -- rustup target add wasm32-wasip1
 +make check
- ```
- 
+@@ -20 +26,22 @@ mise exec -- cargo doc-all
 -Run the complete framework gate from this directory:
 +Run commands from this checkout's root. Java is required for TLC and Apalache;
 +the local mise configuration retains its Java pin. The gate provisions the pinned
@@ -409,15 +400,13 @@ index a78217c4..28e23742 100644
 +are soft targets (60 s full gate, 10 s inner loop); overruns must be reported.
 +
 +For direct Cargo work:
- 
- ```sh
+@@ -23 +50,4 @@ Run the complete framework gate from this directory:
 -mise exec -- cargo xtask gate
 +mise exec -- cargo build --workspace --locked
 +mise exec -- cargo test --workspace --locked
 +mise exec -- cargo check-all
 +mise exec -- cargo doc-all
- ```
- 
+@@ -26,13 +56,9 @@ mise exec -- cargo xtask gate
 -It checks this workspace's formatting, clippy, documentation, tests, source boundaries,
 -protobufs, guests and both Go host modules. `cargo xtask fmt`, `update`, `time` and
 -`validate` provide formatting, snapshot updates, timed checks and required TLC checks.
@@ -440,21 +429,13 @@ index a78217c4..28e23742 100644
 +Go protocol sources; omit `--check` to regenerate after an intended schema change.
 +Explicit `CARGO_TARGET_DIR` overrides remain supported. See
 +[the consumer interface map](docs/consumer-interface.md) for sibling integrations.
- 
- ## World-selected assumptions
- 
 diff --git a/dev/gate/policy/framework-boundary.txt b/dev/gate/policy/framework-boundary.txt
 index e09ec03d..27d78732 100644
 --- a/dev/gate/policy/framework-boundary.txt
 +++ b/dev/gate/policy/framework-boundary.txt
-@@ -1,6 +1,19 @@
- version = 1
+@@ -1,0 +2 @@ version = 1
 +license_sha256 = "6aab9afd99ceb1dcaf6a0d91386b46baef9bce17ae4006044e0f231e31430b69"
- forbidden = ["temporal", "Temporal", "go.temporal.io/", "temporal.api", "temporal::api", "temporal/api"]
- organization_prefix = "github.com/temporalio/"
- retired_pattern = 'umpire[-_](wasm|tests)|umpire/(wasm|tests)(/|["`[:space:]]|$)|(^|[^[:alnum:]_])umpire[-_](lift|annotations)([^[:alnum:]_]|$)|umpire/(dsl|suite|checker|lift|runtime|proto|testing|fixtures|ir-derive|catalog-build)(/|["`[:space:]]|$)|umpire/annotations(/(src|tests|Cargo[.]toml|README[.]md|build[.]rs)(/|["`[:space:]]|$)|["`[:space:]]|$)'
- controls = ["TemporalClient temporal_client", "use temporal::api;", "import go.temporal.io/api;", "module temporal/api;", "// temporal.api.Workflow", "github.com/temporalio/Temporal", "github.com/temporalio/temporal", "github.com/temporalio/umpire Temporal", "github.com/temporalio/umpire_temporal", "github.com/temporalio/umpire temporalio", "temporalio", "github.com/temporalioish/umpire", "github.com/Temporalio/umpire", "github.com/temporalio", "github.com/temporalio/", "other/temporalio/umpire", "other/github.com/temporalio/umpire"]
- accepted_controls = ["github.com/temporalio/umpire", "github.com/temporalio/umpire/hosts/go"]
+@@ -6,0 +8,12 @@ accepted_controls = ["github.com/temporalio/umpire", "github.com/temporalio/umpi
 +
 +[[descriptor_lines]]
 +path = "hosts/go/gen/umpire/model/v1/model.pb.go"
@@ -471,40 +452,21 @@ diff --git a/dev/guest-driver/README.md b/dev/guest-driver/README.md
 index 06c9a824..4d62b8de 100644
 --- a/dev/guest-driver/README.md
 +++ b/dev/guest-driver/README.md
-@@ -3,12 +3,11 @@
- Build this host-only tool before setting guest compilation flags:
- 
- ```sh
+@@ -6 +5,0 @@ Build this host-only tool before setting guest compilation flags:
 -cd model/umpire
- mise exec -- cargo build -p umpire-guest-driver --bin umpire-guest-driver --profile dev --locked
- mise exec -- cargo run -p umpire-guest-driver --bin umpire-guest-driver -- guest-lock Cargo.lock build/identities < metadata.json
- ```
- 
+@@ -11 +10 @@ mise exec -- cargo run -p umpire-guest-driver --bin umpire-guest-driver -- guest
 -The alias selects the development profile; callers must bootstrap without a guest `--target`, `RUSTC_WRAPPER`, `RUSTFLAGS` or `CARGO_ENCODED_RUSTFLAGS`. Subsequent compiler invocations call the built native executable directly as `umpire-guest-driver guest-rustc <rustc> <arguments...>`. They never launch Cargo recursively. `scripts/xtask.sh` now owns bootstrap and prints the absolute executable path under `<target>/xtask-bootstrap/debug/umpire-guest-driver`. Guest launchers copy that native executable atomically as `guest-rustc`, which dispatches by argv[0] before parsing command arguments.
 +The command selects the development profile; callers must bootstrap without a guest `--target`, `RUSTC_WRAPPER`, `RUSTFLAGS` or `CARGO_ENCODED_RUSTFLAGS`. Subsequent compiler invocations call the built native executable directly as `umpire-guest-driver guest-rustc <rustc> <arguments...>`. They never launch Cargo recursively. `scripts/xtask.sh` now owns bootstrap and prints the absolute executable path under `<target>/xtask-bootstrap/debug/umpire-guest-driver`. Guest launchers copy that native executable atomically as `guest-rustc`, which dispatches by argv[0] before parsing command arguments.
- 
- `guest <crate> <output> [--check]` builds or compares a guest. `guest-freshness <crate> <output>` validates pinned tools, metadata, Rust sources and target readiness before comparing. Both use the caller Cargo workspace; shell callers use `guest.sh` and `guest-freshness.sh` to preserve caller-relative output paths. Missing tools fail for every CI value. See [native CLI](../xtask/README.md) for native JSON admission, statuses and bootstrap environment.
- 
-@@ -20,10 +19,9 @@ Native schema 2 intentionally replaces Python identity JSON, hash inputs, sideca
- 
- Serialization passes through plain serde_json `Value` so nested object keys use the default BTreeMap ordering. `preserve_order` is disabled workspace-wide. SHA-256 uses in-process sha2 0.11. Native TOML is exactly the admitted toml 1.1.8+spec-1.1.0 with only std/parse/serde requested by xtask. Other existing workspace consumers retain their pre-existing TOML features. No unbounded feature or Python grammar, number, date, recursion, escaping or diagnostic-order emulation is provided. JSON/TOML parse and schema failures are errors; native parser resource limits apply. Current workspace Cargo, mise and Rust toolchain documents and the installed rust-src lockfile are controls in the focused native corpus.
- 
+@@ -23 +22 @@ Serialization passes through plain serde_json `Value` so nested object keys use
 -Run the task's focused controls:
 +From the checkout root, run the focused controls:
- 
- ```sh
+@@ -26 +24,0 @@ Run the task's focused controls:
 -cd model/umpire
- mise exec -- cargo test -p umpire-guest-driver --locked
- mise exec -- cargo clippy -p umpire-guest-driver --all-targets -- -D warnings
- ```
 diff --git a/dev/xtask/README.md b/dev/xtask/README.md
 index d7c089c0..2f2b9282 100644
 --- a/dev/xtask/README.md
 +++ b/dev/xtask/README.md
-@@ -29,6 +29,28 @@ POSIX character classes. The shell resolves the compiled tool once through
- isolated caller controls. `cargo test -p xtask --test main --locked` covers
- the stream contract, active spellings, historical exclusions and tool failures.
- 
+@@ -31,0 +32,22 @@ the stream contract, active spellings, historical exclusions and tool failures.
 +## Affected-package quick command
 +
 +`quick --workspace <absolute-path>` accepts multiple Cargo workspaces, including
@@ -527,25 +489,29 @@ index d7c089c0..2f2b9282 100644
 +Package test targets and filters narrow only unchanged or exclusively mapped Model
 +edits. Full gates continue to disable quick-cache reads.
 +
- ## Apalache installer
- 
- `fetch-apalache [framework-root]` admits the official pinned Apalache jar. The
+diff --git a/dev/xtask/src/gate.rs b/dev/xtask/src/gate.rs
+index 7cff6f65..b7da732c 100644
+--- a/dev/xtask/src/gate.rs
++++ b/dev/xtask/src/gate.rs
+@@ -160 +160,9 @@ impl Gate {
+-            "tests" => self.tests()?,
++            "tests" => {
++                if self.required {
++                    let code = self.execute(name, &self.script("fetch-tlc.sh", &[]))?;
++                    if code != 0 {
++                        return Ok(code);
++                    }
++                }
++                self.tests()?
++            }
 diff --git a/dev/xtask/src/gate/boundary.rs b/dev/xtask/src/gate/boundary.rs
 index 7e9029cc..f4dad043 100644
 --- a/dev/xtask/src/gate/boundary.rs
 +++ b/dev/xtask/src/gate/boundary.rs
-@@ -13,12 +13,23 @@ const POLICY: &str = "dev/gate/policy/framework-boundary.txt";
- #[serde(deny_unknown_fields)]
- struct Policy {
-     version: u32,
+@@ -15,0 +16,2 @@ struct Policy {
 +    license_sha256: String,
 +    descriptor_lines: Vec<DescriptorLine>,
-     forbidden: Vec<String>,
-     retired_pattern: String,
-     organization_prefix: String,
-     controls: Vec<String>,
-     accepted_controls: Vec<String>,
- }
+@@ -21,0 +24,9 @@ struct Policy {
 +#[derive(Deserialize)]
 +#[serde(deny_unknown_fields)]
 +struct DescriptorLine {
@@ -555,13 +521,7 @@ index 7e9029cc..f4dad043 100644
 +fn valid_digest(value: &str) -> bool {
 +    value.len() == 64 && value.bytes().all(|byte| matches!(byte, b'0'..=b'9' | b'a'..=b'f'))
 +}
- fn policy(root: &Path) -> Result<Policy> {
-     let path = root.join(POLICY);
-     if !fs::symlink_metadata(&path)?.is_file() {
-@@ -26,6 +37,15 @@ fn policy(root: &Path) -> Result<Policy> {
-     }
-     let policy: Policy = toml::from_str(&fs::read_to_string(path)?)?;
-     if policy.version != 1
+@@ -28,0 +40,9 @@ fn policy(root: &Path) -> Result<Policy> {
 +        || !valid_digest(&policy.license_sha256)
 +        || policy.descriptor_lines.iter().enumerate().any(|(index, line)| {
 +            !valid_digest(&line.sha256)
@@ -571,13 +531,7 @@ index 7e9029cc..f4dad043 100644
 +                })
 +                || policy.descriptor_lines[..index].iter().any(|other| other.path == line.path)
 +        })
-         || policy.forbidden.is_empty()
-         || policy.forbidden.iter().any(String::is_empty)
-         || policy.retired_pattern.is_empty()
-@@ -144,6 +164,20 @@ fn forbidden(bytes: &[u8], p: &Policy, allow: bool) -> bool {
-         })
-     })
- }
+@@ -146,0 +167,14 @@ fn forbidden(bytes: &[u8], p: &Policy, allow: bool) -> bool {
 +fn descriptor_line(bytes: &[u8], relative: &Path, p: &Policy) -> Vec<u8> {
 +    let mut scanned = bytes.to_vec();
 +    if p.descriptor_lines.iter().any(|line| {
@@ -592,13 +546,7 @@ index 7e9029cc..f4dad043 100644
 +    }
 +    scanned
 +}
- pub(super) fn check(root: &Path, target: &Path) -> Result<()> {
-     let p = policy(root)?;
-     for file in files(root, target)? {
-@@ -158,13 +192,29 @@ pub(super) fn check(root: &Path, target: &Path) -> Result<()> {
-             )));
-         }
-         let bytes = fs::read(&file)?;
+@@ -161,7 +195,23 @@ pub(super) fn check(root: &Path, target: &Path) -> Result<()> {
 -        for (line, bytes) in bytes.split(|b| *b == b'\n').enumerate() {
 -            if forbidden(bytes, &p, true) {
 -                return Err(Error::Invalid(format!(
@@ -629,13 +577,7 @@ index 7e9029cc..f4dad043 100644
 +                        line + 1
 +                    )));
 +                }
-             }
-         }
-         if file.file_name() == Some(OsStr::new("Cargo.toml")) {
-@@ -531,6 +581,147 @@ mod tests {
-         Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
-     }
-     #[test]
+@@ -533,0 +584,141 @@ mod tests {
 +    fn descriptor_policy_requires_canonical_paths_and_digests() -> Result<()> {
 +        let directory = tempfile::tempdir()?;
 +        let root = directory.path();
@@ -777,17 +719,11 @@ index 7e9029cc..f4dad043 100644
 +        Ok(())
 +    }
 +    #[test]
-     fn organization_exception_preserves_occurrence_token_boundaries() -> Result<()> {
-         let p = policy(&local_policy_root())?;
-         let directory = tempfile::tempdir()?;
 diff --git a/dev/xtask/src/quick/mod.rs b/dev/xtask/src/quick/mod.rs
 index aa5a9fb0..2b1e9253 100644
 --- a/dev/xtask/src/quick/mod.rs
 +++ b/dev/xtask/src/quick/mod.rs
-@@ -165,6 +165,57 @@ fn changed(root: &Path, base: &std::ffi::OsStr) -> Result<Vec<PathBuf>> {
-         .collect())
- }
- 
+@@ -167,0 +168,51 @@ fn changed(root: &Path, base: &std::ffi::OsStr) -> Result<Vec<PathBuf>> {
 +fn repository(root: &Path) -> Result<PathBuf> {
 +    let repository = captured(&mut git(root, &["rev-parse", "--show-toplevel"]))?;
 +    let repository = repository.strip_suffix(b"\n").unwrap_or(&repository);
@@ -839,13 +775,7 @@ index aa5a9fb0..2b1e9253 100644
 +    Ok((paths.into_iter().collect(), reasons))
 +}
 +
- fn cargo(root: &Path, home: &Path, target: &Path) -> Command {
-     let mut command = Command::new("mise");
-     command
-@@ -348,20 +399,7 @@ pub fn run(arguments: Vec<OsString>) -> Result<i32> {
-             if path.is_absolute() { path } else { caller.join(path) }
-         },
-     );
+@@ -351,14 +402 @@ pub fn run(arguments: Vec<OsString>) -> Result<i32> {
 -    let repository = captured(&mut git(&options.workspaces[0], &["rev-parse", "--show-toplevel"]))?;
 -    let repository = repository.strip_suffix(b"\n").unwrap_or(&repository);
 -    let repository = PathBuf::from(OsString::from_vec(repository.to_vec())).canonicalize()?;
@@ -861,33 +791,18 @@ index aa5a9fb0..2b1e9253 100644
 -    let base = options.base.as_deref().unwrap_or_default();
 -    let changed = changed(&repository, base)?;
 +    let (changed, reasons) = changes(&options, &caller)?;
-     let mut graph = selection::Graph::default();
-     for workspace in &options.workspaces {
-         let metadata = captured(cargo(workspace, &home, &target).args([
-@@ -372,7 +410,8 @@ pub fn run(arguments: Vec<OsString>) -> Result<i32> {
-         ]))?;
-         graph.add(workspace, &metadata)?;
-     }
+@@ -375 +413,2 @@ pub fn run(arguments: Vec<OsString>) -> Result<i32> {
 -    let selection = graph.select(&options, changed)?;
 +    let mut selection = graph.select(&options, changed)?;
 +    selection.reasons.extend(reasons);
-     serde_json::to_writer(io::stdout().lock(), &selection)
-         .map_err(|error| Error::Invalid(error.to_string()))?;
-     writeln!(io::stdout())?;
 diff --git a/dev/xtask/src/quick/tests.rs b/dev/xtask/src/quick/tests.rs
 index bb32b49f..d276b1b9 100644
 --- a/dev/xtask/src/quick/tests.rs
 +++ b/dev/xtask/src/quick/tests.rs
-@@ -1,4 +1,4 @@
+@@ -1 +1 @@
 -use super::{Options, changed, selection::Graph};
 +use super::{Options, changed, changes, selection::Graph};
- use std::{
-     collections::BTreeSet,
-     ffi::OsString,
-@@ -161,6 +161,173 @@ fn git_selection_includes_staged_unstaged_untracked_renamed_and_deleted_paths()
-     Ok(())
- }
- 
+@@ -163,0 +164,167 @@ fn git_selection_includes_staged_unstaged_untracked_renamed_and_deleted_paths()
 +fn commit(root: &Path) -> TestResult {
 +    git(root, &["add", "."])?;
 +    git(
@@ -1055,9 +970,112 @@ index bb32b49f..d276b1b9 100644
 +    Ok(())
 +}
 +
- #[test]
- fn options_reject_unknown_flags_and_relative_workspaces() {
-     assert!(Options::parse(vec!["--workspace".into(), ".".into()]).is_err());
+diff --git a/dev/xtask/tests/gate_wiring.rs b/dev/xtask/tests/gate_wiring.rs
+index 71b44a54..960fd10b 100644
+--- a/dev/xtask/tests/gate_wiring.rs
++++ b/dev/xtask/tests/gate_wiring.rs
+@@ -50,0 +51,7 @@ const LEAVES: &[(&str, &str)] = &[
++fn required_leaves() -> Vec<&'static str> {
++    LEAVES
++        .iter()
++        .flat_map(|(_, leaf)| if *leaf == "tests" { vec!["tlc-tool", *leaf] } else { vec![*leaf] })
++        .collect()
++}
++
+@@ -187 +194 @@ impl Fixture {
+-            "version = 1\nforbidden = ['forbidden_payload']\nretired_pattern = 'retired_payload'\norganization_prefix = 'github.com/acme/'\ncontrols = ['forbidden_payload']\naccepted_controls = ['github.com/acme/project']\n",
++            "version = 1\nlicense_sha256 = '0000000000000000000000000000000000000000000000000000000000000000'\ndescriptor_lines = []\nforbidden = ['forbidden_payload']\nretired_pattern = 'retired_payload'\norganization_prefix = 'github.com/acme/'\ncontrols = ['forbidden_payload']\naccepted_controls = ['github.com/acme/project']\n",
+@@ -192,0 +200 @@ impl Fixture {
++            ("fetch-tlc.sh", "tlc-tool"),
+@@ -538 +546,5 @@ fn validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_fai
+-        let mut expected = LEAVES.iter().map(|(_, leaf)| *leaf).collect::<Vec<_>>();
++        let mut expected = if entry == "validate" {
++            required_leaves()
++        } else {
++            LEAVES.iter().map(|(_, leaf)| *leaf).collect::<Vec<_>>()
++        };
+@@ -754 +766 @@ fn convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status()
+-            assert_eq!(fixture.labels(), LEAVES.iter().map(|(_, leaf)| *leaf).collect::<Vec<_>>());
++            assert_eq!(fixture.labels(), required_leaves());
+@@ -886 +898 @@ fn root_required_backend_environment_selects_standalone_on_gate_and_time_routes(
+-        assert_eq!(fixture.labels(), LEAVES.iter().map(|(_, leaf)| *leaf).collect::<Vec<_>>());
++        assert_eq!(fixture.labels(), required_leaves());
+@@ -946 +958,6 @@ fn required_profile_reaches_gate_update_and_direct_test_children() {
+-            assert_eq!(fixture.labels(), ["tests", "doctests"]);
++            let expected = if entry == ["gate", "--stage", "tests"] && backend == "require" {
++                vec!["tlc-tool", "tests", "doctests"]
++            } else {
++                vec!["tests", "doctests"]
++            };
++            assert_eq!(fixture.labels(), expected);
+@@ -1288,0 +1306,57 @@ fn shipping_mise_graph_really_overlaps_independent_native_leaves() {
++#[test]
++fn required_tests_provision_tlc_before_running_and_preserve_setup_failure() {
++    let fixture = Fixture::new();
++    for timed in [false, true] {
++        for scheduled in [false, true] {
++            for backend in ["require", "skip"] {
++                for failed in [false, true] {
++                    fixture.clear();
++                    let receipts = tempfile::tempdir_in(&fixture.caller).unwrap();
++                    let mut command = fixture.command(timed);
++                    command
++                        .args([
++                            "gate",
++                            if scheduled { "--scheduled-stage" } else { "--stage" },
++                            "tests",
++                        ])
++                        .env("UMPIRE_BACKENDS", backend);
++                    if scheduled {
++                        command
++                            .env("UMPIRE_GATE_RECEIPTS", receipts.path())
++                            .env("UMPIRE_GATE_STAGE", "tests")
++                            .env("UMPIRE_GATE_CONTROLLER_EXECUTABLE", env!("CARGO_BIN_EXE_xtask"));
++                    }
++                    if failed {
++                        command.env("CONTROL_FAIL", "tlc-tool");
++                    }
++                    let output = command.output().unwrap();
++                    let required = backend == "require";
++                    let status = if required && failed { 37 } else { 0 };
++                    assert_status(&output, status);
++                    let expected = match (required, failed) {
++                        (true, true) => vec!["tlc-tool"],
++                        (true, false) => vec!["tlc-tool", "tests", "doctests"],
++                        (false, _) => vec!["tests", "doctests"],
++                    };
++                    assert_eq!(fixture.labels(), expected);
++                    if required && failed {
++                        assert!(stderr(&output).contains("framework stage tests failed (exit 37)"));
++                    }
++                    if scheduled {
++                        let receipt: serde_json::Value = serde_json::from_slice(
++                            &fs::read(receipts.path().join("tests.json")).unwrap(),
++                        )
++                        .unwrap();
++                        assert_eq!(receipt["stage"], "tests");
++                        assert_eq!(receipt["exit"], status);
++                        assert_eq!(
++                            receipt["state"],
++                            if status == 0 { "success" } else { "failed" }
++                        );
++                    }
++                }
++            }
++        }
++    }
++}
++
+@@ -1303 +1377 @@ fn required_test_stage_selects_bounded_profile_and_empty_selection_status_is_pre
+-            assert!(log.lines().next().unwrap().ends_with("cargo nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final --no-tests fail"), "{log}");
++            assert!(log.lines().find(|line| line.starts_with("tests|")).unwrap().ends_with("cargo nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final --no-tests fail"), "{log}");
+@@ -1306 +1380,5 @@ fn required_test_stage_selects_bounded_profile_and_empty_selection_status_is_pre
+-                if code == 0 { vec!["tests", "doctests"] } else { vec!["tests"] }
++                if code == 0 {
++                    vec!["tlc-tool", "tests", "doctests"]
++                } else {
++                    vec!["tlc-tool", "tests"]
++                }
 diff --git a/docs/consumer-interface.md b/docs/consumer-interface.md
 new file mode 100644
 index 00000000..7e86096a
@@ -1112,478 +1130,265 @@ diff --git a/hosts/go/README.md b/hosts/go/README.md
 index ea15a87c..7d53456e 100644
 --- a/hosts/go/README.md
 +++ b/hosts/go/README.md
-@@ -1,6 +1,6 @@
- # Go model host
- 
+@@ -3 +3 @@
 -Package `umpire.local/model/host` runs the generated model v1 contract using wazero v1.12.0
 +Package `github.com/temporalio/umpire/hosts/go/host` runs the generated model v1 contract using wazero v1.12.0
- with Go 1.27.0 and `CGO_ENABLED=0`. It uses wazero's interpreter with experimental
- WebAssembly exception handling enabled for Rust unwinding. It has no dependency
- on the server module.
-@@ -83,7 +83,7 @@ and value-free result classification independently of a system's probe controls.
- 
- ## Runner
- 
+@@ -86 +86 @@ and value-free result classification independently of a system's probe controls.
 -Package `umpire.local/model/runner` is the one host loop. A `Runner` holds one guest's
 +Package `github.com/temporalio/umpire/hosts/go/runner` is the one host loop. A `Runner` holds one guest's
- bytes and a Driver factory. Each Run gets a fresh `Host` and a fresh Driver: Reset with the
- selected world, then Propose, have the Driver act, Judge every observation and Answer every
- callback, until the Model answers `QUIESCENT`, a proposal or event budget is spent, or an
 diff --git a/hosts/go/gen/umpire/annotations/v1/annotations.pb.go b/hosts/go/gen/umpire/annotations/v1/annotations.pb.go
 index f825db78..0abb969c 100644
 --- a/hosts/go/gen/umpire/annotations/v1/annotations.pb.go
 +++ b/hosts/go/gen/umpire/annotations/v1/annotations.pb.go
-@@ -846,7 +846,7 @@ const file_umpire_annotations_v1_annotations_proto_rawDesc = "" +
- 	"APPLICABLE\x10\x00\x12\x12\n" +
- 	"\x0eNOT_APPLICABLE\x10\x01\x12\v\n" +
- 	"\aREFUSED\x10\x02\x12\r\n" +
+@@ -849 +849 @@ const file_umpire_annotations_v1_annotations_proto_rawDesc = "" +
 -	"\tUNCHANGED\x10\x03B.Z,umpire.local/model/gen/umpire/annotations/v1b\x06proto3"
 +	"\tUNCHANGED\x10\x03BAZ?github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1b\x06proto3"
- 
- var (
- 	file_umpire_annotations_v1_annotations_proto_rawDescOnce sync.Once
 diff --git a/hosts/go/gen/umpire/model/v1/model.pb.go b/hosts/go/gen/umpire/model/v1/model.pb.go
 index af7c37ae..be0b8e3a 100644
 --- a/hosts/go/gen/umpire/model/v1/model.pb.go
 +++ b/hosts/go/gen/umpire/model/v1/model.pb.go
-@@ -1414,7 +1414,7 @@ const file_umpire_model_v1_model_proto_rawDesc = "" +
- 	"\x19PROPOSAL_KIND_UNSPECIFIED\x10\x00\x12\x18\n" +
- 	"\x14PROPOSAL_KIND_ACTION\x10\x01\x12\x1b\n" +
- 	"\x17PROPOSAL_KIND_BOOTSTRAP\x10\x02\x12\x16\n" +
+@@ -1417 +1417 @@ const file_umpire_model_v1_model_proto_rawDesc = "" +
 -	"\x12PROPOSAL_KIND_READ\x10\x03B0Z.umpire.local/model/gen/umpire/model/v1;modelv1b\x06proto3"
 +	"\x12PROPOSAL_KIND_READ\x10\x03BCZAgithub.com/temporalio/umpire/hosts/go/gen/umpire/model/v1;modelv1b\x06proto3"
- 
- var (
- 	file_umpire_model_v1_model_proto_rawDescOnce sync.Once
 diff --git a/hosts/go/gen/umpire/realization/v1/realization.pb.go b/hosts/go/gen/umpire/realization/v1/realization.pb.go
 index 1bdc0230..2541547c 100644
 --- a/hosts/go/gen/umpire/realization/v1/realization.pb.go
 +++ b/hosts/go/gen/umpire/realization/v1/realization.pb.go
-@@ -278,7 +278,7 @@ const file_umpire_realization_v1_realization_proto_rawDesc = "" +
- 	"\bCallback\x12(\n" +
- 	"\x04task\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\x04task\"7\n" +
- 	"\x05Reply\x12.\n" +
+@@ -281 +281 @@ const file_umpire_realization_v1_realization_proto_rawDesc = "" +
 -	"\arequest\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\arequestB.Z,umpire.local/model/gen/umpire/realization/v1b\x06proto3"
 +	"\arequest\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\arequestBAZ?github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1b\x06proto3"
- 
- var (
- 	file_umpire_realization_v1_realization_proto_rawDescOnce sync.Once
 diff --git a/hosts/go/gen/umpire/run/v1/run.pb.go b/hosts/go/gen/umpire/run/v1/run.pb.go
 index 09e690a0..5f3a6035 100644
 --- a/hosts/go/gen/umpire/run/v1/run.pb.go
 +++ b/hosts/go/gen/umpire/run/v1/run.pb.go
-@@ -7,12 +7,12 @@
- package runv1
- 
- import (
+@@ -9,0 +10 @@ import (
 +	v1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
- 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
- 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
- 	anypb "google.golang.org/protobuf/types/known/anypb"
- 	reflect "reflect"
- 	sync "sync"
+@@ -15 +15,0 @@ import (
 -	v1 "umpire.local/model/gen/umpire/model/v1"
- 	unsafe "unsafe"
- )
- 
-@@ -1168,7 +1168,7 @@ const file_umpire_run_v1_run_proto_rawDesc = "" +
- 	"\x15TERMINATION_QUIESCENT\x10\x01\x12\x1f\n" +
- 	"\x1bTERMINATION_PROPOSAL_BUDGET\x10\x02\x12\x1c\n" +
- 	"\x18TERMINATION_EVENT_BUDGET\x10\x03\x12\x18\n" +
+@@ -1171 +1171 @@ const file_umpire_run_v1_run_proto_rawDesc = "" +
 -	"\x14TERMINATION_QUESTION\x10\x04B,Z*umpire.local/model/gen/umpire/run/v1;runv1b\x06proto3"
 +	"\x14TERMINATION_QUESTION\x10\x04B?Z=github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1;runv1b\x06proto3"
- 
- var (
- 	file_umpire_run_v1_run_proto_rawDescOnce sync.Once
 diff --git a/hosts/go/go.mod b/hosts/go/go.mod
 index 573be9d7..2c530566 100644
 --- a/hosts/go/go.mod
 +++ b/hosts/go/go.mod
-@@ -1,4 +1,4 @@
+@@ -1 +1 @@
 -module umpire.local/model
 +module github.com/temporalio/umpire/hosts/go
- 
- go 1.27.0
- 
 diff --git a/hosts/go/host/annotations.go b/hosts/go/host/annotations.go
 index 7d4c326b..32c960ea 100644
 --- a/hosts/go/host/annotations.go
 +++ b/hosts/go/host/annotations.go
-@@ -4,9 +4,9 @@ import (
- 	"context"
- 	"fmt"
- 
+@@ -6,0 +7,2 @@ import (
 +	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
- 	"google.golang.org/protobuf/types/known/anypb"
+@@ -8,2 +9,0 @@ import (
 -	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
- )
- 
- // Annotate transports an actual RPC message through the guest's Rust catalog.
 diff --git a/hosts/go/host/current_contract_test.go b/hosts/go/host/current_contract_test.go
 index 85d3327a..a38721a7 100644
 --- a/hosts/go/host/current_contract_test.go
 +++ b/hosts/go/host/current_contract_test.go
-@@ -9,8 +9,8 @@ import (
- 	"strings"
- 	"testing"
- 
+@@ -11,0 +12 @@ import (
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
- 	"google.golang.org/protobuf/proto"
+@@ -13 +13,0 @@ import (
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
- )
- 
- func TestCurrentContractNativeWasmPublishedResponsesAgree(t *testing.T) {
 diff --git a/hosts/go/host/guest_profile_test.go b/hosts/go/host/guest_profile_test.go
 index f9c5b1dd..617069da 100644
 --- a/hosts/go/host/guest_profile_test.go
 +++ b/hosts/go/host/guest_profile_test.go
-@@ -7,8 +7,8 @@ import (
- 	"strings"
- 	"testing"
- 
+@@ -9,0 +10 @@ import (
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
- 	"google.golang.org/protobuf/proto"
+@@ -11 +11,0 @@ import (
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
- )
- 
- func TestGuestProfileCaughtPanicParity(t *testing.T) {
 diff --git a/hosts/go/host/host.go b/hosts/go/host/host.go
 index 3f39cecf..1c1019b6 100644
 --- a/hosts/go/host/host.go
 +++ b/hosts/go/host/host.go
-@@ -7,12 +7,12 @@ import (
- 	"slices"
- 	"sync"
- 
+@@ -9,0 +10 @@ import (
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
- 	"github.com/tetratelabs/wazero"
- 	"github.com/tetratelabs/wazero/api"
- 	"github.com/tetratelabs/wazero/experimental"
- 	"github.com/tetratelabs/wazero/sys"
- 	"google.golang.org/protobuf/proto"
+@@ -15 +15,0 @@ import (
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
- )
- 
- const maxBuffer = 1 << 20
 diff --git a/hosts/go/host/host_test.go b/hosts/go/host/host_test.go
 index e7a95f74..0829114d 100644
 --- a/hosts/go/host/host_test.go
 +++ b/hosts/go/host/host_test.go
-@@ -10,11 +10,11 @@ import (
- 	"sync"
- 	"testing"
- 
+@@ -12,0 +13 @@ import (
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
- 	"github.com/tetratelabs/wazero"
- 	"github.com/tetratelabs/wazero/api"
- 	"github.com/tetratelabs/wazero/experimental"
- 	"google.golang.org/protobuf/proto"
+@@ -17 +17,0 @@ import (
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
- )
- 
- func TestGuestExports(t *testing.T) {
 diff --git a/hosts/go/host/probes.go b/hosts/go/host/probes.go
 index 1440f90c..4b48aa29 100644
 --- a/hosts/go/host/probes.go
 +++ b/hosts/go/host/probes.go
-@@ -8,14 +8,14 @@ import (
- 	"regexp"
- 	"strings"
- 
+@@ -10,0 +11,2 @@ import (
 +	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
- 	"google.golang.org/grpc"
- 	"google.golang.org/grpc/status"
- 	"google.golang.org/protobuf/proto"
- 	"google.golang.org/protobuf/reflect/protoreflect"
- 	"google.golang.org/protobuf/reflect/protoregistry"
- 	"google.golang.org/protobuf/types/known/anypb"
+@@ -17,2 +18,0 @@ import (
 -	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
- )
- 
- // Probe carries stateless catalog operations through the existing extension route.
 diff --git a/hosts/go/host/probes_test.go b/hosts/go/host/probes_test.go
 index f4b44aca..116bfde9 100644
 --- a/hosts/go/host/probes_test.go
 +++ b/hosts/go/host/probes_test.go
-@@ -4,8 +4,8 @@ import (
- 	"context"
- 	"testing"
- 
+@@ -7,2 +7,2 @@ import (
 -	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
 -	model "umpire.local/model/host"
 +	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
 +	model "github.com/temporalio/umpire/hosts/go/host"
- )
- 
- func TestDispatchProbeRejectsMessageDescriptor(t *testing.T) {
 diff --git a/hosts/go/host/proposal_test.go b/hosts/go/host/proposal_test.go
 index 3bbb08ff..784bbd38 100644
 --- a/hosts/go/host/proposal_test.go
 +++ b/hosts/go/host/proposal_test.go
-@@ -8,9 +8,9 @@ import (
- 	"strings"
- 	"testing"
- 
+@@ -10,0 +11 @@ import (
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
- 	"google.golang.org/protobuf/proto"
- 	"google.golang.org/protobuf/types/known/anypb"
+@@ -13 +13,0 @@ import (
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
- )
- 
- func TestProposalWireContract(t *testing.T) {
 diff --git a/hosts/go/host/protocol_test.go b/hosts/go/host/protocol_test.go
 index 84e99601..c622240b 100644
 --- a/hosts/go/host/protocol_test.go
 +++ b/hosts/go/host/protocol_test.go
-@@ -6,9 +6,9 @@ import (
- 	"fmt"
- 	"testing"
- 
+@@ -8,0 +9 @@ import (
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
- 	"google.golang.org/protobuf/proto"
- 	"google.golang.org/protobuf/types/known/anypb"
+@@ -11 +11,0 @@ import (
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
- )
- 
- func TestProtocolResponseValidation(t *testing.T) {
 diff --git a/hosts/go/host/protocol_wire_test.go b/hosts/go/host/protocol_wire_test.go
 index f5e2a1f6..f428846e 100644
 --- a/hosts/go/host/protocol_wire_test.go
 +++ b/hosts/go/host/protocol_wire_test.go
-@@ -9,9 +9,9 @@ import (
- 	"strings"
- 	"testing"
- 
+@@ -11,0 +12 @@ import (
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
- 	"google.golang.org/protobuf/proto"
- 	"google.golang.org/protobuf/types/known/anypb"
+@@ -14 +14,0 @@ import (
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
- )
- 
- func TestExplanationOutcomeWireCompatibility(t *testing.T) {
 diff --git a/hosts/go/host/realization_wire_test.go b/hosts/go/host/realization_wire_test.go
 index 1d4d00a6..6bca67f6 100644
 --- a/hosts/go/host/realization_wire_test.go
 +++ b/hosts/go/host/realization_wire_test.go
-@@ -2,9 +2,9 @@ package host_test
- 
- import (
- 	"bytes"
+@@ -4,0 +5 @@ import (
 +	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
- 	"google.golang.org/protobuf/proto"
- 	"testing"
+@@ -7 +7,0 @@ import (
 -	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
- )
- 
- func TestSharedObservationRequestWire(t *testing.T) {
 diff --git a/hosts/go/host/stateful_test.go b/hosts/go/host/stateful_test.go
 index 819a6c60..7e6d8f1d 100644
 --- a/hosts/go/host/stateful_test.go
 +++ b/hosts/go/host/stateful_test.go
-@@ -9,9 +9,9 @@ import (
- 	"slices"
- 	"testing"
- 
+@@ -11,0 +12 @@ import (
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
- 	"google.golang.org/protobuf/proto"
- 	"google.golang.org/protobuf/types/known/anypb"
+@@ -14 +14,0 @@ import (
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
- )
- 
- func statefulHost(t *testing.T) *Host {
 diff --git a/hosts/go/runner/admission_test.go b/hosts/go/runner/admission_test.go
 index f71a08dc..c593777a 100644
 --- a/hosts/go/runner/admission_test.go
 +++ b/hosts/go/runner/admission_test.go
-@@ -8,8 +8,8 @@ import (
- 	"errors"
- 	"testing"
- 
+@@ -10,0 +11 @@ import (
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
- 	"google.golang.org/protobuf/proto"
+@@ -12 +12,0 @@ import (
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
- )
- 
- func TestResetContractAdmissionPrecedesDriver(t *testing.T) {
 diff --git a/hosts/go/runner/driver.go b/hosts/go/runner/driver.go
 index 7ebd0ef5..6c528c2a 100644
 --- a/hosts/go/runner/driver.go
 +++ b/hosts/go/runner/driver.go
-@@ -3,9 +3,9 @@ package runner
- import (
- 	"context"
- 
+@@ -5,0 +6,2 @@ import (
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
 +	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
- 	"google.golang.org/protobuf/types/known/anypb"
+@@ -7,2 +8,0 @@ import (
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
 -	runv1 "umpire.local/model/gen/umpire/run/v1"
- )
- 
- // Driver acts on one system. It sends what the Model proposed and reports what happened as
 diff --git a/hosts/go/runner/fake_test.go b/hosts/go/runner/fake_test.go
 index 03d3dedf..83afe48d 100644
 --- a/hosts/go/runner/fake_test.go
 +++ b/hosts/go/runner/fake_test.go
-@@ -11,9 +11,9 @@ import (
- 	"testing"
- 	"time"
- 
+@@ -13,0 +14,2 @@ import (
 +	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
 +	model "github.com/temporalio/umpire/hosts/go/host"
- 	"google.golang.org/protobuf/types/known/anypb"
+@@ -15,2 +16,0 @@ import (
 -	runv1 "umpire.local/model/gen/umpire/run/v1"
 -	model "umpire.local/model/host"
- )
- 
- const controlType = "type.googleapis.com/umpire.control.Value"
 diff --git a/hosts/go/runner/fault_evidence_test.go b/hosts/go/runner/fault_evidence_test.go
 index 0d618f73..40a3c562 100644
 --- a/hosts/go/runner/fault_evidence_test.go
 +++ b/hosts/go/runner/fault_evidence_test.go
-@@ -8,10 +8,10 @@ import (
- 	"strings"
- 	"testing"
- 
+@@ -10,0 +11 @@ import (
 +	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
- 	"google.golang.org/protobuf/proto"
- 	"google.golang.org/protobuf/reflect/protoreflect"
- 	"google.golang.org/protobuf/types/known/anypb"
+@@ -14 +14,0 @@ import (
 -	runv1 "umpire.local/model/gen/umpire/run/v1"
- )
- 
- func TestDriverFaultEvidenceUsesFreshWireTag(t *testing.T) {
 diff --git a/hosts/go/runner/modes_test.go b/hosts/go/runner/modes_test.go
 index 3e06855e..a3d916f0 100644
 --- a/hosts/go/runner/modes_test.go
 +++ b/hosts/go/runner/modes_test.go
-@@ -7,11 +7,11 @@ import (
- 	"testing"
- 	"time"
- 
+@@ -9,0 +10,3 @@ import (
 +	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
 +	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
- 	"google.golang.org/protobuf/proto"
- 	"google.golang.org/protobuf/types/known/anypb"
+@@ -12,3 +14,0 @@ import (
 -	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
 -	runv1 "umpire.local/model/gen/umpire/run/v1"
- )
- 
- func TestWaitsEndInDriverFaults(t *testing.T) {
 diff --git a/hosts/go/runner/program.go b/hosts/go/runner/program.go
 index 6e8a38f8..5e24e9d6 100644
 --- a/hosts/go/runner/program.go
 +++ b/hosts/go/runner/program.go
-@@ -8,9 +8,9 @@ import (
- 	"io"
- 	"os"
- 
+@@ -10,0 +11,2 @@ import (
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
 +	"github.com/temporalio/umpire/hosts/go/host"
- 	"google.golang.org/protobuf/proto"
+@@ -12,2 +13,0 @@ import (
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
 -	"umpire.local/model/host"
- )
- 
- func writeProgram(ctx context.Context, args []string, stderr io.Writer) error {
 diff --git a/hosts/go/runner/replay.go b/hosts/go/runner/replay.go
 index 05857310..1545be47 100644
 --- a/hosts/go/runner/replay.go
 +++ b/hosts/go/runner/replay.go
-@@ -5,10 +5,10 @@ import (
- 	"errors"
- 	"fmt"
- 
+@@ -7,0 +8,2 @@ import (
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
 +	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
- 	"google.golang.org/protobuf/proto"
- 	"google.golang.org/protobuf/types/known/anypb"
+@@ -10,2 +11,0 @@ import (
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
 -	runv1 "umpire.local/model/gen/umpire/run/v1"
- )
- 
- // admit is why a recorded Run cannot be replayed against this Runner's Model, or "".
 diff --git a/hosts/go/runner/runner.go b/hosts/go/runner/runner.go
 index 9163d1a2..db9e17ec 100644
 --- a/hosts/go/runner/runner.go
 +++ b/hosts/go/runner/runner.go
-@@ -13,10 +13,10 @@ import (
- 	"slices"
- 	"time"
- 
+@@ -15,0 +16,2 @@ import (
 +	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
 +	model "github.com/temporalio/umpire/hosts/go/host"
- 	"google.golang.org/protobuf/proto"
- 	"google.golang.org/protobuf/types/known/anypb"
+@@ -18,2 +19,0 @@ import (
 -	runv1 "umpire.local/model/gen/umpire/run/v1"
 -	model "umpire.local/model/host"
- )
- 
- // ProtocolVersion is the umpire.model.v1 protocol version a Run records.
 diff --git a/hosts/go/runner/runner_test.go b/hosts/go/runner/runner_test.go
 index 251eae90..f0549f41 100644
 --- a/hosts/go/runner/runner_test.go
 +++ b/hosts/go/runner/runner_test.go
-@@ -8,8 +8,8 @@ import (
- 	"strings"
- 	"testing"
- 
+@@ -10,0 +11 @@ import (
 +	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
- 	"google.golang.org/protobuf/proto"
+@@ -12 +12,0 @@ import (
 -	runv1 "umpire.local/model/gen/umpire/run/v1"
- )
- 
- // kinds names each event of a Run, for comparing shapes.
 diff --git a/hosts/go/runner/session.go b/hosts/go/runner/session.go
 index d79aafb4..e87977c0 100644
 --- a/hosts/go/runner/session.go
 +++ b/hosts/go/runner/session.go
-@@ -7,11 +7,11 @@ import (
- 	"io"
- 	"slices"
- 
+@@ -9,0 +10,3 @@ import (
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
 +	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
 +	model "github.com/temporalio/umpire/hosts/go/host"
- 	"google.golang.org/protobuf/proto"
- 	"google.golang.org/protobuf/types/known/anypb"
+@@ -12,3 +14,0 @@ import (
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
 -	runv1 "umpire.local/model/gen/umpire/run/v1"
 -	model "umpire.local/model/host"
- )
- 
- // session is one Run against one Host. Every Host call goes through it, from one goroutine, in
 diff --git a/hosts/go/runner/worker_test.go b/hosts/go/runner/worker_test.go
 index c37e8709..50b7b5dc 100644
 --- a/hosts/go/runner/worker_test.go
 +++ b/hosts/go/runner/worker_test.go
-@@ -7,10 +7,10 @@ import (
- 	"strings"
- 	"testing"
- 
+@@ -9,0 +10,2 @@ import (
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
 +	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
- 	"google.golang.org/protobuf/proto"
- 	"google.golang.org/protobuf/types/known/anypb"
+@@ -12,2 +13,0 @@ import (
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
 -	runv1 "umpire.local/model/gen/umpire/run/v1"
- )
- 
- func TestRunWorkerUsesFreshWireTag(t *testing.T) {
 diff --git a/protocol/proto/README.md b/protocol/proto/README.md
 index 98edd05a..d3d6b9e0 100644
 --- a/protocol/proto/README.md
 +++ b/protocol/proto/README.md
-@@ -112,3 +112,15 @@ hash, protocol version, world, seed, ordered events and verdict. Each event embe
- replays against a fresh instance without a Driver. It is generated for Go only; no guest
- reads it. Its canonical bytes are Go's deterministic encoding, and its store key carries
- their SHA-256 outside the payload.
+@@ -114,0 +115,12 @@ their SHA-256 outside the payload.
 +
 +## Generated-source boundary policy
 +
@@ -1600,62 +1405,35 @@ diff --git a/protocol/proto/umpire/annotations/v1/annotations.proto b/protocol/p
 index 991ca0dd..c4d97e05 100644
 --- a/protocol/proto/umpire/annotations/v1/annotations.proto
 +++ b/protocol/proto/umpire/annotations/v1/annotations.proto
-@@ -2,7 +2,7 @@ syntax = "proto3";
- 
- package umpire.annotations.v1;
- 
+@@ -5 +5 @@ package umpire.annotations.v1;
 -option go_package = "umpire.local/model/gen/umpire/annotations/v1";
 +option go_package = "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1";
- 
- 
- message AnnotationRequest {
 diff --git a/protocol/proto/umpire/model/v1/model.proto b/protocol/proto/umpire/model/v1/model.proto
 index 02fb92f0..29059a89 100644
 --- a/protocol/proto/umpire/model/v1/model.proto
 +++ b/protocol/proto/umpire/model/v1/model.proto
-@@ -1,7 +1,7 @@
- syntax = "proto3";
- 
- package umpire.model.v1;
+@@ -4 +4 @@ package umpire.model.v1;
 -option go_package = "umpire.local/model/gen/umpire/model/v1;modelv1";
 +option go_package = "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1;modelv1";
- 
- import "google/protobuf/any.proto";
- 
 diff --git a/protocol/proto/umpire/realization/v1/realization.proto b/protocol/proto/umpire/realization/v1/realization.proto
 index fe0db353..a598d694 100644
 --- a/protocol/proto/umpire/realization/v1/realization.proto
 +++ b/protocol/proto/umpire/realization/v1/realization.proto
-@@ -2,7 +2,7 @@ syntax = "proto3";
- 
- package umpire.realization.v1;
- 
+@@ -5 +5 @@ package umpire.realization.v1;
 -option go_package = "umpire.local/model/gen/umpire/realization/v1";
 +option go_package = "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1";
- 
- import "google/protobuf/any.proto";
- 
 diff --git a/protocol/proto/umpire/run/v1/run.proto b/protocol/proto/umpire/run/v1/run.proto
 index b8b0a50e..ead81e19 100644
 --- a/protocol/proto/umpire/run/v1/run.proto
 +++ b/protocol/proto/umpire/run/v1/run.proto
-@@ -1,7 +1,7 @@
- syntax = "proto3";
- 
- package umpire.run.v1;
+@@ -4 +4 @@ package umpire.run.v1;
 -option go_package = "umpire.local/model/gen/umpire/run/v1;runv1";
 +option go_package = "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1;runv1";
- 
- import "google/protobuf/any.proto";
- import "umpire/model/v1/model.proto";
 diff --git a/reference/kettle/README.md b/reference/kettle/README.md
 index 3a634ef6..1c6066e7 100644
 --- a/reference/kettle/README.md
 +++ b/reference/kettle/README.md
-@@ -21,9 +21,10 @@ Build its guest from the same root with
- `bash scripts/guest.sh umpire-kettle-guest target/wasm32-wasip1/guest/umpire_kettle_guest.wasm`.
- 
- The Go server, native/wasm parity and live host tests live here in module
+@@ -24,3 +24,4 @@ The Go server, native/wasm parity and live host tests live here in module
 -`umpire.local/kettle`, with generated API under `gen/kettle/v1`. Its `go.mod`
 -replaces `umpire.local/model` with `../../hosts/go`; it imports the transport
 -from `umpire.local/model/host`. Regenerate with
@@ -1663,253 +1441,144 @@ index 3a634ef6..1c6066e7 100644
 +`gen/kettle/v1`. Its `go.mod` replaces `github.com/temporalio/umpire/hosts/go`
 +with `../../hosts/go`; it imports the transport from
 +`github.com/temporalio/umpire/hosts/go/host`. Regenerate with
- `bash scripts/proto-go.sh kettle` at the framework root; `--check` verifies
- the pinned protoc 29.5, protoc-gen-go v1.36.6 and protoc-gen-go-grpc v1.3.0 output.
- The host test requires the built guest and fails if it is missing.
 diff --git a/reference/kettle/gen/kettle/v1/kettle.pb.go b/reference/kettle/gen/kettle/v1/kettle.pb.go
 index 1aacd380..a8607ec2 100644
 --- a/reference/kettle/gen/kettle/v1/kettle.pb.go
 +++ b/reference/kettle/gen/kettle/v1/kettle.pb.go
-@@ -1135,7 +1135,7 @@ const file_kettle_v1_kettle_proto_rawDesc = "" +
- 	"\vPollHeating\x12..umpire.reference.kettle.v1.PollHeatingRequest\x1a/.umpire.reference.kettle.v1.PollHeatingResponse\x12w\n" +
- 	"\x0eRespondHeating\x121.umpire.reference.kettle.v1.RespondHeatingRequest\x1a2.umpire.reference.kettle.v1.RespondHeatingResponse\x12n\n" +
- 	"\vListKettles\x12..umpire.reference.kettle.v1.ListKettlesRequest\x1a/.umpire.reference.kettle.v1.ListKettlesResponse\x12n\n" +
+@@ -1138 +1138 @@ const file_kettle_v1_kettle_proto_rawDesc = "" +
 -	"\vResetKettle\x12..umpire.reference.kettle.v1.ResetKettleRequest\x1a/.umpire.reference.kettle.v1.ResetKettleResponseB,Z*umpire.local/kettle/gen/kettle/v1;kettlev1b\x06proto3"
 +	"\vResetKettle\x12..umpire.reference.kettle.v1.ResetKettleRequest\x1a/.umpire.reference.kettle.v1.ResetKettleResponseBFZDgithub.com/temporalio/umpire/reference/kettle/gen/kettle/v1;kettlev1b\x06proto3"
- 
- var (
- 	file_kettle_v1_kettle_proto_rawDescOnce sync.Once
 diff --git a/reference/kettle/gen/kettle/v1/probe.pb.go b/reference/kettle/gen/kettle/v1/probe.pb.go
 index 6db8e3e1..4d7dd113 100644
 --- a/reference/kettle/gen/kettle/v1/probe.pb.go
 +++ b/reference/kettle/gen/kettle/v1/probe.pb.go
-@@ -7,11 +7,11 @@
- package kettlev1
- 
- import (
+@@ -9,0 +10 @@ import (
 +	v1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
- 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
- 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
- 	reflect "reflect"
- 	sync "sync"
+@@ -14 +14,0 @@ import (
 -	v1 "umpire.local/model/gen/umpire/annotations/v1"
- 	unsafe "unsafe"
- )
- 
-@@ -166,7 +166,7 @@ const file_kettle_v1_probe_proto_rawDesc = "" +
- 	"\tINVENTORY\x10\x00\x12\v\n" +
- 	"\aPREPARE\x10\x01\x12\f\n" +
- 	"\bCLASSIFY\x10\x02\x12\f\n" +
+@@ -169 +169 @@ const file_kettle_v1_probe_proto_rawDesc = "" +
 -	"\bCOVERAGE\x10\x03B,Z*umpire.local/kettle/gen/kettle/v1;kettlev1b\x06proto3"
 +	"\bCOVERAGE\x10\x03BFZDgithub.com/temporalio/umpire/reference/kettle/gen/kettle/v1;kettlev1b\x06proto3"
- 
- var (
- 	file_kettle_v1_probe_proto_rawDescOnce sync.Once
 diff --git a/reference/kettle/go.mod b/reference/kettle/go.mod
 index 88f6eb34..79a6e808 100644
 --- a/reference/kettle/go.mod
 +++ b/reference/kettle/go.mod
-@@ -1,11 +1,11 @@
+@@ -1 +1 @@
 -module umpire.local/kettle
 +module github.com/temporalio/umpire/reference/kettle
- 
- go 1.27.0
- 
- require (
+@@ -5,0 +6 @@ require (
 +	github.com/temporalio/umpire/hosts/go v0.0.0
- 	google.golang.org/grpc v1.83.1
- 	google.golang.org/protobuf v1.36.11
+@@ -8 +8,0 @@ require (
 -	umpire.local/model v0.0.0
- )
- 
- require (
-@@ -16,4 +16,4 @@ require (
- 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
- )
- 
+@@ -19 +19 @@ require (
 -replace umpire.local/model => ../../hosts/go
 +replace github.com/temporalio/umpire/hosts/go => ../../hosts/go
 diff --git a/reference/kettle/kettle_annotations_test.go b/reference/kettle/kettle_annotations_test.go
 index 32ff41a1..3f1dc5c0 100644
 --- a/reference/kettle/kettle_annotations_test.go
 +++ b/reference/kettle/kettle_annotations_test.go
-@@ -9,12 +9,12 @@ import (
- 	"testing"
- 	"time"
- 
+@@ -11,0 +12,3 @@ import (
 +	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
 +	model "github.com/temporalio/umpire/hosts/go/host"
 +	kettlev1 "github.com/temporalio/umpire/reference/kettle/gen/kettle/v1"
- 	"google.golang.org/grpc/codes"
- 	"google.golang.org/grpc/status"
- 	"google.golang.org/protobuf/proto"
+@@ -15,3 +17,0 @@ import (
 -	kettlev1 "umpire.local/kettle/gen/kettle/v1"
 -	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
 -	model "umpire.local/model/host"
- )
- 
- func (r *kettleRun) dispatchProbe(testCase *annotationsv1.ProbeCase, prepared *annotationsv1.ProbeResponse) (*annotationsv1.ProbeObservation, error) {
 diff --git a/reference/kettle/kettle_mutants_test.go b/reference/kettle/kettle_mutants_test.go
 index 00bb4c7b..d42aa777 100644
 --- a/reference/kettle/kettle_mutants_test.go
 +++ b/reference/kettle/kettle_mutants_test.go
-@@ -9,14 +9,14 @@ import (
- 	"testing"
- 	"time"
- 
+@@ -11,0 +12,6 @@ import (
 +	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
 +	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
 +	model "github.com/temporalio/umpire/hosts/go/host"
 +	"github.com/temporalio/umpire/reference/kettle"
 +	kettlev1 "github.com/temporalio/umpire/reference/kettle/gen/kettle/v1"
- 	"google.golang.org/grpc/codes"
- 	"google.golang.org/protobuf/proto"
+@@ -14,6 +19,0 @@ import (
 -	"umpire.local/kettle"
 -	kettlev1 "umpire.local/kettle/gen/kettle/v1"
 -	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
 -	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
 -	model "umpire.local/model/host"
- )
- 
- type kettleMutantWitness struct {
 diff --git a/reference/kettle/kettle_test.go b/reference/kettle/kettle_test.go
 index 8737fe05..0b6b677b 100644
 --- a/reference/kettle/kettle_test.go
 +++ b/reference/kettle/kettle_test.go
-@@ -12,16 +12,16 @@ import (
- 	"testing"
- 	"time"
- 
+@@ -14,0 +15,6 @@ import (
 +	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
 +	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
 +	model "github.com/temporalio/umpire/hosts/go/host"
 +	"github.com/temporalio/umpire/reference/kettle"
 +	kettlev1 "github.com/temporalio/umpire/reference/kettle/gen/kettle/v1"
- 	"google.golang.org/grpc"
- 	"google.golang.org/grpc/credentials/insecure"
- 	"google.golang.org/protobuf/proto"
- 	"google.golang.org/protobuf/types/known/anypb"
+@@ -19,6 +24,0 @@ import (
 -	"umpire.local/kettle"
 -	kettlev1 "umpire.local/kettle/gen/kettle/v1"
 -	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
 -	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
 -	model "umpire.local/model/host"
- )
- 
- type kettleRun struct {
 diff --git a/reference/kettle/parity_test.go b/reference/kettle/parity_test.go
 index 543e8245..8446dd6b 100644
 --- a/reference/kettle/parity_test.go
 +++ b/reference/kettle/parity_test.go
-@@ -7,8 +7,8 @@ import (
- 	"strings"
- 	"testing"
- 
+@@ -10,2 +10,2 @@ import (
 -	modelv1 "umpire.local/model/gen/umpire/model/v1"
 -	model "umpire.local/model/host"
 +	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
 +	model "github.com/temporalio/umpire/hosts/go/host"
- )
- 
- func guestBytes(t testing.TB) []byte {
 diff --git a/reference/kettle/proto/kettle/v1/kettle.proto b/reference/kettle/proto/kettle/v1/kettle.proto
 index 8989ae5f..20912a85 100644
 --- a/reference/kettle/proto/kettle/v1/kettle.proto
 +++ b/reference/kettle/proto/kettle/v1/kettle.proto
-@@ -1,6 +1,6 @@
- syntax = "proto3";
- package umpire.reference.kettle.v1;
+@@ -3 +3 @@ package umpire.reference.kettle.v1;
 -option go_package = "umpire.local/kettle/gen/kettle/v1;kettlev1";
 +option go_package = "github.com/temporalio/umpire/reference/kettle/gen/kettle/v1;kettlev1";
- import "google/protobuf/duration.proto";
- service KettleService {
-   rpc Fill(FillRequest) returns (FillResponse);
 diff --git a/reference/kettle/proto/kettle/v1/probe.proto b/reference/kettle/proto/kettle/v1/probe.proto
 index e63b9e91..bc95cda6 100644
 --- a/reference/kettle/proto/kettle/v1/probe.proto
 +++ b/reference/kettle/proto/kettle/v1/probe.proto
-@@ -1,6 +1,6 @@
- syntax = "proto3";
- package umpire.reference.kettle.v1;
+@@ -3 +3 @@ package umpire.reference.kettle.v1;
 -option go_package = "umpire.local/kettle/gen/kettle/v1;kettlev1";
 +option go_package = "github.com/temporalio/umpire/reference/kettle/gen/kettle/v1;kettlev1";
- import "umpire/annotations/v1/annotations.proto";
- 
- // Consumer setup slots; probe observations and results use the shared protocol.
 diff --git a/reference/kettle/server.go b/reference/kettle/server.go
 index fb19e732..ef69f379 100644
 --- a/reference/kettle/server.go
 +++ b/reference/kettle/server.go
-@@ -5,10 +5,10 @@ import (
- 	"net"
- 	"sync"
- 
+@@ -7,0 +8 @@ import (
 +	pb "github.com/temporalio/umpire/reference/kettle/gen/kettle/v1"
- 	"google.golang.org/grpc"
- 	"google.golang.org/grpc/codes"
- 	"google.golang.org/grpc/status"
+@@ -11 +11,0 @@ import (
 -	pb "umpire.local/kettle/gen/kettle/v1"
- )
- 
- type server struct {
 diff --git a/reference/kettle/server_test.go b/reference/kettle/server_test.go
 index c86990f1..b3d83650 100644
 --- a/reference/kettle/server_test.go
 +++ b/reference/kettle/server_test.go
-@@ -7,13 +7,13 @@ import (
- 	"testing"
- 	"time"
- 
+@@ -9,0 +10 @@ import (
 +	pb "github.com/temporalio/umpire/reference/kettle/gen/kettle/v1"
- 	"google.golang.org/grpc"
- 	"google.golang.org/grpc/codes"
- 	"google.golang.org/grpc/credentials/insecure"
- 	"google.golang.org/grpc/status"
- 	"google.golang.org/protobuf/proto"
- 	"google.golang.org/protobuf/types/known/durationpb"
+@@ -16 +16,0 @@ import (
 -	pb "umpire.local/kettle/gen/kettle/v1"
- )
- 
- func client(t *testing.T) (context.Context, pb.KettleServiceClient) {
 diff --git a/reference/kettle/snapshots_test.go b/reference/kettle/snapshots_test.go
 index 5cd16327..36d47c0c 100644
 --- a/reference/kettle/snapshots_test.go
 +++ b/reference/kettle/snapshots_test.go
-@@ -6,7 +6,7 @@ import (
- 	"path/filepath"
- 	"testing"
- 
+@@ -9 +9 @@ import (
 -	"umpire.local/model/snapshot"
 +	"github.com/temporalio/umpire/hosts/go/snapshot"
- )
- 
- var snapshotCandidates = flag.String("umpire-snapshot-candidates", "", "export live snapshot candidates to this directory; comparisons still run")
 diff --git a/reference/kettle/validators.go b/reference/kettle/validators.go
 index a0a8e0af..e96e26ef 100644
 --- a/reference/kettle/validators.go
 +++ b/reference/kettle/validators.go
-@@ -3,9 +3,9 @@ package kettle
- import (
- 	"strings"
- 
+@@ -5,0 +6 @@ import (
 +	pb "github.com/temporalio/umpire/reference/kettle/gen/kettle/v1"
- 	"google.golang.org/grpc/codes"
- 	"google.golang.org/grpc/status"
+@@ -8 +8,0 @@ import (
 -	pb "umpire.local/kettle/gen/kettle/v1"
- )
- 
- func validateKettleID(id string) error {
 diff --git a/rust-toolchain.toml b/rust-toolchain.toml
 index f0df7540..724bf0b8 100644
 --- a/rust-toolchain.toml
 +++ b/rust-toolchain.toml
-@@ -1,4 +1,4 @@
+@@ -1 +1 @@
 -# Matches the mise pin in ../mise.toml; rustup users get the same toolchain and components.
 +# Matches the mise pin in mise.toml; rustup users get the same toolchain and components.
- [toolchain]
- channel = "1.99.1"
- components = ["rustfmt", "clippy", "rust-src", "rust-analyzer"]

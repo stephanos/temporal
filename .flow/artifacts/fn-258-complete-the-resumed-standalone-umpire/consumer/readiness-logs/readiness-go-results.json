@@ -1,0 +1,46 @@
+[
+  {
+    "name": "go-callers-compilation",
+    "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal",
+    "argv": [
+      "/home/agent/.local/share/mise/installs/go/1.27.0/bin/go",
+      "test",
+      "-p",
+      "2",
+      "-tags",
+      "test_dep",
+      "-count=1",
+      "-run",
+      "^$",
+      "./common/testing/testpilot",
+      "./common/testing/testpilot/temporal/act",
+      "./tools/canary/controller",
+      "./tools/umpire/cmd/umpire",
+      "./tools/umpire/temporaldriver",
+      "./tests"
+    ],
+    "exit": 0,
+    "seconds": 83.03940203899401,
+    "log": "/home/agent/.cache/codex-build/fn258-consumer/readiness-go-callers-compilation.log"
+  },
+  {
+    "name": "go-no-rust-contract",
+    "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/hosts/go",
+    "argv": [
+      "/home/agent/.local/share/mise/installs/go/1.27.0/bin/go",
+      "test",
+      "-p",
+      "2",
+      "-tags",
+      "test_dep",
+      "-count=1",
+      "-run",
+      "^TestResetProgramRowsAndScenarioHeader$",
+      "./..."
+    ],
+    "exit": 0,
+    "seconds": 0.9636695840017637,
+    "log": "/home/agent/.cache/codex-build/fn258-consumer/readiness-go-no-rust-contract.log",
+    "forbidden_tool_invocations": ""
+  }
+]

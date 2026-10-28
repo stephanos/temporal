@@ -6,7 +6,12 @@
     "all_portable_and_export_ancestors_reachable": true,
     "export_selected_tree_equals_frozen_source": true,
     "final_parent_is_history_join": true,
-    "final_changes_only_boundary_tests": true
+    "final_changes_only_boundary_tests": true,
+    "current_receiver_matches_explicit_reviewed_pin": true,
+    "current_receiver_parent_is_historical_final": true,
+    "exactly_two_explicitly_approved_receiver_paths": true,
+    "receiver_blobs_and_modes_match_reviewed_allowlist": true,
+    "all_historical_and_filtered_ancestries_retained_by_current_receiver": true
   },
   "join_commit": "c71c3090fa0f89e744631c6590f1d8b4b0ffd94f",
   "ordered_parents": [
@@ -121,5 +126,86 @@
       "reachable_from_final": true
     }
   ],
+  "current_receiver_head": "05473210b48c3db862f22051eb7154ce98258f98",
+  "current_receiver_tree": "46829511b6d582b40f3fa5095f42bdf980c7d466",
+  "current_receiver_base": "ac79114a9ad43a9d9fc2a022d07406d217878760",
+  "current_receiver_ordered_parents": [
+    "ac79114a9ad43a9d9fc2a022d07406d217878760"
+  ],
+  "current_receiver_changed_paths": [
+    "dev/xtask/src/gate.rs",
+    "dev/xtask/tests/gate_wiring.rs"
+  ],
+  "current_receiver_approved_records": {
+    "dev/xtask/src/gate.rs": {
+      "mode": "100644",
+      "blob": "b7da732cce0b1367e78e874277a1f096218286d4"
+    },
+    "dev/xtask/tests/gate_wiring.rs": {
+      "mode": "100644",
+      "blob": "960fd10bf249e3146cdb9f960e6b7065a993bcb3"
+    }
+  },
+  "current_receiver_diff_sha256": "f656642b64ab91e26089f17b672fe736ca2306a06cc491bd41af7a8d9d8d6baa",
+  "current_receiver_ancestry_checks": [
+    {
+      "commit": "cf8bec4d6231302df54b57fccdc5bdb9d11552fc",
+      "reachable_from_current_receiver": true
+    },
+    {
+      "commit": "d090323d70ce5e92a7c16ec8dcd17b0c73a97514",
+      "reachable_from_current_receiver": true
+    },
+    {
+      "commit": "045b98897de7ca92a21c9e0d63c1190af765986f",
+      "reachable_from_current_receiver": true
+    },
+    {
+      "commit": "2dcbc92a1f69ab10c6fb4b878aab4696cb462101",
+      "reachable_from_current_receiver": true
+    },
+    {
+      "commit": "f7b42ce25558344ea2d38f1e05d002259427a8f6",
+      "reachable_from_current_receiver": true
+    },
+    {
+      "commit": "58a6989fe5ccd6a1ae734326d568f60dce2dab43",
+      "reachable_from_current_receiver": true
+    },
+    {
+      "commit": "45eb554539fe934f43a1cb906381babd46bfc662",
+      "reachable_from_current_receiver": true
+    },
+    {
+      "commit": "a09525f27fd676d4e4f1f275bba882fa2963234f",
+      "reachable_from_current_receiver": true
+    },
+    {
+      "commit": "069624d93d1c3f9b7c31a21ab4c7f736d6206686",
+      "reachable_from_current_receiver": true
+    },
+    {
+      "commit": "3eae78afabb21229765823eee89569e843be343f",
+      "reachable_from_current_receiver": true
+    },
+    {
+      "commit": "5ee8911480c8acb429625bef3f3183e572b9d18f",
+      "reachable_from_current_receiver": true
+    },
+    {
+      "commit": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+      "reachable_from_current_receiver": true
+    },
+    {
+      "commit": "c71c3090fa0f89e744631c6590f1d8b4b0ffd94f",
+      "reachable_from_current_receiver": true
+    },
+    {
+      "commit": "ac79114a9ad43a9d9fc2a022d07406d217878760",
+      "reachable_from_current_receiver": true
+    }
+  ],
+  "current_receiver_allowlist_sha256": "f1dd424d1b64dc8a1bb8a3d431170246a21e81c43289acdd2ff9341db0834eb5",
+  "historical_final_qualification": "final_commit/final_tree and final_changes_only_boundary_tests refer exclusively to historical ac79114; current_receiver fields separately prove the approved two-path descendant.",
   "scope": "Exact Git ancestry/tree and production-text checks; full export parent-edge verification belongs to the separate history lane. No runtime or publication claim."
 }

@@ -8,7 +8,7 @@ The renewed instruction supersedes the earlier stop. Preserve original inventori
 source candidates and recovery evidence. Task fn-258.1 is reviewed and closed: the
 renewed `ac60daaf47` inventory has 1,189 selected files, and export `a92db061` retains
 627 mapped commits with 6,634 independently verified projection-neutral prunings.
-Standalone `ac79114a` and consumer `4035bb70` are current source candidates, including
+Standalone `05473210` and consumer `3658582d` are current source candidates, including
 the reproducible migrated guest. Full standalone/paired gates, reviews, candidate
 transfer dispositions, publication and cutover remain open; in-tree authority remains.
 After migration, return to the fn-254 priority in [MILESTONES.md](MILESTONES.md).

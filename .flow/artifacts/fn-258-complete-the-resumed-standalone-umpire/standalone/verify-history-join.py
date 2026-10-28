@@ -13,6 +13,9 @@ EXPORT = 'a92db0610f13c9f623b526f2aa721abda69aa84d'
 JOIN = 'c71c3090fa0f89e744631c6590f1d8b4b0ffd94f'
 FINAL = 'ac79114a9ad43a9d9fc2a022d07406d217878760'
 ORIGINAL = 'cf8bec4d6231302df54b57fccdc5bdb9d11552fc'
+CURRENT = '05473210b48c3db862f22051eb7154ce98258f98'
+CURRENT_TREE = '46829511b6d582b40f3fa5095f42bdf980c7d466'
+RECEIVER_PATHS = ['dev/xtask/src/gate.rs', 'dev/xtask/tests/gate_wiring.rs']
 
 
 def git(*args):
@@ -56,6 +59,21 @@ checks = {'exact_ordered_parents': parents == [PORTABLE, EXPORT],
           'export_selected_tree_equals_frozen_source': not missing and not modified,
           'final_parent_is_history_join': git('rev-parse', FINAL + '^') == JOIN,
           'final_changes_only_boundary_tests': final_paths == [relative] and production_unchanged}
+policy_path = HERE/'adaptation-allowlist.json'
+policy = json.loads(policy_path.read_bytes())
+receiver_tree = tree(CURRENT)
+receiver_paths = git('diff-tree', '--no-commit-id', '--name-only', '-r', FINAL, CURRENT).splitlines()
+receiver_diff = subprocess.check_output(['git', '-C', str(UMPIRE), 'diff', '--binary', FINAL, CURRENT, '--', *RECEIVER_PATHS])
+receiver_ancestry = [{'commit': oid, 'reachable_from_current_receiver': ancestor(oid, CURRENT)}
+                     for oid in [ORIGINAL, *portable_commits, EXPORT, JOIN, FINAL]]
+receiver_checks = {
+    'current_receiver_matches_explicit_reviewed_pin': policy['standalone_head'] == CURRENT and git('rev-parse', CURRENT+'^{tree}') == CURRENT_TREE,
+    'current_receiver_parent_is_historical_final': git('rev-list', '--parents', '-n', '1', CURRENT).split()[1:] == [FINAL],
+    'exactly_two_explicitly_approved_receiver_paths': receiver_paths == RECEIVER_PATHS,
+    'receiver_blobs_and_modes_match_reviewed_allowlist': all(receiver_tree[path] == policy['modified_paths'][path]['approved_after'] for path in RECEIVER_PATHS),
+    'all_historical_and_filtered_ancestries_retained_by_current_receiver': all(item['reachable_from_current_receiver'] for item in receiver_ancestry),
+}
+checks.update(receiver_checks)
 result = dict(result='pass' if all(checks.values()) else 'fail', checks=checks,
               join_commit=JOIN, ordered_parents=parents, first_parent_tree=portable_tree, join_tree=join_tree,
               final_commit=FINAL, final_tree=final_tree, final_changed_paths=final_paths,
@@ -63,6 +81,14 @@ result = dict(result='pass' if all(checks.values()) else 'fail', checks=checks,
               manifest_sha256=hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
               export_selected_records=len(selected), export_missing_selected_paths=missing, export_modified_selected_paths=modified,
               export_extra_provenance_paths=sorted(export_tree.keys()-selected.keys()), ancestry_checks=ancestry,
+              current_receiver_head=CURRENT, current_receiver_tree=CURRENT_TREE,
+              current_receiver_base=FINAL, current_receiver_ordered_parents=git('rev-list', '--parents', '-n', '1', CURRENT).split()[1:],
+              current_receiver_changed_paths=receiver_paths,
+              current_receiver_approved_records={path: receiver_tree[path] for path in RECEIVER_PATHS},
+              current_receiver_diff_sha256=hashlib.sha256(receiver_diff).hexdigest(),
+              current_receiver_ancestry_checks=receiver_ancestry,
+              current_receiver_allowlist_sha256=hashlib.sha256(policy_path.read_bytes()).hexdigest(),
+              historical_final_qualification='final_commit/final_tree and final_changes_only_boundary_tests refer exclusively to historical ac79114; current_receiver fields separately prove the approved two-path descendant.',
               scope='Exact Git ancestry/tree and production-text checks; full export parent-edge verification belongs to the separate history lane. No runtime or publication claim.')
 (HERE/'history-join-verification.json').write_text(json.dumps(result,indent=2)+'\n')
 print(json.dumps(result,indent=2))

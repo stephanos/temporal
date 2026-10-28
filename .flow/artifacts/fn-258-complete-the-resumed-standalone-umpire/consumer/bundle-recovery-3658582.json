@@ -1,0 +1,18 @@
+{
+  "result": "pass",
+  "candidate": "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+  "tree": "feb8b709845a132d9342453dcf88c08e2eecded0",
+  "prerequisite": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "candidate_absent_before_bundle_fetch": true,
+  "object_database": "independent bare repository; actual fetch of prerequisite before bundle, no alternates",
+  "recovered_commits": [
+    "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+    "4035bb70fdf4c7ef074a8f05a02b19fb458c0b1d",
+    "7e655da80b3810807cbd02a3ea29c26ceb9804e4"
+  ],
+  "canonical_guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+  "fsck_exit": 0,
+  "fsck_output": "",
+  "recovery_checkout": "/home/agent/.cache/codex-build/tmp/fn258-consumer-recovery-365",
+  "bundle_sha256": "701decd699db4421b867f2807283db6af186e88e642802b2800c358b193d7b7a"
+}

@@ -1,0 +1,65 @@
+{
+  "status": "PASS",
+  "pair": {
+    "temporal": "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "clean_pair_after_checks": true,
+  "checks": [
+    {
+      "name": "054-workspace-compilation",
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "check",
+        "--workspace",
+        "--all-targets",
+        "--all-features",
+        "--locked"
+      ],
+      "exit": 0,
+      "seconds": 4.060158000997035,
+      "log": "/home/agent/.cache/codex-build/fn258-consumer/readiness-054-workspace-compilation.log",
+      "sha256": "ce82f9f15a63742f74bdb6c5cd72f6d26c1e9f8d355414c8ea5fe5e7bc3d4dc4"
+    },
+    {
+      "name": "054-bridge-controls",
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "temporal-xtask",
+        "--bin",
+        "temporal-xtask",
+        "--test",
+        "main",
+        "--locked"
+      ],
+      "exit": 0,
+      "seconds": 15.11338804900879,
+      "log": "/home/agent/.cache/codex-build/fn258-consumer/readiness-054-bridge-controls.log",
+      "sha256": "6c9743ff3204de64a2bcc2f2d2fa32ac8bdd903ad44f9df0e5e8098b26739e60"
+    }
+  ],
+  "bridge_results": {
+    "unit": 16,
+    "integration": 7,
+    "failures": 0
+  },
+  "guest_closure_proof": {
+    "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-054-guest-closure.json",
+    "sha256": "2d039f0d0f9b07d38edf951d9df29c49280f3ce61f7da4b12ed0916d3abdb9eb"
+  },
+  "fake_child_receipts": {
+    "path": "/home/agent/.cache/codex-build/fn258-consumer/readiness-054-fake-child-control-receipts",
+    "meaning": "Simulated test-only child orchestration receipts, not live full-gate evidence; moved out of checkout before clean-status observation"
+  },
+  "limits": "Only consumer-specific compilation and bridge controls rerun; no broad gate/Go behavior/guest rebuild requested because checked guest inputs unchanged."
+}
