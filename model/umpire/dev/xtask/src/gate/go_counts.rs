@@ -96,16 +96,16 @@ impl Event {
 }
 
 fn events(bytes: &[u8]) -> io::Result<Vec<Event>> {
-    if bytes.is_empty()
-        || bytes.len() > MAX_STREAM_BYTES
-        || bytes.last() != Some(&b'\n')
-        || bytes.iter().filter(|byte| **byte == b'\n').count() > MAX_EVENTS
-    {
+    if bytes.is_empty() || bytes.len() > MAX_STREAM_BYTES || bytes.last() != Some(&b'\n') {
         return Err(invalid("empty, oversized or truncated Go JSON stream"));
     }
     bytes
         .split_inclusive(|byte| *byte == b'\n')
-        .map(|line| {
+        .enumerate()
+        .map(|(index, line)| {
+            if index >= MAX_EVENTS {
+                return Err(invalid("Go JSON event count exceeds bound"));
+            }
             if line.len() > MAX_RECORD_BYTES {
                 return Err(invalid("Go JSON record exceeds bound"));
             }
@@ -322,10 +322,10 @@ struct PackageRun {
 impl PackageRun {
     fn test(&mut self, name: &str, action: &str) -> io::Result<()> {
         if action == "run" {
-            if let Some((root, _)) = name.split_once('/') {
-                if !matches!(self.tests.get(root), Some(Phase::Running | Phase::Paused)) {
-                    return Err(invalid("Go subtest has no active root"));
-                }
+            if let Some((root, _)) = name.split_once('/')
+                && !matches!(self.tests.get(root), Some(Phase::Running | Phase::Paused))
+            {
+                return Err(invalid("Go subtest has no active root"));
             }
             if self.tests.insert(name.to_owned(), Phase::Running).is_some() {
                 return Err(invalid("duplicate Go test run"));
