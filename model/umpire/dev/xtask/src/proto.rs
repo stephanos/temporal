@@ -82,7 +82,7 @@ fn execute(command: &mut Command) -> Result<Output> {
 fn regular_executable(path: &Path) -> Result<()> {
     let metadata = fs::symlink_metadata(path).map_err(|error| {
         Error::Invalid(format!(
-            "missing pinned generator {}; run cargo xtask proto-tools: {error}",
+            "missing pinned generator {}; provision pinned generators for this plugin root: {error}",
             path.display()
         ))
     })?;
@@ -410,4 +410,21 @@ pub fn go_spec(arguments: Vec<OsString>) -> Result<i32> {
         return Err(Error::Invalid("check subtree must remain below the destination".into()));
     }
     generate(&root, &spec, check)
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn missing_generator_hint_identifies_the_selected_plugin_root() -> crate::Result<()> {
+        let directory = tempfile::tempdir()?;
+        let path = directory.path().join("consumer plugins/protoc-gen-go-v1.36.6");
+        let Err(error) = super::regular_executable(&path) else {
+            panic!("missing generator was admitted");
+        };
+        let message = error.to_string();
+        assert!(message.contains(path.to_string_lossy().as_ref()), "{message}");
+        assert!(message.contains("provision pinned generators for this plugin root"), "{message}");
+        assert!(!message.contains("cargo xtask proto-tools"), "{message}");
+        Ok(())
+    }
 }

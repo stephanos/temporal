@@ -1,0 +1,24 @@
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.27s
+     Running unittests src/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/deps/temporal_xtask-ed60604a2343b93b)
+
+running 1 test
+test gate::timing::interrupt_controls::interrupted_benchmark_preserves_original_source_bytes ... FAILED
+
+failures:
+
+---- gate::timing::interrupt_controls::interrupted_benchmark_preserves_original_source_bytes stdout ----
+
+thread 'gate::timing::interrupt_controls::interrupted_benchmark_preserves_original_source_bytes' (120697) panicked at dev/xtask/src/gate/timing_interrupt_controls.rs:81:5:
+assertion `left == right` failed
+  left: [111, 114, 105, 103, 105, 110, 97, 108, 32, 97, 114, 98, 105, 116, 114, 97, 114, 121, 32, 115, 121, 110, 116, 97, 120, 10, 255, 10, 47, 47, 32, 73, 110, 110, 101, 114, 45, 108, 111, 111, 112, 32, 116, 105, 109, 105, 110, 103, 32, 101, 100, 105, 116, 46, 10]
+ right: [111, 114, 105, 103, 105, 110, 97, 108, 32, 97, 114, 98, 105, 116, 114, 97, 114, 121, 32, 115, 121, 110, 116, 97, 120, 10, 255]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    gate::timing::interrupt_controls::interrupted_benchmark_preserves_original_source_bytes
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 38 filtered out; finished in 0.12s
+
+error: test failed, to rerun pass `-p temporal-xtask --bin temporal-xtask`

@@ -184,6 +184,7 @@ pub(crate) fn scheduled_stage(root: &Path, name: &str) -> io::Result<i32> {
 pub(crate) fn control_tests(root: &Path, name: &str) -> io::Result<i32> {
     let filters: &[&str] = match name {
         "timing-controls" => &[
+            "gate::timing::interrupt_controls::interrupted_benchmark_preserves_original_source_bytes",
             "gate::timing_controls::tests::soft_budget_defaults_equality_overrides_and_warning_order",
             "model_controls::shipping_model_recipes_with_disposable_children",
             "guest_routes::tests::seven_packages_two_entries_preserve_caller_paths_and_exact_arguments",
