@@ -134,9 +134,81 @@ case "$1 $2" in
  'cargo metadata') case " $* " in *' --no-deps '*) label=inner-metadata ;; *) label=source-boundary ;; esac ;;
  'cargo fmt') label=fmt; [ "$*" = "${CONTROL_EXPECT_FMT:-cargo fmt --all --check}" ] ;;
  'cargo doc') label=docs; [ "$*" = 'cargo doc --workspace --no-deps --quiet' ]; [ "$RUSTDOCFLAGS" = '-D warnings' ] ;;
- 'cargo nextest') if [ "$3" = list ]; then case " $* " in *' --workspace '*) label=test-inventory ;; *) label=inner-inventory ;; esac; else label=tests; fi ;;
+ 'cargo nextest')
+ control_cases=''
+ case " $* " in
+  *'native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup'*) label=timing-controls; control_cases='native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup' ;;
+  *'build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children'*)
+   case " $* " in *'build_guests::path_controls::guest_and_native_statuses_stop_without_following_children'*) ;; *) exit 93 ;; esac
+   label=guest-controls; control_cases='build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children build_guests::path_controls::guest_and_native_statuses_stop_without_following_children' ;;
+  *'native_leaves::capability_controls_enforce_core_and_unsafe_policies'*) label=capability-controls; control_cases='native_leaves::capability_controls_enforce_core_and_unsafe_policies' ;;
+  *'proto::controls::tests::native_protobuf_behavior_controls'*) label=protobuf-controls; control_cases='proto::controls::tests::native_protobuf_behavior_controls' ;;
+  *) if [ "$3" = list ]; then case " $* " in *' --workspace '*) label=test-inventory ;; *) label=inner-inventory ;; esac; else label=tests; fi ;;
+ esac
+ if [ -n "$control_cases" ]; then
+  expected_expression=''; expected_packages=0
+  for test in $control_cases; do
+   [ -z "$expected_expression" ] || expected_expression="$expected_expression | "
+   expected_expression="$expected_expression(package(=xtask) & test(=$test))"
+   expected_packages=$((expected_packages + 1))
+  done
+  previous=''; packages=0; expressions=0
+  for argument in "$@"; do
+   if [ "$previous" = -p ]; then [ "$argument" = xtask ]; packages=$((packages + 1)); fi
+   if [ "$previous" = -E ]; then [ "$argument" = "$expected_expression" ]; expressions=$((expressions + 1)); fi
+   previous=$argument
+  done
+  [ "$packages:$expressions" = "$expected_packages:1" ]
+  case " $* " in *' --workspace '*|*' --doc '*) exit 93 ;; esac
+  if [ "$3" = list ]; then label=control-inventory; fi
+ fi ;;
+ 'go install')
+ [ "$#" = 3 ]
+ case "$3" in
+  google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.6) cp "$CONTROL_BIN/go-plugin-template" "$GOBIN/protoc-gen-go" ;;
+  google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0) cp "$CONTROL_BIN/grpc-plugin-template" "$GOBIN/protoc-gen-go-grpc" ;;
+  *) exit 93 ;;
+ esac
+ exit 0 ;;
+ 'protoc '*)
+ output=''; inputs=0; core=0; kettle=0
+ for argument in "$@"; do
+  case "$argument" in
+   --go_out=*) output=${argument#--go_out=} ;;
+   protocol/proto/umpire/*/v1/*.proto) inputs=$((inputs + 1)); core=1 ;;
+   reference/kettle/proto/kettle/v1/*.proto) inputs=$((inputs + 1)); kettle=1 ;;
+  esac
+ done
+ [ -n "$output" ]
+ if [ "$core:$kettle:$inputs" = 1:0:4 ]; then label=protobuf-freshness
+ elif [ "$core:$kettle:$inputs" = 0:1:2 ]; then label=kettle-protobuf-freshness
+ else exit 93; fi
+ case " $* " in *' --go_opt=paths=source_relative '*) ;; *) exit 93 ;; esac
+ case " $* " in *" --plugin=protoc-gen-go=$CONTROL_ROOT/.bin/protoc-gen-go-v1.36.6 "*) ;; *) exit 93 ;; esac
+ if [ "$label" = kettle-protobuf-freshness ]; then
+  case " $* " in *" --plugin=protoc-gen-go-grpc=$CONTROL_ROOT/.bin/protoc-gen-go-grpc-v1.3.0 "*) ;; *) exit 93 ;; esac
+  case " $* " in *' --go-grpc_out='*) ;; *) exit 93 ;; esac
+ else
+  case " $* " in *' --go-grpc_out='*) exit 93 ;; esac
+ fi ;;
+ 'cargo run')
+ case "$*" in
+  'cargo run --locked --profile guest -p umpire-caught-panic-guest --bin panic-control-reports -- '*) job=panic-native; [ "${!#}" = "$CONTROL_EXPECT_TARGET/panic-native" ] ;;
+  'cargo run --locked --profile guest -p umpire-control-guest --bin current-contract-reports -- '*) job=current-contract-native; [ "${!#}" = "$CONTROL_EXPECT_TARGET/current-contract-native" ] ;;
+  *) exit 93 ;;
+ esac
+ printf '%s\n' "$job" >> "$CONTROL_ROOT/guest-jobs"
+ [ "${CONTROL_FAIL_JOB:-}" != "$job" ] || exit 37
+ label=native-report; CONTROL_SKIP_LOG=1 ;;
  'cargo test') case " $* " in *' --doc '*) label=doctests ;; *) label=tests ;; esac ;;
- 'cargo build') label=wasm32-wasip1 ;;
+ 'cargo build')
+ case " $* " in *' -p umpire-guest-driver '*)
+  [ "$*" = "cargo build --locked --manifest-path $CONTROL_ROOT/Cargo.toml -p umpire-guest-driver --bin umpire-guest-driver --profile dev --target-dir $(dirname "$CONTROL_BIN")" ]
+  [ -z "${RUSTC_WRAPPER+x}${RUSTC_WORKSPACE_WRAPPER+x}${RUSTFLAGS+x}${CARGO_ENCODED_RUSTFLAGS+x}${RUSTC_BOOTSTRAP+x}${CARGO_BUILD_TARGET+x}" ]
+  printf 'native-driver-build\n' >> "$CONTROL_ROOT/native-driver-builds"
+  exit "${CONTROL_DRIVER_BUILD_STATUS:-0}" ;;
+ esac
+ label=wasm32-wasip1 ;;
  'cargo clippy') case " $* " in *' --target '*) label=core-wasm-clippy ;; *) label=clippy; [ "$*" = 'cargo clippy --workspace --all-targets --all-features -- -D warnings' ] ;; esac ;;
  'go -C') [ "$CGO_ENABLED" = 0 ]; case "$3" in "$CONTROL_ROOT/hosts/go") label=go-host ;; "$CONTROL_ROOT/reference/kettle") label=kettle-go-host ;; *) exit 91 ;; esac
  [ "$UMPIRE_WASM" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/umpire_stock_guest.wasm" ]
@@ -148,6 +220,30 @@ case "$1 $2" in
  [ "$UMPIRE_CURRENT_CONTRACT_NATIVE" = "$CONTROL_EXPECT_TARGET/current-contract-native" ] ;;
  *) exit 92 ;;
 esac
+"#;
+
+const GO_PLUGIN_SCRIPT: &str = r#"[ "$*" = --version ]
+parent=$(/bin/ps -ww -p "$PPID" -o args=)
+case " $parent " in
+ *' proto-tools '*)
+  if mkdir "$CONTROL_ROOT/.bin/control-parent-$PPID" 2>/dev/null; then label=proto-tools
+  else printf '%s\n' 'protoc-gen-go v1.36.6'; exit 0; fi ;;
+ *) printf '%s\n' 'protoc-gen-go v1.36.6'; exit 0 ;;
+esac
+"#;
+
+const GUEST_SCRIPT: &str = r#"[ "$1" = guest ] && [ "$#" = 3 ]
+case "$2" in
+ umpire-stock-guest) artifact=umpire_stock_guest; label=wasm-guest ;;
+ umpire-kettle-guest) artifact=umpire_kettle_guest; label=guest-step; CONTROL_SKIP_LOG=1 ;;
+ umpire-control-guest) artifact=stateful_control; label=guest-step; CONTROL_SKIP_LOG=1 ;;
+ umpire-caught-panic-guest) artifact=caught_panic_control; label=guest-step; CONTROL_SKIP_LOG=1 ;;
+ umpire-overflow-guest) artifact=overflow_control; label=guest-step; CONTROL_SKIP_LOG=1 ;;
+ *) exit 93 ;;
+esac
+[ "$3" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/$artifact.wasm" ]
+printf '%s\n' "$2" >> "$CONTROL_ROOT/guest-jobs"
+[ "${CONTROL_FAIL_JOB:-}" != "$2" ] || exit 37
 "#;
 
 struct Fixture {
@@ -199,20 +295,23 @@ impl Fixture {
         );
         fs::create_dir_all(fixture.caller.join("real home")).unwrap();
         symlink("real home", fixture.caller.join("cargo home")).unwrap();
-        for (script, label) in [
-            ("proto-tools.sh", "proto-tools"),
-            ("test-time-gate.sh", "timing-controls"),
-            ("tests/build-guests-controls.sh", "guest-controls"),
-            ("test-capabilities.sh", "capability-controls"),
-            ("tests/proto-go.sh", "protobuf-controls"),
-            ("tests/build-guests.sh", "wasm-guest"),
-        ] {
-            Self::script(&fixture.root.join("scripts").join(script), &format!("label={label}\n"));
-        }
-        Self::script(
-            &fixture.root.join("scripts/proto-go.sh"),
-            "case $1 in core) label=protobuf-freshness ;; kettle) label=kettle-protobuf-freshness ;; *) exit 90 ;; esac\n[ \"$2\" = --check ]\n",
+        fs::create_dir_all(&fixture.bin).unwrap();
+        fs::copy(env!("CARGO_BIN_EXE_xtask"), fixture.bin.join("xtask")).unwrap();
+        Self::script(&fixture.bin.join("umpire-guest-driver"), GUEST_SCRIPT);
+        Self::script(&fixture.bin.join("go-plugin-template"), GO_PLUGIN_SCRIPT);
+        write(
+            &fixture.bin.join("grpc-plugin-template"),
+            "#!/bin/bash\nprintf '%s\\n' 'protoc-gen-go-grpc 1.3.0'\n",
         );
+        fs::set_permissions(
+            fixture.bin.join("grpc-plugin-template"),
+            fs::Permissions::from_mode(0o755),
+        )
+        .unwrap();
+        fixture.plugins();
+        for destination in ["hosts/go/gen", "reference/kettle/gen"] {
+            write(&fixture.root.join(destination).join("umpire/generated.go"), "generated\n");
+        }
         Self::script(&fixture.bin.join("mise"), MISE_SCRIPT);
         for (name, contents) in [
             ("mise.toml", include_str!("../../../mise-tools/mise.toml")),
@@ -264,7 +363,9 @@ if [ "${{CONTROL_MISE_DESCENDANT:-0}}" = 1 ]; then
   touch "$CONTROL_ROOT/failure-reached"
  fi
 fi
+if [ "${{CONTROL_SKIP_LOG:-0}}" != 1 ]; then
 printf '%s|%s|%s|%s|%s|%s|%s|%s\n' "$label" "$PWD" "$CARGO_TARGET_DIR" "$CARGO_HOME" "$UMPIRE_QUICK_CACHE" "$UMPIRE_CACHE_DISABLE" "${{UMPIRE_BACKENDS:-unset}}" "$*" >> "$CONTROL_LOG"
+fi
 if [ "$label" = tests ] && [ -n "${{CONTROL_EXPECT_PROFILE:-}}" ]; then
  [ "${{NEXTEST_PROFILE:-unset}}" = "$CONTROL_EXPECT_PROFILE" ]
  [ "${{NEXTEST_TEST_THREADS:-unset}}" = "$CONTROL_EXPECT_THREADS" ]
@@ -301,6 +402,24 @@ fi
 if [ "$label" = doctests ]; then
  printf '%s\n' 'running 1 test' 'test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.1s'
 fi
+if [ "$label" = proto-tools ]; then printf '%s\n' 'protoc-gen-go v1.36.6'; fi
+if [ "$label" = protobuf-freshness ] || [ "$label" = kettle-protobuf-freshness ]; then
+ mkdir -p "$output/umpire"
+ printf 'generated\n' > "$output/umpire/generated.go"
+fi
+if [ "$label" = control-inventory ]; then
+ count=0; cases=''
+ for test in $control_cases; do
+  count=$((count + 1)); [ -z "$cases" ] || cases="$cases,"
+  cases="$cases\"$test\":{{\"ignored\":false,\"filter-match\":{{\"status\":\"matches\"}}}}"
+ done
+ printf '{{"test-count":%s,"rust-suites":{{"xtask":{{"package-name":"xtask","binary-name":"xtask","kind":"lib","status":"listed","testcases":{{%s}}}}}}}}\n' "$count" "$cases"
+fi
+if [ -n "${{control_cases:-}}" ] && [ "$label" != control-inventory ]; then
+ case " $* " in *' --message-format '*)
+  for test in $control_cases; do printf '{{"type":"test","event":"ok","name":"xtask::xtask$%s"}}\n' "$test"; done ;;
+ esac
+fi
 if [ "$label" = source-boundary ]; then
  printf '{{"packages":[{{"source":null,"manifest_path":"%s/Cargo.toml"}}]}}\n' "$CONTROL_ROOT"
 fi
@@ -319,7 +438,7 @@ fi
                 if path.is_absolute() { path.to_owned() } else { self.caller.join(path) }
             },
         );
-        let mut command = Command::new(env!("CARGO_BIN_EXE_xtask"));
+        let mut command = Command::new(self.bin.join("xtask"));
         command
             .current_dir(&self.caller)
             .env_remove("BASH_ENV")
@@ -330,6 +449,7 @@ fi
             .env("PATH", format!("{}:/usr/bin:/bin", self.bin.display()))
             .env("UMPIRE_TOOL_ROOT", &self.root)
             .env("CONTROL_ROOT", &self.root)
+            .env("CONTROL_BIN", &self.bin)
             .env("CONTROL_CALLER", &self.caller)
             .env("CONTROL_LOG", &self.log)
             .env_remove("UMPIRE_GATE_RECEIPTS")
@@ -356,11 +476,21 @@ fi
             .unwrap_or_default()
             .lines()
             .map(|line| line.split('|').next().unwrap().into())
-            .filter(|label: &String| label != "test-inventory")
+            .filter(|label: &String| label != "test-inventory" && label != "control-inventory")
             .collect()
+    }
+    fn plugins(&self) {
+        fs::create_dir_all(self.root.join(".bin")).unwrap();
+        for (source, destination) in [
+            ("go-plugin-template", "protoc-gen-go-v1.36.6"),
+            ("grpc-plugin-template", "protoc-gen-go-grpc-v1.3.0"),
+        ] {
+            fs::copy(self.bin.join(source), self.root.join(".bin").join(destination)).unwrap();
+        }
     }
     fn clear(&self) {
         write(&self.log, "");
+        write(&self.root.join("guest-jobs"), "");
     }
 }
 fn stderr(output: &Output) -> String {
@@ -1382,4 +1512,73 @@ fn outer_supervision_streams_separate_diagnostics_before_scheduler_completion() 
         String::from_utf8_lossy(&output.stderr).matches("streamed-early-diagnostic").count(),
         1
     );
+}
+
+#[test]
+fn native_guest_stage_stops_at_each_driver_and_report_failure() {
+    let fixture = Fixture::new();
+    let jobs = [
+        "umpire-stock-guest",
+        "umpire-kettle-guest",
+        "umpire-control-guest",
+        "umpire-caught-panic-guest",
+        "umpire-overflow-guest",
+        "panic-native",
+        "current-contract-native",
+    ];
+    for timed in [false, true] {
+        for (index, failed) in jobs.iter().enumerate() {
+            fixture.clear();
+            let output = fixture
+                .command(timed)
+                .args(["gate", "--stage", "wasm-guest"])
+                .env("CONTROL_FAIL_JOB", failed)
+                .output()
+                .unwrap();
+            assert_status(&output, 37);
+            assert!(
+                stderr(&output).contains("framework stage wasm-guest failed (exit 37)"),
+                "{output:?}"
+            );
+            let actual = fs::read_to_string(fixture.root.join("guest-jobs")).unwrap();
+            assert_eq!(actual.lines().collect::<Vec<_>>(), jobs[..=index]);
+        }
+    }
+}
+
+#[test]
+fn native_protobuf_tools_provision_exact_plugins_and_leave_no_owned_install_lock() {
+    let fixture = Fixture::new();
+    for plugin in ["protoc-gen-go-v1.36.6", "protoc-gen-go-grpc-v1.3.0"] {
+        fs::remove_file(fixture.root.join(".bin").join(plugin)).unwrap();
+    }
+    let output = fixture.command(false).args(["gate", "--stage", "proto-tools"]).output().unwrap();
+    assert_status(&output, 0);
+    assert_eq!(fixture.labels(), ["proto-tools"]);
+    for plugin in ["protoc-gen-go-v1.36.6", "protoc-gen-go-grpc-v1.3.0"] {
+        let metadata = fs::symlink_metadata(fixture.root.join(".bin").join(plugin)).unwrap();
+        assert!(metadata.is_file() && metadata.permissions().mode() & 0o111 != 0);
+    }
+    assert!(!fixture.root.join(".bin/proto-tools.lock").exists());
+}
+
+#[test]
+fn native_guest_driver_bootstrap_failure_stops_before_guest_jobs() {
+    let fixture = Fixture::new();
+    for timed in [false, true] {
+        fixture.clear();
+        let output = fixture
+            .command(timed)
+            .args(["gate", "--stage", "wasm-guest"])
+            .env("CONTROL_DRIVER_BUILD_STATUS", "37")
+            .output()
+            .unwrap();
+        assert_status(&output, 37);
+        assert!(
+            stderr(&output).contains("framework stage wasm-guest failed (exit 37)"),
+            "{output:?}"
+        );
+        assert!(fixture.labels().is_empty());
+        assert!(fs::read_to_string(fixture.root.join("guest-jobs")).unwrap().is_empty());
+    }
 }
