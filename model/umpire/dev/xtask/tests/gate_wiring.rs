@@ -48,6 +48,23 @@ const LEAVES: &[(&str, &str)] = &[
     ("kettle-go-host", "kettle-go-host"),
 ];
 
+fn observed_leaves() -> Vec<(&'static str, &'static str)> {
+    let mut leaves = Vec::new();
+    for &(stage, leaf) in LEAVES {
+        match leaf {
+            "go-host" => leaves
+                .extend([("go-host", "go-host-environment"), ("go-host", "go-host-inventory")]),
+            "kettle-go-host" => leaves.extend([
+                ("kettle-go-host", "kettle-go-host-environment"),
+                ("kettle-go-host", "kettle-go-host-inventory"),
+            ]),
+            _ => (),
+        }
+        leaves.push((stage, leaf));
+    }
+    leaves
+}
+
 const MISE_SCRIPT: &str = r#"if [ "$PWD" = "$CONTROL_ROOT/mise-tools" ]; then
  [ "$MISE_DATA_DIR" = "$CONTROL_ROOT/build/mise-jars/data" ]
  [ "$MISE_CONFIG_DIR" = "$CONTROL_ROOT/build/mise-jars/config" ]
@@ -217,9 +234,49 @@ case "$1 $2" in
  [ "$UMPIRE_CAUGHT_PANIC_WASM" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/caught_panic_control.wasm" ]
  [ "$UMPIRE_OVERFLOW_WASM" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/overflow_control.wasm" ]
  [ "$UMPIRE_PANIC_NATIVE" = "$CONTROL_EXPECT_TARGET/panic-native" ]
- [ "$UMPIRE_CURRENT_CONTRACT_NATIVE" = "$CONTROL_EXPECT_TARGET/current-contract-native" ] ;;
+ [ "$UMPIRE_CURRENT_CONTRACT_NATIVE" = "$CONTROL_EXPECT_TARGET/current-contract-native" ]
+ go_stage=$label; go_package="fixture/$go_stage"; go_phase=raw
+ case "$4" in
+  env) [ "$#" = 6 ] && [ "$5 $6" = '-json GOFLAGS' ]; go_phase=environment; label="$go_stage-environment" ;;
+  test)
+   case "$*" in
+    "go -C $3 test -json -list . -tags test_dep -count=1 ./...") [ "$#" = 11 ]; go_phase=inventory; label="$go_stage-inventory" ;;
+    "go -C $3 test -json -tags test_dep -count=1 ./...") [ "$#" = 9 ]; go_phase=execution ;;
+    "go -C $3 test -tags test_dep -count=1 ./...") [ "$#" = 8 ] ;;
+    *) exit 93 ;;
+   esac ;;
+  *) exit 93 ;;
+ esac ;;
  *) exit 92 ;;
 esac
+"#;
+
+const GO_OUTPUT_SCRIPT: &str = r#"if [ -n "${go_phase:-}" ]; then
+ case "$go_phase" in
+  environment)
+   case "${GOFLAGS:-}" in ''|'-p=1'|'-tags=control -p=9'|'-tags=control -p=9 -p=1') ;; *) exit 93 ;; esac
+   printf '{"GOFLAGS":"%s"}\n' "${GOFLAGS:-}" ;;
+  inventory)
+   [ -n "$GOFLAGS" ]
+   printf '{"Action":"start","Package":"%s"}\n' "$go_package"
+   printf '{"Action":"output","Package":"%s","Output":"TestControl\\nTestSkip\\nFuzzControl\\nBenchmarkRows\\n"}\n' "$go_package"
+   printf '{"Action":"pass","Package":"%s"}\n' "$go_package" ;;
+  execution)
+   [ -n "$GOFLAGS" ]
+   printf '{"Action":"start","Package":"%s"}\n' "$go_package"
+   for test in TestControl TestControl/child FuzzControl FuzzControl/seed#0; do
+    printf '{"Action":"run","Package":"%s","Test":"%s"}\n' "$go_package" "$test"
+    case "$test" in */*) printf '{"Action":"pass","Package":"%s","Test":"%s"}\n' "$go_package" "$test" ;; esac
+    case "$test" in TestControl/child) printf '{"Action":"pass","Package":"%s","Test":"TestControl"}\n' "$go_package" ;;
+     FuzzControl/seed#0) printf '{"Action":"pass","Package":"%s","Test":"FuzzControl"}\n' "$go_package" ;; esac
+   done
+   printf '{"Action":"run","Package":"%s","Test":"TestSkip"}\n' "$go_package"
+   printf '{"Action":"skip","Package":"%s","Test":"TestSkip"}\n' "$go_package"
+   printf '{"Action":"pass","Package":"%s"}\n' "$go_package" ;;
+  raw) ;;
+  *) exit 93 ;;
+ esac
+fi
 "#;
 
 // Owned guardians retain the native argv, so direct parent PIDs differ between probes.
@@ -439,6 +496,7 @@ fi
 if [ "$label" = source-boundary ]; then
  printf '{{"packages":[{{"source":null,"manifest_path":"%s/Cargo.toml"}}]}}\n' "$CONTROL_ROOT"
 fi
+{GO_OUTPUT_SCRIPT}
 "#
             ),
         );
@@ -462,6 +520,7 @@ fi
             .env_remove("UMPIRE_STANDALONE_OUTPUT")
             .env_remove("UMPIRE_BACKENDS")
             .env_remove("UMPIRE_APALACHE")
+            .env_remove("GOFLAGS")
             .env("PATH", format!("{}:/usr/bin:/bin", self.bin.display()))
             .env("UMPIRE_TOOL_ROOT", &self.root)
             .env("CONTROL_ROOT", &self.root)
@@ -514,6 +573,31 @@ fn stderr(output: &Output) -> String {
 }
 fn assert_status(output: &Output, code: i32) {
     assert_eq!(output.status.code(), Some(code), "{output:?}");
+}
+
+fn assert_observed_go_commands(fixture: &Fixture, log: &str) {
+    for (stage, module) in [("go-host", "hosts/go"), ("kettle-go-host", "reference/kettle")] {
+        let calls = log
+            .lines()
+            .filter_map(|line| {
+                let fields: Vec<_> = line.split('|').collect();
+                (fields[0] == stage
+                    || fields[0] == format!("{stage}-environment")
+                    || fields[0] == format!("{stage}-inventory"))
+                .then_some(fields[7])
+            })
+            .collect::<Vec<_>>();
+        let module = fixture.root.join(module);
+        let module = module.to_str().unwrap();
+        assert_eq!(
+            calls,
+            [
+                format!("go -C {module} env -json GOFLAGS"),
+                format!("go -C {module} test -json -list . -tags test_dep -count=1 ./..."),
+                format!("go -C {module} test -json -tags test_dep -count=1 ./..."),
+            ]
+        );
+    }
 }
 
 #[test]
@@ -573,7 +657,10 @@ fn full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_comm
         fixture.clear();
         let output = fixture.command(timed).arg("gate").output().unwrap();
         assert_status(&output, 0);
-        assert_eq!(fixture.labels(), LEAVES.iter().map(|(_, leaf)| *leaf).collect::<Vec<_>>());
+        assert_eq!(
+            fixture.labels(),
+            observed_leaves().iter().map(|(_, leaf)| *leaf).collect::<Vec<_>>()
+        );
         assert!(String::from_utf8_lossy(&output.stdout).contains("UMPIRE_APALACHE=skip (default)"));
         let log = fs::read_to_string(&fixture.log).unwrap();
         assert!(log.lines().next().unwrap().contains("|0|1|unset|"));
@@ -583,7 +670,7 @@ fn full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_comm
             "cargo build --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --quiet"
         ));
         assert!(log.contains("cargo clippy --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --lib --locked -- -D warnings"));
-        assert!(log.contains("test -tags test_dep -count=1 ./..."));
+        assert_observed_go_commands(&fixture, &log);
     }
 }
 
@@ -591,7 +678,7 @@ fn full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_comm
 fn full_dispatch_stops_at_every_failed_leaf_in_both_modes() {
     let fixture = Fixture::new();
     for timed in [false, true] {
-        for (index, (stage, leaf)) in LEAVES.iter().enumerate() {
+        for (stage, leaf) in LEAVES {
             fixture.clear();
             let output =
                 fixture.command(timed).arg("gate").env("CONTROL_FAIL", leaf).output().unwrap();
@@ -602,7 +689,12 @@ fn full_dispatch_stops_at_every_failed_leaf_in_both_modes() {
             );
             assert_eq!(
                 fixture.labels(),
-                LEAVES[..=index].iter().map(|(_, name)| *name).collect::<Vec<_>>()
+                observed_leaves()
+                    .into_iter()
+                    .take_while(|(_, name)| name != leaf)
+                    .map(|(_, name)| name)
+                    .chain([*leaf])
+                    .collect::<Vec<_>>()
             );
         }
     }
@@ -695,7 +787,7 @@ fn validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_fai
         }
         fixture.clear();
         let output = fixture.command(false).arg(entry).output().unwrap();
-        let mut expected = LEAVES.iter().map(|(_, leaf)| *leaf).collect::<Vec<_>>();
+        let mut expected = observed_leaves().iter().map(|(_, leaf)| *leaf).collect::<Vec<_>>();
         if entry == "validate" {
             assert_status(&output, 1);
             assert!(stderr(&output).contains("framework stage standalone failed: missing or escaping standalone configuration: Cargo.lock"), "{output:?}");
@@ -907,11 +999,14 @@ fn convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status() 
                 "{output:?}"
             );
             assert!(stderr(&output).contains("inner child diagnostic"), "{output:?}");
-            assert_eq!(fixture.labels().len(), LEAVES.len() + 3);
+            assert_eq!(fixture.labels().len(), observed_leaves().len() + 3);
         } else {
             assert_status(&output, 1);
             assert!(stderr(&output).contains("framework stage standalone failed: missing or escaping standalone configuration: Cargo.lock"), "{output:?}");
-            assert_eq!(fixture.labels(), LEAVES.iter().map(|(_, leaf)| *leaf).collect::<Vec<_>>());
+            assert_eq!(
+                fixture.labels(),
+                observed_leaves().iter().map(|(_, leaf)| *leaf).collect::<Vec<_>>()
+            );
         }
         let stdout = String::from_utf8_lossy(&output.stdout);
         assert!(!stdout.contains("gate total"), "{output:?}");
@@ -1043,7 +1138,10 @@ fn root_required_backend_environment_selects_standalone_on_gate_and_time_routes(
             fixture.command(false).arg(entry).env("UMPIRE_BACKENDS", "require").output().unwrap();
         assert_status(&output, 1);
         assert!(stderr(&output).contains("framework stage standalone failed: missing or escaping standalone configuration: Cargo.lock"), "{output:?}");
-        assert_eq!(fixture.labels(), LEAVES.iter().map(|(_, leaf)| *leaf).collect::<Vec<_>>());
+        assert_eq!(
+            fixture.labels(),
+            observed_leaves().iter().map(|(_, leaf)| *leaf).collect::<Vec<_>>()
+        );
         let log = fs::read_to_string(&fixture.log).unwrap();
         assert!(log.lines().all(|line| line.contains("|0|1|require|")), "{log}");
         assert!(!log.contains("cargo test -p"));
@@ -1104,6 +1202,60 @@ fn required_profile_reaches_gate_update_and_direct_test_children() {
                 "entry={entry:?}, backend={backend}, apalache={apalache}: {output:?}"
             );
             assert_eq!(fixture.labels(), ["tests", "doctests"]);
+        }
+    }
+}
+
+#[test]
+fn scheduled_go_stages_count_real_json_units_and_preserve_each_discovery_failure() {
+    let fixture = Fixture::new();
+    for timed in [false, true] {
+        for stage in ["go-host", "kettle-go-host"] {
+            for failure in [None, Some("environment"), Some("inventory")] {
+                fixture.clear();
+                let receipts = tempfile::tempdir_in(&fixture.caller).unwrap();
+                let mut command = fixture.command(timed);
+                command
+                    .args(["gate", "--scheduled-stage", stage])
+                    .env("UMPIRE_GATE_RECEIPTS", receipts.path());
+                if let Some(phase) = failure {
+                    command.env("CONTROL_FAIL", format!("{stage}-{phase}"));
+                }
+                let output = command.output().unwrap();
+                assert_status(&output, if failure.is_some() { 37 } else { 0 });
+                let receipt: serde_json::Value = serde_json::from_slice(
+                    &fs::read(receipts.path().join(format!("{stage}.json"))).unwrap(),
+                )
+                .unwrap();
+                assert_eq!(receipt["count_authority"], "exclusive-stage");
+                let mut expected = vec![format!("{stage}-environment")];
+                if failure != Some("environment") {
+                    expected.push(format!("{stage}-inventory"));
+                }
+                if failure.is_none() {
+                    expected.push(stage.to_owned());
+                }
+                assert_eq!(fixture.labels(), expected);
+                if let Some(phase) = failure {
+                    assert_eq!(receipt["state"], "failed");
+                    assert_eq!(receipt["exit"], 37);
+                    assert!(receipt["counts"].is_null());
+                    assert!(receipt["count_error"].is_string());
+                    assert!(
+                        stderr(&output).contains(&format!("{stage}-{phase} child diagnostic")),
+                        "{output:?}"
+                    );
+                } else {
+                    assert_eq!(receipt["state"], "success");
+                    assert_eq!(receipt["exit"], 0);
+                    assert!(receipt["count_error"].is_null());
+                    for (field, value) in
+                        [("discovered", 3), ("executed", 2), ("ignored", 0), ("skipped", 1)]
+                    {
+                        assert_eq!(receipt["counts"][field], value, "{receipt:?}");
+                    }
+                }
+            }
         }
     }
 }
@@ -1256,7 +1408,7 @@ fn successful_scheduler_status_cannot_replace_complete_unique_atomic_stage_recor
             } else {
                 assert_eq!(
                     fixture.labels(),
-                    LEAVES.iter().map(|(_, leaf)| *leaf).collect::<Vec<_>>()
+                    observed_leaves().iter().map(|(_, leaf)| *leaf).collect::<Vec<_>>()
                 );
             }
         }
@@ -1334,6 +1486,14 @@ fn full_gate_publishes_complete_ordered_invocation_local_receipts_on_every_run()
                 serde_json::from_slice(&fs::read(directory.join(format!("{name}.json"))).unwrap())
                     .unwrap();
             assert_eq!(atomic, row);
+            if ["go-host", "kettle-go-host"].contains(&name) {
+                assert!(row["count_error"].is_null());
+                for (field, value) in
+                    [("discovered", 3), ("executed", 2), ("ignored", 0), ("skipped", 1)]
+                {
+                    assert_eq!(row["counts"][field], value, "{row:?}");
+                }
+            }
         }
     }
 }
@@ -1441,7 +1601,8 @@ fn shipping_mise_graph_really_overlaps_independent_native_leaves() {
     assert_eq!(overlap, ["fmt", "proto-tools"]);
     let mut actual = fixture.labels();
     actual.sort();
-    let mut expected = LEAVES.iter().map(|(_, leaf)| (*leaf).to_owned()).collect::<Vec<_>>();
+    let mut expected =
+        observed_leaves().iter().map(|(_, leaf)| (*leaf).to_owned()).collect::<Vec<_>>();
     expected.sort();
     assert_eq!(actual, expected);
 }
