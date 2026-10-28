@@ -1313,11 +1313,22 @@ fn scheduled_stage_atomically_commits_success_failure_and_scanner_error_receipts
             assert!(
                 published.iter().all(|name| {
                     name == "work"
+                        || name == "budget"
                         || name == &std::ffi::OsString::from(format!("{stage}.json"))
                         || name == &std::ffi::OsString::from(format!("{stage}.claim"))
                 }),
                 "partial receipt files: {published:?}"
             );
+            let attempts = receipt["attempt_event_manifests"].as_array().unwrap();
+            assert_eq!(attempts.len(), 1);
+            let attempt_directory = receipts.path().join("budget/attempts").join(stage);
+            assert_eq!(fs::read_dir(&attempt_directory).unwrap().count(), 1);
+            let manifest: serde_json::Value =
+                serde_json::from_slice(&fs::read(attempt_directory.join("1.json")).unwrap())
+                    .unwrap();
+            assert_eq!(manifest, attempts[0]);
+            assert_eq!(manifest["ordinal"], 1);
+            assert!(manifest["events"].as_array().unwrap().is_empty());
             if expected.is_none() {
                 fs::remove_file(fixture.root.join("planted")).unwrap();
             }

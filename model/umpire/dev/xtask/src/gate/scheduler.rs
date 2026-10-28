@@ -1,5 +1,5 @@
 //! Invocation receipts around the mise-owned task graph.
-use super::work_counts;
+use super::{budget_attempts, work_counts};
 use std::{
     collections::BTreeSet,
     env, fs,
@@ -132,7 +132,7 @@ pub fn directory(parent: &Path) -> io::Result<PathBuf> {
 }
 
 /// Claim and publish exactly one scheduled leaf execution.
-pub fn scheduled(name: &str, run: impl FnOnce() -> io::Result<i32>) -> io::Result<i32> {
+pub fn scheduled(name: &str, run: impl FnMut() -> io::Result<i32>) -> io::Result<i32> {
     scheduled_with(name, run, None)
 }
 
@@ -142,7 +142,7 @@ pub(super) fn skipped(name: &str, reason: &str) -> io::Result<i32> {
 
 fn scheduled_with(
     name: &str,
-    run: impl FnOnce() -> io::Result<i32>,
+    mut run: impl FnMut() -> io::Result<i32>,
     skipped: Option<&str>,
 ) -> io::Result<i32> {
     if name.is_empty() || !name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-') {
@@ -173,14 +173,35 @@ fn scheduled_with(
         observations.parent().ok_or_else(|| io::Error::other("missing work parent"))?,
     )?;
     fs::create_dir(&observations)?;
+    let attempts_directory = directory
+        .parent()
+        .filter(|_| !scope.is_empty())
+        .unwrap_or(&directory)
+        .join("budget/attempts")
+        .join(&scope)
+        .join(name);
+    fs::create_dir_all(&attempts_directory)?;
     let started = Instant::now();
+    let boundary = budget_attempts::Boundary::begin(&observations)?;
     let result = run();
-    let counts = work_counts::collect(&observations).and_then(|counts| {
-        if name == "tests" && skipped.is_none() && counts.executed.is_none() {
-            return Err(io::Error::other("missing test producer observations"));
-        }
-        Ok(counts)
-    });
+    let attempts =
+        boundary.finish(&observations, 1, &attempts_directory.join("1.json")).and_then(|attempt| {
+            let attempts = vec![attempt];
+            budget_attempts::verify(&observations, &attempts)?;
+            Ok(attempts)
+        });
+    let counts = attempts
+        .as_ref()
+        .map_err(|error| io::Error::other(error.to_string()))
+        .and_then(|attempts| {
+            work_counts::collect_selected(&observations, &attempts[0].event_names())
+        })
+        .and_then(|counts| {
+            if name == "tests" && skipped.is_none() && counts.executed.is_none() {
+                return Err(io::Error::other("missing test producer observations"));
+            }
+            Ok(counts)
+        });
     let count_error = counts.as_ref().err().map(ToString::to_string);
     let mut result = match result {
         Ok(0) if count_error.is_some() => Err(io::Error::other(format!(
@@ -196,6 +217,7 @@ fn scheduled_with(
         "exit": result.as_ref().copied().unwrap_or(1),
         "error": result.as_ref().err().map(ToString::to_string),
         "seconds": started.elapsed().as_secs_f64(),
+        "attempt_event_manifests": attempts.ok(),
         "child_count_receipts": counts.as_ref().ok().map(|counts| &counts.child_receipts),
         "counts": counts.ok(), "count_error": count_error,
         "count_authority": "exclusive-stage",
@@ -223,7 +245,7 @@ pub(super) fn collect(directory: &Path, expected: &[String], success: bool) -> i
     let mut paths = Vec::new();
     for entry in fs::read_dir(directory)? {
         let path = entry?.path();
-        if path.file_name().is_some_and(|name| name == "work") {
+        if path.file_name().is_some_and(|name| name == "work" || name == "budget") {
             continue;
         }
         if path.is_dir() {
@@ -264,6 +286,33 @@ pub(super) fn collect(directory: &Path, expected: &[String], success: bool) -> i
         let claimed = directory.join(format!("{name}.claim")).is_file();
         let value = if path.exists() {
             let value: serde_json::Value = serde_json::from_slice(&fs::read(path)?)?;
+            if let Some(manifests) =
+                value.get("attempt_event_manifests").filter(|value| !value.is_null())
+            {
+                let attempts: Vec<budget_attempts::Attempt> =
+                    serde_json::from_value(manifests.clone())?;
+                budget_attempts::verify(&directory.join("work").join(name), &attempts)?;
+                for (index, attempt) in attempts.iter().enumerate() {
+                    let path = directory
+                        .join("budget/attempts")
+                        .join(name)
+                        .join(format!("{}.json", index + 1));
+                    if &budget_attempts::Attempt::read(&path)? != attempt {
+                        return Err(io::Error::other(
+                            "attempt manifest differs from its stage receipt",
+                        ));
+                    }
+                }
+                match work_counts::collect(&directory.join("work").join(name)) {
+                    Ok(observed) if value["counts"] != serde_json::to_value(&observed)? => {
+                        return Err(io::Error::other(
+                            "stage counts differ from attempt observations",
+                        ));
+                    }
+                    Err(error) if !value["counts"].is_null() => return Err(error),
+                    _ => (),
+                }
+            }
             if value["stage"] != name.rsplit('/').next().unwrap_or(name)
                 || !value["seconds"].as_f64().is_some_and(|n| n.is_finite() && n >= 0.0)
                 || value["scope"].as_str().unwrap_or("")
@@ -684,6 +733,55 @@ mod execution_controls {
 #[cfg(test)]
 mod receipt_controls {
     use super::*;
+
+    #[test]
+    fn attempt_manifest_child() -> io::Result<()> {
+        let Some(mode) = env::var_os("BUDGET_ATTEMPT_CONTROL") else { return Ok(()) };
+        let code = scheduled("tests", || {
+            let id = umpire_backend_process::work::begin_tests()?;
+            umpire_backend_process::work::record("tests-finish", &format!("{id}\t1\t1\t0\t0"))?;
+            Ok(if mode == "failure" { 37 } else { 0 })
+        })?;
+        assert_eq!(code, if mode == "failure" { 37 } else { 0 });
+        Ok(())
+    }
+
+    #[test]
+    fn scheduled_payload_publishes_and_rechecks_immutable_attempt_manifest() -> io::Result<()> {
+        for mode in ["success", "failure"] {
+            let root = tempfile::tempdir()?;
+            let output = Command::new(env::current_exe()?)
+                .args([
+                    "--exact",
+                    "gate::scheduler::receipt_controls::attempt_manifest_child",
+                    "--nocapture",
+                ])
+                .env("BUDGET_ATTEMPT_CONTROL", mode)
+                .env("UMPIRE_GATE_RECEIPTS", root.path())
+                .env("UMPIRE_GATE_SCOPE", "framework")
+                .env("UMPIRE_GATE_STAGE", "tests")
+                .output()?;
+            assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+            let receipt: serde_json::Value =
+                serde_json::from_slice(&fs::read(root.path().join("framework/tests.json"))?)?;
+            assert_eq!(receipt["exit"], if mode == "failure" { 37 } else { 0 });
+            assert_eq!(receipt["attempt_event_manifests"].as_array().map(Vec::len), Some(1));
+            let manifest = root.path().join("budget/attempts/framework/tests/1.json");
+            assert!(manifest.is_file());
+            collect(root.path(), &["framework/tests".into()], mode == "success")?;
+            let receipt_path = root.path().join("framework/tests.json");
+            let original = fs::read(&receipt_path)?;
+            let mut changed = receipt;
+            changed["counts"]["discovered"] = 2.into();
+            changed["counts"]["executed"] = 2.into();
+            fs::write(&receipt_path, serde_json::to_vec(&changed)?)?;
+            assert!(collect(root.path(), &["framework/tests".into()], mode == "success").is_err());
+            fs::write(&receipt_path, original)?;
+            fs::write(&manifest, b"{}")?;
+            assert!(collect(root.path(), &["framework/tests".into()], mode == "success").is_err());
+        }
+        Ok(())
+    }
 
     fn write(directory: &Path, name: &str, exit: i32) -> io::Result<()> {
         let (scope, stage) = name.split_once('/').unwrap_or(("", name));

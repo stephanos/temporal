@@ -1,6 +1,19 @@
 //! Immutable event partitions for the two attempts of one native payload.
 use serde::{Deserialize, Serialize};
-use std::{io, path::Path};
+use std::{
+    collections::BTreeMap,
+    fs,
+    io::{self, Read, Write},
+    os::unix::{
+        ffi::OsStrExt,
+        fs::{MetadataExt, OpenOptionsExt},
+    },
+    path::Path,
+};
+use umpire_backend_process::{
+    bytes_sha256, structural_sha256,
+    work::{MAX_EVENT_BYTES, MAX_EVENTS},
+};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -18,25 +31,157 @@ pub(super) struct Attempt {
     events: Vec<Event>,
 }
 
-pub(super) struct Boundary;
+pub(super) struct Boundary {
+    scope: String,
+    before: BTreeMap<String, String>,
+}
 
 impl Boundary {
-    pub(super) fn begin(_work: &Path) -> io::Result<Self> {
-        Err(io::Error::other("attempt partition implementation pending"))
+    pub(super) fn begin(work: &Path) -> io::Result<Self> {
+        let (scope, before) = snapshot(work)?;
+        Ok(Self { scope, before })
     }
 
     pub(super) fn finish(
         self,
-        _work: &Path,
-        _ordinal: u8,
-        _destination: &Path,
+        work: &Path,
+        ordinal: u8,
+        destination: &Path,
     ) -> io::Result<Attempt> {
-        Err(io::Error::other("attempt partition implementation pending"))
+        if !(1..=2).contains(&ordinal) || (ordinal == 1 && !self.before.is_empty()) {
+            return Err(invalid("invalid attempt boundary or ordinal"));
+        }
+        let (scope, after) = snapshot(work)?;
+        if scope != self.scope || self.before.iter().any(|(name, sha)| after.get(name) != Some(sha))
+        {
+            return Err(invalid("prior attempt observations changed"));
+        }
+        let events = after
+            .into_iter()
+            .filter_map(|(name, sha256)| {
+                (!self.before.contains_key(&name)).then_some(Event { name, sha256 })
+            })
+            .collect();
+        let attempt = Attempt { version: 1, scope, ordinal, events };
+        let bytes = serde_json::to_vec(&attempt)?;
+        let mut file =
+            fs::OpenOptions::new().write(true).create_new(true).mode(0o600).open(destination)?;
+        file.write_all(&bytes)?;
+        file.sync_all()?;
+        Ok(attempt)
     }
 }
 
-pub(super) fn verify(_work: &Path, _attempts: &[Attempt]) -> io::Result<()> {
-    Err(io::Error::other("attempt partition implementation pending"))
+impl Attempt {
+    pub(super) fn read(path: &Path) -> io::Result<Self> {
+        let bytes = record(path, MAX_EVENTS as usize * 128 + 4096)?;
+        serde_json::from_slice(&bytes).map_err(io::Error::other)
+    }
+
+    pub(super) fn event_names(&self) -> Vec<String> {
+        self.events.iter().map(|event| event.name.clone()).collect()
+    }
+}
+
+pub(super) fn verify(work: &Path, attempts: &[Attempt]) -> io::Result<()> {
+    if attempts.is_empty() || attempts.len() > 2 {
+        return Err(invalid("invalid completed attempt count"));
+    }
+    let (scope, observed) = snapshot(work)?;
+    let mut partition = BTreeMap::new();
+    for (index, attempt) in attempts.iter().enumerate() {
+        if attempt.version != 1
+            || attempt.scope != scope
+            || usize::from(attempt.ordinal) != index + 1
+        {
+            return Err(invalid("crossed or out-of-order attempt authority"));
+        }
+        for event in &attempt.events {
+            if partition.insert(event.name.clone(), event.sha256.clone()).is_some() {
+                return Err(invalid("overlapping attempt observations"));
+            }
+        }
+    }
+    if partition != observed {
+        return Err(invalid("attempt observations are not an exact partition"));
+    }
+    Ok(())
+}
+
+fn invalid(message: &str) -> io::Error {
+    io::Error::other(message)
+}
+
+fn identity(work: &Path) -> io::Result<String> {
+    let metadata = fs::symlink_metadata(work)?;
+    if !metadata.is_dir() || metadata.is_symlink() || work.canonicalize()? != work {
+        return Err(invalid("work directory must be canonical"));
+    }
+    Ok(structural_sha256(&(work.as_os_str().as_bytes(), metadata.dev(), metadata.ino())))
+}
+
+fn record(path: &Path, maximum: usize) -> io::Result<Vec<u8>> {
+    let before = fs::symlink_metadata(path)?;
+    if !before.is_file()
+        || before.is_symlink()
+        || before.nlink() != 1
+        || before.len() > maximum as u64
+    {
+        return Err(invalid("invalid attempt observation file"));
+    }
+    let file = fs::OpenOptions::new()
+        .read(true)
+        .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK)
+        .open(path)?;
+    let metadata = file.metadata()?;
+    if (before.dev(), before.ino(), before.len())
+        != (metadata.dev(), metadata.ino(), metadata.len())
+    {
+        return Err(invalid("attempt observation replaced during read"));
+    }
+    let mut bytes = Vec::new();
+    file.take(maximum as u64 + 1).read_to_end(&mut bytes)?;
+    if bytes.len() > maximum {
+        return Err(invalid("attempt observation exceeds byte limit"));
+    }
+    Ok(bytes)
+}
+
+fn snapshot(work: &Path) -> io::Result<(String, BTreeMap<String, String>)> {
+    let scope = identity(work)?;
+    let mut events = BTreeMap::new();
+    let mut claims = std::collections::BTreeSet::new();
+    for (index, entry) in fs::read_dir(work)?.enumerate() {
+        if index as u64 >= MAX_EVENTS * 2 {
+            return Err(invalid("attempt observation count exceeds limit"));
+        }
+        let entry = entry?;
+        let name =
+            entry.file_name().into_string().map_err(|_| invalid("invalid event filename"))?;
+        let (slot, kind) = name.split_once('.').ok_or_else(|| invalid("partial event filename"))?;
+        let number = slot.parse::<u64>().map_err(|_| invalid("invalid observation slot"))?;
+        if number >= MAX_EVENTS || number.to_string() != slot {
+            return Err(invalid("noncanonical observation slot"));
+        }
+        match kind {
+            "claim" => {
+                record(&entry.path(), 0)?;
+                claims.insert(format!("{slot}.event"));
+            }
+            "event" => {
+                let bytes = record(&entry.path(), MAX_EVENT_BYTES)?;
+                if !bytes.ends_with(b"\n") {
+                    return Err(invalid("partial observation record"));
+                }
+                events.insert(name, bytes_sha256(&bytes));
+            }
+            _ => return Err(invalid("partial or unexpected attempt observation")),
+        }
+    }
+    if !claims.iter().eq(events.keys()) || identity(work)? != scope {
+        return Err(invalid("incomplete or replaced attempt observations"));
+    }
+    Ok((scope, events))
 }
 
 #[cfg(test)]
@@ -130,7 +275,7 @@ mod tests {
         symlink(root.path().join("external"), work.join("0.event"))?;
         assert!(Boundary::begin(&work).is_err());
         fs::remove_file(work.join("0.event"))?;
-        fs::write(work.join("0.event"), vec![b'x'; umpire_backend_process::work::MAX_EVENT_BYTES + 1])?;
+        fs::write(work.join("0.event"), vec![b'x'; MAX_EVENT_BYTES + 1])?;
         assert!(Boundary::begin(&work).is_err());
         Ok(())
     }

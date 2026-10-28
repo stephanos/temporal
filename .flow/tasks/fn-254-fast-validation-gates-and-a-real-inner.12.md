@@ -35,9 +35,7 @@ Keep stage registration/count/timing/retry controls now. Derive actual count bou
 ### Producer ownership decision (2026-10-28)
 
 Keep the existing process supervisor and stage DAG. Add observation instrumentation at the existing process/TLC invocation boundary, and closed typed protocol-fixture provenance using the existing clean spawning path. Legacy unconfirmed starts remain unknown. Preserve all negative controls and Model semantics. The canonical six nullable WorkCounts fields remain owned by the gate collector; explicit applicability evidence distinguishes completed native dispatch branches from missing observers. Only actual producers and verified fixture provenance may support admitted bounds.
-### Owner validation cadence (2026-10-25)
 
-Keep stage registration/count/timing/retry controls now. Derive actual count bounds and preserve deferred full-gate/final timing obligations for .8. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
 
 ### Verified count-producer checkpoint (2026-10-28)
 
@@ -46,6 +44,15 @@ The actual public native Go stages pass and report 66 framework-host, 12 Kettle 
 The scoped mixed-TLC proof executes all batch/cache/fixture parents plus a real checker control: 36 roots discovered, 18 executed, 18 skipped; 85 closed protocol-fixture invocations are positively linked to eleven completed assertion authorities and independently observed parent passes, while six admitted real starts contribute three distinct configurations. No missing/legacy unconfirmed start is promoted to zero. Six numeric/null count fields remain compatible. Native package checks pass (xtask194, Temporal39 with4 ignored helper children, process66, TLC36), both workspace format checks and relevant strict Clippy checks pass.
 
 Evidence: `.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task12/count-producers-20261028/summary.json`. This is a producer checkpoint, not task closure or budget admission. Explicit applicability/zero evidence, stage tables/workload profiles, default/direct/quick enforcement, exact-context immediate drained retry, budget controls/docs and final cross-family review remain. The source-grounded execution design is retained with that evidence; standalone's Java-version check is not invented as a TLC class launch.
+### Owner validation cadence (2026-10-25)
+
+Keep stage registration/count/timing/retry controls now. Derive actual count bounds and preserve deferred full-gate/final timing obligations for .8. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
+
+### Verified budget and attempt checkpoint (2026-10-28)
+
+Strict budget-table parsing and count/time admission pass seven focused controls. The invocation-local bounded drain/retry coordinator passes ten controls after correcting Rust tempfile fixture permissions; production privacy guards remain unchanged. Native scheduled callbacks now retain immutable per-attempt event manifests, verify an exact disjoint/exhaustive event partition, and recheck final numeric counts against producer events. Selected-attempt collection preserves exact TLC fixture provenance and distinct-configuration unions, and repeated successful parent tests aggregate across producers without weakening per-producer duplicate checks.
+
+The native xtask package passes all 227 tests, with zero skipped; this includes the actual scheduled-stage manifest publication and tamper controls, first/second-attempt accounting and existing native wiring controls. The callback seam accepts FnMut, but currently executes only its original first attempt. Policy/coordinator modules remain preparation until wired; their unused-code warnings are not waived or treated as strict-lint acceptance. No production budget table or budget admission is claimed. Next: compiled observer capabilities plus dynamically frozen source/tool/command context, actual dispatch applicability, tables/profiles and in-place immediate retry. Ordinary source edits before admission remain valid; changed inputs during execution/retry refuse. Whole-source SHA allowlisting is not introduced.
 ## Owner validation cadence (2026-10-25)
 
 Keep stage registration/count/timing/retry controls now. Derive actual count bounds and preserve deferred full-gate/final timing obligations for .8. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
