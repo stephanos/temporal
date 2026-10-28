@@ -1,0 +1,1075 @@
+{
+  "schema_version": 1,
+  "status": "explicit reviewed path and exact-content allowlist after verified history join and test-only lint",
+  "frozen_source_commit": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "source_manifest_sha256": "a29ea7017bf9138701d1580e1a466071a1c151b849526a55648484b27175a2c3",
+  "standalone_head": "ac79114a9ad43a9d9fc2a022d07406d217878760",
+  "prior_adaptation_inventory_sha256": "48d9f6f485aaf0bc649be076fe433d4c0dacdd43cb962e868cd15663b951b5c2",
+  "modified_paths": {
+    ".cargo/config.toml": {
+      "reason": "Standalone root/caller documentation and tooling comment portability; keep existing tool versions and command semantics.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "e43f88620e1bf4e7b6824483871672c7070c9a23dc8765ff1621a5f76a7c4dc9",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "356f4e4f7bf0654b94dff427e2dbea14fc135b98"
+      }
+    },
+    "README.md": {
+      "reason": "Standalone root/caller documentation and tooling comment portability; keep existing tool versions and command semantics.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "f9693e7345916b07609106382150407391ef9a053f18ffa8fc3b640d2e96ed6f",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "28e23742dac7c551106458a6b436acdd01bb6241"
+      }
+    },
+    "dev/guest-driver/README.md": {
+      "reason": "Standalone root/caller documentation and tooling comment portability; keep existing tool versions and command semantics.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "7db96a50e4013e22dad634458aa9242d8053fa3c05454f52ef824e7b1a564850",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "4d62b8de5b57d8de1cccd45b1f51a776ab0026b7"
+      }
+    },
+    "dev/xtask/README.md": {
+      "reason": "Standalone root/caller documentation and tooling comment portability; keep existing tool versions and command semantics.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514",
+        "045b98897de7ca92a21c9e0d63c1190af765986f",
+        "58a6989fe5ccd6a1ae734326d568f60dce2dab43",
+        "069624d93d1c3f9b7c31a21ab4c7f736d6206686"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "dae8470faaa21fbe53cf4f2a7a943df9492ff0bf39f7a97c9ed57582ac573935",
+      "unchanged_since_prior_approved_adaptation": false,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "2f2b928234c8674e5953d5d09aa9bf7e6377c560"
+      }
+    },
+    "dev/xtask/src/quick/mod.rs": {
+      "reason": "Preserve distinct sibling Git repository change collection, explicit caller BASE ownership and two-repository controls; retain integrated ac60 quick behavior.",
+      "corroborating_commits": [
+        "045b98897de7ca92a21c9e0d63c1190af765986f",
+        "58a6989fe5ccd6a1ae734326d568f60dce2dab43"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "b6e098540aa96e831b68a569abeabdf58dc91221796f8f1d981b0f6b99fb09a2",
+      "unchanged_since_prior_approved_adaptation": false,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "2b1e92532aa531f25a62e2f05b344807fa6e9a66"
+      }
+    },
+    "dev/xtask/src/quick/tests.rs": {
+      "reason": "Preserve distinct sibling Git repository change collection, explicit caller BASE ownership and two-repository controls; retain integrated ac60 quick behavior.",
+      "corroborating_commits": [
+        "045b98897de7ca92a21c9e0d63c1190af765986f",
+        "58a6989fe5ccd6a1ae734326d568f60dce2dab43"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "38396a41e7aba9ba77ad03bca3cb489092e49fd5964e88560b8a4739f415fe11",
+      "unchanged_since_prior_approved_adaptation": false,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "d276b1b99e233568aa07d4681d7099c3958fb1c3"
+      }
+    },
+    "hosts/go/README.md": {
+      "reason": "Standalone root/caller documentation and tooling comment portability; keep existing tool versions and command semantics.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "7d274feee3b9e3da21c8591af161b3f62c187bb2e137b22c8aa01f6f2afb3e0c",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "7d53456e2bd79ff686dd01326f26b4ae6544c4df"
+      }
+    },
+    "hosts/go/gen/umpire/annotations/v1/annotations.pb.go": {
+      "reason": "Regenerated Go descriptors and imports for canonical module/go_package identity; wire package/field/ABI preservation checked separately by runtime gate.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "ea7084f2505b5b6ed2e3b804fe69fc7831b3790ea785e4ea4a570dc9e0d5c056",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "0abb969c81381f7b33d08cf31ae4707902404fb6"
+      }
+    },
+    "hosts/go/gen/umpire/model/v1/model.pb.go": {
+      "reason": "Regenerated Go descriptors and imports for canonical module/go_package identity; wire package/field/ABI preservation checked separately by runtime gate.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "64830baf46b4715f287b2dea30fe1690e9526bea5617039cf9f0018a2c18047c",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "be0b8e3a770b93d77490a196ecdefd88404ece7c"
+      }
+    },
+    "hosts/go/gen/umpire/realization/v1/realization.pb.go": {
+      "reason": "Regenerated Go descriptors and imports for canonical module/go_package identity; wire package/field/ABI preservation checked separately by runtime gate.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "66e65bda81b9a2a46d56f3dc9bd26e044e671bac3fed215a47804076edd729f0",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "2541547cb7dc5afe4de92672d3044e09e00983b0"
+      }
+    },
+    "hosts/go/gen/umpire/run/v1/run.pb.go": {
+      "reason": "Regenerated Go descriptors and imports for canonical module/go_package identity; wire package/field/ABI preservation checked separately by runtime gate.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "1b35c7c3c14074300ba7c18c7d0569ffd2542a0b4c6188096678e3dcbe40fa15",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "5f3a60359fd3aa403de42e34f146b06b9af7bd74"
+      }
+    },
+    "hosts/go/go.mod": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "e632428ca663454e80c9d59fc0aa3795bd1015b8917146298a02824427118f1a",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "2c530566576d04efc39ec6654d05ca9171fbf8bd"
+      }
+    },
+    "hosts/go/host/annotations.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "d8a2414c706399ee8d43b8c594c3e38507d2ba49dd0c1deee51eaca078898c40",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "32c960ea78d41e62f2ddcfb6998e202641cba8d8"
+      }
+    },
+    "hosts/go/host/current_contract_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "486fc0a3a8d7ed18b8788d5e88e092e0d70f6fd7cd707ecfc37faa281874ff1d",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "a38721a76e47c50c379e932a04a981146b729a88"
+      }
+    },
+    "hosts/go/host/guest_profile_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "e792d8a435c07ede1b3185efe66515b7f4bd249bdb64d56b9b413e8b231a752b",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "617069da0df4d9a39233cfb831b813ec463e567f"
+      }
+    },
+    "hosts/go/host/host.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "a5ae3ac30594058a7e0a8102bed88fe50dbe57c6d6b05716e96e21318438266a",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "1c1019b6c4b7b97bd83912a46ccdbe2a8f458c9c"
+      }
+    },
+    "hosts/go/host/host_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "6c95e2b6292b5b286b9e812ec31c59c27b26053c283cd8c522d22109b66cc19a",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "0829114d85bc353cd6ef53f7a9a2ee1beaf71eb4"
+      }
+    },
+    "hosts/go/host/probes.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "fde0d2a35c76bba3a6d9c972793663230bc6a569d803981c1f44763cd20b93fa",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "4b48aa2944bc2224d86aa9fe3f6e0ace2c17ac2e"
+      }
+    },
+    "hosts/go/host/probes_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "bb8cf3a32b430c7e82df292c66f592343935275ff2f6f169dbfd9ee6cc07f60f",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "116bfde924e15cd1ea1f2ad104358b6d7adce5d5"
+      }
+    },
+    "hosts/go/host/proposal_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "2e8a2850f994eec4efc73ead4110c9f2dc552fdb1a8c25c034da2d18ee0099f0",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "784bbd38336f3d8de6f60a79168edca9111f589a"
+      }
+    },
+    "hosts/go/host/protocol_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "b786dcbacf38bbf47ce261ced01ea8f2b860474c0ddd3328acae54d8f6f41c70",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "c622240bca40c27a809ba34fa3887cec6c776203"
+      }
+    },
+    "hosts/go/host/protocol_wire_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "cf47b83b25e9620c46efaf75efc02880924c852f79da3c243623bf5ce92a14ca",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "f428846e3b0c0aa77ee7ffd4fe6b59419c594e42"
+      }
+    },
+    "hosts/go/host/realization_wire_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "aeafdb33e3ec5be707e669706647ec999478c7c1a3c386e07782ea0d2289dc0a",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "6bca67f6d4add58385fc095768709ea190c5c4fd"
+      }
+    },
+    "hosts/go/host/stateful_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "b8f12938278af9c9b6d52240db4f960bf7aca07cf07e99c2b6db5176d18c0e26",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "7e6d8f1de67ea6c25e0b908d1b9eaaaca6ff4103"
+      }
+    },
+    "hosts/go/runner/admission_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "543f50a332555ab36354f928e01753123fbcb71732b3ffa0027e502733026b6e",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "c593777ab9c2c72812d2fa9d2f872a62a349ff8b"
+      }
+    },
+    "hosts/go/runner/driver.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "8589631fd72060fa95697eb9f33740cf4fb17bf37e4578a43c5ee40ebce2cdb2",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "6c528c2a73d4987e4452b9ab80d75b33e34da0d1"
+      }
+    },
+    "hosts/go/runner/fake_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "0bc7ddd25b5e8e43dbc0f35ab2534b96b0c8c1a9e85cd74cc3ff3e817e1ecb23",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "83afe48db3158a6b0f7556da933b138c3e134307"
+      }
+    },
+    "hosts/go/runner/fault_evidence_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "5f996dc1e148230cc87d42c6b5c1ad3a8da8ca12ec834f43ab515f35bcb7dda2",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "40a3c562ae7622ca4e88e1db3a95ada332b399f2"
+      }
+    },
+    "hosts/go/runner/modes_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "6972a282733aeac03d67c6d0391b9468f9ed8f31fe1bf9f0773d76903c86705f",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "a3d916f0601f01dcb31db94b4d66cb449b4a7ee8"
+      }
+    },
+    "hosts/go/runner/program.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "25fdbc36943a05acbb06315f681680e08afcd9869abe441319f86fe7979d85c1",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "5e24e9d68af986a73baeda5baaa551771e00faca"
+      }
+    },
+    "hosts/go/runner/replay.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "57429bf16a9c2aebb362d1f12a06ac4f2a28d7ad8aa75e1b5f95997a4c45cf49",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "1545be47f539b822541f9e8fefeee468e7ae5049"
+      }
+    },
+    "hosts/go/runner/runner.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "cf9971b04f3f7a194cb4abe0faea458fc97bbc78321ec5348642dfb1a071fdc8",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "db9e17ec8b81ba796fa111f685147218e8089f11"
+      }
+    },
+    "hosts/go/runner/runner_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "e7326a8c0e155392d537e94a8f86a2ddc82f7d1b70d0d3793b34a5723d958acf",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "f0549f41f3bf7e79a1b8c6c82b6a81c53d79cc56"
+      }
+    },
+    "hosts/go/runner/session.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "334e281ba2b573f2eb9011861b11d2cc8b2e7de72ae1e996fa3cc94d9e44ea7a",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "e87977c0f44cafc1836cda7d16c0892545d3613d"
+      }
+    },
+    "hosts/go/runner/worker_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "8815f433eaafe81709ea46f182c9f7a9f8254c97db9c1ee2052c797145936299",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "50b7b5dc0b4e9fb6fa8a0cfa0dc3191e3c10fbda"
+      }
+    },
+    "protocol/proto/umpire/annotations/v1/annotations.proto": {
+      "reason": "Only go_package option names canonical Go module; protobuf package names, field numbers and schema payload unchanged.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "55e0186d86bea83ba6da6be208312b04c520ddd07809ce6c1e98def1d95dec67",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "c4d97e05053588cd1fdca5870918f11f380cae40"
+      }
+    },
+    "protocol/proto/umpire/model/v1/model.proto": {
+      "reason": "Only go_package option names canonical Go module; protobuf package names, field numbers and schema payload unchanged.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "a0f891bc2afd0e4f2d6c9a2ced297cdea5820fb165ad2e0cadde35a0fb34f768",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "29059a8912081420c4fdcb35e18e7816194dbaf4"
+      }
+    },
+    "protocol/proto/umpire/realization/v1/realization.proto": {
+      "reason": "Only go_package option names canonical Go module; protobuf package names, field numbers and schema payload unchanged.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "375a80ced933cfddf1c60ea5648eabf2f494ea5c7d8faa13c29bcfa57da2fa67",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "a598d6946397ae01f6be3ac08c7d2dc1bb742bb1"
+      }
+    },
+    "protocol/proto/umpire/run/v1/run.proto": {
+      "reason": "Only go_package option names canonical Go module; protobuf package names, field numbers and schema payload unchanged.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "b45da965f8b5312ef5f8cbd3a1ba904d5a411f02abdf9f0c13a52cafd280a1ef",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "ead81e19b9ce1bdb5659a61896f419ab9a8c4a91"
+      }
+    },
+    "reference/kettle/README.md": {
+      "reason": "Standalone root/caller documentation and tooling comment portability; keep existing tool versions and command semantics.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "d1129e79c9a62f310f38e3004308e25a2feee32d8fb8537fa2e8e6e3d2d49083",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "1c6066e7db36e221bfb427b334a65a445a01a5dd"
+      }
+    },
+    "reference/kettle/gen/kettle/v1/kettle.pb.go": {
+      "reason": "Regenerated Go descriptors and imports for canonical module/go_package identity; wire package/field/ABI preservation checked separately by runtime gate.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "1c59d404abc5d43248ef55a4e118f8e7d4efa5fdd14575b01b85caf68e03b83a",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "a8607ec2d2bd2bac5dd813f3e4d748c09861e997"
+      }
+    },
+    "reference/kettle/gen/kettle/v1/probe.pb.go": {
+      "reason": "Regenerated Go descriptors and imports for canonical module/go_package identity; wire package/field/ABI preservation checked separately by runtime gate.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "52da4a7eef9756d13998cd6068805ef2baed85bbbbbe7a972303e690783404e0",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "4d7dd11307e380e2790daec2886427649f1935d2"
+      }
+    },
+    "reference/kettle/go.mod": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "a4c1164f446439fec6757b0ef2b2287a1a2d23875476b242b82f20b66a893cef",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "79a6e80865c8f1dccd88290466e07740585bf77d"
+      }
+    },
+    "reference/kettle/kettle_annotations_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "1b5c14824e11d4947bc84d9992f6599e40ecc927a20ba15e9296d596a25fe420",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "3f1dc5c0801b9dd4ebc781bd65524d826f3be859"
+      }
+    },
+    "reference/kettle/kettle_mutants_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "594c64815be34cbe75b243703bb8f60d6ef823b0e9cbbe51ac844f59cd6fc03e",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "d42aa777665feb53724fe640357f1674dba0fae2"
+      }
+    },
+    "reference/kettle/kettle_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "7862ad5436a13ecbf0f89de8b5af3996e32305c265ff7eb2dd2b18a1e80588c8",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "0b6b677b1495dc6c8a7ba58804dc9291dc93f200"
+      }
+    },
+    "reference/kettle/parity_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "c36c5489866597980504d95c280fe0e93ee81b7edf8ffb2c897c9280d79c2686",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "8446dd6b44ad68ba3d6e5db5b411cbd037003973"
+      }
+    },
+    "reference/kettle/proto/kettle/v1/kettle.proto": {
+      "reason": "Only go_package option names canonical Go module; protobuf package names, field numbers and schema payload unchanged.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "03bdd49033989c62147bad2114c4087ec5f5a9db19336c9537e590bbc12c0fe7",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "20912a85be161f7c3eac3902437dbdb07f235b9c"
+      }
+    },
+    "reference/kettle/proto/kettle/v1/probe.proto": {
+      "reason": "Only go_package option names canonical Go module; protobuf package names, field numbers and schema payload unchanged.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "241510488aa8a2698403101153ab65b6b7fe7e32782a268ac319257504ab9cb1",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "bc95cda6e060d28902d0ff6e5e7949dbe1d92a52"
+      }
+    },
+    "reference/kettle/server.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "2aba13585b012abd6f7b35c8bfc1b220cdaf264d864d373709f8d7649e218882",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "ef69f379d52bb71028dcaaec2d329f242e1072d4"
+      }
+    },
+    "reference/kettle/server_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "cd81324dbebfe12f16c5356cd1e8f8732362cadff4b5cc31b2a6fd3cc2aabe91",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "b3d83650fdc9be7fb785d0a0b27eca891439f9ba"
+      }
+    },
+    "reference/kettle/snapshots_test.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "66c668f6b38d16dbed6f4f81517437d625cac6ec3b2d08a3837ba4b2efadac55",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "36d47c0c7e43d2dd6161347ea671b461b1516bf7"
+      }
+    },
+    "reference/kettle/validators.go": {
+      "reason": "Canonical Go module/import prefix migration from umpire.local/model or kettle identity, with gofmt import ordering.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "478abc45fa599bd85be6a99bda942825927ff538bda533415e04e7f2a91d29dd",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "e96e26ef1fc356afb3a92bffb473fa60ddec8d53"
+      }
+    },
+    "rust-toolchain.toml": {
+      "reason": "Standalone root/caller documentation and tooling comment portability; keep existing tool versions and command semantics.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "prior_adaptation_inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+      "prior_adaptation_after_sha256": "4467266fabdd9b6d0d1ad5155777bbbbf67fe235cd66263e4cf091644224cd2d",
+      "unchanged_since_prior_approved_adaptation": true,
+      "approved_after": {
+        "mode": "100644",
+        "blob": "724bf0b80e22751083f32afc147bb9641f29ebc9"
+      }
+    },
+    "dev/gate/policy/framework-boundary.txt": {
+      "reason": "Exact root LICENSE digest admission and canonical generated Go module descriptor organization checks, preserving planted system-coupling refusal controls.",
+      "corroborating_commits": [
+        "a09525f27fd676d4e4f1f275bba882fa2963234f",
+        "3eae78afabb21229765823eee89569e843be343f"
+      ],
+      "approved_after": {
+        "mode": "100644",
+        "blob": "27d787324609d993f5236b85af48650a4d209e6f"
+      }
+    },
+    "dev/xtask/src/gate/boundary.rs": {
+      "reason": "Exact root LICENSE digest admission and canonical generated Go module descriptor organization checks, preserving planted system-coupling refusal controls. Two test-only empty-string constructions use String::new() with rustfmt wrapping; production code unchanged by the final lint commit.",
+      "corroborating_commits": [
+        "a09525f27fd676d4e4f1f275bba882fa2963234f",
+        "3eae78afabb21229765823eee89569e843be343f",
+        "ac79114a9ad43a9d9fc2a022d07406d217878760"
+      ],
+      "approved_after": {
+        "mode": "100644",
+        "blob": "f4dad0436cfc2ff59ced58494f6c6f946bc77aca"
+      }
+    },
+    "protocol/proto/README.md": {
+      "reason": "Document exact generated descriptor path/hash exception maintenance and continued source-boundary refusal controls after canonical Go regeneration.",
+      "corroborating_commits": [
+        "5ee8911480c8acb429625bef3f3183e572b9d18f"
+      ],
+      "approved_after": {
+        "mode": "100644",
+        "blob": "d3d6b9e03a3cfac7aeadc03c63f8691149d7633e"
+      }
+    }
+  },
+  "standalone_only_paths": {
+    ".github/workflows/check.yml": {
+      "reason": "Standalone required-backend validation/release CI; mise version and digest aligned with integrated task graph.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514",
+        "45eb554539fe934f43a1cb906381babd46bfc662"
+      ],
+      "approved_after": {
+        "mode": "100644",
+        "blob": "ea14ac3e80434804c963c056b55761d1a20a2f74"
+      }
+    },
+    "AGENTS.md": {
+      "reason": "Focused framework ownership, protocol, guest and validation instructions.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "approved_after": {
+        "mode": "100644",
+        "blob": "7bde3253ecb7962d3eb558e8a9adafc1432b6911"
+      }
+    },
+    "DESIGN.md": {
+      "reason": "Selected framework decisions with immutable source-revision provenance, system-independent active text.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514",
+        "069624d93d1c3f9b7c31a21ab4c7f736d6206686"
+      ],
+      "approved_after": {
+        "mode": "100644",
+        "blob": "b789d19975e29d3b36f2a546ddbcceb72c1dedfb"
+      }
+    },
+    "GUEST_BUILDS.md": {
+      "reason": "Selected guest ownership/build contracts with immutable source-revision provenance.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514",
+        "069624d93d1c3f9b7c31a21ab4c7f736d6206686"
+      ],
+      "approved_after": {
+        "mode": "100644",
+        "blob": "a37d7cbf0b00e74c05b65a0d607515d219871f8d"
+      }
+    },
+    "Makefile": {
+      "reason": "Thin check/fmt/update/time/validate aliases delegating existing native commands.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "approved_after": {
+        "mode": "100644",
+        "blob": "7a6363bbac6f5562407948dfdbed8a934d4ffebe"
+      }
+    },
+    "docs/consumer-interface.md": {
+      "reason": "Document exact sibling Cargo/Go interface, local workspace and source-owned guest setup.",
+      "corroborating_commits": [
+        "d090323d70ce5e92a7c16ec8dcd17b0c73a97514"
+      ],
+      "approved_after": {
+        "mode": "100644",
+        "blob": "7e86096a76ff8ce8e656f5be786246bbca5ca5e6"
+      }
+    }
+  },
+  "deleted_since_original_checkpoint": [
+    "author/dsl/macros/tests/ui/action_domain_conflict.rs",
+    "author/dsl/macros/tests/ui/action_domain_conflict.stderr",
+    "author/dsl/macros/tests/ui/action_domain_duplicate.rs",
+    "author/dsl/macros/tests/ui/action_domain_duplicate.stderr",
+    "author/dsl/macros/tests/ui/action_domain_variant.rs",
+    "author/dsl/macros/tests/ui/action_domain_variant.stderr",
+    "author/dsl/macros/tests/ui/action_domain_without_world.rs",
+    "author/dsl/macros/tests/ui/action_domain_without_world.stderr",
+    "author/dsl/macros/tests/ui/action_inputs_duplicate.rs",
+    "author/dsl/macros/tests/ui/action_inputs_duplicate.stderr",
+    "author/dsl/macros/tests/ui/action_inputs_invalid.rs",
+    "author/dsl/macros/tests/ui/action_inputs_invalid.stderr",
+    "author/dsl/macros/tests/ui/action_inputs_missing.rs",
+    "author/dsl/macros/tests/ui/action_inputs_missing.stderr",
+    "author/dsl/macros/tests/ui/action_inputs_variant_fault.rs",
+    "author/dsl/macros/tests/ui/action_inputs_variant_fault.stderr",
+    "author/dsl/macros/tests/ui/action_metadata_duplicate.rs",
+    "author/dsl/macros/tests/ui/action_metadata_duplicate.stderr",
+    "author/dsl/macros/tests/ui/action_metadata_namespace.rs",
+    "author/dsl/macros/tests/ui/action_metadata_namespace.stderr",
+    "author/dsl/macros/tests/ui/action_metadata_placement.rs",
+    "author/dsl/macros/tests/ui/action_metadata_placement.stderr",
+    "author/dsl/macros/tests/ui/finite_shape.rs",
+    "author/dsl/macros/tests/ui/finite_shape.stderr",
+    "author/dsl/macros/tests/ui/machine_actor_arity.rs",
+    "author/dsl/macros/tests/ui/machine_actor_arity.stderr",
+    "author/dsl/macros/tests/ui/machine_actor_mismatch.rs",
+    "author/dsl/macros/tests/ui/machine_actor_mismatch.stderr",
+    "author/dsl/macros/tests/ui/machine_actor_receiver.rs",
+    "author/dsl/macros/tests/ui/machine_actor_receiver.stderr",
+    "author/dsl/macros/tests/ui/machine_after_inputs.rs",
+    "author/dsl/macros/tests/ui/machine_after_inputs.stderr",
+    "author/dsl/macros/tests/ui/machine_claim_async.rs",
+    "author/dsl/macros/tests/ui/machine_claim_async.stderr",
+    "author/dsl/macros/tests/ui/machine_claim_returns.rs",
+    "author/dsl/macros/tests/ui/machine_claim_returns.stderr",
+    "author/dsl/macros/tests/ui/machine_duplicate_actor.rs",
+    "author/dsl/macros/tests/ui/machine_duplicate_actor.stderr",
+    "author/dsl/macros/tests/ui/machine_duplicate_kind.rs",
+    "author/dsl/macros/tests/ui/machine_duplicate_kind.stderr",
+    "author/dsl/macros/tests/ui/machine_effect_arguments.rs",
+    "author/dsl/macros/tests/ui/machine_effect_arguments.stderr",
+    "author/dsl/macros/tests/ui/machine_generic.rs",
+    "author/dsl/macros/tests/ui/machine_generic.stderr",
+    "author/dsl/macros/tests/ui/machine_handler_async.rs",
+    "author/dsl/macros/tests/ui/machine_handler_async.stderr",
+    "author/dsl/macros/tests/ui/machine_handler_returns.rs",
+    "author/dsl/macros/tests/ui/machine_handler_returns.stderr",
+    "author/dsl/macros/tests/ui/machine_invariant_parameters.rs",
+    "author/dsl/macros/tests/ui/machine_invariant_parameters.stderr",
+    "author/dsl/macros/tests/ui/machine_legacy_effects.rs",
+    "author/dsl/macros/tests/ui/machine_legacy_effects.stderr",
+    "author/dsl/macros/tests/ui/machine_legacy_invariants.rs",
+    "author/dsl/macros/tests/ui/machine_legacy_invariants.stderr",
+    "author/dsl/macros/tests/ui/machine_legacy_scopes.rs",
+    "author/dsl/macros/tests/ui/machine_legacy_scopes.stderr",
+    "author/dsl/macros/tests/ui/machine_legacy_transitions.rs",
+    "author/dsl/macros/tests/ui/machine_legacy_transitions.stderr",
+    "author/dsl/macros/tests/ui/machine_marker_trait.rs",
+    "author/dsl/macros/tests/ui/machine_marker_trait.stderr",
+    "author/dsl/macros/tests/ui/machine_misplaced_effect.rs",
+    "author/dsl/macros/tests/ui/machine_misplaced_effect.stderr",
+    "author/dsl/macros/tests/ui/machine_missing_actor.rs",
+    "author/dsl/macros/tests/ui/machine_missing_actor.stderr",
+    "author/dsl/macros/tests/ui/machine_mutable_helper.rs",
+    "author/dsl/macros/tests/ui/machine_mutable_helper.stderr",
+    "author/dsl/macros/tests/ui/machine_mutable_invariant.rs",
+    "author/dsl/macros/tests/ui/machine_mutable_invariant.stderr",
+    "author/dsl/macros/tests/ui/machine_mutable_typed_helper.rs",
+    "author/dsl/macros/tests/ui/machine_mutable_typed_helper.stderr",
+    "author/dsl/macros/tests/ui/machine_nonactor_parameter.rs",
+    "author/dsl/macros/tests/ui/machine_nonactor_parameter.stderr",
+    "author/dsl/macros/tests/ui/machine_noncontiguous_kind.rs",
+    "author/dsl/macros/tests/ui/machine_noncontiguous_kind.stderr",
+    "author/dsl/macros/tests/ui/machine_out_of_order.rs",
+    "author/dsl/macros/tests/ui/machine_out_of_order.stderr",
+    "author/dsl/macros/tests/ui/machine_path_builders.rs",
+    "author/dsl/macros/tests/ui/machine_path_builders.stderr",
+    "author/dsl/macros/tests/ui/machine_post_async.rs",
+    "author/dsl/macros/tests/ui/machine_post_async.stderr",
+    "author/dsl/macros/tests/ui/machine_post_returns_unit.rs",
+    "author/dsl/macros/tests/ui/machine_post_returns_unit.stderr",
+    "author/dsl/macros/tests/ui/machine_progress_chain.rs",
+    "author/dsl/macros/tests/ui/machine_progress_chain.stderr",
+    "author/dsl/macros/tests/ui/machine_progress_gap.rs",
+    "author/dsl/macros/tests/ui/machine_progress_gap.stderr",
+    "author/dsl/macros/tests/ui/machine_starts_without_world.rs",
+    "author/dsl/macros/tests/ui/machine_starts_without_world.stderr",
+    "author/dsl/macros/tests/ui/machine_unknown_actor.rs",
+    "author/dsl/macros/tests/ui/machine_unknown_actor.stderr",
+    "author/dsl/macros/tests/ui/machine_unknown_after.rs",
+    "author/dsl/macros/tests/ui/machine_unknown_after.stderr",
+    "author/dsl/macros/tests/ui/machine_unknown_scope.rs",
+    "author/dsl/macros/tests/ui/machine_unknown_scope.stderr",
+    "author/dsl/macros/tests/ui/machine_within_bare.rs",
+    "author/dsl/macros/tests/ui/machine_within_bare.stderr",
+    "author/dsl/macros/tests/ui/non_range_starts.rs",
+    "author/dsl/macros/tests/ui/non_range_starts.stderr",
+    "author/dsl/macros/tests/ui/non_unit_internal.rs",
+    "author/dsl/macros/tests/ui/non_unit_internal.stderr",
+    "author/dsl/macros/tests/ui/optional_facts_payload.rs",
+    "author/dsl/macros/tests/ui/optional_facts_payload.stderr",
+    "author/dsl/macros/tests/ui/variant_internal.rs",
+    "author/dsl/macros/tests/ui/variant_internal.stderr",
+    "author/dsl/macros/tests/ui/world_duplicate.rs",
+    "author/dsl/macros/tests/ui/world_duplicate.stderr",
+    "author/dsl/macros/tests/ui/world_parameter_duplicate.rs",
+    "author/dsl/macros/tests/ui/world_parameter_duplicate.stderr",
+    "author/dsl/macros/tests/ui/world_parameter_mutable.rs",
+    "author/dsl/macros/tests/ui/world_parameter_mutable.stderr",
+    "author/dsl/macros/tests/ui/world_parameter_position.rs",
+    "author/dsl/macros/tests/ui/world_parameter_position.stderr",
+    "author/dsl/macros/tests/ui/world_starts_empty_mixed.rs",
+    "author/dsl/macros/tests/ui/world_starts_empty_mixed.stderr",
+    "author/dsl/macros/tests/ui/world_starts_impl_block.rs",
+    "author/dsl/macros/tests/ui/world_starts_impl_block.stderr",
+    "author/dsl/macros/tests/ui/world_starts_mixed.rs",
+    "author/dsl/macros/tests/ui/world_starts_mixed.stderr",
+    "author/dsl/macros/tests/ui/world_starts_receiver.rs",
+    "author/dsl/macros/tests/ui/world_starts_receiver.stderr",
+    "author/dsl/macros/tests/ui/world_starts_twice.rs",
+    "author/dsl/macros/tests/ui/world_starts_twice.stderr"
+  ],
+  "added_since_original_checkpoint": [
+    "author/dsl/macros/tests/parser_refusals/MAPPING.md",
+    "author/dsl/macros/tests/parser_refusals/cases.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_domain_conflict.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_domain_conflict.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_domain_duplicate.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_domain_duplicate.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_domain_variant.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_domain_variant.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_domain_without_world.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_domain_without_world.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_duplicate.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_duplicate.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_invalid.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_invalid.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_missing.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_missing.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_variant_fault.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_variant_fault.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_metadata_duplicate.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_metadata_duplicate.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_metadata_namespace.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_metadata_namespace.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_metadata_placement.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/action_metadata_placement.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/finite_shape.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/finite_shape.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_actor_arity.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_actor_arity.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_actor_mismatch.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_actor_mismatch.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_actor_receiver.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_actor_receiver.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_after_inputs.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_after_inputs.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_claim_async.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_claim_async.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_claim_returns.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_claim_returns.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_actor.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_actor.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_kind.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_kind.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_effect_arguments.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_effect_arguments.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_generic.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_generic.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_handler_async.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_handler_async.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_handler_returns.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_handler_returns.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_invariant_parameters.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_invariant_parameters.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_effects.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_effects.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_invariants.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_invariants.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_scopes.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_scopes.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_transitions.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_transitions.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_marker_trait.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_marker_trait.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_misplaced_effect.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_misplaced_effect.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_missing_actor.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_missing_actor.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_helper.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_helper.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_invariant.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_invariant.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_typed_helper.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_typed_helper.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_nonactor_parameter.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_nonactor_parameter.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_noncontiguous_kind.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_noncontiguous_kind.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_out_of_order.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_out_of_order.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_path_builders.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_path_builders.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_post_async.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_post_async.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_post_returns_unit.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_post_returns_unit.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_progress_chain.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_progress_chain.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_progress_gap.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_progress_gap.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_starts_without_world.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_starts_without_world.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_actor.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_actor.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_after.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_after.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_scope.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_scope.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_within_bare.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/machine_within_bare.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/non_range_starts.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/non_range_starts.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/non_unit_internal.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/non_unit_internal.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/optional_facts_payload.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/optional_facts_payload.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/variant_internal.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/variant_internal.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/world_duplicate.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/world_duplicate.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/world_parameter_duplicate.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/world_parameter_duplicate.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/world_parameter_mutable.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/world_parameter_mutable.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/world_parameter_position.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/world_parameter_position.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/world_starts_empty_mixed.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/world_starts_empty_mixed.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/world_starts_impl_block.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/world_starts_impl_block.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/world_starts_mixed.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/world_starts_mixed.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/world_starts_receiver.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/world_starts_receiver.stderr",
+    "author/dsl/macros/tests/parser_refusals/inputs/world_starts_twice.rs",
+    "author/dsl/macros/tests/parser_refusals/inputs/world_starts_twice.stderr",
+    "author/dsl/macros/tests/parser_refusals/mod.rs",
+    "backends/process/src/work.rs",
+    "dev/xtask/src/gate/admission.rs",
+    "dev/xtask/src/gate/lease.rs",
+    "dev/xtask/src/gate/scheduler.rs",
+    "dev/xtask/src/gate/tasks.toml",
+    "dev/xtask/src/gate/work_counts.rs",
+    "dev/xtask/tests/controller_counts.rs",
+    "dev/xtask/tests/gate_graph.rs"
+  ],
+  "historical_support_disposition": "2dcbc92 removes provenance-only .history-support copies before f7b42ce; none belongs to frozen ac60 selected-file map or current root support allowlist."
+}

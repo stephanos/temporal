@@ -1,0 +1,9 @@
+{
+  "source": "ac60daaf47",
+  "committed_sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+  "rebuilt_sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+  "size": 3988334,
+  "identical": true,
+  "build_log": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-before.log",
+  "target": "/home/agent/.cache/codex-build/fn258-consumer-before"
+}

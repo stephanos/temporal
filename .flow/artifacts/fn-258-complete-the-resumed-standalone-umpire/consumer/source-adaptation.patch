@@ -1,0 +1,1902 @@
+diff --git a/.github/actions/prepare-paired-checkout/action.yml b/.github/actions/prepare-paired-checkout/action.yml
+new file mode 100644
+index 0000000000..76c124427d
+--- /dev/null
++++ b/.github/actions/prepare-paired-checkout/action.yml
+@@ -0,0 +1,83 @@
++name: Prepare paired Umpire checkout
++description: Check out one exact Umpire revision beside Temporal and create an isolated parent Go workspace.
++
++inputs:
++  repository:
++    description: Umpire owner/repository with confirmed access from this job.
++    required: true
++  revision:
++    description: Published, admitted full Umpire commit SHA paired with this Temporal revision.
++    required: true
++  token:
++    description: Explicit credential authorized to read the selected Umpire repository.
++    required: true
++
++outputs:
++  umpire-root:
++    description: Absolute sibling Umpire checkout path.
++    value: ${{ steps.prepare.outputs.umpire-root }}
++  go-workspace:
++    description: Absolute parent go.work path.
++    value: ${{ steps.prepare.outputs.go-workspace }}
++
++runs:
++  using: composite
++  steps:
++    - name: Admit checkout inputs and unused destinations
++      shell: bash
++      env:
++        UMPIRE_REPOSITORY: ${{ inputs.repository }}
++        UMPIRE_REVISION: ${{ inputs.revision }}
++        UMPIRE_READ_TOKEN: ${{ inputs.token }}
++      run: |
++        set -euo pipefail
++        if [[ ! "$UMPIRE_REPOSITORY" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] ||
++           [[ ! "$UMPIRE_REVISION" =~ ^[0-9a-f]{40}$ ]] ||
++           [[ -z "$UMPIRE_READ_TOKEN" ]]; then
++          echo '::error::Provide an accessible Umpire repository, an admitted full commit SHA and an authorized read credential.'
++          exit 1
++        fi
++        parent=$(cd "$GITHUB_WORKSPACE/.." && pwd -P)
++        for destination in "$parent/umpire" "$parent/go.work" "$parent/go.work.sum" "$GITHUB_WORKSPACE/.umpire-paired-checkout"; do
++          if [[ -e "$destination" || -L "$destination" ]]; then
++            printf '::error::Paired checkout destination already exists; preserve it and select a clean runner: %s\n' "$destination"
++            exit 1
++          fi
++        done
++
++    - name: Check out the admitted Umpire source
++      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
++      with:
++        repository: ${{ inputs.repository }}
++        ref: ${{ inputs.revision }}
++        token: ${{ inputs.token }}
++        path: .umpire-paired-checkout
++        persist-credentials: false
++
++    - name: Place the sibling checkout and select local Go modules
++      id: prepare
++      shell: bash
++      env:
++        UMPIRE_REVISION: ${{ inputs.revision }}
++      run: |
++        set -euo pipefail
++        parent=$(cd "$GITHUB_WORKSPACE/.." && pwd -P)
++        staged="$GITHUB_WORKSPACE/.umpire-paired-checkout"
++        [[ "$(git -C "$staged" rev-parse HEAD)" = "$UMPIRE_REVISION" ]]
++        for source in Cargo.toml scripts/xtask.sh hosts/go/go.mod reference/kettle/go.mod; do
++          [[ -f "$staged/$source" ]]
++        done
++        [[ ! -e "$parent/umpire" && ! -L "$parent/umpire" ]]
++        [[ ! -e "$parent/go.work" && ! -L "$parent/go.work" ]]
++        [[ ! -e "$parent/go.work.sum" && ! -L "$parent/go.work.sum" ]]
++        mv "$staged" "$parent/umpire"
++        (
++          cd "$parent"
++          unset GOWORK
++          go work init "$GITHUB_WORKSPACE" "$parent/umpire/hosts/go" "$parent/umpire/reference/kettle" "$GITHUB_WORKSPACE/model/temporal/hosts/go"
++        )
++        printf 'GOWORK=%s/go.work\n' "$parent" >> "$GITHUB_ENV"
++        printf 'umpire-root=%s/umpire\ngo-workspace=%s/go.work\n' "$parent" "$parent" >> "$GITHUB_OUTPUT"
++        printf 'Temporal revision: %s\n' "$(git -C "$GITHUB_WORKSPACE" rev-parse HEAD)"
++        printf 'Umpire revision: %s\n' "$(git -C "$parent/umpire" rev-parse HEAD)"
++        GOWORK="$parent/go.work" go env GOWORK
+diff --git a/Makefile b/Makefile
+index b375c93041..fb6c7ef666 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1259,11 +1259,12 @@ endif
+ ##### model: Umpire in Rust (fn-210) #####
+ RUST_MODEL_COMPILER_ENV = $(if $(filter require,$(UMPIRE_BACKENDS) $(UMPIRE_APALACHE)),CARGO_BUILD_JOBS=1)
+ RUST_MODEL_CARGO = MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false $(RUST_MODEL_COMPILER_ENV) mise exec -- cargo
+-RUST_MODEL_FRAMEWORK = helper=$$($(RUST_MODEL_COMPILER_ENV) /bin/bash "$(CURDIR)/model/umpire/scripts/xtask.sh") && "$$helper"
++RUST_MODEL_FRAMEWORK = helper=$$($(RUST_MODEL_COMPILER_ENV) /bin/bash "$(CURDIR)/model/scripts/xtask.sh") && "$$helper"
+ 
+ .PHONY: model-check model-prerequisites model-quick model-fmt model-update model-time model-validate
+ model-quick: RUST_MODEL_COMPILER_ENV = CARGO_BUILD_JOBS=1
+ model-quick:
++	@/bin/bash "$(CURDIR)/model/scripts/framework-root.sh" >/dev/null
+ 	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- quick
+ 
+ model-check: override export UMPIRE_QUICK_CACHE = 0
+diff --git a/common/testing/testpilot/dependency_boundary_test.go b/common/testing/testpilot/dependency_boundary_test.go
+index 3ec0284cd6..e1e61d1c35 100644
+--- a/common/testing/testpilot/dependency_boundary_test.go
++++ b/common/testing/testpilot/dependency_boundary_test.go
+@@ -27,8 +27,8 @@ const (
+ // and protocol schemas, the shared envelopes, and Temporal's read instruction. Never the Host,
+ // the guest or the Realization.
+ var actImports = []string{
+-	"umpire.local/model/runner", "umpire.local/model/gen/umpire/run/v1", "umpire.local/model/gen/umpire/model/v1",
+-	"umpire.local/model/gen/umpire/realization/v1", "umpire.local/temporal/umpire/temporal/v1",
++	"github.com/temporalio/umpire/hosts/go/runner", "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1", "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1",
++	"github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1", "umpire.local/temporal/umpire/temporal/v1",
+ }
+ 
+ // forbiddenPrefixes are what no Testpilot package imports: repository tests, Umpire tooling and
+@@ -54,7 +54,7 @@ func boundaryProblems(packages []testpilotPackage) []string {
+ 					problems = append(problems, pkg.ImportPath+" imports "+imported)
+ 				}
+ 			}
+-			if !strings.HasPrefix(imported, "umpire.local/") {
++			if !strings.HasPrefix(imported, "umpire.local/") && !strings.HasPrefix(imported, "github.com/temporalio/umpire/") {
+ 				return
+ 			}
+ 			allowed := pkg.ImportPath == actPackage && (slices.Contains(actImports, imported) || test && imported == "umpire.local/temporal")
+@@ -120,12 +120,12 @@ func TestTestpilotDependencyBoundaryRejectsForbiddenEdges(t *testing.T) {
+ 			other + " imports " + serverModule + "tools/umpire/ir"},
+ 		"a package imports the canary": {testpilotPackage{ImportPath: other, Imports: []string{serverModule + "tools/canary/policy"}},
+ 			other + " imports " + serverModule + "tools/canary/policy"},
+-		"another package imports the Runner": {testpilotPackage{ImportPath: other, Imports: []string{"umpire.local/model/runner"}},
+-			other + " imports the Model host umpire.local/model/runner"},
++		"another package imports the Runner": {testpilotPackage{ImportPath: other, Imports: []string{"github.com/temporalio/umpire/hosts/go/runner"}},
++			other + " imports the Model host github.com/temporalio/umpire/hosts/go/runner"},
+ 		"the Driver imports a worker executor": {testpilotPackage{ImportPath: actPackage, Imports: []string{"umpire.local/temporal/reference/worker/raw"}},
+ 			actPackage + " imports the Model host umpire.local/temporal/reference/worker/raw"},
+-		"the Driver imports the Host": {testpilotPackage{ImportPath: actPackage, Imports: []string{"umpire.local/model/host"}},
+-			actPackage + " imports the Model host umpire.local/model/host"},
++		"the Driver imports the Host": {testpilotPackage{ImportPath: actPackage, Imports: []string{"github.com/temporalio/umpire/hosts/go/host"}},
++			actPackage + " imports the Model host github.com/temporalio/umpire/hosts/go/host"},
+ 		"the Driver imports the guest outside its tests": {testpilotPackage{ImportPath: actPackage, Imports: []string{"umpire.local/temporal"}},
+ 			actPackage + " imports the Model host umpire.local/temporal"},
+ 	} {
+diff --git a/common/testing/testpilot/temporal/act/act.go b/common/testing/testpilot/temporal/act/act.go
+index 466ede9120..ae4c9a3efa 100644
+--- a/common/testing/testpilot/temporal/act/act.go
++++ b/common/testing/testpilot/temporal/act/act.go
+@@ -15,6 +15,9 @@ import (
+ 	"sync"
+ 	"time"
+ 
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
++	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	"go.temporal.io/api/operatorservice/v1"
+ 	"go.temporal.io/api/workflowservice/v1"
+ 	"go.temporal.io/sdk/client"
+@@ -25,9 +28,6 @@ import (
+ 	"google.golang.org/grpc/credentials/insecure"
+ 	"google.golang.org/grpc/status"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+-	runv1 "umpire.local/model/gen/umpire/run/v1"
+-	"umpire.local/model/runner"
+ )
+ 
+ // The Options defaults.
+diff --git a/common/testing/testpilot/temporal/act/act_test.go b/common/testing/testpilot/temporal/act/act_test.go
+index 62c64908c4..b1fae24b6e 100644
+--- a/common/testing/testpilot/temporal/act/act_test.go
++++ b/common/testing/testpilot/temporal/act/act_test.go
+@@ -11,6 +11,10 @@ import (
+ 	"time"
+ 
+ 	"github.com/stretchr/testify/require"
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
++	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	commonpb "go.temporal.io/api/common/v1"
+ 	"go.temporal.io/api/serviceerror"
+ 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
+@@ -22,10 +26,6 @@ import (
+ 	"google.golang.org/grpc/status"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+-	runv1 "umpire.local/model/gen/umpire/run/v1"
+-	"umpire.local/model/runner"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+ 
+diff --git a/common/testing/testpilot/temporal/act/exchange.go b/common/testing/testpilot/temporal/act/exchange.go
+index 7f2750a89a..eceee24f85 100644
+--- a/common/testing/testpilot/temporal/act/exchange.go
++++ b/common/testing/testpilot/temporal/act/exchange.go
+@@ -7,12 +7,12 @@ import (
+ 	"sync"
+ 	"time"
+ 
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	"go.temporal.io/api/workflowservice/v1"
+ 	"google.golang.org/grpc/codes"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+-	"umpire.local/model/runner"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+ 
+diff --git a/common/testing/testpilot/temporal/act/polls_test.go b/common/testing/testpilot/temporal/act/polls_test.go
+index 2ea99edd51..b803e47b41 100644
+--- a/common/testing/testpilot/temporal/act/polls_test.go
++++ b/common/testing/testpilot/temporal/act/polls_test.go
+@@ -7,11 +7,11 @@ import (
+ 	"time"
+ 
+ 	"github.com/stretchr/testify/require"
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	"go.temporal.io/api/workflowservice/v1"
+ 	"google.golang.org/grpc"
+ 	"google.golang.org/grpc/codes"
+ 	"google.golang.org/grpc/status"
+-	"umpire.local/model/runner"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+ 
+diff --git a/common/testing/testpilot/temporal/act/reconcile_test.go b/common/testing/testpilot/temporal/act/reconcile_test.go
+index 8fb40b1489..cc1d12e1fa 100644
+--- a/common/testing/testpilot/temporal/act/reconcile_test.go
++++ b/common/testing/testpilot/temporal/act/reconcile_test.go
+@@ -5,13 +5,13 @@ import (
+ 	"time"
+ 
+ 	"github.com/stretchr/testify/require"
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	"go.temporal.io/api/workflowservice/v1"
+ 	"go.temporal.io/server/common/testing/await"
+ 	"google.golang.org/grpc/codes"
+ 	"google.golang.org/grpc/status"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+-	"umpire.local/model/runner"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+ 
+diff --git a/common/testing/testpilot/temporal/act/rpc.go b/common/testing/testpilot/temporal/act/rpc.go
+index 2ee65d36fd..cc1803f43a 100644
+--- a/common/testing/testpilot/temporal/act/rpc.go
++++ b/common/testing/testpilot/temporal/act/rpc.go
+@@ -7,6 +7,7 @@ import (
+ 	"strings"
+ 	"sync/atomic"
+ 
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
+ 	"go.temporal.io/api/workflowservice/v1"
+ 	"google.golang.org/grpc"
+ 	"google.golang.org/grpc/codes"
+@@ -17,7 +18,6 @@ import (
+ 	"google.golang.org/protobuf/reflect/protoreflect"
+ 	"google.golang.org/protobuf/reflect/protoregistry"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+ )
+ 
+ // service is the generated WorkflowService descriptor every proposed request is sent through.
+diff --git a/common/testing/testpilot/temporal/act/runner_test.go b/common/testing/testpilot/temporal/act/runner_test.go
+index fed7caf684..0055ccfff4 100644
+--- a/common/testing/testpilot/temporal/act/runner_test.go
++++ b/common/testing/testpilot/temporal/act/runner_test.go
+@@ -5,13 +5,13 @@ import (
+ 	"time"
+ 
+ 	"github.com/stretchr/testify/require"
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	commonpb "go.temporal.io/api/common/v1"
+ 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
+ 	"go.temporal.io/api/workflowservice/v1"
+ 	"google.golang.org/protobuf/types/known/anypb"
+ 	"google.golang.org/protobuf/types/known/durationpb"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	"umpire.local/model/runner"
+ 	"umpire.local/temporal"
+ )
+ 
+diff --git a/common/testing/testpilot/temporal/act/worker.go b/common/testing/testpilot/temporal/act/worker.go
+index 05eaec1e6b..0f170c1a5f 100644
+--- a/common/testing/testpilot/temporal/act/worker.go
++++ b/common/testing/testpilot/temporal/act/worker.go
+@@ -7,6 +7,7 @@ import (
+ 	"math"
+ 	"sync"
+ 
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
+ 	"go.temporal.io/api/workflowservice/v1"
+ 	"go.temporal.io/sdk/client"
+ 	"google.golang.org/grpc"
+@@ -15,7 +16,6 @@ import (
+ 	"google.golang.org/protobuf/encoding/protowire"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+ 
+diff --git a/go.mod b/go.mod
+index bfe8b70379..727f54ab89 100644
+--- a/go.mod
++++ b/go.mod
+@@ -55,6 +55,7 @@ require (
+ 	github.com/temporalio/ringpop-go v0.1.0
+ 	github.com/temporalio/sqlparser v0.1.0
+ 	github.com/temporalio/tchannel-go v1.22.1
++	github.com/temporalio/umpire/hosts/go v0.0.0
+ 	github.com/tidwall/btree v1.8.1
+ 	github.com/uber-go/tally/v4 v4.1.17
+ 	github.com/urfave/cli v1.22.17
+@@ -94,7 +95,6 @@ require (
+ 	gopkg.in/validator.v2 v2.0.1
+ 	gopkg.in/yaml.v3 v3.0.1
+ 	modernc.org/sqlite v1.51.0
+-	umpire.local/model v0.0.0
+ 	umpire.local/temporal v0.0.0
+ )
+ 
+@@ -233,7 +233,7 @@ require (
+ 	sigs.k8s.io/yaml v1.6.0 // indirect
+ )
+ 
+-replace umpire.local/model => ./model/umpire/hosts/go
++replace github.com/temporalio/umpire/hosts/go => ../umpire/hosts/go
+ 
+ replace umpire.local/temporal => ./model/temporal/hosts/go
+ 
+diff --git a/mise.toml b/mise.toml
+index 4f9ea45a62..f1d13178f3 100644
+--- a/mise.toml
++++ b/mise.toml
+@@ -9,7 +9,7 @@ rust = "1.99.1"
+ "github:nextest-rs/nextest" = { version = "0.9.149", version_prefix = "cargo-nextest-" }
+ 
+ [task_config]
+-includes = ["model/umpire/dev/xtask/src/gate/tasks.toml"]
++includes = ["../umpire/dev/xtask/src/gate/tasks.toml"]
+ 
+ # Temporal imports the framework graph once and adds only its own stages and resource edges.
+ [tasks."model:all"]
+diff --git a/model/Cargo.toml b/model/Cargo.toml
+index 36332e2368..d6535a6ee5 100644
+--- a/model/Cargo.toml
++++ b/model/Cargo.toml
+@@ -20,26 +20,26 @@ publish = false
+ license = "MIT"
+ 
+ [workspace.dependencies]
+-umpire-guest-driver = { version = "0.0.1", path = "umpire/dev/guest-driver" }
+-umpire = { version = "0.0.1", path = "umpire/author/umpire" }
+-umpire-reference-kettle = { version = "0.0.1", path = "umpire/reference/kettle" }
+-umpire-catalog = { version = "0.0.1", path = "umpire/catalog" }
+-umpire-catalog-macros = { version = "0.0.1", path = "umpire/catalog/macros" }
+-umpire-catalog-syntax = { version = "0.0.1", path = "umpire/catalog/syntax" }
+-umpire-catalog-build = { version = "0.0.1", path = "umpire/catalog/build" }
+-umpire-dsl = { version = "0.0.1", path = "umpire/author/dsl" }
+-umpire-dsl-macros = { version = "0.0.1", path = "umpire/author/dsl/macros" }
+-umpire-checker = { version = "0.0.1", path = "umpire/backends/native" }
+-umpire-testing = { version = "0.0.1", path = "umpire/dev/testing" }
+-umpire-suite = { version = "0.0.1", path = "umpire/author/suite" }
+-umpire-ir-derive = { version = "0.0.1", path = "umpire/ir/derive" }
+-umpire-ir = { version = "0.0.1", path = "umpire/ir" }
+-umpire-front = { version = "0.0.1", path = "umpire/front" }
+-umpire-backend-process = { version = "0.0.1", path = "umpire/backends/process" }
+-umpire-tla = { version = "0.0.1", path = "umpire/backends/tla" }
+-umpire-apalache = { version = "0.0.1", path = "umpire/backends/apalache" }
+-umpire-tlc = { version = "0.0.1", path = "umpire/backends/tlc" }
+-umpire-runtime = { version = "0.0.1", path = "umpire/protocol/runtime" }
++umpire-guest-driver = { version = "0.0.1", path = "../../umpire/dev/guest-driver" }
++umpire = { version = "0.0.1", path = "../../umpire/author/umpire" }
++umpire-reference-kettle = { version = "0.0.1", path = "../../umpire/reference/kettle" }
++umpire-catalog = { version = "0.0.1", path = "../../umpire/catalog" }
++umpire-catalog-macros = { version = "0.0.1", path = "../../umpire/catalog/macros" }
++umpire-catalog-syntax = { version = "0.0.1", path = "../../umpire/catalog/syntax" }
++umpire-catalog-build = { version = "0.0.1", path = "../../umpire/catalog/build" }
++umpire-dsl = { version = "0.0.1", path = "../../umpire/author/dsl" }
++umpire-dsl-macros = { version = "0.0.1", path = "../../umpire/author/dsl/macros" }
++umpire-checker = { version = "0.0.1", path = "../../umpire/backends/native" }
++umpire-testing = { version = "0.0.1", path = "../../umpire/dev/testing" }
++umpire-suite = { version = "0.0.1", path = "../../umpire/author/suite" }
++umpire-ir-derive = { version = "0.0.1", path = "../../umpire/ir/derive" }
++umpire-ir = { version = "0.0.1", path = "../../umpire/ir" }
++umpire-front = { version = "0.0.1", path = "../../umpire/front" }
++umpire-backend-process = { version = "0.0.1", path = "../../umpire/backends/process" }
++umpire-tla = { version = "0.0.1", path = "../../umpire/backends/tla" }
++umpire-apalache = { version = "0.0.1", path = "../../umpire/backends/apalache" }
++umpire-tlc = { version = "0.0.1", path = "../../umpire/backends/tlc" }
++umpire-runtime = { version = "0.0.1", path = "../../umpire/protocol/runtime" }
+ umpire-temporal-api = { version = "0.0.1", path = "temporal/api" }
+ umpire-temporal-annotate-syntax = { version = "0.0.1", path = "temporal/annotate/syntax" }
+ umpire-temporal = { version = "0.0.1", path = "temporal/realization" }
+diff --git a/model/README.md b/model/README.md
+index 63759176a0..54bb4bd22c 100644
+--- a/model/README.md
++++ b/model/README.md
+@@ -1,8 +1,15 @@
+ # model: Umpire in Rust
+ 
+-Two Cargo workspaces separate the independent framework under `umpire/` from the
+-Temporal extension under `temporal/`. Each owns its lockfile, configuration and build profiles. The Kettle fixtures establish the generic authoring
+-and checker surface; the activity slice additionally hosts one real SDK run through a Model.
++Two Cargo workspaces separate the independent framework in the sibling `../umpire/`
++checkout (relative to the Temporal repository root) from the Temporal extension under
++`model/temporal/`. Each owns its lockfile, configuration and build profiles.
++Place both repositories under one parent directory. Cargo path dependencies and the
++Model command bridges use that exact sibling checkout; missing source reports setup
++guidance. No Rust package publication is required for local edits. This consumer wiring
++is provisional until the extraction interface is finalized; protobuf regeneration,
++paired CI and execution evidence remain pending.
++
++The Kettle fixtures establish the generic authoring and checker surface; the activity slice additionally hosts one real SDK run through a Model.
+ See [DESIGN.md](DESIGN.md) for the scope, measurements and retained authoring decisions.
+ 
+ `archived/` holds the former Scala tree unchanged for reference, including its retained build
+@@ -14,13 +21,13 @@ Each workspace owns its `mise.toml` toolchain pins (`rust = "1.99.1"`); run thro
+ ```
+ mise exec -- cargo build --workspace --locked
+ mise exec -- cargo test --workspace --locked
+-(cd umpire && mise exec -- cargo build --workspace --locked)
+-(cd umpire && mise exec -- cargo test --workspace --locked)
++(cd ../../umpire && mise exec -- cargo build --workspace --locked)
++(cd ../../umpire && mise exec -- cargo test --workspace --locked)
+ ```
+ 
+ ## Crate map
+ 
+-Paths below are relative to `model/umpire/`. Role directories group crates; each crate's
++Paths below are relative to the sibling Umpire checkout root. Role directories group crates; each crate's
+ proc macros, syntax, build support and derives live beneath that crate.
+ 
+ | Path | Crate | Job | Used by Model authors |
+@@ -101,9 +108,9 @@ make model-fmt     # rustfmt both workspaces
+ make model-time    # time the actual gate; note overruns of 10 s inner-loop / 60 s gate soft targets (R30)
+ ```
+ 
+-Root Make delegates framework checks once to `model/umpire` and retains the Temporal
++Root Make delegates framework checks once to the sibling Umpire checkout and retains the Temporal
+ checks. For framework-only feedback, run `mise exec -- cargo xtask gate` from
+-`model/umpire`; see its [gate commands](umpire/README.md). Both full gates disable
++the sibling Umpire root; see its README for gate commands. Both full gates disable
+ quick-cache reads before starting stage children.
+ 
+ The gate rejects retired crate names in active files, preserving archived source and historical
+@@ -175,7 +182,7 @@ exceptions only on the three named export attributes. DSL/checker retain `forbid
+ From either workspace, `cargo check-all` and `cargo doc-all` are aliases for its clippy and doc steps. The combined gate covers both workspaces.
+ `model-validate` forces TLC-required `model-time` through environment/Make conflicts; add
+ `UMPIRE_APALACHE=require` for both. Legacy modes remain; required timings are separate from historical defaults.
+-`model-time` measures every `model-check` stage, then touches `umpire/backends/native/src/lib.rs` and tests
++`model-time` measures every `model-check` stage, then touches `../../umpire/backends/native/src/lib.rs` and tests
+ `umpire-checker`. Select another crate/source with `UMPIRE_INNER_CRATE`/`UMPIRE_INNER_SOURCE` (relative to `model/`).
+ Timed command failures fail the helper; exceeding a time budget prints a warning and succeeds.
+ 
+diff --git a/model/design/native-symbolic/Cargo.toml b/model/design/native-symbolic/Cargo.toml
+index e18b0c5981..79a67a5818 100644
+--- a/model/design/native-symbolic/Cargo.toml
++++ b/model/design/native-symbolic/Cargo.toml
+@@ -8,10 +8,10 @@ publish = false
+ [workspace]
+ 
+ [dependencies]
+-umpire = { path = "../../umpire/author/umpire" }
+-umpire-dsl = { path = "../../umpire/author/dsl" }
+-umpire-ir = { path = "../../umpire/ir" }
+-umpire-checker = { path = "../../umpire/backends/native" }
++umpire = { path = "../../../../umpire/author/umpire" }
++umpire-dsl = { path = "../../../../umpire/author/dsl" }
++umpire-ir = { path = "../../../../umpire/ir" }
++umpire-checker = { path = "../../../../umpire/backends/native" }
+ 
+ [profile.dev]
+ overflow-checks = true
+diff --git a/model/design/native-symbolic/build.rs b/model/design/native-symbolic/build.rs
+index 7096b80526..f06d30c6d3 100644
+--- a/model/design/native-symbolic/build.rs
++++ b/model/design/native-symbolic/build.rs
+@@ -1,7 +1,7 @@
+ use std::{env, fs, path::PathBuf};
+ 
+ fn main() -> Result<(), Box<dyn std::error::Error>> {
+-    let source = "../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs";
++    let source = "../../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs";
+     println!("cargo:rerun-if-changed={source}");
+     let authored = fs::read_to_string(source)?;
+     let baseline = "const BOILING_TEMPERATURE: i32 = 100;";
+diff --git a/model/design/native-symbolic/src/main.rs b/model/design/native-symbolic/src/main.rs
+index 731c3cd71c..1e8a3daabb 100644
+--- a/model/design/native-symbolic/src/main.rs
++++ b/model/design/native-symbolic/src/main.rs
+@@ -9,7 +9,7 @@ mod smt;
+ mod witness;
+ 
+ #[allow(dead_code, missing_docs)]
+-#[path = "../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs"]
++#[path = "../../../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs"]
+ mod sample_kettle;
+ #[allow(dead_code, missing_docs)]
+ mod kettle_big {
+diff --git a/model/dev/xtask/Cargo.toml b/model/dev/xtask/Cargo.toml
+index 1749aec2fa..a2e855e848 100644
+--- a/model/dev/xtask/Cargo.toml
++++ b/model/dev/xtask/Cargo.toml
+@@ -13,14 +13,14 @@ workspace = true
+ [dependencies]
+ umpire-guest-driver.workspace = true
+ serde_json.workspace = true
+-xtask = { path = "../../umpire/dev/xtask" }
++xtask = { path = "../../../../umpire/dev/xtask" }
+ 
+ [dev-dependencies]
+ toml.workspace = true
+ 
+ [[bin]]
+ name = "identity-compiler-fixture"
+-path = "../../umpire/dev/guest-driver/tests/identity/compiler_fixture.rs"
++path = "../../../../umpire/dev/guest-driver/tests/identity/compiler_fixture.rs"
+ test = false
+ bench = false
+ 
+diff --git a/model/dev/xtask/src/gate.rs b/model/dev/xtask/src/gate.rs
+index e770e7c387..91cb4694bf 100644
+--- a/model/dev/xtask/src/gate.rs
++++ b/model/dev/xtask/src/gate.rs
+@@ -67,7 +67,7 @@ fn stage_with_inventory(
+     } else if std::env::var_os("UMPIRE_TIME_STEPS").is_some_and(|value| value == "1") {
+         let mut timer = Command::new("/bin/bash");
+         timer
+-            .arg(root.join("umpire/scripts/time-gate.sh"))
++            .arg(root.join("scripts/time-gate.sh"))
+             .args(["--step", name])
+             .arg(command.get_program())
+             .args(command.get_args())
+@@ -118,7 +118,7 @@ fn mise(root: &Path) -> io::Result<Command> {
+     command
+         .current_dir(root.parent().ok_or_else(|| io::Error::other("missing repository root"))?)
+         .env("CARGO_HOME", home)
+-        .env("UMPIRE_FRAMEWORK_ROOT", root.join("umpire"))
++        .env("UMPIRE_FRAMEWORK_ROOT", root.join("../../umpire"))
+         .env("UMPIRE_TEMPORAL_ROOT", root)
+         .env("UMPIRE_QUICK_CACHE", "0")
+         .env("UMPIRE_CACHE_DISABLE", "1")
+@@ -151,7 +151,7 @@ pub(crate) fn run(root: &Path) -> io::Result<i32> {
+     );
+     if std::env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require") {
+         let mut command = Command::new(&framework);
+-        command.arg("fetch-apalache").arg(root.join("umpire"));
++        command.arg("fetch-apalache").arg(root.join("../../umpire"));
+         let code = stage(root, "apalache", command)?;
+         if code != 0 {
+             return Ok(code);
+@@ -454,10 +454,9 @@ esac
+         ));
+         fs::create_dir_all(root.join("scripts/tests")).unwrap();
+         fs::create_dir_all(root.join("bin")).unwrap();
+-        fs::create_dir_all(root.join("umpire/scripts")).unwrap();
+         fs::copy(
+-            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../umpire/scripts/time-gate.sh"),
+-            root.join("umpire/scripts/time-gate.sh"),
++            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../umpire/scripts/time-gate.sh"),
++            root.join("scripts/time-gate.sh"),
+         )
+         .unwrap();
+         fs::write(root.join("scripts/xtask.sh"), "#!/bin/bash\nprintf '/bin/true\\n'\n").unwrap();
+@@ -495,7 +494,7 @@ esac
+             format!(
+                 r#"#!/bin/bash
+ set -eu
+-[ "$#" = 2 ] && [ "$1" = fetch-apalache ] && [ "$2" = "$UMPIRE_GATE_CONTROL_ROOT/umpire" ] || exit 91
++[ "$#" = 2 ] && [ "$1" = fetch-apalache ] && [ "$2" = "$UMPIRE_GATE_CONTROL_ROOT/../../umpire" ] || exit 91
+ [ "$MISE_AUTO_INSTALL:$MISE_EXEC_AUTO_INSTALL:$MISE_TASK_PGID_MANAGED" = false:false:1 ] || exit 92
+ [ "$UMPIRE_APALACHE:$UMPIRE_GATE_CONTROL_SENTINEL" = require:inherited ] || exit 93
+ printf 'fetch stdout\n'
+diff --git a/model/dev/xtask/src/main.rs b/model/dev/xtask/src/main.rs
+index 0215628c31..90792049c2 100644
+--- a/model/dev/xtask/src/main.rs
++++ b/model/dev/xtask/src/main.rs
+@@ -16,6 +16,17 @@ mod gate;
+ mod quick;
+ mod test_run;
+ 
++fn framework_root(model: &Path) -> io::Result<PathBuf> {
++    let root = model.join("../../umpire");
++    if !root.join("Cargo.toml").is_file() || !root.join("scripts/xtask.sh").is_file() {
++        return Err(io::Error::other(format!(
++            "missing sibling Umpire checkout at {}; place umpire beside the Temporal checkout",
++            root.display()
++        )));
++    }
++    root.canonicalize()
++}
++
+ fn run() -> io::Result<i32> {
+     xtask::gate::work_counts::owns_controller()?;
+     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+@@ -59,6 +70,7 @@ fn run() -> io::Result<i32> {
+             )),
+         };
+     }
++    let framework = framework_root(&root)?;
+     let caller = env::current_dir()?;
+     let cargo_home = umpire_guest_driver::context::cargo_home(&caller).map_err(io::Error::other)?;
+     let mut arguments = supplied;
+@@ -81,7 +93,7 @@ fn run() -> io::Result<i32> {
+             .iter()
+             .any(|known| package == known)
+         }) {
+-            workspace.push("umpire");
++            workspace.clone_from(&framework);
+         }
+         if let Some(output) = arguments.get_mut(2) {
+             let path = Path::new(output);
+@@ -91,7 +103,7 @@ fn run() -> io::Result<i32> {
+         }
+     }
+     let output = Command::new("/bin/bash")
+-        .arg(root.join("scripts/xtask.sh"))
++        .arg(framework.join("scripts/xtask.sh"))
+         .env("CARGO_HOME", &cargo_home)
+         .stderr(Stdio::inherit())
+         .output()?;
+@@ -104,7 +116,11 @@ fn run() -> io::Result<i32> {
+     let path = output.stdout.strip_suffix(b"\n").unwrap_or(&output.stdout);
+     let tool = PathBuf::from(OsString::from_vec(path.to_owned()));
+     let mut command = Command::new(tool);
+-    command.args(arguments).current_dir(workspace).env("CARGO_HOME", cargo_home);
++    command
++        .args(arguments)
++        .current_dir(workspace)
++        .env("CARGO_HOME", cargo_home)
++        .env("UMPIRE_TOOL_ROOT", framework);
+     if guest && let Some(target) = env::var_os("CARGO_TARGET_DIR") {
+         let target = PathBuf::from(target);
+         command.env(
+diff --git a/model/dev/xtask/src/quick/mod.rs b/model/dev/xtask/src/quick/mod.rs
+index 3030178fd3..9923d6f66a 100644
+--- a/model/dev/xtask/src/quick/mod.rs
++++ b/model/dev/xtask/src/quick/mod.rs
+@@ -8,7 +8,7 @@ pub(crate) fn arguments(root: &Path, supplied: Vec<OsString>) -> io::Result<Vec<
+         "--workspace".into(),
+         root.clone().into_os_string(),
+         "--workspace".into(),
+-        root.join("umpire").into_os_string(),
++        root.join("../../umpire").into_os_string(),
+     ];
+     for package in [
+         "umpire-temporal-tests",
+@@ -44,7 +44,7 @@ mod tests {
+         let arguments = arguments(&root, vec!["--base".into(), "HEAD~1".into()])?;
+         assert_eq!(arguments[0], "quick");
+         assert_eq!(arguments[2], root.as_os_str());
+-        assert_eq!(arguments[4], root.join("umpire").as_os_str());
++        assert_eq!(arguments[4], root.join("../../umpire").as_os_str());
+         let mappings: Vec<_> = arguments
+             .windows(2)
+             .filter(|pair| pair[0] == "--map")
+diff --git a/model/dev/xtask/tests/main.rs b/model/dev/xtask/tests/main.rs
+index 109dc496c1..e2f456ae22 100644
+--- a/model/dev/xtask/tests/main.rs
++++ b/model/dev/xtask/tests/main.rs
+@@ -3,7 +3,7 @@
+ #![allow(clippy::unwrap_used, clippy::expect_used)]
+ mod make_paths;
+ mod retired_names;
+-#[path = "../../../umpire/dev/guest-driver/tests/pipeline/support.rs"]
++#[path = "../../../../../umpire/dev/guest-driver/tests/pipeline/support.rs"]
+ #[allow(dead_code)]
+ mod support;
+ use std::{
+@@ -13,7 +13,7 @@ use std::{
+ };
+ use support::Fixture;
+ fn framework_root() -> PathBuf {
+-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../umpire")
++    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../umpire")
+ }
+ fn xtask_binary() -> &'static PathBuf {
+     static TOOL: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
+diff --git a/model/dev/xtask/tests/make_paths.rs b/model/dev/xtask/tests/make_paths.rs
+index e2a80e4db5..9fbd9fe867 100644
+--- a/model/dev/xtask/tests/make_paths.rs
++++ b/model/dev/xtask/tests/make_paths.rs
+@@ -12,7 +12,12 @@ fn shipping_framework_make_bootstrap_preserves_relative_cargo_paths() {
+     let f = super::Fixture::new();
+     fs::create_dir_all(f.root.join("make/model")).unwrap();
+     let root = f.root.join("make").canonicalize().unwrap();
+-    symlink(source.join("model/umpire"), root.join("model/umpire")).unwrap();
++    symlink(source.join("../umpire"), root.join("../umpire")).unwrap();
++    fs::create_dir_all(root.join("model/scripts")).unwrap();
++    for name in ["xtask.sh", "framework-root.sh"] {
++        fs::copy(source.join("model/scripts").join(name), root.join("model/scripts").join(name))
++            .unwrap();
++    }
+     symlink(&home, root.join("cargo-home")).unwrap();
+     symlink(&target, root.join("build-output")).unwrap();
+     let makefile = fs::read_to_string(source.join("Makefile")).unwrap();
+@@ -63,10 +68,10 @@ exec "$PATH_CONTROL_MISE" "$@"
+         String::from_utf8_lossy(&output.stderr)
+     );
+     let calls = fs::read_to_string(root.join("calls")).unwrap();
+-    let framework = source.join("model/umpire");
++    let framework = source.join("../umpire").canonicalize().unwrap();
+     let bootstrap = format!(
+         "{}|{}|{}|exec -- cargo build --locked",
+-        root.join("model/umpire").display(),
++        framework.display(),
+         root.join("build-output").display(),
+         home.display()
+     );
+diff --git a/model/docs/paired-checkout.md b/model/docs/paired-checkout.md
+new file mode 100644
+index 0000000000..c0918439c4
+--- /dev/null
++++ b/model/docs/paired-checkout.md
+@@ -0,0 +1,81 @@
++# Paired CI checkout
++
++CI admission is pending. The renewed standalone source checkpoint is local commit
++`58a6989fe5ccd6a1ae734326d568f60dce2dab43`.
++It is not published or fetchable from `temporalio/umpire` and is not an admitted
++CI pin. The destination's read authorization remains unresolved (the recorded
++SSO 403 and CLI 401 do not establish access). No active workflow has been switched
++by this preparation.
++
++## Prepared setup interface
++
++[prepare-paired-checkout](../../.github/actions/prepare-paired-checkout/action.yml)
++accepts three explicit inputs: the accessible repository identity, one admitted full
++40-character commit SHA, and a credential authorized to read that repository. It
++has no default repository, revision or token. A repository-scoped `github.token`
++and existing GitHub App credentials must not be assumed to have cross-repository
++access. The credential source and fork-PR behavior need an owner-approved decision
++before activation; no secret name has been invented here.
++
++Run the action after the ordinary Temporal checkout and Go setup, before any root
++module download, package inspection, build or test. It temporarily checks out
++Umpire inside `github.workspace` to respect checkout's path constraint, then moves
++it beside the Temporal checkout. It leaves Temporal at `github.workspace`, so
++existing relative workflow paths, local actions, caches and artifact paths keep
++their meaning. The checkout does not persist its credential.
++
++The action requires unused sibling and parent workspace destinations. It refuses
++existing checkouts, `go.work` and `go.work.sum`, preserving their contents rather
++than modifying a shared runner workspace. It creates a parent `go.work` with these
++four modules and exports its absolute path through `GOWORK`:
++
++- the checked-out Temporal server root;
++- sibling `umpire/hosts/go`;
++- sibling `umpire/reference/kettle`;
++- Temporal's `model/temporal/hosts/go`.
++
++It reports both actual checked-out commit IDs and `go env GOWORK`. Go module
++resolution, Cargo metadata, native commands, generated protobuf freshness and
++current-pair guest evidence remain separate admission checks. Pinned tool setup
++still belongs to the invoking workflow; this action neither installs Rust/mise nor
++builds guests. See the sibling framework's `docs/consumer-interface.md` for the
++source seam.
++
++## Workflow activation map
++
++All root Go consumers need the sibling source even when a particular package does
++not import Umpire: module graph loading can encounter the root local replacement.
++The active checkout convention currently keeps Temporal at `github.workspace`.
++Apply the setup before the first dependency-consuming step in each relevant job:
++
++| Workflow or shared action | Affected entry points |
++| --- | --- |
++| `umpire.yml` | `framework`, `model`, `portability`, `canary`. Run the framework job's mise setup and gate from the sibling root. The paired Model job keeps `make model-check` in Temporal. Preserve the Go/live/canary checks. |
++| `run-tests.yml` | `pre-build`, `misc-checks`, `unit-test`, `leak-test`, `integration-test`, `functional-test`, `mixed-brain-test`; also notification jobs that execute root-module Go tools. Git/JQ-only setup and aggregate status jobs need no sibling source. |
++| `run-single-test.yml` | Unit and functional test jobs, before their module download/test commands. |
++| `linters.yml` | Go-backed tooling, protobuf tooling, workflowcheck, nilaway, format, parallelization and golangci jobs. Setup precedes module-consuming Make targets and tool installation where applicable. |
++| `govulncheck.yml`, `check-release-dependencies.yml`, `trigger-api-release.yml` | Vulnerability/module-graph checks and root-module dependency tools. Preserve existing public-action and release permissions. |
++| `flaky-tests-report.yml`, `ci-success-report.yml`, `optimize-test-sharding.yml` | Root-module Go reporting/sharding tools. Existing reporting credentials are not evidence of Umpire read access. |
++| `features-integration.yml`, `build-and-publish.yml`, `docker-build-manual.yml` | Jobs calling `build-binaries` or `build-docker-images`; account for helpers built from the root Go module. Preserve release and image publication behavior. |
++| `prepare-go/action.yml` | Setup must precede `go mod download`. Since this action also installs Go, separate its Go setup from module download or add paired setup between those steps when activating. |
++| `build-binaries/action.yml`, `build-docker-images/action.yml`, `post-test-reporting/action.yml` | Callers must retain the sibling checkout/workspace through binary, image-helper and post-test tool compilation. |
++
++When activating, use the same admitted standalone revision in every affected job
++and include both revisions and relevant lockfiles in cache provenance. Keep the
++independent standalone job independent of Temporal; paired jobs establish actual
++Temporal consumption. Existing root Go caches currently key only Temporal inputs
++and need review before reuse for the pair.
++
++## Remaining admission
++
++Supply a published exact standalone pin and demonstrate read access using the
++intended CI identity, including the supported pull-request contexts. Then wire the
++prepared action into affected jobs and review the resulting complete workflow
++source. A missing private-repository credential cannot be represented as a skipped
++successful gate or a fallback to retained in-tree framework source.
++
++Collect current paired checkout/module-resolution,
++required backend, protobuf-generation, guest-freshness and local-edit proofs from
++fn-258. The retired fn-257 evidence remains historical. This document and the
++unused composite action are source preparation only;
++no CI job or local gate was executed. Scala retirement remains separate fn-256 work.
+diff --git a/model/scripts/fetch-tlc.sh b/model/scripts/fetch-tlc.sh
+index 7acda4c278..7cad31b558 100644
+--- a/model/scripts/fetch-tlc.sh
++++ b/model/scripts/fetch-tlc.sh
+@@ -1,3 +1,4 @@
+ #!/usr/bin/env bash
+ set -euo pipefail
+-exec /bin/bash "$(dirname "$0")/../umpire/scripts/fetch-tlc.sh" "$@"
++framework=$(/bin/bash "$(dirname "$0")/framework-root.sh")
++exec /bin/bash "$framework/scripts/fetch-tlc.sh" "$@"
+diff --git a/model/scripts/framework-root.sh b/model/scripts/framework-root.sh
+new file mode 100644
+index 0000000000..4b2ed32bb5
+--- /dev/null
++++ b/model/scripts/framework-root.sh
+@@ -0,0 +1,9 @@
++#!/usr/bin/env bash
++set -euo pipefail
++framework=$(cd "$(dirname "$0")/../../.." && pwd -P)/umpire
++if [ ! -f "$framework/Cargo.toml" ] || [ ! -f "$framework/scripts/xtask.sh" ]; then
++  printf 'missing sibling Umpire checkout at %s; place umpire beside the Temporal checkout\n' "$framework" >&2
++  exit 1
++fi
++cd "$framework"
++pwd -P
+diff --git a/model/scripts/guest-freshness.sh b/model/scripts/guest-freshness.sh
+index 9b03fe782c..008f278c19 100644
+--- a/model/scripts/guest-freshness.sh
++++ b/model/scripts/guest-freshness.sh
+@@ -18,8 +18,9 @@ if [ -n "${CARGO_HOME:-}" ] && [ -d "$CARGO_HOME" ]; then
+   export CARGO_HOME=$(cd "$CARGO_HOME" && pwd -P)
+ fi
+ model=$(cd "$(dirname "$0")/.." && pwd -P)
++framework=$(/bin/bash "$model/scripts/framework-root.sh")
+ case "${1:-}" in
+-  umpire-stock-guest|umpire-kettle-guest|umpire-control-guest|umpire-caught-panic-guest|umpire-overflow-guest) cd "$model/umpire" ;;
++  umpire-stock-guest|umpire-kettle-guest|umpire-control-guest|umpire-caught-panic-guest|umpire-overflow-guest) cd "$framework" ;;
+   *) cd "$model" ;;
+ esac
+-exec /bin/bash "$model/umpire/scripts/guest-freshness.sh" "$@"
++exec /bin/bash "$framework/scripts/guest-freshness.sh" "$@"
+diff --git a/model/scripts/guest.sh b/model/scripts/guest.sh
+index 458f97df86..946b248c83 100644
+--- a/model/scripts/guest.sh
++++ b/model/scripts/guest.sh
+@@ -18,8 +18,9 @@ if [ -n "${CARGO_HOME:-}" ] && [ -d "$CARGO_HOME" ]; then
+   export CARGO_HOME=$(cd "$CARGO_HOME" && pwd -P)
+ fi
+ model=$(cd "$(dirname "$0")/.." && pwd -P)
++framework=$(/bin/bash "$model/scripts/framework-root.sh")
+ case "${1:-}" in
+-  umpire-stock-guest|umpire-kettle-guest|umpire-control-guest|umpire-caught-panic-guest|umpire-overflow-guest) cd "$model/umpire" ;;
++  umpire-stock-guest|umpire-kettle-guest|umpire-control-guest|umpire-caught-panic-guest|umpire-overflow-guest) cd "$framework" ;;
+   *) cd "$model" ;;
+ esac
+-exec /bin/bash "$model/umpire/scripts/guest.sh" "$@"
++exec /bin/bash "$framework/scripts/guest.sh" "$@"
+diff --git a/model/scripts/proto-go.sh b/model/scripts/proto-go.sh
+index f482805fae..5c3f96778e 100644
+--- a/model/scripts/proto-go.sh
++++ b/model/scripts/proto-go.sh
+@@ -7,7 +7,8 @@ if [ "$#" -lt 1 ] || [ "$#" -gt 2 ] || { [ "$#" -eq 2 ] && [ "$2" != --check ];
+   exit 1
+ fi
+ module=$1
+-includes=(--proto_path=umpire/protocol/proto)
++framework=$(/bin/bash scripts/framework-root.sh)
++includes=(--proto_path="$framework/protocol/proto")
+ case "$module" in
+   temporal)
+     destination=temporal/hosts/go
+diff --git a/model/scripts/test-capabilities.sh b/model/scripts/test-capabilities.sh
+index 5b80183738..1a2c059276 100644
+--- a/model/scripts/test-capabilities.sh
++++ b/model/scripts/test-capabilities.sh
+@@ -1,3 +1,4 @@
+ #!/usr/bin/env bash
+ set -euo pipefail
+-exec /bin/bash "$(dirname "$0")/../umpire/scripts/test-capabilities.sh" "$@"
++framework=$(/bin/bash "$(dirname "$0")/framework-root.sh")
++exec /bin/bash "$framework/scripts/test-capabilities.sh" "$@"
+diff --git a/model/scripts/test-model-validate.sh b/model/scripts/test-model-validate.sh
+index 989074a0a8..e644f77570 100644
+--- a/model/scripts/test-model-validate.sh
++++ b/model/scripts/test-model-validate.sh
+@@ -3,10 +3,12 @@ set -euo pipefail
+ cd "$(dirname "$0")/../.."
+ 
+ # Controls use the shipping Make recipes and timer, with disposable child work only.
+-control=$(mktemp -d)
+-trap 'rm -rf "${control:?}"' EXIT
+-mkdir -p "$control/model/scripts" "$control/model/umpire/scripts" "$control/bin" "$control/output"
+-cp model/scripts/time-gate.sh "$control/model/scripts/"
++control_parent=$(mktemp -d)
++control="$control_parent/temporal"
++trap 'rm -rf "${control_parent:?}"' EXIT
++mkdir -p "$control/model/scripts" "$control_parent/umpire/scripts" "$control/bin" "$control/output"
++touch "$control_parent/umpire/Cargo.toml"
++cp model/scripts/xtask.sh model/scripts/framework-root.sh model/scripts/time-gate.sh "$control/model/scripts/"
+ printf 'control source\n' > "$control/model/inner.rs"
+ export UMPIRE_INNER_SOURCE=inner.rs UMPIRE_INNER_CRATE=control-checker
+ export CONTROL_LOG="$control/calls" CONTROL_MODEL="$control" TMPDIR="$control/output"
+@@ -22,7 +24,7 @@ model-check:
+ 	@printf 'gate:%s:%s\n' "$${UMPIRE_BACKENDS-unset}" "$${UMPIRE_APALACHE-unset}" >> "$$CONTROL_LOG"
+ 	@printf 'gate stdout diagnostic\n'; printf 'gate stderr diagnostic\n' >&2; exit "$${CONTROL_GATE_STATUS:-0}"
+ MAKE
+-cat > "$control/model/umpire/scripts/xtask.sh" <<'BOOTSTRAP'
++cat > "$control_parent/umpire/scripts/xtask.sh" <<'BOOTSTRAP'
+ #!/usr/bin/env bash
+ if [ "${CONTROL_BOOTSTRAP_STATUS:-0}" -ne 0 ]; then
+   printf 'bootstrap failed\n' >&2
+diff --git a/model/scripts/test-model-wiring.sh b/model/scripts/test-model-wiring.sh
+index 87f3aa1777..47267fa439 100644
+--- a/model/scripts/test-model-wiring.sh
++++ b/model/scripts/test-model-wiring.sh
+@@ -1,7 +1,8 @@
+ #!/usr/bin/env bash
+ set -euo pipefail
+ cd "$(dirname "$0")/../.."
+-for config in mise.toml model/umpire/mise.toml; do
++framework=$(/bin/bash model/scripts/framework-root.sh)
++for config in mise.toml "$framework/mise.toml"; do
+   minimum=$(sed -n 's/^min_version = "\([^"]*\)"/\1/p' "$config")
+   [ -n "$minimum" ]
+   awk -v minimum="$minimum" '
+@@ -26,7 +27,7 @@ for config in mise.toml model/umpire/mise.toml; do
+ done
+ control=$(mktemp -d)
+ trap 'rm -rf "${control:?}"' EXIT
+-mkdir -p "$control/model/umpire/scripts" "$control/model/dev/xtask/src" "$control/bin"
++mkdir -p "$control/model/scripts" "$control/model/dev/xtask/src" "$control/bin"
+ printf 'API_BINPB = control-api\nPROTOC_GEN_GO = control-go\nPROTOC_GEN_GO_GRPC = control-grpc\n' > "$control/Makefile"
+ awk '/^##### model: Umpire in Rust/ { copy=1 } copy { print }' Makefile >> "$control/Makefile"
+ cat >> "$control/Makefile" <<'MAKE'
+@@ -35,7 +36,8 @@ control-api control-go control-grpc:
+ 	@test "$$UMPIRE_QUICK_CACHE:$$UMPIRE_CACHE_DISABLE" = 0:1
+ 	@printf 'producer|%s\n' "$@" >> "$$CONTROL_LOG"
+ MAKE
+-cat > "$control/model/umpire/scripts/xtask.sh" <<'CHILD'
++printf '#!/bin/bash\nexit 0\n' > "$control/model/scripts/framework-root.sh"
++cat > "$control/model/scripts/xtask.sh" <<'CHILD'
+ #!/usr/bin/env bash
+ printf '%s\n' "$CONTROL_FRAMEWORK"
+ CHILD
+diff --git a/model/scripts/tests/guest-roots.sh b/model/scripts/tests/guest-roots.sh
+index abc7ff0e66..8f3f145dba 100644
+--- a/model/scripts/tests/guest-roots.sh
++++ b/model/scripts/tests/guest-roots.sh
+@@ -3,10 +3,12 @@ set -euo pipefail
+ model=$(cd "$(dirname "$0")/../.." && pwd -P)
+ scratch=$(mktemp -d)
+ trap 'rm -rf "${scratch:?}"' EXIT
+-mkdir -p "$scratch/model/scripts" "$scratch/model/umpire/scripts" "$scratch/caller with spaces"
++mkdir -p "$scratch/temporal/model/scripts" "$scratch/umpire/scripts" "$scratch/caller with spaces"
++cp "$model/scripts/framework-root.sh" "$scratch/temporal/model/scripts/"
++touch "$scratch/umpire/Cargo.toml" "$scratch/umpire/scripts/xtask.sh"
+ for entry in guest.sh guest-freshness.sh; do
+-  cp "$model/scripts/$entry" "$scratch/model/scripts/$entry"
+-  cat > "$scratch/model/umpire/scripts/$entry" <<'DRIVER'
++  cp "$model/scripts/$entry" "$scratch/temporal/model/scripts/$entry"
++  cat > "$scratch/umpire/scripts/$entry" <<'DRIVER'
+ #!/usr/bin/env bash
+ set -euo pipefail
+ printf '%s\0' "$PWD" "$@" "$CARGO_TARGET_DIR" "$CARGO_HOME" > "$UMPIRE_ROUTE_RECORD"
+@@ -17,16 +19,16 @@ cd "$scratch/caller with spaces"
+ export UMPIRE_ROUTE_RECORD="$scratch/actual"
+ for package in umpire-stock-guest umpire-kettle-guest umpire-control-guest umpire-caught-panic-guest umpire-overflow-guest umpire-temporal-guest custom-extension; do
+   case "$package" in
+-    umpire-temporal-guest|custom-extension) workspace="$scratch/model" ;;
+-    *) workspace="$scratch/model/umpire" ;;
++    umpire-temporal-guest|custom-extension) workspace="$scratch/temporal/model" ;;
++    *) workspace="$scratch/umpire" ;;
+   esac
+   for entry in guest.sh guest-freshness.sh; do
+-    CARGO_HOME='relative cargo' CARGO_TARGET_DIR='relative target' bash "$scratch/model/scripts/$entry" "$package" 'relative output.wasm'
++    CARGO_HOME='relative cargo' CARGO_TARGET_DIR='relative target' bash "$scratch/temporal/model/scripts/$entry" "$package" 'relative output.wasm'
+     printf '%s\0' "$workspace" "$package" "$PWD/relative output.wasm" "$PWD/relative target" "$PWD/relative cargo" > "$scratch/expected"
+     cmp "$scratch/expected" "$scratch/actual"
+   done
+ done
+-if UMPIRE_ROUTE_STATUS=37 CARGO_TARGET_DIR=target bash "$scratch/model/scripts/guest.sh" custom-extension output; then
++if UMPIRE_ROUTE_STATUS=37 CARGO_TARGET_DIR=target bash "$scratch/temporal/model/scripts/guest.sh" custom-extension output; then
+   exit 1
+ else
+   [ "$?" -eq 37 ]
+diff --git a/model/scripts/tests/proto-go.sh b/model/scripts/tests/proto-go.sh
+index 2dcd7085da..78e4cb024d 100755
+--- a/model/scripts/tests/proto-go.sh
++++ b/model/scripts/tests/proto-go.sh
+@@ -3,8 +3,9 @@ set -euo pipefail
+ cd "$(dirname "$0")/../.."
+ scratch=$(mktemp -d)
+ trap 'rm -rf "${scratch:?}"' EXIT
+-mkdir -p "$scratch/repo/model/scripts" "$scratch/repo/.bin" "$scratch/bin" "$scratch/tmp"
+-cp scripts/proto-go.sh "$scratch/repo/model/scripts/"
++mkdir -p "$scratch/repo/model/scripts" "$scratch/repo/.bin" "$scratch/bin" "$scratch/tmp" "$scratch/umpire/scripts"
++touch "$scratch/umpire/Cargo.toml" "$scratch/umpire/scripts/xtask.sh"
++cp scripts/framework-root.sh scripts/proto-go.sh "$scratch/repo/model/scripts/"
+ export TMPDIR="$scratch/tmp" PROTO_LOG="$scratch/protoc.log"
+ export PATH="$scratch/bin:$PATH"
+ cat > "$scratch/bin/mise" <<'TOOL'
+diff --git a/model/scripts/time-gate.sh b/model/scripts/time-gate.sh
+index 6028931ab4..90e5f0d02a 100755
+--- a/model/scripts/time-gate.sh
++++ b/model/scripts/time-gate.sh
+@@ -31,9 +31,10 @@ if [ "${1:-}" = --step ]; then
+ fi
+ 
+ root=$(cd "$(dirname "$0")/../.." && pwd -P)
++/bin/bash "$root/model/scripts/framework-root.sh" >/dev/null
+ 
+ inner_crate=${UMPIRE_INNER_CRATE:-umpire-checker}
+-inner_file=${UMPIRE_INNER_SOURCE:-umpire/backends/native/src/lib.rs}
++inner_file=${UMPIRE_INNER_SOURCE:-../../umpire/backends/native/src/lib.rs}
+ printf '%-32s %7s\n' "step (warm)" "time"
+ printf 'backend modes: UMPIRE_BACKENDS=%s UMPIRE_APALACHE=%s\n' "${UMPIRE_BACKENDS:-skip (default)}" "${UMPIRE_APALACHE:-skip (default)}"
+ printf 'gate command: UMPIRE_TIME_STEPS=1 make -C %s model-check\n' "$root"
+@@ -47,14 +48,14 @@ total=$({ time UMPIRE_TIME_STEPS=1 make -C "$root" model-check >"$gate_log" 2>&1
+ cat "$gate_log"
+ 
+ test -f "$root/model/$inner_file"
+-printf 'inner source: %s\ninner command: helper=$(bash "%s/model/umpire/scripts/xtask.sh"); "$helper" test-run --package %s\n' "$inner_file" "$root" "$inner_crate"
++printf 'inner source: %s\ninner command: helper=$(bash "%s/model/scripts/xtask.sh"); "$helper" test-run --package %s\n' "$inner_file" "$root" "$inner_crate"
+ touch "$root/model/$inner_file"
+ framework_inner() {
+   local helper
+   if [ "${UMPIRE_BACKENDS:-}" = require ] || [ "${UMPIRE_APALACHE:-}" = require ]; then
+-    helper=$(CARGO_BUILD_JOBS=1 /bin/bash "$root/model/umpire/scripts/xtask.sh") || return "$?"
++    helper=$(CARGO_BUILD_JOBS=1 /bin/bash "$root/model/scripts/xtask.sh") || return "$?"
+   else
+-    helper=$(/bin/bash "$root/model/umpire/scripts/xtask.sh") || return "$?"
++    helper=$(/bin/bash "$root/model/scripts/xtask.sh") || return "$?"
+   fi
+   MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false UMPIRE_QUICK_CACHE=0 UMPIRE_CACHE_DISABLE=1 \
+     "$helper" test-run --package "$inner_crate"
+diff --git a/model/scripts/xtask.sh b/model/scripts/xtask.sh
+index 4a97bc6093..bcd36ed690 100644
+--- a/model/scripts/xtask.sh
++++ b/model/scripts/xtask.sh
+@@ -1,3 +1,4 @@
+ #!/usr/bin/env bash
+ set -euo pipefail
+-exec /bin/bash "$(dirname "$0")/../umpire/scripts/xtask.sh" "$@"
++framework=$(/bin/bash "$(dirname "$0")/framework-root.sh")
++exec /bin/bash "$framework/scripts/xtask.sh" "$@"
+diff --git a/model/temporal/api/build.rs b/model/temporal/api/build.rs
+index 083705bef9..08f9529ae7 100644
+--- a/model/temporal/api/build.rs
++++ b/model/temporal/api/build.rs
+@@ -33,6 +33,6 @@ fn main() -> io::Result<()> {
+         &mut config,
+         &repository.join("proto/api.binpb"),
+         Path::new(schema),
+-        &[Path::new("../proto"), Path::new("../proto/../../umpire/protocol/proto")],
++        &[Path::new("../proto"), Path::new("../../../../umpire/protocol/proto")],
+     )
+ }
+diff --git a/model/temporal/api/tests/codegen.rs b/model/temporal/api/tests/codegen.rs
+index cffda9b192..7fad758389 100644
+--- a/model/temporal/api/tests/codegen.rs
++++ b/model/temporal/api/tests/codegen.rs
+@@ -38,7 +38,7 @@ fn descriptor_file_permutations_generate_identical_rust() -> Result<(), Box<dyn
+             &mut config,
+             &input,
+             &manifest.join("../proto/umpire/temporal/v1/temporal.proto"),
+-            &[&manifest.join("../proto"), &manifest.join("../../umpire/protocol/proto")],
++            &[&manifest.join("../proto"), &manifest.join("../../../../umpire/protocol/proto")],
+         )?;
+         let mut generated = BTreeMap::<PathBuf, Vec<u8>>::new();
+         for entry in fs::read_dir(&output)? {
+diff --git a/model/temporal/api/tests/descriptor.rs b/model/temporal/api/tests/descriptor.rs
+index e818e39f20..335a94d337 100644
+--- a/model/temporal/api/tests/descriptor.rs
++++ b/model/temporal/api/tests/descriptor.rs
+@@ -10,7 +10,7 @@ use umpire_catalog_syntax::descriptor::{
+ };
+ use umpire_runtime::prost_types::{DescriptorProto, FieldDescriptorProto, FileDescriptorSet};
+ 
+-#[path = "../../../umpire/catalog/syntax/tests/support/mod.rs"]
++#[path = "../../../../../umpire/catalog/syntax/tests/support/mod.rs"]
+ mod support;
+ 
+ #[test]
+diff --git a/model/temporal/feature/activity/tests.rs b/model/temporal/feature/activity/tests.rs
+index 176825f274..4f17825cbe 100644
+--- a/model/temporal/feature/activity/tests.rs
++++ b/model/temporal/feature/activity/tests.rs
+@@ -5,7 +5,7 @@ use umpire_dsl::{__lifted::ConcreteOf, Machine, Outcome, Phase as _, Rejection,
+ use umpire_tla::observers;
+ 
+ fn framework_root() -> std::path::PathBuf {
+-    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../umpire")
++    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../umpire")
+ }
+ 
+ fn checked_world(
+diff --git a/model/temporal/hosts/go/README.md b/model/temporal/hosts/go/README.md
+new file mode 100644
+index 0000000000..fd26c78a9b
+--- /dev/null
++++ b/model/temporal/hosts/go/README.md
+@@ -0,0 +1,38 @@
++# Temporal Model host
++
++This module adds Temporal probes, the committed Temporal guest and the reference
++worker executors to the generic Umpire Go host. Its module identity remains
++`umpire.local/temporal`; the generic host is
++`github.com/temporalio/umpire/hosts/go`.
++
++Keep sibling checkouts under the same parent:
++
++```text
++<dev-root>/
++  temporal/
++  umpire/
++  go.work
++```
++
++From that parent, run `go work init` if no workspace exists, then add the real
++modules with the following command. `go work use` preserves unrelated workspace
++entries.
++
++```sh
++go work use ./temporal ./umpire/hosts/go ./umpire/reference/kettle ./temporal/model/temporal/hosts/go
++```
++
++The server and this module also replace the canonical generic host with its exact
++sibling source path. Keep that checkout present; local development does not require
++publishing either module. Run the module's tests from this directory with
++`CGO_ENABLED=0 go test -tags test_dep ./...`.
++
++The checked-in guest is exposed by `temporal.Guest()`. Ordinary Go tests use it
++without Rust; Model changes require `make umpire-guest` from the Temporal root.
++`make model-check` checks that guest's freshness.
++
++Temporal protobuf schemas stay in `model/temporal/proto`, with generic imports
++resolved from the sibling Umpire `protocol/proto`. From the Temporal root,
++`bash model/scripts/proto-go.sh temporal` regenerates this module's three protobuf
++files; adding `--check` compares them with fresh output. Keep generated sources
++aligned with the canonical generic schemas rather than editing descriptors by hand.
+diff --git a/model/temporal/hosts/go/allocation_test.go b/model/temporal/hosts/go/allocation_test.go
+index 9e8c7efa06..be6d7eb11e 100644
+--- a/model/temporal/hosts/go/allocation_test.go
++++ b/model/temporal/hosts/go/allocation_test.go
+@@ -4,6 +4,8 @@ import (
+ 	"context"
+ 	"testing"
+ 
++	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
+ 	"github.com/tetratelabs/wazero"
+ 	"github.com/tetratelabs/wazero/api"
+ 	"github.com/tetratelabs/wazero/experimental"
+@@ -11,8 +13,6 @@ import (
+ 	enumspb "go.temporal.io/api/enums/v1"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+ 	temporalmodel "umpire.local/temporal"
+ )
+ 
+diff --git a/model/temporal/hosts/go/annotations_test.go b/model/temporal/hosts/go/annotations_test.go
+index 97350dc460..fd2229678d 100644
+--- a/model/temporal/hosts/go/annotations_test.go
++++ b/model/temporal/hosts/go/annotations_test.go
+@@ -5,13 +5,13 @@ import (
+ 	"context"
+ 	"testing"
+ 
++	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	model "github.com/temporalio/umpire/hosts/go/host"
+ 	activitypb "go.temporal.io/api/activity/v1"
+ 	enumspb "go.temporal.io/api/enums/v1"
+ 	workflowservice "go.temporal.io/api/workflowservice/v1"
+ 	"google.golang.org/protobuf/proto"
+-	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	model "umpire.local/model/host"
+ )
+ 
+ func TestAnnotationsPreserveFrozenModelAndActualResponseBytes(t *testing.T) {
+diff --git a/model/temporal/hosts/go/go.mod b/model/temporal/hosts/go/go.mod
+index d8cbaf6ea9..5501367243 100644
+--- a/model/temporal/hosts/go/go.mod
++++ b/model/temporal/hosts/go/go.mod
+@@ -3,12 +3,12 @@ module umpire.local/temporal
+ go 1.27.0
+ 
+ require (
++	github.com/temporalio/umpire/hosts/go v0.0.0
+ 	github.com/tetratelabs/wazero v1.12.0
+ 	go.temporal.io/api v1.63.6-0.20260909222256-20151aa90480
+ 	go.temporal.io/sdk v1.48.0
+ 	google.golang.org/grpc v1.83.1
+ 	google.golang.org/protobuf v1.36.11
+-	umpire.local/model v0.0.0
+ )
+ 
+ require (
+@@ -35,4 +35,4 @@ require (
+ 	gopkg.in/yaml.v3 v3.0.1 // indirect
+ )
+ 
+-replace umpire.local/model => ../../../umpire/hosts/go
++replace github.com/temporalio/umpire/hosts/go => ../../../../../umpire/hosts/go
+diff --git a/model/temporal/hosts/go/parity_test.go b/model/temporal/hosts/go/parity_test.go
+index 2fd4ea6d62..5dfad176bd 100644
+--- a/model/temporal/hosts/go/parity_test.go
++++ b/model/temporal/hosts/go/parity_test.go
+@@ -8,6 +8,9 @@ import (
+ 	"testing"
+ 	"time"
+ 
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
++	model "github.com/temporalio/umpire/hosts/go/host"
+ 	activitypb "go.temporal.io/api/activity/v1"
+ 	commonpb "go.temporal.io/api/common/v1"
+ 	enumspb "go.temporal.io/api/enums/v1"
+@@ -16,9 +19,6 @@ import (
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+ 	"google.golang.org/protobuf/types/known/durationpb"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+-	model "umpire.local/model/host"
+ 	temporalmodel "umpire.local/temporal"
+ )
+ 
+diff --git a/model/temporal/hosts/go/probes.go b/model/temporal/hosts/go/probes.go
+index 9f58ff4483..6b1715683d 100644
+--- a/model/temporal/hosts/go/probes.go
++++ b/model/temporal/hosts/go/probes.go
+@@ -3,10 +3,10 @@ package temporal
+ import (
+ 	"context"
+ 	"errors"
++	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
++	model "github.com/temporalio/umpire/hosts/go/host"
+ 	"google.golang.org/grpc"
+ 	"google.golang.org/protobuf/proto"
+-	model "umpire.local/model/host"
+-	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+ 
+diff --git a/model/temporal/hosts/go/probes_test.go b/model/temporal/hosts/go/probes_test.go
+index ac8d9ce11b..990eabf541 100644
+--- a/model/temporal/hosts/go/probes_test.go
++++ b/model/temporal/hosts/go/probes_test.go
+@@ -8,16 +8,16 @@ import (
+ 	"testing"
+ 	"time"
+ 
++	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
++	model "github.com/temporalio/umpire/hosts/go/host"
+ 	"go.temporal.io/api/workflowservice/v1"
+ 	"google.golang.org/grpc"
+ 	"google.golang.org/grpc/codes"
+ 	"google.golang.org/grpc/status"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/reflect/protoreflect"
+-	model "umpire.local/model/host"
+-	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+ 	temporalmodel "umpire.local/temporal"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+diff --git a/model/temporal/hosts/go/program_test.go b/model/temporal/hosts/go/program_test.go
+index 6f304e461b..9f5e4a89c4 100644
+--- a/model/temporal/hosts/go/program_test.go
++++ b/model/temporal/hosts/go/program_test.go
+@@ -5,11 +5,11 @@ import (
+ 	"context"
+ 	"testing"
+ 
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
+ 	commonpb "go.temporal.io/api/common/v1"
+ 	"go.temporal.io/api/workflowservice/v1"
+ 	"google.golang.org/protobuf/proto"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+ 
+diff --git a/model/temporal/hosts/go/proposal_test.go b/model/temporal/hosts/go/proposal_test.go
+index 0549e908ef..1385e8baeb 100644
+--- a/model/temporal/hosts/go/proposal_test.go
++++ b/model/temporal/hosts/go/proposal_test.go
+@@ -5,14 +5,14 @@ import (
+ 	"errors"
+ 	"testing"
+ 
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
++	model "github.com/temporalio/umpire/hosts/go/host"
+ 	activitypb "go.temporal.io/api/activity/v1"
+ 	enumspb "go.temporal.io/api/enums/v1"
+ 	"go.temporal.io/api/workflowservice/v1"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+-	model "umpire.local/model/host"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+ 
+diff --git a/model/temporal/hosts/go/reference/worker/bridge.go b/model/temporal/hosts/go/reference/worker/bridge.go
+index e5770a302a..70702cacaf 100644
+--- a/model/temporal/hosts/go/reference/worker/bridge.go
++++ b/model/temporal/hosts/go/reference/worker/bridge.go
+@@ -7,12 +7,12 @@ import (
+ 	"fmt"
+ 	"sync"
+ 
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
+ 	"go.temporal.io/api/workflowservice/v1"
+ 	statuspb "google.golang.org/genproto/googleapis/rpc/status"
+ 	"google.golang.org/grpc/codes"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+ )
+ 
+ // RPCStage distinguishes an actual invocation's registration from its completion.
+diff --git a/model/temporal/hosts/go/reference/worker/program_transport_test.go b/model/temporal/hosts/go/reference/worker/program_transport_test.go
+index 867b8971c5..b2e2f5d689 100644
+--- a/model/temporal/hosts/go/reference/worker/program_transport_test.go
++++ b/model/temporal/hosts/go/reference/worker/program_transport_test.go
+@@ -5,12 +5,12 @@ import (
+ 	"testing"
+ 
+ 	"github.com/stretchr/testify/require"
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
+ 	deploymentpb "go.temporal.io/api/deployment/v1"
+ 	failurepb "go.temporal.io/api/failure/v1"
+ 	"go.temporal.io/api/workflowservice/v1"
+ 	statuspb "google.golang.org/genproto/googleapis/rpc/status"
+ 	"google.golang.org/protobuf/proto"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+ )
+ 
+ func completedRPC(t *testing.T, request, response proto.Message) RPC {
+diff --git a/model/temporal/hosts/go/reference/worker/raw/raw_test.go b/model/temporal/hosts/go/reference/worker/raw/raw_test.go
+index 2749491c87..4fd5e27eb1 100644
+--- a/model/temporal/hosts/go/reference/worker/raw/raw_test.go
++++ b/model/temporal/hosts/go/reference/worker/raw/raw_test.go
+@@ -9,6 +9,7 @@ import (
+ 	"time"
+ 
+ 	"github.com/stretchr/testify/require"
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
+ 	commonpb "go.temporal.io/api/common/v1"
+ 	failurepb "go.temporal.io/api/failure/v1"
+ 	"go.temporal.io/api/workflowservice/v1"
+@@ -20,7 +21,6 @@ import (
+ 	"google.golang.org/protobuf/types/known/anypb"
+ 	"google.golang.org/protobuf/types/known/durationpb"
+ 	"google.golang.org/protobuf/types/known/timestamppb"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+ 	"umpire.local/temporal/reference/worker"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+diff --git a/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go b/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go
+index 1de4bdfa61..c0b89d93b0 100644
+--- a/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go
++++ b/model/temporal/hosts/go/reference/worker/sdk/continuation_test.go
+@@ -12,6 +12,7 @@ import (
+ 	"time"
+ 
+ 	"github.com/stretchr/testify/require"
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
+ 	commonpb "go.temporal.io/api/common/v1"
+ 	failurepb "go.temporal.io/api/failure/v1"
+ 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
+@@ -30,7 +31,6 @@ import (
+ 	"google.golang.org/protobuf/types/known/anypb"
+ 	"google.golang.org/protobuf/types/known/durationpb"
+ 	"google.golang.org/protobuf/types/known/timestamppb"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+ 	"umpire.local/temporal/reference/worker"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+diff --git a/model/temporal/hosts/go/umpire/temporal/v1/probe.pb.go b/model/temporal/hosts/go/umpire/temporal/v1/probe.pb.go
+index 8861ed0861..3330586089 100644
+--- a/model/temporal/hosts/go/umpire/temporal/v1/probe.pb.go
++++ b/model/temporal/hosts/go/umpire/temporal/v1/probe.pb.go
+@@ -7,11 +7,11 @@
+ package v1
+ 
+ import (
++	v1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
+ 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+ 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+ 	reflect "reflect"
+ 	sync "sync"
+-	v1 "umpire.local/model/gen/umpire/annotations/v1"
+ 	unsafe "unsafe"
+ )
+ 
+diff --git a/model/temporal/realization/macros/src/roots.rs b/model/temporal/realization/macros/src/roots.rs
+index 8e64a9502c..ecd9216b5f 100644
+--- a/model/temporal/realization/macros/src/roots.rs
++++ b/model/temporal/realization/macros/src/roots.rs
+@@ -1,4 +1,4 @@
+-#[path = "../../../../umpire/author/dependency_roots.rs"]
++#[path = "../../../../../../umpire/author/dependency_roots.rs"]
+ mod dependency_roots;
+ 
+ pub(crate) fn resolve(tokens: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+diff --git a/model/temporal/realization/macros/tests/renamed/Cargo.toml b/model/temporal/realization/macros/tests/renamed/Cargo.toml
+index 72cc4766ef..65f3bf8c64 100644
+--- a/model/temporal/realization/macros/tests/renamed/Cargo.toml
++++ b/model/temporal/realization/macros/tests/renamed/Cargo.toml
+@@ -10,6 +10,6 @@ publish = false
+ invalid-enum = []
+ 
+ [dependencies]
+-author-kit = { package = "umpire", path = "../../../../../umpire/author/umpire" }
++author-kit = { package = "umpire", path = "../../../../../../../umpire/author/umpire" }
+ temporal-kit = { package = "umpire-temporal", path = "../../.." }
+ api-kit = { package = "umpire-temporal-api", path = "../../../../api" }
+diff --git a/model/temporal/testing/boundary.rs b/model/temporal/testing/boundary.rs
+index cc0bfd3262..81c814de9f 100644
+--- a/model/temporal/testing/boundary.rs
++++ b/model/temporal/testing/boundary.rs
+@@ -27,7 +27,7 @@ fn check(root: &Path) -> std::io::Result<Vec<Violation>> {
+ 
+ #[test]
+ fn generic_source_boundary() -> umpire_testing::TestResult {
+-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../umpire");
++    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../umpire");
+     let violations = check(&root)?;
+     assert!(
+         violations.is_empty(),
+diff --git a/model/temporal/testing/build.rs b/model/temporal/testing/build.rs
+index 644efed98d..47f25053a2 100644
+--- a/model/temporal/testing/build.rs
++++ b/model/temporal/testing/build.rs
+@@ -2,7 +2,7 @@
+ 
+ #![forbid(unsafe_code)]
+ 
+-#[path = "../../umpire/dev/testing/src/discovery.rs"]
++#[path = "../../../../umpire/dev/testing/src/discovery.rs"]
+ #[allow(unreachable_pub)]
+ mod discovery;
+ 
+diff --git a/model/temporal/testing/snapshot_ownership.rs b/model/temporal/testing/snapshot_ownership.rs
+index ed719da312..8e4d2c7a56 100644
+--- a/model/temporal/testing/snapshot_ownership.rs
++++ b/model/temporal/testing/snapshot_ownership.rs
+@@ -172,22 +172,36 @@ fn validate(
+ #[test]
+ fn current_snapshots_have_explicit_owners() -> TestResult {
+     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+-    let mut expected = Vec::new();
+-    for fixtures in FIXTURES {
+-        expected.extend(
+-            umpire_testing::discovery::discover(
+-                &root.join(fixtures),
+-                umpire_testing::discovery::MODEL,
+-            )?
+-            .into_iter()
+-            .map(|fixture| fixture.path.join("expected")),
+-        );
++    for (prefix, checkout) in [
++        ("temporal/", root.join("temporal")),
++        ("umpire/", root.join("../../umpire").canonicalize()?),
++    ] {
++        let mut expected = Vec::new();
++        for fixtures in FIXTURES.iter().filter_map(|path| path.strip_prefix(prefix)) {
++            expected.extend(
++                umpire_testing::discovery::discover(
++                    &checkout.join(fixtures),
++                    umpire_testing::discovery::MODEL,
++                )?
++                .into_iter()
++                .map(|fixture| fixture.path.join("expected")),
++            );
++        }
++        let readers: Vec<_> = READERS
++            .iter()
++            .filter_map(|(path, owner)| path.strip_prefix(prefix).map(|path| (path, *owner)))
++            .collect();
++        let historical = if prefix == "temporal/" {
++            HISTORICAL
++                .iter()
++                .map(|file| checkout.join("feature/activity/compatibility/original").join(file))
++                .collect()
++        } else {
++            BTreeSet::new()
++        };
++        validate(&checkout, &expected, &readers, &historical)?;
+     }
+-    let historical = HISTORICAL
+-        .iter()
+-        .map(|file| root.join("temporal/feature/activity/compatibility/original").join(file))
+-        .collect();
+-    validate(&root, &expected, READERS, &historical)
++    Ok(())
+ }
+ 
+ #[test]
+diff --git a/tests/testpilot_canary_test.go b/tests/testpilot_canary_test.go
+index 3fcb300761..775491993d 100644
+--- a/tests/testpilot_canary_test.go
++++ b/tests/testpilot_canary_test.go
+@@ -17,6 +17,7 @@ import (
+ 	"time"
+ 
+ 	"github.com/stretchr/testify/require"
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	commonpb "go.temporal.io/api/common/v1"
+ 	enumspb "go.temporal.io/api/enums/v1"
+ 	"go.temporal.io/api/serviceerror"
+@@ -29,7 +30,6 @@ import (
+ 	"go.temporal.io/server/tools/canary/preflight"
+ 	"go.temporal.io/server/tools/canary/recovery"
+ 	"go.temporal.io/server/tools/canary/testharness"
+-	"umpire.local/model/runner"
+ 	"umpire.local/temporal"
+ )
+ 
+diff --git a/tests/testpilot_model_annotations_test.go b/tests/testpilot_model_annotations_test.go
+index d56427bc6b..24ebd306cf 100644
+--- a/tests/testpilot_model_annotations_test.go
++++ b/tests/testpilot_model_annotations_test.go
+@@ -14,6 +14,9 @@ import (
+ 
+ 	"github.com/google/uuid"
+ 	"github.com/stretchr/testify/require"
++	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
++	model "github.com/temporalio/umpire/hosts/go/host"
+ 	activitypb "go.temporal.io/api/activity/v1"
+ 	commonpb "go.temporal.io/api/common/v1"
+ 	failurepb "go.temporal.io/api/failure/v1"
+@@ -25,9 +28,6 @@ import (
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+ 	"google.golang.org/protobuf/types/known/durationpb"
+-	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+-	model "umpire.local/model/host"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+ 
+diff --git a/tests/testpilot_model_gaps_test.go b/tests/testpilot_model_gaps_test.go
+index 0c6eb20c58..362c523329 100644
+--- a/tests/testpilot_model_gaps_test.go
++++ b/tests/testpilot_model_gaps_test.go
+@@ -13,6 +13,9 @@ import (
+ 
+ 	"github.com/google/uuid"
+ 	"github.com/stretchr/testify/require"
++	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
++	model "github.com/temporalio/umpire/hosts/go/host"
++	"github.com/temporalio/umpire/hosts/go/snapshot"
+ 	commonpb "go.temporal.io/api/common/v1"
+ 	enumspb "go.temporal.io/api/enums/v1"
+ 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
+@@ -30,9 +33,6 @@ import (
+ 	"google.golang.org/grpc/status"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/durationpb"
+-	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
+-	model "umpire.local/model/host"
+-	"umpire.local/model/snapshot"
+ 	temporalmodel "umpire.local/temporal"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+diff --git a/tests/testpilot_model_reconcile_test.go b/tests/testpilot_model_reconcile_test.go
+index 88ceafac65..1f0acc5d30 100644
+--- a/tests/testpilot_model_reconcile_test.go
++++ b/tests/testpilot_model_reconcile_test.go
+@@ -13,6 +13,11 @@ import (
+ 
+ 	"github.com/google/uuid"
+ 	"github.com/stretchr/testify/require"
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
++	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
++	model "github.com/temporalio/umpire/hosts/go/host"
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	commonpb "go.temporal.io/api/common/v1"
+ 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
+ 	"go.temporal.io/api/workflowservice/v1"
+@@ -25,11 +30,6 @@ import (
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+ 	"google.golang.org/protobuf/types/known/durationpb"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+-	runv1 "umpire.local/model/gen/umpire/run/v1"
+-	model "umpire.local/model/host"
+-	"umpire.local/model/runner"
+ 	temporalmodel "umpire.local/temporal"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+diff --git a/tests/testpilot_model_slice_test.go b/tests/testpilot_model_slice_test.go
+index 9a13a62dff..75e96142eb 100644
+--- a/tests/testpilot_model_slice_test.go
++++ b/tests/testpilot_model_slice_test.go
+@@ -9,6 +9,9 @@ import (
+ 
+ 	"github.com/google/uuid"
+ 	"github.com/stretchr/testify/require"
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	model "github.com/temporalio/umpire/hosts/go/host"
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	commonpb "go.temporal.io/api/common/v1"
+ 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
+ 	"go.temporal.io/api/workflowservice/v1"
+@@ -20,9 +23,6 @@ import (
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+ 	"google.golang.org/protobuf/types/known/durationpb"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	model "umpire.local/model/host"
+-	"umpire.local/model/runner"
+ 	temporalmodel "umpire.local/temporal"
+ )
+ 
+diff --git a/tests/testpilot_model_slice_umpire_test.go b/tests/testpilot_model_slice_umpire_test.go
+index 4f07543171..20cca5c610 100644
+--- a/tests/testpilot_model_slice_umpire_test.go
++++ b/tests/testpilot_model_slice_umpire_test.go
+@@ -19,6 +19,10 @@ import (
+ 
+ 	"github.com/google/uuid"
+ 	"github.com/stretchr/testify/require"
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
++	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	commonpb "go.temporal.io/api/common/v1"
+ 	enumspb "go.temporal.io/api/enums/v1"
+ 	"go.temporal.io/api/serviceerror"
+@@ -33,10 +37,6 @@ import (
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+ 	"google.golang.org/protobuf/types/known/durationpb"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+-	runv1 "umpire.local/model/gen/umpire/run/v1"
+-	"umpire.local/model/runner"
+ 	"umpire.local/temporal"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+diff --git a/tools/canary/controller/controller.go b/tools/canary/controller/controller.go
+index 85f5152e4e..3886f851a5 100644
+--- a/tools/canary/controller/controller.go
++++ b/tools/canary/controller/controller.go
+@@ -8,6 +8,7 @@ import (
+ 	"sync"
+ 	"time"
+ 
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	"go.temporal.io/api/workflowservice/v1"
+ 	"go.temporal.io/sdk/client"
+ 	"go.temporal.io/server/tools/canary/authority"
+@@ -15,7 +16,6 @@ import (
+ 	"go.temporal.io/server/tools/canary/preflight"
+ 	"go.temporal.io/server/tools/canary/recovery"
+ 	"google.golang.org/grpc"
+-	"umpire.local/model/runner"
+ 	"umpire.local/temporal"
+ )
+ 
+diff --git a/tools/canary/controller/controller_test.go b/tools/canary/controller/controller_test.go
+index 1735cf35e4..eef31d6406 100644
+--- a/tools/canary/controller/controller_test.go
++++ b/tools/canary/controller/controller_test.go
+@@ -15,6 +15,7 @@ import (
+ 	"time"
+ 
+ 	"github.com/stretchr/testify/require"
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	"go.temporal.io/api/serviceerror"
+ 	"go.temporal.io/server/tools/canary/authority"
+ 	"go.temporal.io/server/tools/canary/policy"
+@@ -22,7 +23,6 @@ import (
+ 	"go.temporal.io/server/tools/canary/recovery"
+ 	"google.golang.org/grpc/credentials/insecure"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	"umpire.local/model/runner"
+ )
+ 
+ var invokeCoordinates = authority.Coordinates{
+diff --git a/tools/canary/controller/fenced.go b/tools/canary/controller/fenced.go
+index 29da39bb12..d34dd2167d 100644
+--- a/tools/canary/controller/fenced.go
++++ b/tools/canary/controller/fenced.go
+@@ -8,12 +8,12 @@ import (
+ 	"strings"
+ 
+ 	"github.com/google/uuid"
++	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	"go.temporal.io/api/workflowservice/v1"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/reflect/protoreflect"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	runv1 "umpire.local/model/gen/umpire/run/v1"
+-	"umpire.local/model/runner"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+ 
+diff --git a/tools/canary/controller/fenced_test.go b/tools/canary/controller/fenced_test.go
+index 1b21bdbd42..dededba6fa 100644
+--- a/tools/canary/controller/fenced_test.go
++++ b/tools/canary/controller/fenced_test.go
+@@ -6,11 +6,11 @@ import (
+ 	"testing"
+ 
+ 	"github.com/stretchr/testify/require"
++	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	"go.temporal.io/api/workflowservice/v1"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	runv1 "umpire.local/model/gen/umpire/run/v1"
+-	"umpire.local/model/runner"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+ 
+diff --git a/tools/canary/controller/matrix_test.go b/tools/canary/controller/matrix_test.go
+index a9603a0a1e..4f2fe9c60e 100644
+--- a/tools/canary/controller/matrix_test.go
++++ b/tools/canary/controller/matrix_test.go
+@@ -14,6 +14,7 @@ import (
+ 	"time"
+ 
+ 	"github.com/stretchr/testify/require"
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	commonpb "go.temporal.io/api/common/v1"
+ 	"go.temporal.io/api/serviceerror"
+ 	"go.temporal.io/api/workflowservice/v1"
+@@ -22,7 +23,6 @@ import (
+ 	"go.temporal.io/server/tools/canary/preflight"
+ 	"go.temporal.io/server/tools/canary/recovery"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	"umpire.local/model/runner"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+ 
+diff --git a/tools/canary/controller/run.go b/tools/canary/controller/run.go
+index 3a4b2a8a7f..1a340167e9 100644
+--- a/tools/canary/controller/run.go
++++ b/tools/canary/controller/run.go
+@@ -9,6 +9,9 @@ import (
+ 	"time"
+ 
+ 	"github.com/google/uuid"
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	"github.com/temporalio/umpire/hosts/go/host"
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	commonpb "go.temporal.io/api/common/v1"
+ 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
+ 	"go.temporal.io/api/workflowservice/v1"
+@@ -21,9 +24,6 @@ import (
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+ 	"google.golang.org/protobuf/types/known/durationpb"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	"umpire.local/model/host"
+-	"umpire.local/model/runner"
+ )
+ 
+ // An iteration's status: the Run's verdict, or failed when no Run was made or the loop could not
+diff --git a/tools/canary/controller/run_test.go b/tools/canary/controller/run_test.go
+index e338fa9ee1..6f50d03e34 100644
+--- a/tools/canary/controller/run_test.go
++++ b/tools/canary/controller/run_test.go
+@@ -12,6 +12,8 @@ import (
+ 	"time"
+ 
+ 	"github.com/stretchr/testify/require"
++	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	commonpb "go.temporal.io/api/common/v1"
+ 	"go.temporal.io/api/serviceerror"
+ 	"go.temporal.io/api/workflowservice/v1"
+@@ -22,8 +24,6 @@ import (
+ 	"google.golang.org/grpc"
+ 	"google.golang.org/grpc/credentials/insecure"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	runv1 "umpire.local/model/gen/umpire/run/v1"
+-	"umpire.local/model/runner"
+ )
+ 
+ // testGuest stands for the Model guest; the scripted Runs never execute it.
+diff --git a/tools/umpire/cmd/umpire/main.go b/tools/umpire/cmd/umpire/main.go
+index 3a52a6927c..d7b8029416 100644
+--- a/tools/umpire/cmd/umpire/main.go
++++ b/tools/umpire/cmd/umpire/main.go
+@@ -1,7 +1,7 @@
+ // Command umpire runs the one host loop over a Model guest in one of its modes: question,
+ // explore, reduce, replay or repeat. It exits 0 when the Run is Explained, 1 when Unexplained,
+ // 2 when Refused or a Driver faulted, and 3 when the loop could not run. See
+-// model/umpire/hosts/go/README.md.
++// ../umpire/hosts/go/README.md.
+ //
+ // Explore, reduce and repeat act through the Temporal Driver, configured by the UMPIRE_TEMPORAL_*
+ // environment (tools/umpire/README.md).
+@@ -17,9 +17,9 @@ import (
+ 	"syscall"
+ 	"time"
+ 
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	"go.temporal.io/server/common/testing/testpilot/temporal/act"
+ 	"go.temporal.io/server/tools/umpire/temporaldriver"
+-	"umpire.local/model/runner"
+ )
+ 
+ // cleanupTimeout bounds removing what the Temporal Driver provisioned.
+diff --git a/tools/umpire/cmd/umpire/main_test.go b/tools/umpire/cmd/umpire/main_test.go
+index c6e80e74e1..eed5c88b5f 100644
+--- a/tools/umpire/cmd/umpire/main_test.go
++++ b/tools/umpire/cmd/umpire/main_test.go
+@@ -9,6 +9,7 @@ import (
+ 	"time"
+ 
+ 	"github.com/stretchr/testify/require"
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	commonpb "go.temporal.io/api/common/v1"
+ 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
+ 	"go.temporal.io/api/workflowservice/v1"
+@@ -16,7 +17,6 @@ import (
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+ 	"google.golang.org/protobuf/types/known/durationpb"
+-	"umpire.local/model/runner"
+ 	"umpire.local/temporal"
+ )
+ 
+diff --git a/tools/umpire/temporaldriver/cancel_rpc_test.go b/tools/umpire/temporaldriver/cancel_rpc_test.go
+index 20715095f8..6d1aa60743 100644
+--- a/tools/umpire/temporaldriver/cancel_rpc_test.go
++++ b/tools/umpire/temporaldriver/cancel_rpc_test.go
+@@ -8,6 +8,10 @@ import (
+ 	"time"
+ 
+ 	"github.com/stretchr/testify/require"
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
++	"github.com/temporalio/umpire/hosts/go/host"
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	activitypb "go.temporal.io/api/activity/v1"
+ 	commonpb "go.temporal.io/api/common/v1"
+ 	enumspb "go.temporal.io/api/enums/v1"
+@@ -20,10 +24,6 @@ import (
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+ 	"google.golang.org/protobuf/types/known/durationpb"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	runv1 "umpire.local/model/gen/umpire/run/v1"
+-	"umpire.local/model/host"
+-	"umpire.local/model/runner"
+ 	temporalmodel "umpire.local/temporal"
+ 	rawworker "umpire.local/temporal/reference/worker/raw"
+ 	sdkworker "umpire.local/temporal/reference/worker/sdk"
+diff --git a/tools/umpire/temporaldriver/continuation_test.go b/tools/umpire/temporaldriver/continuation_test.go
+index 5ad1c22578..5087670257 100644
+--- a/tools/umpire/temporaldriver/continuation_test.go
++++ b/tools/umpire/temporaldriver/continuation_test.go
+@@ -8,6 +8,8 @@ import (
+ 	"time"
+ 
+ 	"github.com/stretchr/testify/require"
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	"github.com/temporalio/umpire/hosts/go/runner"
+ 	commonpb "go.temporal.io/api/common/v1"
+ 	enumspb "go.temporal.io/api/enums/v1"
+ 	namespacepb "go.temporal.io/api/namespace/v1"
+@@ -21,8 +23,6 @@ import (
+ 	"google.golang.org/protobuf/types/known/anypb"
+ 	"google.golang.org/protobuf/types/known/durationpb"
+ 	"google.golang.org/protobuf/types/known/timestamppb"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	"umpire.local/model/runner"
+ 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+ )
+ 

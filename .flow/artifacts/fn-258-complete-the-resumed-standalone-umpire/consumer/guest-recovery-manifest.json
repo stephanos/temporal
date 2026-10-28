@@ -1,0 +1,1552 @@
+{
+  "canonical_artifact_commit": "4035bb70fdf4c7ef074a8f05a02b19fb458c0b1d",
+  "identity_and_proof_records": [
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/umpire-lock-6a91e54ea1e9c446a1705776a774988983cbed160cfbfe49eac6c1ea3e123048.json",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/umpire-lock-6a91e54ea1e9c446a1705776a774988983cbed160cfbfe49eac6c1ea3e123048.json",
+      "size": 11033,
+      "sha256": "6a91e54ea1e9c446a1705776a774988983cbed160cfbfe49eac6c1ea3e123048",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/6a91e54ea1e9c446a1705776a774988983cbed160cfbfe49eac6c1ea3e123048"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/umpire-lock-6a91e54ea1e9c446a1705776a774988983cbed160cfbfe49eac6c1ea3e123048.json",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/umpire-lock-6a91e54ea1e9c446a1705776a774988983cbed160cfbfe49eac6c1ea3e123048.json",
+      "size": 11033,
+      "sha256": "6a91e54ea1e9c446a1705776a774988983cbed160cfbfe49eac6c1ea3e123048",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/6a91e54ea1e9c446a1705776a774988983cbed160cfbfe49eac6c1ea3e123048"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/guest/deps/darling_macro-57862c4d2c537235.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/guest/deps/darling_macro-57862c4d2c537235.umpire-id",
+      "size": 242,
+      "sha256": "bffab7fb32cef4a3b69d06b47389dde6b20d511ba85eb9818bc1d0a7d04521ae",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/bffab7fb32cef4a3b69d06b47389dde6b20d511ba85eb9818bc1d0a7d04521ae"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/guest/deps/manyhow_macros-522bb03fecc0c642.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/guest/deps/manyhow_macros-522bb03fecc0c642.umpire-id",
+      "size": 242,
+      "sha256": "dec8c77a23471e0b9d516146fc2a51c2e1154df5494478e77c577e36eef9197d",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/dec8c77a23471e0b9d516146fc2a51c2e1154df5494478e77c577e36eef9197d"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/guest/deps/prost_derive-43975aa2e4258748.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/guest/deps/prost_derive-43975aa2e4258748.umpire-id",
+      "size": 242,
+      "sha256": "4114a76e1bae5345710061f8f89d4658410d6e8da6edf6e0828163ba8415b7bd",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/4114a76e1bae5345710061f8f89d4658410d6e8da6edf6e0828163ba8415b7bd"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/guest/deps/thiserror_impl-d9ec474b72def7c1.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/guest/deps/thiserror_impl-d9ec474b72def7c1.umpire-id",
+      "size": 242,
+      "sha256": "1d4ea615322b7be9e2f9bb6a290240e425ec7012f1ff2d7fb980fc76878acb4e",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/1d4ea615322b7be9e2f9bb6a290240e425ec7012f1ff2d7fb980fc76878acb4e"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/guest/deps/umpire_catalog_macros-0fe0d4d2ba8cbccc.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/guest/deps/umpire_catalog_macros-0fe0d4d2ba8cbccc.umpire-id",
+      "size": 242,
+      "sha256": "f68e42e872c11184252d824b8791b6c200f91cd654346e843fedbd2af3a9d490",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/f68e42e872c11184252d824b8791b6c200f91cd654346e843fedbd2af3a9d490"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/guest/deps/umpire_dsl_macros-0dd337153709295e.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/guest/deps/umpire_dsl_macros-0dd337153709295e.umpire-id",
+      "size": 242,
+      "sha256": "2de99ee6a2474b9122b03fb193085a9a7a1e2087f6a8797f4055dc4f3e3bf381",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/2de99ee6a2474b9122b03fb193085a9a7a1e2087f6a8797f4055dc4f3e3bf381"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/guest/deps/umpire_ir_derive-eadee7e9b2e5f1ed.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/guest/deps/umpire_ir_derive-eadee7e9b2e5f1ed.umpire-id",
+      "size": 242,
+      "sha256": "fc23bec21dc312eb0c119dc265c02018e2d8771006e94aeb1b5e5d523c5da5d4",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/fc23bec21dc312eb0c119dc265c02018e2d8771006e94aeb1b5e5d523c5da5d4"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/guest/deps/umpire_temporal_realization_macros-48b86c088eaad4ce.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/guest/deps/umpire_temporal_realization_macros-48b86c088eaad4ce.umpire-id",
+      "size": 242,
+      "sha256": "d5209ac4f1611bb5e79eacb55c7517cdf9a7ad3d9f7c7420e9f3fa67c3536752",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/d5209ac4f1611bb5e79eacb55c7517cdf9a7ad3d9f7c7420e9f3fa67c3536752"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/addr2line-255ee5934a3d8660.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/addr2line-255ee5934a3d8660.umpire-id",
+      "size": 109,
+      "sha256": "6cff5b14af149f08f65bdee5af5ab516ee60a7c71be53d28bf92d19be31194ef",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/6cff5b14af149f08f65bdee5af5ab516ee60a7c71be53d28bf92d19be31194ef"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/adler2-dcfe9e712de83524.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/adler2-dcfe9e712de83524.umpire-id",
+      "size": 109,
+      "sha256": "83f7663741bc1c9a817a3e68198050884ff6fbff0bfd875054ecb5a889a146da",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/83f7663741bc1c9a817a3e68198050884ff6fbff0bfd875054ecb5a889a146da"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/alloc-ee1b94c4e41bab4b.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/alloc-ee1b94c4e41bab4b.umpire-id",
+      "size": 109,
+      "sha256": "c54486ec14418ab81682808acf2b54d1e75c9361658da356da261baab4272e51",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/c54486ec14418ab81682808acf2b54d1e75c9361658da356da261baab4272e51"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/bytes-65a877ea08f4b25c.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/bytes-65a877ea08f4b25c.umpire-id",
+      "size": 109,
+      "sha256": "183467fcc2bd4cce9db23ab8797fcadcf0f964c059de41097e3c13704599e979",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/183467fcc2bd4cce9db23ab8797fcadcf0f964c059de41097e3c13704599e979"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/cfg_if-b5eb0e6e1854091e.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/cfg_if-b5eb0e6e1854091e.umpire-id",
+      "size": 109,
+      "sha256": "88152b02e5e95927971c95a2720970aa34e6db8f004b2f226ab3bb2944c5598e",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/88152b02e5e95927971c95a2720970aa34e6db8f004b2f226ab3bb2944c5598e"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/compiler_builtins-6ffcd43c04af33f9.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/compiler_builtins-6ffcd43c04af33f9.umpire-id",
+      "size": 109,
+      "sha256": "eefbef0bf2bac7279dfc2a0c0223ba626a86b438e96e96e89111a10f5ca0fc46",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/eefbef0bf2bac7279dfc2a0c0223ba626a86b438e96e96e89111a10f5ca0fc46"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/core-60364901c1ec5ea7.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/core-60364901c1ec5ea7.umpire-id",
+      "size": 109,
+      "sha256": "b9727ac727b8f72ca949a355b6449917d142c19ab3e433ec4e2ba9ca7de90128",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/b9727ac727b8f72ca949a355b6449917d142c19ab3e433ec4e2ba9ca7de90128"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/equivalent-f1c0d3e51dc60161.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/equivalent-f1c0d3e51dc60161.umpire-id",
+      "size": 109,
+      "sha256": "595813e7fc7698038fe41e38365004177434bfc2e2e571842498f1bbf35482a6",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/595813e7fc7698038fe41e38365004177434bfc2e2e571842498f1bbf35482a6"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/fixedbitset-356c64dc03150e9a.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/fixedbitset-356c64dc03150e9a.umpire-id",
+      "size": 109,
+      "sha256": "860a0d06963f7165d5782e5a20a88c88d5c279f48cb55490950e002b6698e174",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/860a0d06963f7165d5782e5a20a88c88d5c279f48cb55490950e002b6698e174"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/foldhash-3e7f58451663f456.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/foldhash-3e7f58451663f456.umpire-id",
+      "size": 109,
+      "sha256": "8fbd48db3863d7242d44096915e2b058c3d0ebf1ec2c0ada7e6c57f0f185e837",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/8fbd48db3863d7242d44096915e2b058c3d0ebf1ec2c0ada7e6c57f0f185e837"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/gimli-0b043c20b392a812.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/gimli-0b043c20b392a812.umpire-id",
+      "size": 109,
+      "sha256": "5731e2e65506610278e13ab52925dbcfdcd3b0f63387093875f4c8215cd03899",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/5731e2e65506610278e13ab52925dbcfdcd3b0f63387093875f4c8215cd03899"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/hashbrown-73a47db5d20f8095.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/hashbrown-73a47db5d20f8095.umpire-id",
+      "size": 109,
+      "sha256": "ead5ad2e2de582738c1b45d9d3baf289e7d66fe6316ef5b2eef50bd03d3c53e7",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/ead5ad2e2de582738c1b45d9d3baf289e7d66fe6316ef5b2eef50bd03d3c53e7"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/hashbrown-cf473af66d91d5b2.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/hashbrown-cf473af66d91d5b2.umpire-id",
+      "size": 109,
+      "sha256": "2b5639c2ae7fc2a2d22013727d7b6c9285a152f14f8626f36081fd86fe151c38",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/2b5639c2ae7fc2a2d22013727d7b6c9285a152f14f8626f36081fd86fe151c38"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/hashbrown-d03968f63b3a8ee3.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/hashbrown-d03968f63b3a8ee3.umpire-id",
+      "size": 109,
+      "sha256": "33100523db4db01e4d09873995914ff4d1756e1d781b895d53e3f440b2909a9d",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/33100523db4db01e4d09873995914ff4d1756e1d781b895d53e3f440b2909a9d"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/indexmap-e3af5fa5c6133605.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/indexmap-e3af5fa5c6133605.umpire-id",
+      "size": 109,
+      "sha256": "51608bc1c3d6be69a279060dd83c9139e68f47c5fcdc8b9c3a6192ed7c5d2185",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/51608bc1c3d6be69a279060dd83c9139e68f47c5fcdc8b9c3a6192ed7c5d2185"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/libc-8bcdf4d93a2fcdc7.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/libc-8bcdf4d93a2fcdc7.umpire-id",
+      "size": 109,
+      "sha256": "82d069a2c0300b22914858a11878c70b2cfac546f525a9eebb09234c81044403",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/82d069a2c0300b22914858a11878c70b2cfac546f525a9eebb09234c81044403"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/memchr-0ab2081f1519fc00.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/memchr-0ab2081f1519fc00.umpire-id",
+      "size": 109,
+      "sha256": "6bd54a84e3afb2e012a3e2369a8d301951e31a37d94c663b83b93359117d2278",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/6bd54a84e3afb2e012a3e2369a8d301951e31a37d94c663b83b93359117d2278"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/miniz_oxide-21e596a6bf8f2e58.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/miniz_oxide-21e596a6bf8f2e58.umpire-id",
+      "size": 109,
+      "sha256": "5e5f7359504c3236a85da6df9d35ea7b5ae9bd1c94b6310f75a18ac32e732f32",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/5e5f7359504c3236a85da6df9d35ea7b5ae9bd1c94b6310f75a18ac32e732f32"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/object-804fc83b706b6d74.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/object-804fc83b706b6d74.umpire-id",
+      "size": 109,
+      "sha256": "5fa40a5950f04059e5f71d03d48d05fca7847818a6b4046884d3c50472614967",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/5fa40a5950f04059e5f71d03d48d05fca7847818a6b4046884d3c50472614967"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/panic_abort-7056431d09fb88ab.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/panic_abort-7056431d09fb88ab.umpire-id",
+      "size": 109,
+      "sha256": "8eace0f464f85097709e4fea3e7cf7ccddbdb61afc1f4c773b6096ae3e9b7a31",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/8eace0f464f85097709e4fea3e7cf7ccddbdb61afc1f4c773b6096ae3e9b7a31"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/panic_unwind-47e5619adda0bdbc.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/panic_unwind-47e5619adda0bdbc.umpire-id",
+      "size": 109,
+      "sha256": "443c0ea7927e47ab1dc14fa4f29abec54fdd50e6937d7570292fb79c2c0eea3a",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/443c0ea7927e47ab1dc14fa4f29abec54fdd50e6937d7570292fb79c2c0eea3a"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/petgraph-6e633b6a91d6ca32.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/petgraph-6e633b6a91d6ca32.umpire-id",
+      "size": 109,
+      "sha256": "ad4e27e4af94cc3f14ad30c9f78de6961465e19a39c7ebe1fbaa97b39aab7975",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/ad4e27e4af94cc3f14ad30c9f78de6961465e19a39c7ebe1fbaa97b39aab7975"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/proc_macro-0c07ff060e06c015.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/proc_macro-0c07ff060e06c015.umpire-id",
+      "size": 109,
+      "sha256": "49bdc4ae35164998f0968cac6ad688bcc9aee7da92872cc20c2b574a4d00b6d9",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/49bdc4ae35164998f0968cac6ad688bcc9aee7da92872cc20c2b574a4d00b6d9"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/prost-56abc82f06ab2a8b.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/prost-56abc82f06ab2a8b.umpire-id",
+      "size": 242,
+      "sha256": "78fc839f86e2b97fb410e0474ae64663051a58ccd145eec0f4a51116800f16a8",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/78fc839f86e2b97fb410e0474ae64663051a58ccd145eec0f4a51116800f16a8"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/prost_types-10c907dc5d820385.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/prost_types-10c907dc5d820385.umpire-id",
+      "size": 242,
+      "sha256": "78bd2e432347b6d450cf9af738f24b77bfd8f6f63a6ae2a9e4db2d62b31a8b52",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/78bd2e432347b6d450cf9af738f24b77bfd8f6f63a6ae2a9e4db2d62b31a8b52"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/rustc_demangle-81b16fae9c94da4d.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/rustc_demangle-81b16fae9c94da4d.umpire-id",
+      "size": 109,
+      "sha256": "45f447fad63a267290f836401895df6d608888863e9255c59761c20b1fe5dc6b",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/45f447fad63a267290f836401895df6d608888863e9255c59761c20b1fe5dc6b"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/rustc_hash-b89a28e22e2ae749.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/rustc_hash-b89a28e22e2ae749.umpire-id",
+      "size": 109,
+      "sha256": "e52e3cea5fbc6b898b167ff0c1c43b1aa39c15b135cd4120f2e2737a9afcc3ba",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/e52e3cea5fbc6b898b167ff0c1c43b1aa39c15b135cd4120f2e2737a9afcc3ba"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/rustc_literal_escaper-e9fc47435d3c0e1a.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/rustc_literal_escaper-e9fc47435d3c0e1a.umpire-id",
+      "size": 109,
+      "sha256": "c1b24093f6958890ac23ebf17e73bd15b81b3cc8111b08b5b7624226850b941c",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/c1b24093f6958890ac23ebf17e73bd15b81b3cc8111b08b5b7624226850b941c"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/rustc_std_workspace_alloc-c2674c78804632f7.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/rustc_std_workspace_alloc-c2674c78804632f7.umpire-id",
+      "size": 109,
+      "sha256": "60c3a99edfc91adf197bc35b83bf45cf93f64f9caff08359829d49abc51d15c7",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/60c3a99edfc91adf197bc35b83bf45cf93f64f9caff08359829d49abc51d15c7"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/rustc_std_workspace_core-6f2d9eb9e9811fd4.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/rustc_std_workspace_core-6f2d9eb9e9811fd4.umpire-id",
+      "size": 109,
+      "sha256": "e3c0b8ed75801e01c7fa3d2cb2fd063f7cf89072e44ce662df08d9ea9545b99c",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/e3c0b8ed75801e01c7fa3d2cb2fd063f7cf89072e44ce662df08d9ea9545b99c"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/smallvec-833d7999866c1279.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/smallvec-833d7999866c1279.umpire-id",
+      "size": 109,
+      "sha256": "f46122ea66ee968391e57548b8e990a5d112d8e57483a1496e3f90f1221bc83f",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/f46122ea66ee968391e57548b8e990a5d112d8e57483a1496e3f90f1221bc83f"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/std-76a3c866e1aa0810.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/std-76a3c866e1aa0810.umpire-id",
+      "size": 109,
+      "sha256": "b5d29300f6dc1a9c35694b3776ad740ff673a5193d07dd18788fbdd6db7dd0ea",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/b5d29300f6dc1a9c35694b3776ad740ff673a5193d07dd18788fbdd6db7dd0ea"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/std_detect-73af2212f1f209a7.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/std_detect-73af2212f1f209a7.umpire-id",
+      "size": 109,
+      "sha256": "2435b2ab99fd85d13f5b9999de82108d3151a08a0f6d3e8ed17e2597fca2407a",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/2435b2ab99fd85d13f5b9999de82108d3151a08a0f6d3e8ed17e2597fca2407a"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/thiserror-c6ddba7c2cc3b5e7.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/thiserror-c6ddba7c2cc3b5e7.umpire-id",
+      "size": 242,
+      "sha256": "49b06df8738db05c9962167f715427e26f573266a61897dd3695ef83bfb1b0de",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/49b06df8738db05c9962167f715427e26f573266a61897dd3695ef83bfb1b0de"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/umpire_catalog-a595fea2c117f1af.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/umpire_catalog-a595fea2c117f1af.umpire-id",
+      "size": 644,
+      "sha256": "ccc9b57ea1a8fdd53d0c96afbb9df65e9c60ffcacea97b61cf457ffc06382cb0",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/ccc9b57ea1a8fdd53d0c96afbb9df65e9c60ffcacea97b61cf457ffc06382cb0"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/umpire_checker-381a15ec5345062f.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/umpire_checker-381a15ec5345062f.umpire-id",
+      "size": 376,
+      "sha256": "6d0daadf0265f112bb936ab4d29b67b95a8287a0fb58b0336d08feaf3bf3c9ac",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/6d0daadf0265f112bb936ab4d29b67b95a8287a0fb58b0336d08feaf3bf3c9ac"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/umpire_dsl-57e77b0cf65c9d35.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/umpire_dsl-57e77b0cf65c9d35.umpire-id",
+      "size": 376,
+      "sha256": "a1a3224dfd42bb851749c022cf27e33d91d1bbbf0ed9ecb6094b9f98452fa6b9",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/a1a3224dfd42bb851749c022cf27e33d91d1bbbf0ed9ecb6094b9f98452fa6b9"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/umpire_runtime-3fa5c3ae0e0d78f8.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/umpire_runtime-3fa5c3ae0e0d78f8.umpire-id",
+      "size": 510,
+      "sha256": "5122f2eee3603d5cdf2ae95fefabc47f98f68e96f752d716a789bcda2820a189",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/5122f2eee3603d5cdf2ae95fefabc47f98f68e96f752d716a789bcda2820a189"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/umpire_temporal-017d6cfd89a1a082.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/umpire_temporal-017d6cfd89a1a082.umpire-id",
+      "size": 778,
+      "sha256": "1ff40db6162fa41f4287756164fbd45e576d723a30dbe8abd44cad8ab61da9da",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/1ff40db6162fa41f4287756164fbd45e576d723a30dbe8abd44cad8ab61da9da"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/umpire_temporal_api-aadfad2d6a5024dc.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/umpire_temporal_api-aadfad2d6a5024dc.umpire-id",
+      "size": 644,
+      "sha256": "e8cf19df9a39aa8d79a7ed0d9cabc00439c54128a917e038b1e3541b4818c2a8",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/e8cf19df9a39aa8d79a7ed0d9cabc00439c54128a917e038b1e3541b4818c2a8"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/umpire_temporal_guest.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/umpire_temporal_guest.umpire-id",
+      "size": 778,
+      "sha256": "282aedd94d389bbaa1ece3123f057af0c6bddd9b63909b14a37b2e43eb636efd",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/282aedd94d389bbaa1ece3123f057af0c6bddd9b63909b14a37b2e43eb636efd"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/unwind-d30f0132eb6d0e9e.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/unwind-d30f0132eb6d0e9e.umpire-id",
+      "size": 109,
+      "sha256": "ecbb6f965b216c13ad06b23a3f582c234df7e63f7cac7388700f0604aa65dafd",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/ecbb6f965b216c13ad06b23a3f582c234df7e63f7cac7388700f0604aa65dafd"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/wasip1-70660f1f0ab1374e.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/2cd9294e75a8f142bb5aa5b12868c8d048e895d7fb49a59c596be62a3e49a443/wasm32-wasip1/guest/deps/wasip1-70660f1f0ab1374e.umpire-id",
+      "size": 109,
+      "sha256": "099ec97ba64d44b300b4949598b8d0f77d3bd1f3c3429f42bdcf53a948519c7d",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/099ec97ba64d44b300b4949598b8d0f77d3bd1f3c3429f42bdcf53a948519c7d"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/guest/deps/darling_macro-57862c4d2c537235.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/guest/deps/darling_macro-57862c4d2c537235.umpire-id",
+      "size": 242,
+      "sha256": "bffab7fb32cef4a3b69d06b47389dde6b20d511ba85eb9818bc1d0a7d04521ae",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/bffab7fb32cef4a3b69d06b47389dde6b20d511ba85eb9818bc1d0a7d04521ae"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/guest/deps/manyhow_macros-522bb03fecc0c642.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/guest/deps/manyhow_macros-522bb03fecc0c642.umpire-id",
+      "size": 242,
+      "sha256": "dec8c77a23471e0b9d516146fc2a51c2e1154df5494478e77c577e36eef9197d",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/dec8c77a23471e0b9d516146fc2a51c2e1154df5494478e77c577e36eef9197d"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/guest/deps/prost_derive-43975aa2e4258748.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/guest/deps/prost_derive-43975aa2e4258748.umpire-id",
+      "size": 242,
+      "sha256": "4114a76e1bae5345710061f8f89d4658410d6e8da6edf6e0828163ba8415b7bd",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/4114a76e1bae5345710061f8f89d4658410d6e8da6edf6e0828163ba8415b7bd"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/guest/deps/thiserror_impl-d9ec474b72def7c1.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/guest/deps/thiserror_impl-d9ec474b72def7c1.umpire-id",
+      "size": 242,
+      "sha256": "1d4ea615322b7be9e2f9bb6a290240e425ec7012f1ff2d7fb980fc76878acb4e",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/1d4ea615322b7be9e2f9bb6a290240e425ec7012f1ff2d7fb980fc76878acb4e"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/guest/deps/umpire_catalog_macros-0fe0d4d2ba8cbccc.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/guest/deps/umpire_catalog_macros-0fe0d4d2ba8cbccc.umpire-id",
+      "size": 242,
+      "sha256": "f68e42e872c11184252d824b8791b6c200f91cd654346e843fedbd2af3a9d490",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/f68e42e872c11184252d824b8791b6c200f91cd654346e843fedbd2af3a9d490"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/guest/deps/umpire_dsl_macros-0dd337153709295e.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/guest/deps/umpire_dsl_macros-0dd337153709295e.umpire-id",
+      "size": 242,
+      "sha256": "2de99ee6a2474b9122b03fb193085a9a7a1e2087f6a8797f4055dc4f3e3bf381",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/2de99ee6a2474b9122b03fb193085a9a7a1e2087f6a8797f4055dc4f3e3bf381"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/guest/deps/umpire_ir_derive-eadee7e9b2e5f1ed.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/guest/deps/umpire_ir_derive-eadee7e9b2e5f1ed.umpire-id",
+      "size": 242,
+      "sha256": "fc23bec21dc312eb0c119dc265c02018e2d8771006e94aeb1b5e5d523c5da5d4",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/fc23bec21dc312eb0c119dc265c02018e2d8771006e94aeb1b5e5d523c5da5d4"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/guest/deps/umpire_temporal_realization_macros-48b86c088eaad4ce.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/guest/deps/umpire_temporal_realization_macros-48b86c088eaad4ce.umpire-id",
+      "size": 242,
+      "sha256": "d5209ac4f1611bb5e79eacb55c7517cdf9a7ad3d9f7c7420e9f3fa67c3536752",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/d5209ac4f1611bb5e79eacb55c7517cdf9a7ad3d9f7c7420e9f3fa67c3536752"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/addr2line-255ee5934a3d8660.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/addr2line-255ee5934a3d8660.umpire-id",
+      "size": 109,
+      "sha256": "6cff5b14af149f08f65bdee5af5ab516ee60a7c71be53d28bf92d19be31194ef",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/6cff5b14af149f08f65bdee5af5ab516ee60a7c71be53d28bf92d19be31194ef"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/adler2-dcfe9e712de83524.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/adler2-dcfe9e712de83524.umpire-id",
+      "size": 109,
+      "sha256": "83f7663741bc1c9a817a3e68198050884ff6fbff0bfd875054ecb5a889a146da",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/83f7663741bc1c9a817a3e68198050884ff6fbff0bfd875054ecb5a889a146da"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/alloc-ee1b94c4e41bab4b.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/alloc-ee1b94c4e41bab4b.umpire-id",
+      "size": 109,
+      "sha256": "c54486ec14418ab81682808acf2b54d1e75c9361658da356da261baab4272e51",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/c54486ec14418ab81682808acf2b54d1e75c9361658da356da261baab4272e51"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/bytes-65a877ea08f4b25c.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/bytes-65a877ea08f4b25c.umpire-id",
+      "size": 109,
+      "sha256": "183467fcc2bd4cce9db23ab8797fcadcf0f964c059de41097e3c13704599e979",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/183467fcc2bd4cce9db23ab8797fcadcf0f964c059de41097e3c13704599e979"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/cfg_if-b5eb0e6e1854091e.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/cfg_if-b5eb0e6e1854091e.umpire-id",
+      "size": 109,
+      "sha256": "88152b02e5e95927971c95a2720970aa34e6db8f004b2f226ab3bb2944c5598e",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/88152b02e5e95927971c95a2720970aa34e6db8f004b2f226ab3bb2944c5598e"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/compiler_builtins-6ffcd43c04af33f9.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/compiler_builtins-6ffcd43c04af33f9.umpire-id",
+      "size": 109,
+      "sha256": "eefbef0bf2bac7279dfc2a0c0223ba626a86b438e96e96e89111a10f5ca0fc46",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/eefbef0bf2bac7279dfc2a0c0223ba626a86b438e96e96e89111a10f5ca0fc46"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/core-60364901c1ec5ea7.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/core-60364901c1ec5ea7.umpire-id",
+      "size": 109,
+      "sha256": "b9727ac727b8f72ca949a355b6449917d142c19ab3e433ec4e2ba9ca7de90128",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/b9727ac727b8f72ca949a355b6449917d142c19ab3e433ec4e2ba9ca7de90128"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/equivalent-f1c0d3e51dc60161.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/equivalent-f1c0d3e51dc60161.umpire-id",
+      "size": 109,
+      "sha256": "595813e7fc7698038fe41e38365004177434bfc2e2e571842498f1bbf35482a6",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/595813e7fc7698038fe41e38365004177434bfc2e2e571842498f1bbf35482a6"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/fixedbitset-356c64dc03150e9a.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/fixedbitset-356c64dc03150e9a.umpire-id",
+      "size": 109,
+      "sha256": "860a0d06963f7165d5782e5a20a88c88d5c279f48cb55490950e002b6698e174",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/860a0d06963f7165d5782e5a20a88c88d5c279f48cb55490950e002b6698e174"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/foldhash-3e7f58451663f456.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/foldhash-3e7f58451663f456.umpire-id",
+      "size": 109,
+      "sha256": "8fbd48db3863d7242d44096915e2b058c3d0ebf1ec2c0ada7e6c57f0f185e837",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/8fbd48db3863d7242d44096915e2b058c3d0ebf1ec2c0ada7e6c57f0f185e837"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/gimli-0b043c20b392a812.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/gimli-0b043c20b392a812.umpire-id",
+      "size": 109,
+      "sha256": "5731e2e65506610278e13ab52925dbcfdcd3b0f63387093875f4c8215cd03899",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/5731e2e65506610278e13ab52925dbcfdcd3b0f63387093875f4c8215cd03899"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/hashbrown-73a47db5d20f8095.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/hashbrown-73a47db5d20f8095.umpire-id",
+      "size": 109,
+      "sha256": "ead5ad2e2de582738c1b45d9d3baf289e7d66fe6316ef5b2eef50bd03d3c53e7",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/ead5ad2e2de582738c1b45d9d3baf289e7d66fe6316ef5b2eef50bd03d3c53e7"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/hashbrown-cf473af66d91d5b2.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/hashbrown-cf473af66d91d5b2.umpire-id",
+      "size": 109,
+      "sha256": "2b5639c2ae7fc2a2d22013727d7b6c9285a152f14f8626f36081fd86fe151c38",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/2b5639c2ae7fc2a2d22013727d7b6c9285a152f14f8626f36081fd86fe151c38"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/hashbrown-d03968f63b3a8ee3.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/hashbrown-d03968f63b3a8ee3.umpire-id",
+      "size": 109,
+      "sha256": "33100523db4db01e4d09873995914ff4d1756e1d781b895d53e3f440b2909a9d",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/33100523db4db01e4d09873995914ff4d1756e1d781b895d53e3f440b2909a9d"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/indexmap-e3af5fa5c6133605.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/indexmap-e3af5fa5c6133605.umpire-id",
+      "size": 109,
+      "sha256": "51608bc1c3d6be69a279060dd83c9139e68f47c5fcdc8b9c3a6192ed7c5d2185",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/51608bc1c3d6be69a279060dd83c9139e68f47c5fcdc8b9c3a6192ed7c5d2185"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/libc-8bcdf4d93a2fcdc7.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/libc-8bcdf4d93a2fcdc7.umpire-id",
+      "size": 109,
+      "sha256": "82d069a2c0300b22914858a11878c70b2cfac546f525a9eebb09234c81044403",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/82d069a2c0300b22914858a11878c70b2cfac546f525a9eebb09234c81044403"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/memchr-0ab2081f1519fc00.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/memchr-0ab2081f1519fc00.umpire-id",
+      "size": 109,
+      "sha256": "6bd54a84e3afb2e012a3e2369a8d301951e31a37d94c663b83b93359117d2278",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/6bd54a84e3afb2e012a3e2369a8d301951e31a37d94c663b83b93359117d2278"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/miniz_oxide-21e596a6bf8f2e58.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/miniz_oxide-21e596a6bf8f2e58.umpire-id",
+      "size": 109,
+      "sha256": "5e5f7359504c3236a85da6df9d35ea7b5ae9bd1c94b6310f75a18ac32e732f32",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/5e5f7359504c3236a85da6df9d35ea7b5ae9bd1c94b6310f75a18ac32e732f32"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/object-804fc83b706b6d74.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/object-804fc83b706b6d74.umpire-id",
+      "size": 109,
+      "sha256": "5fa40a5950f04059e5f71d03d48d05fca7847818a6b4046884d3c50472614967",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/5fa40a5950f04059e5f71d03d48d05fca7847818a6b4046884d3c50472614967"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/panic_abort-7056431d09fb88ab.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/panic_abort-7056431d09fb88ab.umpire-id",
+      "size": 109,
+      "sha256": "8eace0f464f85097709e4fea3e7cf7ccddbdb61afc1f4c773b6096ae3e9b7a31",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/8eace0f464f85097709e4fea3e7cf7ccddbdb61afc1f4c773b6096ae3e9b7a31"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/panic_unwind-47e5619adda0bdbc.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/panic_unwind-47e5619adda0bdbc.umpire-id",
+      "size": 109,
+      "sha256": "443c0ea7927e47ab1dc14fa4f29abec54fdd50e6937d7570292fb79c2c0eea3a",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/443c0ea7927e47ab1dc14fa4f29abec54fdd50e6937d7570292fb79c2c0eea3a"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/petgraph-6e633b6a91d6ca32.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/petgraph-6e633b6a91d6ca32.umpire-id",
+      "size": 109,
+      "sha256": "ad4e27e4af94cc3f14ad30c9f78de6961465e19a39c7ebe1fbaa97b39aab7975",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/ad4e27e4af94cc3f14ad30c9f78de6961465e19a39c7ebe1fbaa97b39aab7975"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/proc_macro-0c07ff060e06c015.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/proc_macro-0c07ff060e06c015.umpire-id",
+      "size": 109,
+      "sha256": "49bdc4ae35164998f0968cac6ad688bcc9aee7da92872cc20c2b574a4d00b6d9",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/49bdc4ae35164998f0968cac6ad688bcc9aee7da92872cc20c2b574a4d00b6d9"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/prost-56abc82f06ab2a8b.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/prost-56abc82f06ab2a8b.umpire-id",
+      "size": 242,
+      "sha256": "78fc839f86e2b97fb410e0474ae64663051a58ccd145eec0f4a51116800f16a8",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/78fc839f86e2b97fb410e0474ae64663051a58ccd145eec0f4a51116800f16a8"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/prost_types-10c907dc5d820385.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/prost_types-10c907dc5d820385.umpire-id",
+      "size": 242,
+      "sha256": "78bd2e432347b6d450cf9af738f24b77bfd8f6f63a6ae2a9e4db2d62b31a8b52",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/78bd2e432347b6d450cf9af738f24b77bfd8f6f63a6ae2a9e4db2d62b31a8b52"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/rustc_demangle-81b16fae9c94da4d.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/rustc_demangle-81b16fae9c94da4d.umpire-id",
+      "size": 109,
+      "sha256": "45f447fad63a267290f836401895df6d608888863e9255c59761c20b1fe5dc6b",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/45f447fad63a267290f836401895df6d608888863e9255c59761c20b1fe5dc6b"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/rustc_hash-b89a28e22e2ae749.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/rustc_hash-b89a28e22e2ae749.umpire-id",
+      "size": 109,
+      "sha256": "e52e3cea5fbc6b898b167ff0c1c43b1aa39c15b135cd4120f2e2737a9afcc3ba",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/e52e3cea5fbc6b898b167ff0c1c43b1aa39c15b135cd4120f2e2737a9afcc3ba"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/rustc_literal_escaper-e9fc47435d3c0e1a.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/rustc_literal_escaper-e9fc47435d3c0e1a.umpire-id",
+      "size": 109,
+      "sha256": "c1b24093f6958890ac23ebf17e73bd15b81b3cc8111b08b5b7624226850b941c",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/c1b24093f6958890ac23ebf17e73bd15b81b3cc8111b08b5b7624226850b941c"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/rustc_std_workspace_alloc-c2674c78804632f7.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/rustc_std_workspace_alloc-c2674c78804632f7.umpire-id",
+      "size": 109,
+      "sha256": "60c3a99edfc91adf197bc35b83bf45cf93f64f9caff08359829d49abc51d15c7",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/60c3a99edfc91adf197bc35b83bf45cf93f64f9caff08359829d49abc51d15c7"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/rustc_std_workspace_core-6f2d9eb9e9811fd4.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/rustc_std_workspace_core-6f2d9eb9e9811fd4.umpire-id",
+      "size": 109,
+      "sha256": "e3c0b8ed75801e01c7fa3d2cb2fd063f7cf89072e44ce662df08d9ea9545b99c",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/e3c0b8ed75801e01c7fa3d2cb2fd063f7cf89072e44ce662df08d9ea9545b99c"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/smallvec-833d7999866c1279.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/smallvec-833d7999866c1279.umpire-id",
+      "size": 109,
+      "sha256": "f46122ea66ee968391e57548b8e990a5d112d8e57483a1496e3f90f1221bc83f",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/f46122ea66ee968391e57548b8e990a5d112d8e57483a1496e3f90f1221bc83f"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/std-76a3c866e1aa0810.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/std-76a3c866e1aa0810.umpire-id",
+      "size": 109,
+      "sha256": "b5d29300f6dc1a9c35694b3776ad740ff673a5193d07dd18788fbdd6db7dd0ea",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/b5d29300f6dc1a9c35694b3776ad740ff673a5193d07dd18788fbdd6db7dd0ea"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/std_detect-73af2212f1f209a7.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/std_detect-73af2212f1f209a7.umpire-id",
+      "size": 109,
+      "sha256": "2435b2ab99fd85d13f5b9999de82108d3151a08a0f6d3e8ed17e2597fca2407a",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/2435b2ab99fd85d13f5b9999de82108d3151a08a0f6d3e8ed17e2597fca2407a"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/thiserror-c6ddba7c2cc3b5e7.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/thiserror-c6ddba7c2cc3b5e7.umpire-id",
+      "size": 242,
+      "sha256": "49b06df8738db05c9962167f715427e26f573266a61897dd3695ef83bfb1b0de",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/49b06df8738db05c9962167f715427e26f573266a61897dd3695ef83bfb1b0de"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/umpire_catalog-a595fea2c117f1af.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/umpire_catalog-a595fea2c117f1af.umpire-id",
+      "size": 644,
+      "sha256": "ccc9b57ea1a8fdd53d0c96afbb9df65e9c60ffcacea97b61cf457ffc06382cb0",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/ccc9b57ea1a8fdd53d0c96afbb9df65e9c60ffcacea97b61cf457ffc06382cb0"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/umpire_checker-381a15ec5345062f.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/umpire_checker-381a15ec5345062f.umpire-id",
+      "size": 376,
+      "sha256": "6d0daadf0265f112bb936ab4d29b67b95a8287a0fb58b0336d08feaf3bf3c9ac",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/6d0daadf0265f112bb936ab4d29b67b95a8287a0fb58b0336d08feaf3bf3c9ac"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/umpire_dsl-57e77b0cf65c9d35.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/umpire_dsl-57e77b0cf65c9d35.umpire-id",
+      "size": 376,
+      "sha256": "a1a3224dfd42bb851749c022cf27e33d91d1bbbf0ed9ecb6094b9f98452fa6b9",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/a1a3224dfd42bb851749c022cf27e33d91d1bbbf0ed9ecb6094b9f98452fa6b9"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/umpire_runtime-3fa5c3ae0e0d78f8.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/umpire_runtime-3fa5c3ae0e0d78f8.umpire-id",
+      "size": 510,
+      "sha256": "5122f2eee3603d5cdf2ae95fefabc47f98f68e96f752d716a789bcda2820a189",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/5122f2eee3603d5cdf2ae95fefabc47f98f68e96f752d716a789bcda2820a189"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/umpire_temporal-017d6cfd89a1a082.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/umpire_temporal-017d6cfd89a1a082.umpire-id",
+      "size": 778,
+      "sha256": "1ff40db6162fa41f4287756164fbd45e576d723a30dbe8abd44cad8ab61da9da",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/1ff40db6162fa41f4287756164fbd45e576d723a30dbe8abd44cad8ab61da9da"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/umpire_temporal_api-aadfad2d6a5024dc.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/umpire_temporal_api-aadfad2d6a5024dc.umpire-id",
+      "size": 644,
+      "sha256": "e8cf19df9a39aa8d79a7ed0d9cabc00439c54128a917e038b1e3541b4818c2a8",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/e8cf19df9a39aa8d79a7ed0d9cabc00439c54128a917e038b1e3541b4818c2a8"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/umpire_temporal_guest.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/umpire_temporal_guest.umpire-id",
+      "size": 778,
+      "sha256": "282aedd94d389bbaa1ece3123f057af0c6bddd9b63909b14a37b2e43eb636efd",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/282aedd94d389bbaa1ece3123f057af0c6bddd9b63909b14a37b2e43eb636efd"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/unwind-d30f0132eb6d0e9e.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/unwind-d30f0132eb6d0e9e.umpire-id",
+      "size": 109,
+      "sha256": "ecbb6f965b216c13ad06b23a3f582c234df7e63f7cac7388700f0604aa65dafd",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/ecbb6f965b216c13ad06b23a3f582c234df7e63f7cac7388700f0604aa65dafd"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/wasip1-70660f1f0ab1374e.umpire-id",
+      "destination": "identity/fn258-consumer/guest-cache/5fa6f6aa99fb4fdbb6e9088a245ecf392171e65248d1511a6c66ec654cfbded4/wasm32-wasip1/guest/deps/wasip1-70660f1f0ab1374e.umpire-id",
+      "size": 109,
+      "sha256": "099ec97ba64d44b300b4949598b8d0f77d3bd1f3c3429f42bdcf53a948519c7d",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/099ec97ba64d44b300b4949598b8d0f77d3bd1f3c3429f42bdcf53a948519c7d"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/umpire-lock-6a91e54ea1e9c446a1705776a774988983cbed160cfbfe49eac6c1ea3e123048.json",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/umpire-lock-6a91e54ea1e9c446a1705776a774988983cbed160cfbfe49eac6c1ea3e123048.json",
+      "size": 11033,
+      "sha256": "6a91e54ea1e9c446a1705776a774988983cbed160cfbfe49eac6c1ea3e123048",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/6a91e54ea1e9c446a1705776a774988983cbed160cfbfe49eac6c1ea3e123048"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/guest/deps/darling_macro-57862c4d2c537235.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/guest/deps/darling_macro-57862c4d2c537235.umpire-id",
+      "size": 242,
+      "sha256": "bffab7fb32cef4a3b69d06b47389dde6b20d511ba85eb9818bc1d0a7d04521ae",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/bffab7fb32cef4a3b69d06b47389dde6b20d511ba85eb9818bc1d0a7d04521ae"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/guest/deps/manyhow_macros-522bb03fecc0c642.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/guest/deps/manyhow_macros-522bb03fecc0c642.umpire-id",
+      "size": 242,
+      "sha256": "dec8c77a23471e0b9d516146fc2a51c2e1154df5494478e77c577e36eef9197d",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/dec8c77a23471e0b9d516146fc2a51c2e1154df5494478e77c577e36eef9197d"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/guest/deps/prost_derive-43975aa2e4258748.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/guest/deps/prost_derive-43975aa2e4258748.umpire-id",
+      "size": 242,
+      "sha256": "4114a76e1bae5345710061f8f89d4658410d6e8da6edf6e0828163ba8415b7bd",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/4114a76e1bae5345710061f8f89d4658410d6e8da6edf6e0828163ba8415b7bd"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/guest/deps/thiserror_impl-d9ec474b72def7c1.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/guest/deps/thiserror_impl-d9ec474b72def7c1.umpire-id",
+      "size": 242,
+      "sha256": "1d4ea615322b7be9e2f9bb6a290240e425ec7012f1ff2d7fb980fc76878acb4e",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/1d4ea615322b7be9e2f9bb6a290240e425ec7012f1ff2d7fb980fc76878acb4e"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/guest/deps/umpire_catalog_macros-708a1ce4f05daa6c.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/guest/deps/umpire_catalog_macros-708a1ce4f05daa6c.umpire-id",
+      "size": 242,
+      "sha256": "79c309947af45de81f823ecd58ab3b8ae93b0d611c3c96ac1b32f77ae4eb5301",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/79c309947af45de81f823ecd58ab3b8ae93b0d611c3c96ac1b32f77ae4eb5301"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/guest/deps/umpire_dsl_macros-e47d4bdc0843a133.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/guest/deps/umpire_dsl_macros-e47d4bdc0843a133.umpire-id",
+      "size": 242,
+      "sha256": "2714871637444c09addf58f345460a3cef6ab33a9cefdcaedd95696242f6c8f7",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/2714871637444c09addf58f345460a3cef6ab33a9cefdcaedd95696242f6c8f7"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/guest/deps/umpire_ir_derive-e3cd422f54e8749a.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/guest/deps/umpire_ir_derive-e3cd422f54e8749a.umpire-id",
+      "size": 242,
+      "sha256": "f05cd1cd068de0b94100db07036bda43167b59eef7ae19f64f8c29a2b66aef10",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/f05cd1cd068de0b94100db07036bda43167b59eef7ae19f64f8c29a2b66aef10"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/guest/deps/umpire_temporal_realization_macros-aaa785a0fd4e2d98.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/guest/deps/umpire_temporal_realization_macros-aaa785a0fd4e2d98.umpire-id",
+      "size": 242,
+      "sha256": "93bba953a81bf86d5a844a6cc42c73cb893fcf6f9e86a78f28d14def0ad51afd",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/93bba953a81bf86d5a844a6cc42c73cb893fcf6f9e86a78f28d14def0ad51afd"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/addr2line-255ee5934a3d8660.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/addr2line-255ee5934a3d8660.umpire-id",
+      "size": 109,
+      "sha256": "6cff5b14af149f08f65bdee5af5ab516ee60a7c71be53d28bf92d19be31194ef",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/6cff5b14af149f08f65bdee5af5ab516ee60a7c71be53d28bf92d19be31194ef"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/adler2-dcfe9e712de83524.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/adler2-dcfe9e712de83524.umpire-id",
+      "size": 109,
+      "sha256": "83f7663741bc1c9a817a3e68198050884ff6fbff0bfd875054ecb5a889a146da",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/83f7663741bc1c9a817a3e68198050884ff6fbff0bfd875054ecb5a889a146da"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/alloc-ee1b94c4e41bab4b.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/alloc-ee1b94c4e41bab4b.umpire-id",
+      "size": 109,
+      "sha256": "c54486ec14418ab81682808acf2b54d1e75c9361658da356da261baab4272e51",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/c54486ec14418ab81682808acf2b54d1e75c9361658da356da261baab4272e51"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/bytes-65a877ea08f4b25c.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/bytes-65a877ea08f4b25c.umpire-id",
+      "size": 109,
+      "sha256": "183467fcc2bd4cce9db23ab8797fcadcf0f964c059de41097e3c13704599e979",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/183467fcc2bd4cce9db23ab8797fcadcf0f964c059de41097e3c13704599e979"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/cfg_if-b5eb0e6e1854091e.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/cfg_if-b5eb0e6e1854091e.umpire-id",
+      "size": 109,
+      "sha256": "88152b02e5e95927971c95a2720970aa34e6db8f004b2f226ab3bb2944c5598e",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/88152b02e5e95927971c95a2720970aa34e6db8f004b2f226ab3bb2944c5598e"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/compiler_builtins-6ffcd43c04af33f9.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/compiler_builtins-6ffcd43c04af33f9.umpire-id",
+      "size": 109,
+      "sha256": "eefbef0bf2bac7279dfc2a0c0223ba626a86b438e96e96e89111a10f5ca0fc46",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/eefbef0bf2bac7279dfc2a0c0223ba626a86b438e96e96e89111a10f5ca0fc46"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/core-60364901c1ec5ea7.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/core-60364901c1ec5ea7.umpire-id",
+      "size": 109,
+      "sha256": "b9727ac727b8f72ca949a355b6449917d142c19ab3e433ec4e2ba9ca7de90128",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/b9727ac727b8f72ca949a355b6449917d142c19ab3e433ec4e2ba9ca7de90128"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/equivalent-f1c0d3e51dc60161.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/equivalent-f1c0d3e51dc60161.umpire-id",
+      "size": 109,
+      "sha256": "595813e7fc7698038fe41e38365004177434bfc2e2e571842498f1bbf35482a6",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/595813e7fc7698038fe41e38365004177434bfc2e2e571842498f1bbf35482a6"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/fixedbitset-356c64dc03150e9a.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/fixedbitset-356c64dc03150e9a.umpire-id",
+      "size": 109,
+      "sha256": "860a0d06963f7165d5782e5a20a88c88d5c279f48cb55490950e002b6698e174",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/860a0d06963f7165d5782e5a20a88c88d5c279f48cb55490950e002b6698e174"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/foldhash-3e7f58451663f456.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/foldhash-3e7f58451663f456.umpire-id",
+      "size": 109,
+      "sha256": "8fbd48db3863d7242d44096915e2b058c3d0ebf1ec2c0ada7e6c57f0f185e837",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/8fbd48db3863d7242d44096915e2b058c3d0ebf1ec2c0ada7e6c57f0f185e837"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/gimli-0b043c20b392a812.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/gimli-0b043c20b392a812.umpire-id",
+      "size": 109,
+      "sha256": "5731e2e65506610278e13ab52925dbcfdcd3b0f63387093875f4c8215cd03899",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/5731e2e65506610278e13ab52925dbcfdcd3b0f63387093875f4c8215cd03899"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/hashbrown-73a47db5d20f8095.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/hashbrown-73a47db5d20f8095.umpire-id",
+      "size": 109,
+      "sha256": "ead5ad2e2de582738c1b45d9d3baf289e7d66fe6316ef5b2eef50bd03d3c53e7",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/ead5ad2e2de582738c1b45d9d3baf289e7d66fe6316ef5b2eef50bd03d3c53e7"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/hashbrown-cf473af66d91d5b2.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/hashbrown-cf473af66d91d5b2.umpire-id",
+      "size": 109,
+      "sha256": "2b5639c2ae7fc2a2d22013727d7b6c9285a152f14f8626f36081fd86fe151c38",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/2b5639c2ae7fc2a2d22013727d7b6c9285a152f14f8626f36081fd86fe151c38"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/hashbrown-d03968f63b3a8ee3.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/hashbrown-d03968f63b3a8ee3.umpire-id",
+      "size": 109,
+      "sha256": "33100523db4db01e4d09873995914ff4d1756e1d781b895d53e3f440b2909a9d",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/33100523db4db01e4d09873995914ff4d1756e1d781b895d53e3f440b2909a9d"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/indexmap-e3af5fa5c6133605.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/indexmap-e3af5fa5c6133605.umpire-id",
+      "size": 109,
+      "sha256": "51608bc1c3d6be69a279060dd83c9139e68f47c5fcdc8b9c3a6192ed7c5d2185",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/51608bc1c3d6be69a279060dd83c9139e68f47c5fcdc8b9c3a6192ed7c5d2185"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/libc-8bcdf4d93a2fcdc7.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/libc-8bcdf4d93a2fcdc7.umpire-id",
+      "size": 109,
+      "sha256": "82d069a2c0300b22914858a11878c70b2cfac546f525a9eebb09234c81044403",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/82d069a2c0300b22914858a11878c70b2cfac546f525a9eebb09234c81044403"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/memchr-0ab2081f1519fc00.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/memchr-0ab2081f1519fc00.umpire-id",
+      "size": 109,
+      "sha256": "6bd54a84e3afb2e012a3e2369a8d301951e31a37d94c663b83b93359117d2278",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/6bd54a84e3afb2e012a3e2369a8d301951e31a37d94c663b83b93359117d2278"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/miniz_oxide-21e596a6bf8f2e58.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/miniz_oxide-21e596a6bf8f2e58.umpire-id",
+      "size": 109,
+      "sha256": "5e5f7359504c3236a85da6df9d35ea7b5ae9bd1c94b6310f75a18ac32e732f32",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/5e5f7359504c3236a85da6df9d35ea7b5ae9bd1c94b6310f75a18ac32e732f32"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/object-804fc83b706b6d74.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/object-804fc83b706b6d74.umpire-id",
+      "size": 109,
+      "sha256": "5fa40a5950f04059e5f71d03d48d05fca7847818a6b4046884d3c50472614967",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/5fa40a5950f04059e5f71d03d48d05fca7847818a6b4046884d3c50472614967"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/panic_abort-7056431d09fb88ab.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/panic_abort-7056431d09fb88ab.umpire-id",
+      "size": 109,
+      "sha256": "8eace0f464f85097709e4fea3e7cf7ccddbdb61afc1f4c773b6096ae3e9b7a31",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/8eace0f464f85097709e4fea3e7cf7ccddbdb61afc1f4c773b6096ae3e9b7a31"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/panic_unwind-47e5619adda0bdbc.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/panic_unwind-47e5619adda0bdbc.umpire-id",
+      "size": 109,
+      "sha256": "443c0ea7927e47ab1dc14fa4f29abec54fdd50e6937d7570292fb79c2c0eea3a",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/443c0ea7927e47ab1dc14fa4f29abec54fdd50e6937d7570292fb79c2c0eea3a"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/petgraph-6e633b6a91d6ca32.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/petgraph-6e633b6a91d6ca32.umpire-id",
+      "size": 109,
+      "sha256": "ad4e27e4af94cc3f14ad30c9f78de6961465e19a39c7ebe1fbaa97b39aab7975",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/ad4e27e4af94cc3f14ad30c9f78de6961465e19a39c7ebe1fbaa97b39aab7975"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/proc_macro-0c07ff060e06c015.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/proc_macro-0c07ff060e06c015.umpire-id",
+      "size": 109,
+      "sha256": "49bdc4ae35164998f0968cac6ad688bcc9aee7da92872cc20c2b574a4d00b6d9",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/49bdc4ae35164998f0968cac6ad688bcc9aee7da92872cc20c2b574a4d00b6d9"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/prost-56abc82f06ab2a8b.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/prost-56abc82f06ab2a8b.umpire-id",
+      "size": 242,
+      "sha256": "78fc839f86e2b97fb410e0474ae64663051a58ccd145eec0f4a51116800f16a8",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/78fc839f86e2b97fb410e0474ae64663051a58ccd145eec0f4a51116800f16a8"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/prost_types-10c907dc5d820385.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/prost_types-10c907dc5d820385.umpire-id",
+      "size": 242,
+      "sha256": "78bd2e432347b6d450cf9af738f24b77bfd8f6f63a6ae2a9e4db2d62b31a8b52",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/78bd2e432347b6d450cf9af738f24b77bfd8f6f63a6ae2a9e4db2d62b31a8b52"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/rustc_demangle-81b16fae9c94da4d.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/rustc_demangle-81b16fae9c94da4d.umpire-id",
+      "size": 109,
+      "sha256": "45f447fad63a267290f836401895df6d608888863e9255c59761c20b1fe5dc6b",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/45f447fad63a267290f836401895df6d608888863e9255c59761c20b1fe5dc6b"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/rustc_hash-b89a28e22e2ae749.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/rustc_hash-b89a28e22e2ae749.umpire-id",
+      "size": 109,
+      "sha256": "e52e3cea5fbc6b898b167ff0c1c43b1aa39c15b135cd4120f2e2737a9afcc3ba",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/e52e3cea5fbc6b898b167ff0c1c43b1aa39c15b135cd4120f2e2737a9afcc3ba"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/rustc_literal_escaper-e9fc47435d3c0e1a.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/rustc_literal_escaper-e9fc47435d3c0e1a.umpire-id",
+      "size": 109,
+      "sha256": "c1b24093f6958890ac23ebf17e73bd15b81b3cc8111b08b5b7624226850b941c",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/c1b24093f6958890ac23ebf17e73bd15b81b3cc8111b08b5b7624226850b941c"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/rustc_std_workspace_alloc-c2674c78804632f7.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/rustc_std_workspace_alloc-c2674c78804632f7.umpire-id",
+      "size": 109,
+      "sha256": "60c3a99edfc91adf197bc35b83bf45cf93f64f9caff08359829d49abc51d15c7",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/60c3a99edfc91adf197bc35b83bf45cf93f64f9caff08359829d49abc51d15c7"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/rustc_std_workspace_core-6f2d9eb9e9811fd4.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/rustc_std_workspace_core-6f2d9eb9e9811fd4.umpire-id",
+      "size": 109,
+      "sha256": "e3c0b8ed75801e01c7fa3d2cb2fd063f7cf89072e44ce662df08d9ea9545b99c",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/e3c0b8ed75801e01c7fa3d2cb2fd063f7cf89072e44ce662df08d9ea9545b99c"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/smallvec-833d7999866c1279.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/smallvec-833d7999866c1279.umpire-id",
+      "size": 109,
+      "sha256": "f46122ea66ee968391e57548b8e990a5d112d8e57483a1496e3f90f1221bc83f",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/f46122ea66ee968391e57548b8e990a5d112d8e57483a1496e3f90f1221bc83f"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/std-76a3c866e1aa0810.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/std-76a3c866e1aa0810.umpire-id",
+      "size": 109,
+      "sha256": "b5d29300f6dc1a9c35694b3776ad740ff673a5193d07dd18788fbdd6db7dd0ea",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/b5d29300f6dc1a9c35694b3776ad740ff673a5193d07dd18788fbdd6db7dd0ea"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/std_detect-73af2212f1f209a7.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/std_detect-73af2212f1f209a7.umpire-id",
+      "size": 109,
+      "sha256": "2435b2ab99fd85d13f5b9999de82108d3151a08a0f6d3e8ed17e2597fca2407a",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/2435b2ab99fd85d13f5b9999de82108d3151a08a0f6d3e8ed17e2597fca2407a"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/thiserror-c6ddba7c2cc3b5e7.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/thiserror-c6ddba7c2cc3b5e7.umpire-id",
+      "size": 242,
+      "sha256": "49b06df8738db05c9962167f715427e26f573266a61897dd3695ef83bfb1b0de",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/49b06df8738db05c9962167f715427e26f573266a61897dd3695ef83bfb1b0de"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/umpire_catalog-3c4f93c6d675d36e.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/umpire_catalog-3c4f93c6d675d36e.umpire-id",
+      "size": 644,
+      "sha256": "a36e2475ce293eddb430a88fcf5a73325411b086d5b96a07a8918bcac86f1a5f",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/a36e2475ce293eddb430a88fcf5a73325411b086d5b96a07a8918bcac86f1a5f"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/umpire_checker-c20c5830cffcf847.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/umpire_checker-c20c5830cffcf847.umpire-id",
+      "size": 376,
+      "sha256": "918a82eaa0e327c8624ec8be695fd9cccc103f96e82eb93c993547b4902e9141",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/918a82eaa0e327c8624ec8be695fd9cccc103f96e82eb93c993547b4902e9141"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/umpire_dsl-5764e0efd2918ab9.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/umpire_dsl-5764e0efd2918ab9.umpire-id",
+      "size": 376,
+      "sha256": "d7e821cc197ef37f28a7298a68120b22ca34106cdd18ea7999252aaa25916297",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/d7e821cc197ef37f28a7298a68120b22ca34106cdd18ea7999252aaa25916297"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/umpire_runtime-e77832d4d21d41ff.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/umpire_runtime-e77832d4d21d41ff.umpire-id",
+      "size": 510,
+      "sha256": "b9bca1ecd49dd13fcb69690fbb31aed5b2581e973fc7fed41159a0b76581e540",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/b9bca1ecd49dd13fcb69690fbb31aed5b2581e973fc7fed41159a0b76581e540"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/umpire_temporal-7a376e467fff0f35.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/umpire_temporal-7a376e467fff0f35.umpire-id",
+      "size": 778,
+      "sha256": "b1240be8993e6f0b93503094de99d920e88672672c4412f3df2afe116ce55192",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/b1240be8993e6f0b93503094de99d920e88672672c4412f3df2afe116ce55192"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/umpire_temporal_api-a4794aa6e98f0e20.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/umpire_temporal_api-a4794aa6e98f0e20.umpire-id",
+      "size": 644,
+      "sha256": "c5034e290b5b8651b7d8b8f736b399e7932827b7654685a29e7f44ffaf9cc721",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/c5034e290b5b8651b7d8b8f736b399e7932827b7654685a29e7f44ffaf9cc721"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/umpire_temporal_guest.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/umpire_temporal_guest.umpire-id",
+      "size": 778,
+      "sha256": "bee2a3cebaa41b7a1f709268ac52e4aa6186c471c2b498ca4218ea7a4763a0ed",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/bee2a3cebaa41b7a1f709268ac52e4aa6186c471c2b498ca4218ea7a4763a0ed"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/unwind-d30f0132eb6d0e9e.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/unwind-d30f0132eb6d0e9e.umpire-id",
+      "size": 109,
+      "sha256": "ecbb6f965b216c13ad06b23a3f582c234df7e63f7cac7388700f0604aa65dafd",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/ecbb6f965b216c13ad06b23a3f582c234df7e63f7cac7388700f0604aa65dafd"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/wasip1-70660f1f0ab1374e.umpire-id",
+      "destination": "identity/fn258-consumer-repro/guest-cache/f2839c6c15f2f56743ee0923688fdfbb6e3f90be95471618e52e421b241bd3b2/wasm32-wasip1/guest/deps/wasip1-70660f1f0ab1374e.umpire-id",
+      "size": 109,
+      "sha256": "099ec97ba64d44b300b4949598b8d0f77d3bd1f3c3429f42bdcf53a948519c7d",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/099ec97ba64d44b300b4949598b8d0f77d3bd1f3c3429f42bdcf53a948519c7d"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/umpire-lock-6a91e54ea1e9c446a1705776a774988983cbed160cfbfe49eac6c1ea3e123048.json",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/umpire-lock-6a91e54ea1e9c446a1705776a774988983cbed160cfbfe49eac6c1ea3e123048.json",
+      "size": 11033,
+      "sha256": "6a91e54ea1e9c446a1705776a774988983cbed160cfbfe49eac6c1ea3e123048",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/6a91e54ea1e9c446a1705776a774988983cbed160cfbfe49eac6c1ea3e123048"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/guest/deps/darling_macro-57862c4d2c537235.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/guest/deps/darling_macro-57862c4d2c537235.umpire-id",
+      "size": 242,
+      "sha256": "bffab7fb32cef4a3b69d06b47389dde6b20d511ba85eb9818bc1d0a7d04521ae",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/bffab7fb32cef4a3b69d06b47389dde6b20d511ba85eb9818bc1d0a7d04521ae"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/guest/deps/manyhow_macros-522bb03fecc0c642.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/guest/deps/manyhow_macros-522bb03fecc0c642.umpire-id",
+      "size": 242,
+      "sha256": "dec8c77a23471e0b9d516146fc2a51c2e1154df5494478e77c577e36eef9197d",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/dec8c77a23471e0b9d516146fc2a51c2e1154df5494478e77c577e36eef9197d"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/guest/deps/prost_derive-43975aa2e4258748.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/guest/deps/prost_derive-43975aa2e4258748.umpire-id",
+      "size": 242,
+      "sha256": "4114a76e1bae5345710061f8f89d4658410d6e8da6edf6e0828163ba8415b7bd",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/4114a76e1bae5345710061f8f89d4658410d6e8da6edf6e0828163ba8415b7bd"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/guest/deps/thiserror_impl-d9ec474b72def7c1.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/guest/deps/thiserror_impl-d9ec474b72def7c1.umpire-id",
+      "size": 242,
+      "sha256": "1d4ea615322b7be9e2f9bb6a290240e425ec7012f1ff2d7fb980fc76878acb4e",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/1d4ea615322b7be9e2f9bb6a290240e425ec7012f1ff2d7fb980fc76878acb4e"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/guest/deps/umpire_catalog_macros-af750259f72dbaea.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/guest/deps/umpire_catalog_macros-af750259f72dbaea.umpire-id",
+      "size": 242,
+      "sha256": "a24a823c4ec149a6bccb8f4eced497cbf9a6beb608503b1b956cca66e3ac4ea6",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/a24a823c4ec149a6bccb8f4eced497cbf9a6beb608503b1b956cca66e3ac4ea6"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/guest/deps/umpire_dsl_macros-520d3d90d00ae38c.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/guest/deps/umpire_dsl_macros-520d3d90d00ae38c.umpire-id",
+      "size": 242,
+      "sha256": "beddaa1c07d3bc3ea997dd9c5306a03a7e6dac2bdc3be4d7378b9a5d28ebd931",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/beddaa1c07d3bc3ea997dd9c5306a03a7e6dac2bdc3be4d7378b9a5d28ebd931"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/guest/deps/umpire_ir_derive-e7d2268be43eaf0b.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/guest/deps/umpire_ir_derive-e7d2268be43eaf0b.umpire-id",
+      "size": 242,
+      "sha256": "f55ea74b70a83b2ce5773e45a9601cb5e6466a500f569d56fc3be694fb53d40f",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/f55ea74b70a83b2ce5773e45a9601cb5e6466a500f569d56fc3be694fb53d40f"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/guest/deps/umpire_temporal_realization_macros-a0fbf824679b2c7d.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/guest/deps/umpire_temporal_realization_macros-a0fbf824679b2c7d.umpire-id",
+      "size": 242,
+      "sha256": "b66df0586e9efc6c90429eea663ad747b77dda50dac685d49462919bf564be7a",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/b66df0586e9efc6c90429eea663ad747b77dda50dac685d49462919bf564be7a"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/addr2line-255ee5934a3d8660.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/addr2line-255ee5934a3d8660.umpire-id",
+      "size": 109,
+      "sha256": "6cff5b14af149f08f65bdee5af5ab516ee60a7c71be53d28bf92d19be31194ef",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/6cff5b14af149f08f65bdee5af5ab516ee60a7c71be53d28bf92d19be31194ef"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/adler2-dcfe9e712de83524.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/adler2-dcfe9e712de83524.umpire-id",
+      "size": 109,
+      "sha256": "83f7663741bc1c9a817a3e68198050884ff6fbff0bfd875054ecb5a889a146da",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/83f7663741bc1c9a817a3e68198050884ff6fbff0bfd875054ecb5a889a146da"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/alloc-ee1b94c4e41bab4b.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/alloc-ee1b94c4e41bab4b.umpire-id",
+      "size": 109,
+      "sha256": "c54486ec14418ab81682808acf2b54d1e75c9361658da356da261baab4272e51",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/c54486ec14418ab81682808acf2b54d1e75c9361658da356da261baab4272e51"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/bytes-65a877ea08f4b25c.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/bytes-65a877ea08f4b25c.umpire-id",
+      "size": 109,
+      "sha256": "183467fcc2bd4cce9db23ab8797fcadcf0f964c059de41097e3c13704599e979",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/183467fcc2bd4cce9db23ab8797fcadcf0f964c059de41097e3c13704599e979"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/cfg_if-b5eb0e6e1854091e.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/cfg_if-b5eb0e6e1854091e.umpire-id",
+      "size": 109,
+      "sha256": "88152b02e5e95927971c95a2720970aa34e6db8f004b2f226ab3bb2944c5598e",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/88152b02e5e95927971c95a2720970aa34e6db8f004b2f226ab3bb2944c5598e"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/compiler_builtins-6ffcd43c04af33f9.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/compiler_builtins-6ffcd43c04af33f9.umpire-id",
+      "size": 109,
+      "sha256": "eefbef0bf2bac7279dfc2a0c0223ba626a86b438e96e96e89111a10f5ca0fc46",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/eefbef0bf2bac7279dfc2a0c0223ba626a86b438e96e96e89111a10f5ca0fc46"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/core-60364901c1ec5ea7.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/core-60364901c1ec5ea7.umpire-id",
+      "size": 109,
+      "sha256": "b9727ac727b8f72ca949a355b6449917d142c19ab3e433ec4e2ba9ca7de90128",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/b9727ac727b8f72ca949a355b6449917d142c19ab3e433ec4e2ba9ca7de90128"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/equivalent-f1c0d3e51dc60161.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/equivalent-f1c0d3e51dc60161.umpire-id",
+      "size": 109,
+      "sha256": "595813e7fc7698038fe41e38365004177434bfc2e2e571842498f1bbf35482a6",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/595813e7fc7698038fe41e38365004177434bfc2e2e571842498f1bbf35482a6"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/fixedbitset-356c64dc03150e9a.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/fixedbitset-356c64dc03150e9a.umpire-id",
+      "size": 109,
+      "sha256": "860a0d06963f7165d5782e5a20a88c88d5c279f48cb55490950e002b6698e174",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/860a0d06963f7165d5782e5a20a88c88d5c279f48cb55490950e002b6698e174"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/foldhash-3e7f58451663f456.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/foldhash-3e7f58451663f456.umpire-id",
+      "size": 109,
+      "sha256": "8fbd48db3863d7242d44096915e2b058c3d0ebf1ec2c0ada7e6c57f0f185e837",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/8fbd48db3863d7242d44096915e2b058c3d0ebf1ec2c0ada7e6c57f0f185e837"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/gimli-0b043c20b392a812.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/gimli-0b043c20b392a812.umpire-id",
+      "size": 109,
+      "sha256": "5731e2e65506610278e13ab52925dbcfdcd3b0f63387093875f4c8215cd03899",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/5731e2e65506610278e13ab52925dbcfdcd3b0f63387093875f4c8215cd03899"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/hashbrown-73a47db5d20f8095.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/hashbrown-73a47db5d20f8095.umpire-id",
+      "size": 109,
+      "sha256": "ead5ad2e2de582738c1b45d9d3baf289e7d66fe6316ef5b2eef50bd03d3c53e7",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/ead5ad2e2de582738c1b45d9d3baf289e7d66fe6316ef5b2eef50bd03d3c53e7"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/hashbrown-cf473af66d91d5b2.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/hashbrown-cf473af66d91d5b2.umpire-id",
+      "size": 109,
+      "sha256": "2b5639c2ae7fc2a2d22013727d7b6c9285a152f14f8626f36081fd86fe151c38",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/2b5639c2ae7fc2a2d22013727d7b6c9285a152f14f8626f36081fd86fe151c38"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/hashbrown-d03968f63b3a8ee3.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/hashbrown-d03968f63b3a8ee3.umpire-id",
+      "size": 109,
+      "sha256": "33100523db4db01e4d09873995914ff4d1756e1d781b895d53e3f440b2909a9d",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/33100523db4db01e4d09873995914ff4d1756e1d781b895d53e3f440b2909a9d"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/indexmap-e3af5fa5c6133605.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/indexmap-e3af5fa5c6133605.umpire-id",
+      "size": 109,
+      "sha256": "51608bc1c3d6be69a279060dd83c9139e68f47c5fcdc8b9c3a6192ed7c5d2185",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/51608bc1c3d6be69a279060dd83c9139e68f47c5fcdc8b9c3a6192ed7c5d2185"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/libc-8bcdf4d93a2fcdc7.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/libc-8bcdf4d93a2fcdc7.umpire-id",
+      "size": 109,
+      "sha256": "82d069a2c0300b22914858a11878c70b2cfac546f525a9eebb09234c81044403",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/82d069a2c0300b22914858a11878c70b2cfac546f525a9eebb09234c81044403"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/memchr-0ab2081f1519fc00.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/memchr-0ab2081f1519fc00.umpire-id",
+      "size": 109,
+      "sha256": "6bd54a84e3afb2e012a3e2369a8d301951e31a37d94c663b83b93359117d2278",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/6bd54a84e3afb2e012a3e2369a8d301951e31a37d94c663b83b93359117d2278"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/miniz_oxide-21e596a6bf8f2e58.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/miniz_oxide-21e596a6bf8f2e58.umpire-id",
+      "size": 109,
+      "sha256": "5e5f7359504c3236a85da6df9d35ea7b5ae9bd1c94b6310f75a18ac32e732f32",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/5e5f7359504c3236a85da6df9d35ea7b5ae9bd1c94b6310f75a18ac32e732f32"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/object-804fc83b706b6d74.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/object-804fc83b706b6d74.umpire-id",
+      "size": 109,
+      "sha256": "5fa40a5950f04059e5f71d03d48d05fca7847818a6b4046884d3c50472614967",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/5fa40a5950f04059e5f71d03d48d05fca7847818a6b4046884d3c50472614967"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/panic_abort-7056431d09fb88ab.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/panic_abort-7056431d09fb88ab.umpire-id",
+      "size": 109,
+      "sha256": "8eace0f464f85097709e4fea3e7cf7ccddbdb61afc1f4c773b6096ae3e9b7a31",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/8eace0f464f85097709e4fea3e7cf7ccddbdb61afc1f4c773b6096ae3e9b7a31"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/panic_unwind-47e5619adda0bdbc.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/panic_unwind-47e5619adda0bdbc.umpire-id",
+      "size": 109,
+      "sha256": "443c0ea7927e47ab1dc14fa4f29abec54fdd50e6937d7570292fb79c2c0eea3a",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/443c0ea7927e47ab1dc14fa4f29abec54fdd50e6937d7570292fb79c2c0eea3a"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/petgraph-6e633b6a91d6ca32.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/petgraph-6e633b6a91d6ca32.umpire-id",
+      "size": 109,
+      "sha256": "ad4e27e4af94cc3f14ad30c9f78de6961465e19a39c7ebe1fbaa97b39aab7975",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/ad4e27e4af94cc3f14ad30c9f78de6961465e19a39c7ebe1fbaa97b39aab7975"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/proc_macro-0c07ff060e06c015.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/proc_macro-0c07ff060e06c015.umpire-id",
+      "size": 109,
+      "sha256": "49bdc4ae35164998f0968cac6ad688bcc9aee7da92872cc20c2b574a4d00b6d9",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/49bdc4ae35164998f0968cac6ad688bcc9aee7da92872cc20c2b574a4d00b6d9"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/prost-56abc82f06ab2a8b.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/prost-56abc82f06ab2a8b.umpire-id",
+      "size": 242,
+      "sha256": "78fc839f86e2b97fb410e0474ae64663051a58ccd145eec0f4a51116800f16a8",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/78fc839f86e2b97fb410e0474ae64663051a58ccd145eec0f4a51116800f16a8"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/prost_types-10c907dc5d820385.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/prost_types-10c907dc5d820385.umpire-id",
+      "size": 242,
+      "sha256": "78bd2e432347b6d450cf9af738f24b77bfd8f6f63a6ae2a9e4db2d62b31a8b52",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/78bd2e432347b6d450cf9af738f24b77bfd8f6f63a6ae2a9e4db2d62b31a8b52"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/rustc_demangle-81b16fae9c94da4d.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/rustc_demangle-81b16fae9c94da4d.umpire-id",
+      "size": 109,
+      "sha256": "45f447fad63a267290f836401895df6d608888863e9255c59761c20b1fe5dc6b",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/45f447fad63a267290f836401895df6d608888863e9255c59761c20b1fe5dc6b"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/rustc_hash-b89a28e22e2ae749.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/rustc_hash-b89a28e22e2ae749.umpire-id",
+      "size": 109,
+      "sha256": "e52e3cea5fbc6b898b167ff0c1c43b1aa39c15b135cd4120f2e2737a9afcc3ba",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/e52e3cea5fbc6b898b167ff0c1c43b1aa39c15b135cd4120f2e2737a9afcc3ba"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/rustc_literal_escaper-e9fc47435d3c0e1a.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/rustc_literal_escaper-e9fc47435d3c0e1a.umpire-id",
+      "size": 109,
+      "sha256": "c1b24093f6958890ac23ebf17e73bd15b81b3cc8111b08b5b7624226850b941c",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/c1b24093f6958890ac23ebf17e73bd15b81b3cc8111b08b5b7624226850b941c"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/rustc_std_workspace_alloc-c2674c78804632f7.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/rustc_std_workspace_alloc-c2674c78804632f7.umpire-id",
+      "size": 109,
+      "sha256": "60c3a99edfc91adf197bc35b83bf45cf93f64f9caff08359829d49abc51d15c7",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/60c3a99edfc91adf197bc35b83bf45cf93f64f9caff08359829d49abc51d15c7"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/rustc_std_workspace_core-6f2d9eb9e9811fd4.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/rustc_std_workspace_core-6f2d9eb9e9811fd4.umpire-id",
+      "size": 109,
+      "sha256": "e3c0b8ed75801e01c7fa3d2cb2fd063f7cf89072e44ce662df08d9ea9545b99c",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/e3c0b8ed75801e01c7fa3d2cb2fd063f7cf89072e44ce662df08d9ea9545b99c"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/smallvec-833d7999866c1279.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/smallvec-833d7999866c1279.umpire-id",
+      "size": 109,
+      "sha256": "f46122ea66ee968391e57548b8e990a5d112d8e57483a1496e3f90f1221bc83f",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/f46122ea66ee968391e57548b8e990a5d112d8e57483a1496e3f90f1221bc83f"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/std-76a3c866e1aa0810.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/std-76a3c866e1aa0810.umpire-id",
+      "size": 109,
+      "sha256": "b5d29300f6dc1a9c35694b3776ad740ff673a5193d07dd18788fbdd6db7dd0ea",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/b5d29300f6dc1a9c35694b3776ad740ff673a5193d07dd18788fbdd6db7dd0ea"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/std_detect-73af2212f1f209a7.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/std_detect-73af2212f1f209a7.umpire-id",
+      "size": 109,
+      "sha256": "2435b2ab99fd85d13f5b9999de82108d3151a08a0f6d3e8ed17e2597fca2407a",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/2435b2ab99fd85d13f5b9999de82108d3151a08a0f6d3e8ed17e2597fca2407a"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/thiserror-c6ddba7c2cc3b5e7.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/thiserror-c6ddba7c2cc3b5e7.umpire-id",
+      "size": 242,
+      "sha256": "49b06df8738db05c9962167f715427e26f573266a61897dd3695ef83bfb1b0de",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/49b06df8738db05c9962167f715427e26f573266a61897dd3695ef83bfb1b0de"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/umpire_catalog-f273e0a914312493.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/umpire_catalog-f273e0a914312493.umpire-id",
+      "size": 644,
+      "sha256": "d6cf0ccdff9487987d2fa23191f9f76c1c5053d032c3e6d7e14d7e28680ee930",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/d6cf0ccdff9487987d2fa23191f9f76c1c5053d032c3e6d7e14d7e28680ee930"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/umpire_checker-89d1fa05d483ca4a.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/umpire_checker-89d1fa05d483ca4a.umpire-id",
+      "size": 376,
+      "sha256": "1bf332eaaed973f59c3a7128be7ee4a3f5b98851cde20a6d8353cba5b96da944",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/1bf332eaaed973f59c3a7128be7ee4a3f5b98851cde20a6d8353cba5b96da944"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/umpire_dsl-dbb6d786e0195011.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/umpire_dsl-dbb6d786e0195011.umpire-id",
+      "size": 376,
+      "sha256": "9402a226a2155d844a13a47213419714819313c0171dfccd99ab237b809fd71a",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/9402a226a2155d844a13a47213419714819313c0171dfccd99ab237b809fd71a"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/umpire_runtime-2c93a05dfd7d32b8.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/umpire_runtime-2c93a05dfd7d32b8.umpire-id",
+      "size": 510,
+      "sha256": "a8c2b82f7df81199779e0af50d0ab7e8ef75e653d6521799e797f1e05662b915",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/a8c2b82f7df81199779e0af50d0ab7e8ef75e653d6521799e797f1e05662b915"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/umpire_temporal-72c041bdb65089b2.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/umpire_temporal-72c041bdb65089b2.umpire-id",
+      "size": 778,
+      "sha256": "e1a6d93740eabef007df2ddbe34eb604a54e0973928533efb24825c617e35d38",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/e1a6d93740eabef007df2ddbe34eb604a54e0973928533efb24825c617e35d38"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/umpire_temporal_api-b92002a645e14031.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/umpire_temporal_api-b92002a645e14031.umpire-id",
+      "size": 644,
+      "sha256": "38e595601dc00c09b0d49ddfa534cd9943a5e7cf5dd2f69e45019fde9eb2a3e5",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/38e595601dc00c09b0d49ddfa534cd9943a5e7cf5dd2f69e45019fde9eb2a3e5"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/umpire_temporal_guest.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/umpire_temporal_guest.umpire-id",
+      "size": 778,
+      "sha256": "86cdb003e33cf4167e8d0fdecfb2965f1cf17b44e299eb6969889ba1181e3150",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/86cdb003e33cf4167e8d0fdecfb2965f1cf17b44e299eb6969889ba1181e3150"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/unwind-d30f0132eb6d0e9e.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/unwind-d30f0132eb6d0e9e.umpire-id",
+      "size": 109,
+      "sha256": "ecbb6f965b216c13ad06b23a3f582c234df7e63f7cac7388700f0604aa65dafd",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/ecbb6f965b216c13ad06b23a3f582c234df7e63f7cac7388700f0604aa65dafd"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/wasip1-70660f1f0ab1374e.umpire-id",
+      "destination": "identity/fn258-consumer-before/guest-cache/c007cdf78a8aca903b82c12953dc3ed1ad5b70e2fec3d50f530d98edece9fbc3/wasm32-wasip1/guest/deps/wasip1-70660f1f0ab1374e.umpire-id",
+      "size": 109,
+      "sha256": "099ec97ba64d44b300b4949598b8d0f77d3bd1f3c3429f42bdcf53a948519c7d",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/099ec97ba64d44b300b4949598b8d0f77d3bd1f3c3429f42bdcf53a948519c7d"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/tmp/fn258-guest-before/guest-built.wasm",
+      "destination": "proof/before.wasm",
+      "size": 3988334,
+      "sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm",
+      "destination": "proof/migrated-first.wasm",
+      "size": 3988382,
+      "sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/tmp/fn258-guest-repro/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm",
+      "destination": "proof/migrated-repro.wasm",
+      "size": 3988382,
+      "sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d"
+    }
+  ],
+  "evidence_records": [
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-before.log",
+      "destination": "consumer/guest-migration-before.log",
+      "size": 8778,
+      "sha256": "0312eb5b404f634d67cfc76314ad9992727c81cb69ee04f75acee40a25ebcb3e"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-build.log",
+      "destination": "consumer/guest-migration-build.log",
+      "size": 6990,
+      "sha256": "47a438754328d4dd08693cfe4e9f44841bb123d18982771c10699eea959ed499"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-freshness.log",
+      "destination": "consumer/guest-migration-freshness.log",
+      "size": 1577,
+      "sha256": "a797092d84ac331ee42bc95f2437b561dd6bbddf81308e7312923ccc4fa0f0c0"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-host.log",
+      "destination": "consumer/guest-migration-host.log",
+      "size": 420,
+      "sha256": "3280b98320051e6e0af0e315fa65eb20172d6dd790d0c82c9b06a16039afefd5"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-repro.log",
+      "destination": "consumer/guest-migration-repro.log",
+      "size": 8719,
+      "sha256": "1211cf549092d1a73c956563622668f01c9cd8598d1b1ad2e9a3ff30c8592cf2"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-source-copy.log",
+      "destination": "consumer/guest-migration-source-copy.log",
+      "size": 1683,
+      "sha256": "bb0454e92c51a6a071e0e069fef716131ce758f9dedb0c5e6e3a15a389b47084"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-wire.log",
+      "destination": "consumer/guest-migration-wire.log",
+      "size": 341,
+      "sha256": "0722750fe5b5519569f49c741442524474964ef31dca422ea89072e94e46d1be"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-before.json",
+      "destination": "consumer/guest-migration-before.json",
+      "size": 406,
+      "sha256": "5c552b1eb5d438e9eee9572502e54e58a8ef85b59fe429359294cd190a534256"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-diagnosis.json",
+      "destination": "consumer/guest-migration-diagnosis.json",
+      "size": 4462,
+      "sha256": "82fe4b08437fafc5ea1b40f5e676fd6cba72d8054597f3ee77d904f8615e9cd2"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-repro.json",
+      "destination": "consumer/guest-migration-repro.json",
+      "size": 803,
+      "sha256": "9d295e305cd493371786c0b0af3870684f7d24570a939c36ea6b69b55aefb4dc"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-verification.json",
+      "destination": "consumer/guest-migration-verification.json",
+      "size": 3061,
+      "sha256": "346eb10b2fb074ed73a0f55753585838ffc1f6a7ab8489ce9429b6a8c79546ba"
+    }
+  ],
+  "result": "all records retained and rehashed outside cleanup targets; proof binary payloads deduplicated by SHA256",
+  "protected_target": "/home/agent/.cache/codex-build/fn258-consumer"
+}

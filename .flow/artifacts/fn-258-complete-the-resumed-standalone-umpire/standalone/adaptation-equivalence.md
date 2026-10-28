@@ -1,0 +1,19 @@
+# Frozen-source equivalence after standalone adaptations
+
+Standalone commit `ac79114a9ad43a9d9fc2a022d07406d217878760`, tree `823a5dc2e5840af7318fa6532265a9b0ada1eaa4`, passes comparison with the 1,189-file manifest frozen at Temporal `ac60daaf47d2513b41eeff612f0e2758d33e186d`.
+
+There are 1,132 byte/mode-identical files and 57 explicitly approved modifications. The [allowlist](adaptation-allowlist.json) starts from fn-257's 54 reviewed paths, adds only the two inspected boundary-policy/control files and the new protocol-policy documentation, and records a reason, provenance commits and exact approved blob/mode for each. Fifty-one historical adaptations still match their earlier approved SHA-256; the other three retain the reviewed multi-repository quick implementation and current integrated tooling documentation. The final lint commit changes two empty String constructions inside boundary test controls, with rustfmt wrapping; its production text equals the history join. The new boundary changes admit only the unchanged root LICENSE and exact generated descriptor lines, retaining planted coupling refusals. The six enumerated standalone-only files are the root Make aliases, AGENTS/DESIGN/GUEST_BUILDS guidance, consumer-interface guide and CI workflow; CI includes the reviewed mise pin update.
+
+There are zero missing frozen-source files, unexpected modifications, mode differences, unexpected additions or protected differences. All 499 protected fixture/input/expected/snapshot/metadata/lock/sum/LICENSE records are byte/mode-identical. Protecting whole fixture and expected directories includes snapshot metadata and payload bytes. The selected source's 133 additions since c88fdc5506 are present, and all 122 deleted former source paths are absent, including the old parser-refusal UI paths. Both lists are explicit in the allowlist.
+
+Thirty-seven non-generated Go/protobuf source checks also pass: Go changes reduce exactly to canonical module import replacement and import ordering; protobuf source changes reduce exactly to the go_package option. Generated descriptor files are pinned to their previously reviewed regeneration outputs. These static checks do not replace current regeneration freshness, wire/ABI controls, host/guest parity or runtime gates.
+
+Nine negative controls mutate independent in-memory inventories. Missing source, unexpected modification, LICENSE/fixture/lock mutation, changed allowlisted content, missing root support, unexpected addition and resurrection of a deleted source path all produce the expected refusal. Neither source checkout is modified by the verifier.
+
+Reproduce from the Temporal repository root:
+
+```sh
+python3 .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/standalone/verify-adaptation.py
+```
+
+The default verifies the pinned reviewed head. `--head <revision>` verifies another Git tree against the same exact-content allowlist; new modifications fail until separately reviewed. [Machine results](adaptation-equivalence.json) record source/allowlist hashes, the standalone tree ID, all protected paths, identity checks and negative-control outcomes. The [history-join verification](history-join-verification.json), reproduced by `verify-history-join.py`, proves `c71c3090fa0f89e744631c6590f1d8b4b0ffd94f` has ordered parents `5ee8911480c8acb429625bef3f3183e572b9d18f` and `a92db0610f13c9f623b526f2aa721abda69aa84d`, preserving the first parent tree `9324a0e75c455bd060cc1faeb328769a556d0f2d` exactly. The original `cf8bec4` export and all ten portable preparation commits remain ancestors, as does the current export. Every selected current-export blob/mode equals the frozen source. Final `ac79114` is the join’s direct child and differs only in boundary test text; current equivalence pins that final tree separately. The evidence does not certify uncommitted worktree changes, runtime behavior, candidate transfer, publication or source cutover.

@@ -1,0 +1,160 @@
+    Finished `test` profile [unoptimized] target(s) in 0.91s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/fn258-framework/debug/deps/xtask-5278851f012b60dc)
+
+running 92 tests
+test gate::boundary::tests::character_recognition_requires_a_valid_closed_literal ... ok
+test gate::admission::tests::clean_policy_keeps_stripped_flags_out_and_native_policy_keeps_defaults ... ok
+test gate::scheduler::inventory_controls::assumed_env_object_and_incomplete_metadata_are_refused ... ok
+test gate::scheduler::inventory_controls::duplicate_metadata_and_nonliteral_dependency_are_refused ... ok
+test gate::scheduler::inventory_controls::upstream_env_directive_array_preserves_logical_order_and_dependencies ... ok
+test gate::boundary::tests::declared_unused_dependency_escape_is_refused_before_cargo ... ok
+test gate::boundary::tests::external_target_alias_cannot_hide_source_subtree ... ok
+outputerrortest gate::boundary::tests::source_escape_is_structural_and_contained_deep_paths_work ... ok
+test gate::scheduler::execution_controls::streamed_channels_are_not_returned_as_captured_output ... ok
+test gate::admission::tests::required_tool_policy_caps_work_and_retains_other_caller_flags ... ok
+test gate::scheduler::receipt_controls::failed_invocation_distinguishes_cancelled_and_not_started_without_accepting_missing_success ... ok
+test gate::standalone::tests::copy_refuses_existing_and_dangling_source_symlinks ... ok
+test gate::standalone::tests::isolated_child_policy_control ... ok
+test gate::boundary::tests::target_cannot_hide_sources ... ok
+test gate::standalone::tests::copied_config_trust_is_limited_to_copy_and_owned_scratch ... ok
+test gate::work_counts::tests::child_authority_paths_preserve_tabs_and_non_unicode_bytes ... ok
+test gate::standalone::tests::copy_uses_current_bytes_and_excludes_only_generated_roots ... ok
+test gate::work_counts::tests::child_count_authority_is_embedded_without_inclusive_parent_summing ... ok
+test gate::scheduler::execution_controls::unconfigured_leaf_uses_the_callers_working_directory ... ok
+test gate::work_counts::tests::doctest_summary_requires_every_actual_count ... ok
+test gate::work_counts::tests::doctest_color_is_normalized_only_for_private_observation ... ok
+test gate::work_counts::tests::doctests_refuse_missing_duplicate_and_mismatched_summaries ... ok
+test gate::work_counts::tests::inventory_requires_exact_cardinality_and_complete_selection_fields ... ok
+test gate::work_counts::tests::missing_observations_remain_unknown_instead_of_zero ... ok
+test gate::standalone::tests::report_directory_artifact_hashes_every_generated_file ... ok
+test gate::scheduler::execution_controls::captured_leaf_preserves_cwd_environment_bytes_and_failed_status ... ok
+test gate::work_counts::tests::observation_child ... ok
+test gate::work_counts::tests::partial_unknown_and_overflowed_events_refuse_counts ... ok
+test gate::work_counts::tests::duplicate_and_unfinished_test_producers_are_refused ... ok
+
+running 1 test
+test gate::work_counts::tests::rejected_controller_child ... ok
+test gate::work_counts::tests::selected_tests_are_not_substituted_for_observed_execution ... ok
+test gate::scheduler::execution_controls::captured_leaf_preserves_signal_status ... ok
+test gate::work_counts::tests::observed_test_commands_and_real_launches_have_separate_counts ... ok
+test gate::work_counts::tests::structured_receipts_refuse_missing_partial_and_inconsistent_success_counts ... ok
+test gate::work_counts::tests::streaming_child ... ok
+
+running 1 test
+test gate::scheduler::receipt_controls::scoped_receipts_keep_duplicate_public_names_and_logical_order ... ok
+test gate::work_counts::tests::test_carrier_rejection_is_frozen_before_configured_path_can_change ... ok
+test quick::tests::deleted_source_ownership_does_not_require_the_file_to_exist ... ok
+test quick::tests::explicit_compiler_only_packages_must_belong_to_an_admitted_workspace ... ok
+test quick::tests::external_build_inputs_and_unknown_sources_remain_conservative ... ok
+test quick::tests::framework_abi_guests_are_explicit_compiler_only_consumers ... ok
+
+running 1 test
+test gate::work_counts::tests::supervisor_fork_and_unconfirmed_completion_do_not_claim_jvm_launches ... ok
+test quick::tests::global_and_unmapped_inputs_select_whole_workspace_and_reverse_dependents ... ok
+framework stage exit-control failed (exit 37)
+test gate::tests::real_stage_child_receives_cache_bypass_and_required_mode ... ok
+test gate::work_counts::tests::stage_collector_uses_the_count_boundary_for_successful_receipts ... ok
+test gate::work_counts::tests::observation_child ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 91 filtered out; finished in 0.03s
+
+test quick::tests::global_fallback_compiles_zero_harness_members_and_keeps_their_tests_and_doctests ... ok
+test gate::work_counts::tests::successful_test_stage_cannot_omit_its_producer ... ok
+test quick::tests::mapped_external_sources_and_unchanged_invocations_keep_explicit_execution ... ok
+test quick::tests::metadata_named_checkout_ancestors_do_not_hide_external_build_inputs ... ok
+test quick::tests::metadata_preserves_doctests_without_requesting_binary_only_docs ... ok
+test quick::tests::model_edits_ignore_reported_non_model_metadata_and_docs ... ok
+test quick::tests::options_reject_unknown_flags_and_relative_workspaces ... ok
+test quick::tests::package_filters_only_narrow_unchanged_or_exclusively_mapped_feature_edits ... ok
+framework stage owned-child failed (exit 37)
+test gate::tests::stage_reaps_background_children_before_returning_the_failed_status ... ok
+test quick::tests::renamed_sources_select_both_owners_with_metadata_changes ... ok
+test quick::tests::reverse_dependencies_merge_workspace_specific_ids_by_manifest ... ok
+test gate::boundary::tests::organization_exception_preserves_occurrence_token_boundaries ... ok
+test quick::tests::shared_feature_inputs_select_every_direct_consumer_and_reverse_guest ... ok
+test quick::tests::shared_kettle_model_seeds_source_consumers_and_reverse_guest ... ok
+test quick::tests::stage_receipt_reports_elapsed_and_spawn_failure_without_success_status ... ok
+test gate::boundary::tests::character_literals_and_lifetimes_cannot_hide_source_escapes ... ok
+test quick::tests::workspace_documentation_can_supply_executable_test_inputs ... ok
+cannot execute backend subprocess
+quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=guest,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest" "-p" "umpire" "-p" "umpire-ir-derive"
+test quick::tests::quick_leaf_reaps_background_children_and_preserves_failed_status ... ok
+test test_run::tests::binaries_then_doctests_exactly_once ... ok
+test test_run::tests::binary_failure_stops_before_doctests ... ok
+test test_run::tests::compiler_only_admission_is_explicit_and_keeps_discovered_tests_in_the_batch ... ok
+test test_run::tests::doctest_failure_preserves_status ... ok
+test test_run::tests::exact_predicates_use_nextest_escape_sequences_without_embedded_quotes ... ok
+test test_run::tests::explicit_compiler_only_batches_do_not_claim_zero_test_execution ... ok
+test test_run::tests::filtered_doctests_keep_exact_selection ... ok
+test test_run::tests::inventory_admission_refuses_each_empty_package_and_exact_fixture_selection ... ok
+test test_run::tests::inventory_failure_preserves_status_and_never_executes_the_batch ... ok
+test test_run::tests::missing_runner_fails_without_fallback ... ok
+test quick::tests::stage_receipt_reports_missing_tool_as_failed_status ... ok
+test test_run::tests::scoped_package_admission_uses_membership_and_actual_doctest_targets ... ok
+test test_run::tests::scoped_runner_child ... ok
+test gate::standalone::tests::isolated_child_uses_the_reported_required_profile_and_thread_cap ... ok
+test test_run::tests::selected_binary_failure_and_doctest_failure_preserve_status ... ok
+test gate::work_counts::tests::observation_child ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 91 filtered out; finished in 0.21s
+
+test test_run::tests::selected_empty_batch_and_spawn_failure_do_not_fall_back ... ok
+test test_run::tests::selected_packages_share_one_nextest_batch_and_only_eligible_doctests ... ok
+test test_run::tests::workspace_selection_rejects_an_unexpected_zero_test_run ... ok
+test gate::work_counts::tests::malformed_counts_keep_the_real_failed_runner_status ... ok
+quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=guest,umpire,umpire-ir-derive elapsed=0.032s exit=0
+quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD/cargo.sh" "nextest" "list" "--locked" "--message-format" "json" "--run-ignored" "default" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+test test_run::tests::required_backend_policy_caps_inherited_threads_and_preserves_skipped_defaults ... ok
+test gate::work_counts::tests::observed_tools_stream_human_channels_while_pending_without_returning_them_twice ... ok
+quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.031s exit=0
+quick: stage=test workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD/cargo.sh" "nextest" "run" "--locked" "--fail-fast" "--run-ignored" "default" "--status-level" "slow" "--final-status-level" "slow" "--success-output" "immediate" "--failure-output" "immediate-final" "--no-tests" "fail" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+test gate::work_counts::tests::observation_child ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 91 filtered out; finished in 0.19s
+
+
+running 1 test
+test quick::tests::stage_receipts_label_formatting_and_preserve_success_and_failure_statuses ... ok
+quick: stage=test workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.027s exit=0
+quick: stage=doctest workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD/cargo.sh" "test" "--doc" "--locked" "-p" "api" "-p" "umpire" "-p" "umpire-ir-derive" "--" "--nocapture"
+quick: stage=doctest workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.032s exit=0
+quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=guest,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" && CONTROL_COMPILE_EXIT="13" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest" "-p" "umpire" "-p" "umpire-ir-derive"
+test quick::tests::git_selection_includes_staged_unstaged_untracked_renamed_and_deleted_paths ... ok
+quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=guest,umpire,umpire-ir-derive elapsed=0.033s exit=13
+quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=guest,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="17" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest" "-p" "umpire" "-p" "umpire-ir-derive"
+test gate::work_counts::tests::observation_child ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 91 filtered out; finished in 0.10s
+
+
+running 1 test
+quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=guest,umpire,umpire-ir-derive elapsed=0.032s exit=0
+quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="17" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD/cargo.sh" "nextest" "list" "--locked" "--message-format" "json" "--run-ignored" "default" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.031s exit=17
+quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=guest,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" CONTROL_RUN_EXIT="29" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest" "-p" "umpire" "-p" "umpire-ir-derive"
+quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=guest,umpire,umpire-ir-derive elapsed=0.026s exit=0
+quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" CONTROL_RUN_EXIT="29" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD/cargo.sh" "nextest" "list" "--locked" "--message-format" "json" "--run-ignored" "default" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+test gate::work_counts::tests::observation_child ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 91 filtered out; finished in 0.10s
+
+test gate::work_counts::tests::stage_receipt_combines_nextest_and_doctests_without_cross_scope_or_invocation_counts ... ok
+quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.031s exit=0
+quick: stage=test workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" CONTROL_RUN_EXIT="29" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD/cargo.sh" "nextest" "run" "--locked" "--fail-fast" "--run-ignored" "default" "--status-level" "slow" "--final-status-level" "slow" "--success-output" "immediate" "--failure-output" "immediate-final" "--no-tests" "fail" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+quick: stage=test workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.032s exit=29
+quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=guest,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="37" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest" "-p" "umpire" "-p" "umpire-ir-derive"
+quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=guest,umpire,umpire-ir-derive elapsed=0.033s exit=0
+quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="37" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD/cargo.sh" "nextest" "list" "--locked" "--message-format" "json" "--run-ignored" "default" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+test quick::tests::one_repository_keeps_base_semantics_without_caller_ownership ... ok
+quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.031s exit=0
+quick: stage=test workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="37" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD/cargo.sh" "nextest" "run" "--locked" "--fail-fast" "--run-ignored" "default" "--status-level" "slow" "--final-status-level" "slow" "--success-output" "immediate" "--failure-output" "immediate-final" "--no-tests" "fail" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+quick: stage=test workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.031s exit=0
+quick: stage=doctest workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="37" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp0mEsXD" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp0mEsXD/cargo.sh" "test" "--doc" "--locked" "-p" "api" "-p" "umpire" "-p" "umpire-ir-derive" "--" "--nocapture"
+quick: stage=doctest workspace=/home/agent/.cache/codex-build/tmp/.tmp0mEsXD packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.033s exit=37
+test quick::tests::workspace_execution_checks_build_only_consumers_then_batches_tests_and_scoped_docs ... ok
+test quick::tests::independent_repository_bases_belong_to_the_admitted_caller ... ok
+test quick::tests::independent_repositories_merge_changes_before_reverse_consumer_selection ... ok
+test test_run::tests::scoped_runner_executes_inventory_tests_and_docs_with_the_same_admitted_policy ... ok
+
+test result: ok. 92 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.77s
+

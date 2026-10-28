@@ -1,0 +1,10 @@
+    Finished `test` profile [unoptimized] target(s) in 0.03s
+     Running tests/main.rs (/home/agent/.cache/codex-build/fn258-framework/debug/deps/main-399733285a0719a5)
+
+running 3 tests
+test gate_graph::graph_keeps_independent_read_only_work_schedulable_together ... ok
+test gate_graph::shipping_graph_has_unique_complete_stage_metadata_and_no_cycle ... ok
+test gate_graph::shared_cargo_targets_and_generated_outputs_have_predecessor_barriers ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 48 filtered out; finished in 0.00s
+

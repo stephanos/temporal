@@ -1,0 +1,125 @@
+{
+  "result": "pass",
+  "checks": {
+    "exact_ordered_parents": true,
+    "join_tree_equals_first_parent": true,
+    "all_portable_and_export_ancestors_reachable": true,
+    "export_selected_tree_equals_frozen_source": true,
+    "final_parent_is_history_join": true,
+    "final_changes_only_boundary_tests": true
+  },
+  "join_commit": "c71c3090fa0f89e744631c6590f1d8b4b0ffd94f",
+  "ordered_parents": [
+    "5ee8911480c8acb429625bef3f3183e572b9d18f",
+    "a92db0610f13c9f623b526f2aa721abda69aa84d"
+  ],
+  "first_parent_tree": "9324a0e75c455bd060cc1faeb328769a556d0f2d",
+  "join_tree": "9324a0e75c455bd060cc1faeb328769a556d0f2d",
+  "final_commit": "ac79114a9ad43a9d9fc2a022d07406d217878760",
+  "final_tree": "823a5dc2e5840af7318fa6532265a9b0ada1eaa4",
+  "final_changed_paths": [
+    "dev/xtask/src/gate/boundary.rs"
+  ],
+  "original_export": "cf8bec4d6231302df54b57fccdc5bdb9d11552fc",
+  "current_export": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+  "frozen_source_commit": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "manifest_sha256": "a29ea7017bf9138701d1580e1a466071a1c151b849526a55648484b27175a2c3",
+  "export_selected_records": 1189,
+  "export_missing_selected_paths": [],
+  "export_modified_selected_paths": [],
+  "export_extra_provenance_paths": [
+    ".history-support/.github/workflows/umpire.yml",
+    ".history-support/AGENTS.md",
+    ".history-support/Makefile",
+    ".history-support/mise.toml",
+    ".history-support/model/.cargo/config.toml",
+    ".history-support/model/.gitignore",
+    ".history-support/model/Cargo.lock",
+    ".history-support/model/Cargo.toml",
+    ".history-support/model/DESIGN.md",
+    ".history-support/model/GUEST_BUILDS.md",
+    ".history-support/model/README.md",
+    ".history-support/model/clippy.toml",
+    ".history-support/model/deny.toml",
+    ".history-support/model/rust-toolchain.toml",
+    ".history-support/model/rustfmt.toml",
+    ".history-support/model/scripts/fetch-tlc.sh",
+    ".history-support/model/scripts/guest-freshness.sh",
+    ".history-support/model/scripts/guest.sh",
+    ".history-support/model/scripts/proto-go.sh",
+    ".history-support/model/scripts/retired-names.sh",
+    ".history-support/model/scripts/test-capabilities.sh",
+    ".history-support/model/scripts/test-model-validate.sh",
+    ".history-support/model/scripts/test-model-wiring.sh",
+    ".history-support/model/scripts/test-time-gate.sh",
+    ".history-support/model/scripts/tests/.gitignore",
+    ".history-support/model/scripts/tests/build-guests.sh",
+    ".history-support/model/scripts/tests/guest-roots.sh",
+    ".history-support/model/scripts/tests/proto-go.sh",
+    ".history-support/model/scripts/time-gate.sh",
+    ".history-support/model/scripts/xtask.sh"
+  ],
+  "ancestry_checks": [
+    {
+      "commit": "cf8bec4d6231302df54b57fccdc5bdb9d11552fc",
+      "reachable_from_join": true,
+      "reachable_from_final": true
+    },
+    {
+      "commit": "d090323d70ce5e92a7c16ec8dcd17b0c73a97514",
+      "reachable_from_join": true,
+      "reachable_from_final": true
+    },
+    {
+      "commit": "045b98897de7ca92a21c9e0d63c1190af765986f",
+      "reachable_from_join": true,
+      "reachable_from_final": true
+    },
+    {
+      "commit": "2dcbc92a1f69ab10c6fb4b878aab4696cb462101",
+      "reachable_from_join": true,
+      "reachable_from_final": true
+    },
+    {
+      "commit": "f7b42ce25558344ea2d38f1e05d002259427a8f6",
+      "reachable_from_join": true,
+      "reachable_from_final": true
+    },
+    {
+      "commit": "58a6989fe5ccd6a1ae734326d568f60dce2dab43",
+      "reachable_from_join": true,
+      "reachable_from_final": true
+    },
+    {
+      "commit": "45eb554539fe934f43a1cb906381babd46bfc662",
+      "reachable_from_join": true,
+      "reachable_from_final": true
+    },
+    {
+      "commit": "a09525f27fd676d4e4f1f275bba882fa2963234f",
+      "reachable_from_join": true,
+      "reachable_from_final": true
+    },
+    {
+      "commit": "069624d93d1c3f9b7c31a21ab4c7f736d6206686",
+      "reachable_from_join": true,
+      "reachable_from_final": true
+    },
+    {
+      "commit": "3eae78afabb21229765823eee89569e843be343f",
+      "reachable_from_join": true,
+      "reachable_from_final": true
+    },
+    {
+      "commit": "5ee8911480c8acb429625bef3f3183e572b9d18f",
+      "reachable_from_join": true,
+      "reachable_from_final": true
+    },
+    {
+      "commit": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+      "reachable_from_join": true,
+      "reachable_from_final": true
+    }
+  ],
+  "scope": "Exact Git ancestry/tree and production-text checks; full export parent-edge verification belongs to the separate history lane. No runtime or publication claim."
+}

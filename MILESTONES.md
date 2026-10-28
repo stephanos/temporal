@@ -95,6 +95,27 @@ reviewed validation evidence and a committed validation-cost assessment.
 
 ## Open specs
 
+### fn-258: Complete the resumed standalone Umpire migration
+
+The renewed source inventory and history task is reviewed and closed on `umpire`.
+The standalone preserves current integrated source and both verified histories;
+1,189 mapped files have zero missing or unexpected differences and all 499 protected
+records remain exact. The consumer candidate includes a regenerated guest reproduced
+in two independent sibling layouts, with unchanged public ABI sections and passing
+host/wire controls. These are source candidates; final gates and cutover remain open.
+The in-tree framework stays authoritative until publication and verified cutover.
+Destination access remains blocked by SAML/credentials. See [MIGRATE.md](MIGRATE.md).
+
+[Spec](.flow/specs/fn-258-complete-the-resumed-standalone-umpire.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-258.2 | 🔄 in progress | Standalone source/history join and adaptation inventory prepared; fresh required-backend gate and source review pending (R2, R3) |
+| fn-258.3 | 🔄 in progress | Actual consumer branch `4035bb70` prepared with reproduced guest and local Rust/Go edit proofs; final paired checks, review and recovery bundle pending (R4) |
+| fn-258.4 | ⬜ todo | Exact final-pair fresh-target, release/parity, generation/guest and local-edit acceptance proofs with timings (R3–R5) |
+| fn-258.5 | ⬜ todo | Complete candidate receiving/recovery dispositions, destination access, authorized publication, pinned CI and source cutover; then resume fn-254 (R1, R4, R6) |
+
+
 ### fn-254: Fast validation gates and a real inner loop
 
 The TLC-required gate took 2,093 s at fn-247's close against a 60 s soft target; `cargo test --workspace` was 82% of it.

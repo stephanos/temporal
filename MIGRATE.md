@@ -5,9 +5,12 @@ replacing retired [fn-257](.flow/specs/fn-257-extract-the-standalone-umpire.md).
 Destination: <https://github.com/temporalio/umpire>. Migration remains unfinished;
 remote publication and source cutover require their recorded access and proof gates.
 The renewed instruction supersedes the earlier stop. Preserve original inventories,
-source candidates and recovery evidence. Freeze current source `ac60daaf47` separately:
-161 framework files changed since the original `c88fdc5506` inventory. Refresh standalone
-`f7b42ce` and adapt consumer `91547f57ec` before current-pair validation.
+source candidates and recovery evidence. Task fn-258.1 is reviewed and closed: the
+renewed `ac60daaf47` inventory has 1,189 selected files, and export `a92db061` retains
+627 mapped commits with 6,634 independently verified projection-neutral prunings.
+Standalone `ac79114a` and consumer `4035bb70` are current source candidates, including
+the reproducible migrated guest. Full standalone/paired gates, reviews, candidate
+transfer dispositions, publication and cutover remain open; in-tree authority remains.
 After migration, return to the fn-254 priority in [MILESTONES.md](MILESTONES.md).
 The connected GitHub app was rechecked on 2026-10-27 and returned HTTP 422 because
 `temporalio` SAML SSO policy blocks this connection. Destination contents and

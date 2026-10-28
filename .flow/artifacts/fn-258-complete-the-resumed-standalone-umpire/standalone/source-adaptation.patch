@@ -1,0 +1,1915 @@
+diff --git a/.cargo/config.toml b/.cargo/config.toml
+index 32782662..356f4e4f 100644
+--- a/.cargo/config.toml
++++ b/.cargo/config.toml
+@@ -1,5 +1,5 @@
+ [alias]
+-# The same gate `make model-check` runs, for use from inside model/.
++# Workspace lint and documentation shortcuts; root Make delegates the full native gate.
+ check-all = "clippy --workspace --all-targets --all-features -- -D warnings"
+ doc-all = "doc --workspace --no-deps --document-private-items"
+ xtask = "run --package xtask --bin xtask --profile dev --"
+diff --git a/.github/workflows/check.yml b/.github/workflows/check.yml
+new file mode 100644
+index 00000000..ea14ac3e
+--- /dev/null
++++ b/.github/workflows/check.yml
+@@ -0,0 +1,39 @@
++name: Umpire
++
++on:
++  pull_request:
++  push:
++    branches: [main]
++  workflow_dispatch:
++
++permissions:
++  contents: read
++
++concurrency:
++  group: umpire-${{ github.head_ref || github.run_id }}
++  cancel-in-progress: true
++
++jobs:
++  framework:
++    runs-on: ubuntu-24.04
++    timeout-minutes: 60
++    env:
++      CARGO_TARGET_DIR: ${{ runner.temp }}/umpire-target
++      UMPIRE_BACKENDS: require
++    steps:
++      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
++      - uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
++        with:
++          version: "2026.10.11"
++          sha256: "f9612efcddda0ae55b62d3b6f82a6c860d5b54ebee0807d4f1a1d578055e1607"
++          cache: false
++      - name: Install pinned Rust components and target
++        run: |
++          mise exec -- rustup component add rustfmt clippy rust-src rust-analyzer
++          mise exec -- rustup target add wasm32-wasip1
++      - name: Run required TLC and standalone validation
++        run: make validate
++      - name: Test release arithmetic and behavior
++        run: mise exec -- cargo test --workspace --release --locked
++      - name: Require generated sources to remain clean
++        run: git diff --exit-code
+diff --git a/AGENTS.md b/AGENTS.md
+new file mode 100644
+index 00000000..7bde3253
+--- /dev/null
++++ b/AGENTS.md
+@@ -0,0 +1,29 @@
++# Working on Umpire
++
++Umpire is an independent framework workspace. Keep reusable authoring, checkers,
++protocols, runtime, host and tooling here; system Models, API acquisition and
++realizations belong to their consumers. Kettle is the independent reference.
++
++Before changing authoring or checker behavior, read [DESIGN.md](DESIGN.md) and the
++nearest crate's documentation. Before changing guest compilation, identity or
++freshness, read [GUEST_BUILDS.md](GUEST_BUILDS.md) and
++[the native driver contract](dev/guest-driver/README.md). Before changing wire or
++host behavior, read [the protocol contract](protocol/proto/README.md) and
++[the Go host guide](hosts/go/README.md).
++
++Use the root Make aliases in [README.md](README.md) for framework checks. Keep
++command semantics in `dev/xtask` and `dev/guest-driver`; scripts and Make only
++bootstrap or delegate. Preserve the original caller's Cargo home, workspace,
++relative outputs and explicit target overrides across tool launches.
++
++The runtime library owns reusable dispatch; guest crates choose and export their
++Model at build time. Build generic wasm locally and keep it out of Git and LFS.
++Preserve protocol package names, field tags and ABI unless the change explicitly
++requires a coordinated protocol migration. Regenerate Go from owning schemas
++with `scripts/proto-go.sh`; keep generated changes together with their inputs.
++
++Retain deterministic fixture and mutation controls when changing semantics.
++Refresh goldens only for an intended behavior change and explain the changed
++observations. Report actual commands, source revision and backend mode: historical
++receipts and a default gate that skips TLC do not establish current required-backend
++validation. Record timing overruns against the existing soft budgets.
+diff --git a/DESIGN.md b/DESIGN.md
+new file mode 100644
+index 00000000..b789d199
+--- /dev/null
++++ b/DESIGN.md
+@@ -0,0 +1,108 @@
++# Umpire design
++
++Umpire checks authored state machines and judges observations from real systems.
++The framework owns the authoring language, shared admission and typed IR, checkers,
++wire protocols, transactional runtime, Go transport/Runner and testing tools.
++Consumers own their Models, API descriptor acquisition, realizations, guests and
++system connections. [Kettle](reference/kettle/README.md) is a complete independent
++reference. Consumer checkout wiring is described in
++[the interface map](docs/consumer-interface.md).
++
++## Authoring and checking
++
++`author/umpire` is the author facade over DSL, suite and catalog. A `#[machine]`
++module declares its Model, fixed World parameters, actors, transitions and claims.
++The World is selected explicitly; its generated constructor assigns fields rather
++than validating arbitrary domain constraints. The [README](README.md#model-authoring)
++contains the executable authoring example.
++
++`front` reads declarations and the admitted body subset once inside the macro.
++`ir` carries the typed tree and source locations. The macro generates executable
++Rust and embeds the admitted tree off wasm. Structural errors refuse compilation;
++unsupported body syntax produces a located diagnostic and refuses emission while
++native checking remains available. A new IR field participates in derived
++constructor printing rather than a separate handwritten registration table.
++
++The native checker explores compiled Model bodies. Its interpreter evaluates the
++embedded tree as a differential check; compiled execution remains the default.
++The TLA emitter binds that same tree to the selected World, starts and catalog.
++TLC checks emitted modules independently of native graph exploration. Agreement
++requires complete reached sets and every selected verdict to agree, then typed
++replay checks counterexamples through compiled Model steps. A cut native graph
++cannot certify agreement. The common front end is a shared failure boundary;
++compiled replay and differential execution provide distinct cross-checks.
++
++Authored `stay!()` preserves a self-loop; `reject!` records a rejected outcome.
++Unchanged ordinary handlers remain disabled. Progress plans retain exact catalog
++membership and concrete fair actions for the selected World. World-selected
++assumptions and bounded optional values retain the admission limits documented in
++[README.md](README.md).
++
++## Backends and process ownership
++
++`backends/process` owns bounded native process execution, Java admission, capture
++and scratch cleanup for TLC and Apalache. The TLA emitter owns emission and typed
++values, rather than child supervision. Linux adopts and cleans up descendants;
++Darwin prevents descendants and refuses execution as root. Other platforms refuse.
++The audited syscall subtree is the local unsafe exception; safe crate roots retain
++`forbid(unsafe_code)`. Java heap settings and polled file limits are not kernel
++resource caps.
++
++TLC execution is required by `make validate`; default `make check` reports its
++skipped backend mode. Apalache is independently opt-in with
++`UMPIRE_APALACHE=require`. Backend refusal, incomplete dumps and disagreement are
++failures, rather than successful checks. Tool versions and checksums remain owned
++by the local configuration and installer code.
++
++## Runtime, guest and host
++
++`protocol/runtime` is an export-free reusable library for messages, transactional
++dispatch and ABI support. A guest crate chooses its concrete Model/realization at
++build time and invokes `export_guest!`. The stock guest selects the independent
++Kettle control; it is not a runtime plugin loader or a universal Model binary.
++The three application exports and ownership rules are defined by
++[the protocol contract](protocol/proto/README.md). Generic wasm is source-built,
++uncommitted and uses no Git LFS. See [GUEST_BUILDS.md](GUEST_BUILDS.md).
++
++One fresh Host belongs to a Run. The Go host owns transport and admission; the
++Runner serializes calls, drives a system-specific Driver, and records exact Model
++requests and responses. The Model owns Propose, Judge and Answer decisions.
++Explained behavior covers the recorded observations and termination budget, rather
++than every possible future. Refusal and Driver faults remain distinct from a
++Model's unexplained verdict. Replay uses a fresh same-hash/version Host and exact
++ordered evidence without external system I/O; redacted evidence cannot replay.
++The authoritative Run schema is
++[run.proto](protocol/proto/umpire/run/v1/run.proto).
++
++Generic annotation catalogs and realization envelopes remain framework-owned.
++System API acquisition and semantic catalog declarations remain consumer-owned;
++Kettle exercises descriptor-driven generation without a system extension.
++
++## Historical decisions and measurements
++
++The original extraction checkpoint is source `c88fdc5506`. The selected framework
++was exported with relevant Rust history; original `model/DESIGN.md`,
++`model/GUEST_BUILDS.md` and `model/design/` documents belonged to that source
++repository. Historical source IDs and evidence paths refer to that repository,
++not required standalone inputs. The original source repository was shallow at 2026-02-05, so earlier ancestry
++was unavailable during extraction; no missing ancestry is a build prerequisite.
++This document retains the generic decisions; system live-conformance obligations
++remain with their consumers.
++
++These observations establish only their named historical checkpoints. They are
++not benchmarks or validation of the extracted/adapted checkout.
++
++| Original checkpoint | Observation and limit |
++| --- | --- |
++| fn-210, 2026-10-18 | Stock Rust 1.99.1 wasm32-wasip1 Kettle on wazero 1.12.0 / Go 1.27.0, CGO disabled, matched native trait report and ordered rows: 81 starts, 283 states, 424 rows, depth 62. This predates the attribute surface. |
++| fn-238.4, `0bbeb1ff35` | Warm combined `make model-time`: 47.592 s gate, 7.272 s inner loop; default backend mode. These were original combined-workspace receipts. |
++| fn-238.9 derived printing | Required-TLC combined gate: 532.677 s (60 s target missed), inner loop 9.272 s (10 s target met). A prior cold attempt timed out at 600 s. This is not a steady-state comparison with default runs. |
++| fn-238.6, 2026-10-24 | Loaded-host interpreter pair medians 1.94× Kettle and 1.77× wide-shape compiled cost; Kettle upper quartile 2.01× and wide tail 3.3×. The proposed switch criteria were unmet; compiled remained default. Set construct cost remained unmeasured. |
++
++Original provenance: `model/design/rust-verdict-measurements.md` retains the
++2026-10-19 source, editor checks and reproduction commands;
++`model/DESIGN.md` retains backend/authoring receipts and their limitations.
++[Guest provenance](GUEST_BUILDS.md#historical-reproduction-evidence) records the
++separate byte-identity history. New claims require commands and receipts bound to
++the current source and backend modes; extraction does not discharge performance
++or system live-evidence obligations.
+diff --git a/GUEST_BUILDS.md b/GUEST_BUILDS.md
+new file mode 100644
+index 00000000..a37d7cbf
+--- /dev/null
++++ b/GUEST_BUILDS.md
+@@ -0,0 +1,123 @@
++# Guest builds
++
++Run the generic builder from this checkout's root:
++
++```sh
++bash scripts/guest.sh umpire-stock-guest build/stock.wasm
++bash scripts/guest.sh umpire-stock-guest build/stock.wasm --check
++bash scripts/guest-freshness.sh umpire-stock-guest build/stock.wasm
++bash scripts/tests/build-guests.sh
++```
++
++The stock guest selects its Kettle Model at build time. A consumer guest chooses
++its own Model and realization; the runtime library itself exports no application
++functions. Generic stock, stateful, caught-panic, overflow and Kettle guests are
++built locally for controls and are not committed or stored in Git LFS. Consumer
++publication and embedded assets belong to the consumer.
++
++The builder requires installed local mise pins, Rust sources and wasm32-wasip1.
++It uses `--locked` and `profile.guest`: release inheritance, stripped symbols,
++no debug information, fat LTO, one codegen unit and checked overflow. The ordinary
++release checker profile keeps profiling symbols. Missing tools and compiler
++failures fail for every `CI` value. Bash only bootstraps and delegates;
++[the native driver contract](dev/guest-driver/README.md) owns metadata, identity
++and freshness semantics.
++
++## Caller context and output
++
++`scripts/xtask.sh` builds the native CLI and dedicated guest driver before guest
++flags and wrappers, into `<target>/xtask-bootstrap`. The executable `guest-rustc`
++is an atomic copy of the driver, dispatched by its executable name. It preserves
++raw compiler arguments, prior wrappers, jobserver descriptors and loader variables
++without recursive Cargo launches. The bootstrap disables mise automatic installs.
++
++Relative outputs and explicit target overrides resolve against the original
++caller workspace. The default target is this framework's `target/` for local
++builds. Each consumer retains its own workspace/lockfile; framework and caller
++source roots are admitted separately. Metadata and builds receive the caller's
++explicit manifest. See [consumer invocation](docs/consumer-interface.md).
++
++Cargo artifact JSON must identify exactly one cdylib wasm file, including custom
++library names. Missing, malformed, multiple or unreadable outputs fail before
++publication. Builds publish by sibling rename; checks never update the destination.
++Status 0 means built/fresh, 1 means tool/input/output failure, and 2 means missing
++or stale output. A stale diagnostic includes sizes and the first differing byte
++offset, including EOF. Compiler failures preserve their exit status.
++
++## Portable identity
++
++The native driver remaps caller, separately admitted framework, sysroot, registry
++and target paths through one canonical longest-root mapping. Symbol identity
++covers compiler input, normalized package/source configuration and dependency
++identities. No bytes are rewritten after linking.
++
++Lock schema 2 hashes each crate's sorted non-development dependency closure,
++including build and platform-conditional edges, rather than the entire lockfile.
++Portable coordinates omit checkout-bearing Cargo IDs. Ambiguous package
++coordinates, missing closures and missing registry lock entries refuse. Whole
++workspace feature resolution can intentionally over-hash shared optional edges;
++unrelated/dev-only additions preserve bytes only when resolved guest closures
++remain unchanged. Build-std exemptions require pinned sysroot inputs.
++
++Cargo keeps its own artifact names and fingerprints. Atomic `.umpire-id` sidecars
++publish before the compiler starts, support pipelining, serialize per output and
++are removed after compiler failure. Persistent lock files remain in place.
++Portable proc-macro identities retain host-variant collision controls. Guest cache
++namespaces include dedicated driver bytes, full caller lockfile and compiler
++input; unrelated general CLI bytes are outside that identity. Native schema 2
++replaces old Python records and invalidates old sidecars; historical JSON/TOML
++quirks and old wasm bytes are not compatibility contracts.
++
++## Caught panic and host admission
++
++The shipped wasm standard library aborts panics. The builder rebuilds `std` and
++`panic_unwind` from pinned sources using command-scoped `RUSTC_BOOTSTRAP=1`,
++`-Zbuild-std=std,panic_unwind`, `-Cpanic=unwind`,
++`-Ctarget-feature=+exception-handling` and
++`-Cllvm-args=-wasm-use-legacy-eh=false`. This uses unstable interfaces on a pinned
++stable compiler. A toolchain upgrade requires new panic and reproduction controls.
++
++The host uses wazero's interpreter with final exception handling enabled. It
++admits only exact additional WASI `fd_close` and `fd_seek` signatures; both return
++BADF without accessing descriptors or output memory. It installs no general WASI
++module. Memory limits, cancellation, serialization, import/export signatures and
++invalidation after an uncaught trap remain enforced. Checker-caught panics refute
++the step while leaving the instance usable. Native/wasm parity controls compare
++complete responses, repeated calls, Reset and the existing report/row goldens.
++Current guests declare WHOLE_PREFIX_V1 during Reset; missing or unknown contracts
++refuse before Driver creation. The model hash binds the actual loaded bytes.
++
++## Current verification commands
++
++```sh
++mise exec -- cargo test -p xtask -p umpire-guest-driver --locked
++CARGO_TARGET_DIR=/absolute/task-owned-target bash scripts/tests/build-guests.sh
++CARGO_TARGET_DIR=/absolute/task-owned-target UMPIRE_APALACHE=require make validate
++```
++
++`make validate` runs the TLC-required full gate, isolated standalone proof and
++edited-checker timing. Apalache remains a separate required-mode selection.
++The 60 s gate and 10 s inner-loop budgets are soft targets; report overruns.
++Two clean source clones at distinct absolute paths with independent initially
++empty targets are needed to prove path independence for a particular input.
++Compare actual wasm bytes and record source, toolchain, platform, sizes and hashes.
++Same-OS reproduction alone does not establish cross-OS identity.
++
++## Historical reproduction evidence
++
++The following evidence belongs to the original source history and is not current
++standalone certification. Original `model/GUEST_BUILDS.md` at extraction source
++`c88fdc5506` records exact runners, receipts, superseding inputs and hashes;
++`.flow/` evidence paths below identify that source repository only.
++
++| Source / task | Recorded result |
++| --- | --- |
++| `8d429e97409b1537ecb347c359129bffafa63f78`, fn-232, 2026-10-21 | Linux/aarch64 and macOS/arm64 each passed two-clone path comparisons, but all cross-OS comparisons failed (first offsets stock 443, system guest 635). |
++| `a96a4c6550b468c5d7c3011a7961d4e118dacd93`, fn-239, 2026-10-22 | Four clean clones with empty targets passed all twelve byte comparisons and both host suites, using Rust 1.99.1 / LLVM 23.1.1, Go 1.27.0 and protoc 29.5. Stock: 192489 bytes, SHA-256 `bae203f82ecea5183d592232c62b746f6ccabda9944df53e46dd442482d1bc63`. Proof: `.flow/artifacts/fn-239-renew-the-linuxmacos-guest-byte/certification-a96a4c6550/proof.md`. |
++| `523d131d2cf992b04a43b4d595ea0f1a434f44b6`, fn-247 | Native identity schema 2: two clean Linux/aarch64 clones with independent targets agreed on stock and system guests. Cold/cached freshness and stale status 2 were exercised. This did not certify native macOS/cross-OS behavior or a complete gate. Proof: `.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task5/joined/proof-report.md`. |
++
++Later consumer-closure changes regenerated the system-owned embedded guest; its
++hashes are retained by that consumer, not a shipped generic artifact. Earlier
++proofs retain their own pins and cannot certify a changed driver, dependency
++closure or compiler. Original evidence and unavailable older ancestry are
++provenance, never prerequisites for building this checkout.
+diff --git a/Makefile b/Makefile
+new file mode 100644
+index 00000000..7a6363bb
+--- /dev/null
++++ b/Makefile
+@@ -0,0 +1,18 @@
++# Keep command semantics in the native framework tools.
++UMPIRE_XTASK = helper=$$(/bin/bash "$(CURDIR)/scripts/xtask.sh") && "$$helper"
++
++.PHONY: check fmt update time validate
++check:
++	@$(UMPIRE_XTASK) gate
++
++fmt:
++	@$(UMPIRE_XTASK) fmt
++
++update:
++	@$(UMPIRE_XTASK) update
++
++time:
++	@$(UMPIRE_XTASK) time
++
++validate:
++	@$(UMPIRE_XTASK) validate
+diff --git a/README.md b/README.md
+index a78217c4..28e23742 100644
+--- a/README.md
++++ b/README.md
+@@ -7,35 +7,61 @@ fixture tooling and shared Models. `hosts/go/` contains the host, Runner and gen
+ protocol packages; `reference/kettle/` contains the independent Kettle integration.
+ 
+ The framework is an independent Cargo workspace with local tool pins, lockfile,
+-lint and arithmetic policies. From this directory, use the installed pinned tools:
++lint and arithmetic policies. It needs no system repository, Scala build or prebuilt
++wasm. See [the design](DESIGN.md) for ownership and retained decisions, and
++[guest builds](GUEST_BUILDS.md) for reproduction and freshness.
++
++## Development commands
++
++Install [mise](https://mise.jdx.dev/) and the tools declared in `mise.toml`, then
++install the Rust components and wasm target declared in `rust-toolchain.toml`:
+ 
+ ```sh
+-mise exec -- cargo build --workspace --locked
+-mise exec -- cargo test --workspace --locked
+-mise exec -- cargo fmt --all -- --check
+-mise exec -- cargo check-all
+-mise exec -- cargo doc-all
++mise install
++mise exec -- rustup component add rustfmt clippy rust-src rust-analyzer
++mise exec -- rustup target add wasm32-wasip1
++make check
+ ```
+ 
+-Run the complete framework gate from this directory:
++Run commands from this checkout's root. Java is required for TLC and Apalache;
++the local mise configuration retains its Java pin. The gate provisions the pinned
++Go protobuf generators into `.bin/` and checksum-pinned backend tools into local
++ignored caches as needed; a cold run needs network access. Helpers disable
++implicit mise installation and fail if pinned tools are missing.
++
++| Command | Existing native operation |
++| --- | --- |
++| `make check` | `cargo xtask gate`: formatting, clippy, docs, tests, source boundaries, protobuf freshness, guest builds and both Go host suites |
++| `make fmt` | `cargo xtask fmt`: format Rust |
++| `make update` | `cargo xtask update`: refresh intended fixture and compile-test snapshots |
++| `make time` | `cargo xtask time`: gate plus edited-checker timing |
++| `make validate` | `cargo xtask validate`: timed TLC-required gate plus edited-checker timing and isolated standalone proof |
++
++Make bootstraps the existing native tools through `scripts/xtask.sh`. Installed
++pinned tools also support `mise exec -- cargo xtask <operation>` directly.
++The full gate disables quick-cache reads and cache reuse via `UMPIRE_QUICK_CACHE=0`
++and `UMPIRE_CACHE_DISABLE=1`. Default checks skip TLC execution; `make validate`
++requires it. Add `UMPIRE_APALACHE=require` to require Apalache too. Timing budgets
++are soft targets (60 s full gate, 10 s inner loop); overruns must be reported.
++
++For direct Cargo work:
+ 
+ ```sh
+-mise exec -- cargo xtask gate
++mise exec -- cargo build --workspace --locked
++mise exec -- cargo test --workspace --locked
++mise exec -- cargo check-all
++mise exec -- cargo doc-all
+ ```
+ 
+-It checks this workspace's formatting, clippy, documentation, tests, source boundaries,
+-protobufs, guests and both Go host modules. `cargo xtask fmt`, `update`, `time` and
+-`validate` provide formatting, snapshot updates, timed checks and required TLC checks.
+-The full gate sets `UMPIRE_QUICK_CACHE=0` and `UMPIRE_CACHE_DISABLE=1` for all children.
+-Apalache remains opt-in through `UMPIRE_APALACHE=require`.
+-
+-The native [xtask](dev/xtask/README.md) provides pinned tool installation and development
+-commands. Guest builds execute the independent [guest driver](dev/guest-driver/README.md).
+-`bash scripts/tests/build-guests.sh` builds the five generic guests and native parity reports;
+-the [Go host](hosts/go/README.md) and [Kettle reference](reference/kettle/README.md) describe
+-how to consume them. `bash scripts/proto-go.sh core --check` and the `kettle` selector
+-verify local generated Go protocol sources. Tools, generators and backend caches stay
+-under this workspace; explicit Cargo target overrides remain supported.
++The [native CLI contract](dev/xtask/README.md) describes stages and caller context.
++The [guest driver](dev/guest-driver/README.md) owns guest compiler identities and
++freshness. `bash scripts/tests/build-guests.sh` builds the five generic guests and
++native parity reports; the [Go host](hosts/go/README.md) and
++[Kettle reference](reference/kettle/README.md) describe their consumers.
++`bash scripts/proto-go.sh core --check` and the `kettle` selector verify generated
++Go protocol sources; omit `--check` to regenerate after an intended schema change.
++Explicit `CARGO_TARGET_DIR` overrides remain supported. See
++[the consumer interface map](docs/consumer-interface.md) for sibling integrations.
+ 
+ ## World-selected assumptions
+ 
+diff --git a/dev/gate/policy/framework-boundary.txt b/dev/gate/policy/framework-boundary.txt
+index e09ec03d..27d78732 100644
+--- a/dev/gate/policy/framework-boundary.txt
++++ b/dev/gate/policy/framework-boundary.txt
+@@ -1,6 +1,19 @@
+ version = 1
++license_sha256 = "6aab9afd99ceb1dcaf6a0d91386b46baef9bce17ae4006044e0f231e31430b69"
+ forbidden = ["temporal", "Temporal", "go.temporal.io/", "temporal.api", "temporal::api", "temporal/api"]
+ organization_prefix = "github.com/temporalio/"
+ retired_pattern = 'umpire[-_](wasm|tests)|umpire/(wasm|tests)(/|["`[:space:]]|$)|(^|[^[:alnum:]_])umpire[-_](lift|annotations)([^[:alnum:]_]|$)|umpire/(dsl|suite|checker|lift|runtime|proto|testing|fixtures|ir-derive|catalog-build)(/|["`[:space:]]|$)|umpire/annotations(/(src|tests|Cargo[.]toml|README[.]md|build[.]rs)(/|["`[:space:]]|$)|["`[:space:]]|$)'
+ controls = ["TemporalClient temporal_client", "use temporal::api;", "import go.temporal.io/api;", "module temporal/api;", "// temporal.api.Workflow", "github.com/temporalio/Temporal", "github.com/temporalio/temporal", "github.com/temporalio/umpire Temporal", "github.com/temporalio/umpire_temporal", "github.com/temporalio/umpire temporalio", "temporalio", "github.com/temporalioish/umpire", "github.com/Temporalio/umpire", "github.com/temporalio", "github.com/temporalio/", "other/temporalio/umpire", "other/github.com/temporalio/umpire"]
+ accepted_controls = ["github.com/temporalio/umpire", "github.com/temporalio/umpire/hosts/go"]
++
++[[descriptor_lines]]
++path = "hosts/go/gen/umpire/model/v1/model.pb.go"
++sha256 = "93747950ef49ea8f3497a70a87246d56d87934a07146cdb184b4c0982839faef"
++
++[[descriptor_lines]]
++path = "reference/kettle/gen/kettle/v1/kettle.pb.go"
++sha256 = "c560bb7b3e6397f96621487819c5193f16a1f58f876c1f1809ce1978f49cde7a"
++
++[[descriptor_lines]]
++path = "reference/kettle/gen/kettle/v1/probe.pb.go"
++sha256 = "e8889cbae6253ec8bdb0da313bb30c05592beb1b8afd6f829bdde230eefc7c85"
+diff --git a/dev/guest-driver/README.md b/dev/guest-driver/README.md
+index 06c9a824..4d62b8de 100644
+--- a/dev/guest-driver/README.md
++++ b/dev/guest-driver/README.md
+@@ -3,12 +3,11 @@
+ Build this host-only tool before setting guest compilation flags:
+ 
+ ```sh
+-cd model/umpire
+ mise exec -- cargo build -p umpire-guest-driver --bin umpire-guest-driver --profile dev --locked
+ mise exec -- cargo run -p umpire-guest-driver --bin umpire-guest-driver -- guest-lock Cargo.lock build/identities < metadata.json
+ ```
+ 
+-The alias selects the development profile; callers must bootstrap without a guest `--target`, `RUSTC_WRAPPER`, `RUSTFLAGS` or `CARGO_ENCODED_RUSTFLAGS`. Subsequent compiler invocations call the built native executable directly as `umpire-guest-driver guest-rustc <rustc> <arguments...>`. They never launch Cargo recursively. `scripts/xtask.sh` now owns bootstrap and prints the absolute executable path under `<target>/xtask-bootstrap/debug/umpire-guest-driver`. Guest launchers copy that native executable atomically as `guest-rustc`, which dispatches by argv[0] before parsing command arguments.
++The command selects the development profile; callers must bootstrap without a guest `--target`, `RUSTC_WRAPPER`, `RUSTFLAGS` or `CARGO_ENCODED_RUSTFLAGS`. Subsequent compiler invocations call the built native executable directly as `umpire-guest-driver guest-rustc <rustc> <arguments...>`. They never launch Cargo recursively. `scripts/xtask.sh` now owns bootstrap and prints the absolute executable path under `<target>/xtask-bootstrap/debug/umpire-guest-driver`. Guest launchers copy that native executable atomically as `guest-rustc`, which dispatches by argv[0] before parsing command arguments.
+ 
+ `guest <crate> <output> [--check]` builds or compares a guest. `guest-freshness <crate> <output>` validates pinned tools, metadata, Rust sources and target readiness before comparing. Both use the caller Cargo workspace; shell callers use `guest.sh` and `guest-freshness.sh` to preserve caller-relative output paths. Missing tools fail for every CI value. See [native CLI](../xtask/README.md) for native JSON admission, statuses and bootstrap environment.
+ 
+@@ -20,10 +19,9 @@ Native schema 2 intentionally replaces Python identity JSON, hash inputs, sideca
+ 
+ Serialization passes through plain serde_json `Value` so nested object keys use the default BTreeMap ordering. `preserve_order` is disabled workspace-wide. SHA-256 uses in-process sha2 0.11. Native TOML is exactly the admitted toml 1.1.8+spec-1.1.0 with only std/parse/serde requested by xtask. Other existing workspace consumers retain their pre-existing TOML features. No unbounded feature or Python grammar, number, date, recursion, escaping or diagnostic-order emulation is provided. JSON/TOML parse and schema failures are errors; native parser resource limits apply. Current workspace Cargo, mise and Rust toolchain documents and the installed rust-src lockfile are controls in the focused native corpus.
+ 
+-Run the task's focused controls:
++From the checkout root, run the focused controls:
+ 
+ ```sh
+-cd model/umpire
+ mise exec -- cargo test -p umpire-guest-driver --locked
+ mise exec -- cargo clippy -p umpire-guest-driver --all-targets -- -D warnings
+ ```
+diff --git a/dev/xtask/README.md b/dev/xtask/README.md
+index d7c089c0..2f2b9282 100644
+--- a/dev/xtask/README.md
++++ b/dev/xtask/README.md
+@@ -29,6 +29,28 @@ POSIX character classes. The shell resolves the compiled tool once through
+ isolated caller controls. `cargo test -p xtask --test main --locked` covers
+ the stream contract, active spellings, historical exclusions and tool failures.
+ 
++## Affected-package quick command
++
++`quick --workspace <absolute-path>` accepts multiple Cargo workspaces, including
++workspaces in sibling Git repositories. It scans each distinct Git repository once
++and merges absolute changed paths before selecting source owners, mapped consumers
++and reverse dependencies across all explicit workspaces. Staged, unstaged, deleted,
++renamed and untracked inputs participate; global or unmapped inputs retain the
++conservative workspace selection. Always packages still execute on unchanged runs.
++
++`--base <revision>` (or `BASE`, default `HEAD`) retains its existing meaning for one
++Git repository. With multiple repositories, it applies only to the invocation's
++current-directory Git repository, which must own an explicit workspace; every other
++repository compares against its own `HEAD`. An invalid caller base or a caller
++outside those repositories fails. `--select-only` prints the existing selection JSON;
++its `base` field remains the requested base and `reasons` reports every repository's
++effective base. Consumer bridges preserve the caller directory for this purpose.
++
++Quick continues to run native formatting, clippy and tests with the selected
++workspaces' profiles, target/cache policy and native/interpreter fixture execution.
++Package test targets and filters narrow only unchanged or exclusively mapped Model
++edits. Full gates continue to disable quick-cache reads.
++
+ ## Apalache installer
+ 
+ `fetch-apalache [framework-root]` admits the official pinned Apalache jar. The
+diff --git a/dev/xtask/src/gate/boundary.rs b/dev/xtask/src/gate/boundary.rs
+index 7e9029cc..f4dad043 100644
+--- a/dev/xtask/src/gate/boundary.rs
++++ b/dev/xtask/src/gate/boundary.rs
+@@ -13,12 +13,23 @@ const POLICY: &str = "dev/gate/policy/framework-boundary.txt";
+ #[serde(deny_unknown_fields)]
+ struct Policy {
+     version: u32,
++    license_sha256: String,
++    descriptor_lines: Vec<DescriptorLine>,
+     forbidden: Vec<String>,
+     retired_pattern: String,
+     organization_prefix: String,
+     controls: Vec<String>,
+     accepted_controls: Vec<String>,
+ }
++#[derive(Deserialize)]
++#[serde(deny_unknown_fields)]
++struct DescriptorLine {
++    path: PathBuf,
++    sha256: String,
++}
++fn valid_digest(value: &str) -> bool {
++    value.len() == 64 && value.bytes().all(|byte| matches!(byte, b'0'..=b'9' | b'a'..=b'f'))
++}
+ fn policy(root: &Path) -> Result<Policy> {
+     let path = root.join(POLICY);
+     if !fs::symlink_metadata(&path)?.is_file() {
+@@ -26,6 +37,15 @@ fn policy(root: &Path) -> Result<Policy> {
+     }
+     let policy: Policy = toml::from_str(&fs::read_to_string(path)?)?;
+     if policy.version != 1
++        || !valid_digest(&policy.license_sha256)
++        || policy.descriptor_lines.iter().enumerate().any(|(index, line)| {
++            !valid_digest(&line.sha256)
++                || !line.path.to_str().is_some_and(|path| {
++                    path.ends_with(".pb.go")
++                        && path.split('/').all(|part| !matches!(part, "" | "." | ".."))
++                })
++                || policy.descriptor_lines[..index].iter().any(|other| other.path == line.path)
++        })
+         || policy.forbidden.is_empty()
+         || policy.forbidden.iter().any(String::is_empty)
+         || policy.retired_pattern.is_empty()
+@@ -144,6 +164,20 @@ fn forbidden(bytes: &[u8], p: &Policy, allow: bool) -> bool {
+         })
+     })
+ }
++fn descriptor_line(bytes: &[u8], relative: &Path, p: &Policy) -> Vec<u8> {
++    let mut scanned = bytes.to_vec();
++    if p.descriptor_lines.iter().any(|line| {
++        line.path == relative && line.sha256 == umpire_backend_process::bytes_sha256(bytes)
++    }) {
++        let prefix = p.organization_prefix.as_bytes();
++        for (at, probe) in bytes.windows(prefix.len()).enumerate() {
++            if probe == prefix {
++                scanned[at..at + prefix.len()].fill(b'_');
++            }
++        }
++    }
++    scanned
++}
+ pub(super) fn check(root: &Path, target: &Path) -> Result<()> {
+     let p = policy(root)?;
+     for file in files(root, target)? {
+@@ -158,13 +192,29 @@ pub(super) fn check(root: &Path, target: &Path) -> Result<()> {
+             )));
+         }
+         let bytes = fs::read(&file)?;
+-        for (line, bytes) in bytes.split(|b| *b == b'\n').enumerate() {
+-            if forbidden(bytes, &p, true) {
+-                return Err(Error::Invalid(format!(
+-                    "framework forbidden name: {}:{}",
+-                    relative.display(),
+-                    line + 1
+-                )));
++        let licensed = relative == Path::new("LICENSE")
++            && umpire_backend_process::bytes_sha256(&bytes) == p.license_sha256;
++        if !licensed {
++            let generated =
++                bytes.starts_with(b"// Code generated by protoc-gen-go. DO NOT EDIT.\n");
++            let mut descriptor = false;
++            for (line, bytes) in bytes.split(|b| *b == b'\n').enumerate() {
++                if generated
++                    && bytes.starts_with(b"const file_")
++                    && bytes.ends_with(b"_rawDesc = \"\" +")
++                {
++                    descriptor = true;
++                } else if descriptor && !bytes.starts_with(b"\t\"") {
++                    descriptor = false;
++                }
++                let scanned = descriptor.then(|| descriptor_line(bytes, relative, &p));
++                if forbidden(scanned.as_deref().unwrap_or(bytes), &p, true) {
++                    return Err(Error::Invalid(format!(
++                        "framework forbidden name: {}:{}",
++                        relative.display(),
++                        line + 1
++                    )));
++                }
+             }
+         }
+         if file.file_name() == Some(OsStr::new("Cargo.toml")) {
+@@ -531,6 +581,147 @@ mod tests {
+         Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
+     }
+     #[test]
++    fn descriptor_policy_requires_canonical_paths_and_digests() -> Result<()> {
++        let directory = tempfile::tempdir()?;
++        let root = directory.path();
++        fs::create_dir_all(root.join("dev/gate/policy"))?;
++        let original = fs::read_to_string(local_policy_root().join(POLICY))?;
++        let p = policy(&local_policy_root())?;
++        let entry = &p.descriptor_lines[0];
++        for invalid in [
++            "",
++            "../source.pb.go",
++            "/source.pb.go",
++            "a/./source.pb.go",
++            "a//source.pb.go",
++            "source.go",
++        ] {
++            let path = entry.path.to_str().ok_or_else(|| Error::Invalid("policy path".into()))?;
++            fs::write(root.join(POLICY), original.replacen(path, invalid, 1))?;
++            assert!(policy(root).is_err());
++        }
++        for invalid in [String::new(), "0".repeat(63), "A".repeat(64)] {
++            fs::write(root.join(POLICY), original.replacen(&entry.sha256, &invalid, 1))?;
++            assert!(policy(root).is_err());
++        }
++        let duplicate = original
++            .rsplit_once("[[descriptor_lines]]")
++            .ok_or_else(|| Error::Invalid("missing descriptor policy".into()))?
++            .1;
++        fs::write(root.join(POLICY), format!("{original}\n[[descriptor_lines]]{duplicate}"))?;
++        assert!(policy(root).is_err());
++        Ok(())
++    }
++    #[test]
++    fn generated_descriptor_exception_preserves_content_and_source_boundaries() -> Result<()> {
++        let p = policy(&local_policy_root())?;
++        let relative = "hosts/go/gen/umpire/model/v1/model.pb.go";
++        let source = fs::read_to_string(local_policy_root().join(relative))?;
++        let directory = tempfile::tempdir()?;
++        let root = directory.path().join("root");
++        fs::create_dir_all(root.join("dev/gate/policy"))?;
++        fs::copy(local_policy_root().join(POLICY), root.join(POLICY))?;
++        let file = root.join(relative);
++        fs::create_dir_all(file.parent().ok_or_else(|| Error::Invalid("missing parent".into()))?)?;
++        let target = directory.path().join("target");
++        fs::write(&file, &source)?;
++        check(&root, &target)?;
++
++        fs::write(&file, format!("{source}\n{}", p.controls[1]))?;
++        assert!(check(&root, &target).is_err());
++        let descriptor = source
++            .lines()
++            .find(|line| line.contains(&p.organization_prefix) && line.contains("proto3"))
++            .ok_or_else(|| Error::Invalid("missing descriptor".into()))?;
++        for forged in p.controls[5..].iter().filter(|value| *value != &p.organization_prefix) {
++            fs::write(&file, source.replace(&p.organization_prefix, forged))?;
++            assert!(check(&root, &target).is_err());
++        }
++        for injected in [p.controls[1].as_str(), p.controls[8].as_str()] {
++            fs::write(&file, source.replace(descriptor, &format!("{descriptor}{injected}")))?;
++            assert!(check(&root, &target).is_err());
++        }
++        let policy_text = fs::read_to_string(root.join(POLICY))?;
++        let injected = format!("{descriptor} {}", p.controls[1]);
++        fs::write(&file, source.replace(descriptor, &injected))?;
++        fs::write(
++            root.join(POLICY),
++            policy_text.replace(
++                &umpire_backend_process::bytes_sha256(descriptor.as_bytes()),
++                &umpire_backend_process::bytes_sha256(injected.as_bytes()),
++            ),
++        )?;
++        assert!(check(&root, &target).is_err());
++        fs::write(root.join(POLICY), policy_text)?;
++        fs::write(
++            &file,
++            format!("// Code generated by protoc-gen-go. DO NOT EDIT.\n{descriptor}\n"),
++        )?;
++        assert!(check(&root, &target).is_err());
++        fs::write(
++            &file,
++            source.replace("// Code generated by protoc-gen-go. DO NOT EDIT.", "// handwritten"),
++        )?;
++        assert!(check(&root, &target).is_err());
++        fs::write(&file, &source)?;
++        fs::write(root.join("copied.pb.go"), &source)?;
++        assert!(check(&root, &target).is_err());
++        Ok(())
++    }
++    #[test]
++    fn license_digest_policy_is_required_and_canonical() -> Result<()> {
++        let directory = tempfile::tempdir()?;
++        let root = directory.path();
++        fs::create_dir_all(root.join("dev/gate/policy"))?;
++        let original = fs::read_to_string(local_policy_root().join(POLICY))?;
++        let digest = policy(&local_policy_root())?.license_sha256;
++        for invalid in
++            [String::new(), "0".repeat(63), "0".repeat(65), "G".repeat(64), "A".repeat(64)]
++        {
++            fs::write(root.join(POLICY), original.replace(&digest, &invalid))?;
++            assert!(policy(root).is_err());
++        }
++        let missing = original
++            .lines()
++            .filter(|line| !line.starts_with("license_sha256 ="))
++            .collect::<Vec<_>>()
++            .join("\n");
++        fs::write(root.join(POLICY), missing)?;
++        assert!(policy(root).is_err());
++        Ok(())
++    }
++    #[test]
++    fn unchanged_root_license_is_the_only_content_exception() -> Result<()> {
++        let p = policy(&local_policy_root())?;
++        let bytes = fs::read(local_policy_root().join("LICENSE"))?;
++        assert!(forbidden(&bytes, &p, true));
++        let directory = tempfile::tempdir()?;
++        let root = directory.path().join("root");
++        fs::create_dir_all(root.join("dev/gate/policy"))?;
++        fs::copy(local_policy_root().join(POLICY), root.join(POLICY))?;
++        let target = directory.path().join("target");
++        let license = root.join("LICENSE");
++        fs::write(&license, &bytes)?;
++        check(&root, &target)?;
++
++        let mut altered = bytes.clone();
++        altered.extend_from_slice(b"\n");
++        altered.extend_from_slice(p.controls[1].as_bytes());
++        fs::write(&license, altered)?;
++        assert!(check(&root, &target).is_err());
++
++        fs::write(&license, &bytes)?;
++        fs::write(root.join("NOTICE"), &bytes)?;
++        assert!(check(&root, &target).is_err());
++        fs::remove_file(root.join("NOTICE"))?;
++        fs::remove_file(&license)?;
++        let outside = directory.path().join("license-copy");
++        fs::write(&outside, &bytes)?;
++        std::os::unix::fs::symlink(outside, &license)?;
++        assert!(check(&root, &target).is_err());
++        Ok(())
++    }
++    #[test]
+     fn organization_exception_preserves_occurrence_token_boundaries() -> Result<()> {
+         let p = policy(&local_policy_root())?;
+         let directory = tempfile::tempdir()?;
+diff --git a/dev/xtask/src/quick/mod.rs b/dev/xtask/src/quick/mod.rs
+index aa5a9fb0..2b1e9253 100644
+--- a/dev/xtask/src/quick/mod.rs
++++ b/dev/xtask/src/quick/mod.rs
+@@ -165,6 +165,57 @@ fn changed(root: &Path, base: &std::ffi::OsStr) -> Result<Vec<PathBuf>> {
+         .collect())
+ }
+ 
++fn repository(root: &Path) -> Result<PathBuf> {
++    let repository = captured(&mut git(root, &["rev-parse", "--show-toplevel"]))?;
++    let repository = repository.strip_suffix(b"\n").unwrap_or(&repository);
++    Ok(PathBuf::from(OsString::from_vec(repository.to_vec())).canonicalize()?)
++}
++
++fn changes(options: &Options, caller: &Path) -> Result<(Vec<PathBuf>, BTreeSet<String>)> {
++    let repositories =
++        options.workspaces.iter().map(|root| repository(root)).collect::<Result<BTreeSet<_>>>()?;
++    let multiple = repositories.len() > 1;
++    let caller_repository = if multiple {
++        let root = repository(caller).map_err(|error| {
++            Error::Invalid(format!("quick cannot resolve caller Git repository: {error}"))
++        })?;
++        if !repositories.contains(&root) {
++            return Err(Error::Invalid(format!(
++                "quick caller Git repository {} is not an explicit workspace repository; BASE ownership is ambiguous",
++                root.display()
++            )));
++        }
++        Some(root)
++    } else {
++        None
++    };
++    let mut paths = BTreeSet::new();
++    let mut reasons = BTreeSet::new();
++    for root in repositories {
++        let base = if !multiple || caller_repository.as_ref() == Some(&root) {
++            options.base.as_deref().unwrap_or_default()
++        } else {
++            std::ffi::OsStr::new("HEAD")
++        };
++        paths.extend(changed(&root, base).map_err(|error| {
++            Error::Invalid(format!(
++                "quick BASE {} in Git repository {}: {error}",
++                base.to_string_lossy(),
++                root.display()
++            ))
++        })?);
++        if multiple {
++            reasons.insert(format!(
++                "Git repository {}: effective BASE {}{}",
++                root.display(),
++                base.to_string_lossy(),
++                if caller_repository.as_ref() == Some(&root) { " (caller)" } else { "" }
++            ));
++        }
++    }
++    Ok((paths.into_iter().collect(), reasons))
++}
++
+ fn cargo(root: &Path, home: &Path, target: &Path) -> Command {
+     let mut command = Command::new("mise");
+     command
+@@ -348,20 +399,7 @@ pub fn run(arguments: Vec<OsString>) -> Result<i32> {
+             if path.is_absolute() { path } else { caller.join(path) }
+         },
+     );
+-    let repository = captured(&mut git(&options.workspaces[0], &["rev-parse", "--show-toplevel"]))?;
+-    let repository = repository.strip_suffix(b"\n").unwrap_or(&repository);
+-    let repository = PathBuf::from(OsString::from_vec(repository.to_vec())).canonicalize()?;
+-    for workspace in &options.workspaces {
+-        let actual = captured(&mut git(workspace, &["rev-parse", "--show-toplevel"]))?;
+-        let actual = actual.strip_suffix(b"\n").unwrap_or(&actual);
+-        if PathBuf::from(OsString::from_vec(actual.to_vec())).canonicalize()? != repository {
+-            return Err(Error::Invalid(
+-                "quick workspaces must belong to the same Git repository".into(),
+-            ));
+-        }
+-    }
+-    let base = options.base.as_deref().unwrap_or_default();
+-    let changed = changed(&repository, base)?;
++    let (changed, reasons) = changes(&options, &caller)?;
+     let mut graph = selection::Graph::default();
+     for workspace in &options.workspaces {
+         let metadata = captured(cargo(workspace, &home, &target).args([
+@@ -372,7 +410,8 @@ pub fn run(arguments: Vec<OsString>) -> Result<i32> {
+         ]))?;
+         graph.add(workspace, &metadata)?;
+     }
+-    let selection = graph.select(&options, changed)?;
++    let mut selection = graph.select(&options, changed)?;
++    selection.reasons.extend(reasons);
+     serde_json::to_writer(io::stdout().lock(), &selection)
+         .map_err(|error| Error::Invalid(error.to_string()))?;
+     writeln!(io::stdout())?;
+diff --git a/dev/xtask/src/quick/tests.rs b/dev/xtask/src/quick/tests.rs
+index bb32b49f..d276b1b9 100644
+--- a/dev/xtask/src/quick/tests.rs
++++ b/dev/xtask/src/quick/tests.rs
+@@ -1,4 +1,4 @@
+-use super::{Options, changed, selection::Graph};
++use super::{Options, changed, changes, selection::Graph};
+ use std::{
+     collections::BTreeSet,
+     ffi::OsString,
+@@ -161,6 +161,173 @@ fn git_selection_includes_staged_unstaged_untracked_renamed_and_deleted_paths()
+     Ok(())
+ }
+ 
++fn commit(root: &Path) -> TestResult {
++    git(root, &["add", "."])?;
++    git(
++        root,
++        &[
++            "-c",
++            "user.name=Quick",
++            "-c",
++            "user.email=quick@example.test",
++            "commit",
++            "--quiet",
++            "-m",
++            "source",
++        ],
++    )
++}
++
++fn repositories(
++    root: &Path,
++) -> Result<(PathBuf, PathBuf, Options, Graph), Box<dyn std::error::Error>> {
++    let framework = root.join("framework");
++    let system = root.join("system");
++    for repository in [&framework, &system] {
++        fs::create_dir_all(repository.join("core/src"))?;
++        fs::create_dir_all(repository.join("other/src"))?;
++        fs::write(repository.join("core/src/lib.rs"), "before\n")?;
++        fs::write(repository.join("other/src/lib.rs"), "before\n")?;
++        fs::write(repository.join("identity"), repository.as_os_str().as_encoded_bytes())?;
++        git(repository, &["init", "--quiet"])?;
++        commit(repository)?;
++    }
++    let framework = framework.canonicalize()?;
++    let system = system.canonicalize()?;
++    let mut graph = Graph::default();
++    let mut framework_metadata: serde_json::Value = serde_json::from_slice(&metadata(
++        "framework",
++        &[("core1", "core", &[]), ("fixture1", "fixtures", &["core1"])],
++        &["core1", "fixture1"],
++    ))?;
++    let mut system_metadata: serde_json::Value = serde_json::from_slice(&metadata(
++        "system",
++        &[("core2", "core", &[]), ("activity2", "activity", &["core2"]), ("other2", "other", &[])],
++        &["activity2", "other2"],
++    ))?;
++    system_metadata["packages"][0]["manifest_path"] =
++        serde_json::json!("/framework/core/Cargo.toml");
++    for value in [&mut framework_metadata, &mut system_metadata] {
++        for package in value["packages"].as_array_mut().ok_or("missing packages")? {
++            let path = Path::new(package["manifest_path"].as_str().ok_or("missing manifest")?);
++            let relocated = path.strip_prefix("/framework").map_or_else(
++                |_| system.join(path.strip_prefix("/system").unwrap_or(path)),
++                |relative| framework.join(relative),
++            );
++            package["manifest_path"] = serde_json::to_value(relocated)?;
++        }
++    }
++    graph.add(&framework, &serde_json::to_vec(&framework_metadata)?)?;
++    graph.add(&system, &serde_json::to_vec(&system_metadata)?)?;
++    let mut options = options();
++    options.workspaces = vec![framework.clone(), system.clone()];
++    Ok((framework, system, options, graph))
++}
++
++#[test]
++fn independent_repositories_merge_changes_before_reverse_consumer_selection() -> TestResult {
++    let root = tempfile::tempdir()?;
++    let (framework, system, mut options, graph) = repositories(root.path())?;
++    // Two admitted workspaces may share one Git root; it must be scanned only once.
++    options.workspaces.push(framework.join("core"));
++    fs::write(framework.join("core/src/lib.rs"), "framework edit\n")?;
++    let (paths, reasons) = changes(&options, &system)?;
++    assert_eq!(paths, vec![framework.join("core/src/lib.rs")]);
++    assert_eq!(reasons.len(), 2);
++    assert_eq!(
++        graph
++            .select(&options, paths)?
++            .workspaces
++            .into_iter()
++            .flat_map(|workspace| workspace.packages)
++            .collect::<BTreeSet<_>>(),
++        BTreeSet::from(["core".into(), "fixtures".into(), "activity".into()])
++    );
++    fs::write(framework.join("core/src/lib.rs"), "before\n")?;
++    fs::write(system.join("other/src/lib.rs"), "system edit\n")?;
++    let (paths, _) = changes(&options, &system)?;
++    assert_eq!(paths, vec![system.join("other/src/lib.rs")]);
++    assert_eq!(
++        graph
++            .select(&options, paths)?
++            .workspaces
++            .into_iter()
++            .flat_map(|workspace| workspace.packages)
++            .collect::<BTreeSet<_>>(),
++        BTreeSet::from(["fixtures".into(), "other".into()])
++    );
++    fs::write(framework.join("core/src/untracked.rs"), "new source\n")?;
++    let (paths, _) = changes(&options, &system)?;
++    assert_eq!(
++        paths.into_iter().collect::<BTreeSet<_>>(),
++        BTreeSet::from([framework.join("core/src/untracked.rs"), system.join("other/src/lib.rs")])
++    );
++    fs::write(framework.join("Cargo.lock"), "global input\n")?;
++    let (paths, _) = changes(&options, &system)?;
++    assert_eq!(
++        graph
++            .select(&options, paths)?
++            .workspaces
++            .into_iter()
++            .flat_map(|workspace| workspace.packages)
++            .collect::<BTreeSet<_>>(),
++        BTreeSet::from(["core".into(), "fixtures".into(), "activity".into(), "other".into()])
++    );
++    Ok(())
++}
++
++#[test]
++fn independent_repository_bases_belong_to_the_admitted_caller() -> TestResult {
++    let root = tempfile::tempdir()?;
++    let (framework, system, mut options, _) = repositories(root.path())?;
++    fs::write(system.join("other/src/lib.rs"), "committed caller edit\n")?;
++    commit(&system)?;
++    options.base = Some("HEAD~1".into());
++    let (paths, reasons) = changes(&options, &system.join("other"))?;
++    assert_eq!(paths, vec![system.join("other/src/lib.rs")]);
++    assert!(
++        reasons.contains(&format!(
++            "Git repository {}: effective BASE HEAD~1 (caller)",
++            system.display()
++        ))
++    );
++    assert!(
++        reasons.contains(&format!("Git repository {}: effective BASE HEAD", framework.display()))
++    );
++    // HEAD~1 exists only in the caller; it must never be interpreted in its sibling.
++    assert!(changes(&options, &framework).is_err());
++    for base in ["missing-base", "--help"] {
++        options.base = Some(base.into());
++        let error = changes(&options, &system).err().ok_or("invalid BASE was accepted")?;
++        assert!(error.to_string().contains(base));
++        assert!(error.to_string().contains(&system.display().to_string()));
++    }
++    options.base = Some("HEAD".into());
++    assert!(changes(&options, root.path()).is_err());
++    let outside = root.path().join("outside");
++    fs::create_dir(&outside)?;
++    git(&outside, &["init", "--quiet"])?;
++    let error = changes(&options, &outside).err().ok_or("unadmitted caller was accepted")?;
++    assert!(error.to_string().contains("BASE ownership is ambiguous"));
++    Ok(())
++}
++
++#[test]
++fn one_repository_keeps_base_semantics_without_caller_ownership() -> TestResult {
++    let root = tempfile::tempdir()?;
++    let (framework, system, mut options, _) = repositories(root.path())?;
++    options.workspaces = vec![framework.clone(), framework.join("core")];
++    fs::write(framework.join("core/src/lib.rs"), "committed edit\n")?;
++    commit(&framework)?;
++    options.base = Some("HEAD~1".into());
++    let (paths, reasons) = changes(&options, &system)?;
++    assert_eq!(paths, changed(&framework, &OsString::from("HEAD~1"))?);
++    assert!(reasons.is_empty());
++    options.base = Some("missing-base".into());
++    assert!(changes(&options, &system).is_err());
++    Ok(())
++}
++
+ #[test]
+ fn options_reject_unknown_flags_and_relative_workspaces() {
+     assert!(Options::parse(vec!["--workspace".into(), ".".into()]).is_err());
+diff --git a/docs/consumer-interface.md b/docs/consumer-interface.md
+new file mode 100644
+index 00000000..7e86096a
+--- /dev/null
++++ b/docs/consumer-interface.md
+@@ -0,0 +1,44 @@
++# Consumer interface
++
++All framework paths below are relative to the Umpire checkout root. A typical
++paired layout has sibling `umpire/` and consumer repositories. The framework
++builds alone; the consumer selects the actual local checkout explicitly.
++
++| Surface | Owner and consumer contract |
++| --- | --- |
++| Cargo workspace | Umpire owns `Cargo.toml`, `Cargo.lock`, local pins, profiles and tools. Consumers own separate workspaces/locks and use sibling path dependencies onto the actual crate paths. |
++| Author facade | `author/umpire` (`umpire`); lower-level crates remain available under `author/`, `catalog/` and `backends/`. |
++| Runtime / schemas | `protocol/runtime` and `protocol/proto`; reusable dispatch and shared envelopes. Consumers own extension schemas, API acquisition and generated extension code. |
++| Generic Go module | `github.com/temporalio/umpire/hosts/go`, rooted at `hosts/go`; transport in `host`, loop in `runner`, generated packages in `gen/umpire`. |
++| Reference Go module | `github.com/temporalio/umpire/reference/kettle`, rooted at `reference/kettle`, with its own server, schemas and fixtures. |
++| Local Go selection | A consumer/parent `go.work` includes the actual `hosts/go` and consumer modules; preserve existing workspace entries. The reference module replaces the generic module with `../../hosts/go`. |
++| Generic generation | `bash scripts/proto-go.sh core` or `kettle`; both accept `--check`. Consumers generate their own extension descriptors from their owning schemas. |
++| Framework checks | Root `make check`, `fmt`, `update`, `time`, `validate` delegate to existing native operations. They check Umpire; consumers retain their additional gates. |
++| Guest build / freshness | Absolute Umpire `scripts/guest.sh` and `scripts/guest-freshness.sh`; invoke from the consumer Cargo workspace. Output paths and target overrides retain caller meaning. |
++| Generic artifacts | `scripts/tests/build-guests.sh` builds generic wasm and native parity reports under the selected target. No prebuilt generic wasm is published or committed. |
++| Consumer artifacts | The consumer owns its concrete guest crate, selected Model, output destination, embedding, freshness checks and real system/SDK tests. |
++
++For example, from a consumer's Cargo workspace with an explicitly configured
++absolute `UMPIRE_ROOT` pointing to this checkout:
++
++```sh
++bash "$UMPIRE_ROOT/scripts/guest.sh" my-system-guest build/my-system.wasm
++bash "$UMPIRE_ROOT/scripts/guest-freshness.sh" my-system-guest build/my-system.wasm
++```
++
++The native bootstrap reports its executable path on stdout:
++
++```sh
++helper=$(bash "$UMPIRE_ROOT/scripts/xtask.sh")
++"$helper" gate
++```
++
++Use absolute checkout paths at the seam. A missing local checkout must fail with
++setup instructions rather than substituting registry or cached framework code.
++Framework gate execution uses framework-owned roots; guest execution uses the
++original caller's manifest and lockfile. See [guest context](../GUEST_BUILDS.md#caller-context-and-output)
++and [native contracts](../dev/xtask/README.md).
++
++These are source-prepared interfaces. Current-pair generation, required-backend
++gates, fresh-target proofs and disposable Rust/Go edit red/green demonstrations
++remain admission evidence to collect after the validation hold ends.
+diff --git a/hosts/go/README.md b/hosts/go/README.md
+index ea15a87c..7d53456e 100644
+--- a/hosts/go/README.md
++++ b/hosts/go/README.md
+@@ -1,6 +1,6 @@
+ # Go model host
+ 
+-Package `umpire.local/model/host` runs the generated model v1 contract using wazero v1.12.0
++Package `github.com/temporalio/umpire/hosts/go/host` runs the generated model v1 contract using wazero v1.12.0
+ with Go 1.27.0 and `CGO_ENABLED=0`. It uses wazero's interpreter with experimental
+ WebAssembly exception handling enabled for Rust unwinding. It has no dependency
+ on the server module.
+@@ -83,7 +83,7 @@ and value-free result classification independently of a system's probe controls.
+ 
+ ## Runner
+ 
+-Package `umpire.local/model/runner` is the one host loop. A `Runner` holds one guest's
++Package `github.com/temporalio/umpire/hosts/go/runner` is the one host loop. A `Runner` holds one guest's
+ bytes and a Driver factory. Each Run gets a fresh `Host` and a fresh Driver: Reset with the
+ selected world, then Propose, have the Driver act, Judge every observation and Answer every
+ callback, until the Model answers `QUIESCENT`, a proposal or event budget is spent, or an
+diff --git a/hosts/go/gen/umpire/annotations/v1/annotations.pb.go b/hosts/go/gen/umpire/annotations/v1/annotations.pb.go
+index f825db78..0abb969c 100644
+--- a/hosts/go/gen/umpire/annotations/v1/annotations.pb.go
++++ b/hosts/go/gen/umpire/annotations/v1/annotations.pb.go
+@@ -846,7 +846,7 @@ const file_umpire_annotations_v1_annotations_proto_rawDesc = "" +
+ 	"APPLICABLE\x10\x00\x12\x12\n" +
+ 	"\x0eNOT_APPLICABLE\x10\x01\x12\v\n" +
+ 	"\aREFUSED\x10\x02\x12\r\n" +
+-	"\tUNCHANGED\x10\x03B.Z,umpire.local/model/gen/umpire/annotations/v1b\x06proto3"
++	"\tUNCHANGED\x10\x03BAZ?github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1b\x06proto3"
+ 
+ var (
+ 	file_umpire_annotations_v1_annotations_proto_rawDescOnce sync.Once
+diff --git a/hosts/go/gen/umpire/model/v1/model.pb.go b/hosts/go/gen/umpire/model/v1/model.pb.go
+index af7c37ae..be0b8e3a 100644
+--- a/hosts/go/gen/umpire/model/v1/model.pb.go
++++ b/hosts/go/gen/umpire/model/v1/model.pb.go
+@@ -1414,7 +1414,7 @@ const file_umpire_model_v1_model_proto_rawDesc = "" +
+ 	"\x19PROPOSAL_KIND_UNSPECIFIED\x10\x00\x12\x18\n" +
+ 	"\x14PROPOSAL_KIND_ACTION\x10\x01\x12\x1b\n" +
+ 	"\x17PROPOSAL_KIND_BOOTSTRAP\x10\x02\x12\x16\n" +
+-	"\x12PROPOSAL_KIND_READ\x10\x03B0Z.umpire.local/model/gen/umpire/model/v1;modelv1b\x06proto3"
++	"\x12PROPOSAL_KIND_READ\x10\x03BCZAgithub.com/temporalio/umpire/hosts/go/gen/umpire/model/v1;modelv1b\x06proto3"
+ 
+ var (
+ 	file_umpire_model_v1_model_proto_rawDescOnce sync.Once
+diff --git a/hosts/go/gen/umpire/realization/v1/realization.pb.go b/hosts/go/gen/umpire/realization/v1/realization.pb.go
+index 1bdc0230..2541547c 100644
+--- a/hosts/go/gen/umpire/realization/v1/realization.pb.go
++++ b/hosts/go/gen/umpire/realization/v1/realization.pb.go
+@@ -278,7 +278,7 @@ const file_umpire_realization_v1_realization_proto_rawDesc = "" +
+ 	"\bCallback\x12(\n" +
+ 	"\x04task\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\x04task\"7\n" +
+ 	"\x05Reply\x12.\n" +
+-	"\arequest\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\arequestB.Z,umpire.local/model/gen/umpire/realization/v1b\x06proto3"
++	"\arequest\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\arequestBAZ?github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1b\x06proto3"
+ 
+ var (
+ 	file_umpire_realization_v1_realization_proto_rawDescOnce sync.Once
+diff --git a/hosts/go/gen/umpire/run/v1/run.pb.go b/hosts/go/gen/umpire/run/v1/run.pb.go
+index 09e690a0..5f3a6035 100644
+--- a/hosts/go/gen/umpire/run/v1/run.pb.go
++++ b/hosts/go/gen/umpire/run/v1/run.pb.go
+@@ -7,12 +7,12 @@
+ package runv1
+ 
+ import (
++	v1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
+ 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+ 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+ 	anypb "google.golang.org/protobuf/types/known/anypb"
+ 	reflect "reflect"
+ 	sync "sync"
+-	v1 "umpire.local/model/gen/umpire/model/v1"
+ 	unsafe "unsafe"
+ )
+ 
+@@ -1168,7 +1168,7 @@ const file_umpire_run_v1_run_proto_rawDesc = "" +
+ 	"\x15TERMINATION_QUIESCENT\x10\x01\x12\x1f\n" +
+ 	"\x1bTERMINATION_PROPOSAL_BUDGET\x10\x02\x12\x1c\n" +
+ 	"\x18TERMINATION_EVENT_BUDGET\x10\x03\x12\x18\n" +
+-	"\x14TERMINATION_QUESTION\x10\x04B,Z*umpire.local/model/gen/umpire/run/v1;runv1b\x06proto3"
++	"\x14TERMINATION_QUESTION\x10\x04B?Z=github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1;runv1b\x06proto3"
+ 
+ var (
+ 	file_umpire_run_v1_run_proto_rawDescOnce sync.Once
+diff --git a/hosts/go/go.mod b/hosts/go/go.mod
+index 573be9d7..2c530566 100644
+--- a/hosts/go/go.mod
++++ b/hosts/go/go.mod
+@@ -1,4 +1,4 @@
+-module umpire.local/model
++module github.com/temporalio/umpire/hosts/go
+ 
+ go 1.27.0
+ 
+diff --git a/hosts/go/host/annotations.go b/hosts/go/host/annotations.go
+index 7d4c326b..32c960ea 100644
+--- a/hosts/go/host/annotations.go
++++ b/hosts/go/host/annotations.go
+@@ -4,9 +4,9 @@ import (
+ 	"context"
+ 	"fmt"
+ 
++	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+ )
+ 
+ // Annotate transports an actual RPC message through the guest's Rust catalog.
+diff --git a/hosts/go/host/current_contract_test.go b/hosts/go/host/current_contract_test.go
+index 85d3327a..a38721a7 100644
+--- a/hosts/go/host/current_contract_test.go
++++ b/hosts/go/host/current_contract_test.go
+@@ -9,8 +9,8 @@ import (
+ 	"strings"
+ 	"testing"
+ 
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
+ 	"google.golang.org/protobuf/proto"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+ )
+ 
+ func TestCurrentContractNativeWasmPublishedResponsesAgree(t *testing.T) {
+diff --git a/hosts/go/host/guest_profile_test.go b/hosts/go/host/guest_profile_test.go
+index f9c5b1dd..617069da 100644
+--- a/hosts/go/host/guest_profile_test.go
++++ b/hosts/go/host/guest_profile_test.go
+@@ -7,8 +7,8 @@ import (
+ 	"strings"
+ 	"testing"
+ 
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
+ 	"google.golang.org/protobuf/proto"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+ )
+ 
+ func TestGuestProfileCaughtPanicParity(t *testing.T) {
+diff --git a/hosts/go/host/host.go b/hosts/go/host/host.go
+index 3f39cecf..1c1019b6 100644
+--- a/hosts/go/host/host.go
++++ b/hosts/go/host/host.go
+@@ -7,12 +7,12 @@ import (
+ 	"slices"
+ 	"sync"
+ 
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
+ 	"github.com/tetratelabs/wazero"
+ 	"github.com/tetratelabs/wazero/api"
+ 	"github.com/tetratelabs/wazero/experimental"
+ 	"github.com/tetratelabs/wazero/sys"
+ 	"google.golang.org/protobuf/proto"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+ )
+ 
+ const maxBuffer = 1 << 20
+diff --git a/hosts/go/host/host_test.go b/hosts/go/host/host_test.go
+index e7a95f74..0829114d 100644
+--- a/hosts/go/host/host_test.go
++++ b/hosts/go/host/host_test.go
+@@ -10,11 +10,11 @@ import (
+ 	"sync"
+ 	"testing"
+ 
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
+ 	"github.com/tetratelabs/wazero"
+ 	"github.com/tetratelabs/wazero/api"
+ 	"github.com/tetratelabs/wazero/experimental"
+ 	"google.golang.org/protobuf/proto"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+ )
+ 
+ func TestGuestExports(t *testing.T) {
+diff --git a/hosts/go/host/probes.go b/hosts/go/host/probes.go
+index 1440f90c..4b48aa29 100644
+--- a/hosts/go/host/probes.go
++++ b/hosts/go/host/probes.go
+@@ -8,14 +8,14 @@ import (
+ 	"regexp"
+ 	"strings"
+ 
++	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
+ 	"google.golang.org/grpc"
+ 	"google.golang.org/grpc/status"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/reflect/protoreflect"
+ 	"google.golang.org/protobuf/reflect/protoregistry"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+ )
+ 
+ // Probe carries stateless catalog operations through the existing extension route.
+diff --git a/hosts/go/host/probes_test.go b/hosts/go/host/probes_test.go
+index f4b44aca..116bfde9 100644
+--- a/hosts/go/host/probes_test.go
++++ b/hosts/go/host/probes_test.go
+@@ -4,8 +4,8 @@ import (
+ 	"context"
+ 	"testing"
+ 
+-	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
+-	model "umpire.local/model/host"
++	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
++	model "github.com/temporalio/umpire/hosts/go/host"
+ )
+ 
+ func TestDispatchProbeRejectsMessageDescriptor(t *testing.T) {
+diff --git a/hosts/go/host/proposal_test.go b/hosts/go/host/proposal_test.go
+index 3bbb08ff..784bbd38 100644
+--- a/hosts/go/host/proposal_test.go
++++ b/hosts/go/host/proposal_test.go
+@@ -8,9 +8,9 @@ import (
+ 	"strings"
+ 	"testing"
+ 
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+ )
+ 
+ func TestProposalWireContract(t *testing.T) {
+diff --git a/hosts/go/host/protocol_test.go b/hosts/go/host/protocol_test.go
+index 84e99601..c622240b 100644
+--- a/hosts/go/host/protocol_test.go
++++ b/hosts/go/host/protocol_test.go
+@@ -6,9 +6,9 @@ import (
+ 	"fmt"
+ 	"testing"
+ 
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+ )
+ 
+ func TestProtocolResponseValidation(t *testing.T) {
+diff --git a/hosts/go/host/protocol_wire_test.go b/hosts/go/host/protocol_wire_test.go
+index f5e2a1f6..f428846e 100644
+--- a/hosts/go/host/protocol_wire_test.go
++++ b/hosts/go/host/protocol_wire_test.go
+@@ -9,9 +9,9 @@ import (
+ 	"strings"
+ 	"testing"
+ 
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+ )
+ 
+ func TestExplanationOutcomeWireCompatibility(t *testing.T) {
+diff --git a/hosts/go/host/realization_wire_test.go b/hosts/go/host/realization_wire_test.go
+index 1d4d00a6..6bca67f6 100644
+--- a/hosts/go/host/realization_wire_test.go
++++ b/hosts/go/host/realization_wire_test.go
+@@ -2,9 +2,9 @@ package host_test
+ 
+ import (
+ 	"bytes"
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
+ 	"google.golang.org/protobuf/proto"
+ 	"testing"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+ )
+ 
+ func TestSharedObservationRequestWire(t *testing.T) {
+diff --git a/hosts/go/host/stateful_test.go b/hosts/go/host/stateful_test.go
+index 819a6c60..7e6d8f1d 100644
+--- a/hosts/go/host/stateful_test.go
++++ b/hosts/go/host/stateful_test.go
+@@ -9,9 +9,9 @@ import (
+ 	"slices"
+ 	"testing"
+ 
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+ )
+ 
+ func statefulHost(t *testing.T) *Host {
+diff --git a/hosts/go/runner/admission_test.go b/hosts/go/runner/admission_test.go
+index f71a08dc..c593777a 100644
+--- a/hosts/go/runner/admission_test.go
++++ b/hosts/go/runner/admission_test.go
+@@ -8,8 +8,8 @@ import (
+ 	"errors"
+ 	"testing"
+ 
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
+ 	"google.golang.org/protobuf/proto"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+ )
+ 
+ func TestResetContractAdmissionPrecedesDriver(t *testing.T) {
+diff --git a/hosts/go/runner/driver.go b/hosts/go/runner/driver.go
+index 7ebd0ef5..6c528c2a 100644
+--- a/hosts/go/runner/driver.go
++++ b/hosts/go/runner/driver.go
+@@ -3,9 +3,9 @@ package runner
+ import (
+ 	"context"
+ 
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	runv1 "umpire.local/model/gen/umpire/run/v1"
+ )
+ 
+ // Driver acts on one system. It sends what the Model proposed and reports what happened as
+diff --git a/hosts/go/runner/fake_test.go b/hosts/go/runner/fake_test.go
+index 03d3dedf..83afe48d 100644
+--- a/hosts/go/runner/fake_test.go
++++ b/hosts/go/runner/fake_test.go
+@@ -11,9 +11,9 @@ import (
+ 	"testing"
+ 	"time"
+ 
++	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
++	model "github.com/temporalio/umpire/hosts/go/host"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	runv1 "umpire.local/model/gen/umpire/run/v1"
+-	model "umpire.local/model/host"
+ )
+ 
+ const controlType = "type.googleapis.com/umpire.control.Value"
+diff --git a/hosts/go/runner/fault_evidence_test.go b/hosts/go/runner/fault_evidence_test.go
+index 0d618f73..40a3c562 100644
+--- a/hosts/go/runner/fault_evidence_test.go
++++ b/hosts/go/runner/fault_evidence_test.go
+@@ -8,10 +8,10 @@ import (
+ 	"strings"
+ 	"testing"
+ 
++	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/reflect/protoreflect"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	runv1 "umpire.local/model/gen/umpire/run/v1"
+ )
+ 
+ func TestDriverFaultEvidenceUsesFreshWireTag(t *testing.T) {
+diff --git a/hosts/go/runner/modes_test.go b/hosts/go/runner/modes_test.go
+index 3e06855e..a3d916f0 100644
+--- a/hosts/go/runner/modes_test.go
++++ b/hosts/go/runner/modes_test.go
+@@ -7,11 +7,11 @@ import (
+ 	"testing"
+ 	"time"
+ 
++	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	runv1 "umpire.local/model/gen/umpire/run/v1"
+ )
+ 
+ func TestWaitsEndInDriverFaults(t *testing.T) {
+diff --git a/hosts/go/runner/program.go b/hosts/go/runner/program.go
+index 6e8a38f8..5e24e9d6 100644
+--- a/hosts/go/runner/program.go
++++ b/hosts/go/runner/program.go
+@@ -8,9 +8,9 @@ import (
+ 	"io"
+ 	"os"
+ 
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	"github.com/temporalio/umpire/hosts/go/host"
+ 	"google.golang.org/protobuf/proto"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	"umpire.local/model/host"
+ )
+ 
+ func writeProgram(ctx context.Context, args []string, stderr io.Writer) error {
+diff --git a/hosts/go/runner/replay.go b/hosts/go/runner/replay.go
+index 05857310..1545be47 100644
+--- a/hosts/go/runner/replay.go
++++ b/hosts/go/runner/replay.go
+@@ -5,10 +5,10 @@ import (
+ 	"errors"
+ 	"fmt"
+ 
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	runv1 "umpire.local/model/gen/umpire/run/v1"
+ )
+ 
+ // admit is why a recorded Run cannot be replayed against this Runner's Model, or "".
+diff --git a/hosts/go/runner/runner.go b/hosts/go/runner/runner.go
+index 9163d1a2..db9e17ec 100644
+--- a/hosts/go/runner/runner.go
++++ b/hosts/go/runner/runner.go
+@@ -13,10 +13,10 @@ import (
+ 	"slices"
+ 	"time"
+ 
++	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
++	model "github.com/temporalio/umpire/hosts/go/host"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	runv1 "umpire.local/model/gen/umpire/run/v1"
+-	model "umpire.local/model/host"
+ )
+ 
+ // ProtocolVersion is the umpire.model.v1 protocol version a Run records.
+diff --git a/hosts/go/runner/runner_test.go b/hosts/go/runner/runner_test.go
+index 251eae90..f0549f41 100644
+--- a/hosts/go/runner/runner_test.go
++++ b/hosts/go/runner/runner_test.go
+@@ -8,8 +8,8 @@ import (
+ 	"strings"
+ 	"testing"
+ 
++	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
+ 	"google.golang.org/protobuf/proto"
+-	runv1 "umpire.local/model/gen/umpire/run/v1"
+ )
+ 
+ // kinds names each event of a Run, for comparing shapes.
+diff --git a/hosts/go/runner/session.go b/hosts/go/runner/session.go
+index d79aafb4..e87977c0 100644
+--- a/hosts/go/runner/session.go
++++ b/hosts/go/runner/session.go
+@@ -7,11 +7,11 @@ import (
+ 	"io"
+ 	"slices"
+ 
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
++	model "github.com/temporalio/umpire/hosts/go/host"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	runv1 "umpire.local/model/gen/umpire/run/v1"
+-	model "umpire.local/model/host"
+ )
+ 
+ // session is one Run against one Host. Every Host call goes through it, from one goroutine, in
+diff --git a/hosts/go/runner/worker_test.go b/hosts/go/runner/worker_test.go
+index c37e8709..50b7b5dc 100644
+--- a/hosts/go/runner/worker_test.go
++++ b/hosts/go/runner/worker_test.go
+@@ -7,10 +7,10 @@ import (
+ 	"strings"
+ 	"testing"
+ 
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	runv1 "umpire.local/model/gen/umpire/run/v1"
+ )
+ 
+ func TestRunWorkerUsesFreshWireTag(t *testing.T) {
+diff --git a/protocol/proto/README.md b/protocol/proto/README.md
+index 98edd05a..d3d6b9e0 100644
+--- a/protocol/proto/README.md
++++ b/protocol/proto/README.md
+@@ -112,3 +112,15 @@ hash, protocol version, world, seed, ordered events and verdict. Each event embe
+ replays against a fresh instance without a Driver. It is generated for Go only; no guest
+ reads it. Its canonical bytes are Go's deterministic encoding, and its store key carries
+ their SHA-256 outside the payload.
++
++## Generated-source boundary policy
++
++After regenerating core or Kettle Go descriptors with `scripts/proto-go.sh`, run
++protobuf freshness and `cargo xtask gate --stage source-boundary`. The boundary
++policy admits three serialized module-path lines by exact file path and SHA-256,
++with generated-header and raw-descriptor context checks. When generation changes
++one of those lines, review the schema and generated diff before updating its
++`descriptor_lines` entry in `dev/gate/policy/framework-boundary.txt`; hash the full
++line bytes without the newline. Other bytes remain subject to the boundary check.
++Keep generated output untouched when updating admission. The root license also
++has an exact-content hash exception so its original copyright stays intact.
+diff --git a/protocol/proto/umpire/annotations/v1/annotations.proto b/protocol/proto/umpire/annotations/v1/annotations.proto
+index 991ca0dd..c4d97e05 100644
+--- a/protocol/proto/umpire/annotations/v1/annotations.proto
++++ b/protocol/proto/umpire/annotations/v1/annotations.proto
+@@ -2,7 +2,7 @@ syntax = "proto3";
+ 
+ package umpire.annotations.v1;
+ 
+-option go_package = "umpire.local/model/gen/umpire/annotations/v1";
++option go_package = "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1";
+ 
+ 
+ message AnnotationRequest {
+diff --git a/protocol/proto/umpire/model/v1/model.proto b/protocol/proto/umpire/model/v1/model.proto
+index 02fb92f0..29059a89 100644
+--- a/protocol/proto/umpire/model/v1/model.proto
++++ b/protocol/proto/umpire/model/v1/model.proto
+@@ -1,7 +1,7 @@
+ syntax = "proto3";
+ 
+ package umpire.model.v1;
+-option go_package = "umpire.local/model/gen/umpire/model/v1;modelv1";
++option go_package = "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1;modelv1";
+ 
+ import "google/protobuf/any.proto";
+ 
+diff --git a/protocol/proto/umpire/realization/v1/realization.proto b/protocol/proto/umpire/realization/v1/realization.proto
+index fe0db353..a598d694 100644
+--- a/protocol/proto/umpire/realization/v1/realization.proto
++++ b/protocol/proto/umpire/realization/v1/realization.proto
+@@ -2,7 +2,7 @@ syntax = "proto3";
+ 
+ package umpire.realization.v1;
+ 
+-option go_package = "umpire.local/model/gen/umpire/realization/v1";
++option go_package = "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1";
+ 
+ import "google/protobuf/any.proto";
+ 
+diff --git a/protocol/proto/umpire/run/v1/run.proto b/protocol/proto/umpire/run/v1/run.proto
+index b8b0a50e..ead81e19 100644
+--- a/protocol/proto/umpire/run/v1/run.proto
++++ b/protocol/proto/umpire/run/v1/run.proto
+@@ -1,7 +1,7 @@
+ syntax = "proto3";
+ 
+ package umpire.run.v1;
+-option go_package = "umpire.local/model/gen/umpire/run/v1;runv1";
++option go_package = "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1;runv1";
+ 
+ import "google/protobuf/any.proto";
+ import "umpire/model/v1/model.proto";
+diff --git a/reference/kettle/README.md b/reference/kettle/README.md
+index 3a634ef6..1c6066e7 100644
+--- a/reference/kettle/README.md
++++ b/reference/kettle/README.md
+@@ -21,9 +21,10 @@ Build its guest from the same root with
+ `bash scripts/guest.sh umpire-kettle-guest target/wasm32-wasip1/guest/umpire_kettle_guest.wasm`.
+ 
+ The Go server, native/wasm parity and live host tests live here in module
+-`umpire.local/kettle`, with generated API under `gen/kettle/v1`. Its `go.mod`
+-replaces `umpire.local/model` with `../../hosts/go`; it imports the transport
+-from `umpire.local/model/host`. Regenerate with
++`github.com/temporalio/umpire/reference/kettle`, with generated API under
++`gen/kettle/v1`. Its `go.mod` replaces `github.com/temporalio/umpire/hosts/go`
++with `../../hosts/go`; it imports the transport from
++`github.com/temporalio/umpire/hosts/go/host`. Regenerate with
+ `bash scripts/proto-go.sh kettle` at the framework root; `--check` verifies
+ the pinned protoc 29.5, protoc-gen-go v1.36.6 and protoc-gen-go-grpc v1.3.0 output.
+ The host test requires the built guest and fails if it is missing.
+diff --git a/reference/kettle/gen/kettle/v1/kettle.pb.go b/reference/kettle/gen/kettle/v1/kettle.pb.go
+index 1aacd380..a8607ec2 100644
+--- a/reference/kettle/gen/kettle/v1/kettle.pb.go
++++ b/reference/kettle/gen/kettle/v1/kettle.pb.go
+@@ -1135,7 +1135,7 @@ const file_kettle_v1_kettle_proto_rawDesc = "" +
+ 	"\vPollHeating\x12..umpire.reference.kettle.v1.PollHeatingRequest\x1a/.umpire.reference.kettle.v1.PollHeatingResponse\x12w\n" +
+ 	"\x0eRespondHeating\x121.umpire.reference.kettle.v1.RespondHeatingRequest\x1a2.umpire.reference.kettle.v1.RespondHeatingResponse\x12n\n" +
+ 	"\vListKettles\x12..umpire.reference.kettle.v1.ListKettlesRequest\x1a/.umpire.reference.kettle.v1.ListKettlesResponse\x12n\n" +
+-	"\vResetKettle\x12..umpire.reference.kettle.v1.ResetKettleRequest\x1a/.umpire.reference.kettle.v1.ResetKettleResponseB,Z*umpire.local/kettle/gen/kettle/v1;kettlev1b\x06proto3"
++	"\vResetKettle\x12..umpire.reference.kettle.v1.ResetKettleRequest\x1a/.umpire.reference.kettle.v1.ResetKettleResponseBFZDgithub.com/temporalio/umpire/reference/kettle/gen/kettle/v1;kettlev1b\x06proto3"
+ 
+ var (
+ 	file_kettle_v1_kettle_proto_rawDescOnce sync.Once
+diff --git a/reference/kettle/gen/kettle/v1/probe.pb.go b/reference/kettle/gen/kettle/v1/probe.pb.go
+index 6db8e3e1..4d7dd113 100644
+--- a/reference/kettle/gen/kettle/v1/probe.pb.go
++++ b/reference/kettle/gen/kettle/v1/probe.pb.go
+@@ -7,11 +7,11 @@
+ package kettlev1
+ 
+ import (
++	v1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
+ 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+ 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+ 	reflect "reflect"
+ 	sync "sync"
+-	v1 "umpire.local/model/gen/umpire/annotations/v1"
+ 	unsafe "unsafe"
+ )
+ 
+@@ -166,7 +166,7 @@ const file_kettle_v1_probe_proto_rawDesc = "" +
+ 	"\tINVENTORY\x10\x00\x12\v\n" +
+ 	"\aPREPARE\x10\x01\x12\f\n" +
+ 	"\bCLASSIFY\x10\x02\x12\f\n" +
+-	"\bCOVERAGE\x10\x03B,Z*umpire.local/kettle/gen/kettle/v1;kettlev1b\x06proto3"
++	"\bCOVERAGE\x10\x03BFZDgithub.com/temporalio/umpire/reference/kettle/gen/kettle/v1;kettlev1b\x06proto3"
+ 
+ var (
+ 	file_kettle_v1_probe_proto_rawDescOnce sync.Once
+diff --git a/reference/kettle/go.mod b/reference/kettle/go.mod
+index 88f6eb34..79a6e808 100644
+--- a/reference/kettle/go.mod
++++ b/reference/kettle/go.mod
+@@ -1,11 +1,11 @@
+-module umpire.local/kettle
++module github.com/temporalio/umpire/reference/kettle
+ 
+ go 1.27.0
+ 
+ require (
++	github.com/temporalio/umpire/hosts/go v0.0.0
+ 	google.golang.org/grpc v1.83.1
+ 	google.golang.org/protobuf v1.36.11
+-	umpire.local/model v0.0.0
+ )
+ 
+ require (
+@@ -16,4 +16,4 @@ require (
+ 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
+ )
+ 
+-replace umpire.local/model => ../../hosts/go
++replace github.com/temporalio/umpire/hosts/go => ../../hosts/go
+diff --git a/reference/kettle/kettle_annotations_test.go b/reference/kettle/kettle_annotations_test.go
+index 32ff41a1..3f1dc5c0 100644
+--- a/reference/kettle/kettle_annotations_test.go
++++ b/reference/kettle/kettle_annotations_test.go
+@@ -9,12 +9,12 @@ import (
+ 	"testing"
+ 	"time"
+ 
++	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
++	model "github.com/temporalio/umpire/hosts/go/host"
++	kettlev1 "github.com/temporalio/umpire/reference/kettle/gen/kettle/v1"
+ 	"google.golang.org/grpc/codes"
+ 	"google.golang.org/grpc/status"
+ 	"google.golang.org/protobuf/proto"
+-	kettlev1 "umpire.local/kettle/gen/kettle/v1"
+-	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
+-	model "umpire.local/model/host"
+ )
+ 
+ func (r *kettleRun) dispatchProbe(testCase *annotationsv1.ProbeCase, prepared *annotationsv1.ProbeResponse) (*annotationsv1.ProbeObservation, error) {
+diff --git a/reference/kettle/kettle_mutants_test.go b/reference/kettle/kettle_mutants_test.go
+index 00bb4c7b..d42aa777 100644
+--- a/reference/kettle/kettle_mutants_test.go
++++ b/reference/kettle/kettle_mutants_test.go
+@@ -9,14 +9,14 @@ import (
+ 	"testing"
+ 	"time"
+ 
++	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
++	model "github.com/temporalio/umpire/hosts/go/host"
++	"github.com/temporalio/umpire/reference/kettle"
++	kettlev1 "github.com/temporalio/umpire/reference/kettle/gen/kettle/v1"
+ 	"google.golang.org/grpc/codes"
+ 	"google.golang.org/protobuf/proto"
+-	"umpire.local/kettle"
+-	kettlev1 "umpire.local/kettle/gen/kettle/v1"
+-	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+-	model "umpire.local/model/host"
+ )
+ 
+ type kettleMutantWitness struct {
+diff --git a/reference/kettle/kettle_test.go b/reference/kettle/kettle_test.go
+index 8737fe05..0b6b677b 100644
+--- a/reference/kettle/kettle_test.go
++++ b/reference/kettle/kettle_test.go
+@@ -12,16 +12,16 @@ import (
+ 	"testing"
+ 	"time"
+ 
++	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
++	model "github.com/temporalio/umpire/hosts/go/host"
++	"github.com/temporalio/umpire/reference/kettle"
++	kettlev1 "github.com/temporalio/umpire/reference/kettle/gen/kettle/v1"
+ 	"google.golang.org/grpc"
+ 	"google.golang.org/grpc/credentials/insecure"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/anypb"
+-	"umpire.local/kettle"
+-	kettlev1 "umpire.local/kettle/gen/kettle/v1"
+-	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+-	model "umpire.local/model/host"
+ )
+ 
+ type kettleRun struct {
+diff --git a/reference/kettle/parity_test.go b/reference/kettle/parity_test.go
+index 543e8245..8446dd6b 100644
+--- a/reference/kettle/parity_test.go
++++ b/reference/kettle/parity_test.go
+@@ -7,8 +7,8 @@ import (
+ 	"strings"
+ 	"testing"
+ 
+-	modelv1 "umpire.local/model/gen/umpire/model/v1"
+-	model "umpire.local/model/host"
++	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
++	model "github.com/temporalio/umpire/hosts/go/host"
+ )
+ 
+ func guestBytes(t testing.TB) []byte {
+diff --git a/reference/kettle/proto/kettle/v1/kettle.proto b/reference/kettle/proto/kettle/v1/kettle.proto
+index 8989ae5f..20912a85 100644
+--- a/reference/kettle/proto/kettle/v1/kettle.proto
++++ b/reference/kettle/proto/kettle/v1/kettle.proto
+@@ -1,6 +1,6 @@
+ syntax = "proto3";
+ package umpire.reference.kettle.v1;
+-option go_package = "umpire.local/kettle/gen/kettle/v1;kettlev1";
++option go_package = "github.com/temporalio/umpire/reference/kettle/gen/kettle/v1;kettlev1";
+ import "google/protobuf/duration.proto";
+ service KettleService {
+   rpc Fill(FillRequest) returns (FillResponse);
+diff --git a/reference/kettle/proto/kettle/v1/probe.proto b/reference/kettle/proto/kettle/v1/probe.proto
+index e63b9e91..bc95cda6 100644
+--- a/reference/kettle/proto/kettle/v1/probe.proto
++++ b/reference/kettle/proto/kettle/v1/probe.proto
+@@ -1,6 +1,6 @@
+ syntax = "proto3";
+ package umpire.reference.kettle.v1;
+-option go_package = "umpire.local/kettle/gen/kettle/v1;kettlev1";
++option go_package = "github.com/temporalio/umpire/reference/kettle/gen/kettle/v1;kettlev1";
+ import "umpire/annotations/v1/annotations.proto";
+ 
+ // Consumer setup slots; probe observations and results use the shared protocol.
+diff --git a/reference/kettle/server.go b/reference/kettle/server.go
+index fb19e732..ef69f379 100644
+--- a/reference/kettle/server.go
++++ b/reference/kettle/server.go
+@@ -5,10 +5,10 @@ import (
+ 	"net"
+ 	"sync"
+ 
++	pb "github.com/temporalio/umpire/reference/kettle/gen/kettle/v1"
+ 	"google.golang.org/grpc"
+ 	"google.golang.org/grpc/codes"
+ 	"google.golang.org/grpc/status"
+-	pb "umpire.local/kettle/gen/kettle/v1"
+ )
+ 
+ type server struct {
+diff --git a/reference/kettle/server_test.go b/reference/kettle/server_test.go
+index c86990f1..b3d83650 100644
+--- a/reference/kettle/server_test.go
++++ b/reference/kettle/server_test.go
+@@ -7,13 +7,13 @@ import (
+ 	"testing"
+ 	"time"
+ 
++	pb "github.com/temporalio/umpire/reference/kettle/gen/kettle/v1"
+ 	"google.golang.org/grpc"
+ 	"google.golang.org/grpc/codes"
+ 	"google.golang.org/grpc/credentials/insecure"
+ 	"google.golang.org/grpc/status"
+ 	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/durationpb"
+-	pb "umpire.local/kettle/gen/kettle/v1"
+ )
+ 
+ func client(t *testing.T) (context.Context, pb.KettleServiceClient) {
+diff --git a/reference/kettle/snapshots_test.go b/reference/kettle/snapshots_test.go
+index 5cd16327..36d47c0c 100644
+--- a/reference/kettle/snapshots_test.go
++++ b/reference/kettle/snapshots_test.go
+@@ -6,7 +6,7 @@ import (
+ 	"path/filepath"
+ 	"testing"
+ 
+-	"umpire.local/model/snapshot"
++	"github.com/temporalio/umpire/hosts/go/snapshot"
+ )
+ 
+ var snapshotCandidates = flag.String("umpire-snapshot-candidates", "", "export live snapshot candidates to this directory; comparisons still run")
+diff --git a/reference/kettle/validators.go b/reference/kettle/validators.go
+index a0a8e0af..e96e26ef 100644
+--- a/reference/kettle/validators.go
++++ b/reference/kettle/validators.go
+@@ -3,9 +3,9 @@ package kettle
+ import (
+ 	"strings"
+ 
++	pb "github.com/temporalio/umpire/reference/kettle/gen/kettle/v1"
+ 	"google.golang.org/grpc/codes"
+ 	"google.golang.org/grpc/status"
+-	pb "umpire.local/kettle/gen/kettle/v1"
+ )
+ 
+ func validateKettleID(id string) error {
+diff --git a/rust-toolchain.toml b/rust-toolchain.toml
+index f0df7540..724bf0b8 100644
+--- a/rust-toolchain.toml
++++ b/rust-toolchain.toml
+@@ -1,4 +1,4 @@
+-# Matches the mise pin in ../mise.toml; rustup users get the same toolchain and components.
++# Matches the mise pin in mise.toml; rustup users get the same toolchain and components.
+ [toolchain]
+ channel = "1.99.1"
+ components = ["rustfmt", "clippy", "rust-src", "rust-analyzer"]

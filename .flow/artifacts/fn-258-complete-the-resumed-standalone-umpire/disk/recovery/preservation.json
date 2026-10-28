@@ -1,0 +1,74 @@
+[
+  {
+    "target": "/home/agent/.cache/codex-build/fn258-standalone-45eb554",
+    "archive": "failed-45eb554.tar.gz",
+    "archive_sha256": "e4d0ff47f655c2ea4ffb8208e455801345f064bec160fcc945b35a2408102b6b",
+    "files": {
+      "gate.log": "f4f8933b2d10f135af8c8470032c07657a2ade0f5cc7e21c4bb84cad1a944275",
+      "gate-receipts/gate-3437348-1793164460390973169/admission.json": "61498a7c298966a6268a42bb2bfefd7a4ec8807eb3f8de6cdbaa5540836b9993",
+      "gate-receipts/gate-3437348-1793164460390973169/framework/capability-controls.claim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gate-receipts/gate-3437348-1793164460390973169/framework/capability-controls.json": "bbc7b79ea7b6e53a10896eee90616d80d90292d843a9b738b058df4ea39cab87",
+      "gate-receipts/gate-3437348-1793164460390973169/framework/fmt.claim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gate-receipts/gate-3437348-1793164460390973169/framework/fmt.json": "fe843e3ba5663a222acf9c7adda7635e8c2de9a9b4dcd6640b43e2b25730f5a5",
+      "gate-receipts/gate-3437348-1793164460390973169/framework/kettle-protobuf-freshness.claim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gate-receipts/gate-3437348-1793164460390973169/framework/kettle-protobuf-freshness.json": "1589cc8bf96e0532dadad885be5282266f28a9055d0623853e1b29be615327a4",
+      "gate-receipts/gate-3437348-1793164460390973169/framework/proto-tools.claim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gate-receipts/gate-3437348-1793164460390973169/framework/proto-tools.json": "cf7c07d45907fdf9677a3a8f2603beb1585a1fa88dbf05fa0cc54ab068324953",
+      "gate-receipts/gate-3437348-1793164460390973169/framework/protobuf-controls.claim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gate-receipts/gate-3437348-1793164460390973169/framework/protobuf-controls.json": "7c3667533c409a7a620dd7e35108e8c653f03135a7ec3f13395f160788c5d302",
+      "gate-receipts/gate-3437348-1793164460390973169/framework/protobuf-freshness.claim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gate-receipts/gate-3437348-1793164460390973169/framework/protobuf-freshness.json": "e4e9737ff97401fdc260f3369a61aaad376fe5514a9de2738f5d9495696581ae",
+      "gate-receipts/gate-3437348-1793164460390973169/framework/retired-names.claim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gate-receipts/gate-3437348-1793164460390973169/framework/retired-names.json": "38d3c81e2712bbcc5f1818aa170fdc22e26395708318c03e1623eaae14ed8e9b",
+      "gate-receipts/gate-3437348-1793164460390973169/framework/source-boundary.claim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gate-receipts/gate-3437348-1793164460390973169/framework/source-boundary.json": "c8a9c85c50bde0dafc2d6c642ead8a2e6dab0628fed81be91b3d227e8866ea97",
+      "gate-receipts/gate-3437348-1793164460390973169/framework/timing-controls.claim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gate-receipts/gate-3437348-1793164460390973169/framework/timing-controls.json": "7a26dc3434246b800d0539213501471b848a6f404c1f3142a1935c5f850e7eb3",
+      "gate-receipts/gate-3437348-1793164460390973169/stages.jsonl": "9044b0c68496d5196950a983059f8d062639fa6da7937a52deb0f73b4832f0b3",
+      "gate-receipts/gate-3437348-1793164460390973169/stderr.log": "19374020b7ab3f49a4220aaeb1d8d3afa179dbe7cd13602f3f04492c1c1cffe1",
+      "gate-receipts/gate-3437348-1793164460390973169/stdout.log": "81876fc85d7a2becb662311b0a40e25ef70e12ece9678b7e0981af479bac568e"
+    },
+    "reproducible_bootstrap_binary_hashes": {
+      "xtask-bootstrap/debug/xtask": "1cb9c7ff6df5c78f1af5a414f338d83e2173c0c38a8e6aece49011461b49dcef",
+      "xtask-bootstrap/debug/umpire-guest-driver": "73701ad56ee67abba183d8afeba885a440fc1014505c7ccc8ef809efd342f972"
+    },
+    "result": "archive contents verified; no target removed"
+  },
+  {
+    "target": "/home/agent/.cache/codex-build/fn258-standalone-5ee8911",
+    "archive": "failed-5ee8911.tar.gz",
+    "archive_sha256": "8b89ae9e2a0c6f695c8452776d3aec7d9db01b3f4e946d37a85584149d5ef51f",
+    "files": {
+      "gate.log": "16ff21446341d4fa06ec8d38007b6a9fb7bcabd5f8e4acb03ac320544f6f84ef",
+      "gate-receipts/gate-3494067-1793165015339871558/admission.json": "61498a7c298966a6268a42bb2bfefd7a4ec8807eb3f8de6cdbaa5540836b9993",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/capability-controls.claim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/capability-controls.json": "4210469fa990b603fc42b9cb5df6198c7aa32f7c67f2ad3f6990d0ffc29188fa",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/clippy.claim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/clippy.json": "e64cc337bf87197bca802bbc3279a462dd3ca3611d7c0b7f7afee347aa8a5232",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/fmt.claim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/fmt.json": "e85b8a5a0c02a3a189b39a25bda492b0ae5aba8f17cdf655fca5edb87ebd19eb",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/kettle-protobuf-freshness.claim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/kettle-protobuf-freshness.json": "c88d8003c6a160ed9030a1d5e6a792abdd7886035278d7b718edcb2ff08763ab",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/proto-tools.claim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/proto-tools.json": "a09d39b67a30d0b1deaab6008aafb898d42dbe395f05171432199297d36d43f4",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/protobuf-controls.claim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/protobuf-controls.json": "018af1a1c0c81ae2b5292ff3a20ac98a7f2901174d6c0d069686da999bf0cb8d",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/protobuf-freshness.claim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/protobuf-freshness.json": "41447e8d144e9c97e63ddfd6eaed9ca29faa556930452153c3cc618147c88ace",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/retired-names.claim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/retired-names.json": "138fc64fcd47b9286f51cb61edb5d162c07d695b39beb66af94defa318db6ede",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/source-boundary.claim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/source-boundary.json": "966640939bc8785f1dbaa5a84d24726dd67fa5b53956742980f0aa07a9970dfc",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/timing-controls.claim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gate-receipts/gate-3494067-1793165015339871558/framework/timing-controls.json": "4a986dbf3f1d0f0f5aed0d7f3234fac57b3dc98afe78f99158f1daa1c90ae345",
+      "gate-receipts/gate-3494067-1793165015339871558/stages.jsonl": "658de69b67e6388bb696e9b1fad15c50c365e9de175f66375358d3c14b3fb38e",
+      "gate-receipts/gate-3494067-1793165015339871558/stderr.log": "a6c9390dc07f13fcd9bab711f0478211d58bde7807bfb4086b5d58c46e01bb41",
+      "gate-receipts/gate-3494067-1793165015339871558/stdout.log": "b0ddd2921da6c07c746eb491d397ad1bb9ac67972818f5f9ac0cc1ce35f039e2"
+    },
+    "reproducible_bootstrap_binary_hashes": {
+      "xtask-bootstrap/debug/xtask": "f020caa655c12015925e75e8425ca660052c23c999ee3c18c75bb99e0c00c6e3",
+      "xtask-bootstrap/debug/umpire-guest-driver": "4662dc087aaf382f682893b0bc96ce89eed35f90378f27c1a6df2e91a4b16c4b"
+    },
+    "result": "archive contents verified; no target removed"
+  }
+]
