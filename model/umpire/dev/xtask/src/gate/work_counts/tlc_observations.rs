@@ -460,4 +460,15 @@ mod tests {
         }).is_err());
     }
 
+    #[test]
+    fn refuses_unrecorded_or_partial_fixture_authority_files() {
+        for name in ["extra.json", "100-1.json", "partial"] {
+            assert!(fixture_counts("tlc-batch-v1", true, false, |doc, _| {
+                let script = path(doc["script_path_hex"].as_str().unwrap()).unwrap();
+                let receipts = script.parent().unwrap().parent().unwrap();
+                fs::write(receipts.join("authorities/scope/tests").join(name), b"{}").unwrap();
+            }).is_err(), "accepted {name}");
+        }
+    }
+
 }
