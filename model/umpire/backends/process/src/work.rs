@@ -77,6 +77,20 @@ pub fn record(kind: &str, values: &str) -> io::Result<()> {
     Err(io::Error::other("work observation event limit exceeded"))
 }
 
+/// Startup evidence for an invocation already classified as an admitted checker.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum TlcStartup {
+    /// The captured bytes contain the admitted checker's startup output.
+    Started,
+    /// No complete, decodable checker startup evidence was captured.
+    Unknown,
+}
+
+/// Classify captured admitted-checker output without treating silence as a non-start.
+pub fn checker_startup(_output: &[u8]) -> TlcStartup {
+    TlcStartup::Unknown
+}
+
 /// A supervisor fork is an attempt, not proof that the checker executable started.
 pub(crate) fn spawned(command: &std::process::Command) -> io::Result<Option<String>> {
     if !command.get_args().any(|argument| argument == "tlc2.TLC") || directory()?.is_none() {
@@ -121,6 +135,29 @@ pub fn begin_tests() -> io::Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn admitted_checker_startup_requires_positive_captured_evidence() {
+        for output in [
+            b"TLC2 Version 2.19 of 08 August 2024\n".as_slice(),
+            b"TLC - provides model checking and simulation of TLA+ specifications - Version 2.19\n",
+            b"TLC2 Version 2.19\nEvaluating invariant A failed.\n",
+        ] {
+            assert_eq!(checker_startup(output), TlcStartup::Started);
+        }
+    }
+
+    #[test]
+    fn admitted_checker_absence_partial_or_non_utf8_stays_unknown() {
+        for output in [
+            b"".as_slice(),
+            b"Error: Could not find or load main class tlc2.TLC\n",
+            b"TLC2 Vers",
+            b"TLC2 Version 2.19\n\xff",
+        ] {
+            assert_eq!(checker_startup(output), TlcStartup::Unknown);
+        }
+    }
 
     #[test]
     fn scope_probe_child() -> io::Result<()> {
