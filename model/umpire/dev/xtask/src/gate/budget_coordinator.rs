@@ -639,8 +639,23 @@ fn validate_cause(context: &Context, cause: &FailureCause) -> io::Result<()> {
 }
 fn directory_identity(path: &Path) -> io::Result<Identity> {
     let metadata = fs::symlink_metadata(path)?;
-    if !metadata.is_dir() || metadata.mode() & 0o777 != 0o700 || path.canonicalize()? != path {
-        return Err(invalid("coordinator directory must be private and canonical"));
+    if !metadata.is_dir() {
+        return Err(invalid("coordinator path is not a directory"));
+    }
+    let mode = metadata.mode() & 0o777;
+    if mode != 0o700 {
+        return Err(io::Error::other(format!(
+            "coordinator directory requires mode0700, found {mode:04o}: {}",
+            path.display()
+        )));
+    }
+    let canonical = path.canonicalize()?;
+    if canonical != path {
+        return Err(io::Error::other(format!(
+            "coordinator directory is not canonical: {} resolves to {}",
+            path.display(),
+            canonical.display()
+        )));
     }
     Ok(Identity::of(&metadata))
 }
@@ -686,7 +701,13 @@ fn create_record(path: &Path, bytes: &[u8]) -> io::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{sync::mpsc, thread};
+    use std::{os::unix::fs::PermissionsExt, sync::mpsc, thread};
+
+    fn private_root() -> io::Result<tempfile::TempDir> {
+        tempfile::Builder::new()
+            .permissions(fs::Permissions::from_mode(0o700))
+            .tempdir_in(std::env::temp_dir().canonicalize()?)
+    }
 
     fn stages() -> io::Result<Vec<StageId>> {
         ["framework/a", "framework/b", "temporal/c", "temporal/standalone"]
@@ -698,7 +719,7 @@ mod tests {
     #[test]
     fn two_slow_payloads_remove_themselves_before_bounded_drain()
     -> Result<(), Box<dyn std::error::Error>> {
-        let root = tempfile::tempdir()?;
+        let root = private_root()?;
         let ids = stages()?;
         let coordinator =
             Coordinator::create(root.path(), "invocation", &ids, Duration::from_secs(2))?;
@@ -733,7 +754,7 @@ mod tests {
     #[test]
     fn queued_exclusive_first_cannot_overtake_requested_retry()
     -> Result<(), Box<dyn std::error::Error>> {
-        let root = tempfile::tempdir()?;
+        let root = private_root()?;
         let ids = stages()?;
         let coordinator =
             Coordinator::create(root.path(), "invocation", &ids, Duration::from_secs(2))?;
@@ -759,7 +780,7 @@ mod tests {
     fn first_real_failure_and_cancellation_status_survive_other_readers()
     -> Result<(), Box<dyn std::error::Error>> {
         for code in [37, 143] {
-            let root = tempfile::tempdir()?;
+            let root = private_root()?;
             let ids = stages()?;
             let coordinator =
                 Coordinator::create(root.path(), "invocation", &ids, Duration::from_secs(1))?;
@@ -785,7 +806,7 @@ mod tests {
     fn second_slow_and_incomplete_permit_abort_without_reopening()
     -> Result<(), Box<dyn std::error::Error>> {
         for second_slow in [true, false] {
-            let root = tempfile::tempdir()?;
+            let root = private_root()?;
             let ids = stages()?;
             let coordinator =
                 Coordinator::create(root.path(), "invocation", &ids, Duration::from_secs(1))?;
@@ -804,7 +825,7 @@ mod tests {
     #[test]
     fn duplicate_stage_scope_mismatch_and_partial_state_fail_closed()
     -> Result<(), Box<dyn std::error::Error>> {
-        let root = tempfile::tempdir()?;
+        let root = private_root()?;
         let ids = stages()?;
         let coordinator =
             Coordinator::create(root.path(), "invocation", &ids, Duration::from_millis(50))?;
@@ -814,7 +835,7 @@ mod tests {
             Coordinator::open(root.path(), "crossed", &ids, Duration::from_millis(50)).is_err()
         );
         active.finish_fast()?;
-        std::fs::write(root.path().join("state.json"), b"{\"partial\":")?;
+        fs::write(root.path().join("state.json"), b"{\"partial\":")?;
         assert!(
             Coordinator::open(root.path(), "invocation", &ids, Duration::from_millis(50)).is_err()
         );
@@ -824,8 +845,8 @@ mod tests {
     #[test]
     fn unrelated_invocation_admission_remains_independent() -> Result<(), Box<dyn std::error::Error>>
     {
-        let first = tempfile::tempdir()?;
-        let second = tempfile::tempdir()?;
+        let first = private_root()?;
+        let second = private_root()?;
         let ids = stages()?;
         let a = Coordinator::create(first.path(), "first", &ids, Duration::from_secs(1))?;
         let b = Coordinator::create(second.path(), "second", &ids, Duration::from_secs(1))?;
@@ -838,7 +859,7 @@ mod tests {
     #[test]
     fn missing_owner_never_clears_active_work_and_drain_is_finite()
     -> Result<(), Box<dyn std::error::Error>> {
-        let root = tempfile::tempdir()?;
+        let root = private_root()?;
         let ids = stages()?;
         let coordinator =
             Coordinator::create(root.path(), "invocation", &ids, Duration::from_millis(30))?;
@@ -858,7 +879,7 @@ mod tests {
     fn replaced_lock_symlink_state_and_abandoned_partial_fail_closed()
     -> Result<(), Box<dyn std::error::Error>> {
         for mode in ["lock", "symlink", "partial", "unknown", "duplicate"] {
-            let root = tempfile::tempdir()?;
+            let root = private_root()?;
             let ids = stages()?;
             let coordinator =
                 Coordinator::create(root.path(), "invocation", &ids, Duration::from_millis(30))?;
@@ -903,7 +924,7 @@ mod tests {
     #[test]
     fn zero_failure_code_and_unselected_stage_cannot_abort_other_work()
     -> Result<(), Box<dyn std::error::Error>> {
-        let root = tempfile::tempdir()?;
+        let root = private_root()?;
         let ids = stages()?;
         let coordinator =
             Coordinator::create(root.path(), "invocation", &ids, Duration::from_secs(1))?;
@@ -915,6 +936,20 @@ mod tests {
         assert!(coordinator.failure()?.is_none());
         coordinator.admit_shared(&ids[0])?.finish_fast()?;
         assert!(coordinator.admit_shared(&ids[0]).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn public_fixture_directory_is_refused_without_repairing_permissions()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = private_root()?;
+        fs::set_permissions(root.path(), fs::Permissions::from_mode(0o755))?;
+        let ids = stages()?;
+        let error = Coordinator::create(root.path(), "invocation", &ids, Duration::from_secs(1))
+            .expect_err("public directory was admitted");
+        assert!(error.to_string().contains("mode0700, found 0755"));
+        assert_eq!(fs::symlink_metadata(root.path())?.mode() & 0o777, 0o755);
+        assert!(fs::read_dir(root.path())?.next().is_none());
         Ok(())
     }
 }
