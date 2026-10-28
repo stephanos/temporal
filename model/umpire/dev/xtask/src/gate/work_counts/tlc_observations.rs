@@ -405,7 +405,10 @@ mod tests {
         collector.ingest(&["2","tlc-attempt","100-0","fixture","probe",&identity])?;
         collector.ingest(&["2","tlc-finish","100-0","fixture","completed",&hex(authority_path.as_os_str().as_bytes()),&authority_sha])?;
         collector.ingest(&["2","tlc-fixture-complete",&assertion,&hex(completion_path.as_os_str().as_bytes()),&bytes_sha256(&bytes)])?;
-        if pass { collector.record_pass(format!("umpire-backend-tlc::umpire_backend_tlc${test_name}"), executable_sha)?; }
+        if pass {
+            let observed = String::from_utf8(unhex(authority["test_hex"].as_str().unwrap())?).map_err(io::Error::other)?;
+            collector.record_pass(format!("umpire-backend-tlc::umpire_backend_tlc${observed}"), executable_sha)?;
+        }
         if unknown {
             collector.ingest(&["1","tlc-attempt","101-0","probe"])?;
             collector.ingest(&["1","tlc-finish","101-0","0"])?;
