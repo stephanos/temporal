@@ -21,8 +21,10 @@ returned SHIP and .17 is closed. Provisioning .16 is reviewed, closed and integr
 with verified proof-output recovery. A further 6.61 GB of idle .15 private build
 outputs were reclaimed after independent custody verification; the active build
 cache, sources and recovery stores were preserved. [Cleanup proof](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/post-integration-cleanup-20261028/summary.json).
-Go JSON producer controls pass focused checks; gate integration, mixed-control
-TLC provenance and budget enforcement remain with .12. macOS validation remains owner-deferred.
+The .12 producer checkpoint passes all three public Go stages (170 tests) and a
+mixed TLC proof accounting for 85 protocol fixtures separately from six real
+starts and three configurations. [Count evidence](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task12/count-producers-20261028/summary.json).
+Budget admission and enforcement remain open. macOS validation remains owner-deferred.
 
 ## Keeping this page current
 
@@ -150,7 +152,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | --- | --- | --- |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
-| fn-254.12 | 🔄 in progress | Actual Go producer controls pass, including hidden Go configuration, root-only counts and failure status. Finish gate integration, mixed-control TLC provenance and budget/retry enforcement against .15/.16/.17. Tables remain uncalibrated and refuse enforcement until admitted (R8) |
+| fn-254.12 | 🔄 in progress | Go and mixed-control TLC producers verified through real execution and native wiring controls. Next: explicit applicability evidence, admitted stage/workload tables and immediate drained retry against .15/.16/.17; enforcement and task closure remain open (R8) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 

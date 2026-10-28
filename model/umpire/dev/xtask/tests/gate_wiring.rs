@@ -1217,7 +1217,10 @@ fn scheduled_go_stages_count_real_json_units_and_preserve_each_discovery_failure
                 let mut command = fixture.command(timed);
                 command
                     .args(["gate", "--scheduled-stage", stage])
-                    .env("UMPIRE_GATE_RECEIPTS", receipts.path());
+                    .env("UMPIRE_GATE_RECEIPTS", receipts.path())
+                    .env("UMPIRE_GATE_STAGE", stage)
+                    .env("UMPIRE_GATE_EXECUTABLE", fixture.bin.join("xtask"))
+                    .env("UMPIRE_GATE_CONTROLLER_EXECUTABLE", fixture.bin.join("xtask"));
                 if let Some(phase) = failure {
                     command.env("CONTROL_FAIL", format!("{stage}-{phase}"));
                 }

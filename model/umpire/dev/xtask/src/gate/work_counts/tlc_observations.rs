@@ -38,7 +38,12 @@ fn cause(value: &str) -> bool {
     matches!(value, "completed" | "refused" | "nonutf8" | "spawn-error")
 }
 fn hex(bytes: &[u8]) -> String {
-    bytes.iter().map(|b| format!("{b:02x}")).collect()
+    let mut value = String::with_capacity(bytes.len() * 2);
+    for &byte in bytes {
+        value.push(char::from(b"0123456789abcdef"[usize::from(byte >> 4)]));
+        value.push(char::from(b"0123456789abcdef"[usize::from(byte & 15)]));
+    }
+    value
 }
 fn unhex(value: &str) -> io::Result<Vec<u8>> {
     require(
@@ -48,7 +53,9 @@ fn unhex(value: &str) -> io::Result<Vec<u8>> {
     )?;
     value
         .as_bytes()
-        .chunks_exact(2)
+        .as_chunks::<2>()
+        .0
+        .iter()
         .map(|pair| {
             u8::from_str_radix(std::str::from_utf8(pair).map_err(io::Error::other)?, 16)
                 .map_err(io::Error::other)
@@ -486,6 +493,21 @@ impl Fixture {
                 )?;
             }
         }
+        self.validate_parent(passed)?;
+        require(
+            attempt.identity
+                == structural_sha256(&(
+                    &self.assertion_id,
+                    &self.family,
+                    &self.renderer_sha256,
+                    &self.case_hex,
+                    &self.script_sha256,
+                    &self.interpreter_sha256,
+                )),
+        )?;
+        require(self.exit.is_none_or(|code| (0..=255).contains(&code)))
+    }
+    fn validate_parent(&self, passed: &BTreeSet<(String, String)>) -> io::Result<()> {
         let test = String::from_utf8(unhex(&self.test_hex)?).map_err(io::Error::other)?;
         let parents: &[&str] = if self.family == "tlc-cache-v1" {
             &[
@@ -518,18 +540,7 @@ impl Fixture {
                     .count()
                     == 1,
         )?;
-        require(
-            attempt.identity
-                == structural_sha256(&(
-                    &self.assertion_id,
-                    &self.family,
-                    &self.renderer_sha256,
-                    &self.case_hex,
-                    &self.script_sha256,
-                    &self.interpreter_sha256,
-                )),
-        )?;
-        require(self.exit.is_none_or(|code| (0..=255).contains(&code)))
+        Ok(())
     }
 }
 #[derive(Deserialize)]
@@ -728,7 +739,7 @@ mod tests {
             &renderer,
             &hex(case.as_bytes()),
             &bytes_sha256(script),
-            interpreter["sha256"].as_str().unwrap(),
+            interpreter["sha256"].as_str().ok_or_else(invalid)?,
         ));
         let mut collector = Collector::default();
         collector.ingest(&["2", "tlc-attempt", "100-0", "fixture", "probe", &identity])?;
@@ -749,8 +760,9 @@ mod tests {
             &bytes_sha256(&bytes),
         ])?;
         if pass {
-            let observed = String::from_utf8(unhex(authority["test_hex"].as_str().unwrap())?)
-                .map_err(io::Error::other)?;
+            let observed =
+                String::from_utf8(unhex(authority["test_hex"].as_str().ok_or_else(invalid)?)?)
+                    .map_err(io::Error::other)?;
             collector.record_pass(format!("umpire-tlc::umpire_tlc${observed}"), executable_sha)?;
         }
         if unknown {
@@ -798,7 +810,9 @@ mod tests {
         );
         assert!(
             fixture_counts("tlc-batch-v1", true, false, |doc, _| {
-                doc.as_object_mut().unwrap().remove("exit");
+                doc.as_object_mut()
+                    .unwrap_or_else(|| panic!("fixture must be an object"))
+                    .remove("exit");
             })
             .is_err()
         );
@@ -835,9 +849,18 @@ mod tests {
         for name in ["extra.json", "100-1.json", "partial"] {
             assert!(
                 fixture_counts("tlc-batch-v1", true, false, |doc, _| {
-                    let script = path(doc["script_path_hex"].as_str().unwrap()).unwrap();
-                    let receipts = script.parent().unwrap().parent().unwrap();
-                    fs::write(receipts.join("authorities/scope/tests").join(name), b"{}").unwrap();
+                    let script = path(
+                        doc["script_path_hex"]
+                            .as_str()
+                            .unwrap_or_else(|| panic!("fixture script path")),
+                    )
+                    .unwrap_or_else(|error| panic!("{error}"));
+                    let receipts = script
+                        .parent()
+                        .and_then(Path::parent)
+                        .unwrap_or_else(|| panic!("fixture receipts parent"));
+                    fs::write(receipts.join("authorities/scope/tests").join(name), b"{}")
+                        .unwrap_or_else(|error| panic!("{error}"));
                 })
                 .is_err(),
                 "accepted {name}"

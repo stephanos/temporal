@@ -1,0 +1,569 @@
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.72s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+────────────
+ Nextest run ID 567cacc8-3325-4ea1-86d2-f7485dbb880f with nextest profile: required
+    Starting 66 tests across 2 binaries
+  stdout ───
+
+    running 1 test
+    test fingerprint::tests::full_sha_and_structural_framing ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test jar::tests::digest_is_in_process_sha256 ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test jar::tests::mise_install_corruption_and_symlinks_refuse_before_resolution ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test jar::tests::wrong_digest_and_cache_escape_refuse_before_use ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test support::lease_tests::admission_refuses_symlink_directory_and_foreign_file_without_writing ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test support::lease_tests::admission_refuses_hardlinks_fifo_and_public_permissions ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test support::lease_tests::checker_target_control ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test support::lease_tests::file_replacement_during_wait_refuses_after_original_owner_releases ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test support::lease_tests::inherited_admission_rejects_unheld_canonical_and_held_wrong_description ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test support::lease_tests::kernel_lock_releases_without_unlinking_or_stale_pid_recovery ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test support::lease_tests::lifecycle_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test syscall::supported::tests::close_limit_retains_descriptors_above_lowered_soft_limit ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.01s
+
+
+  stdout ───
+
+    running 1 test
+    test syscall::supported::tests::duplicated_descriptors_are_private_and_close_on_exec ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test syscall::supported::tests::raw_clone_normalizes_sparc_child_identity ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test syscall::supported::tests::raw_clone_prefix_preserves_flags_and_null_stack ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test support::lease_tests::checker_guardian_holds_last_private_description_while_target_has_no_capability ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test syscall::supported::tests::supervisor_retains_first_stop_signal ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test syscall::tests::all_darwin_helpers_prevent_process_creation ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test syscall::tests::orchestration_allows_darwin_children_without_weakening_checker_admission ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test syscall::supported::tests::supervisor_owner_eof_returns_125 ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.02s
+
+
+  stdout ───
+
+    running 1 test
+    test syscall::tests::unsupported_platform_is_an_explicit_refusal ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test tool_provider::tests::concurrent_provider_capture_and_failure_propagation_are_independent ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test tool_provider::tests::exact_installations_reject_partial_trees_directories_and_symlinks ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test tool_provider::tests::cancellation_and_timeout_refuse_and_clean_owned_capture ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.04s
+
+
+  stdout ───
+
+    running 1 test
+    test jar::tests::exact_jar_and_pinned_java_reach_the_probe ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.10s
+
+
+  stdout ───
+
+    running 1 test
+    test tool_provider::tests::non_utf8_root_refuses_before_mise_or_data_side_effects ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+
+    running 1 test
+
+    running 1 test
+
+    running 1 test
+    test support::lease_tests::lifecycle_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.07s
+
+    test support::lease_tests::lifecycle_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.08s
+
+    test support::lease_tests::leased_owner_death_excludes_contender_until_escaped_child_is_reaped ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.11s
+
+
+  stdout ───
+
+    running 1 test
+    test tool_provider::tests::path_list_root_refuses_before_mise_or_data_side_effects ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test tool_provider::tests::scoped_commands_only_select_optional_apalache_explicitly ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test work::tests::admitted_checker_absence_partial_or_non_utf8_stays_unknown ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test tool_provider::tests::in_flight_cancellation_uses_existing_supervisor ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.04s
+
+
+  stdout ───
+
+    running 1 test
+    test work::tests::admitted_checker_startup_requires_positive_captured_evidence ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test tool_provider::tests::orchestration_policy_allows_extractor_children ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test work::tests::scope_probe_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+
+    running 1 test
+    test work::tests::scope_probe_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+    running 1 test
+    test work::tests::scope_probe_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+    test work::tests::unrelated_processes_do_not_validate_tlc_observation_scope ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test tool_provider::tests::interrupted_partial_install_never_reaches_resolution ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.05s
+
+
+  stdout ───
+
+    running 1 test
+    test cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test cancellation_keeps_controller_alive_to_wait_its_separate_child_group ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.05s
+
+
+  stdout ───
+
+    running 1 test
+    test cold_native_execution_does_not_need_python_or_a_sibling_supervisor ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test checker_inheritance_is_optional_and_invalid_present_custody_refuses_before_launch ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.08s
+
+
+  stdout ───
+
+    running 1 test
+    test default_checker_guardian_retains_inherited_custody_without_delegating_to_target ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.07s
+
+
+  stdout ───
+
+    running 1 test
+    test diagnostic_text_cannot_make_a_hung_preflight_pass ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.12s
+
+
+  stdout ───
+
+    running 1 test
+    test failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8 ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.06s
+
+
+  stdout ───
+
+    running 1 test
+    test java_environment_is_clean_and_supervisor_group_is_private ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.04s
+
+
+  stdout ───
+
+    running 1 test
+    test leased_child_adopts_real_descriptor_and_rejects_forged_locator ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.05s
+
+
+  stdout ───
+
+    running 1 test
+    test leased_clean_command_preserves_only_explicit_environment ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.04s
+
+
+  stdout ───
+
+    running 1 test
+    test lifecycle_locators_without_both_pipe_capabilities_refuse_before_launch ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.02s
+
+
+  stdout ───
+
+    running 1 test
+    test launch_status_and_prepared_command_contracts_are_preserved ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.18s
+
+
+  stdout ───
+
+    running 1 test
+    test linux_root_reaps_paused_nested_guardian_before_releasing_lease ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.07s
+
+
+  stdout ───
+
+    running 1 test
+    test linux_cleanup_reaps_checker_while_rust_owner_is_stopped ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.09s
+
+
+  stdout ───
+
+    running 1 test
+    test orchestration_preserves_streams_status_environment_and_cwd ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test owned_child_reaping_includes_other_process_groups ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test owner_death_terminates_and_reaps_separate_session_descendants ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.04s
+
+
+  stdout ───
+
+    running 1 test
+    test nested_normal_completion_does_not_cancel_following_stage ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.14s
+
+
+  stdout ───
+
+    running 1 test
+    test owner_group_and_direct_supervisor_termination_reap_owned_tree ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.18s
+
+
+  stdout ───
+
+    running 1 test
+    test path_search_tries_candidates_after_exec_errors ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.08s
+
+
+  stdout ───
+
+    running 1 test
+    test provider_containment_refuses_before_spawning_mise ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test pthread_atfork_handlers_do_not_run_in_supervisor_or_target ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.04s
+
+
+  stdout ───
+
+    running 1 test
+    test scratch_owns_private_unique_directories_and_preserves_finish_results ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.01s
+
+
+  stdout ───
+
+    running 1 test
+    test simulated_darwin_helper_cannot_start_an_escaped_descendant ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.04s
+
+
+  stdout ───
+
+    running 1 test
+    test substituted_log_fifo_returns_without_waiting_for_a_reader ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.05s
+
+
+  stdout ───
+
+    running 1 test
+    test substituted_log_symlink_cannot_modify_an_external_file ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test parent_allocator_threads_do_not_deadlock_forked_supervisors ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.51s
+
+
+  stdout ───
+
+    running 1 test
+    test direct_helper_timeout_retains_output_and_cleans_scratch ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 1.01s
+
+
+  stdout ───
+
+    running 1 test
+    test bounded_reads_dump_and_scratch_fail_closed ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 1.32s
+
+
+  stdout ───
+
+    running 1 test
+    test timeout_cleans_descendants_before_return ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 1.02s
+
+
+────────────
+     Summary [   2.219s] 66 tests run: 66 passed, 0 skipped
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s
+   Doc-tests umpire_backend_process
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

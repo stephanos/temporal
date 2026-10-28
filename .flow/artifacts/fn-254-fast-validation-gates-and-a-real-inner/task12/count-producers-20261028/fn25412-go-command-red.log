@@ -1,0 +1,171 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/xtask)
+warning: function `is_go_test` is never used
+ --> dev/xtask/src/gate/go_command.rs:4:15
+  |
+4 | pub(super) fn is_go_test(_command: &Command) -> bool {
+  |               ^^^^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `inventory` is never used
+ --> dev/xtask/src/gate/go_command.rs:8:15
+  |
+8 | pub(super) fn inventory(_command: &Command) -> io::Result<Command> {
+  |               ^^^^^^^^^
+
+warning: function `execution` is never used
+  --> dev/xtask/src/gate/go_command.rs:12:15
+   |
+12 | pub(super) fn execution(_command: &Command) -> io::Result<Command> {
+   |               ^^^^^^^^^
+
+warning: constant `MAX_RECORD_BYTES` is never used
+ --> dev/xtask/src/gate/go_counts.rs:8:7
+  |
+8 | const MAX_RECORD_BYTES: usize = 1024 * 1024;
+  |       ^^^^^^^^^^^^^^^^
+
+warning: constant `MAX_STREAM_BYTES` is never used
+ --> dev/xtask/src/gate/go_counts.rs:9:7
+  |
+9 | const MAX_STREAM_BYTES: usize = 64 * 1024 * 1024;
+  |       ^^^^^^^^^^^^^^^^
+
+warning: constant `MAX_EVENTS` is never used
+  --> dev/xtask/src/gate/go_counts.rs:10:7
+   |
+10 | const MAX_EVENTS: usize = 1_000_000;
+   |       ^^^^^^^^^^
+
+warning: struct `Totals` is never constructed
+  --> dev/xtask/src/gate/go_counts.rs:13:19
+   |
+13 | pub(super) struct Totals {
+   |                   ^^^^^^
+
+warning: struct `Observation` is never constructed
+  --> dev/xtask/src/gate/go_counts.rs:21:19
+   |
+21 | pub(super) struct Observation {
+   |                   ^^^^^^^^^^^
+
+warning: function `invalid` is never used
+  --> dev/xtask/src/gate/go_counts.rs:26:4
+   |
+26 | fn invalid(message: &str) -> io::Error {
+   |    ^^^^^^^
+
+warning: function `present` is never used
+  --> dev/xtask/src/gate/go_counts.rs:30:4
+   |
+30 | fn present<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
+   |    ^^^^^^^
+
+warning: struct `Event` is never constructed
+  --> dev/xtask/src/gate/go_counts.rs:38:8
+   |
+38 | struct Event {
+   |        ^^^^^
+
+warning: methods `build` and `validate` are never used
+  --> dev/xtask/src/gate/go_counts.rs:59:8
+   |
+58 | impl Event {
+   | ---------- methods in this implementation
+59 |     fn build(&self) -> bool {
+   |        ^^^^^
+...
+63 |     fn validate(&self) -> io::Result<()> {
+   |        ^^^^^^^^
+
+warning: function `events` is never used
+   --> dev/xtask/src/gate/go_counts.rs:104:4
+    |
+104 | fn events(bytes: &[u8]) -> io::Result<Vec<Event>> {
+    |    ^^^^^^
+
+warning: struct `PackageInventory` is never constructed
+   --> dev/xtask/src/gate/go_counts.rs:126:8
+    |
+126 | struct PackageInventory {
+    |        ^^^^^^^^^^^^^^^^
+
+warning: method `output` is never used
+   --> dev/xtask/src/gate/go_counts.rs:134:8
+    |
+133 | impl PackageInventory {
+    | --------------------- method in this implementation
+134 |     fn output(&mut self, package: &str, output: &str) -> io::Result<()> {
+    |        ^^^^^^
+
+warning: struct `Inventory` is never constructed
+   --> dev/xtask/src/gate/go_counts.rs:176:19
+    |
+176 | pub(super) struct Inventory {
+    |                   ^^^^^^^^^
+
+warning: associated items `parse` and `observe` are never used
+   --> dev/xtask/src/gate/go_counts.rs:181:19
+    |
+180 | impl Inventory {
+    | -------------- associated items in this implementation
+181 |     pub(super) fn parse(bytes: &[u8]) -> io::Result<Self> {
+    |                   ^^^^^
+...
+225 |     pub(super) fn observe(&self, bytes: &[u8]) -> io::Result<Observation> {
+    |                   ^^^^^^^
+
+warning: function `increment` is never used
+   --> dev/xtask/src/gate/go_counts.rs:307:4
+    |
+307 | fn increment(total: &mut u64) -> io::Result<()> {
+    |    ^^^^^^^^^
+
+warning: enum `Terminal` is never used
+   --> dev/xtask/src/gate/go_counts.rs:313:6
+    |
+313 | enum Terminal {
+    |      ^^^^^^^^
+
+warning: enum `Phase` is never used
+   --> dev/xtask/src/gate/go_counts.rs:319:6
+    |
+319 | enum Phase {
+    |      ^^^^^
+
+warning: struct `PackageRun` is never constructed
+   --> dev/xtask/src/gate/go_counts.rs:325:8
+    |
+325 | struct PackageRun {
+    |        ^^^^^^^^^^
+
+warning: method `test` is never used
+   --> dev/xtask/src/gate/go_counts.rs:331:8
+    |
+330 | impl PackageRun {
+    | --------------- method in this implementation
+331 |     fn test(&mut self, name: &str, action: &str) -> io::Result<()> {
+    |        ^^^^
+
+warning: function `output` is never used
+   --> dev/xtask/src/gate/go_counts.rs:373:15
+    |
+373 | pub(super) fn output(bytes: &[u8]) -> io::Result<Vec<u8>> {
+    |               ^^^^^^
+
+warning: `xtask` (lib) generated 23 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 14.07s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/deps/xtask-1d211dd4a177cc0d)
+
+running 1 test
+Error: Custom { kind: Other, error: "Go execution command transform not implemented" }
+test gate::go_command::tests::three_canonical_stages_preserve_context_and_add_only_json_inventory_flags ... FAILED
+
+failures:
+
+failures:
+    gate::go_command::tests::three_canonical_stages_preserve_context_and_add_only_json_inventory_flags
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 121 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p xtask --lib`

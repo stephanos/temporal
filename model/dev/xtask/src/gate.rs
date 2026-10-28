@@ -448,11 +448,13 @@ printf '%s\n' "$label" >> "$UMPIRE_GATE_CONTROL_LOG"
 case " $* " in
  *' cargo nextest run '*' --message-format '*) printf '%s\n' '{"type":"test","event":"ok","name":"umpire-temporal-tests::boundary$control"}' ;;
  *' cargo test --doc '*) printf '%s\n' 'running 0 tests' 'test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.1s' ;;
+ *' go -C '*' test -json -list . '*) ;;
+ *' go -C '*' test -json '*) printf '%s\n' '{"Action":"start","Package":"control"}' '{"Action":"run","Package":"control","Test":"TestControl"}' '{"Action":"pass","Package":"control","Test":"TestControl"}' '{"Action":"pass","Package":"control"}' ;;
 esac
 
 "#;
 
-    const CONTROL_STAGES: [(&str, &str); 15] = [
+    const CONTROL_STAGES: [(&str, &str); 17] = [
         ("temporal-prerequisites", "prerequisites"),
         ("temporal-guest-freshness", "guest"),
         ("retired-names", "retired"),
@@ -470,9 +472,11 @@ esac
         ),
         ("tests", "exec -- cargo test --doc --workspace --locked --quiet"),
         ("wasm-guest", "guest-build"),
+        ("temporal-go-host", "go-environment"),
+        ("temporal-go-host", "go-inventory"),
         (
             "temporal-go-host",
-            "exec -- go -C PLACEHOLDER/temporal/hosts/go test -tags test_dep -count=1 ./...",
+            "exec -- go -C PLACEHOLDER/temporal/hosts/go test -json -tags test_dep -count=1 ./...",
         ),
     ];
 
@@ -542,6 +546,16 @@ case "$*" in
    printf '%s\n' '{"test-count":1,"rust-suites":{"boundary":{"package-name":"umpire-temporal-tests","binary-name":"boundary","kind":"test","status":"listed","testcases":{"control":{"ignored":false,"filter-match":{"status":"matches"}}}}}}'
    exit 0 ;;
  'exec -- cargo nextest run'*' -p umpire-temporal-tests '*) label=boundary-tests ;;
+ 'exec -- go -C '*' env -json GOFLAGS')
+   label=go-environment
+   BODY
+   printf '%s\n' '{"GOFLAGS":"-p=1"}'
+   exit 0 ;;
+ 'exec -- go -C '*' test -json -list . '*)
+   label=go-inventory
+   BODY
+   printf '%s\n' '{"Action":"start","Package":"control"}' '{"Action":"output","Package":"control","Output":"TestControl\n"}' '{"Action":"pass","Package":"control"}'
+   exit 0 ;;
  *) label="$*"; label="${label% --message-format libtest-json --message-format-version 0.1}" ;;
 esac
 "#.replace("BODY", body);
@@ -736,7 +750,7 @@ fi
                     format!("{}:{}", root.join("bin").display(), std::env::var("PATH").unwrap()),
                 );
             let output = child.output().unwrap();
-            assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stdout));
+            assert!(output.status.success(), "{output:?}");
             if let Some(index) = failure {
                 assert!(
                     String::from_utf8_lossy(&output.stderr).contains(stages[index].0),

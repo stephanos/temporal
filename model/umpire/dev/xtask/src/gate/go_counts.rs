@@ -293,7 +293,7 @@ impl Inventory {
                 increment(&mut totals.discovered)?;
                 match package.tests.get(unit) {
                     Some(Phase::Done(Terminal::Pass | Terminal::Fail)) => {
-                        increment(&mut totals.executed)?
+                        increment(&mut totals.executed)?;
                     }
                     Some(Phase::Done(Terminal::Skip)) => increment(&mut totals.skipped)?,
                     _ => return Err(invalid("missing Go test completion")),
@@ -381,15 +381,39 @@ pub(super) fn output(bytes: &[u8]) -> io::Result<Vec<u8>> {
 }
 
 #[derive(Default)]
-pub(super) struct OutputRelay;
+pub(super) struct OutputRelay {
+    pending: Vec<u8>,
+    raw: bool,
+}
 
 impl OutputRelay {
-    pub(super) fn feed(&mut self, _bytes: &[u8], _output: &mut dyn std::io::Write) -> io::Result<()> {
-        Ok(())
+    pub(super) fn feed(&mut self, bytes: &[u8], target: &mut dyn io::Write) -> io::Result<()> {
+        if self.raw {
+            target.write_all(bytes)?;
+        } else {
+            self.pending.extend_from_slice(bytes);
+            while let Some(end) = self.pending.iter().position(|byte| *byte == b'\n') {
+                if let Ok(decoded) = output(&self.pending[..=end]) {
+                    target.write_all(&decoded)?;
+                    self.pending.drain(..=end);
+                } else {
+                    self.raw = true;
+                    break;
+                }
+            }
+            if self.raw || self.pending.len() > MAX_RECORD_BYTES {
+                self.raw = true;
+                target.write_all(&self.pending)?;
+                self.pending.clear();
+            }
+        }
+        target.flush()
     }
 
-    pub(super) fn finish(&mut self, _output: &mut dyn std::io::Write) -> io::Result<()> {
-        Ok(())
+    pub(super) fn finish(&mut self, target: &mut dyn io::Write) -> io::Result<()> {
+        target.write_all(&self.pending)?;
+        self.pending.clear();
+        target.flush()
     }
 }
 
@@ -412,11 +436,12 @@ mod tests {
 
     #[test]
     fn diagnostic_relay_emits_complete_records_before_the_process_finishes() -> io::Result<()> {
-        let bytes = stream(&[json!({"Action":"output","Package":"p","Output":"live diagnostic\n"})]);
+        let bytes =
+            stream(&[json!({"Action":"output","Package":"p","Output":"live diagnostic\n"})]);
         let mut relay = OutputRelay::default();
         let mut output = Vec::new();
         relay.feed(&bytes[..5], &mut output)?;
-        assert!(output.is_empty());
+        assert_eq!(output, b"");
         relay.feed(&bytes[5..], &mut output)?;
         assert_eq!(output, b"live diagnostic\n");
         relay.finish(&mut output)?;

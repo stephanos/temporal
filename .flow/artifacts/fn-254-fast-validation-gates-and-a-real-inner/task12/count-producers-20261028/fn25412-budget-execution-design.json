@@ -1,0 +1,193 @@
+{
+  "version": 1,
+  "task": "fn-254.12",
+  "role": "thinking-scout/design",
+  "decision_status": "recommendations_root_owns_api_and_implementation",
+  "source_head": "990aa82b624232d0ce55730456a8b638f42b1aef",
+  "working_tree_producer_changes_present": true,
+  "report": ".flow/tmp/fn25412-budget-execution-design.md",
+  "report_sha256": "39123485b1b7eef29b7108a1e9aa0e345c20fe310a0e9e1345fda1d1d3a3ad42",
+  "root_decisions_honored": [
+    "Preserve six WorkCounts Option<u64> numeric/null fields",
+    "Three separate modality evidence records without duplicate numeric values",
+    "Legacy receipts readable; budget admission requires new evidence",
+    "Standalone parent Java-version probe is not TLC startup",
+    "Pin running controller image early; mutable Cargo alias is not retry identity"
+  ],
+  "recommendations": {
+    "evidence": "CountEvidence v1 with tests/tlc_launches/tlc_configurations statuses referencing existing producer or completed native dispatch authorities",
+    "zero": "Matched actual observer-owned scope begin/end plus admitted source/capability coverage and completed test/owned process evidence",
+    "dispatch": "StageAttempt::run(DispatchContract, FnOnce) in each actual native match branch; scheduler::scheduled takes FnMut(&mut StageAttempt)",
+    "retry": "Short-held invocation-local file-lock admission barrier; callback retries same native body before returning to mise; queued callbacks excluded from active payload set",
+    "nested": "ExclusiveChildGraph permit for existing standalone branch, own local child coordinator and existing lease custody",
+    "attempts": "One stage work directory retained; immutable disjoint/exhaustive per-attempt event manifests, no environment mutation or evidence reset",
+    "final_counts": "Final stage counts collect all completed own attempts; per-attempt budget checks; TLC configuration dedup from actual identities",
+    "normal_enforcement": "Automatic admitted context in public framework/combined gate routes; exact actual mise inventory; no optin authority",
+    "fn255": "Typed proposed/admitted workload profiles in the same authoritative table, separate from actual stages namespace; review/commit finite task bounds before evidence runs"
+  },
+  "coordinator": {
+    "phase": [
+      "Open",
+      "Paused",
+      "Exclusive(owner)",
+      "Aborted(cause)"
+    ],
+    "state": [
+      "active_payloads",
+      "ordered_pending_requests",
+      "consumed_retries"
+    ],
+    "requests": [
+      "Retry(stage)",
+      "ExclusiveFirst(stage)"
+    ],
+    "queued_callbacks_are_active": false,
+    "retry_in_public_cli": false,
+    "new_mise_graph_for_retry": false,
+    "host_lease_reacquisition": false
+  },
+  "observable_choices": [
+    "admitted finite drain bound",
+    "exclusive standalone overlap/calibration tradeoff",
+    "Go source/capability coverage authority",
+    "retained executable/guest-driver sibling locators",
+    "quick execution hook inclusion"
+  ],
+  "standalone_current_source": {
+    "actual_parent_tlc_probe": false,
+    "java_version_probe": true,
+    "fetch_tlc_provisions_and_hashes_only": true,
+    "parent_setup_scopes_stripped": true,
+    "child_authority_exclusive": true
+  },
+  "current_registry": {
+    "framework": 18,
+    "temporal": 13,
+    "framework_child_selected": 17,
+    "framework_child_registered": 18
+  },
+  "current_r6_seconds": {
+    "quick": 60,
+    "check": 180,
+    "validate": 600
+  },
+  "producer_checkpoint_context": {
+    "reported_by_root": true,
+    "selected_test_proof": {
+      "discovered": 36,
+      "executed": 18,
+      "ignored": 0,
+      "skipped": 18,
+      "tlc_launches": 6,
+      "tlc_configurations": 3
+    },
+    "go_host": {
+      "discovered": 66,
+      "executed": 66,
+      "tlc_launches": null,
+      "tlc_configurations": null
+    },
+    "fresh_runtime_in_this_lane": false
+  },
+  "source_files": [
+    {
+      "path": "model/umpire/dev/xtask/src/gate.rs",
+      "sha256": "9e728d9f13916e60d059118f8d282f7f996a060c9cb9cf6432a8275deca3324b"
+    },
+    {
+      "path": "model/umpire/dev/xtask/src/gate/scheduler.rs",
+      "sha256": "c6d0251bed1eb2fffc6310f7eb122914dc668f57cefe71e3d054896916497b00"
+    },
+    {
+      "path": "model/umpire/dev/xtask/src/gate/work_counts.rs",
+      "sha256": "17450f1c2e3cde6f0b362f922c1975189b6a574a321e8597428b3bf3ea88ba48"
+    },
+    {
+      "path": "model/umpire/dev/xtask/src/gate/work_counts/tlc_observations.rs",
+      "sha256": "899b79c938776d3b9f45f4d47731b6ab21b0e6aced625f9e997da113f30dd52b"
+    },
+    {
+      "path": "model/umpire/dev/xtask/src/gate/standalone.rs",
+      "sha256": "32f19651a23325d43f0cd0c8d510da4226717b22a12618beb2f439d909b7c017"
+    },
+    {
+      "path": "model/umpire/dev/xtask/src/quick/mod.rs",
+      "sha256": "3c1f09339fbbe8703c8596f8a69868dcdab46ba5b83d1c79e98cf512614a60e9"
+    },
+    {
+      "path": "model/umpire/dev/xtask/src/main.rs",
+      "sha256": "e9871388f53f558f4deedb0fd16eb05a0d12b066ca298e1b5ef8ac2eb8c2a1f6"
+    },
+    {
+      "path": "model/dev/xtask/src/gate.rs",
+      "sha256": "fd180dd20799323c9fcf6aa694dc61e5925c987ee6fff3fb2f1d7a2e08e5e498"
+    },
+    {
+      "path": "model/dev/xtask/src/main.rs",
+      "sha256": "8cfc0e54e7875035a51b06d0440cc1287083b34195c043331a4acc17d84641e9"
+    },
+    {
+      "path": "model/umpire/backends/process/src/work.rs",
+      "sha256": "95026b7a3d5947d054462bc97fee463bb31b271d62e7d203d3d43dec60f154f3"
+    },
+    {
+      "path": "model/umpire/backends/process/src/support.rs",
+      "sha256": "33b097d373f665d00fdff626fe8845693f1d98e0522481087b76dca6d68ad01c"
+    },
+    {
+      "path": "model/umpire/backends/process/src/tool_provider.rs",
+      "sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff"
+    },
+    {
+      "path": "model/umpire/dev/xtask/src/fetch_apalache.rs",
+      "sha256": "876ea1772407a232119b16a7e018354ac91c90a7f67662c627e608c06ec71f84"
+    },
+    {
+      "path": "model/umpire/dev/xtask/src/gate/tasks.toml",
+      "sha256": "348ddfdd3d7384476f85acbcd72dc32ce875f70e3066f65d2bd751b815d9a5b8"
+    },
+    {
+      "path": "mise.toml",
+      "sha256": "4ab74ce93a5940fa65aa9c0dff31e41071bf8f98c511eca39cac939d692ee1fc"
+    },
+    {
+      "path": ".flow/tmp/fn25412-budget-donor-audit.md",
+      "sha256": "20c38c619244df2ac97434e993bb33aff73c931bd3c57fc8e92c32d401e95c32"
+    },
+    {
+      "path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/standalone-9babff6c/child/stages.jsonl",
+      "sha256": "0812fa45b8bf87251983601b74dd444ede7ee47846ab44eb271dfbdb93fc17f7"
+    },
+    {
+      "path": ".flow/tmp/fn25412-count-producer-proof/run3/receipts/framework/tests.json",
+      "sha256": "db643b6ec022d8044a4f7ef97b1fe7c174c73e17c423ce06d002cf5bf9d17d0f"
+    },
+    {
+      "path": ".flow/tmp/fn25412-count-producer-proof/go-receipts/framework/go-host.json",
+      "sha256": "becc6e36d9e6f948b52b78b0372d6a54c932151a500607cc7583974f5e635a11"
+    }
+  ],
+  "validation_performed": {
+    "source_and_retained_artifact_reads": true,
+    "runtime": false,
+    "builds": false,
+    "tests": false,
+    "review_verdict": false
+  },
+  "mutations": {
+    "allowed_artifacts": [
+      ".flow/tmp/fn25412-budget-execution-design.md",
+      ".flow/tmp/fn25412-budget-execution-design.json"
+    ],
+    "source": false,
+    "git": false,
+    "flow": false,
+    "goal": false,
+    "remote": false
+  },
+  "owner_deferred": [
+    "full-gate/final timing in .8",
+    "migration",
+    "fn255 task execution until committed .12 closure and own admitted profiles"
+  ]
+}

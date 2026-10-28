@@ -1,6 +1,7 @@
 //! Counts observed by native runners, without expected-count substitution.
 #[cfg(test)]
 mod go_tests;
+mod tlc_observations;
 
 use serde::{Deserialize, Serialize};
 use std::{
@@ -91,7 +92,7 @@ pub(super) fn encode_path(path: &Path) -> String {
     encoded
 }
 
-fn decode_path(encoded: &str) -> io::Result<std::path::PathBuf> {
+fn decode_hex(encoded: &str) -> io::Result<Vec<u8>> {
     if encoded.is_empty() || !encoded.len().is_multiple_of(2) {
         return Err(io::Error::other("invalid encoded child path"));
     }
@@ -105,7 +106,11 @@ fn decode_path(encoded: &str) -> io::Result<std::path::PathBuf> {
             u8::from_str_radix(text, 16).map_err(io::Error::other)
         })
         .collect::<io::Result<Vec<_>>>()?;
-    raw_path(bytes)
+    Ok(bytes)
+}
+
+fn decode_path(encoded: &str) -> io::Result<std::path::PathBuf> {
+    raw_path(decode_hex(encoded)?)
 }
 
 fn raw_path(bytes: Vec<u8>) -> io::Result<std::path::PathBuf> {
@@ -249,8 +254,8 @@ pub fn collect(directory: &Path) -> io::Result<WorkCounts> {
     let mut observed_tests = false;
     let mut test_started = BTreeSet::new();
     let mut test_finished = BTreeSet::new();
-    let mut attempts = BTreeMap::new();
-    let mut finished = BTreeMap::new();
+    let mut tlc = tlc_observations::Collector::default();
+    let mut passed = BTreeMap::new();
     for path in event_paths(directory)? {
         let record = fs::read_to_string(path)?;
         let fields = record
@@ -283,20 +288,10 @@ pub fn collect(directory: &Path) -> io::Result<WorkCounts> {
                 }
                 observed_tests = true;
             }
-            ["1", "tlc-attempt", id, configuration] => {
-                if id.is_empty()
-                    || !id.bytes().all(|byte| byte.is_ascii_digit() || byte == b'-')
-                    || (!["-", "probe"].contains(configuration)
-                        && (configuration.len() != 64
-                            || !configuration.bytes().all(|byte| byte.is_ascii_hexdigit())))
-                    || attempts.insert(id.to_string(), configuration.to_string()).is_some()
-                {
-                    return Err(io::Error::other("invalid or duplicate TLC attempt observation"));
-                }
-            }
-            ["1", "tlc-finish", id, started] if ["0", "1"].contains(started) => {
-                if finished.insert(id.to_string(), *started == "1").is_some() {
-                    return Err(io::Error::other("duplicate TLC completion observation"));
+            ["1", "tests-pass", id, name, digest] if valid_id(id) => {
+                let name = String::from_utf8(decode_hex(name)?).map_err(io::Error::other)?;
+                if passed.insert((id.to_string(), name), digest.to_string()).is_some() {
+                    return Err(io::Error::other("duplicate successful test identity observation"));
                 }
             }
             ["1", "child-receipts", path, digest] => {
@@ -308,7 +303,11 @@ pub fn collect(directory: &Path) -> io::Result<WorkCounts> {
                 }
                 counts.child_receipts.push(child_receipt(&path, digest)?);
             }
-            _ => return Err(io::Error::other("unknown work observation")),
+            _ => {
+                if !tlc.ingest(&fields)? {
+                    return Err(io::Error::other("unknown work observation"));
+                }
+            }
         }
     }
     if test_started != test_finished {
@@ -320,45 +319,14 @@ pub fn collect(directory: &Path) -> io::Result<WorkCounts> {
         counts.ignored = Some(tests[2]);
         counts.skipped = Some(tests[3]);
     }
-    tlc_counts(&mut counts, &attempts, &finished)?;
-    Ok(counts)
-}
-
-fn tlc_counts(
-    counts: &mut WorkCounts,
-    attempts: &BTreeMap<String, String>,
-    finished: &BTreeMap<String, bool>,
-) -> io::Result<()> {
-    if finished.keys().any(|id| !attempts.contains_key(id)) {
-        return Err(io::Error::other("TLC completion has no owned attempt"));
-    }
-    if attempts.keys().collect::<BTreeSet<_>>() != finished.keys().collect::<BTreeSet<_>>() {
-        return Err(io::Error::other("missing TLC completion observation"));
-    }
-    if !attempts.is_empty() {
-        counts.tlc_launches = attempts
-            .keys()
-            .all(|id| finished.get(id) == Some(&true))
-            .then_some(attempts.len() as u64);
-        counts.tlc_configurations = counts.tlc_launches.map(|_| {
-            attempts
-                .iter()
-                .filter(|(id, configuration)| {
-                    finished.get(*id) == Some(&true)
-                        && !["-", "probe"].contains(&configuration.as_str())
-                })
-                .map(|(_, configuration)| configuration)
-                .collect::<BTreeSet<_>>()
-                .len() as u64
-        });
-        if attempts
-            .iter()
-            .any(|(id, configuration)| finished.get(id) == Some(&true) && configuration == "-")
-        {
-            counts.tlc_configurations = None;
+    for ((id, name), digest) in passed {
+        if !test_started.contains(&id) {
+            return Err(io::Error::other("successful test identity has no completed producer"));
         }
+        tlc.record_pass(name, digest)?;
     }
-    Ok(())
+    (counts.tlc_launches, counts.tlc_configurations) = tlc.finish(directory)?;
+    Ok(counts)
 }
 
 #[derive(Default)]
@@ -367,6 +335,9 @@ struct TestOutput {
     inventory: bool,
     expected: BTreeSet<String>,
     completed: BTreeSet<String>,
+    binary_paths: BTreeMap<String, std::path::PathBuf>,
+    binary_hashes: BTreeMap<std::path::PathBuf, String>,
+    passed: BTreeMap<String, String>,
     executed: u64,
     ignored: u64,
     skipped: u64,
@@ -405,8 +376,15 @@ impl TestOutput {
                 add(&mut counts.discovered, 1)?;
                 match test["filter-match"]["status"].as_str() {
                     Some("matches") => {
-                        if !counts.expected.insert(format!("{package}::{binary}${name}")) {
+                        let identity = format!("{package}::{binary}${name}");
+                        if !counts.expected.insert(identity.clone()) {
                             return Err(io::Error::other("duplicate nextest inventory identity"));
+                        }
+                        if package == "umpire-tlc"
+                            && binary == "umpire_tlc"
+                            && let Some(path) = suite["binary-path"].as_str()
+                        {
+                            counts.binary_paths.insert(identity, path.into());
                         }
                     }
                     Some("mismatch") if test["filter-match"]["reason"] == "ignored" => {
@@ -438,7 +416,20 @@ impl TestOutput {
         {
             return Err(io::Error::other("unexpected or duplicate nextest completion"));
         }
-        add(&mut self.executed, 1)
+        add(&mut self.executed, 1)?;
+        if value["event"] == "ok"
+            && let Some(path) = self.binary_paths.get(name)
+        {
+            let digest = if let Some(digest) = self.binary_hashes.get(path) {
+                digest.clone()
+            } else {
+                let digest = umpire_backend_process::bytes_sha256(&fs::read(path)?);
+                self.binary_hashes.insert(path.clone(), digest.clone());
+                digest
+            };
+            self.passed.insert(name.to_owned(), digest);
+        }
+        Ok(())
     }
 
     fn doctest(&mut self, line: &[u8]) -> io::Result<()> {
@@ -509,7 +500,8 @@ impl TestOutput {
 
 pub(crate) fn is_test(command: &Command) -> bool {
     let arguments = command.get_args().collect::<Vec<_>>();
-    arguments.windows(2).any(|pair| pair == ["nextest", "run"])
+    super::go_command::is_go_test(command)
+        || arguments.windows(2).any(|pair| pair == ["nextest", "run"])
         || (arguments.iter().any(|argument| *argument == "test")
             && arguments.iter().any(|argument| *argument == "--doc"))
 }
@@ -632,6 +624,9 @@ pub fn observe_streamed(
     if !is_test(command) || umpire_backend_process::work::directory()?.is_none() {
         return Ok(None);
     }
+    if super::go_command::is_go_test(command) {
+        return observe_go(command, stream_stdout, stream_stderr).map(Some);
+    }
     let mut observed = copy_command(command);
     observed.args(command.get_args());
     let nextest =
@@ -677,6 +672,12 @@ pub fn observe_streamed(
             }
         }
         counts.publish()?;
+        for (name, digest) in &counts.passed {
+            umpire_backend_process::work::record(
+                "tests-pass",
+                &format!("{id}\t{}\t{digest}", encode_path(Path::new(name))),
+            )?;
+        }
         umpire_backend_process::work::record(
             "tests-finish",
             &format!(
@@ -697,6 +698,96 @@ pub fn observe_streamed(
         return Err(error);
     }
     Ok(Some(output))
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct GoEnvironment {
+    #[serde(rename = "GOFLAGS")]
+    flags: String,
+}
+
+fn observe_go(
+    command: &Command,
+    stream_stdout: bool,
+    stream_stderr: bool,
+) -> io::Result<std::process::Output> {
+    let id = umpire_backend_process::work::begin_tests()?;
+    let environment = super::scheduler::execute_inner(
+        &super::go_command::environment(command)?,
+        false,
+        stream_stderr,
+        None,
+    )?;
+    if !environment.status.success() {
+        return display_go(environment, stream_stdout, false);
+    }
+    if environment.stdout.len() > 64 * 1024 {
+        return Err(io::Error::other("Go environment observation exceeds bound"));
+    }
+    let GoEnvironment { flags } = serde_json::from_slice(&environment.stdout)?;
+    let mut pinned = copy_command(command);
+    pinned.args(command.get_args()).env("GOFLAGS", if flags.is_empty() { " " } else { &flags });
+    let observed = super::go_command::execution(&pinned)?;
+    let mut listing = super::scheduler::execute_inner(
+        &super::go_command::inventory(&pinned)?,
+        false,
+        stream_stderr,
+        None,
+    )?;
+    let mut diagnostics = environment.stderr;
+    diagnostics.extend(listing.stderr);
+    listing.stderr = diagnostics;
+    if !listing.status.success() {
+        return display_go(listing, stream_stdout, true);
+    }
+    let inventory = super::go_counts::Inventory::parse(&listing.stdout)?;
+    let mut output =
+        super::scheduler::execute_go_observed(&observed, stream_stdout, stream_stderr)?;
+    listing.stderr.extend(output.stderr);
+    output.stderr = listing.stderr;
+    let parse = (|| {
+        let observation = inventory.observe(&output.stdout)?;
+        if output.status.success() && observation.failed {
+            return Err(io::Error::other("successful Go process reported failed test metadata"));
+        }
+        let counts = observation.totals;
+        umpire_backend_process::work::record(
+            "tests-finish",
+            &format!(
+                "{id}\t{}\t{}\t{}\t{}",
+                counts.discovered, counts.executed, counts.ignored, counts.skipped,
+            ),
+        )
+    })();
+    output = display_go(output, false, true)?;
+    if stream_stdout {
+        output.stdout.clear();
+    }
+    if output.status.success()
+        && let Err(error) = parse
+    {
+        io::stdout().write_all(&output.stdout)?;
+        io::stderr().write_all(&output.stderr)?;
+        return Err(error);
+    }
+    Ok(output)
+}
+
+fn display_go(
+    mut output: std::process::Output,
+    stream_stdout: bool,
+    json: bool,
+) -> io::Result<std::process::Output> {
+    if json && let Ok(decoded) = super::go_counts::output(&output.stdout) {
+        output.stdout = decoded;
+    }
+    if stream_stdout {
+        io::stdout().write_all(&output.stdout)?;
+        io::stdout().flush()?;
+        output.stdout.clear();
+    }
+    Ok(output)
 }
 
 #[cfg(test)]
@@ -864,6 +955,31 @@ mod tests {
         }
         let empty = TestOutput::inventory(br#"{"test-count":0,"rust-suites":{}}"#)?;
         assert!(empty.publish().is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn only_observed_passes_link_the_admitted_test_binary_identity() -> io::Result<()> {
+        let binary = tempfile::NamedTempFile::new()?;
+        fs::write(binary.path(), b"admitted test binary")?;
+        let digest = umpire_backend_process::bytes_sha256(b"admitted test binary");
+        let mut value: serde_json::Value = serde_json::from_slice(inventory())?;
+        value["rust-suites"]["control"]["binary-path"] = serde_json::json!(binary.path());
+        value["rust-suites"]["control"]["package-name"] = "umpire-tlc".into();
+        value["rust-suites"]["control"]["binary-name"] = "umpire_tlc".into();
+        for event in ["ok", "failed"] {
+            let mut counts = TestOutput::inventory(&serde_json::to_vec(&value)?)?;
+            assert!(counts.passed.is_empty());
+            counts.nextest(&serde_json::to_vec(&serde_json::json!({
+                "type":"test", "event":event, "name":"umpire-tlc::umpire_tlc$runs",
+            }))?)?;
+            assert_eq!(counts.executed, 1);
+            if event == "ok" {
+                assert_eq!(counts.passed.get("umpire-tlc::umpire_tlc$runs"), Some(&digest));
+            } else {
+                assert!(counts.passed.is_empty());
+            }
+        }
         Ok(())
     }
 

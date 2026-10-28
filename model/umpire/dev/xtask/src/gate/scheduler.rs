@@ -415,7 +415,7 @@ pub(super) fn execute_inner(
     stream_stderr: bool,
     clean_policy: Option<umpire_backend_process::DescendantPolicy>,
 ) -> io::Result<std::process::Output> {
-    execute_captured(command, stream_stdout, stream_stderr, clean_policy, false)
+    execute_captured(command, stream_stdout, stream_stderr, clean_policy, StdoutCapture::Ordinary)
 }
 
 pub(super) fn execute_observed(
@@ -423,7 +423,22 @@ pub(super) fn execute_observed(
     stream_stdout: bool,
     stream_stderr: bool,
 ) -> io::Result<std::process::Output> {
-    execute_captured(command, stream_stdout, stream_stderr, None, true)
+    execute_captured(command, stream_stdout, stream_stderr, None, StdoutCapture::Retained)
+}
+
+pub(super) fn execute_go_observed(
+    command: &Command,
+    stream_stdout: bool,
+    stream_stderr: bool,
+) -> io::Result<std::process::Output> {
+    execute_captured(command, stream_stdout, stream_stderr, None, StdoutCapture::GoJson)
+}
+
+#[derive(Clone, Copy)]
+enum StdoutCapture {
+    Ordinary,
+    Retained,
+    GoJson,
 }
 
 fn execute_captured(
@@ -431,9 +446,11 @@ fn execute_captured(
     stream_stdout: bool,
     stream_stderr: bool,
     clean_policy: Option<umpire_backend_process::DescendantPolicy>,
-    retain_stdout: bool,
+    capture: StdoutCapture,
 ) -> io::Result<std::process::Output> {
     use umpire_backend_process::{DescendantPolicy, OwnedProcess, run_owned};
+    let retain_stdout = !matches!(capture, StdoutCapture::Ordinary);
+    let go_json = matches!(capture, StdoutCapture::GoJson);
     let caller = env::current_dir()?;
     if stream_stdout && stream_stderr && !retain_stdout {
         return Ok(std::process::Output {
@@ -454,9 +471,10 @@ fn execute_captured(
     };
     let mut output = fs::File::open(&stdout_path)?;
     let mut errors = fs::File::open(&stderr_path)?;
+    let mut go_output = go_json.then(super::go_counts::OutputRelay::default);
     let status = loop {
         if stream_stdout {
-            relay(&mut output, &mut io::stdout())?;
+            relay_observed(&mut output, &mut io::stdout(), go_output.as_mut())?;
         }
         if stream_stderr {
             relay(&mut errors, &mut io::stderr())?;
@@ -468,7 +486,10 @@ fn execute_captured(
     };
     drop(process);
     if stream_stdout {
-        relay(&mut output, &mut io::stdout())?;
+        relay_observed(&mut output, &mut io::stdout(), go_output.as_mut())?;
+        if let Some(go_output) = &mut go_output {
+            go_output.finish(&mut io::stdout())?;
+        }
     }
     if stream_stderr {
         relay(&mut errors, &mut io::stderr())?;
@@ -478,6 +499,23 @@ fn execute_captured(
         stdout: if stream_stdout && !retain_stdout { Vec::new() } else { fs::read(stdout_path)? },
         stderr: if stream_stderr { Vec::new() } else { fs::read(stderr_path)? },
     })
+}
+
+fn relay_observed(
+    input: &mut fs::File,
+    output: &mut dyn Write,
+    go_output: Option<&mut super::go_counts::OutputRelay>,
+) -> io::Result<()> {
+    use std::io::Read;
+    let Some(go_output) = go_output else { return relay(input, output) };
+    let mut buffer = [0; 16 * 1024];
+    loop {
+        let size = input.read(&mut buffer)?;
+        if size == 0 {
+            return Ok(());
+        }
+        go_output.feed(&buffer[..size], output)?;
+    }
 }
 
 fn relay(input: &mut fs::File, output: &mut dyn Write) -> io::Result<()> {

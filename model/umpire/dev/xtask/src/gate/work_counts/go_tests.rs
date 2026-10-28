@@ -14,6 +14,9 @@ fn stream(events: &[Value]) -> io::Result<Vec<u8>> {
 #[test]
 fn observer_child() -> io::Result<()> {
     let Ok(mode) = std::env::var("GO_OBSERVER_CONTROL") else { return Ok(()) };
+    if mode.starts_with("real") {
+        return real_child(&mode);
+    }
     let fixture = tempfile::tempdir()?;
     let package = "control";
     let empty = mode == "zero";
@@ -49,7 +52,18 @@ fn observer_child() -> io::Result<()> {
         if mode == "malformed" { b"truncated Go JSON".to_vec() } else { stream(&execution)? },
     )?;
     let mise = fixture.path().join("mise");
-    fs::write(&mise, b"#!/bin/sh\ncase \" $* \" in\n *' -list . '*) /bin/cat \"$GO_CONTROL_ROOT/listing\"; exit \"$GO_CONTROL_LIST_EXIT\" ;;\nesac\n/bin/cat \"$GO_CONTROL_ROOT/execution\"\nprintf 'real stderr diagnostic' >&2\nexit \"$GO_CONTROL_EXIT\"\n")?;
+    fs::write(
+        &mise,
+        br#"#!/bin/sh
+case " $* " in
+ *' env -json GOFLAGS ') printf '{"GOFLAGS":"-p=1"}\n'; exit 0 ;;
+ *' -list . '*) /bin/cat "$GO_CONTROL_ROOT/listing"; exit "$GO_CONTROL_LIST_EXIT" ;;
+esac
+/bin/cat "$GO_CONTROL_ROOT/execution"
+printf 'real stderr diagnostic' >&2
+exit "$GO_CONTROL_EXIT"
+"#,
+    )?;
     fs::set_permissions(&mise, fs::Permissions::from_mode(0o700))?;
     let actual_exit = if ["failure", "malformed"].contains(&mode.as_str()) { 37 } else { 0 };
     let list_exit = if mode == "list-failure" { 43 } else { 0 };
@@ -74,7 +88,7 @@ fn observer_child() -> io::Result<()> {
             if mode == "malformed" {
                 assert_eq!(output.stdout, b"truncated Go JSON");
             } else if empty {
-                assert!(output.stdout.is_empty());
+                assert_eq!(output.stdout, b"");
             } else {
                 assert_eq!(output.stdout, b"real Go diagnostic\n");
             }
@@ -85,6 +99,67 @@ fn observer_child() -> io::Result<()> {
         assert!(result.is_err(), "successful process accepted failed Go metadata");
     } else {
         assert_eq!(result?, expected_exit);
+    }
+    Ok(())
+}
+
+fn real_child(mode: &str) -> io::Result<()> {
+    let fixture = tempfile::tempdir()?;
+    fs::write(fixture.path().join("go.mod"), "module example.com/count-control\n\ngo 1.27.0\n")?;
+    fs::write(
+        fixture.path().join("control_test.go"),
+        r#"package control
+import ("fmt"; "testing")
+func TestRuns(t *testing.T) { t.Run("nested", func(t *testing.T) { t.Log("nested diagnostic") }) }
+func TestSkips(t *testing.T) { t.Skip("explicit skip") }
+func FuzzDecode(f *testing.F) { f.Add("seed"); f.Fuzz(func(t *testing.T, value string) {}) }
+func Example() { fmt.Println("example"); // Output: example
+}
+func BenchmarkUnused(b *testing.B) {}
+"#,
+    )?;
+    fs::create_dir(fixture.path().join("other"))?;
+    fs::write(
+        fixture.path().join("other/control_test.go"),
+        "package other\nimport \"testing\"\nfunc TestRuns(t *testing.T) {}\n",
+    )?;
+    let goenv = fixture.path().join("go.env");
+    fs::write(
+        &goenv,
+        if mode == "real-hidden-selector" {
+            "GOFLAGS=-p=1 -run=TestRuns\n"
+        } else {
+            "GOFLAGS=-p=1\n"
+        },
+    )?;
+    let result = super::super::scheduler::scheduled("go-host", || {
+        let mut command = Command::new("mise");
+        command
+            .args(["exec", "--", "go", "-C"])
+            .arg(fixture.path())
+            .args(["test", "-tags", "test_dep", "-count=1", "./..."])
+            .current_dir(Path::new(env!("CARGO_MANIFEST_DIR")).join("../.."))
+            .env("GOENV", &goenv)
+            .env_remove("GOFLAGS")
+            .env("CGO_ENABLED", "0")
+            .env("GOMAXPROCS", "1")
+            .env("MISE_AUTO_INSTALL", "false")
+            .env("MISE_EXEC_AUTO_INSTALL", "false");
+        let output =
+            observe(&command)?.ok_or_else(|| io::Error::other("missing real Go observer"))?;
+        assert!(
+            output.status.success(),
+            "{}{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert!(!output.stdout.starts_with(b"{\"Time\""));
+        Ok(0)
+    });
+    if mode == "real-hidden-selector" {
+        assert!(result.is_err(), "Go config selector bypassed count admission");
+    } else {
+        assert_eq!(result?, 0);
     }
     Ok(())
 }
@@ -117,9 +192,9 @@ fn go_observer_publishes_only_complete_actual_counts() -> io::Result<()> {
         assert_eq!(receipt["state"], if mode == "failure" { "failed" } else { "success" });
         assert_eq!(receipt["exit"], if mode == "failure" { 37 } else { 0 });
         assert_eq!(receipt["counts"]["discovered"], if mode == "zero" { 0 } else { 2 });
-        assert_eq!(receipt["counts"]["executed"], if mode == "zero" { 0 } else { 1 });
+        assert_eq!(receipt["counts"]["executed"], u64::from(mode != "zero"));
         assert_eq!(receipt["counts"]["ignored"], 0);
-        assert_eq!(receipt["counts"]["skipped"], if mode == "zero" { 0 } else { 1 });
+        assert_eq!(receipt["counts"]["skipped"], u64::from(mode != "zero"));
         assert!(receipt["counts"]["tlc_launches"].is_null());
         assert!(receipt["count_error"].is_null());
     }
@@ -136,5 +211,20 @@ fn go_observer_preserves_failed_processes_and_refuses_incomplete_or_contradictor
         assert!(receipt["counts"].is_null());
         assert!(receipt["count_error"].is_string());
     }
+    Ok(())
+}
+
+#[test]
+fn real_go_producer_counts_roots_and_resolves_go_environment_configuration() -> io::Result<()> {
+    let (_directory, receipt) = child("real")?;
+    assert_eq!(receipt["state"], "success");
+    assert_eq!(receipt["counts"]["discovered"], 5);
+    assert_eq!(receipt["counts"]["executed"], 4);
+    assert_eq!(receipt["counts"]["skipped"], 1);
+    assert_eq!(receipt["counts"]["ignored"], 0);
+    let (_directory, refused) = child("real-hidden-selector")?;
+    assert_eq!(refused["state"], "failed");
+    assert!(refused["counts"].is_null());
+    assert!(refused["count_error"].is_string());
     Ok(())
 }
