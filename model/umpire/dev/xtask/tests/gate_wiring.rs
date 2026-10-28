@@ -201,7 +201,14 @@ case "$1 $2" in
  [ "${CONTROL_FAIL_JOB:-}" != "$job" ] || exit 37
  label=native-report; CONTROL_SKIP_LOG=1 ;;
  'cargo test') case " $* " in *' --doc '*) label=doctests ;; *) label=tests ;; esac ;;
- 'cargo build') label=wasm32-wasip1 ;;
+ 'cargo build')
+ case " $* " in *' -p umpire-guest-driver '*)
+  [ "$*" = "cargo build --locked --manifest-path $CONTROL_ROOT/Cargo.toml -p umpire-guest-driver --bin umpire-guest-driver --profile dev --target-dir $(dirname "$CONTROL_BIN")" ]
+  [ -z "${RUSTC_WRAPPER+x}${RUSTC_WORKSPACE_WRAPPER+x}${RUSTFLAGS+x}${CARGO_ENCODED_RUSTFLAGS+x}${RUSTC_BOOTSTRAP+x}${CARGO_BUILD_TARGET+x}" ]
+  printf 'native-driver-build\n' >> "$CONTROL_ROOT/native-driver-builds"
+  exit "${CONTROL_DRIVER_BUILD_STATUS:-0}" ;;
+ esac
+ label=wasm32-wasip1 ;;
  'cargo clippy') case " $* " in *' --target '*) label=core-wasm-clippy ;; *) label=clippy; [ "$*" = 'cargo clippy --workspace --all-targets --all-features -- -D warnings' ] ;; esac ;;
  'go -C') [ "$CGO_ENABLED" = 0 ]; case "$3" in "$CONTROL_ROOT/hosts/go") label=go-host ;; "$CONTROL_ROOT/reference/kettle") label=kettle-go-host ;; *) exit 91 ;; esac
  [ "$UMPIRE_WASM" = "$CONTROL_EXPECT_TARGET/wasm32-wasip1/guest/umpire_stock_guest.wasm" ]
@@ -1553,4 +1560,25 @@ fn native_protobuf_tools_provision_exact_plugins_and_leave_no_owned_install_lock
         assert!(metadata.is_file() && metadata.permissions().mode() & 0o111 != 0);
     }
     assert!(!fixture.root.join(".bin/proto-tools.lock").exists());
+}
+
+#[test]
+fn native_guest_driver_bootstrap_failure_stops_before_guest_jobs() {
+    let fixture = Fixture::new();
+    for timed in [false, true] {
+        fixture.clear();
+        let output = fixture
+            .command(timed)
+            .args(["gate", "--stage", "wasm-guest"])
+            .env("CONTROL_DRIVER_BUILD_STATUS", "37")
+            .output()
+            .unwrap();
+        assert_status(&output, 37);
+        assert!(
+            stderr(&output).contains("framework stage wasm-guest failed (exit 37)"),
+            "{output:?}"
+        );
+        assert!(fixture.labels().is_empty());
+        assert!(fs::read_to_string(fixture.root.join("guest-jobs")).unwrap().is_empty());
+    }
 }
