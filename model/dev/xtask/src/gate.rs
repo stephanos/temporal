@@ -191,6 +191,7 @@ pub(crate) fn control_tests(root: &Path, name: &str) -> io::Result<i32> {
             "build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest",
         ],
         "proto-controls" => &[
+            "proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals",
             "proto::tests::raw_repository_and_tool_paths_remain_lossless",
             "proto::tests::only_temporal_and_optional_check_are_admitted_before_execution",
             "proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status",

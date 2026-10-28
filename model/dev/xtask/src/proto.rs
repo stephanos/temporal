@@ -150,3 +150,7 @@ mod tests {
         Ok(())
     }
 }
+
+#[cfg(test)]
+#[path = "proto_bridge_controls.rs"]
+mod bridge_controls;
