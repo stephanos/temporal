@@ -17,8 +17,12 @@ const CACHE: &str = "build/tlc";
 use crate::cache::{self, Bundle, Record};
 use std::sync::{Mutex, OnceLock};
 use umpire_backend_process::{
-    PinnedJar, Scratch, bounded_text, bytes_sha256, java_command, run_process, structural_sha256,
+    PinnedJar, Scratch, bounded_text, bytes_sha256, java_command, run_process,
+    run_process_observed, structural_sha256,
 };
+
+#[cfg(test)]
+use umpire_backend_process::run_process;
 
 /// An admitted property result.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -64,6 +68,7 @@ pub struct TlcResult {
 #[derive(Clone, Debug)]
 pub struct Tlc {
     root: PathBuf,
+    origin: InvocationOrigin,
     jar: PathBuf,
     java: PathBuf,
     /// Bounds applied to every subprocess.
@@ -71,6 +76,16 @@ pub struct Tlc {
     /// Maximum simultaneous singleton recovery processes within one check. Must be positive.
     /// The default is at most two; gates must also bound concurrent test processes and invocations.
     pub property_workers: usize,
+}
+
+// Only successful pinned admission or the closed test renderer may assign provenance.
+#[derive(Clone, Debug)]
+enum InvocationOrigin {
+    Admitted(umpire_backend_process::work::TlcInvocation),
+    #[cfg(test)]
+    ProtocolFixture(umpire_backend_process::work::TlcInvocation),
+    #[cfg(test)]
+    Unclassified,
 }
 
 impl Tlc {
@@ -144,6 +159,7 @@ impl Tlc {
             JAR_SHA256,
             |PinnedJar { root, jar, java }, scratch| {
                 let limits = Limits::default();
+                let origin = umpire_backend_process::work::TlcInvocation::admitted(&java, &jar)?;
                 let mut version = java_command(&java);
                 version
                     .arg(format!("-Xmx{}m", limits.heap_mb))
@@ -151,12 +167,19 @@ impl Tlc {
                     .arg(&jar)
                     .args(["tlc2.TLC", "-h"])
                     .current_dir(scratch);
-                let (status, output) =
-                    run_process(&mut version, scratch, "tlc-version", limits, None)?;
+                let (status, output) = run_process_observed(
+                    &mut version,
+                    scratch,
+                    "tlc-version",
+                    limits,
+                    None,
+                    &origin,
+                )?;
                 if status.code() != Some(1) || !output.contains(TLC_VERSION) {
                     return Err(Refusal(format!("wrong TLC version: {output}")));
                 }
                 Ok(Self {
+                    origin: InvocationOrigin::Admitted(origin),
                     root,
                     jar,
                     java,
@@ -308,6 +331,28 @@ impl Tlc {
         })
     }
 
+    fn run_observed(
+        &self,
+        command: &mut std::process::Command,
+        directory: &Path,
+        label: &str,
+        dump: Option<&Path>,
+    ) -> Result<(std::process::ExitStatus, String), umpire_backend_process::ProcessFailure> {
+        match &self.origin {
+            InvocationOrigin::Admitted(origin) => {
+                run_process_observed(command, directory, label, self.limits, dump, origin)
+            }
+            #[cfg(test)]
+            InvocationOrigin::ProtocolFixture(origin) => {
+                run_process_observed(command, directory, label, self.limits, dump, origin)
+            }
+            #[cfg(test)]
+            InvocationOrigin::Unclassified => {
+                run_process(command, directory, label, self.limits, dump)
+            }
+        }
+    }
+
     fn cache_identity(&self, root: &Path) -> Result<(String, String), Refusal> {
         let scratch = Scratch::new_in(root, "quick-tlc-v1")?;
         let identity = (|| {
@@ -315,7 +360,7 @@ impl Tlc {
             let mut command = java_command(&self.java);
             command.arg("-version");
             let (status, java) =
-                run_process(&mut command, scratch.path(), "identity", self.limits, None)?;
+                self.run_observed(&mut command, scratch.path(), "identity", None)?;
             if !status.success() {
                 return Err(Refusal("Java cache identity unavailable".into()));
             }
@@ -608,8 +653,7 @@ impl Tlc {
             let source = fs::read(directory.join(format!("{name}.tla")))?;
             command.env("UMPIRE_TLC_CONFIGURATION", structural_sha256(&(source, cfg)));
         }
-        let (status, output) =
-            run_process(&mut command, directory, label, self.limits, Some(&dump))?;
+        let (status, output) = self.run_observed(&mut command, directory, label, Some(&dump))?;
         let tla = fs::read_to_string(directory.join(format!("{name}.tla")))?;
         self.admit_execution(
             &tla,
@@ -1075,6 +1119,7 @@ mod tests {
         )?)?;
         let tlc = Tlc {
             root: PathBuf::from("/unused"),
+            origin: InvocationOrigin::Unclassified,
             jar: PathBuf::from("/unused"),
             java: PathBuf::from("/missing-java"),
             limits: Limits::default(),
@@ -1334,3 +1379,6 @@ mod batch_tests;
 
 #[cfg(test)]
 mod cache_tests;
+
+#[cfg(test)]
+mod fixture;

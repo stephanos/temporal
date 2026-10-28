@@ -1,12 +1,7 @@
 use super::*;
-use std::os::unix::fs::PermissionsExt;
 
 fn message(code: u32, error: bool, body: &str) -> String {
     format!("@!@!@STARTMSG {code}:{} @!@!@\n{body}\n@!@!@ENDMSG {code} @!@!@\n", u8::from(error))
-}
-
-fn quoted(text: &str) -> String {
-    format!("'{}'", text.replace('\'', "'\\''"))
 }
 
 fn owner() -> Result<Scratch, Refusal> {
@@ -14,21 +9,15 @@ fn owner() -> Result<Scratch, Refusal> {
     Scratch::new(&root)
 }
 
-fn fake_tlc(directory: &Path, body: &str) -> Result<Tlc, Refusal> {
-    let java = directory.join("java");
-    fs::write(
-        &java,
-        format!(
-            "#!/bin/bash\nset -eu\ndump=''\nwhile [ \"$#\" -gt 0 ]; do\n if [ \"$1\" = '-dump' ]; then shift; dump=$1; fi\n shift\ndone\n: > \"$dump\"\n{body}\n"
-        ),
-    )?;
-    fs::set_permissions(&java, fs::Permissions::from_mode(0o700))?;
+fn fake_tlc(directory: &Path, case: fixture::Case) -> Result<Tlc, Refusal> {
+    let origin = InvocationOrigin::ProtocolFixture(fixture::install(directory, &case)?);
     Ok(Tlc {
         root: Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?,
-        java,
+        java: directory.join("java"),
         jar: directory.join("unused.jar"),
         limits: Limits::default(),
         property_workers: 2,
+        origin,
     })
 }
 
@@ -69,10 +58,7 @@ fn batch_protocol_requires_complete_selected_evidence() -> Result<(), Error> {
                 "refusal",
             ),
         ] {
-            let tlc = fake_tlc(
-                scratch.path(),
-                &format!("printf '%s' {}\nexit {status}", quoted(&output)),
-            )?;
+            let tlc = fake_tlc(scratch.path(), fixture::Case::Protocol { output, status })?;
             let answer = tlc.execution(
                 "M",
                 "---- MODULE M ----\nA == TRUE\nB == []TRUE\n====\n",
@@ -92,6 +78,10 @@ fn batch_protocol_requires_complete_selected_evidence() -> Result<(), Error> {
         assert!(batch_violation(&[(2116, "unnamed liveness".into())], &invariants, "").is_err());
         Ok(())
     })();
+    let result = result.and_then(|()| {
+        fixture::complete(scratch.path())?;
+        Ok(())
+    });
     scratch.finish(result)
 }
 
@@ -110,13 +100,14 @@ fn batch_resource_refusal_does_not_launch_singleton_recovery() -> Result<(), Err
             message(2193, false, "Success"),
             message(2186, false, "Finished")
         );
-        let script = format!(
-            "count=0\nwhile read -r kind property; do\n case $kind in INVARIANT|PROPERTY) count=$((count + 1));; esac\ndone < Run.cfg\nprintf '%s\\n' \"$count\" >> {}\nif [ \"$count\" = 0 ]; then printf '%s' {}; else printf '%s' {}; fi",
-            quoted(&events.to_string_lossy()),
-            quoted(&exploration),
-            quoted(&"x".repeat(2048)),
-        );
-        let mut tlc = fake_tlc(scratch.path(), &script)?;
+        let mut tlc = fake_tlc(
+            scratch.path(),
+            fixture::Case::Resource {
+                events: events.clone(),
+                exploration,
+                oversized: "x".repeat(2048),
+            },
+        )?;
         tlc.limits.output_bytes = 1024;
         let result = tlc.check_strategy(
             "M",
@@ -136,6 +127,10 @@ fn batch_resource_refusal_does_not_launch_singleton_recovery() -> Result<(), Err
         );
         Ok(())
     })();
+    let result = result.and_then(|()| {
+        fixture::complete(scratch.path())?;
+        Ok(())
+    });
     scratch.finish(result)
 }
 
@@ -146,12 +141,10 @@ fn singleton_recovery_measures_worker_peak_and_owns_each_scratch() -> Result<(),
         let events = scratch.path().join("events");
         let complete =
             format!("{}{}", message(2193, false, "Success"), message(2186, false, "Finished"));
-        let script = format!(
-            "events={}\nprintf 'start %s\\n' \"$PWD\" >> \"$events\"\nround=0\nwhile [ \"$round\" -lt 100000 ]; do\n starts=0\n while read -r event path; do\n  if [ \"$event\" = start ]; then starts=$((starts + 1)); fi\n done < \"$events\"\n if [ \"$starts\" -ge 2 ]; then break; fi\n round=$((round + 1))\ndone\nround=0\nwhile [ \"$round\" -lt 10000 ]; do round=$((round + 1)); done\nproperty=''\nwhile read -r kind value; do\n case $kind in INVARIANT|PROPERTY) property=$value;; esac\ndone < Run.cfg\nprintf '%s\\n' \"$property\"\nprintf '%s' {}\nprintf 'end %s\\n' \"$PWD\" >> \"$events\"",
-            quoted(&events.to_string_lossy()),
-            quoted(&complete),
-        );
-        let tlc = fake_tlc(scratch.path(), &script)?;
+        let tlc = fake_tlc(
+            scratch.path(),
+            fixture::Case::WorkerPeak { events: events.clone(), complete },
+        )?;
         let properties =
             (0..4).map(|index| ("INVARIANT".into(), format!("P{index}"))).collect::<Vec<_>>();
         let mut results = Vec::new();
@@ -193,6 +186,10 @@ fn singleton_recovery_measures_worker_peak_and_owns_each_scratch() -> Result<(),
         }
         Ok(())
     })();
+    let result = result.and_then(|()| {
+        fixture::complete(scratch.path())?;
+        Ok(())
+    });
     scratch.finish(result)
 }
 
@@ -201,17 +198,18 @@ fn bounded_recovery_script(
     exploration: &str,
     batch: &str,
     singletons: [(&str, u8); 2],
-) -> String {
-    let [(p0, p0_status), (p1, p1_status)] = singletons;
-    format!(
-        "events={}\ncount=0\nproperty=''\nwhile read -r kind value; do\n case $kind in INVARIANT|PROPERTY) count=$((count + 1)); property=$value;; esac\ndone < Run.cfg\ncase $count in\n 0) printf 'explore\\n' >> \"$events\"; printf '%s' {};;\n 1) printf '%s\\n' \"$property\" >> \"$events\"\n    case $property in\n     P0) printf '%s' {}; exit {p0_status};;\n     P1) printf '%s' {}; exit {p1_status};;\n     *) printf '%s' {};;\n    esac;;\n *) printf 'batch\\n' >> \"$events\"; printf '%s' {}; exit 12;;\nesac",
-        quoted(&events.to_string_lossy()),
-        quoted(exploration),
-        quoted(p0),
-        quoted(p1),
-        quoted(&format!("{}{}", message(2193, false, "Success"), message(2186, false, "Finished"))),
-        quoted(batch),
-    )
+) -> fixture::Case {
+    fixture::Case::Recovery {
+        events: events.to_owned(),
+        exploration: exploration.into(),
+        batch: batch.into(),
+        singletons: singletons.map(|(output, status)| (output.into(), status)),
+        fallback: format!(
+            "{}{}",
+            message(2193, false, "Success"),
+            message(2186, false, "Finished")
+        ),
+    }
 }
 
 #[test]
@@ -255,7 +253,7 @@ fn singleton_output_budget_precedes_later_evaluation_and_stops_new_waves() -> Re
                 &batch_output,
                 [(&p0_output, 0), (&p1_output, 1)],
             );
-            let mut tlc = fake_tlc(scratch.path(), &script)?;
+            let mut tlc = fake_tlc(scratch.path(), script)?;
             tlc.property_workers = workers;
             tlc.limits.output_bytes =
                 u64::try_from(limit).map_err(|error| Refusal(error.to_string()))?;
@@ -287,6 +285,10 @@ fn singleton_output_budget_precedes_later_evaluation_and_stops_new_waves() -> Re
         }
         Ok(())
     })();
+    let result = result.and_then(|()| {
+        fixture::complete(scratch.path())?;
+        Ok(())
+    });
     scratch.finish(result)
 }
 
@@ -317,7 +319,7 @@ fn singleton_evaluation_stops_recovery_after_current_wave() -> Result<(), Error>
             &batch_output,
             [(&evaluation, 1), (&complete, 0)],
         );
-        let mut tlc = fake_tlc(scratch.path(), &script)?;
+        let mut tlc = fake_tlc(scratch.path(), script)?;
         tlc.property_workers = 2;
         let answer = tlc.check_strategy(
             "M",
@@ -342,5 +344,9 @@ fn singleton_evaluation_stops_recovery_after_current_wave() -> Result<(), Error>
         assert_eq!(observed.lines().count(), 4, "{observed}");
         Ok(())
     })();
+    let result = result.and_then(|()| {
+        fixture::complete(scratch.path())?;
+        Ok(())
+    });
     scratch.finish(result)
 }
