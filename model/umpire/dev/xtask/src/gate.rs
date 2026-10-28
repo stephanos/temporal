@@ -13,6 +13,7 @@ use std::{
 use umpire_guest_driver::context::{ToolRoot, cargo_home};
 pub mod admission;
 mod boundary;
+mod budget_attempts;
 mod budget_coordinator;
 mod budgets;
 mod go_command;
