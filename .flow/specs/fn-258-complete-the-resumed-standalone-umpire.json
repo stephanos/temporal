@@ -518,12 +518,56 @@
       "task": "fn-258-complete-the-resumed-standalone-umpire.2",
       "timestamp": "2026-10-28T14:09:19.948448Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "5ced6d7be0836b1e901999f188c0ed39481cb599b86984f6aa7123602004dce5",
+      "backend": "claude",
+      "base_sha": "a4e97c8e16e71f5cea515910fe692b738d31a366",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-0503b6669867dce300622333f439ee10",
+            "classification": "introduced",
+            "findingId": "finding-0503b6669867dce300622333f439ee10",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "c258547ed5cc7d2ddc2247fce956dc5bb8504d32",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 955,
+      "output_sha256": "fafc3291ffc935110fd5f252934936256954a8c99cec96a3be4443f0f9c78844",
+      "reservation_id": "6d72d1524e6b486c941b57158b7e5a45",
+      "round_consumed": true,
+      "scope": "impl:fn-258-complete-the-resumed-standalone-umpire.3",
+      "superseded_by": null,
+      "task": "fn-258-complete-the-resumed-standalone-umpire.3",
+      "timestamp": "2026-10-28T14:17:10.322324Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-258-complete-the-resumed-standalone-umpire.1": 1,
     "impl:fn-258-complete-the-resumed-standalone-umpire.2": 2,
-    "impl:fn-258-complete-the-resumed-standalone-umpire.3": 1,
+    "impl:fn-258-complete-the-resumed-standalone-umpire.3": 2,
     "plan": 1,
     "plan#completion": 0
   },
@@ -549,5 +593,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-28T14:09:19.955992Z"
+  "updated_at": "2026-10-28T14:17:10.329707Z"
 }

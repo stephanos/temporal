@@ -10,8 +10,9 @@ renewed `ac60daaf47` inventory has 1,189 selected files, and export `a92db061` r
 627 mapped commits with 6,634 independently verified projection-neutral prunings.
 Standalone `05473210` and consumer `3f5f6135` are current source candidates, including
 the reproducible migrated guest. The standalone required-TLC gate passed, with its
-full proof retained; timing targets remain missed. Final source reviews, paired and
-release gates, candidate transfer dispositions, publication and cutover remain open;
+full proof retained; timing targets remain missed. Standalone and consumer source
+preparation are reviewed and closed. Paired/release gates, candidate transfer
+dispositions, publication and cutover remain open;
 in-tree authority remains.
 After migration, return to the fn-254 priority in [MILESTONES.md](MILESTONES.md).
 The connected GitHub app was rechecked on 2026-10-27 and returned HTTP 422 because
@@ -23,7 +24,8 @@ retained commits and projection-neutral pruning of 6,568 other available commits
 Two fresh clones reproduced the same commit/map, and a committed
 [recovery bundle](.flow/artifacts/fn-257-extract-the-standalone-umpire/task2/export-history.bundle)
 restores the independent checkout. See [export evidence](.flow/artifacts/fn-257-extract-the-standalone-umpire/task2/README.md).
-Portable-layout changes, actual consumer wiring, execution proof and cutover remain pending.
+That original checkpoint is historical. Current portable source and actual consumer
+wiring are prepared and reviewed; final paired/release proof and cutover remain pending.
 The supplied history stops at 2026-02-05, earlier than all selected Rust
 births; earlier ancestry is unavailable and is not claimed recovered.
 

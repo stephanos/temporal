@@ -15,9 +15,11 @@ Prepare a recoverable consumer branch by porting 91547f57ec onto current Tempora
 - [ ] A recoverable reviewed branch/bundle and exact source/interface record are retained without premature root integration or CI activation.
 
 ## Done summary
-TBD
+Consumer3f5f613578f2857b738a7792fad08f12b3ea0a41 is reviewed SHIP by fresh Claude Fable5.1 high followup after initialthree-axis SHIP and six fixed findings. Exactclean3f5/054 pair passes alltargets/allfeatures compilation,16unit+7integration controls, shipping Make missing-sibling guards, and actual parentGo workspace automatic discovery/allthree moduleDirs without overwriting workspaceentries. Actual Rust/Go paths and native-symbolic metadata are covered; normal xtask runtime dependency, supervision/admission/nextest/workcounts retained. New thinbundle requiringac60 independently recovered exacttree/canonicalguest and strictfsck0. Allsix initialreview findings addressed with current evidence; finalnonblocking browser link wording is assigned task5 docs. Earlier host/Go/noRust/native-symbolic proofs bind unchanged runtime inputs. Makefile changed declaredAPI input, so task4 must renew guestfreshness and finaleditproofs; no stale currentinput claim. Candidate stays unmerged, CIinactive and source authority inTemporal per reviewed interimownership. Publication/cutover remain task5. Validation/reviewcost assessment retained.
 
+stage: impl-review - ran [2026-10-28 final3f5 followup; SHIP] (model: claude-fable-5-1 high)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e4cf57dd013b6c86cc9d6e0e27984005608ad4ba, 1fb713f6fcdcab8f1078d52f363d948a195d65b2, c258547ed5cc7d2ddc2247fce956dc5bb8504d32
+- Tests: Exactclean3f5/054: all-target/all-feature check;16unit+7integration; Makeguards; Go parent workspace/moduleDirs; clean before/after, New thinbundle actual prerequisite-only recovery; exacttree/guest; strictfsck0, Content-based unchanged host/noRust/native-symbolic runtime proof rebinding; currentinput guestfreshness explicitly expires to task4
 - PRs:

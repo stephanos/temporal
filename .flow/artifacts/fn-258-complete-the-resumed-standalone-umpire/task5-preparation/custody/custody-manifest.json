@@ -1,0 +1,1079 @@
+{
+  "result": "pass",
+  "overlay_sha256": "1abb400dc7a83e39e556df1308752639cdee1867e30f308e6b4fd42a2191b021",
+  "capture_script_sha256": "f7dddecc139cd647f261d0b9d881a54f79e0d9f814c826aa75708d1587ebbadd",
+  "cas_store": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody",
+  "source_refs": {
+    "refs/heads/agent/attempt-fencing-prototype": "bac2d44038362121939b0904e1993e2e8e25f787",
+    "refs/heads/checklocks-matcher-data": "a325f98d350dff75ff16c82a9b1ab29dd9bda83b",
+    "refs/heads/w-1d-core": "243f9dd525b16b7ab15b7f1fa5d486e0f7ce822a",
+    "refs/heads/w-1d-shared": "86e4ee2505d9c3f379d820fb1d5bb1a658629287",
+    "refs/heads/w-perf": "f4fba65eb634f11f547679279597bf48a69fa797",
+    "refs/heads/w-perf-dev": "f4fba65eb634f11f547679279597bf48a69fa797",
+    "refs/heads/work/fn254-source-assembly": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+    "refs/heads/work/fn2553-prep-fuzz": "1df6f6b75d47a06642bd30b9bbe0d47b6d040ef8"
+  },
+  "source_bundle": {
+    "sha256": "e5ba826718df8c270dc269e42c49dde0349d107396f47dc15537c534acb65170",
+    "size": 167528083,
+    "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/e5ba826718df8c270dc269e42c49dde0349d107396f47dc15537c534acb65170"
+  },
+  "source_shallow_boundaries": {
+    "sha256": "ef7d07756cb29242403b96f2ed65951e9edd7f8e20293ed90cefb4add39740b7",
+    "size": 41,
+    "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/ef7d07756cb29242403b96f2ed65951e9edd7f8e20293ed90cefb4add39740b7"
+  },
+  "available_history_commits": 7210,
+  "available_history_graph_sha256": "c14984698ddb3771210c3b81a56665af62d61c0ed6253e966f6df3492b06d7c1",
+  "source_history_scope": "Exactly supplied available shallow history. Earlier unavailable parents are not recovered; restore captured shallow bytes before unbundling.",
+  "bundle_recovery": {
+    "bare_repository": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/recovered-source.git",
+    "objects_independent_of_original": true,
+    "graph_equal": true,
+    "strict_fsck_stdout": "dangling blob fbaec9b1f0228db04d8dc9431b7c6fc27cc176c1\ndangling blob dbaf02444838baebd8856fa786b8f7ca0088f9dc\ndangling blob daf5cad1d6f1a4bc6122fc7366af18a0bce63e26\ndangling blob 1dd2ac551c688f367b1f52fd2c1535a44949ff50\ndangling blob 19fb243116a52e22f53144e5ff74f18b81313aa7\ndangling blob 0abbc54c864af08e8f58067d42076d6e197b3c9f\ndangling blob 9a8f56ad610a7be606a4684a313d2bcd149b91db\ndangling blob 36095f9ae1ce785e7748a08661a15d7ffbd144f2\ndangling blob 3bb8577a2c7043d2a946e5fad5e994b3db6c0e6b\ndangling blob eadc6f2c056a753d24172a0d8c31c4453d29c1a5\n"
+  },
+  "snapshots": [
+    {
+      "candidate": "039",
+      "root": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn254-source-assembly",
+      "head": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "status_z": {
+        "sha256": "1eec08d02f82d108d866cae16962e19ac904f481930d0d12e34cd83886d26636",
+        "size": 434,
+        "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/1eec08d02f82d108d866cae16962e19ac904f481930d0d12e34cd83886d26636"
+      },
+      "raw_index": {
+        "sha256": "b0a6bdbfd6cb06936121b5ef78e654963643d8300da1f35368e185cae04c5565",
+        "size": 2402609,
+        "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/b0a6bdbfd6cb06936121b5ef78e654963643d8300da1f35368e185cae04c5565"
+      },
+      "index_stages_z": {
+        "sha256": "f802cdeed8bcda86cf4c918085abb898e32246d52d6a79ee7684f490a316a72a",
+        "size": 2066748,
+        "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/f802cdeed8bcda86cf4c918085abb898e32246d52d6a79ee7684f490a316a72a"
+      },
+      "unmerged_stages": [
+        {
+          "path": "model/umpire/backends/process/src/support.rs",
+          "mode": "100644",
+          "blob": "d6d3edff4f20aecfdec585c078a4d9b3a02c7566",
+          "stage": 1
+        },
+        {
+          "path": "model/umpire/backends/process/src/support.rs",
+          "mode": "100644",
+          "blob": "d4fffa0dce85d4f4441d3c270c0872d1b84ad179",
+          "stage": 2
+        },
+        {
+          "path": "model/umpire/backends/process/src/support.rs",
+          "mode": "100644",
+          "blob": "1dd2ac551c688f367b1f52fd2c1535a44949ff50",
+          "stage": 3
+        }
+      ],
+      "supplemental_index_blobs": {
+        "fbaec9b1f0228db04d8dc9431b7c6fc27cc176c1": {
+          "sha256": "79e404c92c849ec7ba2b4d96536e051178e743b9798b189304889fd0ff7ec6c2",
+          "size": 12737,
+          "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/79e404c92c849ec7ba2b4d96536e051178e743b9798b189304889fd0ff7ec6c2"
+        },
+        "9a8f56ad610a7be606a4684a313d2bcd149b91db": {
+          "sha256": "a420e72b1559a6c3573f3253c89907357a28a6efea8ee285922537dbda3a90dd",
+          "size": 384,
+          "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/a420e72b1559a6c3573f3253c89907357a28a6efea8ee285922537dbda3a90dd"
+        },
+        "d6d3edff4f20aecfdec585c078a4d9b3a02c7566": {
+          "sha256": "3e21126424e68071523326a74fba264bbe5100b1a5fae13a96f5e6ad60c82d5a",
+          "size": 10168,
+          "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/3e21126424e68071523326a74fba264bbe5100b1a5fae13a96f5e6ad60c82d5a"
+        },
+        "d4fffa0dce85d4f4441d3c270c0872d1b84ad179": {
+          "sha256": "7e42254780fff41fbb3b494a0bd11c3e5d6408e67b3b7a552def1e1ee541248d",
+          "size": 13726,
+          "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/7e42254780fff41fbb3b494a0bd11c3e5d6408e67b3b7a552def1e1ee541248d"
+        },
+        "1dd2ac551c688f367b1f52fd2c1535a44949ff50": {
+          "sha256": "22d7d2651c14019b49910b74b3b823bb856f4a0ed377a4f13f75cbcef5c2e1f8",
+          "size": 10283,
+          "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/22d7d2651c14019b49910b74b3b823bb856f4a0ed377a4f13f75cbcef5c2e1f8"
+        },
+        "dbaf02444838baebd8856fa786b8f7ca0088f9dc": {
+          "sha256": "ed6ca9757814c9429a4007fbb75fa2c2f5e3f168c8196e380eb5a79fdc324e3a",
+          "size": 4292,
+          "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/ed6ca9757814c9429a4007fbb75fa2c2f5e3f168c8196e380eb5a79fdc324e3a"
+        },
+        "eadc6f2c056a753d24172a0d8c31c4453d29c1a5": {
+          "sha256": "0dc85ba9b217c637757a48a572536febe6efcd0356c4135cf4618f08b11a5e1d",
+          "size": 50084,
+          "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/0dc85ba9b217c637757a48a572536febe6efcd0356c4135cf4618f08b11a5e1d"
+        },
+        "36095f9ae1ce785e7748a08661a15d7ffbd144f2": {
+          "sha256": "fac9d7d029c25276bddd86df0cc2090eb5aba7a9a521a5324566ee642fcc240f",
+          "size": 15794,
+          "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/fac9d7d029c25276bddd86df0cc2090eb5aba7a9a521a5324566ee642fcc240f"
+        },
+        "0abbc54c864af08e8f58067d42076d6e197b3c9f": {
+          "sha256": "b5882dc0b32b532e199fac5dab6585bad4f07c76a11d4b5323c2b71aa09a89a1",
+          "size": 10960,
+          "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/b5882dc0b32b532e199fac5dab6585bad4f07c76a11d4b5323c2b71aa09a89a1"
+        },
+        "19fb243116a52e22f53144e5ff74f18b81313aa7": {
+          "sha256": "08d5d4bc8c902304f9150207852b5379b14bfb3ca9b6bfd62999285905e50e45",
+          "size": 1426,
+          "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/08d5d4bc8c902304f9150207852b5379b14bfb3ca9b6bfd62999285905e50e45"
+        },
+        "3bb8577a2c7043d2a946e5fad5e994b3db6c0e6b": {
+          "sha256": "f2212028f47b3141d2ffe648cbb5c289d87b2144e89b998ff80046e27bef7dbc",
+          "size": 18031,
+          "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/f2212028f47b3141d2ffe648cbb5c289d87b2144e89b998ff80046e27bef7dbc"
+        },
+        "daf5cad1d6f1a4bc6122fc7366af18a0bce63e26": {
+          "sha256": "692c242865bb8b679ac0f320db25a5aee9db3d4afba2e1edddda688e255a3653",
+          "size": 16953,
+          "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/692c242865bb8b679ac0f320db25a5aee9db3d4afba2e1edddda688e255a3653"
+        }
+      },
+      "staged_binary_patch": {
+        "sha256": "49de6bb6c015e2778a6609d4c8457cbdc7d40189d2aa8df230bf73c762aa6a64",
+        "size": 30816,
+        "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/49de6bb6c015e2778a6609d4c8457cbdc7d40189d2aa8df230bf73c762aa6a64"
+      },
+      "unstaged_binary_patch": {
+        "sha256": "f926bb6e83ab81d9e78ab4c0579d7286e9e9695ea498da0670b5a91873439ed5",
+        "size": 1186,
+        "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/f926bb6e83ab81d9e78ab4c0579d7286e9e9695ea498da0670b5a91873439ed5"
+      },
+      "ignored_inventory_z": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size": 0,
+        "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "raw_working_files": [
+        {
+          "path": "model/dev/xtask/src/gate.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 12737,
+          "sha256": "79e404c92c849ec7ba2b4d96536e051178e743b9798b189304889fd0ff7ec6c2",
+          "content": {
+            "sha256": "79e404c92c849ec7ba2b4d96536e051178e743b9798b189304889fd0ff7ec6c2",
+            "size": 12737,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/79e404c92c849ec7ba2b4d96536e051178e743b9798b189304889fd0ff7ec6c2"
+          }
+        },
+        {
+          "path": "model/umpire/backends/process/src/lib.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 384,
+          "sha256": "a420e72b1559a6c3573f3253c89907357a28a6efea8ee285922537dbda3a90dd",
+          "content": {
+            "sha256": "a420e72b1559a6c3573f3253c89907357a28a6efea8ee285922537dbda3a90dd",
+            "size": 384,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/a420e72b1559a6c3573f3253c89907357a28a6efea8ee285922537dbda3a90dd"
+          }
+        },
+        {
+          "path": "model/umpire/backends/process/src/support.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 13841,
+          "sha256": "840aa6ad92e0c0b466bae381a0f06c30733535337feecb4d77b38c00da476828",
+          "content": {
+            "sha256": "840aa6ad92e0c0b466bae381a0f06c30733535337feecb4d77b38c00da476828",
+            "size": 13841,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/840aa6ad92e0c0b466bae381a0f06c30733535337feecb4d77b38c00da476828"
+          }
+        },
+        {
+          "path": "model/umpire/backends/process/src/work.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 4292,
+          "sha256": "ed6ca9757814c9429a4007fbb75fa2c2f5e3f168c8196e380eb5a79fdc324e3a",
+          "content": {
+            "sha256": "ed6ca9757814c9429a4007fbb75fa2c2f5e3f168c8196e380eb5a79fdc324e3a",
+            "size": 4292,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/ed6ca9757814c9429a4007fbb75fa2c2f5e3f168c8196e380eb5a79fdc324e3a"
+          }
+        },
+        {
+          "path": "model/umpire/backends/tlc/src/runner.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 50084,
+          "sha256": "0dc85ba9b217c637757a48a572536febe6efcd0356c4135cf4618f08b11a5e1d",
+          "content": {
+            "sha256": "0dc85ba9b217c637757a48a572536febe6efcd0356c4135cf4618f08b11a5e1d",
+            "size": 50084,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/0dc85ba9b217c637757a48a572536febe6efcd0356c4135cf4618f08b11a5e1d"
+          }
+        },
+        {
+          "path": "model/umpire/dev/xtask/src/gate.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 15794,
+          "sha256": "fac9d7d029c25276bddd86df0cc2090eb5aba7a9a521a5324566ee642fcc240f",
+          "content": {
+            "sha256": "fac9d7d029c25276bddd86df0cc2090eb5aba7a9a521a5324566ee642fcc240f",
+            "size": 15794,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/fac9d7d029c25276bddd86df0cc2090eb5aba7a9a521a5324566ee642fcc240f"
+          }
+        },
+        {
+          "path": "model/umpire/dev/xtask/src/gate/scheduler.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 10960,
+          "sha256": "b5882dc0b32b532e199fac5dab6585bad4f07c76a11d4b5323c2b71aa09a89a1",
+          "content": {
+            "sha256": "b5882dc0b32b532e199fac5dab6585bad4f07c76a11d4b5323c2b71aa09a89a1",
+            "size": 10960,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/b5882dc0b32b532e199fac5dab6585bad4f07c76a11d4b5323c2b71aa09a89a1"
+          }
+        },
+        {
+          "path": "model/umpire/dev/xtask/src/gate/timing.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 1426,
+          "sha256": "08d5d4bc8c902304f9150207852b5379b14bfb3ca9b6bfd62999285905e50e45",
+          "content": {
+            "sha256": "08d5d4bc8c902304f9150207852b5379b14bfb3ca9b6bfd62999285905e50e45",
+            "size": 1426,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/08d5d4bc8c902304f9150207852b5379b14bfb3ca9b6bfd62999285905e50e45"
+          }
+        },
+        {
+          "path": "model/umpire/dev/xtask/src/gate/work_counts.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 18031,
+          "sha256": "f2212028f47b3141d2ffe648cbb5c289d87b2144e89b998ff80046e27bef7dbc",
+          "content": {
+            "sha256": "f2212028f47b3141d2ffe648cbb5c289d87b2144e89b998ff80046e27bef7dbc",
+            "size": 18031,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/f2212028f47b3141d2ffe648cbb5c289d87b2144e89b998ff80046e27bef7dbc"
+          }
+        },
+        {
+          "path": "model/umpire/dev/xtask/src/test_run.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 16953,
+          "sha256": "692c242865bb8b679ac0f320db25a5aee9db3d4afba2e1edddda688e255a3653",
+          "content": {
+            "sha256": "692c242865bb8b679ac0f320db25a5aee9db3d4afba2e1edddda688e255a3653",
+            "size": 16953,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/692c242865bb8b679ac0f320db25a5aee9db3d4afba2e1edddda688e255a3653"
+          }
+        }
+      ],
+      "historical_ignored_qualification": "Current ignored inventory only; historical absent checkout/ignored bytes remain unknown."
+    },
+    {
+      "candidate": "075",
+      "root": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2553-fuzz",
+      "head": "1df6f6b75d47a06642bd30b9bbe0d47b6d040ef8",
+      "status_z": {
+        "sha256": "7550b3145b16350089982e8308f3566a7ed0d9f805d8de8f2f93c6c7dd2ffbe9",
+        "size": 2083,
+        "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/7550b3145b16350089982e8308f3566a7ed0d9f805d8de8f2f93c6c7dd2ffbe9"
+      },
+      "raw_index": {
+        "sha256": "00e642d8bb86082235782aacaba701ca75179e662a89bada700a9531d46019f5",
+        "size": 2396932,
+        "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/00e642d8bb86082235782aacaba701ca75179e662a89bada700a9531d46019f5"
+      },
+      "index_stages_z": {
+        "sha256": "5de730b5b6d7a7fa640a9c46bdab87b9db2f612909043ad16438699f843f8388",
+        "size": 2061570,
+        "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/5de730b5b6d7a7fa640a9c46bdab87b9db2f612909043ad16438699f843f8388"
+      },
+      "unmerged_stages": [],
+      "supplemental_index_blobs": {},
+      "staged_binary_patch": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size": 0,
+        "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "unstaged_binary_patch": {
+        "sha256": "08c8fbe79e3add1a0a6c417640540f42dfaaaa49ba1f705885936c266051b264",
+        "size": 4375,
+        "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/08c8fbe79e3add1a0a6c417640540f42dfaaaa49ba1f705885936c266051b264"
+      },
+      "ignored_inventory_z": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size": 0,
+        "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "raw_working_files": [
+        {
+          "path": "model/umpire/backends/tlc/Cargo.toml",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 592,
+          "sha256": "7770ec5270f91a05b22054d4855d72e1129b1d2ec2ce0b003711337a104f8d58",
+          "content": {
+            "sha256": "7770ec5270f91a05b22054d4855d72e1129b1d2ec2ce0b003711337a104f8d58",
+            "size": 592,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/7770ec5270f91a05b22054d4855d72e1129b1d2ec2ce0b003711337a104f8d58"
+          }
+        },
+        {
+          "path": "model/umpire/backends/tlc/src/runner.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 50804,
+          "sha256": "d7a167f8bbe68daceabc0a3a0efcd13cc25fd3517243a6347a1fa8951f6bfe0e",
+          "content": {
+            "sha256": "d7a167f8bbe68daceabc0a3a0efcd13cc25fd3517243a6347a1fa8951f6bfe0e",
+            "size": 50804,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/d7a167f8bbe68daceabc0a3a0efcd13cc25fd3517243a6347a1fa8951f6bfe0e"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/.gitignore",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 32,
+          "sha256": "0a798e9b33115a78fbfc3ec1ca452026f6332c011fca412a68bbff47c092a6ab",
+          "content": {
+            "sha256": "0a798e9b33115a78fbfc3ec1ca452026f6332c011fca412a68bbff47c092a6ab",
+            "size": 32,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/0a798e9b33115a78fbfc3ec1ca452026f6332c011fca412a68bbff47c092a6ab"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/Cargo.toml",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 2006,
+          "sha256": "8f14b2a2ff1b89ebc41c71c1cbf348967b091ee97601bb477a2dd85a6255595b",
+          "content": {
+            "sha256": "8f14b2a2ff1b89ebc41c71c1cbf348967b091ee97601bb477a2dd85a6255595b",
+            "size": 2006,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/8f14b2a2ff1b89ebc41c71c1cbf348967b091ee97601bb477a2dd85a6255595b"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/annotations/empty",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "content": {
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "size": 0,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/annotations/truncated",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 2,
+          "sha256": "428f6d7e89a1b345221f88db8af74389653730f048724e0dabece69990d6b7be",
+          "content": {
+            "sha256": "428f6d7e89a1b345221f88db8af74389653730f048724e0dabece69990d6b7be",
+            "size": 2,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/428f6d7e89a1b345221f88db8af74389653730f048724e0dabece69990d6b7be"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/annotations/valid",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 63,
+          "sha256": "a4e56d6f5ad57df17e49140b5af42784ff59f10052ff06493c81c20a9aaee593",
+          "content": {
+            "sha256": "a4e56d6f5ad57df17e49140b5af42784ff59f10052ff06493c81c20a9aaee593",
+            "size": 63,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/a4e56d6f5ad57df17e49140b5af42784ff59f10052ff06493c81c20a9aaee593"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/dispatch_prepare/explore",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 6,
+          "sha256": "c2fcf8f42a11595653f823d2319db12df1a89610eb6693e3e97ae3b20d18a7fd",
+          "content": {
+            "sha256": "c2fcf8f42a11595653f823d2319db12df1a89610eb6693e3e97ae3b20d18a7fd",
+            "size": 6,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/c2fcf8f42a11595653f823d2319db12df1a89610eb6693e3e97ae3b20d18a7fd"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/dispatch_prepare/malformed",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 5,
+          "sha256": "e26c06622896240abc65af5da860362b3c2601ddd9aea6461ad40bff593d7988",
+          "content": {
+            "sha256": "e26c06622896240abc65af5da860362b3c2601ddd9aea6461ad40bff593d7988",
+            "size": 5,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/e26c06622896240abc65af5da860362b3c2601ddd9aea6461ad40bff593d7988"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/dispatch_prepare/reset",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 4,
+          "sha256": "9d9f290527a6be626a8f5985b26e19b237b44872b03631811df4416fc1713178",
+          "content": {
+            "sha256": "9d9f290527a6be626a8f5985b26e19b237b44872b03631811df4416fc1713178",
+            "size": 4,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/9d9f290527a6be626a8f5985b26e19b237b44872b03631811df4416fc1713178"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/guest_dispatch/explore",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 6,
+          "sha256": "c2fcf8f42a11595653f823d2319db12df1a89610eb6693e3e97ae3b20d18a7fd",
+          "content": {
+            "sha256": "c2fcf8f42a11595653f823d2319db12df1a89610eb6693e3e97ae3b20d18a7fd",
+            "size": 6,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/c2fcf8f42a11595653f823d2319db12df1a89610eb6693e3e97ae3b20d18a7fd"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/guest_dispatch/reset",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 4,
+          "sha256": "9d9f290527a6be626a8f5985b26e19b237b44872b03631811df4416fc1713178",
+          "content": {
+            "sha256": "9d9f290527a6be626a8f5985b26e19b237b44872b03631811df4416fc1713178",
+            "size": 4,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/9d9f290527a6be626a8f5985b26e19b237b44872b03631811df4416fc1713178"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/guest_dispatch/unknown",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 4,
+          "sha256": "ad95131bc0b799c0b1af477fb14fcf26a6a9f76079e48bf090acb7e8367bfd0e",
+          "content": {
+            "sha256": "ad95131bc0b799c0b1af477fb14fcf26a6a9f76079e48bf090acb7e8367bfd0e",
+            "size": 4,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/ad95131bc0b799c0b1af477fb14fcf26a6a9f76079e48bf090acb7e8367bfd0e"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/runtime_decode/planted_panic",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 13,
+          "sha256": "e34fe2e3ceb623cb508292f8e8629e366fb8ccb9df697991cd773e3032b0d2f5",
+          "content": {
+            "sha256": "e34fe2e3ceb623cb508292f8e8629e366fb8ccb9df697991cd773e3032b0d2f5",
+            "size": 13,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/e34fe2e3ceb623cb508292f8e8629e366fb8ccb9df697991cd773e3032b0d2f5"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/runtime_decode/planted_slow",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 12,
+          "sha256": "3cd38665b2f23a085b5acdfde57c63e344bde7c17800e5651665652a82f3aea7",
+          "content": {
+            "sha256": "3cd38665b2f23a085b5acdfde57c63e344bde7c17800e5651665652a82f3aea7",
+            "size": 12,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/3cd38665b2f23a085b5acdfde57c63e344bde7c17800e5651665652a82f3aea7"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/runtime_decode/reset",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 4,
+          "sha256": "9d9f290527a6be626a8f5985b26e19b237b44872b03631811df4416fc1713178",
+          "content": {
+            "sha256": "9d9f290527a6be626a8f5985b26e19b237b44872b03631811df4416fc1713178",
+            "size": 4,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/9d9f290527a6be626a8f5985b26e19b237b44872b03631811df4416fc1713178"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/tlc_dump/duplicate",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 34,
+          "sha256": "1fb02e36cd98803ef7256e64af459425d8be11cfde3b463100221d5f571abe91",
+          "content": {
+            "sha256": "1fb02e36cd98803ef7256e64af459425d8be11cfde3b463100221d5f571abe91",
+            "size": 34,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/1fb02e36cd98803ef7256e64af459425d8be11cfde3b463100221d5f571abe91"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/tlc_dump/state",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 21,
+          "sha256": "d8a09aeed1e7048ece333ab8af251a9b67b816dd7cec9d8c58b5251d2cf5933f",
+          "content": {
+            "sha256": "d8a09aeed1e7048ece333ab8af251a9b67b816dd7cec9d8c58b5251d2cf5933f",
+            "size": 21,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/d8a09aeed1e7048ece333ab8af251a9b67b816dd7cec9d8c58b5251d2cf5933f"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/tlc_messages/finished",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 60,
+          "sha256": "ebd589a3504a30b2263d34257b5665be15ad8f99dc343f1e2938deee41855d10",
+          "content": {
+            "sha256": "ebd589a3504a30b2263d34257b5665be15ad8f99dc343f1e2938deee41855d10",
+            "size": 60,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/ebd589a3504a30b2263d34257b5665be15ad8f99dc343f1e2938deee41855d10"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/tlc_messages/truncated",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 14,
+          "sha256": "c2a3bd00f9ce9d1f338fc4f2b87ae3ecc82e7d92b1f41f9e9264ee4905a68621",
+          "content": {
+            "sha256": "c2a3bd00f9ce9d1f338fc4f2b87ae3ecc82e7d92b1f41f9e9264ee4905a68621",
+            "size": 14,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/c2a3bd00f9ce9d1f338fc4f2b87ae3ecc82e7d92b1f41f9e9264ee4905a68621"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/tlc_parse/finished",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 60,
+          "sha256": "ebd589a3504a30b2263d34257b5665be15ad8f99dc343f1e2938deee41855d10",
+          "content": {
+            "sha256": "ebd589a3504a30b2263d34257b5665be15ad8f99dc343f1e2938deee41855d10",
+            "size": 60,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/ebd589a3504a30b2263d34257b5665be15ad8f99dc343f1e2938deee41855d10"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/tlc_parse/fixture_summary",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 440,
+          "sha256": "a6052e950977cbbd2d296fe61b6288599eb009181f8c2a33f737c44cc71eb353",
+          "content": {
+            "sha256": "a6052e950977cbbd2d296fe61b6288599eb009181f8c2a33f737c44cc71eb353",
+            "size": 440,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/a6052e950977cbbd2d296fe61b6288599eb009181f8c2a33f737c44cc71eb353"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/tlc_parse/nested",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 106,
+          "sha256": "42ca3c8d8356701f75fbc4de8302c2314bb8060f7277db748515cd06f9ecf78d",
+          "content": {
+            "sha256": "42ca3c8d8356701f75fbc4de8302c2314bb8060f7277db748515cd06f9ecf78d",
+            "size": 106,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/42ca3c8d8356701f75fbc4de8302c2314bb8060f7277db748515cd06f9ecf78d"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/tlc_state/state",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 11,
+          "sha256": "b5130fd6a9ed3f5378c6d673a332dfa7c848aac4365dcb76a729a63d0a5bef9b",
+          "content": {
+            "sha256": "b5130fd6a9ed3f5378c6d673a332dfa7c848aac4365dcb76a729a63d0a5bef9b",
+            "size": 11,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/b5130fd6a9ed3f5378c6d673a332dfa7c848aac4365dcb76a729a63d0a5bef9b"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/tlc_state/wrong_type",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 15,
+          "sha256": "05ca55cb3c7491c6e0b0d112050658c05c555151b1624cb2f63e0b6433a4a1c5",
+          "content": {
+            "sha256": "05ca55cb3c7491c6e0b0d112050658c05c555151b1624cb2f63e0b6433a4a1c5",
+            "size": 15,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/05ca55cb3c7491c6e0b0d112050658c05c555151b1624cb2f63e0b6433a4a1c5"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/tlc_trace/backedge",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 67,
+          "sha256": "9ea32637df8dfe3ee335b13d66a08eadbcb9a213ad905ccbc6514f5c463f9d68",
+          "content": {
+            "sha256": "9ea32637df8dfe3ee335b13d66a08eadbcb9a213ad905ccbc6514f5c463f9d68",
+            "size": 67,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/9ea32637df8dfe3ee335b13d66a08eadbcb9a213ad905ccbc6514f5c463f9d68"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/corpus/tlc_trace/state",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 85,
+          "sha256": "bd47c88f308339284eccf63359e3f2ce5883a03ace65253296893eb2d420b5bc",
+          "content": {
+            "sha256": "bd47c88f308339284eccf63359e3f2ce5883a03ace65253296893eb2d420b5bc",
+            "size": 85,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/bd47c88f308339284eccf63359e3f2ce5883a03ace65253296893eb2d420b5bc"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/fuzz_targets/annotations.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 377,
+          "sha256": "4dc22228efc2fdd269fde2a63aa05f451c14d68ac2915a5bebc52d7a95f6d040",
+          "content": {
+            "sha256": "4dc22228efc2fdd269fde2a63aa05f451c14d68ac2915a5bebc52d7a95f6d040",
+            "size": 377,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/4dc22228efc2fdd269fde2a63aa05f451c14d68ac2915a5bebc52d7a95f6d040"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/fuzz_targets/dispatch_prepare.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 387,
+          "sha256": "d237818dc338ae4794925136e2e6fbf3bbabf0449b418f9068453b1f80276f8f",
+          "content": {
+            "sha256": "d237818dc338ae4794925136e2e6fbf3bbabf0449b418f9068453b1f80276f8f",
+            "size": 387,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/d237818dc338ae4794925136e2e6fbf3bbabf0449b418f9068453b1f80276f8f"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/fuzz_targets/guest_dispatch.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 383,
+          "sha256": "ece7711161c913e76858e5a314a4ee0246a5f8ad0b1f955152c9d57eb14814d0",
+          "content": {
+            "sha256": "ece7711161c913e76858e5a314a4ee0246a5f8ad0b1f955152c9d57eb14814d0",
+            "size": 383,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/ece7711161c913e76858e5a314a4ee0246a5f8ad0b1f955152c9d57eb14814d0"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/fuzz_targets/runtime_decode.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 383,
+          "sha256": "46403bc6f70b4b2709968d3b9b1f6aaee46d78b29c86b87c88c5a6fd8e77ef52",
+          "content": {
+            "sha256": "46403bc6f70b4b2709968d3b9b1f6aaee46d78b29c86b87c88c5a6fd8e77ef52",
+            "size": 383,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/46403bc6f70b4b2709968d3b9b1f6aaee46d78b29c86b87c88c5a6fd8e77ef52"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/fuzz_targets/tlc_dump.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 371,
+          "sha256": "446c2a2cbe0988e3adcbd237d79aee8d7d8d07ae50eda78bd2477b5a0bab3cf3",
+          "content": {
+            "sha256": "446c2a2cbe0988e3adcbd237d79aee8d7d8d07ae50eda78bd2477b5a0bab3cf3",
+            "size": 371,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/446c2a2cbe0988e3adcbd237d79aee8d7d8d07ae50eda78bd2477b5a0bab3cf3"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/fuzz_targets/tlc_messages.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 379,
+          "sha256": "75d22e7a6771b4e8d8159ff30b9ef948da407c4a49df966000e3c931f55237a6",
+          "content": {
+            "sha256": "75d22e7a6771b4e8d8159ff30b9ef948da407c4a49df966000e3c931f55237a6",
+            "size": 379,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/75d22e7a6771b4e8d8159ff30b9ef948da407c4a49df966000e3c931f55237a6"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/fuzz_targets/tlc_parse.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 373,
+          "sha256": "c1da343916e51f29ce585f546a448ffbd515239f14734bc9eb82d8e90465674d",
+          "content": {
+            "sha256": "c1da343916e51f29ce585f546a448ffbd515239f14734bc9eb82d8e90465674d",
+            "size": 373,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/c1da343916e51f29ce585f546a448ffbd515239f14734bc9eb82d8e90465674d"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/fuzz_targets/tlc_state.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 373,
+          "sha256": "bff66aa19b20bf162a0864f5a6c140077c01fe62e5e285498a1a4f0956ab6fb6",
+          "content": {
+            "sha256": "bff66aa19b20bf162a0864f5a6c140077c01fe62e5e285498a1a4f0956ab6fb6",
+            "size": 373,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/bff66aa19b20bf162a0864f5a6c140077c01fe62e5e285498a1a4f0956ab6fb6"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/fuzz_targets/tlc_trace.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 373,
+          "sha256": "264a90595713f85a59d5c2ca1e2f07882181288cf3930ce1c1f43ca559ff59be",
+          "content": {
+            "sha256": "264a90595713f85a59d5c2ca1e2f07882181288cf3930ce1c1f43ca559ff59be",
+            "size": 373,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/264a90595713f85a59d5c2ca1e2f07882181288cf3930ce1c1f43ca559ff59be"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/manifest.tsv",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 1986,
+          "sha256": "ad6b0ebfd59146e40dffa2ffb333a5336c51c3aa883299926b10fcd0e94de7cc",
+          "content": {
+            "sha256": "ad6b0ebfd59146e40dffa2ffb333a5336c51c3aa883299926b10fcd0e94de7cc",
+            "size": 1986,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/ad6b0ebfd59146e40dffa2ffb333a5336c51c3aa883299926b10fcd0e94de7cc"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/src/lib.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 3329,
+          "sha256": "ab6d5bf0aeb30ba9ad97e6e4be4faa0440d7e487f33e0783d7c02858ea187a3d",
+          "content": {
+            "sha256": "ab6d5bf0aeb30ba9ad97e6e4be4faa0440d7e487f33e0783d7c02858ea187a3d",
+            "size": 3329,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/ab6d5bf0aeb30ba9ad97e6e4be4faa0440d7e487f33e0783d7c02858ea187a3d"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/src/replay.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 6043,
+          "sha256": "610b00fbe400ceca2fe6e28be15c59dc4428e8d222e22f5369a2e0465b5c09a5",
+          "content": {
+            "sha256": "610b00fbe400ceca2fe6e28be15c59dc4428e8d222e22f5369a2e0465b5c09a5",
+            "size": 6043,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/610b00fbe400ceca2fe6e28be15c59dc4428e8d222e22f5369a2e0465b5c09a5"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/tests/harness.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 915,
+          "sha256": "4552a0c204f7043d299b1b350c711a98065d9a2ab65e742b20315a2843a39113",
+          "content": {
+            "sha256": "4552a0c204f7043d299b1b350c711a98065d9a2ab65e742b20315a2843a39113",
+            "size": 915,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/4552a0c204f7043d299b1b350c711a98065d9a2ab65e742b20315a2843a39113"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/tests/replay.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 1858,
+          "sha256": "413a668f375945d7cc0e39f426b44020c92727895aaf82a3892cf7cd2a6ed699",
+          "content": {
+            "sha256": "413a668f375945d7cc0e39f426b44020c92727895aaf82a3892cf7cd2a6ed699",
+            "size": 1858,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/413a668f375945d7cc0e39f426b44020c92727895aaf82a3892cf7cd2a6ed699"
+          }
+        },
+        {
+          "path": "model/umpire/fuzz/tests/timed_controls.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 970,
+          "sha256": "ab1086261050bd98312dc51b1db0cdea82f272fe73f6445bf1156643b3d36d68",
+          "content": {
+            "sha256": "ab1086261050bd98312dc51b1db0cdea82f272fe73f6445bf1156643b3d36d68",
+            "size": 970,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/ab1086261050bd98312dc51b1db0cdea82f272fe73f6445bf1156643b3d36d68"
+          }
+        },
+        {
+          "path": "model/umpire/protocol/runtime/Cargo.toml",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 1139,
+          "sha256": "d94345b43d69b7cc9f5b216e79b8ab55acb8e91d133dd8af1a73af9c5741102f",
+          "content": {
+            "sha256": "d94345b43d69b7cc9f5b216e79b8ab55acb8e91d133dd8af1a73af9c5741102f",
+            "size": 1139,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/d94345b43d69b7cc9f5b216e79b8ab55acb8e91d133dd8af1a73af9c5741102f"
+          }
+        },
+        {
+          "path": "model/umpire/protocol/runtime/src/lib.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 2528,
+          "sha256": "cc0bc3deae7e635b47b851b979047cee580787983ef81dc36d7b2bb5992ee17a",
+          "content": {
+            "sha256": "cc0bc3deae7e635b47b851b979047cee580787983ef81dc36d7b2bb5992ee17a",
+            "size": 2528,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/cc0bc3deae7e635b47b851b979047cee580787983ef81dc36d7b2bb5992ee17a"
+          }
+        },
+        {
+          "path": "model/umpire/protocol/runtime/src/runtime.rs",
+          "kind": "file",
+          "mode": "100644",
+          "posix_mode": 420,
+          "size": 49276,
+          "sha256": "b556c510d43b308a025fa14739a62c56911ae721b1382ad4af9d01e65c88bad9",
+          "content": {
+            "sha256": "b556c510d43b308a025fa14739a62c56911ae721b1382ad4af9d01e65c88bad9",
+            "size": 49276,
+            "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/b556c510d43b308a025fa14739a62c56911ae721b1382ad4af9d01e65c88bad9"
+          }
+        }
+      ],
+      "historical_ignored_qualification": "Current ignored inventory only; historical absent checkout/ignored bytes remain unknown."
+    }
+  ],
+  "archives": {
+    "039": {
+      "sha256": "2801b0647868bddf3aeb54cf1de03bce510e6423ede9ad7a737c7ad92b46662d",
+      "size": 1372414,
+      "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/2801b0647868bddf3aeb54cf1de03bce510e6423ede9ad7a737c7ad92b46662d"
+    },
+    "075": {
+      "sha256": "63792d98bc1ce4d63dc3f7b699cc61c0763e60dd2ffc1776145cda7c8bf9ab3d",
+      "size": 1328628,
+      "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/63792d98bc1ce4d63dc3f7b699cc61c0763e60dd2ffc1776145cda7c8bf9ab3d"
+    }
+  },
+  "independent_dirty_restorations": [
+    {
+      "candidate": "039",
+      "result": "pass",
+      "raw_dirty_files_verified": 10,
+      "index_records_restored_exactly": 16798,
+      "unmerged_stage_records_verified": 3,
+      "staged_and_unstaged_patch_bytes_equal": true,
+      "verification_index_stat_cache_may_refresh": true,
+      "restored_raw_index_byte_identical": true,
+      "restoration": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/restore-039-v5",
+      "qualification": "Only dirty/untracked paths materialized; all other committed bytes recover from the independently recovered source bundle."
+    },
+    {
+      "candidate": "075",
+      "result": "pass",
+      "raw_dirty_files_verified": 45,
+      "index_records_restored_exactly": 16772,
+      "unmerged_stage_records_verified": 0,
+      "staged_and_unstaged_patch_bytes_equal": true,
+      "verification_index_stat_cache_may_refresh": true,
+      "restored_raw_index_byte_identical": true,
+      "restoration": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/restore-075-v3",
+      "qualification": "Only dirty/untracked paths materialized; all other committed bytes recover from the independently recovered source bundle."
+    }
+  ],
+  "originals_before": {
+    "039": {
+      "head": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "status_sha256": "1eec08d02f82d108d866cae16962e19ac904f481930d0d12e34cd83886d26636",
+      "index_raw_sha256": "b0a6bdbfd6cb06936121b5ef78e654963643d8300da1f35368e185cae04c5565",
+      "index_stages_sha256": "f802cdeed8bcda86cf4c918085abb898e32246d52d6a79ee7684f490a316a72a",
+      "tracked_and_untracked_path_count": 16796,
+      "full_worktree_bytes_modes_symlink_sha256": "3bd5b8b034f79ed6292325c59d3da48b9e1f4dae67a7f712a8c802d4f5119683",
+      "current_ignored_inventory_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "current_ignored_count": 0
+    },
+    "075": {
+      "head": "1df6f6b75d47a06642bd30b9bbe0d47b6d040ef8",
+      "status_sha256": "7550b3145b16350089982e8308f3566a7ed0d9f805d8de8f2f93c6c7dd2ffbe9",
+      "index_raw_sha256": "00e642d8bb86082235782aacaba701ca75179e662a89bada700a9531d46019f5",
+      "index_stages_sha256": "5de730b5b6d7a7fa640a9c46bdab87b9db2f612909043ad16438699f843f8388",
+      "tracked_and_untracked_path_count": 16812,
+      "full_worktree_bytes_modes_symlink_sha256": "7269bde9b0661d905640ee343dc26f175615ba85e4cc3b55eb462ad494056c21",
+      "current_ignored_inventory_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "current_ignored_count": 0
+    }
+  },
+  "originals_after": {
+    "039": {
+      "head": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "status_sha256": "1eec08d02f82d108d866cae16962e19ac904f481930d0d12e34cd83886d26636",
+      "index_raw_sha256": "b0a6bdbfd6cb06936121b5ef78e654963643d8300da1f35368e185cae04c5565",
+      "index_stages_sha256": "f802cdeed8bcda86cf4c918085abb898e32246d52d6a79ee7684f490a316a72a",
+      "tracked_and_untracked_path_count": 16796,
+      "full_worktree_bytes_modes_symlink_sha256": "3bd5b8b034f79ed6292325c59d3da48b9e1f4dae67a7f712a8c802d4f5119683",
+      "current_ignored_inventory_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "current_ignored_count": 0
+    },
+    "075": {
+      "head": "1df6f6b75d47a06642bd30b9bbe0d47b6d040ef8",
+      "status_sha256": "7550b3145b16350089982e8308f3566a7ed0d9f805d8de8f2f93c6c7dd2ffbe9",
+      "index_raw_sha256": "00e642d8bb86082235782aacaba701ca75179e662a89bada700a9531d46019f5",
+      "index_stages_sha256": "5de730b5b6d7a7fa640a9c46bdab87b9db2f612909043ad16438699f843f8388",
+      "tracked_and_untracked_path_count": 16812,
+      "full_worktree_bytes_modes_symlink_sha256": "7269bde9b0661d905640ee343dc26f175615ba85e4cc3b55eb462ad494056c21",
+      "current_ignored_inventory_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "current_ignored_count": 0
+    }
+  },
+  "originals_unchanged": true,
+  "eight_source_refs_unchanged": true,
+  "historical_ignored_state": "Unresolved for six absent historical checkouts; current ignored inventories of039/075 are empty, not retrospective proof.",
+  "initial_refused_attempts": [
+    "First status comparison refused against an unborn isolated bare HEAD; now explicitly selects captured source HEAD.",
+    "Second check detected Git stat-cache refresh in the isolated restored index after successful stage/status/patch comparisons. Verification now uses a disposable index copy and leaves archived raw index byte-identical. Original indexes were unchanged; source bundle/pack reused."
+  ],
+  "receiving_refs_created": 0,
+  "source_refs_or_index_mutated": false,
+  "product_or_tracker_mutations": false,
+  "initial_capture_receipt": {
+    "sha256": "a24863eec3caaebed3970974f7544e788710d6baec14d97b32f481a272cd8542",
+    "size": 50326,
+    "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/a24863eec3caaebed3970974f7544e788710d6baec14d97b32f481a272cd8542"
+  },
+  "capture_script": {
+    "sha256": "f7dddecc139cd647f261d0b9d881a54f79e0d9f814c826aa75708d1587ebbadd",
+    "size": 16285,
+    "object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/objects/f7dddecc139cd647f261d0b9d881a54f79e0d9f814c826aa75708d1587ebbadd"
+  },
+  "index_count_qualification": "Index records counted by NUL delimiters; initial receipt used a line-based summary count. Initial capture receipt and actual capture script are retained in CAS; raw bytes/stages/patch proofs are unchanged.",
+  "final_verification_script_sha256": "5ae29e503c2fe8b9d98647f04e8e205fbe7b646dd07f41eb0a800be10d8e837b",
+  "final_restore_helper_sha256": "42a7708a0102b9cae6108f441668dfb9044dd925cf26a1d14a19d385479d5c45",
+  "six_source_only_freezes": [
+    {
+      "source_repository": "temporal",
+      "source_ref": "refs/heads/agent/attempt-fencing-prototype",
+      "commit": "bac2d44038362121939b0904e1993e2e8e25f787",
+      "committed_recovery_verified_in_independent_bundle": true,
+      "active_registered_worktrees": 0,
+      "keeper_action_task": "fn-258-complete-the-resumed-standalone-umpire.5",
+      "historical_ignored_untracked_state": "unknown; retained explicitly without retirement",
+      "feature_implementation_or_transfer_claim": false
+    },
+    {
+      "source_repository": "temporal",
+      "source_ref": "refs/heads/checklocks-matcher-data",
+      "commit": "a325f98d350dff75ff16c82a9b1ab29dd9bda83b",
+      "committed_recovery_verified_in_independent_bundle": true,
+      "active_registered_worktrees": 0,
+      "keeper_action_task": "fn-258-complete-the-resumed-standalone-umpire.5",
+      "historical_ignored_untracked_state": "unknown; retained explicitly without retirement",
+      "feature_implementation_or_transfer_claim": false
+    },
+    {
+      "source_repository": "temporal",
+      "source_ref": "refs/heads/w-1d-core",
+      "commit": "243f9dd525b16b7ab15b7f1fa5d486e0f7ce822a",
+      "committed_recovery_verified_in_independent_bundle": true,
+      "active_registered_worktrees": 0,
+      "keeper_action_task": "fn-258-complete-the-resumed-standalone-umpire.5",
+      "historical_ignored_untracked_state": "unknown; retained explicitly without retirement",
+      "feature_implementation_or_transfer_claim": false
+    },
+    {
+      "source_repository": "temporal",
+      "source_ref": "refs/heads/w-1d-shared",
+      "commit": "86e4ee2505d9c3f379d820fb1d5bb1a658629287",
+      "committed_recovery_verified_in_independent_bundle": true,
+      "active_registered_worktrees": 0,
+      "keeper_action_task": "fn-258-complete-the-resumed-standalone-umpire.5",
+      "historical_ignored_untracked_state": "unknown; retained explicitly without retirement",
+      "feature_implementation_or_transfer_claim": false
+    },
+    {
+      "source_repository": "temporal",
+      "source_ref": "refs/heads/w-perf",
+      "commit": "f4fba65eb634f11f547679279597bf48a69fa797",
+      "committed_recovery_verified_in_independent_bundle": true,
+      "active_registered_worktrees": 0,
+      "keeper_action_task": "fn-258-complete-the-resumed-standalone-umpire.5",
+      "historical_ignored_untracked_state": "unknown; retained explicitly without retirement",
+      "feature_implementation_or_transfer_claim": false
+    },
+    {
+      "source_repository": "temporal",
+      "source_ref": "refs/heads/w-perf-dev",
+      "commit": "f4fba65eb634f11f547679279597bf48a69fa797",
+      "committed_recovery_verified_in_independent_bundle": true,
+      "active_registered_worktrees": 0,
+      "keeper_action_task": "fn-258-complete-the-resumed-standalone-umpire.5",
+      "historical_ignored_untracked_state": "unknown; retained explicitly without retirement",
+      "feature_implementation_or_transfer_claim": false
+    }
+  ]
+}

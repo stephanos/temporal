@@ -103,7 +103,7 @@ The standalone preserves current integrated source and both verified histories;
 records remain exact. The consumer candidate includes a regenerated guest reproduced
 in two independent sibling layouts, with unchanged public ABI sections and passing
 host/wire controls. These are source candidates; final gates and cutover remain open.
-Standalone preparation is reviewed and closed on `umpire`. The current required-TLC validation passed all 18 parent and 17 isolated
+Standalone and consumer preparation are reviewed and closed on `umpire`; the consumer source branch remains unmerged until cutover. The current required-TLC validation passed all 18 parent and 17 isolated
 child stages, with 912 tests/doctests executed and three ignored in each tests stage.
 Its 1,679.762-second gate and 24.162-second edit loop miss their soft targets.
 Proof binaries, receipts and source snapshots are retained and independently recoverable.
@@ -114,7 +114,6 @@ Destination access remains blocked by SAML/credentials. See [MIGRATE.md](MIGRATE
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-258.3 | 🔄 in progress | Consumer `3f5f6135` fixes review gaps in missing-checkout errors, workspace evidence and docs; recovery and exact-pair focused checks recorded; follow-up review pending. Final paired freshness remains .4 (R4) |
 | fn-258.4 | ⬜ todo | Exact final-pair fresh-target, release/parity, generation/guest and local-edit acceptance proofs with timings (R3–R5) |
 | fn-258.5 | ⬜ todo | Complete candidate receiving/recovery dispositions, destination access, authorized publication, pinned CI and source cutover; then resume fn-254 (R1, R4, R6) |
 
