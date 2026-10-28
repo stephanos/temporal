@@ -574,7 +574,7 @@ fn run_process_inner(
             attempt.finish(command, &bytes, cause, result.as_ref().ok().and_then(ExitStatus::code))
         })
         .transpose();
-    finish_process(result, bytes, limits.output_bytes, accounting, observation)
+    finish_process(result, bytes, limits.output_bytes, accounting, observation.as_deref())
 }
 
 fn finish_process(
@@ -582,7 +582,7 @@ fn finish_process(
     bytes: Vec<u8>,
     output_bytes: u64,
     accounting: std::io::Result<Option<()>>,
-    observation: Option<String>,
+    observation: Option<&str>,
 ) -> Result<(ExitStatus, String), ProcessFailure> {
     let output = match String::from_utf8(bytes) {
         Ok(output) => output,
@@ -596,7 +596,7 @@ fn finish_process(
                     "non-UTF8 subprocess output: {error}; accounting observation failed: {accounting}"
                 ),
             };
-            crate::work::finished(observation.as_deref(), "")?;
+            crate::work::finished(observation, "")?;
             return Err(ProcessFailure { refusal: Refusal(refusal), output });
         }
     };
@@ -608,7 +608,7 @@ fn finish_process(
             output,
         });
     }
-    let observation = crate::work::finished(observation.as_deref(), &output);
+    let observation = crate::work::finished(observation, &output);
     if let Err(error) = observation {
         return Err(ProcessFailure {
             refusal: Refusal(format!(
