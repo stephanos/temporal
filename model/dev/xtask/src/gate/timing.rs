@@ -175,3 +175,7 @@ mod tests {
         Ok(())
     }
 }
+
+#[cfg(test)]
+#[path = "timing_interrupt_controls.rs"]
+mod interrupt_controls;
