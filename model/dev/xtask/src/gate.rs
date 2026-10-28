@@ -6,7 +6,10 @@ use std::{
     path::Path,
     process::Command,
 };
-use xtask::gate::work_counts;
+use xtask::gate::{
+    count_dispatch::{Contract, NoWorkReason},
+    work_counts,
+};
 
 pub(crate) mod timing;
 #[cfg(test)]
@@ -243,25 +246,44 @@ fn run_stage_with_tool(root: &Path, name: &str, tool: &Path) -> io::Result<i32> 
         command.args(arguments);
         command
     };
-    let command = match name {
+    match name {
         "temporal-prerequisites" => {
-            let mut command = Command::new("mise");
-            command
-                .args(["exec", "--", "make", "-C"])
-                .arg(root.parent().ok_or_else(|| io::Error::other("missing repository root"))?)
-                .args(["-j1", "model-prerequisites"])
-                .env_remove("MAKEFLAGS")
-                .env_remove("MFLAGS");
-            command
+            Contract::not_applicable(NoWorkReason::ToolProvisioning).run(|| {
+                let command = {
+                    let mut command = Command::new("mise");
+                    command
+                        .args(["exec", "--", "make", "-C"])
+                        .arg(
+                            root.parent()
+                                .ok_or_else(|| io::Error::other("missing repository root"))?,
+                        )
+                        .args(["-j1", "model-prerequisites"])
+                        .env_remove("MAKEFLAGS")
+                        .env_remove("MFLAGS");
+                    command
+                };
+                stage(root, name, command)
+            })
         }
         "temporal-guest-freshness" => {
-            let mut command = native(&["guest-freshness", "umpire-temporal-guest"]);
-            command.arg(root.join("temporal/hosts/go/umpire_temporal_guest.wasm"));
-            command
+            Contract::not_applicable(NoWorkReason::GuestBuild).run(|| {
+                let command = {
+                    let mut command = native(&["guest-freshness", "umpire-temporal-guest"]);
+                    command.arg(root.join("temporal/hosts/go/umpire_temporal_guest.wasm"));
+                    command
+                };
+                stage(root, name, command)
+            })
         }
-        "retired-names" => native(&["retired-names"]),
-        "timing-controls" => native(&["timing-controls"]),
-        "source-boundary" => {
+        "retired-names" => Contract::not_applicable(NoWorkReason::NativeScan).run(|| {
+            let command = native(&["retired-names"]);
+            stage(root, name, command)
+        }),
+        "timing-controls" => Contract::observed().run(|| {
+            let command = native(&["timing-controls"]);
+            stage(root, name, command)
+        }),
+        "source-boundary" => Contract::observed().run(|| {
             use std::collections::BTreeSet;
             let selection = xtask::test_run::Selection {
                 package: "umpire-temporal-tests",
@@ -269,7 +291,7 @@ fn run_stage_with_tool(root: &Path, name: &str, tool: &Path) -> io::Result<i32> 
                 filter: None,
                 doctests: false,
             };
-            return xtask::test_run::run_selected_observed_with(
+            xtask::test_run::run_selected_observed_with(
                 &[selection],
                 &BTreeSet::new(),
                 |args| {
@@ -294,39 +316,60 @@ fn run_stage_with_tool(root: &Path, name: &str, tool: &Path) -> io::Result<i32> 
                         .map_err(Into::into)
                 },
             )
-            .map_err(io::Error::other);
-        }
-        "protobuf-controls" => native(&["proto-controls"]),
-        "temporal-protobuf-freshness" => native(&["proto-go", "temporal", "--check"]),
-        "fmt" => cargo(&["fmt", "--all", "--check"]),
-        "clippy" => cargo(&[
-            "clippy",
-            "--workspace",
-            "--all-targets",
-            "--all-features",
-            "--",
-            "-D",
-            "warnings",
-        ]),
-        "docs" => {
-            let mut command = cargo(&["doc", "--workspace", "--no-deps", "--quiet"]);
-            command.env("RUSTDOCFLAGS", "-D warnings");
-            command
-        }
-        "tests" => return crate::test_run::run(root),
-        "wasm-guest" => native(&["build-guests"]),
-        "temporal-go-host" => {
-            let mut command = Command::new("mise");
-            command
-                .args(["exec", "--", "go", "-C"])
-                .arg(root.join("temporal/hosts/go"))
-                .args(["test", "-tags", "test_dep", "-count=1", "./..."])
-                .env("CGO_ENABLED", "0");
-            command
-        }
-        _ => return Err(io::Error::other(format!("unknown Temporal stage: {name}"))),
-    };
-    stage(root, name, command)
+            .map_err(io::Error::other)
+        }),
+        "protobuf-controls" => Contract::observed().run(|| {
+            let command = native(&["proto-controls"]);
+            stage(root, name, command)
+        }),
+        "temporal-protobuf-freshness" => Contract::not_applicable(NoWorkReason::ProtobufGeneration)
+            .run(|| {
+                let command = native(&["proto-go", "temporal", "--check"]);
+                stage(root, name, command)
+            }),
+        "fmt" => Contract::not_applicable(NoWorkReason::Formatting).run(|| {
+            let command = cargo(&["fmt", "--all", "--check"]);
+            stage(root, name, command)
+        }),
+        "clippy" => Contract::not_applicable(NoWorkReason::CompileOnly).run(|| {
+            let command = cargo(&[
+                "clippy",
+                "--workspace",
+                "--all-targets",
+                "--all-features",
+                "--",
+                "-D",
+                "warnings",
+            ]);
+            stage(root, name, command)
+        }),
+        "docs" => Contract::not_applicable(NoWorkReason::CompileOnly).run(|| {
+            let command = {
+                let mut command = cargo(&["doc", "--workspace", "--no-deps", "--quiet"]);
+                command.env("RUSTDOCFLAGS", "-D warnings");
+                command
+            };
+            stage(root, name, command)
+        }),
+        "tests" => Contract::observed().run(|| crate::test_run::run(root)),
+        "wasm-guest" => Contract::not_applicable(NoWorkReason::GuestBuild).run(|| {
+            let command = native(&["build-guests"]);
+            stage(root, name, command)
+        }),
+        "temporal-go-host" => Contract::observed().run(|| {
+            let command = {
+                let mut command = Command::new("mise");
+                command
+                    .args(["exec", "--", "go", "-C"])
+                    .arg(root.join("temporal/hosts/go"))
+                    .args(["test", "-tags", "test_dep", "-count=1", "./..."])
+                    .env("CGO_ENABLED", "0");
+                command
+            };
+            stage(root, name, command)
+        }),
+        _ => Err(io::Error::other(format!("unknown Temporal stage: {name}"))),
+    }
 }
 
 #[cfg(test)]
