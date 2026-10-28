@@ -468,7 +468,7 @@ pub fn run_process_observed(
     limits: Limits,
     dump: Option<&Path>,
     invocation: &crate::work::TlcInvocation,
-) -> Result<(ExitStatus, String), ProcessFailure> {
+) -> Result<(ExitStatus, String), Refusal> {
     run_process_inner(
         command,
         directory,
@@ -479,6 +479,7 @@ pub fn run_process_observed(
         DescendantPolicy::Checker,
         Some(invocation),
     )
+    .map_err(|error| error.refusal)
 }
 
 #[allow(clippy::too_many_arguments)]
