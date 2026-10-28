@@ -1,8 +1,8 @@
 # Native development tools
 
-From the framework root, `cargo xtask` is the general native command front door. `scripts/xtask.sh` bootstraps both native tools into `<target>/xtask-bootstrap/debug`, clearing guest wrappers and flags before building the locked development profile.
+From the framework root, `mise exec -- cargo xtask` is the general native command front door. `scripts/xtask.sh` bootstraps both native tools into `<target>/xtask-bootstrap/debug`, clearing guest wrappers and flags before building the locked development profile.
 
-`cargo xtask gate` runs the complete framework gate. `gate --list` prints its stages;
+`mise exec -- cargo xtask gate` runs the complete framework gate. `gate --list` prints its stages;
 `gate --stage <name>` runs one real stage for focused feedback. `fmt` formats the
 workspace, `update` refreshes snapshots, `time` times the gate and checker benchmark,
 and `validate` forces required TLC before the timed gate. Stage failure preserves
@@ -11,23 +11,36 @@ the child status and identifies its stage. Full gate children receive
 
 Guest operations execute the dedicated [guest driver](../guest-driver/README.md). The CLI first builds the current driver sources with the local locked manifest, then replaces itself with that executable, retaining raw argv, environment, loader variables and jobserver descriptors. Its own executable is never the compiler wrapper or a guest cache input.
 
-`retired-names <POSIX ERE>` reads the raw `git grep -n -z` stream: NUL-terminated
-path, NUL-terminated nonempty ASCII decimal line number, then a newline-terminated
-line (the last line may end at EOF). Paths and line contents preserve arbitrary bytes.
-Each forbidden record prints `path:number:line` with a final newline. An empty stream
-returns 0, forbidden matches return 1, and malformed records or I/O/launch failures
-return 2. External grep failures propagate their exit code; a signal returns 2.
+`retired-names <Rust regex>` reads the raw `git grep -n -z` record format:
+NUL-terminated path, NUL-terminated nonempty ASCII decimal line number, then a
+newline-terminated line (the last line may end at EOF). Paths and line contents
+preserve arbitrary bytes. Each forbidden record prints `path:number:line` with a
+final newline. Empty or exempt input returns 0, forbidden matches return 1, and
+invalid patterns, malformed records or I/O failures return 2.
 
 The author facade's test-directory token is exempt only at path/token boundaries.
-The native boundary grammar uses ASCII whitespace and the existing punctuation
-boundaries; Python's Unicode whitespace classification is not part of this native
-byte-stream contract (owner's 2026-10-24 native grammar amendment). After replacing
-exempt tokens, external `grep -E -q -- <pattern>` rechecks the remaining line using
-POSIX ERE syntax. This detects a forbidden token beside an exempt token and keeps
-POSIX character classes. The shell resolves the compiled tool once through
-`scripts/xtask.sh`; `UMPIRE_XTASK` can select an absolute prebuilt executable for
-isolated caller controls. `cargo test -p xtask --test main --locked` covers
-the stream contract, active spellings, historical exclusions and tool failures.
+The grammar uses ASCII whitespace and the existing punctuation boundaries. Matching
+uses Rust byte regexes with Unicode disabled, including rechecks after exempt tokens
+are replaced; no external grep process performs matching. Rust regex syntax replaces
+the former POSIX ERE contract under the owner's approved change. The framework gate
+scans its own source policy; the system workspace's `retired-names` command owns its
+repository policy and historical exclusions.
+
+`proto-tools` provisions the pinned Go generators. `proto-go core [--check]` and
+`proto-go kettle [--check]` generate or compare framework Go sources; the system
+workspace owns the `temporal` selector. `build-guests` builds five framework wasm
+guests and two native parity reports. `capability-controls`, `proto-controls` and
+`timing-controls` expose the native behavioral controls; workspace Rust tests retain
+the path, refusal, cleanup and caller-boundary cases. Gate control stages select
+these tests through the shared test runner and its admitted inventory.
+
+`time --step NAME PROGRAM [ARG...]` times one owned command in the caller's directory.
+Successful steps suppress child output and print their timing; failed steps replay
+both captured streams after descendant cleanup and retain the child exit or signal
+status. The framework and system gates share this executor. `make model-time` uses
+the system's native timing entry point to measure the combined gate and one edited
+package through `test-run --package NAME`. The 60 s gate and 10 s inner-loop budgets
+remain soft warnings; they are separate from later budget admission.
 
 ## Checker provisioning
 

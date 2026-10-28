@@ -1,8 +1,7 @@
 # Checker provisioning controls
 
-`bash scripts/fetch-tlc.sh` and `cargo xtask fetch-apalache` remain explicit
-provisioning entry points from the framework root. The root model bridge
-`model/scripts/fetch-tlc.sh` remains supported. Successful provisioning prints
+`mise exec -- cargo xtask fetch-tlc` and `mise exec -- cargo xtask fetch-apalache`
+are explicit provisioning entry points from the framework root. Successful provisioning prints
 the admitted absolute JAR path; provider output goes to stderr. A provider or
 admission failure returns status 1 through xtask. No execution path installs.
 

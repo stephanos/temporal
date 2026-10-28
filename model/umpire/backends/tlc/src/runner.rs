@@ -168,7 +168,7 @@ impl Tlc {
         )
         .map_err(|Refusal(message)| {
             if message.starts_with("missing pinned jar") {
-                Refusal(format!("{message}; run bash scripts/fetch-tlc.sh"))
+                Refusal(format!("{message}; run mise exec -- cargo xtask fetch-tlc"))
             } else {
                 Refusal(message)
             }

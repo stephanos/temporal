@@ -31,9 +31,9 @@ Apalache remains opt-in through `UMPIRE_APALACHE=require`.
 
 The native [xtask](dev/xtask/README.md) provides pinned tool installation and development
 commands. Guest builds execute the independent [guest driver](dev/guest-driver/README.md).
-`bash scripts/tests/build-guests.sh` builds the five generic guests and native parity reports;
+`mise exec -- cargo xtask build-guests` builds the five generic guests and native parity reports;
 the [Go host](hosts/go/README.md) and [Kettle reference](reference/kettle/README.md) describe
-how to consume them. `bash scripts/proto-go.sh core --check` and the `kettle` selector
+how to consume them. `mise exec -- cargo xtask proto-go core --check` and the `kettle` selector
 verify local generated Go protocol sources. Tools, generators and backend caches stay
 under this workspace; explicit Cargo target overrides remain supported.
 
@@ -178,8 +178,8 @@ checked against the README by `mise exec -- cargo test -p umpire-dsl --test main
 this directory. The fixture binds one selected World explicitly; `bound_for` selects another without
 fabricating defaults. `World::new` assigns fields and does not validate their ranges or starts.
 
-Checker tools are provisioned explicitly with `bash scripts/fetch-tlc.sh` or
-`cargo xtask fetch-apalache`. Their framework-owned HTTP declarations live in
+Checker tools are provisioned explicitly with `mise exec -- cargo xtask fetch-tlc` or
+`mise exec -- cargo xtask fetch-apalache`. Their framework-owned HTTP declarations live in
 `mise-tools/`; its default environment contains TLC 1.7.4 and its `apalache`
 environment adds Apalache 0.62.4. Provisioning delegates checksummed downloads,
 extraction and installation locking to mise. Execution never auto-installs tools.
