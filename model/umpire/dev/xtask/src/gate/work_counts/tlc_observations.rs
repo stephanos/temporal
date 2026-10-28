@@ -282,7 +282,31 @@ impl Collector {
         )?;
         require(self.passed.insert((name, binary_sha)))
     }
+    fn authority_names(&self) -> BTreeSet<String> {
+        self.attempts
+            .iter()
+            .filter(|(_, attempt)| attempt.origin == "fixture")
+            .map(|(id, _)| format!("{id}.json"))
+            .chain(self.completions.keys().map(|id| format!("assertions-{id}.json")))
+            .collect()
+    }
     pub(super) fn finish(&self, directory: &Path) -> io::Result<(Option<u64>, Option<u64>)> {
+        self.finish_accounted(directory, &self.authority_names())
+    }
+    pub(super) fn finish_selected(
+        &self,
+        directory: &Path,
+        all: &Self,
+    ) -> io::Result<(Option<u64>, Option<u64>)> {
+        let accounted = all.authority_names();
+        require(self.authority_names().is_subset(&accounted))?;
+        self.finish_accounted(directory, &accounted)
+    }
+    fn finish_accounted(
+        &self,
+        directory: &Path,
+        accounted: &BTreeSet<String>,
+    ) -> io::Result<(Option<u64>, Option<u64>)> {
         require(self.attempts.keys().eq(self.terminals.keys()))?;
         let has_fixtures =
             !self.completions.is_empty() || self.attempts.values().any(|a| a.origin == "fixture");
@@ -294,14 +318,7 @@ impl Collector {
         let scope =
             if has_fixtures || has_work_layout { Some(Scope::from_work(directory)?) } else { None };
         if let Some(scope) = &scope {
-            let expected = self
-                .attempts
-                .iter()
-                .filter(|(_, attempt)| attempt.origin == "fixture")
-                .map(|(id, _)| format!("{id}.json"))
-                .chain(self.completions.keys().map(|id| format!("assertions-{id}.json")))
-                .collect();
-            scope.verify_files(&expected)?;
+            scope.verify_files(accounted)?;
         }
         let mut fixtures = BTreeMap::new();
         let mut configurations = BTreeSet::new();

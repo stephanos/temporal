@@ -261,6 +261,41 @@ fn validate_child(child: &serde_json::Value) -> io::Result<()> {
 
 /// Refuse incomplete, duplicated or malformed producer records.
 pub fn collect(directory: &Path) -> io::Result<WorkCounts> {
+    let (mut counts, tlc) = collect_paths(&event_paths(directory)?)?;
+    (counts.tlc_launches, counts.tlc_configurations) = tlc.finish(directory)?;
+    Ok(counts)
+}
+
+/// Count a complete selected attempt after validating the current observation authority.
+pub(super) fn collect_selected(directory: &Path, selected: &[String]) -> io::Result<WorkCounts> {
+    let paths = event_paths(directory)?;
+    let available = paths
+        .iter()
+        .map(|path| (path.file_name().and_then(|name| name.to_str()).unwrap_or_default(), path))
+        .collect::<BTreeMap<_, _>>();
+    let mut names = BTreeSet::new();
+    let selected_paths = selected
+        .iter()
+        .map(|name| {
+            if !names.insert(name) {
+                return Err(io::Error::other("duplicate selected work observation"));
+            }
+            available
+                .get(name.as_str())
+                .map(|path| (*path).clone())
+                .ok_or_else(|| io::Error::other("unknown selected work observation"))
+        })
+        .collect::<io::Result<Vec<_>>>()?;
+    let (_, all_tlc) = collect_paths(&paths)?;
+    all_tlc.finish(directory)?;
+    let (mut counts, tlc) = collect_paths(&selected_paths)?;
+    (counts.tlc_launches, counts.tlc_configurations) = tlc.finish_selected(directory, &all_tlc)?;
+    Ok(counts)
+}
+
+fn collect_paths(
+    paths: &[std::path::PathBuf],
+) -> io::Result<(WorkCounts, tlc_observations::Collector)> {
     let mut counts = WorkCounts::default();
     let mut tests = [0; 4];
     let mut observed_tests = false;
@@ -268,7 +303,7 @@ pub fn collect(directory: &Path) -> io::Result<WorkCounts> {
     let mut test_finished = BTreeSet::new();
     let mut tlc = tlc_observations::Collector::default();
     let mut passed = BTreeMap::new();
-    for path in event_paths(directory)? {
+    for path in paths {
         let record = fs::read_to_string(path)?;
         let fields = record
             .strip_suffix('\n')
@@ -331,19 +366,17 @@ pub fn collect(directory: &Path) -> io::Result<WorkCounts> {
         counts.ignored = Some(tests[2]);
         counts.skipped = Some(tests[3]);
     }
+    let mut parent_passes = BTreeSet::new();
     for ((id, name), digest) in passed {
         if !test_started.contains(&id) {
             return Err(io::Error::other("successful test identity has no completed producer"));
         }
+        parent_passes.insert((name, digest));
+    }
+    for (name, digest) in parent_passes {
         tlc.record_pass(name, digest)?;
     }
-    (counts.tlc_launches, counts.tlc_configurations) = tlc.finish(directory)?;
-    Ok(counts)
-}
-
-#[cfg(test)]
-pub(super) fn collect_selected(directory: &Path, _selected: &[String]) -> io::Result<WorkCounts> {
-    collect(directory)
+    Ok((counts, tlc))
 }
 
 #[derive(Default)]
