@@ -15,7 +15,7 @@ const GUESTS: &[(&str, &str)] = &[
 pub fn run(root: &Path, driver: &Path) -> Result<i32> {
     let caller = env::current_dir()?;
     let home = cargo_home(&caller)?;
-    let target = env::var_os("CARGO_TARGET_DIR").map_or_else(
+    let target = env::var_os("CARGO_TARGET_DIR").filter(|value| !value.is_empty()).map_or_else(
         || root.join("target"),
         |value| {
             let path = std::path::PathBuf::from(value);
