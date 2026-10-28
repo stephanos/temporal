@@ -1,0 +1,66 @@
+[
+  {
+    "command": [
+      "make",
+      "-C",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2583-consumers",
+      "model-check"
+    ],
+    "exit": 2,
+    "expected": "missing sibling rejected before Cargo",
+    "log": "/home/agent/.cache/codex-build/fn258-consumer/missing-sibling-actual-check.log"
+  },
+  {
+    "command": [
+      "make",
+      "-C",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2583-consumers",
+      "model-quick"
+    ],
+    "exit": 2,
+    "expected": "missing sibling rejected before Cargo",
+    "log": "/home/agent/.cache/codex-build/fn258-consumer/missing-sibling-actual-quick.log"
+  },
+  {
+    "command": [
+      "make",
+      "-C",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2583-consumers",
+      "model-fmt"
+    ],
+    "exit": 2,
+    "expected": "missing sibling rejected before Cargo",
+    "log": "/home/agent/.cache/codex-build/fn258-consumer/missing-sibling-actual-fmt.log"
+  },
+  {
+    "command": [
+      "make",
+      "-C",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2583-consumers",
+      "model-update"
+    ],
+    "exit": 2,
+    "expected": "missing sibling rejected before Cargo",
+    "log": "/home/agent/.cache/codex-build/fn258-consumer/missing-sibling-actual-update.log"
+  },
+  {
+    "control": "wiring",
+    "exit": 0,
+    "log": "/home/agent/.cache/codex-build/fn258-consumer/consumer-guard-wiring.log"
+  },
+  {
+    "control": "validate",
+    "exit": 0,
+    "log": "/home/agent/.cache/codex-build/fn258-consumer/consumer-guard-validate.log"
+  },
+  {
+    "control": "guest-roots",
+    "exit": 0,
+    "log": "/home/agent/.cache/codex-build/fn258-consumer/consumer-guard-guest-roots.log"
+  },
+  {
+    "control": "proto",
+    "exit": 0,
+    "log": "/home/agent/.cache/codex-build/fn258-consumer/consumer-guard-proto.log"
+  }
+]

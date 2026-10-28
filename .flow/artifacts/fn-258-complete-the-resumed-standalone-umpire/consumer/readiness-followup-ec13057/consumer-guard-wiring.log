@@ -1,0 +1,4 @@
+$ /bin/bash /home/agent/.cache/codex-build/tmp/fn258-consumer-guard-controls-wf85k1ku/temporal/model/scripts/test-model-wiring.sh
+Model recipe wiring controls passed (fake children; no execution evidence).
+
+exit: 0

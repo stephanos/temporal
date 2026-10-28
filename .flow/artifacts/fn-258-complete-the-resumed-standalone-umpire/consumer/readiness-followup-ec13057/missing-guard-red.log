@@ -1,0 +1,5 @@
+make: Entering directory '/home/agent/.cache/codex-build/tmp/tmp.oqQAzTPUXr/missing/temporal'
+make: *** [Makefile:18: model-check] Error 1
+make: Leaving directory '/home/agent/.cache/codex-build/tmp/tmp.oqQAzTPUXr/missing/temporal'
+
+exit: 1

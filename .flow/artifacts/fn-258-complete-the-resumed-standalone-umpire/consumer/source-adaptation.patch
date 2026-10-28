@@ -88,7 +88,7 @@ index 0000000000..76c124427d
 +        printf 'Umpire revision: %s\n' "$(git -C "$parent/umpire" rev-parse HEAD)"
 +        GOWORK="$parent/go.work" go env GOWORK
 diff --git a/Makefile b/Makefile
-index b375c93041..fb6c7ef666 100644
+index b375c93041..602196da16 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -1262 +1262 @@ RUST_MODEL_CARGO = MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false $(RUST_M
@@ -96,6 +96,26 @@ index b375c93041..fb6c7ef666 100644
 +RUST_MODEL_FRAMEWORK = helper=$$($(RUST_MODEL_COMPILER_ENV) /bin/bash "$(CURDIR)/model/scripts/xtask.sh") && "$$helper"
 @@ -1266,0 +1267 @@ model-quick:
 +	@/bin/bash "$(CURDIR)/model/scripts/framework-root.sh" >/dev/null
+@@ -1271,0 +1273 @@ model-check:
++	@/bin/bash "$(CURDIR)/model/scripts/framework-root.sh" >/dev/null
+@@ -1278,0 +1281 @@ model-fmt:
++	@/bin/bash "$(CURDIR)/model/scripts/framework-root.sh" >/dev/null
+@@ -1282,0 +1286 @@ model-update:
++	@/bin/bash "$(CURDIR)/model/scripts/framework-root.sh" >/dev/null
+diff --git a/common/testing/testpilot/README.md b/common/testing/testpilot/README.md
+index f75c62f500..5e0c97ea79 100644
+--- a/common/testing/testpilot/README.md
++++ b/common/testing/testpilot/README.md
+@@ -5,2 +5,2 @@ The Model judges every observation and answers every callback; the Runner
+-(`umpire.local/model/runner`, see `model/umpire/hosts/go/README.md`) asks it to Propose,
+-Judge and Answer, drives a Driver and records a Run. Testpilot keeps only the Temporal mechanics
++(`github.com/temporalio/umpire/hosts/go/runner`, see the
++[sibling host guide](../../../../umpire/hosts/go/README.md)) asks it to Propose, Judge and Answer, drives a Driver and records a Run. Testpilot keeps only the Temporal mechanics
+@@ -17,2 +17,2 @@ The package root holds tests only: `TestTestpilotDependencyBoundary`, which keep
+-`umpire.local` import inside `temporal/act` and keeps Testpilot from importing `tests/`,
+-`tools/umpire` or `tools/canary`, and the protocol schema checks `make umpire-check-testpilot-protocol`
++shared-host or `umpire.local/temporal` import inside `temporal/act` and keeps Testpilot from
++importing `tests/`, `tools/umpire` or `tools/canary`, and the protocol schema checks `make umpire-check-testpilot-protocol`
 diff --git a/common/testing/testpilot/dependency_boundary_test.go b/common/testing/testpilot/dependency_boundary_test.go
 index 3ec0284cd6..e1e61d1c35 100644
 --- a/common/testing/testpilot/dependency_boundary_test.go
@@ -264,7 +284,7 @@ index 36332e2368..d6535a6ee5 100644
 +umpire-tlc = { version = "0.0.1", path = "../../umpire/backends/tlc" }
 +umpire-runtime = { version = "0.0.1", path = "../../umpire/protocol/runtime" }
 diff --git a/model/README.md b/model/README.md
-index 63759176a0..54bb4bd22c 100644
+index 63759176a0..ccbeb0a784 100644
 --- a/model/README.md
 +++ b/model/README.md
 @@ -3,3 +3,10 @@
@@ -295,9 +315,30 @@ index 63759176a0..54bb4bd22c 100644
 @@ -106 +113 @@ checks. For framework-only feedback, run `mise exec -- cargo xtask gate` from
 -`model/umpire`; see its [gate commands](umpire/README.md). Both full gates disable
 +the sibling Umpire root; see its README for gate commands. Both full gates disable
-@@ -178 +185 @@ From either workspace, `cargo check-all` and `cargo doc-all` are aliases for its
+@@ -131,3 +138,6 @@ path is allowed. Offenses report deterministic relative file/line diagnostics.
+-Cargo resolves all crates through local workspace `path` dependencies. The server's
+-`go.mod` requires/replaces `umpire.local/model` and `umpire.local/temporal` with the
+-two in-tree host modules; the latter replaces the former locally as well.
++Cargo resolves framework crates through sibling `path` dependencies. The server's
++`go.mod` requires `github.com/temporalio/umpire/hosts/go` and `umpire.local/temporal`,
++replacing them with `../umpire/hosts/go` and `./model/temporal/hosts/go`. The Temporal
++extension also replaces the shared host with the sibling source. A parent `go.work`
++selects the server, shared host, Kettle and Temporal extension modules; preserve
++existing unrelated workspace entries. See [paired checkout setup](docs/paired-checkout.md).
+@@ -136,2 +146,3 @@ The generic Go module separates `hosts/go/host` (wasm transport), `hosts/go/runn
+-Kettle's Go server and host tests form a third module at `umpire/reference/kettle`,
+-with a local replacement onto `../../hosts/go`; the model gate tests all three modules. No publication
++Kettle's Go server and host tests live at `../umpire/reference/kettle` relative to
++Temporal's root, with a local replacement onto `../../hosts/go`; the model gate tests
++all three host modules. No publication
+@@ -178 +189 @@ From either workspace, `cargo check-all` and `cargo doc-all` are aliases for its
 -`model-time` measures every `model-check` stage, then touches `umpire/backends/native/src/lib.rs` and tests
 +`model-time` measures every `model-check` stage, then touches `../../umpire/backends/native/src/lib.rs` and tests
+@@ -868,2 +879,2 @@ Goldens use named insta text snapshots: one `<logical filename>.snap`, including
+-`snapshot_payload` helper (Go: `umpire.local/model/snapshot`) to preserve the text body
+-without the insta header. `make model-update` refreshes fixture snapshots; review the
++`snapshot_payload` helper (Go: `github.com/temporalio/umpire/hosts/go/snapshot`)
++to preserve the text body without the insta header. `make model-update` refreshes fixture snapshots; review the
 diff --git a/model/design/native-symbolic/Cargo.toml b/model/design/native-symbolic/Cargo.toml
 index e18b0c5981..79a67a5818 100644
 --- a/model/design/native-symbolic/Cargo.toml
@@ -438,14 +479,14 @@ index e2a80e4db5..9fbd9fe867 100644
 +        framework.display(),
 diff --git a/model/docs/paired-checkout.md b/model/docs/paired-checkout.md
 new file mode 100644
-index 0000000000..c0918439c4
+index 0000000000..3221b16d5c
 --- /dev/null
 +++ b/model/docs/paired-checkout.md
 @@ -0,0 +1,81 @@
 +# Paired CI checkout
 +
 +CI admission is pending. The renewed standalone source checkpoint is local commit
-+`58a6989fe5ccd6a1ae734326d568f60dce2dab43`.
++`05473210b48c3db862f22051eb7154ce98258f98`.
 +It is not published or fetchable from `temporalio/umpire` and is not an admitted
 +CI pin. The destination's read authorization remains unresolved (the recorded
 +SSO 403 and CLI 401 do not establish access). No active workflow has been switched
@@ -605,20 +646,37 @@ index 989074a0a8..e644f77570 100644
 -cat > "$control/model/umpire/scripts/xtask.sh" <<'BOOTSTRAP'
 +cat > "$control_parent/umpire/scripts/xtask.sh" <<'BOOTSTRAP'
 diff --git a/model/scripts/test-model-wiring.sh b/model/scripts/test-model-wiring.sh
-index 87f3aa1777..47267fa439 100644
+index 87f3aa1777..f8b8818f74 100644
 --- a/model/scripts/test-model-wiring.sh
 +++ b/model/scripts/test-model-wiring.sh
-@@ -4 +4,2 @@ cd "$(dirname "$0")/../.."
+@@ -4 +4,3 @@ cd "$(dirname "$0")/../.."
 -for config in mise.toml model/umpire/mise.toml; do
++repository=$PWD
 +framework=$(/bin/bash model/scripts/framework-root.sh)
 +for config in mise.toml "$framework/mise.toml"; do
-@@ -29 +30 @@ trap 'rm -rf "${control:?}"' EXIT
+@@ -29 +31 @@ trap 'rm -rf "${control:?}"' EXIT
 -mkdir -p "$control/model/umpire/scripts" "$control/model/dev/xtask/src" "$control/bin"
 +mkdir -p "$control/model/scripts" "$control/model/dev/xtask/src" "$control/bin"
-@@ -38 +39,2 @@ MAKE
+@@ -38 +40,2 @@ MAKE
 -cat > "$control/model/umpire/scripts/xtask.sh" <<'CHILD'
 +printf '#!/bin/bash\nexit 0\n' > "$control/model/scripts/framework-root.sh"
 +cat > "$control/model/scripts/xtask.sh" <<'CHILD'
+@@ -117,0 +121,15 @@ done
++missing="$control/missing/temporal"
++mkdir -p "$missing/model/scripts"
++cp "$control/Makefile" "$missing/Makefile"
++cp "$repository/model/scripts/framework-root.sh" "$repository/model/scripts/xtask.sh" "$missing/model/scripts/"
++for action in check quick fmt update; do
++  : > "$CONTROL_LOG"
++  status=0
++  make -C "$missing" "model-$action" > "$control/output" 2>&1 || status=$?
++  [ "$status" -eq 2 ]
++  if ! rg -q 'missing sibling Umpire checkout.*place umpire beside the Temporal checkout' "$control/output"; then
++    cat "$control/output" >&2
++    exit 1
++  fi
++  [ ! -s "$CONTROL_LOG" ]
++done
 diff --git a/model/scripts/tests/guest-roots.sh b/model/scripts/tests/guest-roots.sh
 index abc7ff0e66..8f3f145dba 100644
 --- a/model/scripts/tests/guest-roots.sh
@@ -883,6 +941,9 @@ index 8861ed0861..3330586089 100644
 +	v1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
 @@ -14 +14,0 @@ import (
 -	v1 "umpire.local/model/gen/umpire/annotations/v1"
+diff --git a/model/temporal/hosts/go/umpire_temporal_guest.wasm b/model/temporal/hosts/go/umpire_temporal_guest.wasm
+index f6cf2dbf10..7bbc6b206f 100644
+Binary files a/model/temporal/hosts/go/umpire_temporal_guest.wasm and b/model/temporal/hosts/go/umpire_temporal_guest.wasm differ
 diff --git a/model/temporal/realization/macros/src/roots.rs b/model/temporal/realization/macros/src/roots.rs
 index 8e64a9502c..ecd9216b5f 100644
 --- a/model/temporal/realization/macros/src/roots.rs
@@ -1035,6 +1096,13 @@ index 4f07543171..20cca5c610 100644
 -	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
 -	runv1 "umpire.local/model/gen/umpire/run/v1"
 -	"umpire.local/model/runner"
+diff --git a/tools/canary/README.md b/tools/canary/README.md
+index 121f443c99..def0d76e4e 100644
+--- a/tools/canary/README.md
++++ b/tools/canary/README.md
+@@ -4 +4 @@
+-production through the Runner (`umpire.local/model/runner`) and the Temporal Driver
++production through the Runner (`github.com/temporalio/umpire/hosts/go/runner`) and the Temporal Driver
 diff --git a/tools/canary/controller/controller.go b/tools/canary/controller/controller.go
 index 85f5152e4e..3886f851a5 100644
 --- a/tools/canary/controller/controller.go
@@ -1101,13 +1169,20 @@ index e338fa9ee1..6f50d03e34 100644
 @@ -25,2 +26,0 @@ import (
 -	runv1 "umpire.local/model/gen/umpire/run/v1"
 -	"umpire.local/model/runner"
+diff --git a/tools/umpire/README.md b/tools/umpire/README.md
+index c02e04203e..a65047a39c 100644
+--- a/tools/umpire/README.md
++++ b/tools/umpire/README.md
+@@ -35 +35 @@ Each command is `tools/umpire/cmd/<name>`. The Make targets build into `.build/`
+-| `umpire` | The one host loop over a Model guest: `question`, `explore`, `reduce`, `replay` or `repeat`; it records and publishes Runs (see `model/umpire/hosts/go/README.md`), acting through the Temporal Driver configured below | `umpire` |
++| `umpire` | The one host loop over a Model guest: `question`, `explore`, `reduce`, `replay` or `repeat`; it records and publishes Runs (see the [sibling host guide](../../../umpire/hosts/go/README.md)), acting through the Temporal Driver configured below | `umpire` |
 diff --git a/tools/umpire/cmd/umpire/main.go b/tools/umpire/cmd/umpire/main.go
-index 3a52a6927c..d7b8029416 100644
+index 3a52a6927c..14a3166aed 100644
 --- a/tools/umpire/cmd/umpire/main.go
 +++ b/tools/umpire/cmd/umpire/main.go
 @@ -4 +4 @@
 -// model/umpire/hosts/go/README.md.
-+// ../umpire/hosts/go/README.md.
++// hosts/go/README.md in the sibling Umpire checkout.
 @@ -19,0 +20 @@ import (
 +	"github.com/temporalio/umpire/hosts/go/runner"
 @@ -22 +22,0 @@ import (

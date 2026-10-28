@@ -1,0 +1,34 @@
+cwd: /home/agent/.cache/codex-build/tmp/fn258-pair/temporal
+$ /home/agent/.local/share/mise/installs/go/1.27.0/bin/go env GOWORK
+/home/agent/.cache/codex-build/tmp/fn258-pair/go.work
+exit: 0
+
+cwd: /home/agent/.cache/codex-build/tmp/fn258-pair/temporal
+$ /home/agent/.local/share/mise/installs/go/1.27.0/bin/go list -m -json github.com/temporalio/umpire/hosts/go github.com/temporalio/umpire/reference/kettle umpire.local/temporal
+{
+	"Path": "github.com/temporalio/umpire/hosts/go",
+	"Main": true,
+	"Dir": "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/hosts/go",
+	"GoMod": "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/hosts/go/go.mod",
+	"GoVersion": "1.27.0"
+}
+{
+	"Path": "github.com/temporalio/umpire/reference/kettle",
+	"Main": true,
+	"Dir": "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/reference/kettle",
+	"GoMod": "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/reference/kettle/go.mod",
+	"GoVersion": "1.27.0"
+}
+{
+	"Path": "umpire.local/temporal",
+	"Main": true,
+	"Dir": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/hosts/go",
+	"GoMod": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/hosts/go/go.mod",
+	"GoVersion": "1.27.0"
+}
+exit: 0
+
+cwd: /Users/stephan/Workspace/skunkworks/umpire/temporal
+$ /home/agent/.local/share/mise/installs/go/1.27.0/bin/go env GOWORK
+
+exit: 0
