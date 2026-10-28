@@ -1,0 +1,12 @@
+{
+  "success": true,
+  "tests_run": 4,
+  "errors": 0,
+  "failures": 0,
+  "input_sha256": {
+    "classify.py": "f4feb9281a78ab3812f23229bdc00ecf9fc08056e80a12ff0137c1f4564ac550",
+    "supplemental.py": "d3ba91e219a4bd10ee98a14ea284f5d283475c954548e5421e7b51e5ec801bfd",
+    "test_controls.py": "52dc0ae7f09942287f785abf35c6b0f4cdcb23be4ab5c8b4b55bfa5b194bc836"
+  },
+  "scope": "small synthetic producer metadata only; no actual archive/CAS/cleanup/build/Flow/Git"
+}

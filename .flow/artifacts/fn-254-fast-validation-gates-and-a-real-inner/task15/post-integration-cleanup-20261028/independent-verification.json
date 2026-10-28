@@ -1,0 +1,22 @@
+{
+  "verified": true,
+  "supplemental_unique_members": 10708,
+  "classified_original_paths": 20183,
+  "primary_verification": {
+    "verified": true,
+    "archive_members": 4801,
+    "original_source_reads": false,
+    "extracted_files": false,
+    "cleanup_performed": false,
+    "manifest_sha256": "68208a5aa0e5df79783d97b740a07da3f0808dce4935aa076450630a5183b610"
+  },
+  "generated_provenance": {
+    "disposable_artifacts": 2026,
+    "producer_files_verified": 2562,
+    "source_reads": false
+  },
+  "original_source_reads": false,
+  "archive_extracted": false,
+  "cleanup_performed": false,
+  "cleanup_authorized": false
+}
