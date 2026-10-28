@@ -177,8 +177,9 @@ exceptions only on the three named export attributes. DSL/checker retain `forbid
 From either workspace, `cargo check-all` and `cargo doc-all` are aliases for its clippy and doc steps. The combined gate covers both workspaces.
 `model-validate` forces TLC-required `model-time` through environment/Make conflicts; add
 `UMPIRE_APALACHE=require` for both. Legacy modes remain; required timings are separate from historical defaults.
-`model-time` measures every `model-check` stage, then edits `umpire/backends/native/src/lib.rs`,
-runs the framework `test-run --package umpire-checker` route and restores the source bytes.
+`model-time` measures every `model-check` stage, then updates the modification time of
+`umpire/backends/native/src/lib.rs` and runs the framework `test-run --package umpire-checker`
+route. Source bytes remain unchanged, including when the benchmark is interrupted.
 Select another crate/source with `UMPIRE_INNER_CRATE`/`UMPIRE_INNER_SOURCE` (relative to `model/`).
 Timed command failures fail the helper; exceeding a time budget prints a warning and succeeds.
 

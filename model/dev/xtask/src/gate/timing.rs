@@ -1,39 +1,16 @@
-//! Model gate timing and reversible edited-package benchmark.
+//! Model gate timing and source timestamp invalidation for the package benchmark.
 use std::{
     env, fs,
     io::{self, Write},
     os::unix::{ffi::OsStrExt, process::ExitStatusExt},
-    path::{Path, PathBuf},
+    path::Path,
     process::Command,
     time::Instant,
 };
 
-struct SourceEdit {
-    path: PathBuf,
-    original: Vec<u8>,
-    restored: bool,
-}
-impl SourceEdit {
-    fn begin(path: PathBuf) -> io::Result<Self> {
-        let original = fs::read(&path)?;
-        let edit = Self { path, original, restored: false };
-        let mut content = edit.original.clone();
-        content.extend_from_slice(b"\n// Inner-loop timing edit.\n");
-        fs::write(&edit.path, content)?;
-        Ok(edit)
-    }
-    fn restore(&mut self) -> io::Result<()> {
-        fs::write(&self.path, &self.original)?;
-        self.restored = true;
-        Ok(())
-    }
-}
-impl Drop for SourceEdit {
-    fn drop(&mut self) {
-        if !self.restored {
-            let _ = fs::write(&self.path, &self.original);
-        }
-    }
+fn touch_source(path: &Path) -> io::Result<()> {
+    let file = fs::OpenOptions::new().write(true).open(path)?;
+    file.set_modified(std::time::SystemTime::now())
 }
 
 pub(super) fn warnings(
@@ -112,11 +89,10 @@ pub(crate) fn run(root: &Path) -> io::Result<i32> {
         "inner command: {} test-run --package {package}",
         framework.to_string_lossy()
     )?;
-    let mut edit = SourceEdit::begin(source)?;
+    touch_source(&source)?;
     let started = Instant::now();
     let result = xtask::gate::timing::execute("inner loop (edit+test)", &command, true, None);
     let inner = started.elapsed().as_secs_f64();
-    edit.restore()?;
     let code = result?;
     if code != 0 {
         return Ok(code);
@@ -163,13 +139,14 @@ mod tests {
             xtask::gate::scheduler::directory(&env::temp_dir().join("model-timing-controls"))?;
         let path = directory.join("source.rs");
         fs::write(&path, b"original content\n")?;
-        {
-            let _edit = SourceEdit::begin(path.clone())?;
-            assert_ne!(fs::read(&path)?, b"original content\n");
-            let mut command = Command::new("/bin/sh");
-            command.args(["-c", "exit 37"]);
-            assert_eq!(xtask::gate::timing::execute("failed edit", &command, true, None)?, 37);
-        }
+        let old_mtime = std::time::SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(10);
+        fs::OpenOptions::new().write(true).open(&path)?.set_modified(old_mtime)?;
+        touch_source(&path)?;
+        assert_eq!(fs::read(&path)?, b"original content\n");
+        assert!(fs::metadata(&path)?.modified()? > old_mtime);
+        let mut command = Command::new("/bin/sh");
+        command.args(["-c", "exit 37"]);
+        assert_eq!(xtask::gate::timing::execute("failed edit", &command, true, None)?, 37);
         assert_eq!(fs::read(&path)?, b"original content\n");
         fs::remove_dir_all(directory)?;
         Ok(())
