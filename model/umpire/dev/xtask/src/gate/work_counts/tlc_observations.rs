@@ -267,7 +267,7 @@ impl Collector {
     }
     pub(super) fn record_pass(&mut self, name: String, binary_sha: String) -> io::Result<()> {
         require(
-            name.starts_with("umpire-backend-tlc::umpire_backend_tlc$")
+            name.starts_with("umpire-tlc::umpire_tlc$")
                 && digest(&binary_sha)
                 && name
                     .split_once('$')
@@ -751,10 +751,7 @@ mod tests {
         if pass {
             let observed = String::from_utf8(unhex(authority["test_hex"].as_str().unwrap())?)
                 .map_err(io::Error::other)?;
-            collector.record_pass(
-                format!("umpire-backend-tlc::umpire_backend_tlc${observed}"),
-                executable_sha,
-            )?;
+            collector.record_pass(format!("umpire-tlc::umpire_tlc${observed}"), executable_sha)?;
         }
         if unknown {
             collector.ingest(&["1", "tlc-attempt", "101-0", "probe"])?;
