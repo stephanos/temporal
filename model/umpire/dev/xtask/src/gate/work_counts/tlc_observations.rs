@@ -138,7 +138,7 @@ impl Collector {
         Ok(true)
     }
     pub(super) fn record_pass(&mut self, name: String, binary_sha: String) -> io::Result<()> {
-        require(digest(&binary_sha) && name.split_once('$').is_some_and(|(binary, test)| !binary.is_empty() && !test.is_empty()))?;
+        require(name.starts_with("umpire-backend-tlc::umpire_backend_tlc$") && digest(&binary_sha) && name.split_once('$').is_some_and(|(binary, test)| !binary.is_empty() && !test.is_empty()))?;
         require(self.passed.insert((name, binary_sha)))
     }
     pub(super) fn finish(&self, directory: &Path) -> io::Result<(Option<u64>, Option<u64>)> {
@@ -252,6 +252,21 @@ impl Fixture {
             }
         }
         let test = String::from_utf8(unhex(&self.test_hex)?).map_err(io::Error::other)?;
+        let parents: &[&str] = if self.family == "tlc-cache-v1" { &[
+            "runner::cache_tests::populated_cache_hits_and_authoritative_disable_runs_fresh",
+            "runner::cache_tests::verified_configuration_publishes_despite_refuted_sibling",
+            "runner::cache_tests::identity_refreshes_between_module_calls_and_is_shared_between_configurations",
+            "runner::cache_tests::cache_root_refusal_reports_its_cause_without_following_symlinks",
+            "runner::cache_tests::failures_refutations_and_incomplete_modules_never_publish",
+        ] } else { &[
+            "runner::batch_tests::batch_protocol_requires_complete_selected_evidence",
+            "runner::batch_tests::batch_resource_refusal_does_not_launch_singleton_recovery",
+            "runner::batch_tests::singleton_recovery_measures_worker_peak_and_owns_each_scratch",
+            "runner::batch_tests::singleton_output_budget_precedes_later_evaluation_and_stops_new_waves",
+            "runner::batch_tests::singleton_evaluation_stops_recovery_after_current_wave",
+            "runner::fixture::closed_protocol_treats_case_as_data_and_clears_shell_startup_environment",
+        ] };
+        require(parents.contains(&test.as_str()))?;
         path(&self.test_executable_path_hex)?;
         require(digest(&self.test_executable_sha256) && passed.iter().filter(|(name, sha)| {
             sha == &self.test_executable_sha256 && name.split_once('$').is_some_and(|(_, observed)| observed == test)
