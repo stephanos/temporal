@@ -1,8 +1,8 @@
 //! Counts observed by native runners, without expected-count substitution.
 #[cfg(test)]
 mod go_tests;
-mod tlc_observations;
 mod count_evidence;
+mod tlc_observations;
 pub use count_evidence::{AuthorityRef, CountEvidence, MetricEvidence, NoWorkReason};
 
 use serde::{Deserialize, Serialize};
@@ -157,7 +157,14 @@ pub fn validate_receipt(receipt: &serde_json::Value) -> io::Result<()> {
         return Err(io::Error::other("invalid count observation status"));
     }
     let value = receipt.get("counts").ok_or_else(|| io::Error::other("missing count object"))?;
+    let evidence = receipt
+        .get("count_evidence")
+        .map(|value| serde_json::from_value::<CountEvidence>(value.clone()))
+        .transpose()?;
     if value.is_null() {
+        if let Some(evidence) = evidence {
+            evidence.validate_counts(&WorkCounts::default())?;
+        }
         if complete || error.as_str().is_none_or(str::is_empty) {
             return Err(io::Error::other("missing completed count object"));
         }
@@ -169,6 +176,9 @@ pub fn validate_receipt(receipt: &serde_json::Value) -> io::Result<()> {
     }
     let counts: WorkCounts = serde_json::from_value(value.clone())?;
     validate_totals(&counts, successful && receipt["stage"] == "tests")?;
+    if let Some(evidence) = evidence {
+        evidence.validate_counts(&counts)?;
+    }
     if complete && !error.is_null() {
         return Err(io::Error::other("successful receipt has incomplete observations"));
     }
