@@ -9,11 +9,22 @@ use std::{
         process::{CommandExt, ExitStatusExt},
     },
     path::{Path, PathBuf},
-    process::{Command, Stdio},
+    process::Command,
 };
 
+mod build_guests;
 mod gate;
+mod guest_routes;
+#[cfg(test)]
+mod model_controls;
+mod proto;
 mod quick;
+#[cfg(test)]
+#[path = "../tests/retired_names.rs"]
+mod retired_name_policy_controls;
+mod retired_names;
+#[cfg(test)]
+mod script_control_support;
 mod test_run;
 
 fn run() -> io::Result<i32> {
@@ -27,7 +38,18 @@ fn run() -> io::Result<i32> {
         }
         Some(xtask::gate::lease::JvmLease::inherited_or_acquire()?)
     } else if supplied.first().is_some_and(|arg| {
-        ["gate", "test-run", "quick", "update", "time", "validate"].iter().any(|name| arg == name)
+        [
+            "gate",
+            "test-run",
+            "quick",
+            "update",
+            "time",
+            "validate",
+            "timing-controls",
+            "proto-controls",
+        ]
+        .iter()
+        .any(|name| arg == name)
     }) && !supplied.iter().any(|arg| arg == "--list")
     {
         return xtask::gate::supervise(supplied).map_err(io::Error::other);
@@ -59,6 +81,30 @@ fn run() -> io::Result<i32> {
             )),
         };
     }
+    if supplied.first().is_some_and(|command| command == "time" || command == "retired-names") {
+        if supplied.len() != 1 {
+            return Err(io::Error::other("usage: cargo xtask <time|retired-names>"));
+        }
+        return if supplied[0] == "time" {
+            gate::timing::run(&root)
+        } else {
+            Ok(retired_names::run(
+                root.parent().ok_or_else(|| io::Error::other("missing repository root"))?,
+            ))
+        };
+    }
+    if supplied
+        .first()
+        .is_some_and(|command| command == "timing-controls" || command == "proto-controls")
+    {
+        if supplied.len() != 1 {
+            return Err(io::Error::other("usage: cargo xtask <timing-controls|proto-controls>"));
+        }
+        return gate::control_tests(
+            &root,
+            supplied[0].to_str().ok_or_else(|| io::Error::other("control name must be UTF-8"))?,
+        );
+    }
     let caller = env::current_dir()?;
     let cargo_home = umpire_guest_driver::context::cargo_home(&caller).map_err(io::Error::other)?;
     let mut arguments = supplied;
@@ -67,34 +113,9 @@ fn run() -> io::Result<i32> {
     }
     let guest =
         arguments.first().is_some_and(|command| command == "guest" || command == "guest-freshness");
-    let mut workspace = caller.clone();
-    if guest {
-        workspace.clone_from(&root);
-        if arguments.get(1).is_some_and(|package| {
-            [
-                "umpire-stock-guest",
-                "umpire-kettle-guest",
-                "umpire-control-guest",
-                "umpire-caught-panic-guest",
-                "umpire-overflow-guest",
-            ]
-            .iter()
-            .any(|known| package == known)
-        }) {
-            workspace.push("umpire");
-        }
-        if let Some(output) = arguments.get_mut(2) {
-            let path = Path::new(output);
-            if path.is_relative() {
-                *output = caller.join(path).into_os_string();
-            }
-        }
-    }
-    let output = Command::new("/bin/bash")
-        .arg(root.join("scripts/xtask.sh"))
-        .env("CARGO_HOME", &cargo_home)
-        .stderr(Stdio::inherit())
-        .output()?;
+    let workspace =
+        if guest { guest_routes::prepare(&root, &caller, &mut arguments) } else { caller.clone() };
+    let output = gate::framework_executable(&root)?;
     if !output.status.success() {
         return Ok(output
             .status
@@ -103,15 +124,29 @@ fn run() -> io::Result<i32> {
     }
     let path = output.stdout.strip_suffix(b"\n").unwrap_or(&output.stdout);
     let tool = PathBuf::from(OsString::from_vec(path.to_owned()));
-    let mut command = Command::new(tool);
-    command.args(arguments).current_dir(workspace).env("CARGO_HOME", cargo_home);
-    if guest && let Some(target) = env::var_os("CARGO_TARGET_DIR") {
-        let target = PathBuf::from(target);
-        command.env(
-            "CARGO_TARGET_DIR",
-            if target.is_absolute() { target } else { caller.join(target) },
-        );
+    if arguments.first().is_some_and(|command| command == "proto-go") {
+        return proto::run(&root, &tool, &arguments[1..]);
     }
+    if arguments.first().is_some_and(|command| command == "build-guests") {
+        if arguments.len() != 1 {
+            return Err(io::Error::other("usage: cargo xtask build-guests"));
+        }
+        return build_guests::run(&root, &tool.with_file_name("umpire-guest-driver"));
+    }
+    let mut command = if guest {
+        guest_routes::command(
+            &tool,
+            &workspace,
+            &caller,
+            &arguments,
+            &cargo_home,
+            env::var_os("CARGO_TARGET_DIR"),
+        )
+    } else {
+        let mut command = Command::new(tool);
+        command.args(arguments).current_dir(workspace).env("CARGO_HOME", cargo_home);
+        command
+    };
     Err(command.exec())
 }
 

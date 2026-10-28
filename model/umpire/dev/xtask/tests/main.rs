@@ -8,6 +8,7 @@ mod controller_counts;
 mod gate_graph;
 #[path = "gate_wiring.rs"]
 mod gate_wiring;
+mod native_leaves;
 #[path = "retired_names.rs"]
 mod retired_names;
 pub use xtask::{Error, Result, apalache_pins, support};

@@ -16,6 +16,7 @@ mod boundary;
 pub mod lease;
 pub mod scheduler;
 mod standalone;
+pub mod timing;
 pub mod work_counts;
 
 struct Gate {
@@ -82,23 +83,56 @@ impl Gate {
         );
         Ok(command)
     }
-    fn script(&self, path: &str, args: &[&str]) -> Command {
-        let mut command = self.command("/bin/bash");
-        command.arg(self.root.join("scripts").join(path)).args(args);
-        command
+    fn native(&self, args: &[&str]) -> Result<Command> {
+        let mut command = self.command(env::current_exe()?);
+        command.args(args);
+        Ok(command)
+    }
+    fn controls(&self, name: &str, filters: &[&str]) -> Result<i32> {
+        let selections: Vec<_> = filters
+            .iter()
+            .map(|filter| crate::test_run::Selection {
+                package: "xtask",
+                target: None,
+                filter: Some(filter),
+                doctests: false,
+            })
+            .collect();
+        let command = |args: &[String]| {
+            let mut command = self.cargo(&[]);
+            command.args(args);
+            crate::test_run::configure(
+                &mut command,
+                self.required,
+                env::var_os("UMPIRE_APALACHE").as_deref() == Some(OsStr::new("require")),
+            );
+            command
+        };
+        crate::test_run::run_selected_observed_with(
+            &selections,
+            &std::collections::BTreeSet::new(),
+            |args| {
+                let output = scheduler::execute(&command(args), false, true)?;
+                Ok((
+                    output
+                        .status
+                        .code()
+                        .unwrap_or_else(|| 128 + output.status.signal().unwrap_or(0)),
+                    output.stdout,
+                ))
+            },
+            |_, args, inventory| {
+                let started = Instant::now();
+                let status = timing::capture(&command(args), self.timed, inventory)?.status;
+                let code = status.code().unwrap_or_else(|| 128 + status.signal().unwrap_or(0));
+                self.report(name, code, started.elapsed().as_secs_f64())?;
+                Ok(code)
+            },
+        )
     }
     fn execute(&self, name: &str, command: &Command) -> Result<i32> {
         let started = Instant::now();
-        let status = if self.timed {
-            let output = scheduler::execute(command, false, false)?;
-            if !output.status.success() {
-                io::stderr().write_all(&output.stdout)?;
-                io::stderr().write_all(&output.stderr)?;
-            }
-            output.status
-        } else {
-            scheduler::execute(command, true, true)?.status
-        };
+        let status = timing::capture(command, self.timed, None)?.status;
         let code = status.code().unwrap_or_else(|| 128 + status.signal().unwrap_or(0));
         self.report(name, code, started.elapsed().as_secs_f64())?;
         Ok(code)
@@ -121,7 +155,7 @@ impl Gate {
     }
     fn stage(&self, name: &str) -> Result<i32> {
         let command = match name {
-            "proto-tools" => self.script("proto-tools.sh", &[]),
+            "proto-tools" => self.native(&["proto-tools"])?,
             "retired-names" => {
                 let code = boundary::retired(&self.root, &self.target)?;
                 if code != 0 {
@@ -132,16 +166,30 @@ impl Gate {
             "source-boundary" => return self.boundary(),
             "standalone" => return standalone::run(self),
             "timing-controls" => {
-                let code = self.execute(name, &self.script("test-time-gate.sh", &[]))?;
-                if code != 0 {
-                    return Ok(code);
-                }
-                self.script("tests/build-guests-controls.sh", &[])
+                let code = self.controls(name, &["native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup"])?;
+                return if code == 0 {
+                    self.controls(name, &[
+                        "build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children",
+                        "build_guests::path_controls::guest_and_native_statuses_stop_without_following_children",
+                    ])
+                } else {
+                    Ok(code)
+                };
             }
-            "capability-controls" => self.script("test-capabilities.sh", &[]),
-            "protobuf-controls" => self.script("tests/proto-go.sh", &[]),
-            "protobuf-freshness" => self.script("proto-go.sh", &["core", "--check"]),
-            "kettle-protobuf-freshness" => self.script("proto-go.sh", &["kettle", "--check"]),
+            "capability-controls" => {
+                return self.controls(
+                    name,
+                    &["native_leaves::capability_controls_enforce_core_and_unsafe_policies"],
+                );
+            }
+            "protobuf-controls" => {
+                return self.controls(
+                    name,
+                    &["proto::controls::tests::native_protobuf_behavior_controls"],
+                );
+            }
+            "protobuf-freshness" => self.native(&["proto-go", "core", "--check"])?,
+            "kettle-protobuf-freshness" => self.native(&["proto-go", "kettle", "--check"])?,
             "fmt" => self.cargo(&["fmt", "--all", "--check"]),
             "clippy" => self.cargo(&[
                 "clippy",
@@ -182,7 +230,7 @@ impl Gate {
                 "-D",
                 "warnings",
             ]),
-            "wasm-guest" => self.script("tests/build-guests.sh", &[]),
+            "wasm-guest" => self.native(&["build-guests"])?,
             "go-host" | "kettle-go-host" => {
                 let mut c = self.command("mise");
                 c.args(["exec", "--", "go", "-C"])

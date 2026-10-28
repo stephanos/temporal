@@ -45,10 +45,9 @@ impl Runner {
             )?;
         }
         let mut stdout = Vec::new();
-        let mut status = 0;
-        if command.get_program() == "mise" {
+        let status = if command.get_program() == "mise" {
             require(args.starts_with(&["exec".into(), "--".into()]), "mise execution prefix")?;
-            status = self.failure;
+            let status = self.failure;
             if status == 0 && args.get(2).is_some_and(|arg| arg == "go") {
                 require(args.get(3).is_some_and(|arg| arg == "install"), "Go plugin installation")?;
                 let name = match args.get(4).and_then(|arg| arg.to_str()) {
@@ -60,7 +59,7 @@ impl Runner {
                 };
                 let gobin = command
                     .get_envs()
-                    .find(|(key, _)| key == "GOBIN")
+                    .find(|(key, _)| *key == "GOBIN")
                     .and_then(|(_, value)| value)
                     .ok_or_else(|| Error::Invalid("missing staging directory".into()))?;
                 executable(&Path::new(gobin).join(name))?;
@@ -78,12 +77,12 @@ impl Runner {
                 fs::create_dir_all(output.join("umpire"))?;
                 fs::write(output.join("umpire/generated.go"), b"generated\n")?;
             }
+            status
         } else {
             require(args == [OsString::from("--version")], "generator receives version flag")?;
             let grpc = Path::new(command.get_program())
                 .file_name()
                 .is_some_and(|name| name.to_string_lossy().contains("grpc"));
-            status = self.version_status;
             stdout = if self.wrong_version || (grpc && self.wrong_grpc) {
                 b"wrong\n".to_vec()
             } else if grpc {
@@ -93,7 +92,8 @@ impl Runner {
             } else {
                 b"protoc-gen-go v1.36.6\n".to_vec()
             };
-        }
+            self.version_status
+        };
         Ok(Output {
             status: std::process::ExitStatus::from_raw(status << 8),
             stdout,
@@ -224,8 +224,16 @@ pub fn run() -> Result<i32> {
         "consumer generation",
     )?;
     require(
+        fs::read(root.join("consumer/host.go"))? == b"handwritten host",
+        "generation preserves handwritten host",
+    )?;
+    require(
         generate_with(&context, &spec, true, &mut |command| runner.execute(command))? == 0,
         "consumer ignores handwritten sources outside subtree",
+    )?;
+    require(
+        fs::read(root.join("consumer/host.go"))? == b"handwritten host",
+        "freshness preserves handwritten host",
     )?;
     fs::write(root.join("consumer/umpire/stale.go"), "stale")?;
     require(

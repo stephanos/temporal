@@ -19,6 +19,7 @@ toml.workspace = true
 sha2.workspace = true
 libc.workspace = true
 tempfile.workspace = true
+regex.workspace = true
 
 umpire-guest-driver = { path = "../guest-driver" }
 umpire-backend-process = { path = "../../backends/process" }

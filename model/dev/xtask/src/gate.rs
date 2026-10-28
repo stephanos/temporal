@@ -8,6 +8,9 @@ use std::{
 };
 use xtask::gate::work_counts;
 
+pub(crate) mod timing;
+pub(crate) mod timing_controls;
+
 fn admit_command(name: &str, command: &mut Command) -> io::Result<()> {
     let caller = std::env::current_dir()?;
     let home = umpire_guest_driver::context::cargo_home(&caller).map_err(io::Error::other)?;
@@ -59,36 +62,20 @@ fn stage_with_inventory(
     } else {
         None
     };
-    let observed_test = observed.is_some();
     let output = if let Some(output) = observed {
         io::stdout().write_all(&output.stdout)?;
         io::stderr().write_all(&output.stderr)?;
         Ok(output)
-    } else if std::env::var_os("UMPIRE_TIME_STEPS").is_some_and(|value| value == "1") {
-        let mut timer = Command::new("/bin/bash");
-        timer
-            .arg(root.join("umpire/scripts/time-gate.sh"))
-            .args(["--step", name])
-            .arg(command.get_program())
-            .args(command.get_args())
-            .current_dir(root);
-        for (key, value) in command.get_envs() {
-            if let Some(value) = value {
-                timer.env(key, value);
-            } else {
-                timer.env_remove(key);
-            }
-        }
-        scheduler::execute_with_inventory(&timer, true, true, inventory)
     } else {
-        scheduler::execute_with_inventory(command.current_dir(root), true, true, inventory)
+        xtask::gate::timing::capture(
+            &command,
+            std::env::var_os("UMPIRE_TIME_STEPS").is_some_and(|value| value == "1"),
+            inventory,
+        )
     }
     .map_err(|error| io::Error::other(format!("Temporal stage {name}: {error}")))?;
     let code = output.status.code().unwrap_or_else(|| 128 + output.status.signal().unwrap_or(0));
-    if observed_test
-        && code == 0
-        && std::env::var_os("UMPIRE_TIME_STEPS").is_some_and(|value| value == "1")
-    {
+    if code == 0 && std::env::var_os("UMPIRE_TIME_STEPS").is_some_and(|value| value == "1") {
         writeln!(io::stdout(), "{name:<32} {:6.3}s", started.elapsed().as_secs_f64())?;
     }
     if code != 0 {
@@ -100,12 +87,6 @@ fn stage_with_inventory(
 pub(crate) fn cargo(arguments: &[&str]) -> Command {
     let mut command = Command::new("mise");
     command.args(["exec", "--", "cargo"]).args(arguments);
-    command
-}
-
-fn script(root: &Path, script: &str, arguments: &[&str]) -> Command {
-    let mut command = Command::new("/bin/bash");
-    command.arg(root.join("scripts").join(script)).args(arguments);
     command
 }
 
@@ -175,7 +156,7 @@ pub(crate) fn run(root: &Path) -> io::Result<i32> {
     scheduler::run(command, "model:all", &records, &expected)
 }
 
-fn framework_executable(root: &Path) -> io::Result<std::process::Output> {
+pub(crate) fn framework_executable(root: &Path) -> io::Result<std::process::Output> {
     let mut command = Command::new("/bin/bash");
     command
         .arg(root.join("scripts/xtask.sh"))
@@ -199,7 +180,66 @@ pub(crate) fn scheduled_stage(root: &Path, name: &str) -> io::Result<i32> {
     scheduler::scheduled(name, || run_stage(root, name))
 }
 
+pub(crate) fn control_tests(root: &Path, name: &str) -> io::Result<i32> {
+    let filters: &[&str] = match name {
+        "timing-controls" => &[
+            "gate::timing_controls::tests::soft_budget_defaults_equality_overrides_and_warning_order",
+            "model_controls::shipping_model_recipes_with_disposable_children",
+            "guest_routes::tests::seven_packages_two_entries_preserve_caller_paths_and_exact_arguments",
+            "guest_routes::tests::non_unicode_output_and_target_are_lossless",
+            "guest_routes::tests::raw_arguments_check_output_and_failure_status_survive_execution",
+            "build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest",
+        ],
+        "proto-controls" => &[
+            "proto::tests::raw_repository_and_tool_paths_remain_lossless",
+            "proto::tests::only_temporal_and_optional_check_are_admitted_before_execution",
+            "proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status",
+        ],
+        _ => return Err(io::Error::other(format!("unknown native control family: {name}"))),
+    };
+    let selections: Vec<_> = filters
+        .iter()
+        .map(|filter| xtask::test_run::Selection {
+            package: "temporal-xtask",
+            target: None,
+            filter: Some(filter),
+            doctests: false,
+        })
+        .collect();
+    let command = |arguments: &[String]| {
+        let mut command = cargo(&[]);
+        command.args(arguments).current_dir(root);
+        admit_command("tests", &mut command)?;
+        Ok::<_, io::Error>(command)
+    };
+    xtask::test_run::run_selected_observed_with(
+        &selections,
+        &std::collections::BTreeSet::new(),
+        |arguments| {
+            let output = scheduler::execute(&command(arguments)?, false, false)?;
+            io::stderr().write_all(&output.stderr)?;
+            Ok((
+                output.status.code().unwrap_or_else(|| 128 + output.status.signal().unwrap_or(0)),
+                output.stdout,
+            ))
+        },
+        |_, arguments, inventory| {
+            stage_with_inventory(root, name, command(arguments)?, inventory).map_err(Into::into)
+        },
+    )
+    .map_err(io::Error::other)
+}
+
 pub(crate) fn run_stage(root: &Path, name: &str) -> io::Result<i32> {
+    run_stage_with_tool(root, name, &std::env::current_exe()?)
+}
+
+fn run_stage_with_tool(root: &Path, name: &str, tool: &Path) -> io::Result<i32> {
+    let native = |arguments: &[&str]| {
+        let mut command = Command::new(tool);
+        command.args(arguments);
+        command
+    };
     let command = match name {
         "temporal-prerequisites" => {
             let mut command = Command::new("mise");
@@ -212,12 +252,12 @@ pub(crate) fn run_stage(root: &Path, name: &str) -> io::Result<i32> {
             command
         }
         "temporal-guest-freshness" => {
-            let mut command = script(root, "guest-freshness.sh", &["umpire-temporal-guest"]);
+            let mut command = native(&["guest-freshness", "umpire-temporal-guest"]);
             command.arg(root.join("temporal/hosts/go/umpire_temporal_guest.wasm"));
             command
         }
-        "retired-names" => script(root, "retired-names.sh", &[]),
-        "timing-controls" => script(root, "test-time-gate.sh", &[]),
+        "retired-names" => native(&["retired-names"]),
+        "timing-controls" => native(&["timing-controls"]),
         "source-boundary" => {
             use std::collections::BTreeSet;
             let selection = xtask::test_run::Selection {
@@ -253,8 +293,8 @@ pub(crate) fn run_stage(root: &Path, name: &str) -> io::Result<i32> {
             )
             .map_err(io::Error::other);
         }
-        "protobuf-controls" => script(root, "tests/proto-go.sh", &[]),
-        "temporal-protobuf-freshness" => script(root, "proto-go.sh", &["temporal", "--check"]),
+        "protobuf-controls" => native(&["proto-controls"]),
+        "temporal-protobuf-freshness" => native(&["proto-go", "temporal", "--check"]),
         "fmt" => cargo(&["fmt", "--all", "--check"]),
         "clippy" => cargo(&[
             "clippy",
@@ -271,7 +311,7 @@ pub(crate) fn run_stage(root: &Path, name: &str) -> io::Result<i32> {
             command
         }
         "tests" => return crate::test_run::run(root),
-        "wasm-guest" => script(root, "tests/build-guests.sh", &[]),
+        "wasm-guest" => native(&["build-guests"]),
         "temporal-go-host" => {
             let mut command = Command::new("mise");
             command

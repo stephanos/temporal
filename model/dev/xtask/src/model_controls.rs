@@ -493,7 +493,7 @@ fn wiring_controls(shipping: &str, tool: &Path) -> io::Result<()> {
 }
 
 /// Check maintained Make/CI wiring using fake child work, not live Model evidence.
-pub fn run(root: &Path, tool: &Path) -> io::Result<i32> {
+fn run(root: &Path, tool: &Path) -> io::Result<i32> {
     let repository =
         root.parent().ok_or_else(|| io::Error::other("missing Model repository parent"))?;
     ci_minimum(repository)?;

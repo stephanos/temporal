@@ -6,7 +6,6 @@ use std::{
     io::{self, Write},
     os::unix::ffi::OsStrExt,
     path::{Path, PathBuf},
-    process::Command,
 };
 const POLICY: &str = "dev/gate/policy/framework-boundary.txt";
 #[derive(Deserialize)]
@@ -481,47 +480,21 @@ pub(super) fn metadata(root: &Path, bytes: &[u8]) -> Result<()> {
 }
 pub(super) fn retired(root: &Path, target: &Path) -> Result<i32> {
     let p = policy(root)?;
-    let mut records = Vec::new();
-    for file in files(root, target)? {
-        let relative = file.strip_prefix(root).map_err(|e| Error::Invalid(e.to_string()))?;
-        if relative == Path::new(POLICY) {
-            continue;
-        }
-        let output = Command::new("grep")
-            .args(["-a", "-n", "-E", "--", &p.retired_pattern])
-            .arg(&file)
-            .env("UMPIRE_QUICK_CACHE", "0")
-            .env("UMPIRE_CACHE_DISABLE", "1")
-            .output()?;
-        match output.status.code() {
-            Some(0) => (),
-            Some(1) => continue,
-            Some(code) => {
-                io::stderr().write_all(&output.stderr)?;
-                return Ok(code);
-            }
-            None => return Ok(2),
-        }
-        for record in output.stdout.split_inclusive(|b| *b == b'\n') {
-            let colon = record
-                .iter()
-                .position(|b| *b == b':')
-                .ok_or_else(|| Error::Invalid("malformed retired-name grep record".into()))?;
-            records.extend_from_slice(relative.as_os_str().as_bytes());
-            records.push(0);
-            records.extend_from_slice(&record[..colon]);
-            records.push(0);
-            records.extend_from_slice(&record[colon + 1..]);
-            if record.last() != Some(&b'\n') {
-                records.push(b'\n');
-            }
-        }
-    }
-    Ok(crate::retired_names::run(
+    let paths = files(root, target)?
+        .into_iter()
+        .filter(|file| file.strip_prefix(root).ok() != Some(Path::new(POLICY)))
+        .map(|file| {
+            let relative =
+                file.strip_prefix(root).map_err(|error| Error::Invalid(error.to_string()))?;
+            Ok((file.clone(), relative.as_os_str().as_bytes().to_vec()))
+        })
+        .collect::<Result<Vec<_>>>()?;
+    Ok(crate::retired_names::scan(
         OsStr::new(&p.retired_pattern),
-        io::Cursor::new(records),
+        &paths,
+        false,
         io::stdout().lock(),
-    ))
+    )?)
 }
 
 #[cfg(test)]

@@ -401,7 +401,7 @@ pub(super) fn run(gate: &Gate) -> Result<i32> {
     for (name, program, args) in [
         (
             "standalone-local-tools",
-            "mise",
+            std::ffi::OsString::from("mise"),
             vec![
                 "exec",
                 "--",
@@ -415,7 +415,7 @@ pub(super) fn run(gate: &Gate) -> Result<i32> {
                 "--bins",
             ],
         ),
-        ("standalone-tlc-tool", "/bin/bash", vec!["scripts/fetch-tlc.sh"]),
+        ("standalone-tlc-tool", target.join("debug/xtask").into_os_string(), vec!["fetch-tlc"]),
     ] {
         let mut command = clean_command(gate, &root, &target, program)?;
         command.args(args);
@@ -492,8 +492,6 @@ fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64
     for name in [
         "debug/xtask",
         "debug/umpire-guest-driver",
-        "xtask-bootstrap/debug/xtask",
-        "xtask-bootstrap/debug/umpire-guest-driver",
         "guest/panic-control-reports",
         "guest/current-contract-reports",
     ] {

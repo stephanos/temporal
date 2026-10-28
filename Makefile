@@ -464,7 +464,7 @@ umpire:
 
 .PHONY: umpire-guest umpire-check-model-slice umpire-check-model-gaps
 umpire-guest: $(API_BINPB)
-	@/bin/bash "$(CURDIR)/model/scripts/guest.sh" umpire-temporal-guest "$(CURDIR)/model/temporal/hosts/go/umpire_temporal_guest.wasm"
+	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- guest umpire-temporal-guest "$(CURDIR)/model/temporal/hosts/go/umpire_temporal_guest.wasm"
 
 umpire-check-model-slice:
 	@set -eu; \
@@ -1285,7 +1285,7 @@ model-update:
 
 model-time:
 	@printf $(COLOR) "Time the model feedback loop (fn-210 R30)..."
-	@$(CURDIR)/model/scripts/time-gate.sh
+	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- time
 
 model-validate:
 	@$(MAKE) UMPIRE_BACKENDS=require model-time

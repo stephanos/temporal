@@ -21,11 +21,17 @@ const GRPC: &str = "protoc-gen-go-grpc-v1.3.0";
 /// Paths are relative to the execution root unless absolute.
 /// Only the selected destination subtree participates in a freshness check.
 pub struct GoSpec {
+    /// Generated output directory.
     pub destination: PathBuf,
+    /// Protobuf import search roots.
     pub includes: Vec<PathBuf>,
+    /// Exact schema inputs selected by the caller.
     pub inputs: Vec<PathBuf>,
+    /// Whether generation also emits gRPC service bindings.
     pub grpc: bool,
+    /// Generated subtree compared without examining handwritten siblings.
     pub check_subtree: Option<PathBuf>,
+    /// Workspace that owns the admitted generator executables.
     pub plugin_root: PathBuf,
 }
 
@@ -199,7 +205,8 @@ fn snapshot(root: &Path) -> Result<BTreeMap<PathBuf, Option<String>>> {
         relative: &Path,
         result: &mut BTreeMap<PathBuf, Option<String>>,
     ) -> Result<()> {
-        let path = root.join(relative);
+        let path =
+            if relative.as_os_str().is_empty() { root.to_owned() } else { root.join(relative) };
         let metadata = fs::symlink_metadata(&path)?;
         if metadata.file_type().is_symlink() || (!metadata.is_file() && !metadata.is_dir()) {
             return Err(Error::Invalid(format!("not generated: {}", path.display())));

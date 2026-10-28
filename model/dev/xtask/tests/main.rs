@@ -2,7 +2,6 @@
 #![forbid(unsafe_code)]
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 mod make_paths;
-mod retired_names;
 #[path = "../../../umpire/dev/guest-driver/tests/pipeline/support.rs"]
 #[allow(dead_code)]
 mod support;
@@ -114,7 +113,11 @@ fn actual_make_freshness_recipe_propagates_stale_failure() {
     let makefile = fs::read_to_string(source.join("Makefile")).unwrap();
     let recipe = makefile
         .lines()
-        .find(|line| line.starts_with('\t') && line.contains("--bin temporal-xtask"))
+        .find(|line| {
+            line.starts_with('\t')
+                && line.contains("--bin temporal-xtask")
+                && line.ends_with("-- gate")
+        })
         .unwrap();
     fs::write(
         f.model.join("../freshness-control.mk"),

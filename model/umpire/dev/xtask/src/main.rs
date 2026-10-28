@@ -5,12 +5,12 @@ use std::{
     ffi::{OsStr, OsString},
     io::{self, Write},
     os::unix::process::{CommandExt, ExitStatusExt},
-    path::Path,
+    path::{Path, PathBuf},
     process::Command,
 };
 use umpire_guest_driver::context::{ToolRoot, cargo_home};
 
-fn guest(arguments: Vec<OsString>) -> xtask::Result<i32> {
+fn guest_driver() -> xtask::Result<(PathBuf, std::process::ExitStatus)> {
     let tools = ToolRoot::local()?;
     let cargo_home = cargo_home(&env::current_dir()?)?;
     let executable = env::current_exe()?;
@@ -48,13 +48,18 @@ fn guest(arguments: Vec<OsString>) -> xtask::Result<i32> {
     ] {
         build.env_remove(key);
     }
-    let status = build.status()?;
+    let status = xtask::gate::scheduler::execute(&build, true, true)?.status;
+    Ok((directory.join("umpire-guest-driver"), status))
+}
+
+fn guest(arguments: Vec<OsString>) -> xtask::Result<i32> {
+    let (driver, status) = guest_driver()?;
     if !status.success() {
         return Ok(status.code().unwrap_or_else(|| 128 + status.signal().unwrap_or(0)));
     }
-    Err(Command::new(directory.join("umpire-guest-driver"))
+    Err(Command::new(driver)
         .args(arguments)
-        .env("CARGO_HOME", cargo_home)
+        .env("CARGO_HOME", cargo_home(&env::current_dir()?)?)
         .exec()
         .into())
 }
@@ -79,8 +84,26 @@ fn run() -> xtask::Result<i32> {
     let mut arguments = supplied.into_iter();
     match arguments.next().as_deref() {
         Some(command) if command == OsStr::new("quick") => xtask::quick::run(arguments.collect()),
+        Some(command) if command == OsStr::new("time") => {
+            let arguments: Vec<_> = arguments.collect();
+            if arguments.first().is_some_and(|argument| argument == "--step") {
+                if arguments.len() < 3 {
+                    return Err(xtask::Error::Invalid(
+                        "usage: cargo xtask time --step NAME PROGRAM [ARG...]".into(),
+                    ));
+                }
+                let name = arguments[1].to_str().ok_or_else(|| {
+                    xtask::Error::Invalid("timing step name must be UTF-8".into())
+                })?;
+                let mut child = Command::new(&arguments[2]);
+                child.args(&arguments[3..]);
+                Ok(xtask::gate::timing::execute(name, &child, true, None)?)
+            } else {
+                xtask::gate::run("time", arguments)
+            }
+        }
         Some(command)
-            if ["gate", "fmt", "update", "time", "validate"]
+            if ["gate", "fmt", "update", "validate"]
                 .iter()
                 .any(|name| command == OsStr::new(name)) =>
         {
@@ -88,6 +111,31 @@ fn run() -> xtask::Result<i32> {
                 command.to_str().ok_or_else(|| xtask::Error::Invalid("command must be UTF-8".into()))?,
                 arguments.collect(),
             )
+        }
+        Some(command) if command == OsStr::new("proto-go") => {
+            xtask::proto::go(arguments.collect())
+        }
+        Some(command) if command == OsStr::new("proto-go-spec") => {
+            xtask::proto::go_spec(arguments.collect())
+        }
+        Some(command) if ["proto-tools", "proto-controls", "capability-controls", "timing-controls", "build-guests"].iter().any(|name| command == OsStr::new(name)) => {
+            if arguments.next().is_some() {
+                return Err(xtask::Error::Invalid(format!("usage: cargo xtask {}", command.to_string_lossy())));
+            }
+            match command.to_str() {
+                Some("proto-tools") => xtask::proto::tools(ToolRoot::local()?.path()),
+                Some("proto-controls") => xtask::proto::controls::run(),
+                Some("capability-controls") => xtask::capability_controls::run(ToolRoot::local()?.path()),
+                Some("timing-controls") => Ok(xtask::timing_controls::run(&env::current_exe()?)?),
+                Some("build-guests") => {
+                    let (driver, status) = guest_driver()?;
+                    if !status.success() {
+                        return Ok(status.code().unwrap_or_else(|| 128 + status.signal().unwrap_or(0)));
+                    }
+                    xtask::build_guests::run(ToolRoot::local()?.path(), &driver)
+                },
+                _ => unreachable!(),
+            }
         }
         Some(command) if command == OsStr::new("test-run") => {
             let args: Vec<_> = arguments.collect();
@@ -138,7 +186,7 @@ fn run() -> xtask::Result<i32> {
             ))
         }
         _ => Err(xtask::Error::Invalid(
-            "commands: gate, quick, fmt, update, time, validate, test-run, fetch-tlc, fetch-apalache, guest, guest-freshness, guest-lock, retired-names".into(),
+            "commands: gate, quick, fmt, update, time, validate, test-run, fetch-tlc, fetch-apalache, guest, guest-freshness, guest-lock, retired-names, proto-tools, proto-go, proto-go-spec, proto-controls, capability-controls, timing-controls, build-guests".into(),
         )),
     }
 }
