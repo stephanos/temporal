@@ -367,6 +367,7 @@ mod tests {
         let assertion = "a".repeat(64);
         let renderer = bytes_sha256(RENDERER);
         let script = b"#!/bin/bash\nset -eu\nprintf fixture\n";
+        let test_name = if family == "tlc-cache-v1" { "runner::cache_tests::populated_cache_hits_and_authoritative_disable_runs_fresh" } else { "runner::batch_tests::batch_protocol_requires_complete_selected_evidence" };
         let case = if family == "tlc-cache-v1" { "Cache" } else { "Protocol { output: \"fixture\", status: 0 }" };
         let data: Vec<_> = if family == "tlc-cache-v1" {
             ["mode", "java-version", "tlc.jar"].into_iter().map(|name| {
@@ -381,12 +382,12 @@ mod tests {
             "script_sha256":bytes_sha256(script),"script_hex":hex(script),
             "interpreter_path_hex":interpreter["path_hex"],"interpreter_sha256":interpreter["sha256"],
             "tools":[artifact("/usr/bin/dirname")?,artifact("/usr/bin/cat")?,artifact("/usr/bin/grep")?],"data":data,
-            "test_hex":hex(b"parent::fixture"),"test_executable_path_hex":hex(executable.as_os_str().as_bytes()),
+            "test_hex":hex(test_name.as_bytes()),"test_executable_path_hex":hex(executable.as_os_str().as_bytes()),
             "test_executable_sha256":executable_sha,"environment_policy":"clean-path-c-v1","cause":"completed","exit":0
         });
         let authority_path = scope.authorities.join("100-0.json");
         let mut completion = json!({"version":1,"kind":"tlc-fixture-assertions","assertion_id":assertion,
-            "scope_sha256":scope.sha,"test_hex":hex(b"parent::fixture"),"test_executable_sha256":executable_sha,
+            "scope_sha256":scope.sha,"test_hex":hex(test_name.as_bytes()),"test_executable_sha256":executable_sha,
             "outcome":"assertions-completed","attempts":[]});
         modify(&mut authority, &mut completion);
         let bytes = serde_json::to_vec(&authority)?;
@@ -404,7 +405,7 @@ mod tests {
         collector.ingest(&["2","tlc-attempt","100-0","fixture","probe",&identity])?;
         collector.ingest(&["2","tlc-finish","100-0","fixture","completed",&hex(authority_path.as_os_str().as_bytes()),&authority_sha])?;
         collector.ingest(&["2","tlc-fixture-complete",&assertion,&hex(completion_path.as_os_str().as_bytes()),&bytes_sha256(&bytes)])?;
-        if pass { collector.record_pass("package::binary$parent::fixture".into(), executable_sha)?; }
+        if pass { collector.record_pass(format!("umpire-backend-tlc::umpire_backend_tlc${test_name}"), executable_sha)?; }
         if unknown {
             collector.ingest(&["1","tlc-attempt","101-0","probe"])?;
             collector.ingest(&["1","tlc-finish","101-0","0"])?;
@@ -440,6 +441,19 @@ mod tests {
         }).is_err());
         assert!(fixture_counts("tlc-cache-v1", true, false, |doc, _| {
             doc["data"][0]["bytes_hex"] = hex(b"changed").into();
+        }).is_err());
+    }
+
+    #[test]
+    fn rejects_other_binary_pass_and_crossed_fixture_parent_family() {
+        assert!(Collector::default().record_pass(
+            "other-package::other_binary$runner::batch_tests::batch_protocol_requires_complete_selected_evidence".into(),
+            "a".repeat(64),
+        ).is_err());
+        assert!(fixture_counts("tlc-batch-v1", true, false, |doc, completion| {
+            let test = hex(b"runner::cache_tests::populated_cache_hits_and_authoritative_disable_runs_fresh");
+            doc["test_hex"] = test.clone().into();
+            completion["test_hex"] = test.into();
         }).is_err());
     }
 
