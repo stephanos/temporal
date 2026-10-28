@@ -140,6 +140,7 @@ fn relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children() -
         for (target, expected_target) in [
             (Some(OsStr::new("target link")), &physical_target),
             (Some(absolute_target.as_os_str()), &physical_target),
+            (Some(OsStr::new("")), &default_target),
             (None, &default_target),
         ] {
             let log = fixture.scratch.path().join("calls");
