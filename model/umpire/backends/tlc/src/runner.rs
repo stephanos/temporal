@@ -337,7 +337,7 @@ impl Tlc {
         directory: &Path,
         label: &str,
         dump: Option<&Path>,
-    ) -> Result<(std::process::ExitStatus, String), umpire_backend_process::ProcessFailure> {
+    ) -> Result<(std::process::ExitStatus, String), Refusal> {
         match &self.origin {
             InvocationOrigin::Admitted(origin) => {
                 run_process_observed(command, directory, label, self.limits, dump, origin)
