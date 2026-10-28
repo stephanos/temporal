@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.16",
+  "baseline": "f0a82c7a969ec6fd1717a73f98536d3b9c6fe8ee",
+  "controls": [
+    {
+      "previous": "hash_before_parse_and_exact_regular_member_before_publication",
+      "owner": "mise HTTP checksum/extraction plus native JAR admission",
+      "evidence": [
+        "bad-download-checksum-tlc",
+        "bad-download-checksum-apalache",
+        "hostile-archive-traversal",
+        "hostile-archive-symlink",
+        "clean-tlc-execute",
+        "clean-apalache-execute"
+      ],
+      "changed_contract": "Mise extracts the complete pinned archive; native admission separately hashes the exact regular lib/apalache.jar. Selected-member-only extraction is retired."
+    },
+    {
+      "previous": "symlinks_in_every_component_including_dangling_are_refused",
+      "owner": "native config/data/installed-JAR path admission",
+      "evidence": [
+        "supplemental-path-controls.log",
+        "capture-cleanup.json",
+        "refuse-config-mise-lock",
+        "refuse-config-mise-apalache-lock"
+      ],
+      "changed_contract": null
+    },
+    {
+      "previous": "partial_wrong_and_nonregular_installations_never_download",
+      "owner": "native runtime hash/path/regular-file admission",
+      "evidence": [
+        "corrupt-installed-tlc",
+        "corrupt-runtime-tlc",
+        "partial-runtime-tlc",
+        "nonregular-runtime-tlc",
+        "corrupt-installed-apalache",
+        "corrupt-runtime-apalache",
+        "partial-runtime-apalache",
+        "nonregular-runtime-apalache"
+      ],
+      "changed_contract": "Explicit provision commands may invoke mise before rejecting an existing corrupt JAR. Runtime admission never installs, repairs or executes it. Actual mise installed-state success does not bypass native hashes."
+    },
+    {
+      "previous": "malicious_lock_types_refuse_without_following_or_blocking",
+      "owner": "retired native lock path; mise owns its coordination",
+      "evidence": [
+        "obsolete-fifo-lock-not-consumed",
+        "obsolete-symlink-lock-not-consumed",
+        "actual-concurrent-tlc-install"
+      ],
+      "changed_contract": "The old .install.lock no longer participates and is not opened. Mise owns version coordination; provider admits all owned data/config ancestors. Its internal lock implementation is not advertised as the retired native lock contract."
+    },
+    {
+      "previous": "download_failure_cleans_private_staging_and_never_publishes",
+      "owner": "native capture cleanup, mise download/extraction cleanup",
+      "evidence": [
+        "bad-download-checksum-tlc",
+        "bad-download-checksum-apalache",
+        "interrupted-download-cancelled",
+        "interrupted-download-retry",
+        "capture-cleanup.json"
+      ],
+      "changed_contract": "Native bounded capture scratch is removed on ordinary success/failure/timeout/cancellation. Mise leftovers are delegated and may remain; the former custom staging cleanup-error behavior is not promised. Shared install data is never removed by native capture cleanup."
+    },
+    {
+      "previous": "concurrent_installers_publish_once_and_return_same_path",
+      "owner": "mise version coordination under committed exact-version lockfiles",
+      "evidence": [
+        "concurrent-0.stderr",
+        "concurrent-1.stderr",
+        "actual-concurrent-tlc-install"
+      ],
+      "changed_contract": "Unlocked mise 2026.10.11 HTTP metadata-cache clearing races were observed [0,1]. Committed jar lockfiles and MISE_LOCKED=true skip that irrelevant version listing; the clean concurrent control returns [0,0], one installed and one already installed, with the same admitted path."
+    },
+    {
+      "previous": "native_curl_contract_and_download_failure_cleanup",
+      "owner": "stable native fetch CLI and scoped mise provider",
+      "evidence": [
+        "provider_uses_explicit_opt_in_and_surfaces_install_failure",
+        "required_optional_backend_fetch_failure_is_named_and_prevents_first_stage",
+        "inherited-selector-isolation",
+        "optional_apalache_is_prepared_before_combined_scheduling"
+      ],
+      "changed_contract": "Native curl/tar download and extraction are removed. Mise diagnostics go to stderr and native provider/admission failure remains status 1. No custom cache/copy/lock/retry/scheduler is added."
+    },
+    {
+      "previous": "native_dispatch_usage_failure_is_nonzero_and_structured",
+      "owner": "native fetch-tlc/fetch-apalache dispatcher",
+      "evidence": [
+        "dispatch_usage_failure_is_nonzero_and_structured"
+      ],
+      "changed_contract": null
+    },
+    {
+      "previous": "default skip, optional Apalache and no-auto-install policy",
+      "owner": "existing gate modes and scoped jar context",
+      "evidence": [
+        "missing-tlc",
+        "missing-apalache",
+        "default-tools",
+        "default-install",
+        "opt-in-tools",
+        "system-gate-controls.log"
+      ],
+      "changed_contract": null
+    },
+    {
+      "previous": "TLC cache/version/configuration-count instrumentation and owned process custody",
+      "owner": "unchanged reviewed task .17 producers and supervisor",
+      "evidence": [
+        "focused-locked.log",
+        "final-provider-unit.log",
+        "standalone renewal required"
+      ],
+      "changed_contract": "The existing capture loop receives an explicit descendant policy and routes through OwnedProcess; its observation start/finish and default Checker policy remain. Only TLC installation discovery and standalone's artifact path change."
+    },
+    {
+      "previous": "Native downloader accepted non-UTF8 Unix framework roots",
+      "owner": "Canonical jar-provider root admission only",
+      "evidence": [
+        "nonutf8-contract.json",
+        "nonutf8-relative-controls.json",
+        "nonutf8-investigation.json",
+        "nonutf8-red.log",
+        "nonutf8-green.log"
+      ],
+      "changed_contract": "Explicit InvalidInput before Mise/capture/data side effects for a non-UTF8 canonical provider root; both CLI fetch modes keep named status1 errors. ASCII aliases and relative-dot calls resolve to the effective root before this check. Pinned upstream settings decoding and actual-cwd template serialization abort in the tested absolute/relative contexts; absolute where output is lossy. No alternate cache/copy/alias/mount/FD layer is added. Guest-driver and other native raw-OS-path contracts are not narrowed."
+    },
+    {
+      "previous": "Native downloader accepted Unix colon paths without configuration discovery",
+      "owner": "Canonical jar-provider path-list admission",
+      "evidence": [
+        "colon-context.json",
+        "path-list-red.log",
+        "path-list-green.log",
+        "post-pathlist-checks.json"
+      ],
+      "changed_contract": "Canonical ceiling and trusted-config paths use std::env::join_paths. A path unrepresentable as one list entry receives InvalidInput/status1 before Mise/data/capture side effects. Raw Unix colon-root settings were observed loading the harmless parent configuration and repository configuration. Both tools reject the raw root, ASCII alias and relative-dot forms; supported UTF8 space/quote/metacharacter paths retain native OS argument handling. No custom escaping, aliases or additional cache/copy layer."
+    }
+  ],
+  "excluded_claims": [
+    "No broad final task .8 model-check/model-validate or timing claim",
+    "No Darwin runtime proof inferred from Linux",
+    "No hostile archive safety inferred solely from official release happy paths"
+  ]
+}

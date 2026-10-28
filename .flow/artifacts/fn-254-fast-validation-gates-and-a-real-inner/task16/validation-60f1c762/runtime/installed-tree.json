@@ -1,0 +1,75 @@
+{
+  "exact_versions": [
+    {
+      "path": "build/mise-jars/data/installs/http-tlc/1.7.4",
+      "kind": "directory",
+      "bytes": 96
+    },
+    {
+      "path": "build/mise-jars/data/installs/http-tlc/1.7.4/tla2tools.jar",
+      "kind": "regular",
+      "bytes": 2274532
+    },
+    {
+      "path": "build/mise-jars/data/installs/http-apalache/0.62.4",
+      "kind": "directory",
+      "bytes": 160
+    },
+    {
+      "path": "build/mise-jars/data/installs/http-apalache/0.62.4/bin",
+      "kind": "directory",
+      "bytes": 128
+    },
+    {
+      "path": "build/mise-jars/data/installs/http-apalache/0.62.4/lib",
+      "kind": "directory",
+      "bytes": 96
+    },
+    {
+      "path": "build/mise-jars/data/installs/http-apalache/0.62.4/LICENSE",
+      "kind": "regular",
+      "bytes": 11945
+    },
+    {
+      "path": "build/mise-jars/data/installs/http-apalache/0.62.4/bin/apalache-mc.bat",
+      "kind": "regular",
+      "bytes": 1649
+    },
+    {
+      "path": "build/mise-jars/data/installs/http-apalache/0.62.4/bin/apalache-mc",
+      "kind": "regular",
+      "bytes": 3388
+    },
+    {
+      "path": "build/mise-jars/data/installs/http-apalache/0.62.4/lib/apalache.jar",
+      "kind": "regular",
+      "bytes": 197019382
+    }
+  ],
+  "unadmitted_mise_aliases": [
+    {
+      "path": "build/mise-jars/data/installs/http-tlc/latest",
+      "target": "./1.7.4"
+    },
+    {
+      "path": "build/mise-jars/data/installs/http-tlc/1.7",
+      "target": "./1.7.4"
+    },
+    {
+      "path": "build/mise-jars/data/installs/http-tlc/1",
+      "target": "./1.7.4"
+    },
+    {
+      "path": "build/mise-jars/data/installs/http-apalache/latest",
+      "target": "./0.62.4"
+    },
+    {
+      "path": "build/mise-jars/data/installs/http-apalache/0",
+      "target": "./0.62.4"
+    },
+    {
+      "path": "build/mise-jars/data/installs/http-apalache/0.62",
+      "target": "./0.62.4"
+    }
+  ]
+}

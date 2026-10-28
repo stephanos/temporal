@@ -1,0 +1,522 @@
+{
+  "raw_source_sha256": "5e2b443048e01dba2ebe0396a39dbf8f76d9fd0b554a11625c70c938602e9cb4",
+  "cases": [
+    {
+      "label": "nonutf8-absolute-data-relative-settings-config",
+      "command": [
+        "mise",
+        "config",
+        "ls",
+        "--json"
+      ],
+      "cwd_hex": "2f746d702f756d706972652d666e32353431362d6e6f6e757466382d313836343933352f6672616d65776f726b2dff2f6d6973652d746f6f6c73",
+      "environment": {
+        "MISE_DATA_DIR": {
+          "bytes_hex": "2f746d702f756d706972652d666e32353431362d6e6f6e757466382d313836343933352f6672616d65776f726b2dff2f6275696c642f6d6973652d6a6172732f64617461",
+          "utf8": null,
+          "repr": "'/tmp/umpire-fn25416-nonutf8-1864935/framework-\\udcff/build/mise-jars/data'"
+        },
+        "MISE_CACHE_DIR": {
+          "bytes_hex": "2f746d702f756d706972652d666e32353431362d6e6f6e757466382d313836343933352f6672616d65776f726b2dff2f6275696c642f6d6973652d6a6172732f6361636865",
+          "utf8": null,
+          "repr": "'/tmp/umpire-fn25416-nonutf8-1864935/framework-\\udcff/build/mise-jars/cache'"
+        },
+        "MISE_STATE_DIR": {
+          "bytes_hex": "2f746d702f756d706972652d666e32353431362d6e6f6e757466382d313836343933352f6672616d65776f726b2dff2f6275696c642f6d6973652d6a6172732f7374617465",
+          "utf8": null,
+          "repr": "'/tmp/umpire-fn25416-nonutf8-1864935/framework-\\udcff/build/mise-jars/state'"
+        },
+        "MISE_CONFIG_DIR": {
+          "bytes_hex": "2f746d702f756d706972652d666e32353431362d6e6f6e757466382d313836343933352f6672616d65776f726b2dff2f6275696c642f6d6973652d6a6172732f636f6e666967",
+          "utf8": null,
+          "repr": "'/tmp/umpire-fn25416-nonutf8-1864935/framework-\\udcff/build/mise-jars/config'"
+        },
+        "MISE_GLOBAL_CONFIG_FILE": {
+          "bytes_hex": "656d7074792e746f6d6c",
+          "utf8": "empty.toml",
+          "repr": "'empty.toml'"
+        },
+        "MISE_SYSTEM_CONFIG_FILE": {
+          "bytes_hex": "656d7074792e746f6d6c",
+          "utf8": "empty.toml",
+          "repr": "'empty.toml'"
+        },
+        "MISE_CEILING_PATHS": {
+          "bytes_hex": "2e2e",
+          "utf8": "..",
+          "repr": "'..'"
+        },
+        "MISE_TRUSTED_CONFIG_PATHS": {
+          "bytes_hex": "2e",
+          "utf8": ".",
+          "repr": "'.'"
+        },
+        "MISE_AUTO_INSTALL": {
+          "bytes_hex": "66616c7365",
+          "utf8": "false",
+          "repr": "'false'"
+        },
+        "MISE_EXEC_AUTO_INSTALL": {
+          "bytes_hex": "66616c7365",
+          "utf8": "false",
+          "repr": "'false'"
+        },
+        "MISE_NOT_FOUND_AUTO_INSTALL": {
+          "bytes_hex": "66616c7365",
+          "utf8": "false",
+          "repr": "'false'"
+        },
+        "MISE_LOCKED": {
+          "bytes_hex": "74727565",
+          "utf8": "true",
+          "repr": "'true'"
+        },
+        "MISE_YES": {
+          "bytes_hex": "31",
+          "utf8": "1",
+          "repr": "'1'"
+        },
+        "MISE_COLOR": {
+          "bytes_hex": "30",
+          "utf8": "0",
+          "repr": "'0'"
+        }
+      },
+      "exit": -6,
+      "seconds": 0.009653000000980683,
+      "stdout_hex": ""
+    },
+    {
+      "label": "nonutf8-absolute-data-relative-settings-where",
+      "command": [
+        "mise",
+        "where",
+        "http:tlc@1.7.4"
+      ],
+      "cwd_hex": "2f746d702f756d706972652d666e32353431362d6e6f6e757466382d313836343933352f6672616d65776f726b2dff2f6d6973652d746f6f6c73",
+      "environment": {
+        "MISE_DATA_DIR": {
+          "bytes_hex": "2f746d702f756d706972652d666e32353431362d6e6f6e757466382d313836343933352f6672616d65776f726b2dff2f6275696c642f6d6973652d6a6172732f64617461",
+          "utf8": null,
+          "repr": "'/tmp/umpire-fn25416-nonutf8-1864935/framework-\\udcff/build/mise-jars/data'"
+        },
+        "MISE_CACHE_DIR": {
+          "bytes_hex": "2f746d702f756d706972652d666e32353431362d6e6f6e757466382d313836343933352f6672616d65776f726b2dff2f6275696c642f6d6973652d6a6172732f6361636865",
+          "utf8": null,
+          "repr": "'/tmp/umpire-fn25416-nonutf8-1864935/framework-\\udcff/build/mise-jars/cache'"
+        },
+        "MISE_STATE_DIR": {
+          "bytes_hex": "2f746d702f756d706972652d666e32353431362d6e6f6e757466382d313836343933352f6672616d65776f726b2dff2f6275696c642f6d6973652d6a6172732f7374617465",
+          "utf8": null,
+          "repr": "'/tmp/umpire-fn25416-nonutf8-1864935/framework-\\udcff/build/mise-jars/state'"
+        },
+        "MISE_CONFIG_DIR": {
+          "bytes_hex": "2f746d702f756d706972652d666e32353431362d6e6f6e757466382d313836343933352f6672616d65776f726b2dff2f6275696c642f6d6973652d6a6172732f636f6e666967",
+          "utf8": null,
+          "repr": "'/tmp/umpire-fn25416-nonutf8-1864935/framework-\\udcff/build/mise-jars/config'"
+        },
+        "MISE_GLOBAL_CONFIG_FILE": {
+          "bytes_hex": "656d7074792e746f6d6c",
+          "utf8": "empty.toml",
+          "repr": "'empty.toml'"
+        },
+        "MISE_SYSTEM_CONFIG_FILE": {
+          "bytes_hex": "656d7074792e746f6d6c",
+          "utf8": "empty.toml",
+          "repr": "'empty.toml'"
+        },
+        "MISE_CEILING_PATHS": {
+          "bytes_hex": "2e2e",
+          "utf8": "..",
+          "repr": "'..'"
+        },
+        "MISE_TRUSTED_CONFIG_PATHS": {
+          "bytes_hex": "2e",
+          "utf8": ".",
+          "repr": "'.'"
+        },
+        "MISE_AUTO_INSTALL": {
+          "bytes_hex": "66616c7365",
+          "utf8": "false",
+          "repr": "'false'"
+        },
+        "MISE_EXEC_AUTO_INSTALL": {
+          "bytes_hex": "66616c7365",
+          "utf8": "false",
+          "repr": "'false'"
+        },
+        "MISE_NOT_FOUND_AUTO_INSTALL": {
+          "bytes_hex": "66616c7365",
+          "utf8": "false",
+          "repr": "'false'"
+        },
+        "MISE_LOCKED": {
+          "bytes_hex": "74727565",
+          "utf8": "true",
+          "repr": "'true'"
+        },
+        "MISE_YES": {
+          "bytes_hex": "31",
+          "utf8": "1",
+          "repr": "'1'"
+        },
+        "MISE_COLOR": {
+          "bytes_hex": "30",
+          "utf8": "0",
+          "repr": "'0'"
+        }
+      },
+      "exit": -6,
+      "seconds": 0.005069332997663878,
+      "stdout_hex": ""
+    },
+    {
+      "label": "nonutf8-all-relative-config",
+      "command": [
+        "mise",
+        "config",
+        "ls",
+        "--json"
+      ],
+      "cwd_hex": "2f746d702f756d706972652d666e32353431362d6e6f6e757466382d313836343933352f6672616d65776f726b2dff2f6d6973652d746f6f6c73",
+      "environment": {
+        "MISE_DATA_DIR": {
+          "bytes_hex": "2e2e2f6275696c642f6d6973652d6a6172732f64617461",
+          "utf8": "../build/mise-jars/data",
+          "repr": "'../build/mise-jars/data'"
+        },
+        "MISE_CACHE_DIR": {
+          "bytes_hex": "2e2e2f6275696c642f6d6973652d6a6172732f6361636865",
+          "utf8": "../build/mise-jars/cache",
+          "repr": "'../build/mise-jars/cache'"
+        },
+        "MISE_STATE_DIR": {
+          "bytes_hex": "2e2e2f6275696c642f6d6973652d6a6172732f7374617465",
+          "utf8": "../build/mise-jars/state",
+          "repr": "'../build/mise-jars/state'"
+        },
+        "MISE_CONFIG_DIR": {
+          "bytes_hex": "2e2e2f6275696c642f6d6973652d6a6172732f636f6e666967",
+          "utf8": "../build/mise-jars/config",
+          "repr": "'../build/mise-jars/config'"
+        },
+        "MISE_GLOBAL_CONFIG_FILE": {
+          "bytes_hex": "656d7074792e746f6d6c",
+          "utf8": "empty.toml",
+          "repr": "'empty.toml'"
+        },
+        "MISE_SYSTEM_CONFIG_FILE": {
+          "bytes_hex": "656d7074792e746f6d6c",
+          "utf8": "empty.toml",
+          "repr": "'empty.toml'"
+        },
+        "MISE_CEILING_PATHS": {
+          "bytes_hex": "2e2e",
+          "utf8": "..",
+          "repr": "'..'"
+        },
+        "MISE_TRUSTED_CONFIG_PATHS": {
+          "bytes_hex": "2e",
+          "utf8": ".",
+          "repr": "'.'"
+        },
+        "MISE_AUTO_INSTALL": {
+          "bytes_hex": "66616c7365",
+          "utf8": "false",
+          "repr": "'false'"
+        },
+        "MISE_EXEC_AUTO_INSTALL": {
+          "bytes_hex": "66616c7365",
+          "utf8": "false",
+          "repr": "'false'"
+        },
+        "MISE_NOT_FOUND_AUTO_INSTALL": {
+          "bytes_hex": "66616c7365",
+          "utf8": "false",
+          "repr": "'false'"
+        },
+        "MISE_LOCKED": {
+          "bytes_hex": "74727565",
+          "utf8": "true",
+          "repr": "'true'"
+        },
+        "MISE_YES": {
+          "bytes_hex": "31",
+          "utf8": "1",
+          "repr": "'1'"
+        },
+        "MISE_COLOR": {
+          "bytes_hex": "30",
+          "utf8": "0",
+          "repr": "'0'"
+        }
+      },
+      "exit": -6,
+      "seconds": 0.0048893749990384094,
+      "stdout_hex": ""
+    },
+    {
+      "label": "nonutf8-all-relative-where",
+      "command": [
+        "mise",
+        "where",
+        "http:tlc@1.7.4"
+      ],
+      "cwd_hex": "2f746d702f756d706972652d666e32353431362d6e6f6e757466382d313836343933352f6672616d65776f726b2dff2f6d6973652d746f6f6c73",
+      "environment": {
+        "MISE_DATA_DIR": {
+          "bytes_hex": "2e2e2f6275696c642f6d6973652d6a6172732f64617461",
+          "utf8": "../build/mise-jars/data",
+          "repr": "'../build/mise-jars/data'"
+        },
+        "MISE_CACHE_DIR": {
+          "bytes_hex": "2e2e2f6275696c642f6d6973652d6a6172732f6361636865",
+          "utf8": "../build/mise-jars/cache",
+          "repr": "'../build/mise-jars/cache'"
+        },
+        "MISE_STATE_DIR": {
+          "bytes_hex": "2e2e2f6275696c642f6d6973652d6a6172732f7374617465",
+          "utf8": "../build/mise-jars/state",
+          "repr": "'../build/mise-jars/state'"
+        },
+        "MISE_CONFIG_DIR": {
+          "bytes_hex": "2e2e2f6275696c642f6d6973652d6a6172732f636f6e666967",
+          "utf8": "../build/mise-jars/config",
+          "repr": "'../build/mise-jars/config'"
+        },
+        "MISE_GLOBAL_CONFIG_FILE": {
+          "bytes_hex": "656d7074792e746f6d6c",
+          "utf8": "empty.toml",
+          "repr": "'empty.toml'"
+        },
+        "MISE_SYSTEM_CONFIG_FILE": {
+          "bytes_hex": "656d7074792e746f6d6c",
+          "utf8": "empty.toml",
+          "repr": "'empty.toml'"
+        },
+        "MISE_CEILING_PATHS": {
+          "bytes_hex": "2e2e",
+          "utf8": "..",
+          "repr": "'..'"
+        },
+        "MISE_TRUSTED_CONFIG_PATHS": {
+          "bytes_hex": "2e",
+          "utf8": ".",
+          "repr": "'.'"
+        },
+        "MISE_AUTO_INSTALL": {
+          "bytes_hex": "66616c7365",
+          "utf8": "false",
+          "repr": "'false'"
+        },
+        "MISE_EXEC_AUTO_INSTALL": {
+          "bytes_hex": "66616c7365",
+          "utf8": "false",
+          "repr": "'false'"
+        },
+        "MISE_NOT_FOUND_AUTO_INSTALL": {
+          "bytes_hex": "66616c7365",
+          "utf8": "false",
+          "repr": "'false'"
+        },
+        "MISE_LOCKED": {
+          "bytes_hex": "74727565",
+          "utf8": "true",
+          "repr": "'true'"
+        },
+        "MISE_YES": {
+          "bytes_hex": "31",
+          "utf8": "1",
+          "repr": "'1'"
+        },
+        "MISE_COLOR": {
+          "bytes_hex": "30",
+          "utf8": "0",
+          "repr": "'0'"
+        }
+      },
+      "exit": -6,
+      "seconds": 0.005624500001431443,
+      "stdout_hex": ""
+    },
+    {
+      "label": "nonutf8-explicit-local-config-config",
+      "command": [
+        "mise",
+        "config",
+        "ls",
+        "--json"
+      ],
+      "cwd_hex": "2f746d702f756d706972652d666e32353431362d6e6f6e757466382d313836343933352f6672616d65776f726b2dff2f6d6973652d746f6f6c73",
+      "environment": {
+        "MISE_DATA_DIR": {
+          "bytes_hex": "2e2e2f6275696c642f6d6973652d6a6172732f64617461",
+          "utf8": "../build/mise-jars/data",
+          "repr": "'../build/mise-jars/data'"
+        },
+        "MISE_CACHE_DIR": {
+          "bytes_hex": "2e2e2f6275696c642f6d6973652d6a6172732f6361636865",
+          "utf8": "../build/mise-jars/cache",
+          "repr": "'../build/mise-jars/cache'"
+        },
+        "MISE_STATE_DIR": {
+          "bytes_hex": "2e2e2f6275696c642f6d6973652d6a6172732f7374617465",
+          "utf8": "../build/mise-jars/state",
+          "repr": "'../build/mise-jars/state'"
+        },
+        "MISE_CONFIG_DIR": {
+          "bytes_hex": "2e2e2f6275696c642f6d6973652d6a6172732f636f6e666967",
+          "utf8": "../build/mise-jars/config",
+          "repr": "'../build/mise-jars/config'"
+        },
+        "MISE_GLOBAL_CONFIG_FILE": {
+          "bytes_hex": "656d7074792e746f6d6c",
+          "utf8": "empty.toml",
+          "repr": "'empty.toml'"
+        },
+        "MISE_SYSTEM_CONFIG_FILE": {
+          "bytes_hex": "656d7074792e746f6d6c",
+          "utf8": "empty.toml",
+          "repr": "'empty.toml'"
+        },
+        "MISE_CEILING_PATHS": {
+          "bytes_hex": "2e2e",
+          "utf8": "..",
+          "repr": "'..'"
+        },
+        "MISE_TRUSTED_CONFIG_PATHS": {
+          "bytes_hex": "2e",
+          "utf8": ".",
+          "repr": "'.'"
+        },
+        "MISE_AUTO_INSTALL": {
+          "bytes_hex": "66616c7365",
+          "utf8": "false",
+          "repr": "'false'"
+        },
+        "MISE_EXEC_AUTO_INSTALL": {
+          "bytes_hex": "66616c7365",
+          "utf8": "false",
+          "repr": "'false'"
+        },
+        "MISE_NOT_FOUND_AUTO_INSTALL": {
+          "bytes_hex": "66616c7365",
+          "utf8": "false",
+          "repr": "'false'"
+        },
+        "MISE_LOCKED": {
+          "bytes_hex": "74727565",
+          "utf8": "true",
+          "repr": "'true'"
+        },
+        "MISE_YES": {
+          "bytes_hex": "31",
+          "utf8": "1",
+          "repr": "'1'"
+        },
+        "MISE_COLOR": {
+          "bytes_hex": "30",
+          "utf8": "0",
+          "repr": "'0'"
+        },
+        "MISE_CONFIG_FILE": {
+          "bytes_hex": "6d6973652e746f6d6c",
+          "utf8": "mise.toml",
+          "repr": "'mise.toml'"
+        }
+      },
+      "exit": -6,
+      "seconds": 0.004755624999233987,
+      "stdout_hex": ""
+    },
+    {
+      "label": "nonutf8-explicit-local-config-where",
+      "command": [
+        "mise",
+        "where",
+        "http:tlc@1.7.4"
+      ],
+      "cwd_hex": "2f746d702f756d706972652d666e32353431362d6e6f6e757466382d313836343933352f6672616d65776f726b2dff2f6d6973652d746f6f6c73",
+      "environment": {
+        "MISE_DATA_DIR": {
+          "bytes_hex": "2e2e2f6275696c642f6d6973652d6a6172732f64617461",
+          "utf8": "../build/mise-jars/data",
+          "repr": "'../build/mise-jars/data'"
+        },
+        "MISE_CACHE_DIR": {
+          "bytes_hex": "2e2e2f6275696c642f6d6973652d6a6172732f6361636865",
+          "utf8": "../build/mise-jars/cache",
+          "repr": "'../build/mise-jars/cache'"
+        },
+        "MISE_STATE_DIR": {
+          "bytes_hex": "2e2e2f6275696c642f6d6973652d6a6172732f7374617465",
+          "utf8": "../build/mise-jars/state",
+          "repr": "'../build/mise-jars/state'"
+        },
+        "MISE_CONFIG_DIR": {
+          "bytes_hex": "2e2e2f6275696c642f6d6973652d6a6172732f636f6e666967",
+          "utf8": "../build/mise-jars/config",
+          "repr": "'../build/mise-jars/config'"
+        },
+        "MISE_GLOBAL_CONFIG_FILE": {
+          "bytes_hex": "656d7074792e746f6d6c",
+          "utf8": "empty.toml",
+          "repr": "'empty.toml'"
+        },
+        "MISE_SYSTEM_CONFIG_FILE": {
+          "bytes_hex": "656d7074792e746f6d6c",
+          "utf8": "empty.toml",
+          "repr": "'empty.toml'"
+        },
+        "MISE_CEILING_PATHS": {
+          "bytes_hex": "2e2e",
+          "utf8": "..",
+          "repr": "'..'"
+        },
+        "MISE_TRUSTED_CONFIG_PATHS": {
+          "bytes_hex": "2e",
+          "utf8": ".",
+          "repr": "'.'"
+        },
+        "MISE_AUTO_INSTALL": {
+          "bytes_hex": "66616c7365",
+          "utf8": "false",
+          "repr": "'false'"
+        },
+        "MISE_EXEC_AUTO_INSTALL": {
+          "bytes_hex": "66616c7365",
+          "utf8": "false",
+          "repr": "'false'"
+        },
+        "MISE_NOT_FOUND_AUTO_INSTALL": {
+          "bytes_hex": "66616c7365",
+          "utf8": "false",
+          "repr": "'false'"
+        },
+        "MISE_LOCKED": {
+          "bytes_hex": "74727565",
+          "utf8": "true",
+          "repr": "'true'"
+        },
+        "MISE_YES": {
+          "bytes_hex": "31",
+          "utf8": "1",
+          "repr": "'1'"
+        },
+        "MISE_COLOR": {
+          "bytes_hex": "30",
+          "utf8": "0",
+          "repr": "'0'"
+        },
+        "MISE_CONFIG_FILE": {
+          "bytes_hex": "6d6973652e746f6d6c",
+          "utf8": "mise.toml",
+          "repr": "'mise.toml'"
+        }
+      },
+      "exit": -6,
+      "seconds": 0.00565262499731034,
+      "stdout_hex": ""
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "command": [
+    "mise",
+    "config",
+    "ls",
+    "--json"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/colon-context/framework:colon/mise-tools",
+  "environment": {
+    "MISE_DATA_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/colon-context/framework:colon/build/mise-jars/data",
+    "MISE_CACHE_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/colon-context/framework:colon/build/mise-jars/cache",
+    "MISE_STATE_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/colon-context/framework:colon/build/mise-jars/state",
+    "MISE_CONFIG_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/colon-context/framework:colon/build/mise-jars/config",
+    "MISE_GLOBAL_CONFIG_FILE": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/colon-context/framework:colon/mise-tools/empty.toml",
+    "MISE_SYSTEM_CONFIG_FILE": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/colon-context/framework:colon/mise-tools/empty.toml",
+    "MISE_CEILING_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/colon-context/framework:colon",
+    "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/colon-context/framework:colon/mise-tools",
+    "MISE_AUTO_INSTALL": "false",
+    "MISE_EXEC_AUTO_INSTALL": "false",
+    "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+    "MISE_LOCKED": "true",
+    "MISE_YES": "1",
+    "MISE_COLOR": "0"
+  },
+  "exit": 0,
+  "parent_config": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/colon-context/mise.toml",
+  "parent_config_loaded": true,
+  "stdout": "[\n  {\n    \"path\": \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/colon-context/framework:colon/mise-tools/mise.toml\",\n    \"tools\": [\n      \"http:tlc\"\n    ]\n  },\n  {\n    \"path\": \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/colon-context/mise.toml\",\n    \"tools\": []\n  },\n  {\n    \"path\": \"/Users/stephan/Workspace/skunkworks/umpire/temporal/mise.toml\",\n    \"tools\": [\n      \"go\",\n      \"protoc\",\n      \"scala-cli\",\n      \"java\",\n      \"rust\",\n      \"github:nextest-rs/nextest\"\n    ]\n  },\n  {\n    \"path\": \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/colon-context/framework:colon/mise-tools/empty.toml\",\n    \"tools\": []\n  }\n]\n"
+}

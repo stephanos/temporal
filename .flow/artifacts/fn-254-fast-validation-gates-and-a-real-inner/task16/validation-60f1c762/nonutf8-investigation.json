@@ -1,0 +1,34 @@
+{
+  "status": "unsupported-in-observed-scoped-contexts",
+  "tool": "mise 2026.10.11",
+  "original_native_control": "nonutf8-contract.json",
+  "relative_controls": "nonutf8-relative-controls.json",
+  "observations": [
+    "Absolute scoped MISE_CEILING_PATHS with a nonUTF8 root aborts while decoding settings.",
+    "ASCII relative ceiling/trust plus absolute data paths abort in template-context Path serialization.",
+    "All-relative data/cache/state/config/global/system paths also abort in template-context Path serialization.",
+    "Explicit local mise.toml selection with the same relative paths aborts identically."
+  ],
+  "primary_sources": [
+    {
+      "url": "https://raw.githubusercontent.com/jdx/mise/v2026.10.11/crates/mise-util/src/tera.rs",
+      "behavior": "BASE_CONTEXT inserts the actual env::current_dir() Path; Tera rejects its invalid UTF8 serialization.",
+      "location": "BASE_CONTEXT lines291-307"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/jdx/mise/v2026.10.11/src/cli/where.rs",
+      "behavior": "The installed path is emitted through to_string_lossy(); absolute nonUTF8 paths cannot roundtrip. A hypothetical ASCII relative install path would avoid this particular output loss but the observed relative context aborts before reaching it.",
+      "location": "Where::run lines64-75"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/jdx/mise/v2026.10.11/crates/mise-util/src/env.rs",
+      "behavior": "Data/cache/config/state dirs read var_path, which uses var_os and preserves OS paths. The independent template cwd serialization remains an obstacle.",
+      "location": "MISE_DATA_DIR and var_path"
+    }
+  ],
+  "limitations": [
+    "Does not claim every untested possible alternative is impossible.",
+    "No second cache/copy layer, alternate mise build, source change or relaxed isolation was introduced."
+  ],
+  "pending": "Independent scout assessment and conductor contract decision"
+}

@@ -1,0 +1,107 @@
+[
+  {
+    "label": "post-pathlist-space-metachar-tlc",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-tlc",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/UTF8 space '$;[] \u00e9"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/model/umpire",
+    "source_head": "3368481d75b40dd49aea5a5dc7b54467e3779052",
+    "exit": 0,
+    "seconds": 0.12253441700158874,
+    "free_before_bytes": 53827497984,
+    "free_after_bytes": 53827387392
+  },
+  {
+    "label": "post-pathlist-space-metachar-apalache",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-apalache",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/UTF8 space '$;[] \u00e9"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/model/umpire",
+    "source_head": "3368481d75b40dd49aea5a5dc7b54467e3779052",
+    "exit": 0,
+    "seconds": 1.5398021250002785,
+    "free_before_bytes": 53827379200,
+    "free_after_bytes": 53826818048
+  },
+  {
+    "label": "post-pathlist-clippy",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clippy",
+      "--locked",
+      "-p",
+      "umpire-backend-process",
+      "-p",
+      "xtask",
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/model/umpire",
+    "source_head": "3368481d75b40dd49aea5a5dc7b54467e3779052",
+    "exit": 0,
+    "seconds": 2.514354459999595,
+    "free_before_bytes": 53826818048,
+    "free_after_bytes": 53826940928
+  },
+  {
+    "label": "post-pathlist-framework-fmt",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/model/umpire",
+    "source_head": "3368481d75b40dd49aea5a5dc7b54467e3779052",
+    "exit": 0,
+    "seconds": 0.8800854590008385,
+    "free_before_bytes": 53826936832,
+    "free_after_bytes": 53314211840
+  },
+  {
+    "label": "post-pathlist-system-fmt",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/model",
+    "source_head": "3368481d75b40dd49aea5a5dc7b54467e3779052",
+    "exit": 0,
+    "seconds": 1.1300439170008758,
+    "free_before_bytes": 53314211840,
+    "free_after_bytes": 53314166784
+  },
+  {
+    "label": "post-pathlist-source-boundary",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "gate",
+      "--stage",
+      "source-boundary"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/model/umpire",
+    "source_head": "3368481d75b40dd49aea5a5dc7b54467e3779052",
+    "exit": 0,
+    "seconds": 1.083811542004696,
+    "free_before_bytes": 53314166784,
+    "free_after_bytes": 54075973632
+  }
+]

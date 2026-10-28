@@ -1,0 +1,11 @@
+{
+  "sample_interval_seconds": 0.5,
+  "observed_owned_processes": 3706,
+  "sampled_peak_java_processes": 4,
+  "sampled_peak_combined_java_rss_kib": 345888,
+  "owned_cleanup": {
+    "live": {},
+    "all_observed_owned_pids_absent": true
+  },
+  "limitation": "Sampled RSS is observation, not a kernel heap cap. The reviewed task17 shared lease, JVM group and property-worker policy remains authoritative."
+}
