@@ -1,0 +1,5 @@
+[alias]
+# Workspace lint and documentation shortcuts; root Make delegates the full native gate.
+check-all = "clippy --workspace --all-targets --all-features -- -D warnings"
+doc-all = "doc --workspace --no-deps --document-private-items"
+xtask = "run --package xtask --bin xtask --profile dev --"

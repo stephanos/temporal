@@ -1,0 +1,336 @@
+{
+  "pair": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054",
+  "target": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+  "expected": {
+    "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+  "base_environment": {
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_INCREMENTAL": "0",
+    "NEXTEST_TEST_THREADS": "4",
+    "RUST_TEST_THREADS": "1",
+    "GOMAXPROCS": "1",
+    "GOFLAGS": "-p=1",
+    "CGO_ENABLED": "0",
+    "MISE_AUTO_INSTALL": "false",
+    "MISE_EXEC_AUTO_INSTALL": "false",
+    "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+    "GOCACHE": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/go-build",
+    "GOWORK": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/go.work",
+    "GOTOOLCHAIN": "local"
+  },
+  "clear_environment": [
+    "BASH_ENV",
+    "UMPIRE_BACKENDS",
+    "UMPIRE_APALACHE",
+    "UMPIRE_TOOL_ROOT",
+    "UMPIRE_STANDALONE_CHILD",
+    "UMPIRE_STANDALONE_OUTPUT",
+    "UMPIRE_GATE_RECEIPTS",
+    "UMPIRE_GATE_CONTROLLER_EXECUTABLE",
+    "RUSTC_WRAPPER",
+    "RUSTC_WORKSPACE_WRAPPER",
+    "NEXTEST_PROFILE"
+  ],
+  "plan_source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/task4-command-plan.json",
+  "plan_sha256": "7c1bbf6a8f1127c8b702b52c62b7121f070baa9ff39fc84a6fc9d30172a697db",
+  "steps": {
+    "resolution": {
+      "id": "resolution",
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "commands": [
+        [
+          "mise",
+          "exec",
+          "--",
+          "cargo",
+          "metadata",
+          "--manifest-path",
+          "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/Cargo.toml",
+          "--locked",
+          "--format-version",
+          "1"
+        ],
+        [
+          "mise",
+          "exec",
+          "--",
+          "cargo",
+          "metadata",
+          "--manifest-path",
+          "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/design/native-symbolic/Cargo.toml",
+          "--locked",
+          "--format-version",
+          "1"
+        ],
+        [
+          "mise",
+          "exec",
+          "--",
+          "go",
+          "env",
+          "GOWORK"
+        ],
+        [
+          "mise",
+          "exec",
+          "--",
+          "go",
+          "list",
+          "-m",
+          "-json",
+          "github.com/temporalio/umpire/hosts/go",
+          "github.com/temporalio/umpire/reference/kettle",
+          "umpire.local/temporal"
+        ]
+      ],
+      "purpose": "Prove actual local manifest/module resolution for the final pair.",
+      "target": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+      "assertions": [
+        "All framework Cargo manifests are inside the actual sibling umpire checkout, including proc macros and the retained native-symbolic probe.",
+        "Go workspace equals the private parent go.work; host and Kettle Dir fields equal their local modules; no registry/cache fallback."
+      ]
+    },
+    "pair-prerequisites-and-generators": {
+      "id": "pair-prerequisites-and-generators",
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "commands": [
+        [
+          "make",
+          "model-prerequisites"
+        ]
+      ],
+      "purpose": "Prepare existing pinned root generators/API descriptor producer before extension generation or guest consumers.",
+      "target": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+      "note": "This is existing source-owned Make setup, not an added installer or mise-provider migration."
+    },
+    "framework-generation": {
+      "id": "framework-generation",
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire",
+      "commands": [
+        [
+          "/bin/bash",
+          "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/scripts/proto-tools.sh"
+        ],
+        [
+          "/bin/bash",
+          "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/scripts/proto-go.sh",
+          "core"
+        ],
+        [
+          "/bin/bash",
+          "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/scripts/proto-go.sh",
+          "kettle"
+        ],
+        [
+          "/bin/bash",
+          "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/scripts/proto-go.sh",
+          "core",
+          "--check"
+        ],
+        [
+          "/bin/bash",
+          "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/scripts/proto-go.sh",
+          "kettle",
+          "--check"
+        ],
+        [
+          "git",
+          "diff",
+          "--exit-code"
+        ]
+      ],
+      "purpose": "Regenerate both generic Go identities from their owning schemas; require tracked cleanliness.",
+      "target": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+      "evidence": [
+        "Full logs, exact generator binaries/hashes and unchanged protocol/fixture payloads; no semantic golden update."
+      ]
+    },
+    "temporal-generation": {
+      "id": "temporal-generation",
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "commands": [
+        [
+          "/bin/bash",
+          "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/scripts/proto-go.sh",
+          "temporal"
+        ],
+        [
+          "/bin/bash",
+          "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/scripts/proto-go.sh",
+          "temporal",
+          "--check"
+        ],
+        [
+          "git",
+          "diff",
+          "--exit-code"
+        ]
+      ],
+      "purpose": "Regenerate and freshness-check extension descriptors against sibling schemas.",
+      "target": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+      "correction": "Current model/scripts/proto-go.sh accepts temporal only. Legacy README examples forwarding core/kettle through this script are stale; execute framework-owned scripts in the preceding step."
+    },
+    "current-guest-identity": {
+      "id": "current-guest-identity",
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "commands": [
+        [
+          "/bin/bash",
+          "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/scripts/guest.sh",
+          "umpire-temporal-guest",
+          "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/proof/umpire_temporal_guest.wasm"
+        ],
+        [
+          "cmp",
+          "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/proof/umpire_temporal_guest.wasm",
+          "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm"
+        ],
+        [
+          "/bin/bash",
+          "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/scripts/guest-freshness.sh",
+          "umpire-temporal-guest",
+          "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm"
+        ],
+        [
+          "make",
+          "umpire-guest"
+        ],
+        [
+          "git",
+          "diff",
+          "--exit-code"
+        ]
+      ],
+      "purpose": "Renew the expired final-Makefile guest identity and verify public refresh forwarding without masking a stale committed guest.",
+      "target": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+      "ordering": "Build to an alternate target path and compare BEFORE the public refresh target can overwrite the committed copy.",
+      "assertions": [
+        "Retain SHA256 of freshly built and committed bytes plus guest lock/identity records.",
+        "Expected canonical bytes currently d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d; any mismatch stops acceptance for investigation rather than automatic refresh.",
+        "Paired Go extension uses temporal.Guest() from these committed bytes, proven equal to the freshly built artifact; generic host suites consume their freshly built stock/control/Kettle guests."
+      ]
+    },
+    "paired-default-check": {
+      "id": "paired-default-check",
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "commands": [
+        [
+          "make",
+          "model-check"
+        ]
+      ],
+      "purpose": "Run actual combined framework+Temporal default-mode gate at the final pair.",
+      "target": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+      "mode": "UMPIRE_BACKENDS and UMPIRE_APALACHE unset.",
+      "temperature": "Fresh independent target initially absent; later phases reuse only artifacts created by this admitted final-pair sequence.",
+      "budget_seconds": 180,
+      "evidence": [
+        "Full ordered framework and Temporal receipts, scopes, actual counts, effective admission and all Go/guest/protobuf parity stages."
+      ]
+    },
+    "paired-required-validate": {
+      "id": "paired-required-validate",
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "commands": [
+        [
+          "make",
+          "model-validate"
+        ]
+      ],
+      "purpose": "Run combined required-TLC gate and edited-checker benchmark.",
+      "target": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+      "mode": "Public model-validate invokes make UMPIRE_BACKENDS=require model-time; that timer actually invokes make model-check with required mode. Apalache remains unset/skipped.",
+      "temperature": "Fresh independent target initially absent; later phases reuse only artifacts created by this admitted final-pair sequence.",
+      "budget_seconds": 600,
+      "nested_named_commands_covered": [
+        "make UMPIRE_BACKENDS=require model-time",
+        "UMPIRE_TIME_STEPS=1 make -C <temporal> model-check"
+      ],
+      "repeat_policy": "No additional required model-time/model-check run solely to duplicate the public nested commands already evidenced here.",
+      "disk_reservation_gib": {
+        "estimated_additional_low": 12,
+        "estimated_additional_high": 16,
+        "minimum_free_to_admit_high_case": 46
+      },
+      "evidence": [
+        "All framework and Temporal stage receipts and exact child authority, success/ignored/skipped counts, guest/host parity, no stale binary substitutions, actual total/inner timings and target misses."
+      ]
+    },
+    "warm-activity-quick": {
+      "id": "warm-activity-quick",
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "commands": [
+        [
+          "make",
+          "model-quick"
+        ]
+      ],
+      "purpose": "Measure actual warm activity-edit feedback while retaining both-repository consumer selection.",
+      "target": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+      "mode": "Quick explicitly selects required TLC even when ordinary full gates default to skip; run after required provisioning.",
+      "environment": {
+        "UMPIRE_QUICK_CACHE": "1",
+        "UMPIRE_CACHE_DISABLE": "0"
+      },
+      "procedure": [
+        "Warm unchanged quick once; record it as setup, not edited timing.",
+        "In the disposable pair only, preserve exact bytes of model/temporal/feature/activity/model.rs and apply a rustfmt-compatible semantic-neutral comment edit.",
+        "Run the listed public quick command and record selected direct/reverse consumers, bases, profile and elapsed time; restore exact source bytes in finally and verify clean trees."
+      ],
+      "budget_seconds": 60,
+      "evidence": [
+        "Do not substitute an unchanged selection-only or cache-hit result for the edited activity measurement."
+      ]
+    },
+    "final-local-edit-red-green": {
+      "id": "final-local-edit-red-green",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "commands": [
+        [
+          "python3",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/local-edit-proof.py",
+          "--pair",
+          "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054",
+          "--output",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/task4-final-3f5-054-local-edits",
+          "--target",
+          "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054"
+        ]
+      ],
+      "purpose": "Renew both uncommitted Rust and Go local-source consumer proofs at the exact final pair.",
+      "target": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+      "expected": [
+        "Rust undefined marker in author/dsl/src/lib.rs causes actual Temporal umpire-temporal cargo check failure.",
+        "Go undefined marker in hosts/go/host/host.go causes actual root testpilot/temporal/act package compilation failure.",
+        "Both baseline and exact-restoration runs green; both HEADs unchanged; no commit, push, registry operation or source substitution between runs."
+      ],
+      "note": "Existing helper overrides CARGO_BUILD_JOBS to4, still within requested max4; run serially and retain its effective environment rather than assuming the general one-job setting applies."
+    },
+    "final-seals": {
+      "id": "final-seals",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "commands": [],
+      "purpose": "Seal final evidence and compare source identities without changing tracker state.",
+      "required_checks": [
+        "Both private Git trees clean and pinned; generated code, Cargo/go/mise locks, fixture inputs/snapshot metadata/payloads match pre-run inventories.",
+        "Temporal model/archived tracked tree equals the frozen source manifest; original archive caches remain untouched. Cutover before/after cache inventory remains task5.",
+        "Retain command revisions, working dirs, environment, statuses, timings, complete logs and proof binaries/identity manifests in content-addressed recovery before considering owned-cache release.",
+        "Do not close fn-254 timing, fn-246/R40, deferred Apalache, destination-access, CI activation, publication or source-cutover obligations from this task."
+      ]
+    }
+  },
+  "phase_budget_default_gib": {
+    "paired-default-check": 16,
+    "paired-required-validate": 16,
+    "current-guest-identity": 16,
+    "warm-activity-quick": 8,
+    "pair-prerequisites-and-generators": 2,
+    "final-local-edit-red-green": 2
+  },
+  "disk_floor_bytes": 32212254720,
+  "override_note": "Assigned final-pair source directory and initially nonexistent final-pair target override historical reused-cache/path fields; root later admits each phase separately."
+}

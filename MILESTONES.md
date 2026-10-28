@@ -115,7 +115,7 @@ Destination access remains blocked by SAML/credentials. See [MIGRATE.md](MIGRATE
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-258.4 | 🔄 in progress | Standalone named check/time/release commands running; fresh final pair, generation/guest, paired gates and local-edit acceptance follow (R3–R5) |
+| fn-258.4 | 🔄 in progress | Standalone check/time/release and final-pair generation/guest freshness pass; combined paired gates, edited timing and local-edit acceptance running (R3–R5) |
 | fn-258.5 | ⬜ todo | Complete candidate receiving/recovery dispositions, destination access, authorized publication, pinned CI and source cutover; then resume fn-254 (R1, R4, R6) |
 
 

@@ -1,0 +1,10 @@
+{
+  "result": "pass",
+  "source_commit": "05473210b48c3db862f22051eb7154ce98258f98",
+  "unique_objects_verified": 142,
+  "archive_members_verified": 768,
+  "original_completed_files_verified": 4,
+  "active_release_read": false,
+  "original_parenttarget_read": false,
+  "errors": []
+}

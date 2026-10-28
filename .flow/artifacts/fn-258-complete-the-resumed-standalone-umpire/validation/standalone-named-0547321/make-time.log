@@ -1,0 +1,59 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+backend modes: UMPIRE_BACKENDS=skip (default) UMPIRE_APALACHE=skip (default)
+[gate:fmt] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage fmt
+[gate:retired-names] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage retired-names
+[gate:proto-tools] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage proto-tools
+[gate:proto-tools] proto-tools                       0.051s
+[gate:proto-tools] Finished in 88.7ms
+[gate:timing-controls] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage timing-controls
+[gate:timing-controls] timing-controls                   0.098s
+[gate:timing-controls] timing-controls                   0.061s
+[gate:timing-controls] Finished in 189.6ms
+[gate:protobuf-controls] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage protobuf-controls
+[gate:protobuf-controls] protobuf-controls                 0.153s
+[gate:protobuf-controls] Finished in 184.3ms
+[gate:protobuf-freshness] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage protobuf-freshness
+[gate:protobuf-freshness] protobuf-freshness                0.051s
+[gate:protobuf-freshness] Finished in 82.3ms
+[gate:kettle-protobuf-freshness] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage kettle-protobuf-freshness
+[gate:kettle-protobuf-freshness] kettle-protobuf-freshness         0.051s
+[gate:kettle-protobuf-freshness] Finished in 82.6ms
+[gate:capability-controls] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage capability-controls
+[gate:fmt] fmt                               0.734s
+[gate:fmt] Finished in 761.3ms
+[gate:retired-names] Finished in 781.6ms
+[gate:capability-controls] capability-controls               0.204s
+[gate:capability-controls] Finished in 237.1ms
+[gate:source-boundary] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage source-boundary
+[gate:source-boundary] Finished in 841.4ms
+[gate:clippy] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage clippy
+[gate:clippy] clippy                            0.910s
+[gate:clippy] Finished in 937.1ms
+[gate:docs] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage docs
+[gate:docs] docs                              0.839s
+[gate:docs] Finished in 867.3ms
+[gate:tests] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage tests
+[gate:tests] tests                            44.180s
+[gate:tests] Finished in 44.21s
+[gate:wasm32-wasip1] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage wasm32-wasip1
+[gate:wasm32-wasip1] wasm32-wasip1                     0.063s
+[gate:wasm32-wasip1] Finished in 95.5ms
+[gate:core-wasm-clippy] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage core-wasm-clippy
+[gate:core-wasm-clippy] core-wasm-clippy                  0.085s
+[gate:core-wasm-clippy] Finished in 115.8ms
+[gate:wasm-guest] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage wasm-guest
+[gate:wasm-guest] wasm-guest                       13.926s
+[gate:wasm-guest] Finished in 13.96s
+[gate:go-host] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage go-host
+[gate:go-host] go-host                           3.174s
+[gate:go-host] Finished in 3.20s
+[gate:kettle-go-host] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage kettle-go-host
+[gate:kettle-go-host] kettle-go-host                   36.888s
+[gate:kettle-go-host] Finished in 36.92s
+[gate:standalone] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage standalone
+[gate:standalone] Finished in 33.1ms
+Finished in 102.08s
+inner loop (edit+test)           10.343s
+gate total 102.122s; inner loop 10.343s
+note: gate over soft target (60s)
+note: inner loop over soft target (10s)

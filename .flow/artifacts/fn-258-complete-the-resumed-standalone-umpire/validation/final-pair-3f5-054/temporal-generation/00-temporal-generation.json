@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "/bin/bash",
+    "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/scripts/proto-go.sh",
+    "temporal"
+  ],
+  "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+  "started_unix": 1793199069.4074366,
+  "ended_unix": 1793199069.4336915,
+  "exit": 0,
+  "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/temporal-generation-1793199069407217111/00-temporal-generation.log",
+  "log_sha256": "9e098fde0a5491370e16c479c7ef74ba44d320f5c3057a7c9714d1f602b641fe",
+  "free_before": 55124520960,
+  "free_after": 55124516864
+}

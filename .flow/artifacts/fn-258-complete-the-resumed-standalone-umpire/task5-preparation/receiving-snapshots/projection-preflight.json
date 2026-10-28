@@ -1,0 +1,388 @@
+{
+  "scope": "Exact historical projector, active framework subset plus LICENSE; no support namespace; no object construction",
+  "results": [
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-028",
+      "source_commit": "280fc46eab71e446df59422ff823a45864005b63",
+      "native_tool_split_ancestor": false,
+      "result": "representable",
+      "files": 318,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-029",
+      "source_commit": "62cfa7fcf37355a1fe7d42d2a08f051bc55e9bf3",
+      "native_tool_split_ancestor": false,
+      "result": "representable",
+      "files": 270,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-030",
+      "source_commit": "fee5fc56ae071808ddf143521fe3670c9fba85b2",
+      "native_tool_split_ancestor": false,
+      "result": "representable",
+      "files": 1235,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-031",
+      "source_commit": "6deb7dcb9dc71204bcd61423aea3ae9720928628",
+      "native_tool_split_ancestor": false,
+      "result": "representable",
+      "files": 1256,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-033",
+      "source_commit": "7de877e5de1c5fdde24c835fddcd3f4ae226f4cd",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1195,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-035",
+      "source_commit": "eac683e6033c5861910fc0f0ed61f41b5e02946f",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1179,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-037",
+      "source_commit": "fa1feeaff76f214f6fc0a600b68e4137e3af2b83",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1196,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-038",
+      "source_commit": "097e800d722ff998ce10371f48663e563433f499",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1196,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-039",
+      "source_commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1196,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-040",
+      "source_commit": "ee01177359dc48e0ea92e9e899e80d10148dcd4c",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1166,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-041",
+      "source_commit": "210a333719786037cff5f362b2a84e8a0e47b0b8",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1169,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-043",
+      "source_commit": "6373099ed8d8b24bf0eca8d2d4dd4d588593e073",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1169,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-044",
+      "source_commit": "3e389df1df52a88935fdc3fa337f6d0b026aee3e",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1166,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-046",
+      "source_commit": "6660073f4200beb5f0020d5db50e99cdab872e04",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1172,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-047",
+      "source_commit": "4835a4734a09575d22d50fb131c873173b79e3a9",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1182,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-048",
+      "source_commit": "f7ad9c4e58725590d313a4e8b5c1a36847dd02c4",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1193,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-049",
+      "source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "native_tool_split_ancestor": false,
+      "result": "refused",
+      "reason": "Conflicting projection: dev/xtask/Cargo.toml"
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-050",
+      "source_commit": "23c3d4881995feffa8f4711e477bfe26323d2a71",
+      "native_tool_split_ancestor": false,
+      "result": "representable",
+      "files": 1132,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-051",
+      "source_commit": "0bd07ad88d7b8dc6b8aaade2d97b6d81e82db205",
+      "native_tool_split_ancestor": false,
+      "result": "representable",
+      "files": 1146,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-052",
+      "source_commit": "5ba482b5b73ca4d85ab758568d9a25ec4c4126b4",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1172,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-053",
+      "source_commit": "022d614b6fc4e8263bd541c58acd31bf440c7112",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1198,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-054",
+      "source_commit": "6c726af351b70b9654c36b4ee97a8c38371c4bdf",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1181,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-055",
+      "source_commit": "4d913e06d07a90655d3ef756e7b8f09933ffa010",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1178,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-056",
+      "source_commit": "a5c556ca2b9b46734347c20fd83381ed7758ba06",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1187,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-057",
+      "source_commit": "31e989d8092e3610f7f05259c2e8f729906de383",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1182,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-058",
+      "source_commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1195,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-059",
+      "source_commit": "ce5996f4d87c080eaf51d02e3b590318144b541c",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1189,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-060",
+      "source_commit": "22b3a6b3a5f73846bb4608a591b4f8f176443ea7",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1181,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-061",
+      "source_commit": "64d2a62e86edb050b4e14fa7807a4f4782f81c37",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1180,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-062",
+      "source_commit": "c9e91a47505ecc2013a5517d4aaf5eb052148ef4",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1178,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-063",
+      "source_commit": "42d06a0c6d3407e195c95b3d2fbfeee897bdde22",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1179,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-064",
+      "source_commit": "d49485e91f41cd4a1a808585a25ec13392945080",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1171,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-065",
+      "source_commit": "a9de3aad7df3eada18ae55d437b660e84606b25d",
+      "native_tool_split_ancestor": false,
+      "result": "representable",
+      "files": 1122,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-066",
+      "source_commit": "ad1d8f884706304dca2b952835c2cc07b708593e",
+      "native_tool_split_ancestor": false,
+      "result": "representable",
+      "files": 1123,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-067",
+      "source_commit": "845eba5065e7a24cdd5d06a15a0736736d85925d",
+      "native_tool_split_ancestor": false,
+      "result": "representable",
+      "files": 1122,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-068",
+      "source_commit": "02f4279a6151c4ae5cfbd99bef75b9d03328576c",
+      "native_tool_split_ancestor": false,
+      "result": "representable",
+      "files": 1121,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-069",
+      "source_commit": "b4b9b05cdefa4874d54c9799b536a8dcb14a0845",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1178,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-070",
+      "source_commit": "088e98ecae978b921c1d7371202bb8bd2e772f7c",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1178,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-071",
+      "source_commit": "77af035124f569ce6a335c3786dcb3181d9fa766",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1180,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-072",
+      "source_commit": "0c41b85a49dc38758cf0418809fbcf0de63205fc",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1178,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-074",
+      "source_commit": "71d33377eeee63989daf312e9d3fd8e218968e2b",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1205,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-075",
+      "source_commit": "1df6f6b75d47a06642bd30b9bbe0d47b6d040ef8",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1178,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-076",
+      "source_commit": "7010baad96ec230bd45eff977d218ab192f8464c",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1235,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-077",
+      "source_commit": "a573caade12cac5d50ca3f1ab6d9f59683a84ed2",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1182,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-078",
+      "source_commit": "9583f7eef765ad6c6cc41a8e400613cdb078470b",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1201,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-079",
+      "source_commit": "daee451d5c5e2efdf72100d9a518cd16e8c438d1",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1200,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-080",
+      "source_commit": "91847b54dc4af12193379274761d00d7fd20ef04",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1202,
+      "aliases": 0
+    },
+    {
+      "receiver_ref": "refs/recovery/fn258/candidate-082",
+      "source_commit": "f6e39420c2ac6308a3da9380da44c126054b6380",
+      "native_tool_split_ancestor": true,
+      "result": "representable",
+      "files": 1195,
+      "aliases": 0
+    }
+  ]
+}

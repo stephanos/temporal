@@ -1,0 +1,25 @@
+{
+  "observed_unix": 1793199036.690521,
+  "task": "fn-258-complete-the-resumed-standalone-umpire.4",
+  "root_closures_commit": "c51c7fa54c",
+  "admitted_steps": [
+    "pair-prerequisites-and-generators",
+    "framework-generation",
+    "temporal-generation"
+  ],
+  "concurrent_primary": "Standalone release ThinLTO on separate HOST target, one Cargo job; actual toolchain1.99.1 observed.",
+  "scope": "Bounded Go/protobuf prerequisite generation only; full paired gate/guest-build/JVM admission remains serial behind release.",
+  "resource_observation": {
+    "MemAvailable_kib": 17003104,
+    "host_free_bytes": 95183327232,
+    "overlay_free_bytes": 55477047296,
+    "first_step_additional_reservation_gib": 2,
+    "floor_gib": 30
+  },
+  "target": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+  "source_pair": {
+    "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "guard": "Each phase independently checks exact clean source, workspace/guest identities, disk floor and exclusive pair launcher lock. No shared target writes or cache copies."
+}

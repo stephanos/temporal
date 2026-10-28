@@ -1,0 +1,29 @@
+{
+  "scope": "Exact raw command/authority logs retained byte-for-byte. Only enumerated raw logs excluded from staged whitespace-style check; all other staged content checked.",
+  "files": [
+    {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/make-check.log",
+      "sha256": "826ba85dc219b58d47685d6c94e055c464c7085bdad43021637f6f161f33d648"
+    },
+    {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release-retention/command.log",
+      "sha256": "d0338e2c06685a8db752f04076250971c519201a44b5c3b9546fea4a3f66683f"
+    },
+    {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release.log",
+      "sha256": "d0338e2c06685a8db752f04076250971c519201a44b5c3b9546fea4a3f66683f"
+    },
+    {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/command.log",
+      "sha256": "826ba85dc219b58d47685d6c94e055c464c7085bdad43021637f6f161f33d648"
+    },
+    {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stderr.log",
+      "sha256": "d776e99b9c591a66eaa3ea256e37a5fd914899d5cdd87072cb0d52dc49493a7f"
+    },
+    {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stdout.log",
+      "sha256": "cc7ecde822ff19d093f063357658ef482cb527bfdb67abb9835cd97dabf07130"
+    }
+  ]
+}

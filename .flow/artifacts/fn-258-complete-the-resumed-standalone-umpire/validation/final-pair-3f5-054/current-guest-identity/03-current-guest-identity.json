@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "make",
+    "umpire-guest"
+  ],
+  "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+  "started_unix": 1793199665.0686488,
+  "ended_unix": 1793199713.5144749,
+  "exit": 0,
+  "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/current-guest-identity-1793199459515115315/03-current-guest-identity.log",
+  "log_sha256": "cc5936d5c2b2d2024ce41e74666b0106710b2c5f35299dbd1bffcf0a340b1a00",
+  "free_before": 53972541440,
+  "free_after": 53978165248
+}

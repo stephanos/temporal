@@ -1,0 +1,349 @@
+{
+  "candidate": "049",
+  "source_commit": "86f812692797a0e3451133f0d59f382818584312",
+  "source_ref": "refs/heads/work/fn25413-driver",
+  "approved_rule": {
+    "source_commit": "86f812692797a0e3451133f0d59f382818584312",
+    "source_keeper_ref": "refs/heads/work/fn25413-driver",
+    "source_keeper_repository": "temporal",
+    "source_files": {
+      "model/dev/xtask/Cargo.toml": {
+        "mode": "100644",
+        "blob": "197ea11f8d05d8d492d366586848ec97c8769ff1"
+      },
+      "model/dev/xtask/README.md": {
+        "mode": "100644",
+        "blob": "e51d320746c8e779225f9e54831b33e5b4ca2c71"
+      },
+      "model/dev/xtask/tests/main.rs": {
+        "mode": "100644",
+        "blob": "15feea01ea8f3a661f271c574b039646d69900a6"
+      },
+      "model/dev/xtask/tests/retired_names.rs": {
+        "mode": "100644",
+        "blob": "5b2ac37d480cf02b1a76c224c9f01a10dbc88f8b"
+      }
+    },
+    "reason": "Root independently approved exact four-path consumer ownership correction: temporal-xtask package, extension-only controls and Temporal Make/guest/scanner tests. Not a global native-tool anchor change. Original ledger/maps unchanged.",
+    "action_task": "fn-258-complete-the-resumed-standalone-umpire.5",
+    "evidence": "candidate-049-consumer-prefix.json"
+  },
+  "receiver_generic_records": 1163,
+  "excluded_exact_consumer_records": [
+    {
+      "source_path": "model/dev/xtask/Cargo.toml",
+      "destination_path": "dev/xtask/Cargo.toml",
+      "mode": "100644",
+      "blob": "197ea11f8d05d8d492d366586848ec97c8769ff1",
+      "origin": "committed"
+    },
+    {
+      "source_path": "model/dev/xtask/README.md",
+      "destination_path": "dev/xtask/README.md",
+      "mode": "100644",
+      "blob": "e51d320746c8e779225f9e54831b33e5b4ca2c71",
+      "origin": "committed"
+    },
+    {
+      "source_path": "model/dev/xtask/tests/main.rs",
+      "destination_path": "dev/xtask/tests/main.rs",
+      "mode": "100644",
+      "blob": "15feea01ea8f3a661f271c574b039646d69900a6",
+      "origin": "committed"
+    },
+    {
+      "source_path": "model/dev/xtask/tests/retired_names.rs",
+      "destination_path": "dev/xtask/tests/retired_names.rs",
+      "mode": "100644",
+      "blob": "5b2ac37d480cf02b1a76c224c9f01a10dbc88f8b",
+      "origin": "committed"
+    }
+  ],
+  "active_qualified_union_count": 1167,
+  "source_only_provenance_support_records": [
+    {
+      "source_path": "model/Cargo.toml",
+      "mode": "100644",
+      "blob": "36332e23683d78595a8739b26c8a6a07a9a44718",
+      "proposed_history_support_destination": ".history-support/model/Cargo.toml",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/Cargo.lock",
+      "mode": "100644",
+      "blob": "ca8c6ae533cfc711e3cd89f28a9ab3065153d0b4",
+      "proposed_history_support_destination": ".history-support/model/Cargo.lock",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/.cargo/config.toml",
+      "mode": "100644",
+      "blob": "a5eef25e6b83c21aff9d51215c72678610eeca19",
+      "proposed_history_support_destination": ".history-support/model/.cargo/config.toml",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/.gitignore",
+      "mode": "100644",
+      "blob": "1f790936679a3e5ad2c71b4f41c50ee3cfc9d492",
+      "proposed_history_support_destination": ".history-support/model/.gitignore",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/README.md",
+      "mode": "100644",
+      "blob": "612be1049d72ae4267490901af950936ec5b195a",
+      "proposed_history_support_destination": ".history-support/model/README.md",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/DESIGN.md",
+      "mode": "100644",
+      "blob": "a3a6f5dc9edf30eb51430022da34331c8a288786",
+      "proposed_history_support_destination": ".history-support/model/DESIGN.md",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/GUEST_BUILDS.md",
+      "mode": "100644",
+      "blob": "1a69ac00d1327f279b21c97c8b7cf383d2e45c20",
+      "proposed_history_support_destination": ".history-support/model/GUEST_BUILDS.md",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/rust-toolchain.toml",
+      "mode": "100644",
+      "blob": "f0df75400b75ebe06d36372b42f2e0f71e8d0dcf",
+      "proposed_history_support_destination": ".history-support/model/rust-toolchain.toml",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/rustfmt.toml",
+      "mode": "100644",
+      "blob": "fa34087f235265759e262e10c332aab0fd35d15b",
+      "proposed_history_support_destination": ".history-support/model/rustfmt.toml",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/clippy.toml",
+      "mode": "100644",
+      "blob": "1518bf68f655fc310f8a8434d5ee24561bb958e7",
+      "proposed_history_support_destination": ".history-support/model/clippy.toml",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/deny.toml",
+      "mode": "100644",
+      "blob": "78c73304ccdf6113e556f7ed780c1a1d6d3717cc",
+      "proposed_history_support_destination": ".history-support/model/deny.toml",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/scripts/fetch-tlc.sh",
+      "mode": "100644",
+      "blob": "7acda4c2783a92ecf2977c4402983c18a10894c1",
+      "proposed_history_support_destination": ".history-support/model/scripts/fetch-tlc.sh",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/scripts/guest-freshness.sh",
+      "mode": "100644",
+      "blob": "37d64b37f3638091b5982ad61f531ad187b77772",
+      "proposed_history_support_destination": ".history-support/model/scripts/guest-freshness.sh",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/scripts/guest.sh",
+      "mode": "100644",
+      "blob": "b5b06ed7db41758dc79f399dc0926955a509d550",
+      "proposed_history_support_destination": ".history-support/model/scripts/guest.sh",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/scripts/proto-go.sh",
+      "mode": "100644",
+      "blob": "8d462f3ae465809eb1df32dcf39c4d73f749ec0b",
+      "proposed_history_support_destination": ".history-support/model/scripts/proto-go.sh",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/scripts/retired-names.sh",
+      "mode": "100644",
+      "blob": "ed7527a5e7e14cf882c82ca0952288d157f357ad",
+      "proposed_history_support_destination": ".history-support/model/scripts/retired-names.sh",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/scripts/test-capabilities.sh",
+      "mode": "100644",
+      "blob": "5b80183738ff5521450e7ad540c720ef86f7d6f7",
+      "proposed_history_support_destination": ".history-support/model/scripts/test-capabilities.sh",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/scripts/test-model-validate.sh",
+      "mode": "100644",
+      "blob": "c9deacdf68c8cb1d9a776fe88c6b47dfd181fc2d",
+      "proposed_history_support_destination": ".history-support/model/scripts/test-model-validate.sh",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/scripts/test-time-gate.sh",
+      "mode": "100644",
+      "blob": "05e75599862fac13f502fecba39fcc8ff14f661d",
+      "proposed_history_support_destination": ".history-support/model/scripts/test-time-gate.sh",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/scripts/tests/.gitignore",
+      "mode": "100644",
+      "blob": "c18dd8d83ceed1806b50b0aaa46beb7e335fff13",
+      "proposed_history_support_destination": ".history-support/model/scripts/tests/.gitignore",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/scripts/tests/build-guests.sh",
+      "mode": "100644",
+      "blob": "f73846f4290e79cd09146b05dc361bf9268c1920",
+      "proposed_history_support_destination": ".history-support/model/scripts/tests/build-guests.sh",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/scripts/tests/proto-go.sh",
+      "mode": "100755",
+      "blob": "a7906aed0c158da5f645fcfc5591e9c656f1fa46",
+      "proposed_history_support_destination": ".history-support/model/scripts/tests/proto-go.sh",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/scripts/time-gate.sh",
+      "mode": "100755",
+      "blob": "13a482b09a12e0824100c8fa0b09219abdabd6bd",
+      "proposed_history_support_destination": ".history-support/model/scripts/time-gate.sh",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "model/scripts/xtask.sh",
+      "mode": "100644",
+      "blob": "4a97bc6093b3e965883c1602b7695bdf6be9a72d",
+      "proposed_history_support_destination": ".history-support/model/scripts/xtask.sh",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "Makefile",
+      "mode": "100644",
+      "blob": "bbabde8c5128642e60a45a8c93e4c3360a5acbe1",
+      "proposed_history_support_destination": ".history-support/Makefile",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "mise.toml",
+      "mode": "100644",
+      "blob": "78287fb9c48577572206adb206bd23827b2c467b",
+      "proposed_history_support_destination": ".history-support/mise.toml",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": "AGENTS.md",
+      "mode": "100644",
+      "blob": "9be7d2db32ca8687e06c6cbfa7a1ec070b6c2a5c",
+      "proposed_history_support_destination": ".history-support/AGENTS.md",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    },
+    {
+      "source_path": ".github/workflows/umpire.yml",
+      "mode": "100644",
+      "blob": "ce4357e64e8055317a085b8f57d36208dd9596b9",
+      "proposed_history_support_destination": ".history-support/.github/workflows/umpire.yml",
+      "copied_to_receiver": false,
+      "retained_source_ref": "refs/heads/work/fn25413-driver",
+      "retained_source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "exact_blob_reachable_in_canonical_export_history": true
+    }
+  ],
+  "provenance_qualification": "Support bytes remain in original source ref; only entries flagged true are additionally proven reachable in canonical export history. No mixed support copied into new receiver.",
+  "planned_framework_paths_accounted": 52,
+  "original_r1_or_projection_maps_modified": false,
+  "root_action_task": "fn-258-complete-the-resumed-standalone-umpire.5"
+}

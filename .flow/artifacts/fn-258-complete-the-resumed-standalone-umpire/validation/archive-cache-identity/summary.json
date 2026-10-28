@@ -1,0 +1,28 @@
+{
+  "phase": "current pre-cutover baseline only",
+  "source_cutover_performed": false,
+  "post_cutover_claim": false,
+  "frozen_and_current_git_archive_tree": "cb5223b9a4839233876c98cf6158a46dc9d97a19",
+  "tracked_archive_files": 1627,
+  "tracked_disk_differences": 0,
+  "on_disk_records": 2087,
+  "regular_files": 1713,
+  "logical_file_bytes": 34007555,
+  "ignored_on_disk_files": 86,
+  "recognized_cache_semanticdb_ide_files": 46,
+  "recognized_cache_bytes": 1384700,
+  "ignored_source_like_sample_files": 40,
+  "symlinks": 0,
+  "explicit_absent_paths": 18,
+  "pre_cutover_stability": "pass",
+  "in_memory_controls": "pass",
+  "baseline_sha256": "8f3d5d999d2033dc7d1e68ea2252a6503ac8fa01a36f79e9dfa007e490dff85a",
+  "script_sha256": "9f076826a5223ca06931b963d804dc72f46a268d5773162e0a669b6b5eb2563a",
+  "scope_gaps": [
+    "No historical ignored-cache baseline existed; previous preservation explicitly excluded ignored bytes.",
+    "No global/shared/home/worktree cache scan; external tool references in IDE metadata not followed.",
+    "Current Rust checker model/build/TLC/Apalache caches and active release output excluded.",
+    "POSIX modes and link bytes covered, ACLs/xattrs/atime/ctime excluded.",
+    "No post-cutover observation yet; run bounded compare after actual task5 cutover."
+  ]
+}

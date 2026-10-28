@@ -1,0 +1,2 @@
+argv: ["cmp", "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/proof/umpire_temporal_guest.wasm", "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm"]
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal

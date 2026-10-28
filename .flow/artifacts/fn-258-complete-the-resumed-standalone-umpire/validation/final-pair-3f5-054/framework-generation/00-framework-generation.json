@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "/bin/bash",
+    "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/scripts/proto-tools.sh"
+  ],
+  "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire",
+  "started_unix": 1793199068.1962273,
+  "ended_unix": 1793199069.1861496,
+  "exit": 0,
+  "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/framework-generation-1793199068195925444/00-framework-generation.log",
+  "log_sha256": "587d154f3aaa45d1decb53213d47a3962cc21b666a35557a5e0c37e72a04273c",
+  "free_before": 55146741760,
+  "free_after": 55124582400
+}

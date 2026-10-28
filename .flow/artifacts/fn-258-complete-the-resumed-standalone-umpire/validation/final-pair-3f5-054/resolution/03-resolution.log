@@ -1,0 +1,23 @@
+argv: ["mise", "exec", "--", "go", "list", "-m", "-json", "github.com/temporalio/umpire/hosts/go", "github.com/temporalio/umpire/reference/kettle", "umpire.local/temporal"]
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal
+{
+	"Path": "github.com/temporalio/umpire/hosts/go",
+	"Main": true,
+	"Dir": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/hosts/go",
+	"GoMod": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/hosts/go/go.mod",
+	"GoVersion": "1.27.0"
+}
+{
+	"Path": "github.com/temporalio/umpire/reference/kettle",
+	"Main": true,
+	"Dir": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/reference/kettle",
+	"GoMod": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/reference/kettle/go.mod",
+	"GoVersion": "1.27.0"
+}
+{
+	"Path": "umpire.local/temporal",
+	"Main": true,
+	"Dir": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/temporal/hosts/go",
+	"GoMod": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/temporal/hosts/go/go.mod",
+	"GoVersion": "1.27.0"
+}
