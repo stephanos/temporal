@@ -71,4 +71,27 @@ mod tests {
         assert!(!Collector::default().ingest(&["1", "tests", "other"])?);
         Ok(())
     }
+    #[test]
+    fn refuses_fixture_without_assertions_and_observed_parent_pass() -> io::Result<()> {
+        let mut collector = Collector::default();
+        assert!(collector.ingest(&["2", "tlc-attempt", "100-0", "fixture", "probe", &"b".repeat(64)])?);
+        assert!(collector.ingest(&["2", "tlc-finish", "100-0", "fixture", "completed", "2f746d702f3130302d302e6a736f6e", &"c".repeat(64)])?);
+        assert!(collector.finish(Path::new("/tmp/receipts/work/scope/tests")).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn rejects_invalid_record_id_configuration_origin_cause_and_identity() {
+        for fields in [
+            vec!["1", "tlc-attempt", "bad", "probe"],
+            vec!["1", "tlc-attempt", "100-0", "bad"],
+            vec!["2", "tlc-attempt", "100-0", "other", "probe", "bad"],
+            vec!["2", "tlc-finish", "100-0", "started", "other", "-", "-"],
+            vec!["2", "tlc-fixture-complete", "bad", "bad", "bad"],
+            vec!["2", "tlc-attempt"],
+        ] {
+            assert!(Collector::default().ingest(&fields).is_err(), "accepted {fields:?}");
+        }
+    }
+
 }
