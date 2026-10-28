@@ -1,0 +1,16 @@
+{
+  "status": "PREPARATION ONLY",
+  "prepared_bundle": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-receiving-snapshots/prepared-snapshots.bundle",
+    "sha256": "efb9a7007b502c7d83f4b458fd5baa3e017ba1b10d9ca261a97557a8bf4d72cd",
+    "size": 1756635
+  },
+  "isolated_stores": [
+    "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-receiving-snapshots/prepared.git",
+    "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-receiving-snapshots/independent-recovery.git",
+    "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-receiving-snapshots/transaction-test.git"
+  ],
+  "beforeimage_blobs_not_in_target_bundle": [],
+  "qualification": "All current deletion-beforeimage blobs are reachable in the prepared bundle through at least one complete target snapshot. Retain the full manifests for original source/path/mode and after-absence semantics. Original authored history remains under retained Temporal refs/source bundles; the new bundle contains only50 new custody commits.",
+  "real_receiving_refs_created": 0
+}

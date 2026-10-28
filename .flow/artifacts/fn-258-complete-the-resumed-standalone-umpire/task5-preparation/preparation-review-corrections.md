@@ -1,0 +1,11 @@
+# Accepted preparation review corrections
+
+All eight accepted evidence/provenance findings are addressed. The versioned and external bundles match at 1,756,635 bytes and SHA256 efb9a7007b502c7d83f4b458fd5baa3e017ba1b10d9ca261a97557a8bf4d72cd; truncation and same-size corruption controls refuse. The stable inventory includes the committed copy.
+
+The verifier is explicitly HOST ONLY and retains its original live-worktree/recovery-store prerequisites. It computes all28 revision-qualified support blobs from the actual source tree and proves canonical054 reachability, and proves all232 unique deletion-beforeimage blobs reachable from the actual bundle heads. There are no recovery gaps. Complete planned coverage is5044=3113 receiver-present+1931 mapped deletion beforeimages, zero unaccounted.
+
+The actual Go/Rust dependency guard covers canonical go.temporal.io/API forms, renamed Cargo dependencies and executable Rust API paths; selected committed/dirty source remains pure without selection changes. Literal-only negative fixtures are retained. All24 snapshot refusal controls pass. Unique requested task observations are computed (60), with duplicate refusal. The transaction has48 refs and51 lines, including start/prepare/commit.
+
+Current source cde1ee67/054 has actual branch/ownHEAD/clean observations. Only model/scripts/test-model-wiring.sh differs from3f5, one insertion/deletion; Make/Rust/locks/model/runtime/guest source inputs therefore remain identical. The correction belongs to fn258.4. Historical3f5/054 focused passes and task3 closure remain historical; the old full paired default FAILED exit2 and its receipt is bound. Freshcde whole-pair proof with an empty target is pending. This lane makes no currentcde Go-workspace/full-gate or runtime acceptance claim; root retains any separate focused harness logs.
+
+All48 current/frozen candidate/source/ref/mapping rows match exactly, and source-recovery observations also match. Administrative required_before_create wording changes are explicitly inventoried. The50 prepared commit/tree identities and full prepared manifest remain unchanged. Reviewed764 preparation bytes remain under historical-preparation-764fafd7-review. No source, real refs, lifecycle state, actual transfer or R6 completion changed.

@@ -1,0 +1,2262 @@
+{
+  "checked_records": 322,
+  "unique_target_paths": 194,
+  "all_current_required_payloads_match_retained": true,
+  "records": [
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/admission.json",
+      "sha256": "61498a7c298966a6268a42bb2bfefd7a4ec8807eb3f8de6cdbaa5540836b9993",
+      "role": "ordered stage authority, admission or raw run log",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/61498a7c298966a6268a42bb2bfefd7a4ec8807eb3f8de6cdbaa5540836b9993"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/stages.jsonl",
+      "sha256": "2d9cddb86d08d8f8dd262d3965101cd7f3125bde56563bc781c149fcd2765bfc",
+      "role": "ordered stage authority, admission or raw run log",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/2d9cddb86d08d8f8dd262d3965101cd7f3125bde56563bc781c149fcd2765bfc"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/stdout.log",
+      "sha256": "993e4f73f7d3cefe455822ecccc6f99ab2f7ea729cfe17ae981f1a9a62ae67c8",
+      "role": "ordered stage authority, admission or raw run log",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/993e4f73f7d3cefe455822ecccc6f99ab2f7ea729cfe17ae981f1a9a62ae67c8"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/stderr.log",
+      "sha256": "b5252385233cd22cca2503eeb4f0544f4b2161c364b9a3073af7ec7b7a481c9d",
+      "role": "ordered stage authority, admission or raw run log",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/b5252385233cd22cca2503eeb4f0544f4b2161c364b9a3073af7ec7b7a481c9d"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/framework/capability-controls.json",
+      "sha256": "95ab21f984459e433baa8f7b44fd8f55050731bb2b13f879c52cdeae07e89b9f",
+      "role": "individual stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/95ab21f984459e433baa8f7b44fd8f55050731bb2b13f879c52cdeae07e89b9f"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/framework/clippy.json",
+      "sha256": "a3192faa0ed1dbea887c5abddef8b9bdba83a2c7c3d96bb4c851b5d5a1b0501e",
+      "role": "individual stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a3192faa0ed1dbea887c5abddef8b9bdba83a2c7c3d96bb4c851b5d5a1b0501e"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/framework/core-wasm-clippy.json",
+      "sha256": "7b755e2022a3195c3cad33c8bd091f8c7cca3548d5901f22a1db6273d092abdd",
+      "role": "individual stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/7b755e2022a3195c3cad33c8bd091f8c7cca3548d5901f22a1db6273d092abdd"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/framework/docs.json",
+      "sha256": "35a1ace8eb17e8d43f2929f19f66cc4bfceff23a17676b9302f739da0ca074e3",
+      "role": "individual stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/35a1ace8eb17e8d43f2929f19f66cc4bfceff23a17676b9302f739da0ca074e3"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/framework/fmt.json",
+      "sha256": "d54e40cca8135aefca2ea022aa86d8ddab0c4ec7352cfddebf1661c491cf305e",
+      "role": "individual stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d54e40cca8135aefca2ea022aa86d8ddab0c4ec7352cfddebf1661c491cf305e"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/framework/go-host.json",
+      "sha256": "10aa734ab537d2479f1a3ae9aeb307a4577676eb64c103d97c988564f7d2100a",
+      "role": "individual stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/10aa734ab537d2479f1a3ae9aeb307a4577676eb64c103d97c988564f7d2100a"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/framework/kettle-go-host.json",
+      "sha256": "bbde6a3f4e299fc9c72ff52e92ea56f2ee2212ec90f3677c2f2edc290c89b156",
+      "role": "individual stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbde6a3f4e299fc9c72ff52e92ea56f2ee2212ec90f3677c2f2edc290c89b156"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/framework/kettle-protobuf-freshness.json",
+      "sha256": "4361e5ee6f1bc2bf7b8b7b12d2b10d0e9c55537bcaf56d7cd725e1191552f8dc",
+      "role": "individual stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/4361e5ee6f1bc2bf7b8b7b12d2b10d0e9c55537bcaf56d7cd725e1191552f8dc"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/framework/proto-tools.json",
+      "sha256": "3e4ae7739e3fa74e37b2d41684194348e2b8ce75f24a7c421d5904cfdcbfd573",
+      "role": "individual stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/3e4ae7739e3fa74e37b2d41684194348e2b8ce75f24a7c421d5904cfdcbfd573"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/framework/protobuf-controls.json",
+      "sha256": "aaa046d866b9782478f7a42cc49bf9619c339d0d7f0d97781a029341293813aa",
+      "role": "individual stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/aaa046d866b9782478f7a42cc49bf9619c339d0d7f0d97781a029341293813aa"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/framework/protobuf-freshness.json",
+      "sha256": "2ddc0f91f00ecbcbf045bc57bc7e84aa7e258a864a84c6c1c9438b7ab89faf37",
+      "role": "individual stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/2ddc0f91f00ecbcbf045bc57bc7e84aa7e258a864a84c6c1c9438b7ab89faf37"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/framework/retired-names.json",
+      "sha256": "448c8793e3754c5b2e20d021773dabf2c6dd977fdff9d56993a03df4890e3d30",
+      "role": "individual stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/448c8793e3754c5b2e20d021773dabf2c6dd977fdff9d56993a03df4890e3d30"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/framework/source-boundary.json",
+      "sha256": "53d8bd7f37bf4ce46025ba77cc9d7742db05dda34c1e7b4ea7c6e2e3c2fb8dfb",
+      "role": "individual stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/53d8bd7f37bf4ce46025ba77cc9d7742db05dda34c1e7b4ea7c6e2e3c2fb8dfb"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/framework/standalone.json",
+      "sha256": "417ea8054b83d6fba75ab38a95721a65818ccd1ef64eace7ed6f72eeffaf871b",
+      "role": "individual stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/417ea8054b83d6fba75ab38a95721a65818ccd1ef64eace7ed6f72eeffaf871b"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/framework/tests.json",
+      "sha256": "7177acfb4d03ac0f0b620307462efbb325876e6b9e9cd5278f747795906fdf16",
+      "role": "individual stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/7177acfb4d03ac0f0b620307462efbb325876e6b9e9cd5278f747795906fdf16"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/framework/timing-controls.json",
+      "sha256": "b639fc068c0e15f2389cda9aa0350d7f68ce1551a5263bbb433cb45c7a32164f",
+      "role": "individual stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/b639fc068c0e15f2389cda9aa0350d7f68ce1551a5263bbb433cb45c7a32164f"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/framework/wasm-guest.json",
+      "sha256": "ab237725d434447f37f104b5c9bacfd1cb353a758003ac08fba68c56c4f98535",
+      "role": "individual stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/ab237725d434447f37f104b5c9bacfd1cb353a758003ac08fba68c56c4f98535"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/framework/wasm32-wasip1.json",
+      "sha256": "601a62b6209432e5391e2aa6b2659787255785f110e52ed527fe6ca691cf7b09",
+      "role": "individual stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/601a62b6209432e5391e2aa6b2659787255785f110e52ed527fe6ca691cf7b09"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/debug/umpire-guest-driver",
+      "sha256": "2ab7834976ddf318a908e0be7a1a5ed5060e7d072a6d6d0f03116486a42617f2",
+      "role": "corresponding parent proof binary/tool/guest artifact",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/2ab7834976ddf318a908e0be7a1a5ed5060e7d072a6d6d0f03116486a42617f2"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/debug/xtask",
+      "sha256": "c82782fa21c22405eb6a64526ca2ff999e52c6702cdf600f18f942f8f2e9fcb4",
+      "role": "corresponding parent proof binary/tool/guest artifact",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/c82782fa21c22405eb6a64526ca2ff999e52c6702cdf600f18f942f8f2e9fcb4"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest/current-contract-reports",
+      "sha256": "8e630b69ffc7db8b73f056bf42e757f825d9245f7fecd439550b2e70832ec3bb",
+      "role": "corresponding parent proof binary/tool/guest artifact",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/8e630b69ffc7db8b73f056bf42e757f825d9245f7fecd439550b2e70832ec3bb"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest/panic-control-reports",
+      "sha256": "269e2177d8908a874b8ee015cef01972e7a42dba9fc5ddd44c64826a4502a292",
+      "role": "corresponding parent proof binary/tool/guest artifact",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/269e2177d8908a874b8ee015cef01972e7a42dba9fc5ddd44c64826a4502a292"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/xtask-bootstrap/debug/umpire-guest-driver",
+      "sha256": "a108508bfb96f1883024a3a0e37bf24c710319653b8f10a9a84235087cc030cf",
+      "role": "corresponding parent proof binary/tool/guest artifact",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a108508bfb96f1883024a3a0e37bf24c710319653b8f10a9a84235087cc030cf"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/xtask-bootstrap/debug/xtask",
+      "sha256": "a627fc2cd3ebb93b5b366d6106181dc17f186e21fb08b5df4811919cbd2325a9",
+      "role": "corresponding parent proof binary/tool/guest artifact",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a627fc2cd3ebb93b5b366d6106181dc17f186e21fb08b5df4811919cbd2325a9"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-0.request.pb",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-0.response.pb",
+      "sha256": "695bac7c2f9efaf41d628f1c0346f02806c9a8f870d17446f827ca1c5a7be36d",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/695bac7c2f9efaf41d628f1c0346f02806c9a8f870d17446f827ca1c5a7be36d"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-1.request.pb",
+      "sha256": "0218870a40c98ac9edaf9b91ec16a3da998e167f43509c6cdb641b23c8e3b65f",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/0218870a40c98ac9edaf9b91ec16a3da998e167f43509c6cdb641b23c8e3b65f"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-1.response.pb",
+      "sha256": "e0231f4ec51259d0352f601787ef4cd353c7b5360b48ad3c6750f25e657b8104",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/e0231f4ec51259d0352f601787ef4cd353c7b5360b48ad3c6750f25e657b8104"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-2.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-2.response.pb",
+      "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-3.request.pb",
+      "sha256": "5409612b12e08c3cb72f885d40a656ecdc839b7c2d32e62eccd6399c96b2df3c",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/5409612b12e08c3cb72f885d40a656ecdc839b7c2d32e62eccd6399c96b2df3c"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-3.response.pb",
+      "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-4.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-4.response.pb",
+      "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-5.request.pb",
+      "sha256": "3c52cda26b6d67ea4fef8fd7e7609446de58d5a9d0f78ff8f27dd275ad7cbd24",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/3c52cda26b6d67ea4fef8fd7e7609446de58d5a9d0f78ff8f27dd275ad7cbd24"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-5.response.pb",
+      "sha256": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-6.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-6.response.pb",
+      "sha256": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-7.request.pb",
+      "sha256": "a5d5734ede85c1d312d39df59be6508f869e01b7b526ed2fd58116fc25d8e58b",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a5d5734ede85c1d312d39df59be6508f869e01b7b526ed2fd58116fc25d8e58b"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-7.response.pb",
+      "sha256": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-8.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-8.response.pb",
+      "sha256": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback.methods",
+      "sha256": "229432f7c3a51928d48a43d7599fd1f1d949172cd5afbe9fde184df40f4e8538",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/229432f7c3a51928d48a43d7599fd1f1d949172cd5afbe9fde184df40f4e8538"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-0.request.pb",
+      "sha256": "941770022d63e4b6a2bfa6c18564a4f0200a2946e45e5b8c0bcd725b47c41789",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/941770022d63e4b6a2bfa6c18564a4f0200a2946e45e5b8c0bcd725b47c41789"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-0.response.pb",
+      "sha256": "416a9d19bcde338b35c6b87b563d4a75028b7908aebc3ad87616805ff9cb5e51",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/416a9d19bcde338b35c6b87b563d4a75028b7908aebc3ad87616805ff9cb5e51"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-1.request.pb",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-1.response.pb",
+      "sha256": "ac81d39b5d928a67d89308851f57a3c1523692209faa8ea7ae8f19022cc428dd",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/ac81d39b5d928a67d89308851f57a3c1523692209faa8ea7ae8f19022cc428dd"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-2.request.pb",
+      "sha256": "bc16d4fd28f67f38479fde4ea0c5acd3dfecc3d3526b67279eb8dc46253a9f84",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bc16d4fd28f67f38479fde4ea0c5acd3dfecc3d3526b67279eb8dc46253a9f84"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-2.response.pb",
+      "sha256": "fd52a50a1e54e5856f8afb7ae62ae9dd45cbc77fec9e597d548f12977236ce51",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/fd52a50a1e54e5856f8afb7ae62ae9dd45cbc77fec9e597d548f12977236ce51"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-3.request.pb",
+      "sha256": "5409612b12e08c3cb72f885d40a656ecdc839b7c2d32e62eccd6399c96b2df3c",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/5409612b12e08c3cb72f885d40a656ecdc839b7c2d32e62eccd6399c96b2df3c"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-3.response.pb",
+      "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-4.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-4.response.pb",
+      "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-5.request.pb",
+      "sha256": "3c52cda26b6d67ea4fef8fd7e7609446de58d5a9d0f78ff8f27dd275ad7cbd24",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/3c52cda26b6d67ea4fef8fd7e7609446de58d5a9d0f78ff8f27dd275ad7cbd24"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-5.response.pb",
+      "sha256": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-6.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-6.response.pb",
+      "sha256": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-7.request.pb",
+      "sha256": "a5d5734ede85c1d312d39df59be6508f869e01b7b526ed2fd58116fc25d8e58b",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a5d5734ede85c1d312d39df59be6508f869e01b7b526ed2fd58116fc25d8e58b"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-7.response.pb",
+      "sha256": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-8.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-8.response.pb",
+      "sha256": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured.methods",
+      "sha256": "83eb0c69d9d81955ba21ce6501bd8b2ad352f982d8b797738a37e86253957b51",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/83eb0c69d9d81955ba21ce6501bd8b2ad352f982d8b797738a37e86253957b51"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-0.request.pb",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-0.response.pb",
+      "sha256": "695bac7c2f9efaf41d628f1c0346f02806c9a8f870d17446f827ca1c5a7be36d",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/695bac7c2f9efaf41d628f1c0346f02806c9a8f870d17446f827ca1c5a7be36d"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-1.request.pb",
+      "sha256": "5409612b12e08c3cb72f885d40a656ecdc839b7c2d32e62eccd6399c96b2df3c",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/5409612b12e08c3cb72f885d40a656ecdc839b7c2d32e62eccd6399c96b2df3c"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-1.response.pb",
+      "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-2.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-2.response.pb",
+      "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-3.request.pb",
+      "sha256": "3c52cda26b6d67ea4fef8fd7e7609446de58d5a9d0f78ff8f27dd275ad7cbd24",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/3c52cda26b6d67ea4fef8fd7e7609446de58d5a9d0f78ff8f27dd275ad7cbd24"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-3.response.pb",
+      "sha256": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-4.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-4.response.pb",
+      "sha256": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-5.request.pb",
+      "sha256": "a5d5734ede85c1d312d39df59be6508f869e01b7b526ed2fd58116fc25d8e58b",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a5d5734ede85c1d312d39df59be6508f869e01b7b526ed2fd58116fc25d8e58b"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-5.response.pb",
+      "sha256": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-6.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-6.response.pb",
+      "sha256": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary.methods",
+      "sha256": "cedd86bf57f9e972594b9022dac13fb0385488ab10a89c9abba71b511c742692",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/cedd86bf57f9e972594b9022dac13fb0385488ab10a89c9abba71b511c742692"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/panic-native/effect_overflow.pb",
+      "sha256": "a6676ea2fe6667eda4b26ea04419c3f7802e377aeb466e72b81399670b378cef",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a6676ea2fe6667eda4b26ea04419c3f7802e377aeb466e72b81399670b378cef"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/panic-native/effect_panic.pb",
+      "sha256": "57e9cbe2fa91e1476b75eb392b7fb8a00cd723adc0a2fe5be4852605d0836c53",
+      "role": "corresponding parent native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/57e9cbe2fa91e1476b75eb392b7fb8a00cd723adc0a2fe5be4852605d0836c53"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/wasm32-wasip1/guest/caught_panic_control.wasm",
+      "sha256": "16bdf703328273c57741940a4ec420150576a5a02e84fcc5d279afba14429a12",
+      "role": "corresponding parent proof binary/tool/guest artifact",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/16bdf703328273c57741940a4ec420150576a5a02e84fcc5d279afba14429a12"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/wasm32-wasip1/guest/overflow_control.wasm",
+      "sha256": "7815ea7d693a5cb9f3d6a326c0adcc948b38585d726d751c4cb64e3a2259205e",
+      "role": "corresponding parent proof binary/tool/guest artifact",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/7815ea7d693a5cb9f3d6a326c0adcc948b38585d726d751c4cb64e3a2259205e"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/wasm32-wasip1/guest/stateful_control.wasm",
+      "sha256": "0ce0f654b66cc01a6b52670af9175f1047fa79c51fd5039e7c9742bc205e6b87",
+      "role": "corresponding parent proof binary/tool/guest artifact",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/0ce0f654b66cc01a6b52670af9175f1047fa79c51fd5039e7c9742bc205e6b87"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/wasm32-wasip1/guest/umpire_kettle_guest.wasm",
+      "sha256": "f47eeca8991182ce5d2160a8794ae3e83007de4a0db2a2c5a095c2a0439f2228",
+      "role": "corresponding parent proof binary/tool/guest artifact",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f47eeca8991182ce5d2160a8794ae3e83007de4a0db2a2c5a095c2a0439f2228"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/wasm32-wasip1/guest/umpire_stock_guest.wasm",
+      "sha256": "4979d134ba8ae6afc4ba79dadc046251afbbf4ca34397ed61af184205a371222",
+      "role": "corresponding parent proof binary/tool/guest artifact",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/4979d134ba8ae6afc4ba79dadc046251afbbf4ca34397ed61af184205a371222"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/darling_macro-57862c4d2c537235.umpire-id",
+      "sha256": "bffab7fb32cef4a3b69d06b47389dde6b20d511ba85eb9818bc1d0a7d04521ae",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bffab7fb32cef4a3b69d06b47389dde6b20d511ba85eb9818bc1d0a7d04521ae"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/manyhow_macros-522bb03fecc0c642.umpire-id",
+      "sha256": "dec8c77a23471e0b9d516146fc2a51c2e1154df5494478e77c577e36eef9197d",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/dec8c77a23471e0b9d516146fc2a51c2e1154df5494478e77c577e36eef9197d"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/manyhow_macros-5be4a10a87b03003.umpire-id",
+      "sha256": "353c9b41642629690dbe6914a4c16e60eddb58b7c5a95ffda2e4017915df1105",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/353c9b41642629690dbe6914a4c16e60eddb58b7c5a95ffda2e4017915df1105"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/prost_derive-43975aa2e4258748.umpire-id",
+      "sha256": "4114a76e1bae5345710061f8f89d4658410d6e8da6edf6e0828163ba8415b7bd",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/4114a76e1bae5345710061f8f89d4658410d6e8da6edf6e0828163ba8415b7bd"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/thiserror_impl-d9ec474b72def7c1.umpire-id",
+      "sha256": "1d4ea615322b7be9e2f9bb6a290240e425ec7012f1ff2d7fb980fc76878acb4e",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/1d4ea615322b7be9e2f9bb6a290240e425ec7012f1ff2d7fb980fc76878acb4e"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/umpire_catalog_macros-bbe30119c7585d5d.umpire-id",
+      "sha256": "0111fde11464996ef3e01f831075dca9153acddb9a38e2f6efdfbcf1103a2d97",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/0111fde11464996ef3e01f831075dca9153acddb9a38e2f6efdfbcf1103a2d97"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/umpire_dsl_macros-8eea8cbda1d0ba48.umpire-id",
+      "sha256": "d7b164bf0541d1a1d535ef790e8f1ecb5051b1cb5a9433f867faf8140f72dea5",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d7b164bf0541d1a1d535ef790e8f1ecb5051b1cb5a9433f867faf8140f72dea5"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/umpire_dsl_macros-afe464b25c4bb8b2.umpire-id",
+      "sha256": "25711a94ec8902c0f237844549366be4d21f6332c7a3656b9c33f71e81c2c368",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/25711a94ec8902c0f237844549366be4d21f6332c7a3656b9c33f71e81c2c368"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/umpire_ir_derive-5b9651b9f1794cb7.umpire-id",
+      "sha256": "729f41f47684722b63193bc68a99476f8257223ffd46ff51a243b53301d70351",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/729f41f47684722b63193bc68a99476f8257223ffd46ff51a243b53301d70351"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/umpire-lock-6411935ef7f53435f8945f4a0e1ca45db74ff74aa30f3bae8d9984f48b8eaf68.json",
+      "sha256": "6411935ef7f53435f8945f4a0e1ca45db74ff74aa30f3bae8d9984f48b8eaf68",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/6411935ef7f53435f8945f4a0e1ca45db74ff74aa30f3bae8d9984f48b8eaf68"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/addr2line-255ee5934a3d8660.umpire-id",
+      "sha256": "6cff5b14af149f08f65bdee5af5ab516ee60a7c71be53d28bf92d19be31194ef",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/6cff5b14af149f08f65bdee5af5ab516ee60a7c71be53d28bf92d19be31194ef"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/adler2-dcfe9e712de83524.umpire-id",
+      "sha256": "83f7663741bc1c9a817a3e68198050884ff6fbff0bfd875054ecb5a889a146da",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/83f7663741bc1c9a817a3e68198050884ff6fbff0bfd875054ecb5a889a146da"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/alloc-ee1b94c4e41bab4b.umpire-id",
+      "sha256": "c54486ec14418ab81682808acf2b54d1e75c9361658da356da261baab4272e51",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/c54486ec14418ab81682808acf2b54d1e75c9361658da356da261baab4272e51"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/bytes-65a877ea08f4b25c.umpire-id",
+      "sha256": "183467fcc2bd4cce9db23ab8797fcadcf0f964c059de41097e3c13704599e979",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/183467fcc2bd4cce9db23ab8797fcadcf0f964c059de41097e3c13704599e979"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/caught_panic_control.umpire-id",
+      "sha256": "335e9301ce0cddd142cfc176611411ec7e1805219ac48956e58e08f648cbde26",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/335e9301ce0cddd142cfc176611411ec7e1805219ac48956e58e08f648cbde26"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/cfg_if-b5eb0e6e1854091e.umpire-id",
+      "sha256": "88152b02e5e95927971c95a2720970aa34e6db8f004b2f226ab3bb2944c5598e",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/88152b02e5e95927971c95a2720970aa34e6db8f004b2f226ab3bb2944c5598e"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/compiler_builtins-6ffcd43c04af33f9.umpire-id",
+      "sha256": "eefbef0bf2bac7279dfc2a0c0223ba626a86b438e96e96e89111a10f5ca0fc46",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/eefbef0bf2bac7279dfc2a0c0223ba626a86b438e96e96e89111a10f5ca0fc46"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/core-60364901c1ec5ea7.umpire-id",
+      "sha256": "b9727ac727b8f72ca949a355b6449917d142c19ab3e433ec4e2ba9ca7de90128",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/b9727ac727b8f72ca949a355b6449917d142c19ab3e433ec4e2ba9ca7de90128"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/equivalent-f1c0d3e51dc60161.umpire-id",
+      "sha256": "595813e7fc7698038fe41e38365004177434bfc2e2e571842498f1bbf35482a6",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/595813e7fc7698038fe41e38365004177434bfc2e2e571842498f1bbf35482a6"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/fixedbitset-356c64dc03150e9a.umpire-id",
+      "sha256": "860a0d06963f7165d5782e5a20a88c88d5c279f48cb55490950e002b6698e174",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/860a0d06963f7165d5782e5a20a88c88d5c279f48cb55490950e002b6698e174"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/foldhash-3e7f58451663f456.umpire-id",
+      "sha256": "8fbd48db3863d7242d44096915e2b058c3d0ebf1ec2c0ada7e6c57f0f185e837",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/8fbd48db3863d7242d44096915e2b058c3d0ebf1ec2c0ada7e6c57f0f185e837"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/gimli-0b043c20b392a812.umpire-id",
+      "sha256": "5731e2e65506610278e13ab52925dbcfdcd3b0f63387093875f4c8215cd03899",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/5731e2e65506610278e13ab52925dbcfdcd3b0f63387093875f4c8215cd03899"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/hashbrown-73a47db5d20f8095.umpire-id",
+      "sha256": "ead5ad2e2de582738c1b45d9d3baf289e7d66fe6316ef5b2eef50bd03d3c53e7",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/ead5ad2e2de582738c1b45d9d3baf289e7d66fe6316ef5b2eef50bd03d3c53e7"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/hashbrown-cf473af66d91d5b2.umpire-id",
+      "sha256": "2b5639c2ae7fc2a2d22013727d7b6c9285a152f14f8626f36081fd86fe151c38",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/2b5639c2ae7fc2a2d22013727d7b6c9285a152f14f8626f36081fd86fe151c38"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/hashbrown-d03968f63b3a8ee3.umpire-id",
+      "sha256": "33100523db4db01e4d09873995914ff4d1756e1d781b895d53e3f440b2909a9d",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/33100523db4db01e4d09873995914ff4d1756e1d781b895d53e3f440b2909a9d"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/indexmap-e3af5fa5c6133605.umpire-id",
+      "sha256": "51608bc1c3d6be69a279060dd83c9139e68f47c5fcdc8b9c3a6192ed7c5d2185",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/51608bc1c3d6be69a279060dd83c9139e68f47c5fcdc8b9c3a6192ed7c5d2185"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/libc-8bcdf4d93a2fcdc7.umpire-id",
+      "sha256": "82d069a2c0300b22914858a11878c70b2cfac546f525a9eebb09234c81044403",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/82d069a2c0300b22914858a11878c70b2cfac546f525a9eebb09234c81044403"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/memchr-0ab2081f1519fc00.umpire-id",
+      "sha256": "6bd54a84e3afb2e012a3e2369a8d301951e31a37d94c663b83b93359117d2278",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/6bd54a84e3afb2e012a3e2369a8d301951e31a37d94c663b83b93359117d2278"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/miniz_oxide-21e596a6bf8f2e58.umpire-id",
+      "sha256": "5e5f7359504c3236a85da6df9d35ea7b5ae9bd1c94b6310f75a18ac32e732f32",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/5e5f7359504c3236a85da6df9d35ea7b5ae9bd1c94b6310f75a18ac32e732f32"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/object-804fc83b706b6d74.umpire-id",
+      "sha256": "5fa40a5950f04059e5f71d03d48d05fca7847818a6b4046884d3c50472614967",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/5fa40a5950f04059e5f71d03d48d05fca7847818a6b4046884d3c50472614967"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/overflow_control.umpire-id",
+      "sha256": "a6521286b5e45635eb63a36eaa7ec71db86a947b29e1d32abe6eca3ee9b16bb0",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a6521286b5e45635eb63a36eaa7ec71db86a947b29e1d32abe6eca3ee9b16bb0"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/panic_abort-7056431d09fb88ab.umpire-id",
+      "sha256": "8eace0f464f85097709e4fea3e7cf7ccddbdb61afc1f4c773b6096ae3e9b7a31",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/8eace0f464f85097709e4fea3e7cf7ccddbdb61afc1f4c773b6096ae3e9b7a31"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/panic_unwind-47e5619adda0bdbc.umpire-id",
+      "sha256": "443c0ea7927e47ab1dc14fa4f29abec54fdd50e6937d7570292fb79c2c0eea3a",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/443c0ea7927e47ab1dc14fa4f29abec54fdd50e6937d7570292fb79c2c0eea3a"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/petgraph-6e633b6a91d6ca32.umpire-id",
+      "sha256": "ad4e27e4af94cc3f14ad30c9f78de6961465e19a39c7ebe1fbaa97b39aab7975",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/ad4e27e4af94cc3f14ad30c9f78de6961465e19a39c7ebe1fbaa97b39aab7975"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/proc_macro-0c07ff060e06c015.umpire-id",
+      "sha256": "49bdc4ae35164998f0968cac6ad688bcc9aee7da92872cc20c2b574a4d00b6d9",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/49bdc4ae35164998f0968cac6ad688bcc9aee7da92872cc20c2b574a4d00b6d9"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/prost-56abc82f06ab2a8b.umpire-id",
+      "sha256": "78fc839f86e2b97fb410e0474ae64663051a58ccd145eec0f4a51116800f16a8",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/78fc839f86e2b97fb410e0474ae64663051a58ccd145eec0f4a51116800f16a8"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/prost_types-10c907dc5d820385.umpire-id",
+      "sha256": "78bd2e432347b6d450cf9af738f24b77bfd8f6f63a6ae2a9e4db2d62b31a8b52",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/78bd2e432347b6d450cf9af738f24b77bfd8f6f63a6ae2a9e4db2d62b31a8b52"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/rustc_demangle-81b16fae9c94da4d.umpire-id",
+      "sha256": "45f447fad63a267290f836401895df6d608888863e9255c59761c20b1fe5dc6b",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/45f447fad63a267290f836401895df6d608888863e9255c59761c20b1fe5dc6b"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/rustc_hash-b89a28e22e2ae749.umpire-id",
+      "sha256": "e52e3cea5fbc6b898b167ff0c1c43b1aa39c15b135cd4120f2e2737a9afcc3ba",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/e52e3cea5fbc6b898b167ff0c1c43b1aa39c15b135cd4120f2e2737a9afcc3ba"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/rustc_literal_escaper-e9fc47435d3c0e1a.umpire-id",
+      "sha256": "c1b24093f6958890ac23ebf17e73bd15b81b3cc8111b08b5b7624226850b941c",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/c1b24093f6958890ac23ebf17e73bd15b81b3cc8111b08b5b7624226850b941c"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/rustc_std_workspace_alloc-c2674c78804632f7.umpire-id",
+      "sha256": "60c3a99edfc91adf197bc35b83bf45cf93f64f9caff08359829d49abc51d15c7",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/60c3a99edfc91adf197bc35b83bf45cf93f64f9caff08359829d49abc51d15c7"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/rustc_std_workspace_core-6f2d9eb9e9811fd4.umpire-id",
+      "sha256": "e3c0b8ed75801e01c7fa3d2cb2fd063f7cf89072e44ce662df08d9ea9545b99c",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/e3c0b8ed75801e01c7fa3d2cb2fd063f7cf89072e44ce662df08d9ea9545b99c"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/smallvec-833d7999866c1279.umpire-id",
+      "sha256": "f46122ea66ee968391e57548b8e990a5d112d8e57483a1496e3f90f1221bc83f",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f46122ea66ee968391e57548b8e990a5d112d8e57483a1496e3f90f1221bc83f"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/stateful_control.umpire-id",
+      "sha256": "a6b95787b9f60df023d7d46baf9f2c82a51d29bd54ea3d15a9ed44927f4399ab",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a6b95787b9f60df023d7d46baf9f2c82a51d29bd54ea3d15a9ed44927f4399ab"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/std-76a3c866e1aa0810.umpire-id",
+      "sha256": "b5d29300f6dc1a9c35694b3776ad740ff673a5193d07dd18788fbdd6db7dd0ea",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/b5d29300f6dc1a9c35694b3776ad740ff673a5193d07dd18788fbdd6db7dd0ea"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/std_detect-73af2212f1f209a7.umpire-id",
+      "sha256": "2435b2ab99fd85d13f5b9999de82108d3151a08a0f6d3e8ed17e2597fca2407a",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/2435b2ab99fd85d13f5b9999de82108d3151a08a0f6d3e8ed17e2597fca2407a"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/thiserror-c6ddba7c2cc3b5e7.umpire-id",
+      "sha256": "49b06df8738db05c9962167f715427e26f573266a61897dd3695ef83bfb1b0de",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/49b06df8738db05c9962167f715427e26f573266a61897dd3695ef83bfb1b0de"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire-0558061cc73d6314.umpire-id",
+      "sha256": "3ff9d7ec3745b6c2d3a1fa54e5ad74c9f743eb1a23d0ee85a011f6251b0a8d1f",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/3ff9d7ec3745b6c2d3a1fa54e5ad74c9f743eb1a23d0ee85a011f6251b0a8d1f"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_catalog-d12cb35172fd9ce2.umpire-id",
+      "sha256": "cc32fcac7840d6148811b6ca3d66332a8ecc9b9c74b8d3d9ae26db76cfec5f2d",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/cc32fcac7840d6148811b6ca3d66332a8ecc9b9c74b8d3d9ae26db76cfec5f2d"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_checker-273f83604a5ad181.umpire-id",
+      "sha256": "cfde7ec155c5ede12abcbdf6ebc491ed890c2bea8c74564f13597154ab681697",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/cfde7ec155c5ede12abcbdf6ebc491ed890c2bea8c74564f13597154ab681697"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_checker-b80f2ad934c82c11.umpire-id",
+      "sha256": "fd90aab1f6f437b4c02300de5aadefb7e32d374e50d440478aab9ea5dd5684fb",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/fd90aab1f6f437b4c02300de5aadefb7e32d374e50d440478aab9ea5dd5684fb"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_dsl-577dafa04ada3703.umpire-id",
+      "sha256": "25587eb16afc98dbe5bfc414a07f62c69e5bb11332641ac7c03469c600fd487c",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/25587eb16afc98dbe5bfc414a07f62c69e5bb11332641ac7c03469c600fd487c"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_dsl-7fd24e574ce2f3c7.umpire-id",
+      "sha256": "027afb094417c06058e85b1ebe5407ed4180e247093750fae3c0900f38e757dc",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/027afb094417c06058e85b1ebe5407ed4180e247093750fae3c0900f38e757dc"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_kettle_guest.umpire-id",
+      "sha256": "ceabbeb7efdef026626cde8d0c403826fc6177e5ba0c8e43e1d56844b18ffe17",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/ceabbeb7efdef026626cde8d0c403826fc6177e5ba0c8e43e1d56844b18ffe17"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_reference_kettle-6740d5904ab841a0.umpire-id",
+      "sha256": "0b8d62ba9190e3cdaedb52516650ad41d0af92b5201bf6e4c6ecb28488b1f6a0",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/0b8d62ba9190e3cdaedb52516650ad41d0af92b5201bf6e4c6ecb28488b1f6a0"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_runtime-28db93f8e8738bc3.umpire-id",
+      "sha256": "f5a6645f6dcd681e7cd45288ba7a9b2adc87eb29344f0dbe2961b4b022a5abfe",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f5a6645f6dcd681e7cd45288ba7a9b2adc87eb29344f0dbe2961b4b022a5abfe"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_runtime-d8759717eb2ef94e.umpire-id",
+      "sha256": "beb718e30323754190cacb91f3e52719fb1977907ab0cc4a8bf602f6f1f59c99",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/beb718e30323754190cacb91f3e52719fb1977907ab0cc4a8bf602f6f1f59c99"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_stock_guest.umpire-id",
+      "sha256": "c318f9c5e9bc82bb10789cba9e5f6783cb24b1e7ed4f08e6fe1c94297c410429",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/c318f9c5e9bc82bb10789cba9e5f6783cb24b1e7ed4f08e6fe1c94297c410429"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_suite-4323e1e3b7a942fa.umpire-id",
+      "sha256": "069e0c436b36a2fb9cdacaf8a81abeb5cd5cc8f1c0d6abc6ec9c87b3679c4092",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/069e0c436b36a2fb9cdacaf8a81abeb5cd5cc8f1c0d6abc6ec9c87b3679c4092"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/unwind-d30f0132eb6d0e9e.umpire-id",
+      "sha256": "ecbb6f965b216c13ad06b23a3f582c234df7e63f7cac7388700f0604aa65dafd",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/ecbb6f965b216c13ad06b23a3f582c234df7e63f7cac7388700f0604aa65dafd"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/wasip1-70660f1f0ab1374e.umpire-id",
+      "sha256": "099ec97ba64d44b300b4949598b8d0f77d3bd1f3c3429f42bdcf53a948519c7d",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/099ec97ba64d44b300b4949598b8d0f77d3bd1f3c3429f42bdcf53a948519c7d"
+    },
+    {
+      "manifest": "standalone-0547321",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-wrappers/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest-rustc",
+      "sha256": "a108508bfb96f1883024a3a0e37bf24c710319653b8f10a9a84235087cc030cf",
+      "role": "guest compile identity or actual compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a108508bfb96f1883024a3a0e37bf24c710319653b8f10a9a84235087cc030cf"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/admission.json",
+      "sha256": "61498a7c298966a6268a42bb2bfefd7a4ec8807eb3f8de6cdbaa5540836b9993",
+      "role": "matching native stage authority/admission/raw channel",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/61498a7c298966a6268a42bb2bfefd7a4ec8807eb3f8de6cdbaa5540836b9993"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/stages.jsonl",
+      "sha256": "e54b09147883c8dcaec0cf67e7a97b63099ecfa77e913d493314e3b66fc0920d",
+      "role": "matching native stage authority/admission/raw channel",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/e54b09147883c8dcaec0cf67e7a97b63099ecfa77e913d493314e3b66fc0920d"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/stdout.log",
+      "sha256": "cc7ecde822ff19d093f063357658ef482cb527bfdb67abb9835cd97dabf07130",
+      "role": "matching native stage authority/admission/raw channel",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/cc7ecde822ff19d093f063357658ef482cb527bfdb67abb9835cd97dabf07130"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/stderr.log",
+      "sha256": "d776e99b9c591a66eaa3ea256e37a5fd914899d5cdd87072cb0d52dc49493a7f",
+      "role": "matching native stage authority/admission/raw channel",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d776e99b9c591a66eaa3ea256e37a5fd914899d5cdd87072cb0d52dc49493a7f"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/framework/capability-controls.json",
+      "sha256": "061c734564b1aa9419238b8dfc95bf8d5d90875a3afbb087b33c324ecf0638fb",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/061c734564b1aa9419238b8dfc95bf8d5d90875a3afbb087b33c324ecf0638fb"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/framework/clippy.json",
+      "sha256": "f32bf7f06e17f620b87f575480e2a4e399df6432f84c01eff6b0e74cb09b91b9",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f32bf7f06e17f620b87f575480e2a4e399df6432f84c01eff6b0e74cb09b91b9"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/framework/core-wasm-clippy.json",
+      "sha256": "485d1e80e59590d5d0ce343ba8abbce081a23c01576abb4d31598c0c5de1cdc2",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/485d1e80e59590d5d0ce343ba8abbce081a23c01576abb4d31598c0c5de1cdc2"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/framework/docs.json",
+      "sha256": "61d9e2c2208e91978164d9bfab8835ba3f31ce3cc9f5ccd601d76f93fbbf7232",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/61d9e2c2208e91978164d9bfab8835ba3f31ce3cc9f5ccd601d76f93fbbf7232"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/framework/fmt.json",
+      "sha256": "3a9eaf60c4ac9799b2733de386e65d74ee70efa177783b4631ca9ca031bd901a",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/3a9eaf60c4ac9799b2733de386e65d74ee70efa177783b4631ca9ca031bd901a"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/framework/go-host.json",
+      "sha256": "58b0804a73eb1979130257684bc3a322e6df27d7a60d7b1d8b9adf3dfa551899",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/58b0804a73eb1979130257684bc3a322e6df27d7a60d7b1d8b9adf3dfa551899"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/framework/kettle-go-host.json",
+      "sha256": "e82a0b74a6e96829598d26c32025c9298268bd596f34c5e74400f9c85030b189",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/e82a0b74a6e96829598d26c32025c9298268bd596f34c5e74400f9c85030b189"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/framework/kettle-protobuf-freshness.json",
+      "sha256": "28c8f9c20cff1fbf2f4944c95bf34265c19ed91f9d108e80a1b054daa761fb25",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/28c8f9c20cff1fbf2f4944c95bf34265c19ed91f9d108e80a1b054daa761fb25"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/framework/proto-tools.json",
+      "sha256": "118171bfa313791af0137070555b97a292a35a2679ae4c5da1ed9896d1d419a3",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/118171bfa313791af0137070555b97a292a35a2679ae4c5da1ed9896d1d419a3"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/framework/protobuf-controls.json",
+      "sha256": "52e285fa6031375479287b97f209683d23affbea80c420b402349fedf62aa751",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/52e285fa6031375479287b97f209683d23affbea80c420b402349fedf62aa751"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/framework/protobuf-freshness.json",
+      "sha256": "0fa7db820750b17209a505006d9f3ee338ee50a68bdb9e3f1c3114f1c9963db8",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/0fa7db820750b17209a505006d9f3ee338ee50a68bdb9e3f1c3114f1c9963db8"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/framework/retired-names.json",
+      "sha256": "258355c9ed24503e6d43644255042869e0f88eb4f85cd386e307275f143f1c7f",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/258355c9ed24503e6d43644255042869e0f88eb4f85cd386e307275f143f1c7f"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/framework/source-boundary.json",
+      "sha256": "a5460f0f3a3a53ccee519c524267fae00165cea7d46015487767be03aa7b3a93",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a5460f0f3a3a53ccee519c524267fae00165cea7d46015487767be03aa7b3a93"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/framework/standalone.json",
+      "sha256": "8b395559f97f83817eca48f4c7ce4931b9ce1ae54eec3b93700c32010c70482d",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/8b395559f97f83817eca48f4c7ce4931b9ce1ae54eec3b93700c32010c70482d"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/framework/tests.json",
+      "sha256": "70826363e0876cc233adc454f94d15464a2d084c61ddcae9830924117d684905",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/70826363e0876cc233adc454f94d15464a2d084c61ddcae9830924117d684905"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/framework/timing-controls.json",
+      "sha256": "723bd006223b7b8f0cabed785e850ea4b11c028dfb5609e17c96c21ed3065f68",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/723bd006223b7b8f0cabed785e850ea4b11c028dfb5609e17c96c21ed3065f68"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/framework/wasm-guest.json",
+      "sha256": "492349202606dfb3bbbd3c52c88355651f263173a8ad3606e53ddc9469e43f3c",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/492349202606dfb3bbbd3c52c88355651f263173a8ad3606e53ddc9469e43f3c"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136/framework/wasm32-wasip1.json",
+      "sha256": "424e468c15c7bf4ad03461e2fce54b216dfed56bbe2767da9ae556d83247bf3c",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/424e468c15c7bf4ad03461e2fce54b216dfed56bbe2767da9ae556d83247bf3c"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/admission.json",
+      "sha256": "61498a7c298966a6268a42bb2bfefd7a4ec8807eb3f8de6cdbaa5540836b9993",
+      "role": "matching native stage authority/admission/raw channel",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/61498a7c298966a6268a42bb2bfefd7a4ec8807eb3f8de6cdbaa5540836b9993"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/stages.jsonl",
+      "sha256": "73fa8ff9a38bb5090e1b86186b97c51431493e11a64289ca6184255ea3d647f1",
+      "role": "matching native stage authority/admission/raw channel",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/73fa8ff9a38bb5090e1b86186b97c51431493e11a64289ca6184255ea3d647f1"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/stdout.log",
+      "sha256": "c7945d195a6287b97f460d152b813d85891d61e71401d43ff39b8287872a5fa8",
+      "role": "matching native stage authority/admission/raw channel",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/c7945d195a6287b97f460d152b813d85891d61e71401d43ff39b8287872a5fa8"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/stderr.log",
+      "sha256": "acdcc90332738f7918a28d6696cab483b8d230a757be8b8b71539dc96c70ac2b",
+      "role": "matching native stage authority/admission/raw channel",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/acdcc90332738f7918a28d6696cab483b8d230a757be8b8b71539dc96c70ac2b"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/framework/capability-controls.json",
+      "sha256": "d7cd8c14fad8f8731a750246c31b8d03af169064dd27782145b8e51b3caa1393",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d7cd8c14fad8f8731a750246c31b8d03af169064dd27782145b8e51b3caa1393"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/framework/clippy.json",
+      "sha256": "43196d464937236ec0b18c290d94b73d9e9fd94044745c2ef758ffe465f725e9",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/43196d464937236ec0b18c290d94b73d9e9fd94044745c2ef758ffe465f725e9"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/framework/core-wasm-clippy.json",
+      "sha256": "ee71c37c07f761104f288da4266ec8f1de7627a5231f2e34af3ff9cddb4ce218",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/ee71c37c07f761104f288da4266ec8f1de7627a5231f2e34af3ff9cddb4ce218"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/framework/docs.json",
+      "sha256": "330e138c185147d872b9335ef5f6471ebcd8194d31688e7fc8756f84f8c2dc25",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/330e138c185147d872b9335ef5f6471ebcd8194d31688e7fc8756f84f8c2dc25"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/framework/fmt.json",
+      "sha256": "e93a59cdd80468a256910fae922c3263abbffb336417fa2d4d7856a778f84971",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/e93a59cdd80468a256910fae922c3263abbffb336417fa2d4d7856a778f84971"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/framework/go-host.json",
+      "sha256": "420846f636832fddb013d7ebddc6efd28cbfccc6e5dc467798cbcf72f24aeb8e",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/420846f636832fddb013d7ebddc6efd28cbfccc6e5dc467798cbcf72f24aeb8e"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/framework/kettle-go-host.json",
+      "sha256": "e232329e113a59240ae70e39d2553b5ce718c8dc0e71e07438708ca15fdc9f90",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/e232329e113a59240ae70e39d2553b5ce718c8dc0e71e07438708ca15fdc9f90"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/framework/kettle-protobuf-freshness.json",
+      "sha256": "eff3a833344bc1e54900fc6c089626e75ac67cce73be78a0d480c8a5dfcdf9f1",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/eff3a833344bc1e54900fc6c089626e75ac67cce73be78a0d480c8a5dfcdf9f1"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/framework/proto-tools.json",
+      "sha256": "a2f3aed5c2f3e954fab939f2372a8d7101f163c04eed7117fb7b2467e213b2a1",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a2f3aed5c2f3e954fab939f2372a8d7101f163c04eed7117fb7b2467e213b2a1"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/framework/protobuf-controls.json",
+      "sha256": "fa4a31f1cd0bc8d326b9fe433a9e593bad6de651e6a30b64116fc070febe41cc",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/fa4a31f1cd0bc8d326b9fe433a9e593bad6de651e6a30b64116fc070febe41cc"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/framework/protobuf-freshness.json",
+      "sha256": "66ed63050ada9cb156fc09f90f2566a68ccd1490a4c0a9425f352ef015fc1002",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/66ed63050ada9cb156fc09f90f2566a68ccd1490a4c0a9425f352ef015fc1002"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/framework/retired-names.json",
+      "sha256": "f3a54cec99031869accd0cfd632381da2f9f3e2a36401cc41224cf006be26baf",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f3a54cec99031869accd0cfd632381da2f9f3e2a36401cc41224cf006be26baf"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/framework/source-boundary.json",
+      "sha256": "68dc4574ed68a639228522c57d77458fca3177f9bf0191cb2019cfa6c192a526",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/68dc4574ed68a639228522c57d77458fca3177f9bf0191cb2019cfa6c192a526"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/framework/standalone.json",
+      "sha256": "e03ac723f48804476f2e366e0bb0b4b7934b34b62c23c70e23c35b4a6783cde6",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/e03ac723f48804476f2e366e0bb0b4b7934b34b62c23c70e23c35b4a6783cde6"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/framework/tests.json",
+      "sha256": "b34a9c8eba56db9ba06e73f05935cbf78e8454a882b3a400a33814b72873e03b",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/b34a9c8eba56db9ba06e73f05935cbf78e8454a882b3a400a33814b72873e03b"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/framework/timing-controls.json",
+      "sha256": "3a68bb2546b6d274393c037f3347eafe4230db1c934b7027f8acfde8b32fdb52",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/3a68bb2546b6d274393c037f3347eafe4230db1c934b7027f8acfde8b32fdb52"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/framework/wasm-guest.json",
+      "sha256": "d8f2d2eef2b4d34095c1c22872dc06f83be787a60b8ac877b24e4aeb21c71a1a",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d8f2d2eef2b4d34095c1c22872dc06f83be787a60b8ac877b24e4aeb21c71a1a"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849/framework/wasm32-wasip1.json",
+      "sha256": "c9328c4043887da08f0f357b9d8124238fee21116f7d81f526ce6553603583ba",
+      "role": "individual native stage receipt",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/c9328c4043887da08f0f357b9d8124238fee21116f7d81f526ce6553603583ba"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/debug/umpire-guest-driver",
+      "sha256": "2ab7834976ddf318a908e0be7a1a5ed5060e7d072a6d6d0f03116486a42617f2",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/2ab7834976ddf318a908e0be7a1a5ed5060e7d072a6d6d0f03116486a42617f2"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/debug/xtask",
+      "sha256": "c82782fa21c22405eb6a64526ca2ff999e52c6702cdf600f18f942f8f2e9fcb4",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/c82782fa21c22405eb6a64526ca2ff999e52c6702cdf600f18f942f8f2e9fcb4"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest/current-contract-reports",
+      "sha256": "8e630b69ffc7db8b73f056bf42e757f825d9245f7fecd439550b2e70832ec3bb",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/8e630b69ffc7db8b73f056bf42e757f825d9245f7fecd439550b2e70832ec3bb"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest/panic-control-reports",
+      "sha256": "269e2177d8908a874b8ee015cef01972e7a42dba9fc5ddd44c64826a4502a292",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/269e2177d8908a874b8ee015cef01972e7a42dba9fc5ddd44c64826a4502a292"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/xtask-bootstrap/debug/umpire-guest-driver",
+      "sha256": "a108508bfb96f1883024a3a0e37bf24c710319653b8f10a9a84235087cc030cf",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a108508bfb96f1883024a3a0e37bf24c710319653b8f10a9a84235087cc030cf"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/xtask-bootstrap/debug/xtask",
+      "sha256": "a627fc2cd3ebb93b5b366d6106181dc17f186e21fb08b5df4811919cbd2325a9",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a627fc2cd3ebb93b5b366d6106181dc17f186e21fb08b5df4811919cbd2325a9"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-0.request.pb",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-0.response.pb",
+      "sha256": "695bac7c2f9efaf41d628f1c0346f02806c9a8f870d17446f827ca1c5a7be36d",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/695bac7c2f9efaf41d628f1c0346f02806c9a8f870d17446f827ca1c5a7be36d"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-1.request.pb",
+      "sha256": "0218870a40c98ac9edaf9b91ec16a3da998e167f43509c6cdb641b23c8e3b65f",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/0218870a40c98ac9edaf9b91ec16a3da998e167f43509c6cdb641b23c8e3b65f"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-1.response.pb",
+      "sha256": "e0231f4ec51259d0352f601787ef4cd353c7b5360b48ad3c6750f25e657b8104",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/e0231f4ec51259d0352f601787ef4cd353c7b5360b48ad3c6750f25e657b8104"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-2.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-2.response.pb",
+      "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-3.request.pb",
+      "sha256": "5409612b12e08c3cb72f885d40a656ecdc839b7c2d32e62eccd6399c96b2df3c",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/5409612b12e08c3cb72f885d40a656ecdc839b7c2d32e62eccd6399c96b2df3c"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-3.response.pb",
+      "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-4.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-4.response.pb",
+      "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-5.request.pb",
+      "sha256": "3c52cda26b6d67ea4fef8fd7e7609446de58d5a9d0f78ff8f27dd275ad7cbd24",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/3c52cda26b6d67ea4fef8fd7e7609446de58d5a9d0f78ff8f27dd275ad7cbd24"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-5.response.pb",
+      "sha256": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-6.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-6.response.pb",
+      "sha256": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-7.request.pb",
+      "sha256": "a5d5734ede85c1d312d39df59be6508f869e01b7b526ed2fd58116fc25d8e58b",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a5d5734ede85c1d312d39df59be6508f869e01b7b526ed2fd58116fc25d8e58b"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-7.response.pb",
+      "sha256": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-8.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback-8.response.pb",
+      "sha256": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/callback.methods",
+      "sha256": "229432f7c3a51928d48a43d7599fd1f1d949172cd5afbe9fde184df40f4e8538",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/229432f7c3a51928d48a43d7599fd1f1d949172cd5afbe9fde184df40f4e8538"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-0.request.pb",
+      "sha256": "941770022d63e4b6a2bfa6c18564a4f0200a2946e45e5b8c0bcd725b47c41789",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/941770022d63e4b6a2bfa6c18564a4f0200a2946e45e5b8c0bcd725b47c41789"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-0.response.pb",
+      "sha256": "416a9d19bcde338b35c6b87b563d4a75028b7908aebc3ad87616805ff9cb5e51",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/416a9d19bcde338b35c6b87b563d4a75028b7908aebc3ad87616805ff9cb5e51"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-1.request.pb",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-1.response.pb",
+      "sha256": "ac81d39b5d928a67d89308851f57a3c1523692209faa8ea7ae8f19022cc428dd",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/ac81d39b5d928a67d89308851f57a3c1523692209faa8ea7ae8f19022cc428dd"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-2.request.pb",
+      "sha256": "bc16d4fd28f67f38479fde4ea0c5acd3dfecc3d3526b67279eb8dc46253a9f84",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bc16d4fd28f67f38479fde4ea0c5acd3dfecc3d3526b67279eb8dc46253a9f84"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-2.response.pb",
+      "sha256": "fd52a50a1e54e5856f8afb7ae62ae9dd45cbc77fec9e597d548f12977236ce51",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/fd52a50a1e54e5856f8afb7ae62ae9dd45cbc77fec9e597d548f12977236ce51"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-3.request.pb",
+      "sha256": "5409612b12e08c3cb72f885d40a656ecdc839b7c2d32e62eccd6399c96b2df3c",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/5409612b12e08c3cb72f885d40a656ecdc839b7c2d32e62eccd6399c96b2df3c"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-3.response.pb",
+      "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-4.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-4.response.pb",
+      "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-5.request.pb",
+      "sha256": "3c52cda26b6d67ea4fef8fd7e7609446de58d5a9d0f78ff8f27dd275ad7cbd24",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/3c52cda26b6d67ea4fef8fd7e7609446de58d5a9d0f78ff8f27dd275ad7cbd24"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-5.response.pb",
+      "sha256": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-6.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-6.response.pb",
+      "sha256": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-7.request.pb",
+      "sha256": "a5d5734ede85c1d312d39df59be6508f869e01b7b526ed2fd58116fc25d8e58b",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a5d5734ede85c1d312d39df59be6508f869e01b7b526ed2fd58116fc25d8e58b"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-7.response.pb",
+      "sha256": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-8.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured-8.response.pb",
+      "sha256": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/configured.methods",
+      "sha256": "83eb0c69d9d81955ba21ce6501bd8b2ad352f982d8b797738a37e86253957b51",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/83eb0c69d9d81955ba21ce6501bd8b2ad352f982d8b797738a37e86253957b51"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-0.request.pb",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-0.response.pb",
+      "sha256": "695bac7c2f9efaf41d628f1c0346f02806c9a8f870d17446f827ca1c5a7be36d",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/695bac7c2f9efaf41d628f1c0346f02806c9a8f870d17446f827ca1c5a7be36d"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-1.request.pb",
+      "sha256": "5409612b12e08c3cb72f885d40a656ecdc839b7c2d32e62eccd6399c96b2df3c",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/5409612b12e08c3cb72f885d40a656ecdc839b7c2d32e62eccd6399c96b2df3c"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-1.response.pb",
+      "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-2.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-2.response.pb",
+      "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-3.request.pb",
+      "sha256": "3c52cda26b6d67ea4fef8fd7e7609446de58d5a9d0f78ff8f27dd275ad7cbd24",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/3c52cda26b6d67ea4fef8fd7e7609446de58d5a9d0f78ff8f27dd275ad7cbd24"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-3.response.pb",
+      "sha256": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-4.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-4.response.pb",
+      "sha256": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-5.request.pb",
+      "sha256": "a5d5734ede85c1d312d39df59be6508f869e01b7b526ed2fd58116fc25d8e58b",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a5d5734ede85c1d312d39df59be6508f869e01b7b526ed2fd58116fc25d8e58b"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-5.response.pb",
+      "sha256": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-6.request.pb",
+      "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary-6.response.pb",
+      "sha256": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native/ordinary.methods",
+      "sha256": "cedd86bf57f9e972594b9022dac13fb0385488ab10a89c9abba71b511c742692",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/cedd86bf57f9e972594b9022dac13fb0385488ab10a89c9abba71b511c742692"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/panic-native/effect_overflow.pb",
+      "sha256": "a6676ea2fe6667eda4b26ea04419c3f7802e377aeb466e72b81399670b378cef",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a6676ea2fe6667eda4b26ea04419c3f7802e377aeb466e72b81399670b378cef"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/panic-native/effect_panic.pb",
+      "sha256": "57e9cbe2fa91e1476b75eb392b7fb8a00cd723adc0a2fe5be4852605d0836c53",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/57e9cbe2fa91e1476b75eb392b7fb8a00cd723adc0a2fe5be4852605d0836c53"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/wasm32-wasip1/guest/caught_panic_control.wasm",
+      "sha256": "16bdf703328273c57741940a4ec420150576a5a02e84fcc5d279afba14429a12",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/16bdf703328273c57741940a4ec420150576a5a02e84fcc5d279afba14429a12"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/wasm32-wasip1/guest/overflow_control.wasm",
+      "sha256": "7815ea7d693a5cb9f3d6a326c0adcc948b38585d726d751c4cb64e3a2259205e",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/7815ea7d693a5cb9f3d6a326c0adcc948b38585d726d751c4cb64e3a2259205e"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/wasm32-wasip1/guest/stateful_control.wasm",
+      "sha256": "0ce0f654b66cc01a6b52670af9175f1047fa79c51fd5039e7c9742bc205e6b87",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/0ce0f654b66cc01a6b52670af9175f1047fa79c51fd5039e7c9742bc205e6b87"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/wasm32-wasip1/guest/umpire_kettle_guest.wasm",
+      "sha256": "f47eeca8991182ce5d2160a8794ae3e83007de4a0db2a2c5a095c2a0439f2228",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f47eeca8991182ce5d2160a8794ae3e83007de4a0db2a2c5a095c2a0439f2228"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/wasm32-wasip1/guest/umpire_stock_guest.wasm",
+      "sha256": "4979d134ba8ae6afc4ba79dadc046251afbbf4ca34397ed61af184205a371222",
+      "role": "current post-time named helper/wasm/native parity payload",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/4979d134ba8ae6afc4ba79dadc046251afbbf4ca34397ed61af184205a371222"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/darling_macro-57862c4d2c537235.umpire-id",
+      "sha256": "bffab7fb32cef4a3b69d06b47389dde6b20d511ba85eb9818bc1d0a7d04521ae",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/bffab7fb32cef4a3b69d06b47389dde6b20d511ba85eb9818bc1d0a7d04521ae"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/manyhow_macros-522bb03fecc0c642.umpire-id",
+      "sha256": "dec8c77a23471e0b9d516146fc2a51c2e1154df5494478e77c577e36eef9197d",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/dec8c77a23471e0b9d516146fc2a51c2e1154df5494478e77c577e36eef9197d"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/manyhow_macros-5be4a10a87b03003.umpire-id",
+      "sha256": "353c9b41642629690dbe6914a4c16e60eddb58b7c5a95ffda2e4017915df1105",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/353c9b41642629690dbe6914a4c16e60eddb58b7c5a95ffda2e4017915df1105"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/prost_derive-43975aa2e4258748.umpire-id",
+      "sha256": "4114a76e1bae5345710061f8f89d4658410d6e8da6edf6e0828163ba8415b7bd",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/4114a76e1bae5345710061f8f89d4658410d6e8da6edf6e0828163ba8415b7bd"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/thiserror_impl-d9ec474b72def7c1.umpire-id",
+      "sha256": "1d4ea615322b7be9e2f9bb6a290240e425ec7012f1ff2d7fb980fc76878acb4e",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/1d4ea615322b7be9e2f9bb6a290240e425ec7012f1ff2d7fb980fc76878acb4e"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/umpire_catalog_macros-bbe30119c7585d5d.umpire-id",
+      "sha256": "0111fde11464996ef3e01f831075dca9153acddb9a38e2f6efdfbcf1103a2d97",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/0111fde11464996ef3e01f831075dca9153acddb9a38e2f6efdfbcf1103a2d97"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/umpire_dsl_macros-8eea8cbda1d0ba48.umpire-id",
+      "sha256": "d7b164bf0541d1a1d535ef790e8f1ecb5051b1cb5a9433f867faf8140f72dea5",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d7b164bf0541d1a1d535ef790e8f1ecb5051b1cb5a9433f867faf8140f72dea5"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/umpire_dsl_macros-afe464b25c4bb8b2.umpire-id",
+      "sha256": "25711a94ec8902c0f237844549366be4d21f6332c7a3656b9c33f71e81c2c368",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/25711a94ec8902c0f237844549366be4d21f6332c7a3656b9c33f71e81c2c368"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/umpire_ir_derive-5b9651b9f1794cb7.umpire-id",
+      "sha256": "729f41f47684722b63193bc68a99476f8257223ffd46ff51a243b53301d70351",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/729f41f47684722b63193bc68a99476f8257223ffd46ff51a243b53301d70351"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/umpire-lock-6411935ef7f53435f8945f4a0e1ca45db74ff74aa30f3bae8d9984f48b8eaf68.json",
+      "sha256": "6411935ef7f53435f8945f4a0e1ca45db74ff74aa30f3bae8d9984f48b8eaf68",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/6411935ef7f53435f8945f4a0e1ca45db74ff74aa30f3bae8d9984f48b8eaf68"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/addr2line-255ee5934a3d8660.umpire-id",
+      "sha256": "6cff5b14af149f08f65bdee5af5ab516ee60a7c71be53d28bf92d19be31194ef",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/6cff5b14af149f08f65bdee5af5ab516ee60a7c71be53d28bf92d19be31194ef"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/adler2-dcfe9e712de83524.umpire-id",
+      "sha256": "83f7663741bc1c9a817a3e68198050884ff6fbff0bfd875054ecb5a889a146da",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/83f7663741bc1c9a817a3e68198050884ff6fbff0bfd875054ecb5a889a146da"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/alloc-ee1b94c4e41bab4b.umpire-id",
+      "sha256": "c54486ec14418ab81682808acf2b54d1e75c9361658da356da261baab4272e51",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/c54486ec14418ab81682808acf2b54d1e75c9361658da356da261baab4272e51"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/bytes-65a877ea08f4b25c.umpire-id",
+      "sha256": "183467fcc2bd4cce9db23ab8797fcadcf0f964c059de41097e3c13704599e979",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/183467fcc2bd4cce9db23ab8797fcadcf0f964c059de41097e3c13704599e979"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/caught_panic_control.umpire-id",
+      "sha256": "335e9301ce0cddd142cfc176611411ec7e1805219ac48956e58e08f648cbde26",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/335e9301ce0cddd142cfc176611411ec7e1805219ac48956e58e08f648cbde26"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/cfg_if-b5eb0e6e1854091e.umpire-id",
+      "sha256": "88152b02e5e95927971c95a2720970aa34e6db8f004b2f226ab3bb2944c5598e",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/88152b02e5e95927971c95a2720970aa34e6db8f004b2f226ab3bb2944c5598e"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/compiler_builtins-6ffcd43c04af33f9.umpire-id",
+      "sha256": "eefbef0bf2bac7279dfc2a0c0223ba626a86b438e96e96e89111a10f5ca0fc46",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/eefbef0bf2bac7279dfc2a0c0223ba626a86b438e96e96e89111a10f5ca0fc46"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/core-60364901c1ec5ea7.umpire-id",
+      "sha256": "b9727ac727b8f72ca949a355b6449917d142c19ab3e433ec4e2ba9ca7de90128",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/b9727ac727b8f72ca949a355b6449917d142c19ab3e433ec4e2ba9ca7de90128"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/equivalent-f1c0d3e51dc60161.umpire-id",
+      "sha256": "595813e7fc7698038fe41e38365004177434bfc2e2e571842498f1bbf35482a6",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/595813e7fc7698038fe41e38365004177434bfc2e2e571842498f1bbf35482a6"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/fixedbitset-356c64dc03150e9a.umpire-id",
+      "sha256": "860a0d06963f7165d5782e5a20a88c88d5c279f48cb55490950e002b6698e174",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/860a0d06963f7165d5782e5a20a88c88d5c279f48cb55490950e002b6698e174"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/foldhash-3e7f58451663f456.umpire-id",
+      "sha256": "8fbd48db3863d7242d44096915e2b058c3d0ebf1ec2c0ada7e6c57f0f185e837",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/8fbd48db3863d7242d44096915e2b058c3d0ebf1ec2c0ada7e6c57f0f185e837"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/gimli-0b043c20b392a812.umpire-id",
+      "sha256": "5731e2e65506610278e13ab52925dbcfdcd3b0f63387093875f4c8215cd03899",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/5731e2e65506610278e13ab52925dbcfdcd3b0f63387093875f4c8215cd03899"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/hashbrown-73a47db5d20f8095.umpire-id",
+      "sha256": "ead5ad2e2de582738c1b45d9d3baf289e7d66fe6316ef5b2eef50bd03d3c53e7",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/ead5ad2e2de582738c1b45d9d3baf289e7d66fe6316ef5b2eef50bd03d3c53e7"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/hashbrown-cf473af66d91d5b2.umpire-id",
+      "sha256": "2b5639c2ae7fc2a2d22013727d7b6c9285a152f14f8626f36081fd86fe151c38",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/2b5639c2ae7fc2a2d22013727d7b6c9285a152f14f8626f36081fd86fe151c38"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/hashbrown-d03968f63b3a8ee3.umpire-id",
+      "sha256": "33100523db4db01e4d09873995914ff4d1756e1d781b895d53e3f440b2909a9d",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/33100523db4db01e4d09873995914ff4d1756e1d781b895d53e3f440b2909a9d"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/indexmap-e3af5fa5c6133605.umpire-id",
+      "sha256": "51608bc1c3d6be69a279060dd83c9139e68f47c5fcdc8b9c3a6192ed7c5d2185",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/51608bc1c3d6be69a279060dd83c9139e68f47c5fcdc8b9c3a6192ed7c5d2185"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/libc-8bcdf4d93a2fcdc7.umpire-id",
+      "sha256": "82d069a2c0300b22914858a11878c70b2cfac546f525a9eebb09234c81044403",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/82d069a2c0300b22914858a11878c70b2cfac546f525a9eebb09234c81044403"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/memchr-0ab2081f1519fc00.umpire-id",
+      "sha256": "6bd54a84e3afb2e012a3e2369a8d301951e31a37d94c663b83b93359117d2278",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/6bd54a84e3afb2e012a3e2369a8d301951e31a37d94c663b83b93359117d2278"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/miniz_oxide-21e596a6bf8f2e58.umpire-id",
+      "sha256": "5e5f7359504c3236a85da6df9d35ea7b5ae9bd1c94b6310f75a18ac32e732f32",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/5e5f7359504c3236a85da6df9d35ea7b5ae9bd1c94b6310f75a18ac32e732f32"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/object-804fc83b706b6d74.umpire-id",
+      "sha256": "5fa40a5950f04059e5f71d03d48d05fca7847818a6b4046884d3c50472614967",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/5fa40a5950f04059e5f71d03d48d05fca7847818a6b4046884d3c50472614967"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/overflow_control.umpire-id",
+      "sha256": "a6521286b5e45635eb63a36eaa7ec71db86a947b29e1d32abe6eca3ee9b16bb0",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a6521286b5e45635eb63a36eaa7ec71db86a947b29e1d32abe6eca3ee9b16bb0"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/panic_abort-7056431d09fb88ab.umpire-id",
+      "sha256": "8eace0f464f85097709e4fea3e7cf7ccddbdb61afc1f4c773b6096ae3e9b7a31",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/8eace0f464f85097709e4fea3e7cf7ccddbdb61afc1f4c773b6096ae3e9b7a31"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/panic_unwind-47e5619adda0bdbc.umpire-id",
+      "sha256": "443c0ea7927e47ab1dc14fa4f29abec54fdd50e6937d7570292fb79c2c0eea3a",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/443c0ea7927e47ab1dc14fa4f29abec54fdd50e6937d7570292fb79c2c0eea3a"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/petgraph-6e633b6a91d6ca32.umpire-id",
+      "sha256": "ad4e27e4af94cc3f14ad30c9f78de6961465e19a39c7ebe1fbaa97b39aab7975",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/ad4e27e4af94cc3f14ad30c9f78de6961465e19a39c7ebe1fbaa97b39aab7975"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/proc_macro-0c07ff060e06c015.umpire-id",
+      "sha256": "49bdc4ae35164998f0968cac6ad688bcc9aee7da92872cc20c2b574a4d00b6d9",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/49bdc4ae35164998f0968cac6ad688bcc9aee7da92872cc20c2b574a4d00b6d9"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/prost-56abc82f06ab2a8b.umpire-id",
+      "sha256": "78fc839f86e2b97fb410e0474ae64663051a58ccd145eec0f4a51116800f16a8",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/78fc839f86e2b97fb410e0474ae64663051a58ccd145eec0f4a51116800f16a8"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/prost_types-10c907dc5d820385.umpire-id",
+      "sha256": "78bd2e432347b6d450cf9af738f24b77bfd8f6f63a6ae2a9e4db2d62b31a8b52",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/78bd2e432347b6d450cf9af738f24b77bfd8f6f63a6ae2a9e4db2d62b31a8b52"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/rustc_demangle-81b16fae9c94da4d.umpire-id",
+      "sha256": "45f447fad63a267290f836401895df6d608888863e9255c59761c20b1fe5dc6b",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/45f447fad63a267290f836401895df6d608888863e9255c59761c20b1fe5dc6b"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/rustc_hash-b89a28e22e2ae749.umpire-id",
+      "sha256": "e52e3cea5fbc6b898b167ff0c1c43b1aa39c15b135cd4120f2e2737a9afcc3ba",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/e52e3cea5fbc6b898b167ff0c1c43b1aa39c15b135cd4120f2e2737a9afcc3ba"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/rustc_literal_escaper-e9fc47435d3c0e1a.umpire-id",
+      "sha256": "c1b24093f6958890ac23ebf17e73bd15b81b3cc8111b08b5b7624226850b941c",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/c1b24093f6958890ac23ebf17e73bd15b81b3cc8111b08b5b7624226850b941c"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/rustc_std_workspace_alloc-c2674c78804632f7.umpire-id",
+      "sha256": "60c3a99edfc91adf197bc35b83bf45cf93f64f9caff08359829d49abc51d15c7",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/60c3a99edfc91adf197bc35b83bf45cf93f64f9caff08359829d49abc51d15c7"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/rustc_std_workspace_core-6f2d9eb9e9811fd4.umpire-id",
+      "sha256": "e3c0b8ed75801e01c7fa3d2cb2fd063f7cf89072e44ce662df08d9ea9545b99c",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/e3c0b8ed75801e01c7fa3d2cb2fd063f7cf89072e44ce662df08d9ea9545b99c"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/smallvec-833d7999866c1279.umpire-id",
+      "sha256": "f46122ea66ee968391e57548b8e990a5d112d8e57483a1496e3f90f1221bc83f",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f46122ea66ee968391e57548b8e990a5d112d8e57483a1496e3f90f1221bc83f"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/stateful_control.umpire-id",
+      "sha256": "a6b95787b9f60df023d7d46baf9f2c82a51d29bd54ea3d15a9ed44927f4399ab",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a6b95787b9f60df023d7d46baf9f2c82a51d29bd54ea3d15a9ed44927f4399ab"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/std-76a3c866e1aa0810.umpire-id",
+      "sha256": "b5d29300f6dc1a9c35694b3776ad740ff673a5193d07dd18788fbdd6db7dd0ea",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/b5d29300f6dc1a9c35694b3776ad740ff673a5193d07dd18788fbdd6db7dd0ea"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/std_detect-73af2212f1f209a7.umpire-id",
+      "sha256": "2435b2ab99fd85d13f5b9999de82108d3151a08a0f6d3e8ed17e2597fca2407a",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/2435b2ab99fd85d13f5b9999de82108d3151a08a0f6d3e8ed17e2597fca2407a"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/thiserror-c6ddba7c2cc3b5e7.umpire-id",
+      "sha256": "49b06df8738db05c9962167f715427e26f573266a61897dd3695ef83bfb1b0de",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/49b06df8738db05c9962167f715427e26f573266a61897dd3695ef83bfb1b0de"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire-0558061cc73d6314.umpire-id",
+      "sha256": "3ff9d7ec3745b6c2d3a1fa54e5ad74c9f743eb1a23d0ee85a011f6251b0a8d1f",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/3ff9d7ec3745b6c2d3a1fa54e5ad74c9f743eb1a23d0ee85a011f6251b0a8d1f"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_catalog-d12cb35172fd9ce2.umpire-id",
+      "sha256": "cc32fcac7840d6148811b6ca3d66332a8ecc9b9c74b8d3d9ae26db76cfec5f2d",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/cc32fcac7840d6148811b6ca3d66332a8ecc9b9c74b8d3d9ae26db76cfec5f2d"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_checker-273f83604a5ad181.umpire-id",
+      "sha256": "cfde7ec155c5ede12abcbdf6ebc491ed890c2bea8c74564f13597154ab681697",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/cfde7ec155c5ede12abcbdf6ebc491ed890c2bea8c74564f13597154ab681697"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_checker-b80f2ad934c82c11.umpire-id",
+      "sha256": "fd90aab1f6f437b4c02300de5aadefb7e32d374e50d440478aab9ea5dd5684fb",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/fd90aab1f6f437b4c02300de5aadefb7e32d374e50d440478aab9ea5dd5684fb"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_dsl-577dafa04ada3703.umpire-id",
+      "sha256": "25587eb16afc98dbe5bfc414a07f62c69e5bb11332641ac7c03469c600fd487c",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/25587eb16afc98dbe5bfc414a07f62c69e5bb11332641ac7c03469c600fd487c"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_dsl-7fd24e574ce2f3c7.umpire-id",
+      "sha256": "027afb094417c06058e85b1ebe5407ed4180e247093750fae3c0900f38e757dc",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/027afb094417c06058e85b1ebe5407ed4180e247093750fae3c0900f38e757dc"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_kettle_guest.umpire-id",
+      "sha256": "ceabbeb7efdef026626cde8d0c403826fc6177e5ba0c8e43e1d56844b18ffe17",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/ceabbeb7efdef026626cde8d0c403826fc6177e5ba0c8e43e1d56844b18ffe17"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_reference_kettle-6740d5904ab841a0.umpire-id",
+      "sha256": "0b8d62ba9190e3cdaedb52516650ad41d0af92b5201bf6e4c6ecb28488b1f6a0",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/0b8d62ba9190e3cdaedb52516650ad41d0af92b5201bf6e4c6ecb28488b1f6a0"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_runtime-28db93f8e8738bc3.umpire-id",
+      "sha256": "f5a6645f6dcd681e7cd45288ba7a9b2adc87eb29344f0dbe2961b4b022a5abfe",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/f5a6645f6dcd681e7cd45288ba7a9b2adc87eb29344f0dbe2961b4b022a5abfe"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_runtime-d8759717eb2ef94e.umpire-id",
+      "sha256": "beb718e30323754190cacb91f3e52719fb1977907ab0cc4a8bf602f6f1f59c99",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/beb718e30323754190cacb91f3e52719fb1977907ab0cc4a8bf602f6f1f59c99"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_stock_guest.umpire-id",
+      "sha256": "c318f9c5e9bc82bb10789cba9e5f6783cb24b1e7ed4f08e6fe1c94297c410429",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/c318f9c5e9bc82bb10789cba9e5f6783cb24b1e7ed4f08e6fe1c94297c410429"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_suite-4323e1e3b7a942fa.umpire-id",
+      "sha256": "069e0c436b36a2fb9cdacaf8a81abeb5cd5cc8f1c0d6abc6ec9c87b3679c4092",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/069e0c436b36a2fb9cdacaf8a81abeb5cd5cc8f1c0d6abc6ec9c87b3679c4092"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/unwind-d30f0132eb6d0e9e.umpire-id",
+      "sha256": "ecbb6f965b216c13ad06b23a3f582c234df7e63f7cac7388700f0604aa65dafd",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/ecbb6f965b216c13ad06b23a3f582c234df7e63f7cac7388700f0604aa65dafd"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/wasip1-70660f1f0ab1374e.umpire-id",
+      "sha256": "099ec97ba64d44b300b4949598b8d0f77d3bd1f3c3429f42bdcf53a948519c7d",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/099ec97ba64d44b300b4949598b8d0f77d3bd1f3c3429f42bdcf53a948519c7d"
+    },
+    {
+      "manifest": "standalone-named-0547321/retained-gates",
+      "source": "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-wrappers/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest-rustc",
+      "sha256": "a108508bfb96f1883024a3a0e37bf24c710319653b8f10a9a84235087cc030cf",
+      "role": "current post-time guest compile identity or compiler wrapper",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/a108508bfb96f1883024a3a0e37bf24c710319653b8f10a9a84235087cc030cf"
+    }
+  ],
+  "scope": "Existing complete required and named authority archives and322explicit target source records; no new target archive, no acceptance gate."
+}

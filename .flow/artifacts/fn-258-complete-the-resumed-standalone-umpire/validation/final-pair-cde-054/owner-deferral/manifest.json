@@ -1,0 +1,2736 @@
+{
+  "classification": "OWNER_INTERRUPTED_MIGRATION_DEFERRED",
+  "records": [
+    {
+      "source": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/execution-evidence/paired-default-check-1793203538745855760/00-paired-default-check.json",
+      "destination": "execution/00-paired-default-check.json",
+      "sha256": "641bf720bb4b68bd8a77046b7c7718eadee872329c9325718b5367fb9846ba66",
+      "size": 521,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/execution-evidence/paired-default-check-1793203538745855760/environment.json",
+      "destination": "execution/environment.json",
+      "sha256": "d6595d2679ce1680b0f241cf37dabcb65759d6d4f4c8a18fbf3c9521b34fe575",
+      "size": 1692,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/execution-evidence/paired-default-check-1793203538745855760/00-paired-default-check.log",
+      "destination": "execution/00-paired-default-check.log",
+      "sha256": "be5abe283d1405da5409ebaf1bc1da54dff560a803d8741e2a35765a9eb941df",
+      "size": 50863,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/admission.json",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/admission.json",
+      "sha256": "61498a7c298966a6268a42bb2bfefd7a4ec8807eb3f8de6cdbaa5540836b9993",
+      "size": 149,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/stdout.log",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/stdout.log",
+      "sha256": "e2e364588e16d957bcd7bf71b615784a7a1a8179d42709b329ca96d949696f1e",
+      "size": 5301,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/stderr.log",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/stderr.log",
+      "sha256": "379e0cadada3632a11529c2645f6d6f8efb36766ab72c9863a78640ddd0a62d2",
+      "size": 43405,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/temporal/fmt.json",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/temporal/fmt.json",
+      "sha256": "0d23b9ad71035be8cdba94c1974e5604fda25e4c26fdacbfaec587aaf6352dca",
+      "size": 313,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/temporal/retired-names.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/temporal/retired-names.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/temporal/retired-names.json",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/temporal/retired-names.json",
+      "sha256": "8e090185c7a3a2c55f293e8f78d3fa25c43b62b56403f6991a3141c7416db9fd",
+      "size": 323,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/temporal/fmt.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/temporal/fmt.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/temporal/temporal-guest-freshness.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/temporal/temporal-guest-freshness.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/temporal/temporal-prerequisites.json",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/temporal/temporal-prerequisites.json",
+      "sha256": "51687ceaa1d49f9817891ff4c476af5ad2e8f1fff921a932cea4eb91379a5c8f",
+      "size": 332,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/temporal/temporal-prerequisites.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/temporal/temporal-prerequisites.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/docs.json",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/docs.json",
+      "sha256": "34d9569a5063bc6b4f572eca5b5654877b07e1d90013dc87a26450f24ae9b8f8",
+      "size": 316,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/source-boundary.json",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/source-boundary.json",
+      "sha256": "39c88ae0fb8cd159551e2ba3e2fdb1706dbe61a3229da8b5db06c78fa577fa39",
+      "size": 326,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/kettle-protobuf-freshness.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/kettle-protobuf-freshness.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/fmt.json",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/fmt.json",
+      "sha256": "d4ce0d908813696774beb0f535153592288a95bbf945747775b5eb3f3f6f2988",
+      "size": 314,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/retired-names.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/retired-names.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/protobuf-controls.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/protobuf-controls.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/timing-controls.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/timing-controls.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/tests.json",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/tests.json",
+      "sha256": "bc76ed9285b39dae6afc9e66dce231b810d7663d965d92f6ad9b6df142b0ce02",
+      "size": 310,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/wasm32-wasip1.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/wasm32-wasip1.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/retired-names.json",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/retired-names.json",
+      "sha256": "f97d8c4f4781c8e6e7ad6492627b827239d513011328a4bb565ed510121a2aca",
+      "size": 324,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/proto-tools.json",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/proto-tools.json",
+      "sha256": "ff46c9e4895bcdc005002d70fbcf7b1cc40738c8520fe63cd1ad650a32cb4257",
+      "size": 322,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/capability-controls.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/capability-controls.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/tests.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/tests.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/clippy.json",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/clippy.json",
+      "sha256": "484915345e5a4b562c4ca1d4a342b81634ce7df4983da8f0944f1a1361cc292a",
+      "size": 318,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/protobuf-freshness.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/protobuf-freshness.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/core-wasm-clippy.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/core-wasm-clippy.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/wasm-guest.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/wasm-guest.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/protobuf-controls.json",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/protobuf-controls.json",
+      "sha256": "a643c2008a0c612a65a819d07bbac6ace41426f1c43efec368a24ee78a94b5f3",
+      "size": 328,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/timing-controls.json",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/timing-controls.json",
+      "sha256": "8cad23881aabf0c39cdb496582ef9da488dcc31a339daeded53edfd04c58f9e3",
+      "size": 326,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/wasm-guest.json",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/wasm-guest.json",
+      "sha256": "0383f5bc4903564409711e115f8caa94f862551e9c1718dc096158f065d94da1",
+      "size": 322,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/wasm32-wasip1.json",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/wasm32-wasip1.json",
+      "sha256": "bc8fad51f1bf1d6447c9ffe5789a20073b85fbb0546437373159d174bcb972a0",
+      "size": 325,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/fmt.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/fmt.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/docs.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/docs.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/source-boundary.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/source-boundary.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/clippy.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/clippy.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/protobuf-freshness.json",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/protobuf-freshness.json",
+      "sha256": "cc5e6368be99acf99fd9b04a5b15a48d333430a5ec9f98440de1c092e7e94144",
+      "size": 329,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/proto-tools.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/proto-tools.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/kettle-protobuf-freshness.json",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/kettle-protobuf-freshness.json",
+      "sha256": "510676bbd10c3840f1a53dc24356dfbbe561439209cdd7c18a7b48b5ef155c46",
+      "size": 336,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/capability-controls.json",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/capability-controls.json",
+      "sha256": "00defb145583903f9d3206485e3c11e5cfec891e5b1578418aeb9882cc3881cc",
+      "size": 329,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/framework/core-wasm-clippy.json",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/framework/core-wasm-clippy.json",
+      "sha256": "f5b397c18b3f345dd5b5000cca29390e75ce9fefe945aeee01b4b88ae0ae6faf",
+      "size": 327,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/109.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/109.event",
+      "sha256": "009a636248b35e6a015638e142fb10a871309aa079cb591121997f37824d756d",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/96.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/96.event",
+      "sha256": "39d5d2d48be127cfbedd1dd02d50bb4ff9ec85cf988a3acd274d849485062345",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/33.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/33.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/168.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/168.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/35.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/35.event",
+      "sha256": "af0b7c11b60b549beb73a627cfef05800988b5512000a3cd361797d9124dcb2d",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/52.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/52.event",
+      "sha256": "d7f1330be3e1e80c5ed6d9aa28a86dd3c8d7fcc7d2c3c144c1c4c11adc7cd612",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/38.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/38.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/48.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/48.event",
+      "sha256": "f0d70ce5376c228483389805995cba225f74bae1e9ee167ab6094c22f85cc606",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/30.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/30.event",
+      "sha256": "d5c2172a4ad5ab8c2bbb6f5c9c2d7711afd719c76f9f3a62bf608552ddece77e",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/92.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/92.event",
+      "sha256": "cbe3c6c17d6d17c76c01ea1fedbf3a59aa7f279ec4df89d94a4dbe4bb31f9836",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/150.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/150.event",
+      "sha256": "223da5e967f95427752000225b8c433f87250219e0cbed0cf95a71bc411805b4",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/91.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/91.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/27.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/27.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/139.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/139.event",
+      "sha256": "0800b425d44f11d5b4443126b71370f548b5930b9175b7172808c0bdee3e86b6",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/64.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/64.event",
+      "sha256": "26501c6e8779dd5974ef09a8c74d67f7eb488cb43b354d370d1c36494b951faf",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/53.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/53.event",
+      "sha256": "5bd961a39efd1b2dcf26d9a9b0ececd8ffea4994aefca5c5895abda249cd4924",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/17.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/17.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/147.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/147.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/93.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/93.event",
+      "sha256": "41d36f4ec7d5d4604b9b696e10cdee7686f267946df94ac29589c054b8919c39",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/164.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/164.event",
+      "sha256": "4e656cb11eef75cd127e86ccea187ef1f6c01144e3d1b8fed6fd06ec0d7fe7d1",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/103.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/103.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/92.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/92.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/94.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/94.event",
+      "sha256": "9c563a0a5d74c498a5fc137612b8bbe11945db0987e943b92072d22275e435f0",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/51.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/51.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/75.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/75.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/53.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/53.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/55.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/55.event",
+      "sha256": "ae16bac98e98d4803ed3c15b094faa54baaee8d007282d238e37011e30ec0294",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/132.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/132.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/108.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/108.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/141.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/141.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/28.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/28.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/126.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/126.event",
+      "sha256": "f832e47c1fc29ca8ebcb444501c119fb3975aa19a78c2a7fc3e127bdeb91fbd7",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/28.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/28.event",
+      "sha256": "f653cb771da20a470b35063b70d58897d0c235bb2afc8292641515bcd95a6ada",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/131.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/131.event",
+      "sha256": "1780379e361b974e65e5848d027dbaa22e012f3e7e9078441c523b5257a96f0d",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/43.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/43.event",
+      "sha256": "1ddc6588bc9115f75d099014bb12159f6b177bd7df15a3bacea84339c826f140",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/23.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/23.event",
+      "sha256": "3a670ead96dd090173ba47f7e921f0d4e8d9ff024dee8e0896cec8f09d03ec93",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/100.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/100.event",
+      "sha256": "98e207fd88ff510f5750498140b100d6f1ea27bbc137b2fcdfce67eecf0c9319",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/57.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/57.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/46.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/46.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/136.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/136.event",
+      "sha256": "d60af3bcecd202829878e7742027bc2a43ec3d7110ecc7e3d6b2e1911b76a496",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/160.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/160.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/21.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/21.event",
+      "sha256": "f782df2b7c9f2a5bdcf1460209f988f3436d46653efc1ca58896b14aad0ae4d8",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/80.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/80.event",
+      "sha256": "4b6428eac58a5cc8b0274fbabc75100d7162fcf15d2bf4fab2e866c1e4fb0d34",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/82.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/82.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/69.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/69.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/67.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/67.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/7.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/7.event",
+      "sha256": "9e6247446764128d162204ddcf0463a625415af9b1990d43b934a5ad35ef4620",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/119.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/119.event",
+      "sha256": "ceddc492d3ae4d255bb2933c3249b4650bb11d584c3cf9112d49036afd25b37e",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/110.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/110.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/146.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/146.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/107.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/107.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/119.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/119.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/70.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/70.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/172.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/172.event",
+      "sha256": "292bf9bcfcbf258f9b22ee75d33f2cabf8053a0ee606acbe5a9d8a8426aa4628",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/81.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/81.event",
+      "sha256": "323713b2c0cf538a367dd1bd44a98b979d29292f91fb0ca2bc6a1ffeacd36728",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/122.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/122.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/100.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/100.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/49.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/49.event",
+      "sha256": "4df22e0122918b3ebc7c98d83e7446b018ae43cd3029cb5df88690f0ae14544d",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/153.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/153.event",
+      "sha256": "42f7eb7872b90d12028dfdd39d120ab0bf42d4017292417d8b7df42a12fd83f4",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/166.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/166.event",
+      "sha256": "ad9fe8bd95deba9b8d7b558f80726c75b4cf94855cb8cb1da74879ca2d7e6066",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/14.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/14.event",
+      "sha256": "7b354a8dcbb7bcd48d0865ddf9dd4ce3fe21dacf27997a6f009d52e436816740",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/161.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/161.event",
+      "sha256": "c80f97d67641b055bf4d822814c30acad67fb2138488776bfea90bfb73ac476a",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/169.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/169.event",
+      "sha256": "d13ceecbc49881b72d98d4f0abf349cacae13abe915e338d62deeb048b8e63f3",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/26.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/26.event",
+      "sha256": "62bdf83d44f30efdcbd4cdfb65e9d2e0b9204493e778cfab0ccd81791353ebf8",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/34.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/34.event",
+      "sha256": "97b9bb98b4af883af0949c501c73be1015c74001708d76599a68dc2520d4967c",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/131.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/131.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/138.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/138.event",
+      "sha256": "34599d329eed4b1b3d75d41cb3be7c7621bac4418b35693d30430a5e17ae6f04",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/89.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/89.event",
+      "sha256": "882cbf5bda67d70aacc5874c20167cd52428a6b49402d2bc0ea042ca5dc86de1",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/68.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/68.event",
+      "sha256": "1b4ff062c3316cad0e5fe91c727431070d954ea588403c854e6ab396a91485dc",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/88.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/88.event",
+      "sha256": "cb856f4aff5e285485692202f6047d68aa862bb0eb84a4efda1395dfc474cd3d",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/33.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/33.event",
+      "sha256": "7acaaa2ba38ba35ac70ec9717a235ee48fa870f5d75035d5a71a94f12aacfc1f",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/158.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/158.event",
+      "sha256": "747cc4a5676dc3f7501cb051d10c302228adebd4773c76058be767e92dee3bc6",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/139.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/139.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/156.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/156.event",
+      "sha256": "3a77f59eaea4591c829887adb515b9762fee31736d47704a6e7a5f3f4479aa2c",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/154.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/154.event",
+      "sha256": "4bbc8672fbe00b760f0cfd5eba6e8e07ee499722ad7302de22d99e5aba259b9a",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/50.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/50.event",
+      "sha256": "f5421565a8a9a7d637730b0c63934275db6c095144ae641f123c0aabf127256f",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/132.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/132.event",
+      "sha256": "a2706dbee7677fbdc6f8bf6f9c2ee2adee8ae8ecedd98cf9a3a3d8766bb5bdc7",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/40.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/40.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/2.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/2.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/8.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/8.event",
+      "sha256": "1d4a0deea2e924b74b9583852d2b3af43316389a6a7f96375919e929e429bbbf",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/99.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/99.event",
+      "sha256": "2de1e3061986d7da90c5fafdf1720eb1510b1ebb9cfc03adaedd13a92d6c05b7",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/12.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/12.event",
+      "sha256": "c657c3714f2ad8b3166fde0bd567cf00a92c5830d1ad877c4808709e150cdd29",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/161.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/161.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/73.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/73.event",
+      "sha256": "270f9915599f23638148abb419579aba8ff5db28d7787bb47eef7b055069d6d3",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/124.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/124.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/121.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/121.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/101.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/101.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/84.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/84.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/14.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/14.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/22.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/22.event",
+      "sha256": "32feada0b5d97404747f6b3b4d9ae505c13f8b221c6fe91e0f8a73b83251465d",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/60.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/60.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/115.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/115.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/73.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/73.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/61.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/61.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/163.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/163.event",
+      "sha256": "a23530991325706bb2389578ad31ed9642b670396b54f1ec143b5c819f1bfef6",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/84.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/84.event",
+      "sha256": "e0d37be694a10a36506801da243b0fef527c0f01c5977c95aeb9195975b10cf7",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/49.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/49.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/145.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/145.event",
+      "sha256": "dbf621c4ba7bbef097a006c70d24f7022e182d444a86d61966e9faabdc1b174b",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/54.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/54.event",
+      "sha256": "b28192a3b6742b02ae49698ab52694c6fbba6ade5253a0fe526692eeda803a98",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/37.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/37.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/144.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/144.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/19.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/19.event",
+      "sha256": "a28523943a1d031bd50db42bed329662f180fa2cfca8170d5b0cc81ac5e44c80",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/89.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/89.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/165.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/165.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/167.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/167.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/140.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/140.event",
+      "sha256": "dd7c868446cdb505371c895c718a087ce3c18140b72341950b9c7d1d76005ddf",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/159.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/159.event",
+      "sha256": "626420c7d1d676abdc23a19381361c17d48a4703e8a10df75e2b05812d577d96",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/156.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/156.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/74.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/74.event",
+      "sha256": "a95782c24f3022e44163b487ca403e8f553e5b7c3a1e6843732b6887cd605316",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/136.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/136.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/173.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/173.event",
+      "sha256": "db525d14bec559312e065a7f03d44f3087b694d30380d84bee619c0e511d8d2b",
+      "size": 35,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/55.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/55.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/51.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/51.event",
+      "sha256": "a3e026e241ff32cdd52073136d164e7e1f5d4fbf2b2b46e6c02098b0305ea400",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/123.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/123.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/46.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/46.event",
+      "sha256": "0095a0feec2ad8a5f7114a9ae449052e26edc1b4a6f4069d000b31cc84d9ca0d",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/169.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/169.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/167.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/167.event",
+      "sha256": "75cf99c908d53985072122c3515c60907156d6344e99dd654b11e24661d84275",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/114.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/114.event",
+      "sha256": "3334830cb9bcc8124566fe1caff610c2f6aef8b05c1ebf02b0ab1caa1f843b02",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/83.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/83.event",
+      "sha256": "60d268e8623bc6a53d7818624861790a7f8f19f97c5f52ac88032c626d8ba540",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/137.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/137.event",
+      "sha256": "cbcd99b0705cbba6c1239453b7cd63e39f27a7fe9eb411a57d51402e502ba847",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/170.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/170.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/80.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/80.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/20.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/20.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/63.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/63.event",
+      "sha256": "4104551ccd0d1b1af4da95ecde36e829476ee86cd8250b72841a2dd779bf6a51",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/114.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/114.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/108.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/108.event",
+      "sha256": "1bf3bba01774e798b8c4f8a36b59c9eda7118da2d9c6bc6c75baff258058517e",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/39.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/39.event",
+      "sha256": "6b8d0d81f09dadd13ef1858555281008472e88c469c539b2dad2b0c631c28139",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/32.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/32.event",
+      "sha256": "28f1edcb5604c7ea7670e932644fe026a0331094ca8b3834ef26295a8e475c19",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/6.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/6.event",
+      "sha256": "ed7eb9ee03695a331a1212e3be146162fb83fadefe6092ea86a00f5a42e497cb",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/66.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/66.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/116.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/116.event",
+      "sha256": "21c1a9caab84210b2192faf40cc61c1ce6279d60684dc8cb1416e05472f00afd",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/65.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/65.event",
+      "sha256": "4eb98cc0d78d582d260a352a09512b58ced6a5b02670a7da6c6769e886f31656",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/152.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/152.event",
+      "sha256": "54edbf03c313a0ab4f942ea97dd2787377110351abdbbe78d2d5993d4291ed13",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/86.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/86.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/98.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/98.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/21.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/21.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/45.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/45.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/149.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/149.event",
+      "sha256": "a13fe6bb1bcd3590595499f2e653821a13b987d2f77754d84fba0a734542ec36",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/11.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/11.event",
+      "sha256": "09a20a48db35b1c1862cd8e94b74bc4c43affff5b737078e471ba295852f10ba",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/69.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/69.event",
+      "sha256": "25c873f251ffc8aaed045292161e40672d8c2a7c1c9a86c984f697f9a35aecd6",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/170.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/170.event",
+      "sha256": "79a0a084a5ff27589a138126c76bc6fe5ec4a2e622920223a0ff5b6e404398eb",
+      "size": 37,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/93.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/93.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/1.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/1.event",
+      "sha256": "ec2dce53767398110df5b34526374b4ee3d92628fae7cbb2eb0ba3c4a47455f0",
+      "size": 24,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/117.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/117.event",
+      "sha256": "fdf5984245a6a79f81f01e617bd8a01d430cec567a09cec34ae8484e69051de7",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/16.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/16.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/135.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/135.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/129.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/129.event",
+      "sha256": "d04c93ab9d3c26fccfa6f1e3e071aa2c5b1347c1318b81adfb51fe5dca8f98f8",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/50.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/50.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/160.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/160.event",
+      "sha256": "a5ae6ecc51785c29ca04b4eb5d6f550184ce7543ed5f1c8809a07e2d259fa4bb",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/76.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/76.event",
+      "sha256": "261b2697ed7a4d9bd1a19461aa104dd86f08712a35673269f8a8c15dbe98aa87",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/162.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/162.event",
+      "sha256": "7ba3f4c31d318ba639501f6313cbbee557754e3246fcb4de007db52d9a0de981",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/74.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/74.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/41.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/41.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/99.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/99.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/121.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/121.event",
+      "sha256": "3c107911da7d519dccab3f2ca827195b62c461fa7e31a9aeeb2d64fd7a52d62b",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/52.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/52.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/154.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/154.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/12.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/12.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/173.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/173.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/56.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/56.event",
+      "sha256": "77aebb19bf2b29db5ef084f3fe84dad3434c15bfbd4cb23fb3e6ce5bbfd57870",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/135.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/135.event",
+      "sha256": "ea519be001cede1a2a48f88eb3d5871e4c40b3c61c909603899249ef1409d69f",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/1.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/1.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/103.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/103.event",
+      "sha256": "aea0ca1838c01c1f9c547482ffaff3d75d2f1172dfadfffc4ca867699b2b8dce",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/122.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/122.event",
+      "sha256": "ca1337bca106a5cc035be7f5f56837916e01bfef00813482e0a8209947980800",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/124.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/124.event",
+      "sha256": "876417ac3c7d492abf05f2f316fa995db925948eb3457c0e9984630f8f5edf85",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/9.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/9.event",
+      "sha256": "94fdbabbc6467071ab1ef6af1ef936d387984bd28f07579cbc0562541518e17b",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/105.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/105.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/81.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/81.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/87.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/87.event",
+      "sha256": "3e4e2dc287ef6fbf28d99bd563efe54b664963c35a7bb7312b2dcfc732fd26af",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/29.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/29.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/56.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/56.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/10.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/10.event",
+      "sha256": "adcee578b7cafb8d3aeeeb67e43d8cdabbeaa295e2b315c8b544bef66c7c1a9c",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/127.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/127.event",
+      "sha256": "29f565eb5779995824a1c4f9cabe0b5292a716042227d669850bf1fc5aed7ec8",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/128.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/128.event",
+      "sha256": "c8c74f59f1eb4938f10c5438ac87ebc0eaf5a6574b5d03f86d0905c723ab0eb8",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/144.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/144.event",
+      "sha256": "9cac42954a7c7b2110dfe96654560a93a44ee01f243c17f3aff82fe0df153b8e",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/127.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/127.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/91.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/91.event",
+      "sha256": "070a5e746f5aadbcbf14ee1ae9e66a085162dcce3dda7d887945b88a790ad27d",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/47.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/47.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/85.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/85.event",
+      "sha256": "a34ac8c6972ded3e954b71d1b4c9922bb2754968f33bb1bb3382eeaead1eb200",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/60.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/60.event",
+      "sha256": "5635b3c3dee8ec2f9d74700a8931f372efd09ae291a934cd3a4c171d1a35b276",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/18.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/18.event",
+      "sha256": "558f7d51fe7e26ca0e1071c87eb70cddba56fc38f409efa94becc4060d6cf964",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/146.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/146.event",
+      "sha256": "531ff07e2d64421780339c553f202a55476ff068d411f7cad4d6de4c941e17c6",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/130.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/130.event",
+      "sha256": "ef6bba38143402afecefede0b8cf17c26bccb547c6f9fa714c6dfc45cf707444",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/2.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/2.event",
+      "sha256": "6f60d3130bae6dfb45df140a6c11e16d6bf5c955a03a58c2f04dca34e204acc1",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/116.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/116.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/4.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/4.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/152.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/152.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/149.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/149.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/155.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/155.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/77.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/77.event",
+      "sha256": "b1e0bb506eff35685f4760e4c1cc2728ca1311e2aab43d849c3d2153e41acf9d",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/105.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/105.event",
+      "sha256": "fc13ee6bc42eed7dd7a6c4424bef3d2c335b24bc440c026a1c396067ac768e24",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/48.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/48.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/79.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/79.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/106.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/106.event",
+      "sha256": "b2d15187ba9dd95e1a7e55bfff0b9cb60a7bb56a9f0a82c1b72602eb2d73acf5",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/17.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/17.event",
+      "sha256": "c8a526fb7c7698f525d701405972e361d6f3d172b9ad8ce50e06bbb7465c6d9c",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/168.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/168.event",
+      "sha256": "2862e3572018313afe2db0e2c883e757e5deb06dfdc60ef8a1d8b3e3613598d0",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/134.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/134.event",
+      "sha256": "f0e9abb2bfe5543775fd38054abd198d41a2815b7d2ea0fc9c26d25fd643860f",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/77.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/77.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/115.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/115.event",
+      "sha256": "56bcfd7ab51326bec51fcd0933299abd66b17c6b82def5409c688492efad9315",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/159.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/159.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/19.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/19.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/97.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/97.event",
+      "sha256": "9acd9ad9fe85f896c61e9032318c83c5e96ef1589aa44c5159993471c05f3879",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/72.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/72.event",
+      "sha256": "9ec61c3bc499cdfd0348833f4c91695f2ca767ce6e7300e7472992ce39edce48",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/155.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/155.event",
+      "sha256": "9ff7331da7eccd3803e3831d159cb9e3c9d6d2fcaf1566a8e9becaaae229886e",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/113.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/113.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/65.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/65.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/137.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/137.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/138.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/138.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/78.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/78.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/5.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/5.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/13.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/13.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/172.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/172.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/4.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/4.event",
+      "sha256": "97adace770a92d1cf84b19190d0aba457c187cf80d2eb81d4ac853cc8e018858",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/142.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/142.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/87.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/87.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/45.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/45.event",
+      "sha256": "ddc5a3383f04755a919a21f3f9c3d996cdfa061884e835e6f429f98cae33b816",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/104.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/104.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/22.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/22.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/118.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/118.event",
+      "sha256": "ace2f39b852f153e0ac4cc1619012471e62e49ce710a75ed8d56da7a8114318f",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/129.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/129.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/143.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/143.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/130.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/130.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/44.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/44.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/32.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/32.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/83.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/83.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/126.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/126.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/11.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/11.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/13.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/13.event",
+      "sha256": "815a2314f29a03092e32f650f3552967a053a7493b8f76f6d534391090fc6dfa",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/26.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/26.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/128.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/128.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/36.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/36.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/10.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/10.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/117.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/117.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/6.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/6.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/162.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/162.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/15.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/15.event",
+      "sha256": "bc207efacc388f1166df99b2facd02bdbae780eaf36cf7913756b5706a1c80f0",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/133.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/133.event",
+      "sha256": "cb538247223f79ae6162e4ca4f37e1beae6f81b469ed3126a039b2c56fa58712",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/125.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/125.event",
+      "sha256": "14a81678257b86d1a323b29ef04eed9902998946abea07cfac6e58b22d20681d",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/158.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/158.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/120.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/120.event",
+      "sha256": "e020d85266adc53686c7a1147c32c139b29dcfeffff651e555f91a2655119858",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/30.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/30.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/102.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/102.event",
+      "sha256": "2a5567c56cc348d13f3e20e413292c472599473ad01523a08dc06475edb92815",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/68.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/68.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/88.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/88.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/133.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/133.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/63.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/63.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/112.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/112.event",
+      "sha256": "a5e0f120aa493c5a6576634ddc798687b8cc14bf99a9fa0d62d9d23eb9491069",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/148.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/148.event",
+      "sha256": "ee7c066d48493652081833759e8aece8d11207a828a86e08a343a96eb8a554fe",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/111.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/111.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/150.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/150.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/165.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/165.event",
+      "sha256": "037837d2b55923fbff0d6c8d657b8bc3fe9c0de28d677dc704f3b806fbd9bf4b",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/24.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/24.event",
+      "sha256": "a52fe0b0d6046b8d2449780048f13c3370d1a196f1351c0b1893b24dafce30ba",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/70.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/70.event",
+      "sha256": "7e1c17b314ed2c6135bd60293ff992394c34d47ff8601f0bf8d1d7b7d6d39ddd",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/29.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/29.event",
+      "sha256": "bf273833b36d6adc34cf365b5c3739b503956c6ee25e2fdcf97520aa04db9634",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/147.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/147.event",
+      "sha256": "79b495985dca40805cceac937d97e1e8a66f4b92f3ff57ec28634be72c30f973",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/47.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/47.event",
+      "sha256": "089bfd313d0436d630c693a4db63c3df8c4c485500c5d486061b4295327411ac",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/59.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/59.event",
+      "sha256": "a209db1f908cc6c38ff2e1664087e31a01c4b1fef42647bfbd7e5be8845d63f6",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/153.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/153.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/34.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/34.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/98.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/98.event",
+      "sha256": "af3feb40d00c935db283762303d4253c927c3bb26a3d5921ab4bae7db5b635da",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/120.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/120.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/58.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/58.event",
+      "sha256": "a29f4cd9c4527dfcc2f00fe2f029a4af5734d6ba4a8b9c34cc4d29b43eb2ad7b",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/8.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/8.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/40.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/40.event",
+      "sha256": "736695a0f08bbc413967771e7456f4931e524d13016f9e78a6ccf4d8a8658606",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/141.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/141.event",
+      "sha256": "b2895a0e80c86e491d1d3f04237cf6ed16a03293900e2065cc486d4a20a6aca6",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/3.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/3.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/94.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/94.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/43.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/43.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/15.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/15.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/20.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/20.event",
+      "sha256": "d52fc6cafc852efcba5d70ac7e13661c105f68d0b89cdfd90ad3c04dccbd7de3",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/140.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/140.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/142.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/142.event",
+      "sha256": "b7503fd2e4f244929cd7cf1113e099e77ad6f60e828a8d88fa7f6eca51931fd7",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/112.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/112.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/79.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/79.event",
+      "sha256": "0e528e99b69a2585423461e065c566d2c7b4ac2b05623377eabba1e208babdf7",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/36.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/36.event",
+      "sha256": "87849693bae1386cf86a917e9021db562fce00ccc97635093ea6e46bfc18cbff",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/109.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/109.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/18.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/18.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/85.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/85.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/23.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/23.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/164.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/164.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/39.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/39.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/95.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/95.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/90.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/90.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/3.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/3.event",
+      "sha256": "13c502e1d39f98f6742d6ff38456ae99387a51c9fe18a1b066852e1743eedc43",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/75.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/75.event",
+      "sha256": "44e9c9b9ae6b65f88333d84a0c730ce16639241029c889d4c5f5be9352c010e1",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/125.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/125.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/104.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/104.event",
+      "sha256": "e00b300197e8d6fc3f8cab048fb6721d3824c36f327cc8aba3b01b0406049eb5",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/166.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/166.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/27.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/27.event",
+      "sha256": "f5f0174f9e25fe84b1d26b6f1ca631f5da2e12cfea5a0fd0b1d72cb3d0e26f80",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/102.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/102.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/5.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/5.event",
+      "sha256": "5a26333c4c273fe179868d48dfd43f476a29be3b8f5479039ed534cb4563b027",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/44.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/44.event",
+      "sha256": "028c7f554b3dcd7f24443d9fa015809081d02968113597a77012b697a2dfe635",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/71.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/71.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/148.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/148.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/113.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/113.event",
+      "sha256": "64523803405d0a2bec10deef9bca3a666c258ab4a13cbc4aaf243094664a6c7d",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/59.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/59.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/157.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/157.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/157.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/157.event",
+      "sha256": "b5e0ce25569d7c0b59d77ba11c9d5a748fd4e9f07782e5f13ebe4f8e4f3c0557",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/106.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/106.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/35.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/35.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/76.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/76.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/9.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/9.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/67.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/67.event",
+      "sha256": "b1babe0903bdce5519f7395b739e5d6d8a7a9c0a0aa10fbaf4859aa1646a4184",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/107.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/107.event",
+      "sha256": "97529f141d709f21c70c68770e5833e21a70b65c7290a267615c4fc04ac37228",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/62.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/62.event",
+      "sha256": "ab69b814b6356b3e084556fd89b3946cd1c5811633c3ad35eeedfb44f42c33f3",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/58.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/58.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/97.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/97.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/64.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/64.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/134.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/134.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/71.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/71.event",
+      "sha256": "eddb62b5df694743b84c1fc39a06b4b0f66ba729d3f710e423153f8e57cda80c",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/31.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/31.event",
+      "sha256": "51ecd7f475e048818356b59b7bef1b8f34c9cbbd420fc1fc2e8d792f9db246f6",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/78.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/78.event",
+      "sha256": "663f22dd8ce18427ce5980aa3511a6236cace3bcfe3d3f6e41f32ae36ebd4ce6",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/37.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/37.event",
+      "sha256": "4537962eb8a44547085535640df3371150aed76fceaf7263efa70fe2b5e97e19",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/62.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/62.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/38.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/38.event",
+      "sha256": "5e26c7058a0a70715c86fb850ab610cd7ef03a2edc977e225314af399b7f3302",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/24.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/24.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/25.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/25.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/42.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/42.event",
+      "sha256": "8e02255f1557c804416be86221f232e289d29915b7069146d4a2c29e255ef149",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/25.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/25.event",
+      "sha256": "dd62d10a457582a8750c620f35a5c24ab192aa0896b00601566191ca91d30139",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/110.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/110.event",
+      "sha256": "39ead2b879b3aa7c30f9c4aaf850381c9b4a683c86578ee742a19a328dc43529",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/42.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/42.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/41.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/41.event",
+      "sha256": "201250797dc29bff5774032b1c99e10aff9c2f33a632df018ee748280292e417",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/123.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/123.event",
+      "sha256": "c4e71dbbf234e1584a648847101fa43d0c83964c536af500e0b33f49f8700750",
+      "size": 27,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/151.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/151.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/54.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/54.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/16.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/16.event",
+      "sha256": "b8fdd551c3cf7ee6281afe8246bbddfe9a6a8a7585bb1d38321845bfef440946",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/57.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/57.event",
+      "sha256": "d366506def5c1a9f1281e860146a9f6c45ca915227a8d32cdd489651f31bd41e",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/72.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/72.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/145.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/145.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/143.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/143.event",
+      "sha256": "1e2aae7da0f40a6446e34a07968efe0236ae98c68107a1c80efdc7a75e4c82ba",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/151.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/151.event",
+      "sha256": "d00ea40320672068bba1971b11def950a45a7dca02b358fbc876a331907c0a05",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/163.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/163.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/82.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/82.event",
+      "sha256": "31e026fb26174ef08ba4d2167f12d0f9ba95dc67f161b2fd046e1fc36ca486b5",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/86.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/86.event",
+      "sha256": "69d94c7c842e6e2aeec930393c502853043ece1c576c77bdcdd84ad6b235a680",
+      "size": 26,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/90.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/90.event",
+      "sha256": "7f093cfaa000265e5c0e06826f349ab94fda3c3218cdfb98577dc19142d864d1",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/31.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/31.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/96.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/96.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/61.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/61.event",
+      "sha256": "096df1da42e611ec31bf86dad9cead4fc20cf54d5a3b2d98433b8dcc8dfb08ad",
+      "size": 90,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/118.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/118.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/66.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/66.event",
+      "sha256": "38ec3ee9ba9c4c0f63155d9e03ed8beab519b810e78a3febc348aa82c442a593",
+      "size": 89,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/7.claim",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/7.claim",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/111.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/111.event",
+      "sha256": "d31bbddffba3cfdc86ae69d456a6b232cb52e3a996288d8b9b5db9de0836193b",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/95.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/95.event",
+      "sha256": "c161cc20c6d2daf50cc64ee42e235e13b809c86fe07a9036fc889f4766bd693c",
+      "size": 25,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/gate-receipts/gate-4053166-1793203552188507975/work/framework/tests/101.event",
+      "destination": "partial-native-authority/gate-4053166-1793203552188507975/work/framework/tests/101.event",
+      "sha256": "8b571d7c4036f5cbc98fc5fa3136842268f42f188649a60c4c6b042cddfc16e5",
+      "size": 91,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/execution-state.json",
+      "destination": "context/execution-state.json",
+      "sha256": "69bb25241d5374f82b2fb0e31db9631b62e0f09ddea125c094aa40fa89f4bcb1",
+      "size": 249,
+      "mode": "0o644"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/launch.py",
+      "destination": "context/launch.py",
+      "sha256": "a752a4964303c547d720c9d15843c51e439d4df4641ec438696d3ef159547c49",
+      "size": 9171,
+      "mode": "0o755"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/launch-plan.json",
+      "destination": "context/launch-plan.json",
+      "sha256": "7e63b87b0de9903aa4139a097f4c07d5415d3b7c8316f2ed61d8acb08485b115",
+      "size": 18031,
+      "mode": "0o644"
+    }
+  ],
+  "scope": "Raw terminal command and partial authority retained without final gate success/failure inference."
+}

@@ -1,0 +1,44 @@
+[
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321",
+    "inode": 471302073,
+    "device": 58,
+    "uid": 1000
+  },
+  {
+    "path": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054",
+    "inode": 10101693,
+    "device": 29,
+    "uid": 1000
+  },
+  {
+    "path": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054",
+    "inode": 7090215,
+    "device": 29,
+    "uid": 1000
+  },
+  {
+    "path": "/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout",
+    "inode": 7887006,
+    "device": 29,
+    "uid": 1000
+  },
+  {
+    "path": "/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY",
+    "inode": 7090216,
+    "device": 29,
+    "uid": 1000
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects",
+    "inode": 470815952,
+    "device": 58,
+    "uid": 1000
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects",
+    "inode": 470501049,
+    "device": 58,
+    "uid": 1000
+  }
+]

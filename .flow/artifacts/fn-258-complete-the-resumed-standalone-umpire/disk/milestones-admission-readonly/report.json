@@ -1,0 +1,301 @@
+{
+  "kind": "read_only_resource_admission_not_cleanup_authorization",
+  "observed_utc": "2026-10-28T16:20:05.509230+00:00",
+  "new_goal": "User deferred migration; proceed to MILESTONES only after root resource admission.",
+  "build_root": "/home/agent/.cache/codex-build",
+  "TMPDIR": "/home/agent/.cache/codex-build/tmp",
+  "filesystem": "Filesystem        1B-blocks         Used   Available Use% Mounted on\noverlay        210241560576 151523905536 47963459584  76% /\noverlay        210241560576 151523905536 47963459584  76% /\nhost           994662584320 927033581568 67629002752  94% /Users/stephan/Workspace/skunkworks\n",
+  "available_bytes": 47963459584,
+  "available_gib": 44.66945266723633,
+  "required_floor_bytes": 53687091200,
+  "shortfall_bytes": 5723631616,
+  "headroom_viable_now": false,
+  "candidates": [
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054",
+      "present": true,
+      "allocated_bytes": 7233114112,
+      "root_uid": 1000,
+      "root_inode": 10101693,
+      "root_device": 29,
+      "root_symlink": false,
+      "readable_live_references": [],
+      "unreadable_system_fields": [
+        {
+          "pid": 10,
+          "role": "cwd"
+        },
+        {
+          "pid": 10,
+          "role": "environ"
+        },
+        {
+          "pid": 10,
+          "role": "fd"
+        },
+        {
+          "pid": 10,
+          "role": "maps"
+        },
+        {
+          "pid": 542,
+          "role": "cwd"
+        },
+        {
+          "pid": 542,
+          "role": "environ"
+        },
+        {
+          "pid": 542,
+          "role": "fd"
+        },
+        {
+          "pid": 542,
+          "role": "maps"
+        },
+        {
+          "pid": 557,
+          "role": "cwd"
+        },
+        {
+          "pid": 557,
+          "role": "environ"
+        },
+        {
+          "pid": 557,
+          "role": "fd"
+        },
+        {
+          "pid": 557,
+          "role": "maps"
+        }
+      ],
+      "proof_scope": "Owner-interrupted current pair. Terminal command+390partial native/context files copied, no migration pass/failure claim. Positive5-command guest proof already versioned, but target guest/native proof binary+identity payloads not yet independently retained for this cde target.",
+      "evidence": [
+        "validation/final-pair-cde-054/owner-deferral/summary.json",
+        "validation/final-pair-cde-054/current-guest-identity"
+      ],
+      "admission": "Potential exact whole-target cleanup only after bounded selected proof/guest identity/nativebinary retention and independent CAS verification, followed by root authorization and immediate ownership recheck. Preserve source pair/launchers/receipts.",
+      "projected_available_if_released_bytes": 55196573696,
+      "projected_meets_50gib": true
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-standalone-0547321",
+      "present": true,
+      "allocated_bytes": 6429597696,
+      "root_uid": 1000,
+      "root_inode": 9316949,
+      "root_device": 29,
+      "root_symlink": false,
+      "readable_live_references": [],
+      "unreadable_system_fields": [
+        {
+          "pid": 10,
+          "role": "cwd"
+        },
+        {
+          "pid": 10,
+          "role": "environ"
+        },
+        {
+          "pid": 10,
+          "role": "fd"
+        },
+        {
+          "pid": 10,
+          "role": "maps"
+        },
+        {
+          "pid": 542,
+          "role": "cwd"
+        },
+        {
+          "pid": 542,
+          "role": "environ"
+        },
+        {
+          "pid": 542,
+          "role": "fd"
+        },
+        {
+          "pid": 542,
+          "role": "maps"
+        },
+        {
+          "pid": 557,
+          "role": "cwd"
+        },
+        {
+          "pid": 557,
+          "role": "environ"
+        },
+        {
+          "pid": 557,
+          "role": "fd"
+        },
+        {
+          "pid": 557,
+          "role": "maps"
+        }
+      ],
+      "proof_scope": "Completed successful required054 and namedcheck/time parent cache. Revision-bound native authority and proof binaries already retained; child target removed earlier while source/receipts survived.",
+      "evidence": [
+        "validation/standalone-0547321/recovery-verification.json",
+        "validation/standalone-named-0547321/retained-gates/independent-recovery-verification.json"
+      ],
+      "admission": "Smallest additional proof-retention work: independently reverify existing required+named CAS, exact named-output/target binding and current ownership, then root may release exact parenttarget. No current release dependency: release used separate HOST target with independent retention.",
+      "projected_available_if_released_bytes": 54393057280,
+      "projected_meets_50gib": true
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-framework",
+      "present": true,
+      "allocated_bytes": 1221783552,
+      "root_uid": 1000,
+      "root_inode": 8781825,
+      "root_device": 29,
+      "root_symlink": false,
+      "readable_live_references": [],
+      "unreadable_system_fields": [
+        {
+          "pid": 10,
+          "role": "cwd"
+        },
+        {
+          "pid": 10,
+          "role": "environ"
+        },
+        {
+          "pid": 10,
+          "role": "fd"
+        },
+        {
+          "pid": 10,
+          "role": "maps"
+        },
+        {
+          "pid": 542,
+          "role": "cwd"
+        },
+        {
+          "pid": 542,
+          "role": "environ"
+        },
+        {
+          "pid": 542,
+          "role": "fd"
+        },
+        {
+          "pid": 542,
+          "role": "maps"
+        },
+        {
+          "pid": 557,
+          "role": "cwd"
+        },
+        {
+          "pid": 557,
+          "role": "environ"
+        },
+        {
+          "pid": 557,
+          "role": "fd"
+        },
+        {
+          "pid": 557,
+          "role": "maps"
+        }
+      ],
+      "proof_scope": "Task-owned focused framework preparation/test cache, no current readable producer. Focused logs retained; complete named output recovery coverage not established by this audit.",
+      "evidence": [
+        "standalone/tlc-prefetch-controls",
+        "standalone/focused-xtask-tests.log"
+      ],
+      "admission": "Potential only after identify/retain any proof outputs. Alone too small to meet50GiB.",
+      "projected_available_if_released_bytes": 49185243136,
+      "projected_meets_50gib": false
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer",
+      "present": true,
+      "allocated_bytes": 3830808576,
+      "root_uid": 1000,
+      "root_inode": 8784410,
+      "root_device": 29,
+      "root_symlink": false,
+      "readable_live_references": [],
+      "unreadable_system_fields": [
+        {
+          "pid": 10,
+          "role": "cwd"
+        },
+        {
+          "pid": 10,
+          "role": "environ"
+        },
+        {
+          "pid": 10,
+          "role": "fd"
+        },
+        {
+          "pid": 10,
+          "role": "maps"
+        },
+        {
+          "pid": 542,
+          "role": "cwd"
+        },
+        {
+          "pid": 542,
+          "role": "environ"
+        },
+        {
+          "pid": 542,
+          "role": "fd"
+        },
+        {
+          "pid": 542,
+          "role": "maps"
+        },
+        {
+          "pid": 557,
+          "role": "cwd"
+        },
+        {
+          "pid": 557,
+          "role": "environ"
+        },
+        {
+          "pid": 557,
+          "role": "fd"
+        },
+        {
+          "pid": 557,
+          "role": "maps"
+        }
+      ],
+      "proof_scope": "Task-owned older consumer/guest preparation cache. Existing GuestCAS records preserve selected canonical/native proof outputs; full current cache proof coverage not established by this audit.",
+      "evidence": [
+        "consumer/guest-recovery-manifest.json"
+      ],
+      "admission": "Potential only after exact proof recovery/ownership coverage. Alone too small to meet50GiB. Preserve old source/worktrees and existing recovery objects.",
+      "projected_available_if_released_bytes": 51794268160,
+      "projected_meets_50gib": false
+    }
+  ],
+  "recommendation": {
+    "smallest_retention_step": "Prefer successful standalone parent target6.43GB if root releases it: its required and named proof CAS already exists, so only fresh recovery/binding/ownership checks are needed. It alone projects just above50GiB. Alternatively retain cde interrupted positive guest/native payloads before releasing its7.23GB target, offering slightly more margin but more retention work.",
+    "bounded_scope": "Do not clean merely from size/name. All exact target cleanup requires root admission and current proof/ownership checks. No cleanup/build started here. Re-measure free immediately before fn254 launch; projected reclaimed bytes are not actual availability and do not waive further workload reservations.",
+    "owner_deferral_status": "No readable producer cwd/env/fd/maps under newcde source or target and no held execution lease; systemPID unreadability recorded.",
+    "not_recommended": "Do not reclaim source clones, Scala archive/cache, global/shared Cargo/Go/mise caches, recovery stores, unrelated task targets or unknown paths."
+  },
+  "protected": [
+    "all source/worktrees and original launchers",
+    "all existing recovery objects/manifests",
+    "Scala archive and caches",
+    "global/shared and other task caches",
+    "successful proof receipts and canonical guest"
+  ],
+  "no_deletion_build_gate_review_source_ref_flow_or_main_mutation": true,
+  "no_full_target_content_sealing_performed": true
+}

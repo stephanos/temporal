@@ -5,8 +5,8 @@
   "verified_entry_count": 88,
   "r6_complete": false,
   "qualification": "Frozen observations can drift while verified recovery remains reachable. No transfer/backup/activation/completion claim.",
-  "overlay_sha256": "702d81065018a85de0956d3989cb7393244c3dc41c19074b99ba6f81def2a85b",
-  "script_sha256": "03c648d21006bbd9a735946fbbe79629410f195cb89cc2ddf32e2df566e31e34",
+  "overlay_sha256": "31a4879da6f5c1a138a7dd6040f8ef0546a11c28587d9651e62f34e695be72c8",
+  "script_sha256": "543d39382add17367536e22ec015cb0903a96761070ad5e5191f7d0d95d66788",
   "input_bindings": {
     "r1_ledger": {
       "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/source/candidate-ledger.json",
@@ -28,7 +28,7 @@
       "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/source-readiness-closures.json",
       "sha256": "99330c52a93b64db01a18acc3899fea0ffdd2bef243e09b3a458aa406cf0e4d6"
     },
-    "current_focused_pair": {
+    "historical_focused_pair": {
       "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/current-pair-3f5-054/receipt.json",
       "sha256": "1cc2b927dbc188775f7cf59ff264ce706bbe30a4175bdb8e0b082312c50e940d"
     }

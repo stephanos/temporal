@@ -1,0 +1,28 @@
+{
+  "path": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/tmp1tdtki_h.tar.gz",
+  "size": 338104923,
+  "sha256": "65fb4e36212a11d146bb0dd8e2823bdd987ecfa53721f20933904e04e9dc7d7a",
+  "manifest_recovery_references": [],
+  "manifest_files_checked": [
+    "source/source-manifest.json",
+    "consumer/readiness-log-manifest.json",
+    "consumer/guest-recovery-manifest.json",
+    "consumer/artifact-refresh-3f5f613-manifest.json",
+    "disk/failed-final-pair-3f5-target/recovery-manifest.json",
+    "disk/failed-final-pair-3f5-target/archive-manifest.json",
+    "validation/consumer-cache-control-cde/manifest.json",
+    "validation/standalone-0547321/archive-manifests.json",
+    "validation/standalone-0547321/recovery-manifest.json",
+    "validation/standalone-named-0547321/release-retention/recovery-manifest.json",
+    "validation/standalone-named-0547321/release-retention/archive-manifest.json",
+    "validation/standalone-named-0547321/retained-gates/archive-manifests.json",
+    "validation/standalone-named-0547321/retained-gates/recovery-manifest.json",
+    "validation/final-pair-3f5-054/failed-default-3f5/retained-evidence-manifest.json",
+    "validation/final-pair-3f5-054/failed-default-3f5/manifest.json",
+    "task5-preparation/receiving-snapshots/custody-manifest.input.json",
+    "task5-preparation/custody/custody-manifest.json",
+    "task5-preparation/historical-preparation-3658582/preservation-manifest.json",
+    "consumer/current-pair-3f5-054/manifest.json",
+    "consumer/readiness-followup-ec13057/manifest.json"
+  ]
+}

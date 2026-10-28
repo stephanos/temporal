@@ -1,23 +1,24 @@
 # Extract Umpire into temporalio/umpire
 
-Status: resumed by the owner on 2026-10-27 under [fn-258](.flow/specs/fn-258-complete-the-resumed-standalone-umpire.md),
-replacing retired [fn-257](.flow/specs/fn-257-extract-the-standalone-umpire.md).
-Destination: <https://github.com/temporalio/umpire>. Migration remains unfinished;
-remote publication and source cutover require their recorded access and proof gates.
-The renewed instruction supersedes the earlier stop. Preserve original inventories,
-source candidates and recovery evidence. Task fn-258.1 is reviewed and closed: the
-renewed `ac60daaf47` inventory has 1,189 selected files, and export `a92db061` retains
-627 mapped commits with 6,634 independently verified projection-neutral prunings.
-Standalone `05473210` and consumer `3f5f6135` are current source candidates, including
-the reproducible migrated guest. The standalone required-TLC gate passed, with its
-full proof retained; timing targets remain missed. Standalone and consumer source
-preparation are reviewed and closed. Paired/release gates, candidate transfer
-dispositions, publication and cutover remain open;
-in-tree authority remains.
-After migration, return to the fn-254 priority in [MILESTONES.md](MILESTONES.md).
-The connected GitHub app was rechecked on 2026-10-27 and returned HTTP 422 because
-`temporalio` SAML SSO policy blocks this connection. Destination contents and
-permissions remain unknown; this does not prevent local preparation and validation.
+Status: **deferred by the owner on 2026-10-28**. The active goal is now ordinary
+[MILESTONES.md](MILESTONES.md) work; Temporal’s in-tree framework remains authoritative.
+[fn-258](.flow/specs/fn-258-complete-the-resumed-standalone-umpire.md) remains open,
+replacing retired fn-257 without accepting its unfinished work.
+
+Historical source-readiness tasks1–3 are closed. Preserve source freeze `ac60daaf47`,
+1,189 selected files, export `a92db061` (627 mapped commits,6,634 projection-neutral
+prunings), standalone `05473210` and current consumer `cde1ee67`. Standalone required-TLC,
+check/time/release proofs pass at their recorded pins; timing targets remain missed.
+The first3f consumer gate failed a shell-control expectation. The cde one-line correction
+passes focused controls; the new cde paired gate was interrupted at the owner’s request.
+Whole-pair acceptance remains incomplete. [Deferral checkpoint](.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/owner-deferral-20261028.md).
+
+All48 receiving refs remain uncreated;50 custody commits are prepared and retained.
+No publication, CI activation or source cutover occurred. Destination contents/history
+remain unknown: direct GitHub repository access returned SAML403 on2026-10-28.
+Preserve all original inventories, source branches and recovery evidence. Milestone
+framework changes expire earlier migration proof applicability; resumption requires
+an explicit renewed source inventory/history/adaptation/current-pair proof.
 
 The local history export is verified at `cf8bec4d6`: 1,178 selected files, 581
 retained commits and projection-neutral pruning of 6,568 other available commits.

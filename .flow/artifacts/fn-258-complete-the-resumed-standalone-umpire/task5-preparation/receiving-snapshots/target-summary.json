@@ -8,7 +8,7 @@
   },
   "verified_targets": 48,
   "custody_commits": 50,
-  "controls_passed": 16,
+  "controls_passed": 24,
   "variant_file_records": 57286,
   "net_deletions": 1942,
   "mapped_source_deletions": 1931,
@@ -494,5 +494,6 @@
       "file_count": 1195,
       "ownership_exception_paths": 0
     }
-  ]
+  ],
+  "computed_recovery_coverage": "computed-recovery-coverage.json"
 }

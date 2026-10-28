@@ -1,0 +1,8 @@
+{
+  "path": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/tmp1tdtki_h.tar.gz",
+  "exists": true,
+  "bytes": 338104923,
+  "provenance": "This agent first archive attempt aborted on hardlink alias; completed corrected archive independently retained with dereference enabled. This incomplete temporary is not proof authority.",
+  "no_removal_performed": true,
+  "eligible_after_root_admission": "This exact incomplete temporary, after successful recovery verifier; preserve all CAS hash-named objects."
+}

@@ -1,9 +1,13 @@
 {
   "base": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
-  "head": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
-  "patch_sha256": "8ffb5fe3102e63c389b294ca827e400154b247c905b49fe0bfbe43f86ff3b793",
+  "head": "cde1ee67efd266a058193694c2ddb287598b9ea5",
+  "candidate_tree": "937680c4cc87d81ce4da6b0868863ea1a5fb9fd3",
+  "patch_sha256": "a1882f1f9ff37eca08dbde3e7a77ca14f1af629d713043c41b2432959fadcad1",
   "context_lines": 0,
-  "reason": "Exact zero-context code-view diff; Git blobs and independently recovered bundle are source identity authority. Binary guest payload is recovered from the bundle, not the textual diff.",
-  "bundle": "source-preparation-3f5f613.bundle",
-  "prior_patch": "source-adaptation-3658582.patch"
+  "changed_control_git_blob": "8853cc431bc28e0b04be7db1322db1f4ec38bc24",
+  "canonical_guest_git_blob": "7bbc6b206fd2dda39316737a9b9815b6e5ee98ad",
+  "reason": "Zero-context source-view diff; blob/tree identities and independently recovered thin bundle are recovery authority. Binary guest not duplicated by textual diff.",
+  "bundle": "source-preparation-cde1ee6.bundle",
+  "prior_patch": "source-adaptation-3f5f613.patch",
+  "owner": "Task4 correction; task3 historicalsource3f retained"
 }

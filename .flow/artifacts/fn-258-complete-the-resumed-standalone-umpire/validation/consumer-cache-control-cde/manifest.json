@@ -1,0 +1,60 @@
+{
+  "consumer": "cde1ee67efd266a058193694c2ddb287598b9ea5",
+  "files": [
+    {
+      "file": "checks.json",
+      "size": 2624,
+      "sha256": "c97821558c414faf7673fa2137ee9e49242cec89234265e54d05b6a05f2ca135"
+    },
+    {
+      "file": "full-timing-wrapper-actual-gate-env.log",
+      "size": 435,
+      "sha256": "a470e75d03b6fd3f2a2d0c2931cf2eacc53b3a28f828de85179ce69d727164bd"
+    },
+    {
+      "file": "handoff.json",
+      "size": 3638,
+      "sha256": "a583683049d4674f3ede8ef0ba8edde0568d38f439b2c1591dc09e4a215fc923"
+    },
+    {
+      "file": "matrix-caller-1-0.log",
+      "size": 362,
+      "sha256": "aefd5ab7034008edb61ab6bd7c95acc6197fb632b46726a087c584e56ea0cf03"
+    },
+    {
+      "file": "matrix-full-gate-0-1.log",
+      "size": 362,
+      "sha256": "be298f6e1bab26a821cdc08775f6159797207c103750c8923d26379f60f3675a"
+    },
+    {
+      "file": "matrix-unset.log",
+      "size": 364,
+      "sha256": "7c9e3f26d1944bba5461401fbf61b6951c4fa91143b10b7a1241c6c9c5cecc02"
+    },
+    {
+      "file": "one-file.patch",
+      "size": 932,
+      "sha256": "01711557fe26aaac6f20d5d3450729f5d9e4f74ef20cdf15abf654b0dcc7038f"
+    },
+    {
+      "file": "related-guest-roots.log",
+      "size": 386,
+      "sha256": "20544ec8884b9621e7b6ae6d7f28f3d450fa4dc30b2764ac06cfe4406acf45ee"
+    },
+    {
+      "file": "related-proto.log",
+      "size": 387,
+      "sha256": "661b42fca34860d61a9c072d0612ad620c4da02f7b42b531c50f7c8b9263e238"
+    },
+    {
+      "file": "related-validate.log",
+      "size": 364,
+      "sha256": "1c2ccadc2844c362be325f6ee591a214efde7950b86d69a1c538a659ead9cdc1"
+    },
+    {
+      "file": "related-wiring.log",
+      "size": 362,
+      "sha256": "be298f6e1bab26a821cdc08775f6159797207c103750c8923d26379f60f3675a"
+    }
+  ]
+}

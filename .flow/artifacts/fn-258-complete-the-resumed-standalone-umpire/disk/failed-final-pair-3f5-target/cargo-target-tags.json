@@ -1,0 +1,30 @@
+{
+  "root_tag_exists": false,
+  "actual_tags": [
+    {
+      "path": "guest-cache/e1ead22e14dcff68c22a6ed0eec052fae1397d9ec505e90ff55a3d32cb415285/wasm32-wasip1/CACHEDIR.TAG",
+      "valid": true
+    },
+    {
+      "path": "guest-cache/e96d1995f4bcaabaf51f0cffc9b84d150cd82adf11eef99d311150d5a6754a15/wasm32-wasip1/CACHEDIR.TAG",
+      "valid": true
+    },
+    {
+      "path": "tests/runtime-capability-controls/target/CACHEDIR.TAG",
+      "valid": true
+    },
+    {
+      "path": "tests/trybuild/aarch64-unknown-linux-gnu/CACHEDIR.TAG",
+      "valid": true
+    },
+    {
+      "path": "wasm32-wasip1/CACHEDIR.TAG",
+      "valid": true
+    },
+    {
+      "path": "xtask-bootstrap/CACHEDIR.TAG",
+      "valid": true
+    }
+  ],
+  "qualification": "No tag fabricated. Later cleanup must use actual valid Cargo target boundaries or separately admitted fully inventoried orchestration subtree; this audit performs neither."
+}

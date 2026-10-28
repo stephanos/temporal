@@ -1,0 +1,9 @@
+{
+  "base": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "head": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+  "patch_sha256": "8ffb5fe3102e63c389b294ca827e400154b247c905b49fe0bfbe43f86ff3b793",
+  "context_lines": 0,
+  "reason": "Exact zero-context code-view diff; Git blobs and independently recovered bundle are source identity authority. Binary guest payload is recovered from the bundle, not the textual diff.",
+  "bundle": "source-preparation-3f5f613.bundle",
+  "prior_patch": "source-adaptation-3658582.patch"
+}

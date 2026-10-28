@@ -20,7 +20,7 @@ FOCUSED_PAIR = HERE.parent/'consumer/current-pair-3f5-054/receipt.json'
 ORIGINAL_PLAN = TEMPORAL/'.flow/artifacts/fn-257-extract-the-standalone-umpire/task6/provisional-transfer-plan.json'
 ACTION = 'fn-258-complete-the-resumed-standalone-umpire.5'
 PREPARED = {'umpire': '05473210b48c3db862f22051eb7154ce98258f98',
-            'temporal': '3f5f613578f2857b738a7792fad08f12b3ea0a41'}
+            'temporal': 'cde1ee67efd266a058193694c2ddb287598b9ea5'}
 FW_OWNERS = {'framework', 'historical-framework'}
 CURRENT_PREPARATION_TASKS = {
     ('temporal', 'refs/heads/work/fn2583-consumers'): 'fn-258-complete-the-resumed-standalone-umpire.3',
@@ -94,7 +94,7 @@ class Facts:
 
 def bindings():
     return {name: {'path': str(path.relative_to(TEMPORAL)), 'sha256': sha(path)} for name, path in
-            [('r1_ledger', LEDGER), ('owner_research', RESEARCH), ('fn257_task6_plan', ORIGINAL_PLAN), ('current_trackers', TRACKERS), ('source_readiness_closures', CLOSURES), ('current_focused_pair', FOCUSED_PAIR)]}
+            [('r1_ledger', LEDGER), ('owner_research', RESEARCH), ('fn257_task6_plan', ORIGINAL_PLAN), ('current_trackers', TRACKERS), ('source_readiness_closures', CLOSURES), ('historical_focused_pair', FOCUSED_PAIR)]}
 
 
 @functools.lru_cache(maxsize=1)
@@ -229,9 +229,9 @@ def build(ledger, research, facts):
             'closure_observations': str(CLOSURES.relative_to(TEMPORAL)),
             'closure_observations_sha256': sha(CLOSURES),
             'task2_task3': 'DONE source-readiness only, authoritative flow-state; not task4/R6 acceptance',
-            'current_focused_pair_receipt': str(FOCUSED_PAIR.relative_to(TEMPORAL)),
-            'current_focused_pair_receipt_sha256': sha(FOCUSED_PAIR),
-            'pair': PREPARED, 'focused_status': 'PASS',
+            'historical_focused_pair_receipt': str(FOCUSED_PAIR.relative_to(TEMPORAL)),
+            'historical_focused_pair_receipt_sha256': sha(FOCUSED_PAIR),
+            'pair': PREPARED, 'focused_status': 'HISTORICAL 3f5 PASS only; currentcde fresh wholepair PENDING','historical_focused_pair': {'temporal':'3f5f613578f2857b738a7792fad08f12b3ea0a41','umpire':PREPARED['umpire']},'current_source_owner':'fn-258-complete-the-resumed-standalone-umpire.4','prior_full_paired_default':'3f5/054 FAILED exit2; retained validation/final-pair-3f5-054/failed-default-3f5',
             'task4': 'in_progress; broad pair/current-input freshness proof active, not complete',
             'real_receiving_refs': '48 UNCREATED/UNVERIFIED; isolated snapshot objects exist separately',
         },
@@ -317,9 +317,9 @@ def validate(overlay, ledger, research, facts):
         require(item['status']=='done' and item['status_source']=='flow-state','unsupported-readiness-closure')
     require(closures['fn-258-complete-the-resumed-standalone-umpire.4']['status']=='in_progress','unsupported-task4-completion')
     focused = load(FOCUSED_PAIR)
-    require(focused['status']=='PASS' and focused['pair']==PREPARED and focused['clean_before_checkout'] is True and not any(focused['clean_after_checks'].values()) and all(item['exit']==0 for item in focused['checks']),'unsupported-focused-pair')
+    require(focused['status']=='PASS' and focused['pair']=={'temporal':'3f5f613578f2857b738a7792fad08f12b3ea0a41','umpire':PREPARED['umpire']} and focused['clean_before_checkout'] is True and not any(focused['clean_after_checks'].values()) and all(item['exit']==0 for item in focused['checks']),'unsupported-focused-pair')
     readiness = overlay.get('current_source_readiness',{})
-    require(readiness.get('pair')==PREPARED and readiness.get('focused_status')=='PASS' and readiness.get('closure_observations_sha256')==sha(CLOSURES) and readiness.get('current_focused_pair_receipt_sha256')==sha(FOCUSED_PAIR),'unsupported-current-readiness-binding')
+    require(readiness.get('pair')==PREPARED and readiness.get('focused_status')=='HISTORICAL 3f5 PASS only; currentcde fresh wholepair PENDING' and readiness.get('closure_observations_sha256')==sha(CLOSURES) and readiness.get('historical_focused_pair_receipt_sha256')==sha(FOCUSED_PAIR),'unsupported-current-readiness-binding')
     prepared = overlay.get('current_prepared_receiving_heads', [])
     require(len(prepared) == 2 and {item.get('repository'):item.get('head') for item in prepared} == PREPARED, 'unsupported-current-prepared-head')
     for item in prepared:
@@ -373,7 +373,7 @@ def markdown(overlay):
     freezes = [row for row in rows if row['unresolved_product_owner_freeze']]
     lines = ['# Local R6 disposition overlay', '',
         'Status: **R6 incomplete**. All 88 recorded entries and 81 original identities are retained. This overlay creates no receiving refs and accepts no transfer or disposition.', '',
-        f"There are {len(planned)} planned real framework receiving refs. Their full provisional path mappings, committed/dirty provenance and source recovery objects are in disposition-overlay.json. Actual refs remain UNCREATED/UNVERIFIED;48 isolated custody targets are separately prepared/verified, not imported or accepted. Current source-readiness heads are standalone {PREPARED['umpire'][:8]} and consumer {PREPARED['temporal'][:8]}. Tasks2/3 are DONE readiness by captured flow-state, with exact-pair focused passes; task4 broad proof remains in_progress and R6 incomplete.", '',
+        f"There are {len(planned)} planned real framework receiving refs. Their full provisional path mappings, committed/dirty provenance and source recovery objects are in disposition-overlay.json. Actual refs remain UNCREATED/UNVERIFIED;48 isolated custody targets are separately prepared/verified, not imported or accepted. Current source-readiness heads are standalone {PREPARED['umpire'][:8]} and consumer {PREPARED['temporal'][:8]}. Tasks2/3 are DONE readiness by captured flow-state, at historical3f5 focused passes; currentcde harness correction belongs to task4, fresh wholepair pending and prior3f5fullgateFAILEDexit2 retained; task4 broad proof remains in_progress and R6 incomplete.", '',
         'Authoritative historical/current tracker records remain in Temporal, with fn-258.5 owning the migration action. The15 direct task-trailer and2 descriptor associations remain provenance-only. Current status observations use60 actual flowctl show reads, including fn254.17 DONE; JSON definition todo fields are explicitly definition-only. Existing source refs recover committed history.039/075 raw/index custody is separately verified; full candidate preservation/disposition is not inferred.', '',
         '## Receiving-ref creation work', '', '| Planned neutral ref | Original/source candidate | Provisional source paths |', '| --- | --- | ---: |']
     for row in planned:

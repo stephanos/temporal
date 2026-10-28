@@ -1,0 +1,87 @@
+{
+  "matches": [],
+  "unreadable": [
+    {
+      "pid": 10,
+      "role": "cwd"
+    },
+    {
+      "pid": 10,
+      "role": "environ"
+    },
+    {
+      "pid": 10,
+      "role": "fd"
+    },
+    {
+      "pid": 10,
+      "role": "maps"
+    },
+    {
+      "pid": 542,
+      "role": "cwd"
+    },
+    {
+      "pid": 542,
+      "role": "environ"
+    },
+    {
+      "pid": 542,
+      "role": "fd"
+    },
+    {
+      "pid": 542,
+      "role": "maps"
+    },
+    {
+      "pid": 557,
+      "role": "cwd"
+    },
+    {
+      "pid": 557,
+      "role": "environ"
+    },
+    {
+      "pid": 557,
+      "role": "fd"
+    },
+    {
+      "pid": 557,
+      "role": "maps"
+    },
+    {
+      "pid": 4041688,
+      "role": "environ"
+    },
+    {
+      "pid": 4041688,
+      "role": "fd"
+    }
+  ],
+  "exited_or_raced": [
+    {
+      "pid": 4041688,
+      "role": "cwd"
+    },
+    {
+      "pid": 4041819,
+      "role": "cwd"
+    },
+    {
+      "pid": 4041819,
+      "role": "cmdline"
+    },
+    {
+      "pid": 4041819,
+      "role": "environ"
+    },
+    {
+      "pid": 4041819,
+      "role": "fd"
+    },
+    {
+      "pid": 4041819,
+      "role": "maps"
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "observed_utc": "2026-10-28T16:30:34.166623+00:00",
+  "purpose": "Deferred migration cache housekeeping to admit MILESTONESfn254.16; no migration acceptance work.",
+  "authorized_removed_target": "/home/agent/.cache/codex-build/fn258-standalone-0547321",
+  "target_absent": true,
+  "allocated_bytes_before": 6429597696,
+  "allocated_bytes_after": 0,
+  "cargo_clean_tagged_targets": 5,
+  "guarded_remainder_reason": "Orchestration root has no valid Cargo tag; real tagged children cleaned first, then literal-path/uid/type/live-ownership guarded inventoried remainder. No fabricated tag.",
+  "required_named_recovery_after": {
+    "required": {
+      "unique_objects": 158,
+      "archive_members": 7979,
+      "result": "pass"
+    },
+    "named": {
+      "unique_objects": 142,
+      "archive_members": 768,
+      "result": "pass"
+    }
+  },
+  "all322current_required_payload_records_recoverable": true,
+  "protected_source_index_receipts_recovery_hostrelease_cde_roots_unchanged": true,
+  "available_private_bytes": 55598813184,
+  "available_private_gib": 51.78042984008789,
+  "required_floor_bytes": 53687091200,
+  "meets50gib_now": true,
+  "df": "Filesystem        1B-blocks         Used   Available Use% Mounted on\noverlay        210241560576 143888551936 55598813184  73% /\noverlay        210241560576 143888551936 55598813184  73% /\nhost           994662584320 936195817472 58466766848  95% /Users/stephan/Workspace/skunkworks\n",
+  "unreadable_system_fields": [
+    {
+      "pid": 10,
+      "role": "cwd"
+    },
+    {
+      "pid": 10,
+      "role": "environ"
+    },
+    {
+      "pid": 10,
+      "role": "fd"
+    },
+    {
+      "pid": 10,
+      "role": "maps"
+    },
+    {
+      "pid": 542,
+      "role": "cwd"
+    },
+    {
+      "pid": 542,
+      "role": "environ"
+    },
+    {
+      "pid": 542,
+      "role": "fd"
+    },
+    {
+      "pid": 542,
+      "role": "maps"
+    },
+    {
+      "pid": 557,
+      "role": "cwd"
+    },
+    {
+      "pid": 557,
+      "role": "environ"
+    },
+    {
+      "pid": 557,
+      "role": "fd"
+    },
+    {
+      "pid": 557,
+      "role": "maps"
+    }
+  ],
+  "no_other_cache_source_ref_flow_main_or_shared_mutation": true,
+  "no_build_gate_review_or_new_full_target_archive": true,
+  "admission_limit": "Current measured floor only; root must remeasure and admitfn254 workload reservation immediately before build."
+}

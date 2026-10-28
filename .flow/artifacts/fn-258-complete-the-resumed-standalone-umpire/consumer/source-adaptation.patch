@@ -646,7 +646,7 @@ index 989074a0a8..e644f77570 100644
 -cat > "$control/model/umpire/scripts/xtask.sh" <<'BOOTSTRAP'
 +cat > "$control_parent/umpire/scripts/xtask.sh" <<'BOOTSTRAP'
 diff --git a/model/scripts/test-model-wiring.sh b/model/scripts/test-model-wiring.sh
-index 87f3aa1777..f8b8818f74 100644
+index 87f3aa1777..8853cc431b 100644
 --- a/model/scripts/test-model-wiring.sh
 +++ b/model/scripts/test-model-wiring.sh
 @@ -4 +4,3 @@ cd "$(dirname "$0")/../.."
@@ -661,6 +661,9 @@ index 87f3aa1777..f8b8818f74 100644
 -cat > "$control/model/umpire/scripts/xtask.sh" <<'CHILD'
 +printf '#!/bin/bash\nexit 0\n' > "$control/model/scripts/framework-root.sh"
 +cat > "$control/model/scripts/xtask.sh" <<'CHILD'
+@@ -109 +112 @@ for action in fmt update; do
+-    expected=$(printf 'temporal|%s|exec -- cargo run --manifest-path %s/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- test-run|unset|unset' "$control" "$control")
++    expected=$(printf 'temporal|%s|exec -- cargo run --manifest-path %s/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- test-run|%s|%s' "$control" "$control" "${UMPIRE_QUICK_CACHE-unset}" "${UMPIRE_CACHE_DISABLE-unset}")
 @@ -117,0 +121,15 @@ done
 +missing="$control/missing/temporal"
 +mkdir -p "$missing/model/scripts"

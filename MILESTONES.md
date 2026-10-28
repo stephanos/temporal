@@ -4,10 +4,11 @@ The owner's overview of open work, execution order and blockers.
 
 As of 2026-10-28.
 
-The owner resumed work on 2026-10-27: complete repository migration first, then
-continue this backlog. [fn-258](.flow/specs/fn-258-complete-the-resumed-standalone-umpire.md)
-replaces retired fn-257 and retains its completed export evidence. Open Flow tasks
-and unvalidated candidates remain open.
+The owner deferred repository migration on 2026-10-28 and resumed this backlog.
+[fn-258](.flow/specs/fn-258-complete-the-resumed-standalone-umpire.md) remains open
+with its source checkpoints, recovery evidence and unfinished validation preserved.
+Temporal’s in-tree framework remains authoritative. New framework changes require
+renewed migration inventories and proof before a later cutover.
 
 The frozen `c5189bd35d` candidate passed the scheduled source-only standalone
 gate: all 17 stages, with 903 tests discovered, 900 executed and three ignored.
@@ -33,12 +34,11 @@ Umpire uses the Rust workspace described in [model/README.md](model/README.md).
 Its guest runs as stock WASM in a pure Go host.
 The Scala tree under `model/archived/` is frozen reference material.
 
-Repository extraction resumes as **fn-258**, ahead of the backlog below. The current
-framework has 161 changed files since the original export checkpoint; refresh the
-standalone candidate and adapt actual consumers before current-pair proof and cutover.
-Preserve source candidates and recovery evidence in [MIGRATE.md](MIGRATE.md).
-Validation may run. GitHub destination inspection remains blocked by SAML SSO; local
-work proceeds while publication remains unverified.
+Repository migration **fn-258 is deferred by the owner**. Retain its source candidates,
+recovery evidence and explicit interrupted validation state in [MIGRATE.md](MIGRATE.md).
+No receiving refs, publication, CI activation or source cutover have occurred.
+Work proceeds on the in-tree framework; resume migration with a renewed source
+checkpoint after any framework changes. GitHub destination inspection remains SAML-blocked.
 
 Backlog order remains **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
@@ -115,8 +115,8 @@ Destination access remains blocked by SAML/credentials. See [MIGRATE.md](MIGRATE
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-258.4 | 🔄 in progress | Standalone check/time/release and final-pair generation/guest freshness pass; combined paired gates, edited timing and local-edit acceptance running (R3–R5) |
-| fn-258.5 | ⬜ todo | Complete candidate receiving/recovery dispositions, destination access, authorized publication, pinned CI and source cutover; then resume fn-254 (R1, R4, R6) |
+| fn-258.4 | ⏸️ deferred | Owner stopped final-pair validation; standalone proofs and consumer cde control fix retained. Required paired, timing and local-edit acceptance remain incomplete (R3–R5) |
+| fn-258.5 | ⏸️ deferred | Recovery snapshots prepared only; actual receiving refs, destination access, publication, pinned CI and source cutover remain incomplete (R1, R4, R6) |
 
 
 ### fn-254: Fast validation gates and a real inner loop
@@ -150,7 +150,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
 | fn-254.12 | ⬜ todo | Budget parser/retry candidate retained; consume .17 Rust/TLC receipts, add actual Go-host counts, then admit tables against final .15/.16 interfaces. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
 | fn-254.15 | ⬜ todo | Integrated tree has 29 active shell paths; retained source candidate reduces these to two bootstraps/four controls. Adapt ports to .17 supervision and final .16 interfaces, finish native controls and validate (R7) |
-| fn-254.16 | ⛔ blocked | Focused and real provider controls pass on frozen 60f1c762. Full standalone remains unaccepted; after owner resume and ≥50 GiB headroom, renew proof/review/integration. [Retained validation state](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/session-wrap-20261027/resource-hold-draft.json) (R7) |
+| fn-254.16 | ⛔ blocked | Focused and real provider controls pass on frozen 60f1c762. Full standalone remains unaccepted; after ≥50 GiB headroom on the actual child filesystem, renew proof/review/integration. [Retained validation state](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/session-wrap-20261027/resource-hold-draft.json) (R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 

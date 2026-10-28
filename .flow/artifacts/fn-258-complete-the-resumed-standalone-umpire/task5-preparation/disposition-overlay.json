@@ -22,7 +22,7 @@
       "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/source-readiness-closures.json",
       "sha256": "99330c52a93b64db01a18acc3899fea0ffdd2bef243e09b3a458aa406cf0e4d6"
     },
-    "current_focused_pair": {
+    "historical_focused_pair": {
       "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/current-pair-3f5-054/receipt.json",
       "sha256": "1cc2b927dbc188775f7cf59ff264ce706bbe30a4175bdb8e0b082312c50e940d"
     }
@@ -1363,12 +1363,12 @@
       "source_recovery": {
         "required_original_or_observed_object": "c88fdc550694020eb1c6a2e09577813d906c9ffe",
         "original_ref_exists_now": true,
-        "actual_current_ref_head": "d1634eb04e058229bffef1457280d6292804de8e",
+        "actual_current_ref_head": "764fafd7ffa50209585defbced03e09b6113a81d",
         "recovery_refs": [
           {
             "repository": "temporal",
             "ref": "refs/heads/umpire",
-            "observed_target": "d1634eb04e058229bffef1457280d6292804de8e"
+            "observed_target": "764fafd7ffa50209585defbced03e09b6113a81d"
           }
         ],
         "object_verified": true,
@@ -1437,7 +1437,7 @@
       "worktrees_observed_now": [
         {
           "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
-          "HEAD": "d1634eb04e058229bffef1457280d6292804de8e",
+          "HEAD": "764fafd7ffa50209585defbced03e09b6113a81d",
           "branch": "refs/heads/umpire"
         }
       ],
@@ -74187,12 +74187,12 @@
       "source_recovery": {
         "required_original_or_observed_object": "7e655da80b3810807cbd02a3ea29c26ceb9804e4",
         "original_ref_exists_now": true,
-        "actual_current_ref_head": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+        "actual_current_ref_head": "cde1ee67efd266a058193694c2ddb287598b9ea5",
         "recovery_refs": [
           {
             "repository": "temporal",
             "ref": "refs/heads/work/fn2583-consumers",
-            "observed_target": "3f5f613578f2857b738a7792fad08f12b3ea0a41"
+            "observed_target": "cde1ee67efd266a058193694c2ddb287598b9ea5"
           }
         ],
         "object_verified": true,
@@ -74245,7 +74245,7 @@
       "worktrees_observed_now": [
         {
           "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2583-consumers",
-          "HEAD": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+          "HEAD": "cde1ee67efd266a058193694c2ddb287598b9ea5",
           "branch": "refs/heads/work/fn2583-consumers"
         }
       ],
@@ -74559,7 +74559,7 @@
     },
     {
       "repository": "temporal",
-      "head": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+      "head": "cde1ee67efd266a058193694c2ddb287598b9ea5",
       "object_verified": true,
       "actual_refs_containing_head": [
         "refs/heads/work/fn2583-consumers"
@@ -74571,13 +74571,19 @@
     "closure_observations": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/source-readiness-closures.json",
     "closure_observations_sha256": "99330c52a93b64db01a18acc3899fea0ffdd2bef243e09b3a458aa406cf0e4d6",
     "task2_task3": "DONE source-readiness only, authoritative flow-state; not task4/R6 acceptance",
-    "current_focused_pair_receipt": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/current-pair-3f5-054/receipt.json",
-    "current_focused_pair_receipt_sha256": "1cc2b927dbc188775f7cf59ff264ce706bbe30a4175bdb8e0b082312c50e940d",
+    "historical_focused_pair_receipt": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/current-pair-3f5-054/receipt.json",
+    "historical_focused_pair_receipt_sha256": "1cc2b927dbc188775f7cf59ff264ce706bbe30a4175bdb8e0b082312c50e940d",
     "pair": {
       "umpire": "05473210b48c3db862f22051eb7154ce98258f98",
-      "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41"
+      "temporal": "cde1ee67efd266a058193694c2ddb287598b9ea5"
     },
-    "focused_status": "PASS",
+    "focused_status": "HISTORICAL 3f5 PASS only; currentcde fresh wholepair PENDING",
+    "historical_focused_pair": {
+      "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+      "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+    },
+    "current_source_owner": "fn-258-complete-the-resumed-standalone-umpire.4",
+    "prior_full_paired_default": "3f5/054 FAILED exit2; retained validation/final-pair-3f5-054/failed-default-3f5",
     "task4": "in_progress; broad pair/current-input freshness proof active, not complete",
     "real_receiving_refs": "48 UNCREATED/UNVERIFIED; isolated snapshot objects exist separately"
   },

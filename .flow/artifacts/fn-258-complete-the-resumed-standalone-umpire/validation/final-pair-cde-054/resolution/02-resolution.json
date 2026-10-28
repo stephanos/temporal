@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "mise",
+    "exec",
+    "--",
+    "go",
+    "env",
+    "GOWORK"
+  ],
+  "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal",
+  "started_unix": 1793203206.150983,
+  "ended_unix": 1793203206.1644518,
+  "exit": 0,
+  "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/execution-evidence/resolution-1793203205857623601/02-resolution.log",
+  "log_sha256": "8a1d0e3b6e913a411ec635aa376ce903a76773e1d3b487a1c7935d2131e01be0",
+  "free_before": 55386730496,
+  "free_after": 55386726400
+}

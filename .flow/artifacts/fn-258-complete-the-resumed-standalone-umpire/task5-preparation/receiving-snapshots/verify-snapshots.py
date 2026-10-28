@@ -158,6 +158,17 @@ def main():
  refuses('wrong-blob','exact blob identity',lambda:changed_record('blob','0'*40))
  refuses('duplicate-destination','collision rejection',lambda:c.normalize(sample['records']+[dict(sample['records'][0],source_path='different/source.rs')]))
  refuses('system-import','no system dependencies',lambda:c.safe('Cargo.toml',b'[package]\nname = "temporal-xtask"\n'))
+ for name,path,data in [
+  ('Go-canonical-SDK','probe.go',b'package probe\nimport "go.temporal.io/sdk/client"\n'),
+  ('Go-canonical-API','probe.go',b'package probe\nimport (\n api "go.temporal.io/api/workflow/v1"\n)\n'),
+  ('Go-module-API','go.mod',b'module probe\nrequire go.temporal.io/api v1.0.0\n'),
+  ('Rust-API-import','probe.rs',b'use temporal_api::workflow::Workflow;\n'),
+  ('Rust-API-qualified','probe.rs',b'fn f() { temporal_api::run(); }\n'),
+  ('Rust-API-dependency','Cargo.toml',b'[dependencies]\ntemporal-api = "1"\n'),
+  ('Rust-renamed-API-dependency','Cargo.toml',b'[dependencies]\nother = { package = "umpire-temporal-api", version = "1" }\n')]:
+  refuses(name,'actual system dependency form',lambda path=path,data=data:c.safe(path,data))
+ c.safe('fixture.rs',b'const BAD: &str = r#"use temporal_api::Workflow;\nuse umpire_temporal::X;"#;\n')
+ c.safe('fixture.go',b'package fixture\nconst bad = `import "go.temporal.io/api/workflow/v1"`\n')
  refuses('Scala-file','no Scala bytes',lambda:c.safe('legacy/Source.scala',b'object X'))
  for name,mutate in [('exception-OID-drift',lambda p:p['candidate049_source_only_exception'].update(source_commit='0'*40)),('exception-blob-drift',lambda p:p['candidate049_source_only_exception']['source_files']['model/dev/xtask/Cargo.toml'].update(blob='0'*40)),('exception-extra-prefix-file',lambda p:p['candidate049_source_only_exception']['source_files'].update({'model/dev/xtask/extra.rs':{'mode':'100644','blob':'0'*40}}))]:
   def action(mutate=mutate):p=copy.deepcopy(policy);mutate(p);c.policy_valid(p)
@@ -175,7 +186,45 @@ def main():
  false_author=sample_raw.replace(policy['custody_commit_identity']['name'].encode(),b'Original Human',1)
  refuses('original-author-spoof','new agent authorship only',lambda:custody_metadata(false_author,[]))
  assert all(item['passed']for item in controls)
- bundle=Path(report['prepared_bundle']['path']);assert c.sha(bundle.read_bytes())==report['prepared_bundle']['sha256']
+ bundle=Path(report['prepared_bundle']['path']);committed_bundle=c.HERE/'prepared-snapshots.bundle'
+ def check_bundle(data):
+  assert len(data)==report['prepared_bundle']['size']and c.sha(data)==report['prepared_bundle']['sha256']
+ check_bundle(bundle.read_bytes());check_bundle(committed_bundle.read_bytes())
+ refuses('committed-bundle-corrupt','exact committed bundle hash and size',lambda:check_bundle(committed_bundle.read_bytes()[:-1]))
+ bundle_heads=dict(line.split()for line in c.git(c.STANDALONE,'bundle','list-heads',str(committed_bundle)).decode().splitlines())
+ assert set(bundle_heads)==set(heads)
+ # Reachability, not mere object-database existence, from the actual bundle heads.
+ bundle_reachable=set(c.git(Path(report['independent_recovery']),'rev-list','--objects','--no-object-names',*bundle_heads).decode().splitlines())
+ canonical='05473210b48c3db862f22051eb7154ce98258f98'
+ canonical_reachable=set(c.git(c.STANDALONE,'rev-list','--objects','--no-object-names',canonical).decode().splitlines())
+ support=c.read(c.HERE/'candidate-049-ownership-disposition.json')['source_only_provenance_support_records']
+ support_root,_,_=raw.commit_parts(source.object(c.EXCEPTION_HEAD,'commit'))
+ qualified_support=[]
+ for qualification in history['support_provenance_allowlist']:
+  if not qualification['destination'].startswith('.history-support/'):continue
+  entry=source.lookup(support_root,qualification['path'].encode())
+  if entry is not None:qualified_support.append((qualification['path'],entry[0],entry[1]))
+ assert len(support)==len(qualified_support)==28
+ assert {(row['source_path'],row['mode'],row['blob'])for row in support}==set(qualified_support)
+
+ support_facts=[dict(row,computed_reachable_from_canonical054=row['blob']in canonical_reachable)for row in support]
+ beforeimages=[dict(candidate=row['candidate'],kind=kind,**record)for row in candidates for kind in ['net_projected_deletions','mapped_source_deletion_beforeimages']for record in row[kind]]
+ gaps=[dict(row,bundle_reachable=False,recovery_location=row['blob_object'],original_source_repository=str(c.TEMPORAL))for row in beforeimages if row['blob']not in bundle_reachable]
+ for gap in gaps:payload_for(gap)
+ support_gaps=[row for row in support_facts if not row['computed_reachable_from_canonical054']]
+ for gap in support_gaps:assert original_blob(gap['blob'])
+ # All planned changed paths are accounted by the complete proposed target projection
+ # or an explicit mapped source-deletion beforeimage, independent of dirty variants.
+ present=0;deleted=0
+ for row in candidates:
+  p=plans[row['proposed_receiver_ref']];paths={r['source_path']for r in variants[row['target_variant']]['records']};deletions={r['source_path']for r in row['mapped_source_deletion_beforeimages']}
+  for mapping in p['provisional_path_mappings']:
+   path=mapping['source_path'];assert (path in paths)!=(path in deletions)
+   present+=path in paths;deleted+=path in deletions
+ assert present+deleted==sum(len(p['provisional_path_mappings'])for p in plans.values())
+ c.write(c.HERE/'computed-recovery-coverage.json',{'canonical_head':canonical,'canonical_support_records':support_facts,'canonical_support_reachable':len(support)-len(support_gaps),'canonical_support_gaps':support_gaps,'actual_bundle_sha256':c.sha(committed_bundle.read_bytes()),'bundle_heads':bundle_heads,'beforeimage_occurrences':len(beforeimages),'beforeimage_unique_blobs':len({r['blob']for r in beforeimages}),'beforeimage_blobs_not_bundle_reachable':gaps,'planned_occurrences':present+deleted,'receiver_present':present,'mapped_deletion_beforeimages':deleted,'unaccounted':0})
+ assert all(item['passed']for item in controls)
+
  after=c.canonical_state();assert after==baseline
  assert {s['candidate']:before_dirty.fingerprint(Path(s['root']))for s in custody['snapshots']}==dirty_fp
  for ref,oid in report['source_refs_before'].items():assert c.git(c.TEMPORAL,'rev-parse',ref).decode().strip()==oid
@@ -195,7 +244,7 @@ def main():
   'verified_targets':48,'new_agent_custody_commits':50,'full_variant_file_records_verified':total_files,
   'net_projected_deletion_beforeimages':net_deletion_count,'mapped_source_deletion_beforeimages':mapped_deletion_count,
   'exact_candidate049_source_only_paths':4,'qualified_dirty_variants':2,'exception_and_selection_controls':controls,
-  'bundle_recovery_exact_graph':True,'no_original_authorship_or_parent_claim':True,
+  'computed_recovery_coverage_sha256':c.sha((c.HERE/'computed-recovery-coverage.json').read_bytes()),'committed_bundle_verified':{'path':str(committed_bundle),'sha256':c.sha(committed_bundle.read_bytes()),'size':committed_bundle.stat().st_size},'bundle_recovery_exact_graph':True,'no_original_authorship_or_parent_claim':True,
   'transaction_test':'Applied once only to isolated transaction-test.git; repeated create-only transaction refused; never run against real standalone.',
   'transaction_sha256':c.sha(transaction.encode()),'canonical_standalone_unchanged':True,'source_refs_and_dirty_custody_unchanged':True,
   'real_receiving_refs_created':0,'actual_transfer_or_activation':False,'task4_or_feature_acceptance':False}

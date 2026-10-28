@@ -6,7 +6,7 @@ Result: **PASS, preparation only**. There are 48 verified proposed receiving tar
 
 - [Target summary](target-summary.json): exact48 source refs/OIDs, target OIDs, selected variant and file counts.
 - [Complete manifests](prepared-targets.json): full per-path source/destination, modes, Git blobs, byte SHA-256/sizes and CAS paths; explicit deletion beforeimages and after-absence.
-- [Independent verification](verification.json): raw Git-tree projection, complete object/byte comparisons, graph/author/parent checks,16 refusal controls and source/canonical preservation.
+- [Independent verification](verification.json): raw Git-tree projection, complete object/byte comparisons, graph/author/parent checks,24 refusal controls and source/canonical preservation.
 - [Proposed create-only transaction](proposed-create-only-transaction.txt): never executed against real standalone. [Replay control](transaction-replay-refusal.json) proves collision refusal without ref changes in the isolated test store.
 - [049 ownership correction](candidate-049-ownership-disposition.json) and [full source evidence](candidate-049-consumer-prefix.json).
 
@@ -28,11 +28,13 @@ Prepared bundle: `/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-rec
 
 SHA-256: `efb9a7007b502c7d83f4b458fd5baa3e017ba1b10d9ca261a97557a8bf4d72cd`; size 1,756,635 bytes.
 
-The bundle contains48 neutral `refs/prepared/fn258/candidate-NNN` refs. An independent empty bare repository unbundled it and verified every tree/blob/commit. The only executed48-line proposed receiving transaction was in a separate isolated test bare repository; replay fails because the refs already exist. All real `refs/recovery/fn258/candidate-NNN` names remain absent. Root admission and task4 acceptance precede any real import/ref transaction.
+The bundle contains48 neutral `refs/prepared/fn258/candidate-NNN` refs. An independent empty bare repository unbundled it and verified every tree/blob/commit. The only executed 48-ref, 51-line proposed receiving transaction (including start, prepare and commit) was in a separate isolated test bare repository; replay fails because the refs already exist. All real `refs/recovery/fn258/candidate-NNN` names remain absent. Root admission and task4 acceptance precede any real import/ref transaction.
 
-All current beforeimage payload blobs also occur in the bundle through another complete target snapshot. Keep the full manifests for beforeimage path/mode/absence semantics, the original source refs/bundles for authored history, and prior dirty/index custody archives. [Recovery primitives](recovery-primitives.json) identifies stores and required data; shared build caches were not touched.
+The verifier computes canonical054 reachable-object membership for all28 qualified support records and actual bundle-head reachable-object membership for every deletion beforeimage in [computed recovery coverage](computed-recovery-coverage.json). It reports any missing reachability with the retained exact source ref or CAS payload location. All current beforeimage payload blobs also occur in the bundle through another complete target snapshot. Keep the full manifests for beforeimage path/mode/absence semantics, the original source refs/bundles for authored history, and prior dirty/index custody archives. [Recovery primitives](recovery-primitives.json) identifies stores and required data; shared build caches were not touched.
 
 ## Reproduction and historical inputs
+
+**Host-only rerun prerequisites:** this verifier intentionally requires this original umbrella checkout at `/Users/stephan/Workspace/skunkworks/umpire`, its live Temporal source repository and original custody worktrees, unchanged canonical standalone054, and the external `.recovery/fn258-receiving-snapshots` object/CAS/recovery stores plus `.recovery/fn258-task5-custody`. Absolute original source locators and raw worktree fingerprints are evidence inputs. The committed bundle copy is hash/size-bound for reviewer access; this does not make the whole verifier relocatable. Preserve these source/recovery stores and live worktrees until separately admitted cleanup. No relocation or source reconstruction is implied.
 
 From the Temporal repository root:
 
@@ -40,6 +42,6 @@ From the Temporal repository root:
 python3 -B .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-snapshots/verify-snapshots.py
 ```
 
-The verifier is rerunnable, performs no real standalone writes, checks16 in-memory refusal controls and confirms the isolated create-only transaction refuses replay. The builder requires a new isolated store and refuses to overwrite prepared targets. All Python calls use `-B`; no generated `__pycache__` outputs exist in this lane.
+The verifier is rerunnable, performs no real standalone writes, checks24 refusal controls and confirms the isolated create-only transaction refuses replay. The builder requires a new isolated store and refuses to overwrite prepared targets. All Python calls use `-B`; no generated `__pycache__` outputs exist in this lane.
 
 Historical overlay, receiving-plan and custody manifest input bytes are frozen locally as `*.input.json`, with actual frozen-file path/hash locators and separately recorded historical_original_path provenance. Input-schema locator correction changed only evidence metadata; all50 tree/commit OIDs remain unchanged, as recorded in input-provenance-correction.json. Later current-only365→3f5 overlay/consumer observations do not silently rebind these48 original candidate identities or invalidate their historical inputs. Immutable R1, original plans and global projector were not modified. Current task4/pair validation and overall R6 remain separate open requirements.

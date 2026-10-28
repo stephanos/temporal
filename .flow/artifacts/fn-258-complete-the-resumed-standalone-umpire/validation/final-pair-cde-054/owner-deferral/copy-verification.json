@@ -1,0 +1,6 @@
+{
+  "result": "pass",
+  "copied_records": 390,
+  "classification": "OWNER_INTERRUPTED_MIGRATION_DEFERRED",
+  "scope": "Copied-byte identity only, no migration acceptance verdict or gate rerun."
+}

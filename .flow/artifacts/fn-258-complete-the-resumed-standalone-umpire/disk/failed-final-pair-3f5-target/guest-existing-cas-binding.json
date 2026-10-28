@@ -1,0 +1,21 @@
+{
+  "original_manifest": "consumer/guest-recovery-manifest.json",
+  "matching_records": [
+    {
+      "source": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm",
+      "destination": "proof/migrated-first.wasm",
+      "size": 3988382,
+      "sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/tmp/fn258-guest-repro/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm",
+      "destination": "proof/migrated-repro.wasm",
+      "size": 3988382,
+      "sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects/d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d"
+    }
+  ],
+  "verified_existing_object": true,
+  "meaning": "New3f5Makefile five-command guest proof pins same d171 payload; old identity inputs are not substituted for renewed current identity receipts."
+}

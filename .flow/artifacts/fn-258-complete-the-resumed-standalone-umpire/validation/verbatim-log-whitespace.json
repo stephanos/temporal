@@ -2,6 +2,34 @@
   "scope": "Exact raw command/authority logs retained byte-for-byte. Only enumerated raw logs excluded from staged whitespace-style check; all other staged content checked.",
   "files": [
     {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/bundle-recovery-cde1ee6.log",
+      "sha256": "70ed52acb7dd0d6047b128b1521448cd36d208e5a83ca1b80b5b83b8f8fec72c"
+    },
+    {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/final-pair-3f5-054/failed-default-3f5/execution/00-paired-default-check.log",
+      "sha256": "77a57d0b95e8b6fe0b7ec141f061da2cd31c0f671420aacca9d474da668eafd7"
+    },
+    {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/final-pair-3f5-054/failed-default-3f5/native-authority/stderr.log",
+      "sha256": "5fd5c07567ff6911cf92911af5d7decc96c3200f5b0d3dae6702e2ec06c4fc55"
+    },
+    {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/final-pair-3f5-054/failed-default-3f5/native-authority/stdout.log",
+      "sha256": "350a76c58ae694d0f22477e2b763143ac4c9365851f46f08bef114577bd39876"
+    },
+    {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/final-pair-cde-054/owner-deferral/execution/00-paired-default-check.log",
+      "sha256": "be5abe283d1405da5409ebaf1bc1da54dff560a803d8741e2a35765a9eb941df"
+    },
+    {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/final-pair-cde-054/owner-deferral/partial-native-authority/gate-4053166-1793203552188507975/stderr.log",
+      "sha256": "379e0cadada3632a11529c2645f6d6f8efb36766ab72c9863a78640ddd0a62d2"
+    },
+    {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/final-pair-cde-054/owner-deferral/partial-native-authority/gate-4053166-1793203552188507975/stdout.log",
+      "sha256": "e2e364588e16d957bcd7bf71b615784a7a1a8179d42709b329ca96d949696f1e"
+    },
+    {
       "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/make-check.log",
       "sha256": "826ba85dc219b58d47685d6c94e055c464c7085bdad43021637f6f161f33d648"
     },

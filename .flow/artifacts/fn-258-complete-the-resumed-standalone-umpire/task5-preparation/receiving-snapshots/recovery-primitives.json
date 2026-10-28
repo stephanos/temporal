@@ -12,5 +12,7 @@
   ],
   "beforeimage_blobs_not_in_target_bundle": [],
   "qualification": "All current deletion-beforeimage blobs are reachable in the prepared bundle through at least one complete target snapshot. Retain the full manifests for original source/path/mode and after-absence semantics. Original authored history remains under retained Temporal refs/source bundles; the new bundle contains only50 new custody commits.",
-  "real_receiving_refs_created": 0
+  "real_receiving_refs_created": 0,
+  "computed_recovery_coverage": "computed-recovery-coverage.json",
+  "committed_bundle_copy": "prepared-snapshots.bundle"
 }

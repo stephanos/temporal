@@ -1,8 +1,8 @@
 {
-  "status": "CURRENT source readiness only; task4 active; R6 incomplete",
-  "observed_utc": "2026-10-28T15:13:43.464340+00:00",
+  "status": "CURRENT source cde/054 observation; historical3f5 focused readiness; task4 active; R6 incomplete",
+  "observed_utc": "2026-10-28T15:51:25.752639+00:00",
   "current_pair": {
-    "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "temporal": "cde1ee67efd266a058193694c2ddb287598b9ea5",
     "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
   },
   "consumer_worktree_clean_now": true,
@@ -13,7 +13,7 @@
     "source": "flowctl show --json; status_source flow-state",
     "task1": "done",
     "task2": "done source-readiness",
-    "task3": "done source-readiness",
+    "task3": "done source-readiness at historical3f5; currentcde harness correction owned by fn258.4",
     "task4": "in_progress broad pair/current-input freshness proof",
     "persistent_committed_summaries": [
       {
@@ -179,12 +179,17 @@
     ],
     "definition_statuses": "Definition-only, not authoritative lifecycle. Current overlay uses captured flowctl statuses; e.g fn254.17 is done."
   },
-  "focused_current_pair": {
+  "historical_focused_pair": {
     "receipt": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/current-pair-3f5-054/receipt.json",
     "sha256": "1cc2b927dbc188775f7cf59ff264ce706bbe30a4175bdb8e0b082312c50e940d",
     "status": "PASS",
     "unit_tests": 16,
     "integration_tests": 7,
+    "pair": {
+      "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+      "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+    },
+    "historical_only": true,
     "checks": [
       {
         "name": "workspace-compilation",
@@ -215,12 +220,19 @@
     },
     "scope": "Focused all-target/all-feature compilation,16unit+7integration,Makeguard and parent-Go-workspace observations only. No broad task4/guest-freshness/activation claim."
   },
+  "current_source_qualification": {
+    "owner": "fn-258-complete-the-resumed-standalone-umpire.4",
+    "scope": "cde integration-harness correction only; task3 remains historically closed at3f5",
+    "new_focused_Go_workspace_or_wholegate_claim": false,
+    "new_fresh_pair_emptytarget_proof": "PENDING",
+    "prior_full_paired_default": "3f5/054 FAILED exit2; preserved under validation/final-pair-3f5-054/failed-default-3f5"
+  },
   "receiving_state": {
     "actual_real_refs": "48 UNCREATED/UNVERIFIED",
     "isolated_snapshot_targets": 48,
     "new_custody_commits": 50,
     "proof": "receiving-snapshots/verification.json",
-    "proof_sha256": "b49dc520875a0ec4443b71d24912e504a74fea7bc56ce90e63b19140744dd335",
+    "proof_sha256": "89845045fc8bd54f13bb1cf7ce2a42ba465a5e1bec4e34c23d44b90d374daeff",
     "source_only_ownership_correction": "Exact four files in049; source retained, original maps unchanged",
     "real_transfers": 0,
     "R6_complete": false
@@ -237,7 +249,7 @@
     "historical_readiness": "historical-preparation-3658582/receiving-readiness.json",
     "historical_sha256": "4580ea3992694df3ee572093c7dcb63c72820baa6480fdf2323edbed80ad0170",
     "previous_statement": "consumer365 worktree had7 pending tracked missing-sibling/docs/wiring edits",
-    "current_observation": "superseded by committed3f5f613 and current clean worktree; historical bytes retained exactly, not relabeled"
+    "current_observation": "superseded first by committed3f5f613, now cde1ee67 with ownHEAD/ref/clean checked; historical bytes retained; historical bytes retained exactly, not relabeled"
   },
   "historical_snapshot_inputs": "receiving-snapshots/*.input.json remain exact old overlay/plan/custody inputs; prepared50 commit/tree OIDs unchanged by current-only refresh",
   "open_boundaries": [

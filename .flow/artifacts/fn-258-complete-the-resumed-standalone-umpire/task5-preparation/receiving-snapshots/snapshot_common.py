@@ -97,9 +97,39 @@ def safe(path,data=None):
  parts=path.split('/')
  if not path or path.startswith('/')or any(p in {'','.','..','.git','.flow','.plans','archived'}for p in parts):raise ValueError('unsafe-or-tracker-path')
  if 'temporal'in path.lower()or path.endswith(('.scala','.sc','.class','.jar')):raise ValueError('system-or-Scala-path')
- if data is not None and (path.endswith(('Cargo.toml','.rs','.go','go.mod'))):
-  text=data.decode(errors='replace')
-  if re.search(r'(?m)^\s*(?:name\s*=\s*"temporal[-_]|use\s+umpire_temporal\b|umpire[-_]temporal(?:[-_][\w-]+)?\s*=|"github\.com/temporalio/temporal(?:/|"))',text):raise ValueError('system-import')
+ if data is None:return
+ text=data.decode(errors='replace')
+ if path.endswith('Cargo.toml'):
+  import tomllib
+  manifest=tomllib.loads(text)
+  def visit(value):
+   if isinstance(value,dict):
+    for key,item in value.items():
+     if re.match(r'^(?:umpire[-_]temporal|temporal(?:[-_]|$))',key):raise ValueError('system-import')
+     if key in {'name','package'}and isinstance(item,str)and re.match(r'^(?:umpire[-_]temporal|temporal(?:[-_]|$))',item):raise ValueError('system-import')
+     visit(item)
+   elif isinstance(value,list):
+    for item in value:visit(item)
+  visit(manifest)
+ elif path.endswith('.rs'):
+  # Erase comments and literals, including multiline raw fixture strings, before
+  # recognizing executable Rust paths. Negative fixtures remain exact bytes.
+  token=r'(?s)/\*.*?\*/|//[^\n]*|(?:b?r)(?P<hash>\#*)".*?"(?P=hash)|b?"(?:\\.|[^"\\])*"'
+  code=re.sub(token,lambda m:'\n'*m.group().count('\n')+' ',text)
+  if re.search(r'\b(?:umpire_temporal\w*|temporal_api|temporal_sdk\w*|temporal_client|TemporalAPI)\s*::|\b(?:use|extern\s+crate)\s+(?:umpire_temporal\w*|temporal(?:_\w+)?)\b',code):raise ValueError('system-import')
+ elif path.endswith('.go') or path.endswith('go.mod'):
+  # Actual Go import statements/blocks and module requirements only. A fixture
+  # string containing an import probe is not an import statement.
+  code=re.sub(r'(?s)/\*.*?\*/|//[^\n]*|`[^`]*`',lambda m:'\n'*m.group().count('\n')+' ',text)
+  forbidden=r'(?:go\.temporal\.io/|github\.com/temporalio/temporal(?:/|$)|temporal/api(?:/|$))'
+  if path.endswith('go.mod'):
+   probes=re.findall(r'(?m)^\s*(?:(?:module|require|replace)\s+)?([^\s()]+)',code)
+  else:
+   probes=[]
+   for match in re.finditer(r'(?ms)^\s*import\s+(?:\((.*?)\)|((?:[\w.]+\s+)?"[^"\n]+"))',code):
+    probes.extend(re.findall(r'"([^"\n]+)"',match.group(1)or match.group(2)))
+  if any(re.match(forbidden,probe)for probe in probes):raise ValueError('system-import')
+
 
 
 def normalize(rows):

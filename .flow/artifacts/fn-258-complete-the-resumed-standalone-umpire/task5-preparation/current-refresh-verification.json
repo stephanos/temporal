@@ -2,34 +2,870 @@
   "result": "pass",
   "historical_files_exact": 8,
   "overlay_controls": 15,
-  "snapshot_controls": 16,
+  "snapshot_controls": 24,
   "prepared_targets": 48,
   "unchanged_new_custody_commit_tree_pairs": 50,
   "real_receiving_refs": 0,
   "R6_complete": false,
   "task4": "in_progress; broad proof not claimed",
   "current_pair": {
-    "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "temporal": "cde1ee67efd266a058193694c2ddb287598b9ea5",
     "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
   },
   "frozen_input_locators_and_hashes_verified": true,
   "old_prepared_manifest_reconstructed_exactly": true,
   "current_definition_status_differences": 22,
   "current_tracker_observations": 60,
+  "duplicate_tracker_task_control_refused": true,
+  "current_frozen_identity_and_mappings_exact": true,
+  "changed_mapping_control_detected": true,
+  "observational_source_recovery_equal": true,
+  "administrative_prerequisite_supersession": [
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2103-fixtures",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2103-oracle",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2114-deferred",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2386-interpreted-switch",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2462-once-entity-lens",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2469-prefix",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2533-once-countdown-library",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn254-receipt-counts",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn254-source-assembly",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25410-controls",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25410-fix-boundary",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25410-fix-runner",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25410-native",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25411-standalone",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25412-budget-prep",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25412-budget-wiring",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25413-driver",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25413-paths",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25413-scripts",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25414-probes",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25415-native-controls-v2",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25415-prep-proto",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25415-prep-scripts",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25415-shell-finish",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25416-prep-tools",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25416-provider-adapt",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25417-mise-adapter-v2",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25417-prep-controls",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25417-prep-gate",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25417-prep-mise",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn25417-prep-nextest",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2543-nextest",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2544-author",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2544-backends",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2544-catalogs",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2544-runtime",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2545-prep-compiler",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2545-prep-fixtures",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2545-prep-parser",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2546-quick",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2552-once-differential",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2553-prep-fuzz",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2553-stable-harness",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2554-prep-mutants",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2555-once-miri",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2556-coverage",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2556-coverage-fixes",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    },
+    {
+      "candidate_id": "temporal:refs/heads/work/fn2562-once-retirement",
+      "frozen": [
+        "review inherited assemblies and exact hunks",
+        "verify dirty/untracked/unique ignored recovery",
+        "construct isolated framework-only receiving tree/history",
+        "independently verify bytes/modes and source/destination accounting",
+        "review target commit and then create neutral recovery ref; no main activation"
+      ],
+      "current": [
+        "root review of prepared target/provenance and retained-source dispositions",
+        "confirm linked dirty/index custody and any remaining historical uncertainty",
+        "task4 acceptance and explicit real-import/ref admission",
+        "import only verified prepared bundle when admitted",
+        "create-only exact48-ref transaction when admitted; no main activation"
+      ]
+    }
+  ],
+  "committed_bundle_sha256": "efb9a7007b502c7d83f4b458fd5baa3e017ba1b10d9ca261a97557a8bf4d72cd",
+  "committed_bundle_size": 1756635,
+  "same_size_bundle_corruption_control_refused": true,
   "dated_supersession": {
     "previous_observed_utc": "2026-10-28T07:29:33.648163+00:00",
     "historical_readiness": "historical-preparation-3658582/receiving-readiness.json",
     "historical_sha256": "4580ea3992694df3ee572093c7dcb63c72820baa6480fdf2323edbed80ad0170",
     "previous_statement": "consumer365 worktree had7 pending tracked missing-sibling/docs/wiring edits",
-    "current_observation": "superseded by committed3f5f613 and current clean worktree; historical bytes retained exactly, not relabeled"
+    "current_observation": "superseded first by committed3f5f613, now cde1ee67 with ownHEAD/ref/clean checked; historical bytes retained; historical bytes retained exactly, not relabeled"
   },
-  "script_sha256": "d84773abed2edb6bff15a115ceb131e28a7b0f45681c395d900c76ef36c98def",
+  "current_source_ownHEAD_branch_and_clean_verified": true,
+  "historical_focused_pair": {
+    "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "current_source_owner": "fn-258-complete-the-resumed-standalone-umpire.4",
+  "current_fresh_pair_empty_target_proof": "PENDING",
+  "only_consumer_changed_path": "model/scripts/test-model-wiring.sh",
+  "consumer_delta_sha256": "01711557fe26aaac6f20d5d3450729f5d9e4f74ef20cdf15abf654b0dcc7038f",
+  "prior_failed_fullgate_receipt_sha256": "4a126f8a3f0f8da93082a134118e0a7d760ea3cfe6e5b71e66b149b20b25e727",
+  "prior_fullgate_exit": 2,
+  "script_sha256": "6b8e6ea9c143a8807ab559da9d3b15fcf9991216f2daa1eb37d038ee00bcbe9c",
   "bindings": {
-    "disposition-overlay.json": "702d81065018a85de0956d3989cb7393244c3dc41c19074b99ba6f81def2a85b",
-    "disposition-overlay-verification.json": "e5e1d8e8ad7ca8cf6f0cfc3d0c04666205dd7fda5b557cd631bcc495805d5d98",
-    "receiving-readiness.json": "8d8905f21ae99b002ad64dd29287d73645e9ba406f7583b3d7d75e908b91a91f",
+    "disposition-overlay.json": "31a4879da6f5c1a138a7dd6040f8ef0546a11c28587d9651e62f34e695be72c8",
+    "disposition-overlay-verification.json": "b57b9d6a3040955541b3825540bf62505bc43252ed81620249ec429a5c50fa41",
+    "receiving-readiness.json": "123e273d3a650919a0cca763f1816f80f09e49e49ee4674748b1ea4ea5358537",
     "receiving-snapshots/prepared-targets.json": "a39de496637de89cb759a2c2d527605eec61a8ac402186ee44f8b649319884ef",
-    "receiving-snapshots/verification.json": "b49dc520875a0ec4443b71d24912e504a74fea7bc56ce90e63b19140744dd335",
+    "receiving-snapshots/verification.json": "89845045fc8bd54f13bb1cf7ce2a42ba465a5e1bec4e34c23d44b90d374daeff",
     "receiving-snapshots/proposed-create-only-transaction.txt": "e1eca8201f668b52e10c863dfed14e6b12c12de75e112b1d60c76b7facafb488"
   }
 }
