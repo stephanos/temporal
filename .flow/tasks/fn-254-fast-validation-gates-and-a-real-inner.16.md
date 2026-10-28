@@ -34,9 +34,24 @@ The isolated follow-up successfully installed the actual official Apalache relea
 Run after priority .17. Preserve its single stage graph, public entry points and nextest/resource contract while replacing provisioning internals. Download cleanup must not delay .5/.17's validation speedups or recreate orchestration in the tool provider.
 
 ## Done summary
-TBD
+Provider source checkpoint: `60f1c762a618d32478b58ae4e79c151f4355aeb3`, reviewed against `f0a82c7a969ec6fd1717a73f98536d3b9c6fe8ee` (three-lens formal review finalized SHIP).
 
+Framework-owned isolated mise HTTP declarations and exact-version lockfiles replace custom TLC download and Apalache download/extraction. TLC remains required, Apalache explicitly optional, and execution cannot auto-install. Runtime regular-file, containment/no-symlink and separate JAR-hash admission remain. Mise owns archive extraction/coordination and its best-effort leftovers; native bounded capture cleanup and existing .17 process custody remain. Canonical provider roots that are non-UTF8 or cannot be represented as one path-list entry now fail explicitly before mise/data/capture side effects; guest-driver raw OS-path contracts remain.
+
+Fresh exact-source Linux standalone proof passed all17child stages in978.949s, with909nextest inventory entries:907executed and2ignored. Four doctests passed and one was ignored, yielding914discovered/911executed/3ignored/0skipped. Parent/child receipt hashes, exclusive authority and absence of parent double charging were checked. Before/after source snapshots match; all observed owned processes are absent. Four external-watchdog controls passed, both actual filesystems were initially admitted at>=50GiB and remained above the unchanged30GiB floor; retained harness/growth guard bytes did not change.
+
+Current proof and curated complete logs: `.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task16/validation-60f1c762/`. Historical focused controls remain labeled:267/267 repaired framework controls,16/16 system caller controls and5/5 changed-root/path-list controls (plus32/32 provider renewal). The19checked material identities justify reuse of real TLC and actual Apalache clean installs/execution at their recorded D4 source;76receipts/148stdout-stderr hashes and downloaded/installed assets were independently verified. Current full proof revalidates the final-source required-TLC standalone path. No old pass is relabeled current.
+
+No broad final combined gates or task8timing acceptance is claimed. Darwin runtime remains owner-deferred. Tasks15/12/8 remain open. Migration remains owner-deferred and in-tree framework authority remains.
+
+Tier: implementer - gpt-6.1-sol (explicit invocation) at medium effort (requested); actual host model not reported. Formal CLI reviewer: configured claude:claude-fable-5-1:high, different family from Codex writer.
+
+Formal review `d56cefa991c84615bd07f20be7556d9b`: correctness/contracts/integration all SHIP. Raw findings and coordinator format repair are retained under task16/review-60f1c762. Runtime artifact reads were denied in the reviewer sandbox; the conductor independently verified the accepted proof, historical reuse identities and recovery. Nonblocking extra bootstrap belongs to the existing task15 wrapper retirement and task8 cost measurement. Other nonblocking suggestions concern future pin-drift guards, diagnostics, documentation and simplification; no current release inconsistency or failing task acceptance remains.
+
+Proof binaries are independently recoverable from `.recovery/fn25416-provider-proof`: one 338,000,596-byte CAS object, 3,548 exact members including all 69 test binaries. Targets remain intact until post-integration cleanup.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 98e586323f5058350139a14ab4f50e677ce9f89c, cf3fc2d7905f0ce7d1edf7d994056b5a343e24d6, f2e0f4276139b8f7c93a16f8b74a268ec8e64435, b8ae8a23617911a7e20af3bf2f5dbc6c43d54c3b, d89b10d52da97b10924306cb25860b19aef733ff, d4a79702ce170f35698fe736fb72792f55c2d3af, 3b9f41e8dd4da9bf54743240a2f67ba7ed4c2e84, 3368481d75b40dd49aea5a5dc7b54467e3779052, 60f1c762a618d32478b58ae4e79c151f4355aeb3
+- Tests: env -u BASH_ENV PYTHONDONTWRITEBYTECODE=1 python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-resume-20261028-watchdog-01/watchdog.py, PYTHONDONTWRITEBYTECODE=1 python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-resume-20261028-watchdog-01/test_watchdog.py
 - PRs:
