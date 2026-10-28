@@ -747,7 +747,7 @@
       }
     },
     "dev/xtask/src/gate.rs": {
-      "reason": "Required tests stage supervises existing fetch-tlc.sh before tests and propagates setup failure; backend skip mode and test invocation remain unchanged.",
+      "reason": "Portability: a framework-only cold checkout has no Temporal-side TLC provisioning. Required tests stage supervises existing fetch-tlc.sh before tests and propagates setup failure; backend skip mode and test invocation remain unchanged. The supervised setup is attributed to the tests stage; script stderr identifies the setup cause and its exact exit code becomes the stage status.",
       "corroborating_commits": [
         "05473210b48c3db862f22051eb7154ce98258f98"
       ],

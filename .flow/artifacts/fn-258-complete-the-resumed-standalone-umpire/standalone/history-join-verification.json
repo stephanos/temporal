@@ -205,7 +205,7 @@
       "reachable_from_current_receiver": true
     }
   ],
-  "current_receiver_allowlist_sha256": "f1dd424d1b64dc8a1bb8a3d431170246a21e81c43289acdd2ff9341db0834eb5",
+  "current_receiver_allowlist_sha256": "5c1c8d34a36c67a3aee64cb94cb315187847387bccec757dc4250b71fdd3d8ba",
   "historical_final_qualification": "final_commit/final_tree and final_changes_only_boundary_tests refer exclusively to historical ac79114; current_receiver fields separately prove the approved two-path descendant.",
   "scope": "Exact Git ancestry/tree and production-text checks; full export parent-edge verification belongs to the separate history lane. No runtime or publication claim."
 }

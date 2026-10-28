@@ -716,7 +716,7 @@
   "live_head": "05473210b48c3db862f22051eb7154ce98258f98",
   "standalone_tree": "46829511b6d582b40f3fa5095f42bdf980c7d466",
   "manifest_sha256": "a29ea7017bf9138701d1580e1a466071a1c151b849526a55648484b27175a2c3",
-  "allowlist_sha256": "f1dd424d1b64dc8a1bb8a3d431170246a21e81c43289acdd2ff9341db0834eb5",
+  "allowlist_sha256": "5c1c8d34a36c67a3aee64cb94cb315187847387bccec757dc4250b71fdd3d8ba",
   "deleted_source_paths_checked_absent": 122,
   "new_source_paths_checked_present": 133,
   "protected_records": [

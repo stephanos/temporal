@@ -1,0 +1,21 @@
+pair: 3f5f613578f2857b738a7792fad08f12b3ea0a41 / 05473210b48c3db862f22051eb7154ce98258f98
+BASH_ENV and GOWORK unset; automatic parent Go workspace discovery; CARGO_BUILD_JOBS=4
+cwd: /home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model
+$ mise exec -- cargo check --workspace --all-targets --all-features --locked
+    Checking umpire-dsl v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/backends/native)
+    Checking umpire-runtime v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/protocol/runtime)
+    Checking umpire-suite v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/author/suite)
+    Checking umpire-testing v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/dev/testing)
+    Checking umpire-catalog-syntax v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/catalog/syntax)
+    Checking umpire-catalog-build v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/catalog/build)
+    Checking umpire-temporal-annotate-syntax v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/annotate/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/catalog/macros)
+   Compiling umpire-temporal-api v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/realization/macros)
+    Checking umpire-catalog v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/catalog)
+    Checking umpire-temporal v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/realization)
+    Checking umpire-temporal-tests v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/testing)
+    Checking umpire-temporal-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/guest)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.70s
+exit: 0

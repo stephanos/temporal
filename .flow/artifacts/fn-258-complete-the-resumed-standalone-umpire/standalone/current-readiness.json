@@ -1,7 +1,7 @@
 {
   "standalone": "05473210b48c3db862f22051eb7154ce98258f98",
   "tree": "46829511b6d582b40f3fa5095f42bdf980c7d466",
-  "review_status": "Awaiting fresh source review; initial ac79114 SHIP does not cover new gate prefetch fix.",
+  "review_status": "Final054 source review SHIP on all three independent Claude lenses; retained task2-review/final-0547321. Metadata-only portability rationale clarified afterward and both exact verifiers pass again.",
   "initial_review_findings": [
     {
       "ordinal": 1,
@@ -22,11 +22,11 @@
   "bindings": [
     {
       "path": "standalone/adaptation-equivalence.json",
-      "sha256": "39bec2a5c84f15743054cc9a01e30a64d68b95d53d200d1866774fa54af73b8a"
+      "sha256": "878ee062d9f692b06074effa3d52c5a964d5881cec575211541bb85ccb1a6a8c"
     },
     {
       "path": "standalone/history-join-verification.json",
-      "sha256": "719f32543d49c7cfcc4165e21f019eb4439d02afa5ff7487b6f2fdd40aaa2290"
+      "sha256": "5cc0d55e285255f2ef3eeee24443bec5cbfdfdd89a7fe5434a9dde2c8f3763d8"
     },
     {
       "path": "standalone/current-freshness/receipt.json",
@@ -42,5 +42,10 @@
     }
   ],
   "remaining": "Fresh source review before task2 close; standalone make check/time, release and exact paired acceptance remain task4; publication/cutover/task5 dispositions incomplete.",
-  "verbatim_log_whitespace": "The exact child stdout/stderr logs contain producer prefixes followed by spaces on blank lines. They remain byte-for-byte raw evidence; staged whitespace check excludes only those two log files and checks all other staged content."
+  "verbatim_log_whitespace": "The exact child stdout/stderr logs contain producer prefixes followed by spaces on blank lines. They remain byte-for-byte raw evidence; staged whitespace check excludes only those two log files and checks all other staged content.",
+  "review_followups": {
+    "allowlist_portability_category": "Addressed with explicit cold-checkout rationale, unchanged approved source blobs/modes.",
+    "cli_provisioning_sentence": "Task5 final documentation synchronization owns the narrower dev/xtask guide clarification. Root README already documents provisioning pinned tools as needed; reviewers mark R3 met.",
+    "declined": "Cosmetic timing-stage relabeling and unchanged update/test-run provisioning do not show a task2 requirement failing."
+  }
 }

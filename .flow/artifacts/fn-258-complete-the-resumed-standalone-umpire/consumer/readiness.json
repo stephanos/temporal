@@ -16,11 +16,11 @@
     "historical_claims": "Original bytes retained exactly; original metadata/counts/check results are observations at the revisions named there, not reruns on this candidate."
   },
   "latest_executed_clean_pair": {
-    "consumer": "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+    "consumer": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
     "framework": "05473210b48c3db862f22051eb7154ce98258f98",
-    "binding": "readiness-logs/readiness-054-binding.json",
-    "binding_sha256": "28982df49bbebd5bf2c179569e2863c09d18750d2fce183011ee31ca16bd9b9b",
-    "scope": "All-target/all-feature compilation plus16unit/7integration controls actually executed on this clean365/054 pair."
+    "binding": "current-pair-3f5-054/receipt.json",
+    "binding_sha256": "1cc2b927dbc188775f7cf59ff264ce706bbe30a4175bdb8e0b082312c50e940d",
+    "scope": "Actual current-pair all-target/all-feature check,16unit+7integration controls, Makeguards and automatic parent Go workspace/all3module directories. Both checkouts clean."
   },
   "current_source_followup": {
     "observed_guard_and_docs_candidate": "ec13057227cf2159482a793b227e32653e280057",
@@ -35,8 +35,14 @@
   "guest_freshness_status": "Expired for new Makefile bytes; root retains canonical guest unchanged, task4 must run current-input freshness.",
   "review_dispositions": "review-dispositions-3f5f613.json",
   "limits": [
-    "No broad gate, guest rebuild, JVM or independent source review ran in this artifact refresh.",
-    "Original checkout parent has no go.work; only observed, not created/overwritten. Workspace output comes from actual365/054 disposable pair.",
-    "Root owns MILESTONES correction to the final candidate and fresh fixed-head review."
-  ]
+    "Broad final gates/guest freshness belong task4; fresh source review still pending.",
+    "Original main checkout parent has no go.work and was not modified; exact current disposable pair has verified automatic parent discovery."
+  ],
+  "previous_executed_clean_pair": {
+    "consumer": "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+    "framework": "05473210b48c3db862f22051eb7154ce98258f98",
+    "binding": "readiness-logs/readiness-054-binding.json",
+    "binding_sha256": "28982df49bbebd5bf2c179569e2863c09d18750d2fce183011ee31ca16bd9b9b",
+    "scope": "All-target/all-feature compilation plus16unit/7integration controls actually executed on this clean365/054 pair."
+  }
 }

@@ -17,9 +17,14 @@
   "recovery": "bundle-recovery-3f5f613.json",
   "historical_source_record": "source-checkpoint.json",
   "current_observed_pair": {
-    "temporal": "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+    "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
     "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
   },
   "followup_record": "readiness-followup-ec13057/consumer-followup-assessment.json",
-  "fresh_review": "pending root fixed-head source review; initial all-axis SHIP is not a verdict on this new candidate"
+  "fresh_review": "pending root fixed-head source review; initial all-axis SHIP is not a verdict on this new candidate",
+  "previous_observed_pair": {
+    "temporal": "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "current_focused_pair_evidence": "current-pair-3f5-054/receipt.json"
 }
