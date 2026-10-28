@@ -9,8 +9,8 @@ fn owner() -> Result<Scratch, Refusal> {
     Scratch::new(&root)
 }
 
-fn fake_tlc(directory: &Path, case: fixture::Case) -> Result<Tlc, Refusal> {
-    let origin = InvocationOrigin::ProtocolFixture(fixture::install(directory, &case)?);
+fn fake_tlc(directory: &Path, case: &fixture::Case) -> Result<Tlc, Refusal> {
+    let origin = InvocationOrigin::ProtocolFixture(fixture::install(directory, case)?);
     Ok(Tlc {
         root: Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?,
         java: directory.join("java"),
@@ -58,7 +58,7 @@ fn batch_protocol_requires_complete_selected_evidence() -> Result<(), Error> {
                 "refusal",
             ),
         ] {
-            let tlc = fake_tlc(scratch.path(), fixture::Case::Protocol { output, status })?;
+            let tlc = fake_tlc(scratch.path(), &fixture::Case::Protocol { output, status })?;
             let answer = tlc.execution(
                 "M",
                 "---- MODULE M ----\nA == TRUE\nB == []TRUE\n====\n",
@@ -102,7 +102,7 @@ fn batch_resource_refusal_does_not_launch_singleton_recovery() -> Result<(), Err
         );
         let mut tlc = fake_tlc(
             scratch.path(),
-            fixture::Case::Resource {
+            &fixture::Case::Resource {
                 events: events.clone(),
                 exploration,
                 oversized: "x".repeat(2048),
@@ -143,7 +143,7 @@ fn singleton_recovery_measures_worker_peak_and_owns_each_scratch() -> Result<(),
             format!("{}{}", message(2193, false, "Success"), message(2186, false, "Finished"));
         let tlc = fake_tlc(
             scratch.path(),
-            fixture::Case::WorkerPeak { events: events.clone(), complete },
+            &fixture::Case::WorkerPeak { events: events.clone(), complete },
         )?;
         let properties =
             (0..4).map(|index| ("INVARIANT".into(), format!("P{index}"))).collect::<Vec<_>>();
@@ -253,7 +253,7 @@ fn singleton_output_budget_precedes_later_evaluation_and_stops_new_waves() -> Re
                 &batch_output,
                 [(&p0_output, 0), (&p1_output, 1)],
             );
-            let mut tlc = fake_tlc(scratch.path(), script)?;
+            let mut tlc = fake_tlc(scratch.path(), &script)?;
             tlc.property_workers = workers;
             tlc.limits.output_bytes =
                 u64::try_from(limit).map_err(|error| Refusal(error.to_string()))?;
@@ -319,7 +319,7 @@ fn singleton_evaluation_stops_recovery_after_current_wave() -> Result<(), Error>
             &batch_output,
             [(&evaluation, 1), (&complete, 0)],
         );
-        let mut tlc = fake_tlc(scratch.path(), script)?;
+        let mut tlc = fake_tlc(scratch.path(), &script)?;
         tlc.property_workers = 2;
         let answer = tlc.check_strategy(
             "M",
