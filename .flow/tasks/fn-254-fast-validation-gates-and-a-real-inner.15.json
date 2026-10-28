@@ -16,5 +16,5 @@
   "spec_path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.15.md",
   "status": "todo",
   "title": "Port remaining model shell scripts to xtask/Makefile; only the bootstrap stays shell",
-  "updated_at": "2026-10-28T20:00:56.760502Z"
+  "updated_at": "2026-10-28T20:05:58.489919Z"
 }
