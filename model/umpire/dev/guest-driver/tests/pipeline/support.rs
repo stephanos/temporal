@@ -1,4 +1,4 @@
-//! Native guest build and cold shell entrypoint controls.
+//! Native guest build and retained bootstrap controls.
 #![forbid(unsafe_code)]
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 use std::{
@@ -29,12 +29,7 @@ impl Fixture {
         fs::copy(source.join("Cargo.toml"), model.join("Cargo.toml")).unwrap();
         fs::copy(source.join("rust-toolchain.toml"), model.join("rust-toolchain.toml")).unwrap();
         fs::copy(source.join("mise.toml"), model.join("mise.toml")).unwrap();
-        for name in ["guest.sh", "guest-freshness.sh", "xtask.sh"] {
-            if source.join("scripts").join(name).exists() {
-                fs::copy(source.join("scripts").join(name), model.join("scripts").join(name))
-                    .unwrap();
-            }
-        }
+        fs::copy(source.join("scripts/xtask.sh"), model.join("scripts/xtask.sh")).unwrap();
         fs::write(root.join("built custom.wasm"), b"\0asm\x01\0\0\0").unwrap();
         fs::create_dir_all(root.join("bin")).unwrap();
         executable(
@@ -68,7 +63,15 @@ if [[ " $* " = *' -p xtask '* || " $* " = *' -p umpire-guest-driver '* ]]; then
   done
   mkdir -p "$bootstrap_target/debug"
   cp "$NATIVE_DRIVER" "$bootstrap_target/debug/umpire-guest-driver"
-  cp "$NATIVE_DRIVER" "$bootstrap_target/debug/xtask"
+  cat > "$bootstrap_target/debug/xtask" <<'NATIVE_XTASK'
+#!/bin/bash
+set -euo pipefail
+case "${1:-}" in
+  guest|guest-freshness) exec "$NATIVE_DRIVER" "$@" ;;
+  *) echo unexpected-xtask-command >&2; exit 95 ;;
+esac
+NATIVE_XTASK
+  chmod 755 "$bootstrap_target/debug/xtask"
   printf '{"reason":"compiler-artifact","target":{"name":"xtask","kind":["bin"],"crate_types":["bin"]},"executable":"%s/debug/xtask","filenames":[]}\n' "$CARGO_TARGET_DIR"
   exit
 fi
@@ -92,6 +95,15 @@ case "${ARTIFACT_MODE:-one}" in
 esac
 "#,
         );
+        executable(
+            &root.join("bin/bootstrap-guest"),
+            r#"#!/bin/bash
+set -euo pipefail
+tool=$(/bin/bash "$UMPIRE_TOOL_ROOT/scripts/xtask.sh")
+printf '%s\n' "$tool" > "$FIXTURE/bootstrap-path"
+exec "$tool" "$@"
+"#,
+        );
         for name in ["compiler probe", "previous wrapper"] {
             fs::copy(crate::compiler_fixture(), root.join(name)).unwrap();
         }
@@ -99,12 +111,8 @@ esac
     }
     pub(crate) fn command(&self, freshness: bool, shell: bool) -> Command {
         let mut command = if shell {
-            let mut command = Command::new("/bin/bash");
-            command.arg(self.model.join("scripts").join(if freshness {
-                "guest-freshness.sh"
-            } else {
-                "guest.sh"
-            }));
+            let mut command = Command::new(self.root.join("bin/bootstrap-guest"));
+            command.arg(if freshness { "guest-freshness" } else { "guest" });
             command
         } else {
             let mut command = Command::new(crate::driver_binary());
@@ -131,10 +139,26 @@ esac
             .env_remove("RUSTC_BOOTSTRAP");
         command
     }
+    pub(crate) fn bootstrap_command(&self) -> Command {
+        let environment = self.command(false, false);
+        let mut command = Command::new("/bin/bash");
+        command.arg(self.model.join("scripts/xtask.sh")).current_dir(&self.model);
+        for (key, value) in environment.get_envs() {
+            if let Some(value) = value {
+                command.env(key, value);
+            } else {
+                command.env_remove(key);
+            }
+        }
+        command
+    }
 }
 impl Drop for Fixture {
     fn drop(&mut self) {
-        fs::remove_dir_all(&self.root).unwrap();
+        if let Err(error) = fs::remove_dir_all(&self.root) {
+            use std::io::Write;
+            let _ = writeln!(std::io::stderr(), "guest fixture cleanup failed: {error}");
+        }
     }
 }
 pub(crate) fn executable(path: &Path, contents: &str) {
