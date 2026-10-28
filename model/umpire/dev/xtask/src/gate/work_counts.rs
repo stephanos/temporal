@@ -1,7 +1,7 @@
 //! Counts observed by native runners, without expected-count substitution.
+mod count_evidence;
 #[cfg(test)]
 mod go_tests;
-mod count_evidence;
 mod tlc_observations;
 pub use count_evidence::{AuthorityRef, CountEvidence, MetricEvidence, NoWorkReason};
 
@@ -339,6 +339,11 @@ pub fn collect(directory: &Path) -> io::Result<WorkCounts> {
     }
     (counts.tlc_launches, counts.tlc_configurations) = tlc.finish(directory)?;
     Ok(counts)
+}
+
+#[cfg(test)]
+pub(super) fn collect_selected(directory: &Path, _selected: &[String]) -> io::Result<WorkCounts> {
+    collect(directory)
 }
 
 #[derive(Default)]
@@ -809,6 +814,63 @@ mod tests {
     fn event(directory: &Path, slot: u64, record: &str) -> io::Result<()> {
         fs::write(directory.join(format!("{slot}.claim")), b"")?;
         fs::write(directory.join(format!("{slot}.event")), record)
+    }
+
+    #[test]
+    fn selected_attempts_count_only_their_completed_producers() -> io::Result<()> {
+        let directory = tempfile::tempdir()?;
+        event(directory.path(), 0, "1\ttests-begin\t100-0\n")?;
+        event(directory.path(), 1, "1\ttests-finish\t100-0\t7\t4\t1\t2\n")?;
+        event(directory.path(), 2, "1\ttests-begin\t200-0\n")?;
+        event(directory.path(), 3, "1\ttests-finish\t200-0\t3\t2\t0\t1\n")?;
+        let sha = "a".repeat(64);
+        for (slot, id) in [(4, "100-1"), (6, "200-1")] {
+            event(directory.path(), slot, &format!("1\ttlc-attempt\t{id}\t{sha}\n"))?;
+            event(directory.path(), slot + 1, &format!("1\ttlc-finish\t{id}\t1\n"))?;
+        }
+        for (slots, totals) in [([0, 1, 4, 5], [7, 4, 1, 2]), ([2, 3, 6, 7], [3, 2, 0, 1])] {
+            let selected = slots.map(|slot| format!("{slot}.event"));
+            let counts = collect_selected(directory.path(), &selected)?;
+            assert_eq!(
+                [counts.discovered, counts.executed, counts.ignored, counts.skipped],
+                totals.map(Some)
+            );
+            assert_eq!((counts.tlc_launches, counts.tlc_configurations), (Some(1), Some(1)));
+        }
+        let all = collect(directory.path())?;
+        assert_eq!(
+            [all.discovered, all.executed, all.ignored, all.skipped],
+            [Some(10), Some(6), Some(1), Some(3)]
+        );
+        assert_eq!((all.tlc_launches, all.tlc_configurations), (Some(2), Some(1)));
+        assert_eq!(collect_selected(directory.path(), &[])?, WorkCounts::default());
+        Ok(())
+    }
+
+    #[test]
+    fn selected_attempts_refuse_invalid_names_and_incomplete_producers() -> io::Result<()> {
+        let directory = tempfile::tempdir()?;
+        event(directory.path(), 0, "1\ttests-begin\t100-0\n")?;
+        event(directory.path(), 1, "1\ttests-finish\t100-0\t1\t1\t0\t0\n")?;
+        for selected in [
+            vec!["../0.event"],
+            vec!["/0.event"],
+            vec!["0.claim"],
+            vec!["2.event"],
+            vec!["0.event", "0.event"],
+            vec!["0.event"],
+            vec!["1.event"],
+        ] {
+            let selected = selected.into_iter().map(String::from).collect::<Vec<_>>();
+            assert!(
+                collect_selected(directory.path(), &selected).is_err(),
+                "accepted {selected:?}"
+            );
+        }
+        event(directory.path(), 2, "1\ttests-begin\t200-0\n")?;
+        fs::remove_file(directory.path().join("2.event"))?;
+        assert!(collect_selected(directory.path(), &["0.event".into(), "1.event".into()]).is_err());
+        Ok(())
     }
 
     #[test]

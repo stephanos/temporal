@@ -671,6 +671,18 @@ mod tests {
         unknown: bool,
         modify: impl FnOnce(&mut serde_json::Value, &mut serde_json::Value),
     ) -> io::Result<(Option<u64>, Option<u64>)> {
+        fixture_observations(family, pass, unknown, modify, |collector, directory| {
+            collector.finish(directory)
+        })
+    }
+
+    fn fixture_observations<T>(
+        family: &str,
+        pass: bool,
+        unknown: bool,
+        modify: impl FnOnce(&mut serde_json::Value, &mut serde_json::Value),
+        inspect: impl FnOnce(Collector, &Path) -> io::Result<T>,
+    ) -> io::Result<T> {
         use serde_json::json;
         let scratch = tempfile::tempdir()?;
         let receipts = scratch.path().canonicalize()?;
@@ -769,7 +781,82 @@ mod tests {
             collector.ingest(&["1", "tlc-attempt", "101-0", "probe"])?;
             collector.ingest(&["1", "tlc-finish", "101-0", "0"])?;
         }
-        collector.finish(&directory)
+        inspect(collector, &directory)
+    }
+
+    fn publish_fixture_events(collector: &Collector, directory: &Path) -> io::Result<()> {
+        let attempt = &collector.attempts["100-0"];
+        let terminal = &collector.terminals["100-0"];
+        let reference = terminal.reference.as_ref().ok_or_else(invalid)?;
+        let (assertion, completion) = collector.completions.iter().next().ok_or_else(invalid)?;
+        let (name, digest) = collector.passed.iter().next().ok_or_else(invalid)?;
+        let records = [
+            "1\ttests-begin\t100-9\n".into(),
+            "1\ttests-finish\t100-9\t1\t1\t0\t0\n".into(),
+            format!("1\ttests-pass\t100-9\t{}\t{digest}\n", hex(name.as_bytes())),
+            format!("2\ttlc-attempt\t100-0\tfixture\tprobe\t{}\n", attempt.identity),
+            format!(
+                "2\ttlc-finish\t100-0\tfixture\tcompleted\t{}\t{}\n",
+                reference.path, reference.sha
+            ),
+            format!(
+                "2\ttlc-fixture-complete\t{assertion}\t{}\t{}\n",
+                completion.path, completion.sha
+            ),
+            "1\ttlc-attempt\t200-0\tprobe\n".into(),
+            "1\ttlc-finish\t200-0\t1\n".into(),
+        ];
+        for (slot, record) in records.iter().enumerate() {
+            fs::write(directory.join(format!("{slot}.claim")), b"")?;
+            fs::write(directory.join(format!("{slot}.event")), record)?;
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn selected_attempts_keep_fixture_scope_and_parent_pass_authority() -> io::Result<()> {
+        fixture_observations(
+            "tlc-batch-v1",
+            true,
+            false,
+            |_, _| {},
+            |collector, directory| {
+                publish_fixture_events(&collector, directory)?;
+                let selected = (0..6).map(|slot| format!("{slot}.event")).collect::<Vec<_>>();
+                let counts = super::super::collect_selected(directory, &selected)?;
+                assert_eq!(counts.executed, Some(1));
+                assert_eq!((counts.tlc_launches, counts.tlc_configurations), (Some(0), Some(0)));
+                let admitted = super::super::collect_selected(
+                    directory,
+                    &["6.event".into(), "7.event".into()],
+                )?;
+                assert_eq!(admitted.executed, None);
+                assert_eq!(
+                    (admitted.tlc_launches, admitted.tlc_configurations),
+                    (Some(1), Some(0))
+                );
+                assert_eq!(
+                    super::super::collect_selected(directory, &[])?,
+                    super::super::WorkCounts::default()
+                );
+                let no_parent = (3..6).map(|slot| format!("{slot}.event")).collect::<Vec<_>>();
+                assert!(super::super::collect_selected(directory, &no_parent).is_err());
+                let no_assertion = (0..5).map(|slot| format!("{slot}.event")).collect::<Vec<_>>();
+                assert!(super::super::collect_selected(directory, &no_assertion).is_err());
+                fs::write(
+                    Scope::from_work(directory)?.authorities.join("orphan.json"),
+                    b"malformed",
+                )?;
+                assert!(
+                    super::super::collect_selected(
+                        directory,
+                        &["6.event".into(), "7.event".into()]
+                    )
+                    .is_err()
+                );
+                Ok(())
+            },
+        )
     }
 
     #[test]
