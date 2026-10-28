@@ -16,6 +16,7 @@ pub mod admission;
 mod boundary;
 mod budget_attempts;
 mod budget_coordinator;
+mod budget_context;
 mod budgets;
 pub mod count_dispatch;
 mod go_command;

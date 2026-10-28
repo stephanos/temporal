@@ -1,9 +1,11 @@
 //! Counts observed by native runners, without expected-count substitution.
 mod count_evidence;
+mod count_authority;
 #[cfg(test)]
 mod go_tests;
 mod tlc_observations;
 pub use count_evidence::{AuthorityRef, CountEvidence, MetricEvidence, NoWorkReason};
+pub use count_authority::{CountAuthority, ObservedWork, collect_evidenced};
 
 use serde::{Deserialize, Serialize};
 use std::{
