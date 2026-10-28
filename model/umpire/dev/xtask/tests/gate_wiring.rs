@@ -222,14 +222,23 @@ case "$1 $2" in
 esac
 "#;
 
+// Owned guardians retain the native argv, so direct parent PIDs differ between probes.
 const GO_PLUGIN_SCRIPT: &str = r#"[ "$*" = --version ]
-parent=$(/bin/ps -ww -p "$PPID" -o args=)
-case " $parent " in
- *' proto-tools '*)
-  if mkdir "$CONTROL_ROOT/.bin/control-parent-$PPID" 2>/dev/null; then label=proto-tools
-  else printf '%s\n' 'protoc-gen-go v1.36.6'; exit 0; fi ;;
- *) printf '%s\n' 'protoc-gen-go v1.36.6'; exit 0 ;;
-esac
+ancestor=$PPID
+native_owner=''
+for hop in 1 2 3 4 5 6 7 8; do
+ row=$(/bin/ps -ww -p "$ancestor" -o ppid= -o args=)
+ read -r parent argv <<< "$row"
+ [ "$argv" = "$CONTROL_BIN/xtask proto-tools" ] || break
+ native_owner=$ancestor
+ ancestor=$parent
+done
+if [ -n "$native_owner" ]; then
+ if mkdir "$CONTROL_ROOT/.bin/control-parent-$native_owner" 2>/dev/null; then label=proto-tools
+ else printf '%s\n' 'protoc-gen-go v1.36.6'; exit 0; fi
+else
+ printf '%s\n' 'protoc-gen-go v1.36.6'; exit 0
+fi
 "#;
 
 const GUEST_SCRIPT: &str = r#"[ "$1" = guest ] && [ "$#" = 3 ]
@@ -379,7 +388,10 @@ if [ -n "${{CONTROL_EXPECT_CPU_JOBS:-}}" ]; then
  fi
 fi
 if [ "${{CONTROL_SIGNAL:-}}" = "$label" ]; then
- printf 'signal stdout diagnostic\n'
+ case " $* " in
+  *' --message-format libtest-json '*) printf 'signal stdout diagnostic\n' >&2 ;;
+  *) printf 'signal stdout diagnostic\n' ;;
+ esac
  printf 'signal stderr diagnostic\n' >&2
  kill -TERM $$
 fi
