@@ -17,7 +17,7 @@ repair. Its five-consumer Activity warm run passed all 148 tests and 25 compiler
 controls in 444.463 s; the 60 s target remains unmet. Review fixes align CI's mise
 pin, restore combined Apalache opt-in, keep formatting outside JVM admission and
 make supervisor scratch private. Focused joined controls pass; follow-up review
-returned SHIP and .17 is closed. Provisioning .16 resumed on frozen `60f1c762`; its renewed standalone proof passed all 17 stages (914 discovered, 911 executed, three ignored), with unchanged source and owned-process cleanup. Formal review and integration remain pending. [Resume checkpoint](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task16/resume-20261028/resume.json). About 32 GiB of idle validation caches were reclaimed
+returned SHIP and .17 is closed. Provisioning .16 is reviewed, closed and integrated into `umpire`: all 17 standalone stages passed (914 discovered, 911 executed, three ignored), with unchanged source and owned-process cleanup. Its finished worktree was removed; 10.39 GB of idle build targets were reclaimed after verified proof recovery. [Completion and cleanup checkpoint](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task16/resume-20261028/resume.json). About 32 GiB of idle validation caches were reclaimed
 with verified proof-output recovery. Go-host count producers and mixed-control
 TLC unknowns remain with .12. macOS validation remains owner-deferred.
 
@@ -43,7 +43,7 @@ checkpoint after any framework changes. GitHub destination inspection remains SA
 Backlog order remains **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
 ranks a fast feedback loop among the most important properties. The standalone workspace/driver and independent gate checkpoint are integrated, and the complete isolated proof passed.
-Immediate validation path: downloads .16, then shell ports .15, budgets .12 and final proof .8, consuming the reviewed and closed .17 nextest/stage-DAG checkpoint. The consumer/cache checkpoint is reviewed and closed; verified configurations cache independently of refuted siblings, and test-only Kettle readers no longer expand unrelated libraries. fn-254 gets first admission to shared build/JVM/review capacity. Already running fn-246.9/.13 work may reach safe checkpoints, and disjoint source work may continue without delaying fn-254. Finish fn-254.7 after committed fn-246 closure.
+Immediate path: shell ports .15, then budgets .12, consuming the integrated .16 mise provider and closed .17 nextest/stage-DAG checkpoint. Final proof .8 also waits for .7 after committed fn-246 closure. The consumer/cache checkpoint is reviewed and closed; verified configurations cache independently of refuted siblings, and test-only Kettle readers no longer expand unrelated libraries. fn-254 gets first admission to shared build/JVM/review capacity. Already running fn-246.9/.13 work may reach safe checkpoints, and disjoint source work may continue without delaying fn-254. Finish fn-254.7 after committed fn-246 closure.
 The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246; fn-254.13's workspace move is integrated. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; activity changes
 retain their listed dependencies and follow the current priority/source-ownership order.
 fn-255.3 and .4 (fuzz targets and cargo-mutants) may prepare disjoint source before fn-254 closes; execution waits for committed fn-254.12 budget admission. Shared pins, manifests, decoder seams and native command registrations land serially.
@@ -56,8 +56,8 @@ The owner lifted the validation hold on 2026-10-26. Resume focused fn-254 checks
 and retain unvalidated candidates until their required evidence and reviews pass.
 The fn-254.5 fixture/compiler checkpoint is reviewed and closed on `umpire`: all 24 cases,
 Temporal compiler/activity checks, 61 parser rows plus 18 compiler refusals, bounded profiles
-and snapshot repair controls passed. The .16 provider candidate is adapted in its own
-worktree; .15/.12 candidates remain in the isolated source-assembly branch.
+and snapshot repair controls passed. The .16 provider is reviewed, closed and integrated; .15/.12 candidates remain
+unvalidated donor snapshots. Use committed objects selectively; preserve the dirty source-assembly checkout.
 Task .17's shared mise task graph, batched nextest runner, supervisor and Rust/TLC
 receipt producers are joined on `umpire`. Inventory, lifecycle, cross-invocation
 lease/handoff and public graph controls pass. The final real scheduled standalone
@@ -150,7 +150,6 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
 | fn-254.12 | ⬜ todo | Budget parser/retry candidate retained; consume .17 Rust/TLC receipts, add actual Go-host counts, then admit tables against final .15/.16 interfaces. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
 | fn-254.15 | ⬜ todo | Integrated tree has 29 active shell paths; retained source candidate reduces these to two bootstraps/four controls. Adapt ports to .17 supervision and final .16 interfaces, finish native controls and validate (R7) |
-| fn-254.16 | 🔄 in progress | Resumed on 2026-10-28: frozen 60f1c762 and retained proof-tool hashes verified; both source and actual child filesystems admitted above 50 GiB. Fresh standalone proof passed all 17 stages in 978.949 s (914 discovered, 911 executed, three ignored), with source and cleanup verified. Formal review, closure and integration remain open. [Earlier retained state](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/session-wrap-20261027/resource-hold-draft.json) (R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 

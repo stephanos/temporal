@@ -1,0 +1,97 @@
+{
+  "kind": "authorized-post-integration-exact-cache-cleanup",
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.16",
+  "source_closure": "36f2cd46c5d30748de93c987237a2b1926375a7d",
+  "integrated_main": "1b20fbe795",
+  "actions": [
+    {
+      "label": "child",
+      "target": "/tmp/umpire-fn25416-final-60f1c762a618-4090033/proof-5XlzyE/target",
+      "started_utc": "2026-10-28T17:19:11.184089+00:00",
+      "allocated_before": 6609588224,
+      "free_before": {
+        "/tmp": 49378492416,
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal": 43679555584
+      },
+      "recovery_before": {
+        "objects": 1,
+        "archive_members": 3548,
+        "original_source_reads": false
+      },
+      "ownership_before": {
+        "owners": [],
+        "inaccessible_foreign_root_infrastructure": [
+          {
+            "pid": 10,
+            "uid": 0,
+            "comm": "socat"
+          },
+          {
+            "pid": 542,
+            "uid": 0,
+            "comm": "dockerd"
+          },
+          {
+            "pid": 557,
+            "uid": 0,
+            "comm": "containerd"
+          }
+        ],
+        "checks": [
+          "cwd",
+          "exe",
+          "environment",
+          "open-fds-including-locks",
+          "memory-maps"
+        ]
+      },
+      "command": [
+        "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+        "clean",
+        "--target-dir",
+        "/tmp/umpire-fn25416-final-60f1c762a618-4090033/proof-5XlzyE/target"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+      "exit_code": 101,
+      "target_absent": false,
+      "allocated_after": 6609588224,
+      "free_after": {
+        "/tmp": 49378476032,
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal": 43551514624
+      },
+      "recovery_after": {
+        "objects": 1,
+        "archive_members": 3548,
+        "original_source_reads": false
+      },
+      "ownership_after": {
+        "owners": [],
+        "inaccessible_foreign_root_infrastructure": [
+          {
+            "pid": 10,
+            "uid": 0,
+            "comm": "socat"
+          },
+          {
+            "pid": 542,
+            "uid": 0,
+            "comm": "dockerd"
+          },
+          {
+            "pid": 557,
+            "uid": 0,
+            "comm": "containerd"
+          }
+        ],
+        "checks": [
+          "cwd",
+          "exe",
+          "environment",
+          "open-fds-including-locks",
+          "memory-maps"
+        ]
+      },
+      "allocated_bytes_removed": 0
+    }
+  ]
+}

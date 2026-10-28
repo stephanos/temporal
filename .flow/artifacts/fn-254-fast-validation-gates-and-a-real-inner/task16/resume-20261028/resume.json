@@ -3,7 +3,7 @@
   "task": "fn-254-fast-validation-gates-and-a-real-inner.16",
   "recorded_utc": "2026-10-28T16:47:02.322974+00:00",
   "accepted": true,
-  "state": "Standalone proof accepted; formal review, Flow closure and integration pending",
+  "state": "Task16 reviewed SHIP, closed in Flow and integrated into umpire; proof recovery verified and idle targets cleaned",
   "owner_authorization": "Owner deferred migration and set active goal to work MILESTONES.md autonomously with parallel agents",
   "source_head": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
   "historical_hold": "../../session-wrap-20261027/resource-hold-draft.json",
@@ -48,5 +48,9 @@
     "macOS runtime remains owner-deferred"
   ],
   "tier_line": "Tier: implementer - gpt-6.1-sol (explicit invocation) at medium effort (requested)",
-  "terminal_evidence": "../validation-60f1c762/resumed-watchdog/watchdog-result.json"
+  "terminal_evidence": "../validation-60f1c762/resumed-watchdog/watchdog-result.json",
+  "task_done": true,
+  "integration_commit": "1b20fbe795",
+  "closure_commit": "36f2cd46c5d30748de93c987237a2b1926375a7d",
+  "cleanup": "../post-integration-cleanup-20261028/terminal-receipt.json"
 }

@@ -1,0 +1,23 @@
+[
+  {
+    "pid": 10,
+    "uid": 0,
+    "comm": "socat",
+    "available_argv_target_prefix_match": false,
+    "unreadable_metadata": "unknown foreign infrastructure"
+  },
+  {
+    "pid": 542,
+    "uid": 0,
+    "comm": "dockerd",
+    "available_argv_target_prefix_match": false,
+    "unreadable_metadata": "unknown foreign infrastructure"
+  },
+  {
+    "pid": 557,
+    "uid": 0,
+    "comm": "containerd",
+    "available_argv_target_prefix_match": false,
+    "unreadable_metadata": "unknown foreign infrastructure"
+  }
+]

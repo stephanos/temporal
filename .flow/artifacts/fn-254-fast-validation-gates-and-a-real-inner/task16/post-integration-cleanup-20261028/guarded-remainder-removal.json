@@ -1,0 +1,204 @@
+[
+  {
+    "label": "child",
+    "target": "/tmp/umpire-fn25416-final-60f1c762a618-4090033/proof-5XlzyE/target",
+    "allocated_before": 4922732544,
+    "free_before": {
+      "/tmp": 51063341056,
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal": 41352114176
+    },
+    "recovery_before": {
+      "objects": 1,
+      "archive_members": 3548,
+      "original_source_reads": false
+    },
+    "supplemental_before": {
+      "objects": 1,
+      "archive_members": 13437,
+      "original_source_reads": false
+    },
+    "ownership_before": {
+      "owners": [],
+      "inaccessible_foreign_root_infrastructure": [
+        {
+          "pid": 10,
+          "uid": 0,
+          "comm": "socat",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 542,
+          "uid": 0,
+          "comm": "dockerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 557,
+          "uid": 0,
+          "comm": "containerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        }
+      ],
+      "checks": [
+        "cwd",
+        "exe",
+        "environment",
+        "open-fds-including-locks",
+        "memory-maps"
+      ]
+    },
+    "target_absent": true,
+    "allocated_after": 0,
+    "free_after": {
+      "/tmp": 55960567808,
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal": 40782733312
+    },
+    "recovery_after": {
+      "objects": 1,
+      "archive_members": 3548,
+      "original_source_reads": false
+    },
+    "supplemental_after": {
+      "objects": 1,
+      "archive_members": 13437,
+      "original_source_reads": false
+    },
+    "ownership_after": {
+      "owners": [],
+      "inaccessible_foreign_root_infrastructure": [
+        {
+          "pid": 10,
+          "uid": 0,
+          "comm": "socat",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 542,
+          "uid": 0,
+          "comm": "dockerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 557,
+          "uid": 0,
+          "comm": "containerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        }
+      ],
+      "checks": [
+        "cwd",
+        "exe",
+        "environment",
+        "open-fds-including-locks",
+        "memory-maps"
+      ]
+    }
+  },
+  {
+    "label": "old",
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321",
+    "allocated_before": 2672148480,
+    "free_before": {
+      "/tmp": 55953629184,
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal": 45716099072
+    },
+    "recovery_before": {
+      "objects": 8,
+      "unique_objects": 8,
+      "archive_members": 69
+    },
+    "supplemental_before": {
+      "objects": 1,
+      "archive_members": 13437,
+      "original_source_reads": false
+    },
+    "ownership_before": {
+      "owners": [],
+      "inaccessible_foreign_root_infrastructure": [
+        {
+          "pid": 10,
+          "uid": 0,
+          "comm": "socat",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 542,
+          "uid": 0,
+          "comm": "dockerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 557,
+          "uid": 0,
+          "comm": "containerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        }
+      ],
+      "checks": [
+        "cwd",
+        "exe",
+        "environment",
+        "open-fds-including-locks",
+        "memory-maps"
+      ]
+    },
+    "target_absent": true,
+    "allocated_after": 0,
+    "free_after": {
+      "/tmp": 55949021184,
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal": 50017865728
+    },
+    "recovery_after": {
+      "objects": 8,
+      "unique_objects": 8,
+      "archive_members": 69
+    },
+    "supplemental_after": {
+      "objects": 1,
+      "archive_members": 13437,
+      "original_source_reads": false
+    },
+    "ownership_after": {
+      "owners": [],
+      "inaccessible_foreign_root_infrastructure": [
+        {
+          "pid": 10,
+          "uid": 0,
+          "comm": "socat",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 542,
+          "uid": 0,
+          "comm": "dockerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 557,
+          "uid": 0,
+          "comm": "containerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        }
+      ],
+      "checks": [
+        "cwd",
+        "exe",
+        "environment",
+        "open-fds-including-locks",
+        "memory-maps"
+      ]
+    }
+  }
+]

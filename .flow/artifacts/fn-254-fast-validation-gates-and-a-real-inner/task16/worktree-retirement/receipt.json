@@ -1,0 +1,110 @@
+{
+  "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt",
+  "branch": "work/fn25416-provider-adapt",
+  "integrated_head": "1b20fbe795da8cd2f5e88dca692dfa4a752cff7e",
+  "source_clean": true,
+  "branch_ancestor": true,
+  "ignored_files": [
+    {
+      "path": ".flow/locks/review-rounds-7e89bc1aaaa074bb350a2ae1069107c8295761cda9dc8421f57cc4ebebbdf1dc.lock",
+      "size": 1,
+      "sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d"
+    },
+    {
+      "path": ".flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/contracts.json",
+      "size": 815,
+      "sha256": "1b9cb60265bf18c320e92ec064589c57d9725b7e03e9909d90c72545dd4055d6"
+    },
+    {
+      "path": ".flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/contracts.out.txt",
+      "size": 6577,
+      "sha256": "b9644ecfcda12f536bff3269ec39717f4b8f35d3ced2eb52e11fe33e04e25c4e"
+    },
+    {
+      "path": ".flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/contracts.review.md",
+      "size": 6577,
+      "sha256": "b9644ecfcda12f536bff3269ec39717f4b8f35d3ced2eb52e11fe33e04e25c4e"
+    },
+    {
+      "path": ".flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/correctness.json",
+      "size": 831,
+      "sha256": "4f8bc6fb1ce3325077cfaafac4b27f7ebb67658f7e5a0e573e6fc2a1d0364c0a"
+    },
+    {
+      "path": ".flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/correctness.out.txt",
+      "size": 4777,
+      "sha256": "8fb729606355164386ab055a0abcb48c3c9b890907c113a5f3086d2ffffa1c47"
+    },
+    {
+      "path": ".flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/correctness.review.md",
+      "size": 4777,
+      "sha256": "8fb729606355164386ab055a0abcb48c3c9b890907c113a5f3086d2ffffa1c47"
+    },
+    {
+      "path": ".flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/integration.json",
+      "size": 821,
+      "sha256": "60e1c2b16f7f0584f3d5d500b1f491503dd79f057601407b936393eb6410e678"
+    },
+    {
+      "path": ".flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/integration.out.txt",
+      "size": 6092,
+      "sha256": "2ee94dc832ed0b80b57309e5a71a121c84eed4abe2f10418947be2b813ada00b"
+    },
+    {
+      "path": ".flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/integration.review.md",
+      "size": 6092,
+      "sha256": "2ee94dc832ed0b80b57309e5a71a121c84eed4abe2f10418947be2b813ada00b"
+    },
+    {
+      "path": ".flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/meta.json",
+      "size": 4556,
+      "sha256": "5ad87fbd59b8f873ecbb753534bb59826e636bf43472b24647f7bce174a11570"
+    },
+    {
+      "path": ".flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/progress.log",
+      "size": 97,
+      "sha256": "f8d3dd9016a8ce08053a3b32019e6e4e59a821e3b0c017260630354eb0f826e2"
+    },
+    {
+      "path": ".flow/tmp/claude-review/d56cefa991c84615bd07f20be7556d9b-contracts-f0a82c7-60f1c76.diff",
+      "size": 95813,
+      "sha256": "678af4aa9e8dfb73ce49f06a501d44cea03332412c308ff92c2ebe198789624d"
+    },
+    {
+      "path": ".flow/tmp/claude-review/d56cefa991c84615bd07f20be7556d9b-correctness-f0a82c7-60f1c76.diff",
+      "size": 95813,
+      "sha256": "678af4aa9e8dfb73ce49f06a501d44cea03332412c308ff92c2ebe198789624d"
+    },
+    {
+      "path": ".flow/tmp/claude-review/d56cefa991c84615bd07f20be7556d9b-integration-f0a82c7-60f1c76.diff",
+      "size": 95813,
+      "sha256": "678af4aa9e8dfb73ce49f06a501d44cea03332412c308ff92c2ebe198789624d"
+    }
+  ],
+  "ignored_archive_sha256": "5e9cde86b164b16fa83254fdeef88c8c4ced1821fdfb74a433b0963a61eeabf8",
+  "ownership_hits": [],
+  "unreadable_known_infrastructure": [
+    {
+      "pid": 10,
+      "comm": "socat",
+      "uid": 0,
+      "available_argv_matches": false
+    },
+    {
+      "pid": 542,
+      "comm": "dockerd",
+      "uid": 0,
+      "available_argv_matches": false
+    },
+    {
+      "pid": 557,
+      "comm": "containerd",
+      "uid": 0,
+      "available_argv_matches": false
+    }
+  ],
+  "ownership_scope": "Readable cwd/environment/argv/fds inspected; known uid0 daemons remain explicitly unreadable, no available argv match",
+  "removed": true,
+  "branch_deleted": true,
+  "removal": "git worktree remove; git branch -d; git worktree prune"
+}
