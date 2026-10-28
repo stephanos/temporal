@@ -17,8 +17,8 @@ const CACHE: &str = "build/tlc";
 use crate::cache::{self, Bundle, Record};
 use std::sync::{Mutex, OnceLock};
 use umpire_backend_process::{
-    PinnedJar, Scratch, bounded_text, bytes_sha256, java_command, run_process,
-    run_process_observed, structural_sha256,
+    PinnedJar, Scratch, bounded_text, bytes_sha256, java_command, run_process_observed,
+    structural_sha256,
 };
 
 #[cfg(test)]
