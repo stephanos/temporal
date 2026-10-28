@@ -40,7 +40,8 @@ fn path(value: &str) -> io::Result<PathBuf> {
     require(!bytes.contains(&0))?;
     let path = PathBuf::from(std::ffi::OsString::from_vec(bytes));
     require(path.is_absolute() && path.components().all(|c| matches!(c, Component::RootDir | Component::Normal(_))))?;
-    require(hex(path.as_os_str().as_bytes()) == value)?;
+    let normalized: PathBuf = path.components().collect();
+    require(normalized.as_os_str().as_bytes() == path.as_os_str().as_bytes())?;
     Ok(path)
 }
 fn regular_bytes(path: &Path, limit: u64) -> io::Result<Vec<u8>> {
