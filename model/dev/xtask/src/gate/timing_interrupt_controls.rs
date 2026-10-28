@@ -76,7 +76,7 @@ kill -KILL "$timing_pid"
         .env_remove("UMPIRE_APALACHE")
         .env_remove("BASH_ENV");
     let output = xtask::gate::scheduler::execute(&command, false, false)?;
-    assert_eq!(output.status.signal(), Some(9), "{output:?}");
+    assert_eq!(output.status.code(), Some(137), "{output:?}");
     assert_eq!(fs::read(scratch.0.join("benchmark.reached"))?, b"benchmark reached\n");
     assert_eq!(fs::read(&source)?, original);
     assert!(fs::metadata(source)?.modified()? > old_mtime);
