@@ -27,6 +27,51 @@ mod retired_names;
 mod script_control_support;
 mod test_run;
 
+fn bridge(root: &Path, mut arguments: Vec<OsString>) -> io::Result<i32> {
+    let caller = env::current_dir()?;
+    let cargo_home = umpire_guest_driver::context::cargo_home(&caller).map_err(io::Error::other)?;
+    if arguments.first().is_some_and(|command| command == "quick") {
+        arguments = quick::arguments(root, arguments.into_iter().skip(1).collect())?;
+    }
+    let guest =
+        arguments.first().is_some_and(|command| command == "guest" || command == "guest-freshness");
+    let workspace =
+        if guest { guest_routes::prepare(root, &caller, &mut arguments) } else { caller.clone() };
+    let output = gate::framework_executable(root)?;
+    if !output.status.success() {
+        return Ok(output
+            .status
+            .code()
+            .unwrap_or_else(|| 128 + output.status.signal().unwrap_or(0)));
+    }
+    let path = output.stdout.strip_suffix(b"\n").unwrap_or(&output.stdout);
+    let tool = PathBuf::from(OsString::from_vec(path.to_owned()));
+    if arguments.first().is_some_and(|command| command == "proto-go") {
+        return proto::run(root, &tool, &arguments[1..]);
+    }
+    if arguments.first().is_some_and(|command| command == "build-guests") {
+        if arguments.len() != 1 {
+            return Err(io::Error::other("usage: cargo xtask build-guests"));
+        }
+        return build_guests::run(root, &tool.with_file_name("umpire-guest-driver"));
+    }
+    let mut command = if guest {
+        guest_routes::command(
+            &tool,
+            &workspace,
+            &caller,
+            &arguments,
+            &cargo_home,
+            env::var_os("CARGO_TARGET_DIR"),
+        )
+    } else {
+        let mut command = Command::new(tool);
+        command.args(arguments).current_dir(workspace).env("CARGO_HOME", cargo_home);
+        command
+    };
+    Err(command.exec())
+}
+
 fn run() -> io::Result<i32> {
     xtask::gate::work_counts::owns_controller()?;
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
@@ -105,49 +150,7 @@ fn run() -> io::Result<i32> {
             supplied[0].to_str().ok_or_else(|| io::Error::other("control name must be UTF-8"))?,
         );
     }
-    let caller = env::current_dir()?;
-    let cargo_home = umpire_guest_driver::context::cargo_home(&caller).map_err(io::Error::other)?;
-    let mut arguments = supplied;
-    if arguments.first().is_some_and(|command| command == "quick") {
-        arguments = quick::arguments(&root, arguments.into_iter().skip(1).collect())?;
-    }
-    let guest =
-        arguments.first().is_some_and(|command| command == "guest" || command == "guest-freshness");
-    let workspace =
-        if guest { guest_routes::prepare(&root, &caller, &mut arguments) } else { caller.clone() };
-    let output = gate::framework_executable(&root)?;
-    if !output.status.success() {
-        return Ok(output
-            .status
-            .code()
-            .unwrap_or_else(|| 128 + output.status.signal().unwrap_or(0)));
-    }
-    let path = output.stdout.strip_suffix(b"\n").unwrap_or(&output.stdout);
-    let tool = PathBuf::from(OsString::from_vec(path.to_owned()));
-    if arguments.first().is_some_and(|command| command == "proto-go") {
-        return proto::run(&root, &tool, &arguments[1..]);
-    }
-    if arguments.first().is_some_and(|command| command == "build-guests") {
-        if arguments.len() != 1 {
-            return Err(io::Error::other("usage: cargo xtask build-guests"));
-        }
-        return build_guests::run(&root, &tool.with_file_name("umpire-guest-driver"));
-    }
-    let mut command = if guest {
-        guest_routes::command(
-            &tool,
-            &workspace,
-            &caller,
-            &arguments,
-            &cargo_home,
-            env::var_os("CARGO_TARGET_DIR"),
-        )
-    } else {
-        let mut command = Command::new(tool);
-        command.args(arguments).current_dir(workspace).env("CARGO_HOME", cargo_home);
-        command
-    };
-    Err(command.exec())
+    bridge(&root, supplied)
 }
 
 fn main() {

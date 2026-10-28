@@ -1,0 +1,51 @@
+{
+  "command": [
+    "rg",
+    "--hidden",
+    "--glob",
+    "!.git/**",
+    "--glob",
+    "!.worktrees/**",
+    "--glob",
+    "!.turbo/**",
+    "-n",
+    "(fetch-tlc|guest-freshness|guest|proto-go|proto-tools|retired-names|test-capabilities|test-model-validate|test-model-wiring|test-time-gate|build-guests-controls|build-guests|guest-roots|time-gate)\\.sh|tests/bootstrap\\.sh",
+    "--glob",
+    "!.flow/**",
+    "--glob",
+    "!.plans/**",
+    "--glob",
+    "!model/archived/**",
+    "--glob",
+    "!model/design/**",
+    "--glob",
+    "!**/design/**",
+    "--glob",
+    "!model/scripts/**",
+    "--glob",
+    "!model/umpire/scripts/**",
+    "--glob",
+    "!**/target/**",
+    "--glob",
+    "!**/build/**",
+    "."
+  ],
+  "exit": 0,
+  "results": [
+    "./MIGRATE.md:227:Retain framework-local generator provisioning in `scripts/proto-tools.sh`;",
+    "./MIGRATE.md:326:- `model/scripts/proto-go.sh` \u2014 The generation/freshness helper resolves the workspace and parent repository, uses the pinned Go protobuf generator, enforces the protoc version and compares generated Go bytes.",
+    "./MIGRATE.md:327:- `model/scripts/time-gate.sh` \u2014 The timing helper measures the actual parent-repository `model-check` target and the checker's edit/test loop, reporting the 10-second inner-loop and 60-second gate soft budgets."
+  ],
+  "unexpected": [],
+  "historical_dispositions": [
+    {
+      "path": "MIGRATE.md",
+      "lines": [
+        227,
+        326,
+        327
+      ],
+      "reason": "Header explicitly owner-defers extraction and preserves historical source/proof checkpoints; docs handover explicitly preserves deferred MIGRATE artifact. Not an active task15 entry point."
+    }
+  ]
+}

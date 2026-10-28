@@ -89,7 +89,9 @@ fn io_failure_and_absent_grep_are_handled_natively() {
         .unwrap()
         .write_all(["file\0", "1\0author/umpire/", "tests/x\n"].concat().as_bytes())
         .unwrap();
-    assert_eq!(child.wait_with_output().unwrap().status.code(), Some(0));
+    let output = child.wait_with_output().unwrap();
+    assert_eq!(output.status.code(), Some(1));
+    assert_eq!(output.stdout, ["file:1:author/umpire/", "tests/x\n"].concat().as_bytes());
 }
 
 #[test]

@@ -20,7 +20,7 @@ impl Scratch {
 impl Drop for Scratch {
     fn drop(&mut self) {
         if let Err(error) = fs::remove_dir_all(&self.0) {
-            let _ = std::io::Write::write_fmt(
+            let _ = io::Write::write_fmt(
                 &mut io::stderr(),
                 format_args!("control scratch cleanup failed: {error}\n"),
             );

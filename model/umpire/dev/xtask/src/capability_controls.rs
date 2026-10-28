@@ -7,7 +7,7 @@ use std::{
     process::{Command, Output},
 };
 
-const CAPABILITIES: &str = r##"#![allow(dead_code)]
+const CAPABILITIES: &str = r#"#![allow(dead_code)]
 use std::fs::read as aliased_read;
 pub fn forbidden() {
     let _ = aliased_read("unused");
@@ -20,7 +20,7 @@ pub fn forbidden() {
     let _: Option<std::time::SystemTime> = None;
     let _: Option<std::thread::JoinHandle<()>> = None;
 }
-"##;
+"#;
 const SYMBOLS: &[&str] = &[
     "std::fs::read",
     "std::time::Instant::now",

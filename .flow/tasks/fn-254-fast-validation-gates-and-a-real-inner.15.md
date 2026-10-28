@@ -10,7 +10,7 @@ Runs after .13 (framework copies in `model/umpire/scripts/`, Temporal copies in 
 
 **Size:** M
 **Files:** `model/umpire/scripts/**`, `model/scripts/**`, `model/umpire/dev/xtask/**`, `model/umpire/dev/guest-driver/**`, `model/dev/xtask/**` (Temporal extension), root `Makefile`, the framework entry point from .10, and READMEs or `GUEST_BUILDS.md` that name the scripts.
-**Touches:** [model/umpire/scripts/**, model/scripts/**, model/umpire/dev/xtask/**, model/umpire/dev/guest-driver/**, model/dev/xtask/**, Makefile, model/umpire/Makefile, model/README.md, model/GUEST_BUILDS.md, model/umpire/**/README.md]
+**Touches:** [model/umpire/scripts/**, model/scripts/**, model/umpire/dev/xtask/**, model/umpire/dev/guest-driver/**, model/dev/xtask/**, Makefile, model/umpire/Makefile, model/Cargo.toml, model/Cargo.lock, model/umpire/Cargo.toml, model/umpire/Cargo.lock, model/README.md, model/DESIGN.md, model/GUEST_BUILDS.md, model/umpire/**/README.md, .plans/UMPIRE_MODULES.md, model/umpire/backends/tlc/src/runner.rs, model/umpire/hosts/go/runner/fake_test.go, model/umpire/reference/kettle/kettle_test.go]
 
 ### Approach
 - **Into Rust (xtask subcommands, framework or Temporal side to match .9's classification):** `fetch-tlc` (call the mise provider from .16 and retain runtime JAR admission; no native downloader/extractor), `proto-go`/`proto-tools` (run `protoc` and the pinned generators through `mise exec`), `time-gate` (the timing and status mechanism belongs to `cargo xtask gate`, decided in .9), and `retired-names`. Owner allows breaking changes, so rewrite the retired-name patterns in Rust `regex` syntax. This reverses fn-247's keep-`grep -E` decision; flag it in the done summary.
@@ -45,6 +45,10 @@ caller references, behavioral vectors and31case mappings for the four remaining
 controls to the frozen .16 candidate. It identifies adaptation gaps and retains
 `native_preparation_validated=false` and `dependency_advancement=false`; compile,
 runtime validation and final acceptance mapping still follow committed .16 closure.
+
+### Joined-source caller scope (2026-10-28)
+
+Workspace manifests and locks register the already-admitted fn-210 R18 Rust regex dependency. The module-map xtask ownership row and maintained design documentation describe the native entry points. TLC and Go changes outside xtask are deleted-script diagnostic string replacements only. These paths complete the original caller-cleanup acceptance; they add no Model or Go behavior.
 ## Acceptance
 - [ ] `find model -name '*.sh' -not -path '*/target/*' -not -path '*/archived/*' -not -path '*/design/*'` lists only the xtask bootstrap script(s); the archived and design probes are out of scope.
 - [ ] Every removed script's job is reached through `cargo xtask <cmd>`, a guest-driver subcommand or a Makefile recipe. Root `Makefile`, the framework gate and the docs call the new forms, and an `rg` check finds no references to deleted scripts in active source callers, maintained tests or maintained user/developer documentation. Preserve historical specs, completion records, review artifacts and archived/design evidence that name the former scripts.

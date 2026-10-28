@@ -333,6 +333,10 @@ impl Fixture {
         }
         fixture
     }
+    #[allow(
+        clippy::too_many_lines,
+        reason = "Shared process fixture contains the gate leaf template"
+    )]
     fn script(path: &Path, body: &str) {
         write(
             path,
@@ -1590,7 +1594,7 @@ fn native_guest_driver_bootstrap_failure_stops_before_guest_jobs() {
             stderr(&output).contains("framework stage wasm-guest failed (exit 37)"),
             "{output:?}"
         );
-        assert!(fixture.labels().is_empty());
-        assert!(fs::read_to_string(fixture.root.join("guest-jobs")).unwrap().is_empty());
+        assert_eq!(fixture.labels(), Vec::<String>::new());
+        assert_eq!(fs::read_to_string(fixture.root.join("guest-jobs")).unwrap(), "");
     }
 }

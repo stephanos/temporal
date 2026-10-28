@@ -58,6 +58,7 @@ exit "${CONTROL_STATUS:-0}"
             (Some(OsStr::new("target link")), &physical_target),
             (Some(absolute_target.as_os_str()), &physical_target),
             (None, &default_target),
+            (Some(OsStr::new("")), &default_target),
             (Some(raw_target.as_os_str()), &raw_target_path),
         ] {
             for status in [0, 37] {

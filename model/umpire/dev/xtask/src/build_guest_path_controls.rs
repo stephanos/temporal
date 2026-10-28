@@ -1,4 +1,5 @@
 use super::*;
+use std::fmt::Write as _;
 use std::{
     ffi::OsStr,
     io,
@@ -106,17 +107,19 @@ printf 'native|%s\n' "$*" >> "$CONTROL_LOG"
         assert_eq!(fs::read_to_string(self.scratch.path().join("calls"))?, expected);
         Ok(())
     }
-    fn expected(&self, target: &Path) -> String {
+    fn expected(target: &Path) -> io::Result<String> {
         let mut result = String::new();
         for (package, artifact) in GUESTS {
-            result.push_str(&format!(
-                "guest|{package}|{}/wasm32-wasip1/guest/{artifact}.wasm\n",
+            writeln!(
+                result,
+                "guest|{package}|{}/wasm32-wasip1/guest/{artifact}.wasm",
                 target.display()
-            ));
+            )
+            .map_err(io::Error::other)?;
         }
-        result.push_str(&format!("native|exec -- cargo run --locked --profile guest -p umpire-caught-panic-guest --bin panic-control-reports -- {}/panic-native\n", target.display()));
-        result.push_str(&format!("native|exec -- cargo run --locked --profile guest -p umpire-control-guest --bin current-contract-reports -- {}/current-contract-native\n", target.display()));
-        result
+        writeln!(result, "native|exec -- cargo run --locked --profile guest -p umpire-caught-panic-guest --bin panic-control-reports -- {}/panic-native", target.display()).map_err(io::Error::other)?;
+        writeln!(result, "native|exec -- cargo run --locked --profile guest -p umpire-control-guest --bin current-contract-reports -- {}/current-contract-native", target.display()).map_err(io::Error::other)?;
+        Ok(result)
     }
 }
 
@@ -146,7 +149,7 @@ fn relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children() -
                 false,
                 false,
             )?;
-            fixture.check(&output, 0, &fixture.expected(expected_target))?;
+            fixture.check(&output, 0, &Fixture::expected(expected_target)?)?;
         }
     }
     Ok(())
@@ -157,7 +160,7 @@ fn guest_and_native_statuses_stop_without_following_children() -> Result<()> {
     let fixture = Fixture::new()?;
     let target = fixture.caller.join("physical target");
     let home = fixture.caller.join("physical cargo home");
-    let expected = fixture.expected(&target);
+    let expected = Fixture::expected(&target)?;
     fs::write(fixture.scratch.path().join("calls"), "")?;
     let output = crate::gate::scheduler::execute(
         fixture
@@ -166,11 +169,7 @@ fn guest_and_native_statuses_stop_without_following_children() -> Result<()> {
         false,
         false,
     )?;
-    fixture.check(
-        &output,
-        37,
-        &expected.lines().take(3).map(|line| format!("{line}\n")).collect::<String>(),
-    )?;
+    fixture.check(&output, 37, &expected.split_inclusive('\n').take(3).collect::<String>())?;
     fs::write(fixture.scratch.path().join("calls"), "")?;
     let output = crate::gate::scheduler::execute(
         fixture
@@ -179,11 +178,7 @@ fn guest_and_native_statuses_stop_without_following_children() -> Result<()> {
         false,
         false,
     )?;
-    fixture.check(
-        &output,
-        42,
-        &expected.lines().take(6).map(|line| format!("{line}\n")).collect::<String>(),
-    )?;
+    fixture.check(&output, 42, &expected.split_inclusive('\n').take(6).collect::<String>())?;
     let retained = fixture.scratch.path().to_owned();
     drop(fixture);
     assert!(!retained.exists());

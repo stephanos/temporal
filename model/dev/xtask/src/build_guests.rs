@@ -10,7 +10,7 @@ use std::{
 pub(crate) fn run(root: &Path, driver: &Path) -> io::Result<i32> {
     let caller = env::current_dir()?;
     let home = umpire_guest_driver::context::cargo_home(&caller).map_err(io::Error::other)?;
-    let target = env::var_os("CARGO_TARGET_DIR").map_or_else(
+    let target = env::var_os("CARGO_TARGET_DIR").filter(|value| !value.is_empty()).map_or_else(
         || root.join("target"),
         |value| {
             let path = PathBuf::from(value);

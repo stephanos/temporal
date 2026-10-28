@@ -64,6 +64,50 @@ fn guest(arguments: Vec<OsString>) -> xtask::Result<i32> {
         .into())
 }
 
+fn native_leaf(
+    command: &OsStr,
+    mut arguments: impl Iterator<Item = OsString>,
+) -> xtask::Result<i32> {
+    if arguments.next().is_some() {
+        return Err(xtask::Error::Invalid(format!(
+            "usage: cargo xtask {}",
+            command.to_string_lossy()
+        )));
+    }
+    match command.to_str() {
+        Some("proto-tools") => xtask::proto::tools(ToolRoot::local()?.path()),
+        Some("proto-controls") => xtask::proto::controls::run(),
+        Some("capability-controls") => xtask::capability_controls::run(ToolRoot::local()?.path()),
+        Some("timing-controls") => Ok(xtask::timing_controls::run(&env::current_exe()?)?),
+        Some("build-guests") => {
+            let (driver, status) = guest_driver()?;
+            if !status.success() {
+                return Ok(status.code().unwrap_or_else(|| 128 + status.signal().unwrap_or(0)));
+            }
+            xtask::build_guests::run(ToolRoot::local()?.path(), &driver)
+        }
+        _ => unreachable!(),
+    }
+}
+
+fn time(arguments: Vec<OsString>) -> xtask::Result<i32> {
+    if arguments.first().is_some_and(|argument| argument == "--step") {
+        if arguments.len() < 3 {
+            return Err(xtask::Error::Invalid(
+                "usage: cargo xtask time --step NAME PROGRAM [ARG...]".into(),
+            ));
+        }
+        let name = arguments[1]
+            .to_str()
+            .ok_or_else(|| xtask::Error::Invalid("timing step name must be UTF-8".into()))?;
+        let mut child = Command::new(&arguments[2]);
+        child.args(&arguments[3..]);
+        Ok(xtask::gate::timing::execute(name, &child, true, None)?)
+    } else {
+        xtask::gate::run("time", arguments)
+    }
+}
+
 fn run() -> xtask::Result<i32> {
     xtask::gate::work_counts::owns_controller()?;
     let mut supplied: Vec<_> = env::args_os().skip(1).collect();
@@ -85,22 +129,7 @@ fn run() -> xtask::Result<i32> {
     match arguments.next().as_deref() {
         Some(command) if command == OsStr::new("quick") => xtask::quick::run(arguments.collect()),
         Some(command) if command == OsStr::new("time") => {
-            let arguments: Vec<_> = arguments.collect();
-            if arguments.first().is_some_and(|argument| argument == "--step") {
-                if arguments.len() < 3 {
-                    return Err(xtask::Error::Invalid(
-                        "usage: cargo xtask time --step NAME PROGRAM [ARG...]".into(),
-                    ));
-                }
-                let name = arguments[1].to_str().ok_or_else(|| {
-                    xtask::Error::Invalid("timing step name must be UTF-8".into())
-                })?;
-                let mut child = Command::new(&arguments[2]);
-                child.args(&arguments[3..]);
-                Ok(xtask::gate::timing::execute(name, &child, true, None)?)
-            } else {
-                xtask::gate::run("time", arguments)
-            }
+            time(arguments.collect())
         }
         Some(command)
             if ["gate", "fmt", "update", "validate"]
@@ -113,29 +142,13 @@ fn run() -> xtask::Result<i32> {
             )
         }
         Some(command) if command == OsStr::new("proto-go") => {
-            xtask::proto::go(arguments.collect())
+            xtask::proto::go(&arguments.collect::<Vec<_>>())
         }
         Some(command) if command == OsStr::new("proto-go-spec") => {
             xtask::proto::go_spec(arguments.collect())
         }
         Some(command) if ["proto-tools", "proto-controls", "capability-controls", "timing-controls", "build-guests"].iter().any(|name| command == OsStr::new(name)) => {
-            if arguments.next().is_some() {
-                return Err(xtask::Error::Invalid(format!("usage: cargo xtask {}", command.to_string_lossy())));
-            }
-            match command.to_str() {
-                Some("proto-tools") => xtask::proto::tools(ToolRoot::local()?.path()),
-                Some("proto-controls") => xtask::proto::controls::run(),
-                Some("capability-controls") => xtask::capability_controls::run(ToolRoot::local()?.path()),
-                Some("timing-controls") => Ok(xtask::timing_controls::run(&env::current_exe()?)?),
-                Some("build-guests") => {
-                    let (driver, status) = guest_driver()?;
-                    if !status.success() {
-                        return Ok(status.code().unwrap_or_else(|| 128 + status.signal().unwrap_or(0)));
-                    }
-                    xtask::build_guests::run(ToolRoot::local()?.path(), &driver)
-                },
-                _ => unreachable!(),
-            }
+            native_leaf(command, arguments)
         }
         Some(command) if command == OsStr::new("test-run") => {
             let args: Vec<_> = arguments.collect();

@@ -153,6 +153,20 @@ impl Gate {
         }
         Ok(())
     }
+    fn timing_controls(&self, name: &str) -> Result<i32> {
+        let code = self.controls(
+            name,
+            &["native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup"],
+        )?;
+        if code == 0 {
+            self.controls(name, &[
+                        "build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children",
+                        "build_guests::path_controls::guest_and_native_statuses_stop_without_following_children",
+                    ])
+        } else {
+            Ok(code)
+        }
+    }
     fn stage(&self, name: &str) -> Result<i32> {
         let command = match name {
             "proto-tools" => self.native(&["proto-tools"])?,
@@ -165,17 +179,7 @@ impl Gate {
             }
             "source-boundary" => return self.boundary(),
             "standalone" => return standalone::run(self),
-            "timing-controls" => {
-                let code = self.controls(name, &["native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup"])?;
-                return if code == 0 {
-                    self.controls(name, &[
-                        "build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children",
-                        "build_guests::path_controls::guest_and_native_statuses_stop_without_following_children",
-                    ])
-                } else {
-                    Ok(code)
-                };
-            }
+            "timing-controls" => return self.timing_controls(name),
             "capability-controls" => {
                 return self.controls(
                     name,

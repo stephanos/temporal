@@ -9,6 +9,7 @@ use std::{
 use xtask::gate::work_counts;
 
 pub(crate) mod timing;
+#[cfg(test)]
 pub(crate) mod timing_controls;
 
 fn admit_command(name: &str, command: &mut Command) -> io::Result<()> {
@@ -724,7 +725,8 @@ fi
                 .env("UMPIRE_CACHE_DISABLE", "0")
                 .env("CARGO_HOME", "control-relative-home")
                 .env("CARGO_TARGET_DIR", "control-relative-target")
-                .env("UMPIRE_GATE_CONTROL_CALLER", std::env::current_dir().unwrap())
+                .env("UMPIRE_GATE_CONTROL_CALLER", &root)
+                .current_dir(&root)
                 .env("UMPIRE_TIME_STEPS", timed)
                 .env("MAKEFLAGS", "-n -j99")
                 .env("MFLAGS", "-n -j99")

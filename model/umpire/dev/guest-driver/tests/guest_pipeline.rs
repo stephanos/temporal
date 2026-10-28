@@ -172,7 +172,7 @@ fn missing_mise_refuses_bootstrap_without_fallback_cargo() {
     );
     let output = f.bootstrap_command().env("PATH", &bin).output().unwrap();
     code(&output, 1);
-    assert!(output.stdout.is_empty());
+    assert_eq!(output.stdout, b"");
     assert!(String::from_utf8_lossy(&output.stderr).contains("mise"));
     assert!(String::from_utf8_lossy(&output.stderr).contains("xtask bootstrap failed"));
     assert!(!f.root.join("fallback-cargo").exists());

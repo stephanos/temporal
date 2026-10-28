@@ -1,0 +1,39 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/xtask)
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/dev/xtask)
+warning: unnecessary qualification
+  --> dev/xtask/src/script_control_support.rs:23:21
+   |
+23 |             let _ = std::io::Write::write_fmt(
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: requested on the command line with `-W unused-qualifications`
+help: remove the unnecessary path segments
+   |
+23 -             let _ = std::io::Write::write_fmt(
+23 +             let _ = io::Write::write_fmt(
+   |
+
+warning: `temporal-xtask` (bin "temporal-xtask" test) generated 1 warning (run `cargo fix --bin "temporal-xtask" -p temporal-xtask --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.02s
+     Running unittests src/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/deps/temporal_xtask-ed60604a2343b93b)
+
+running 1 test
+test build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest ... FAILED
+
+failures:
+
+---- build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest stdout ----
+
+thread 'build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest' (22298) panicked at dev/xtask/src/temporal_guest_path_controls.rs:91:17:
+assertion `left == right` failed: 
+  left: Some(1)
+ right: Some(0)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 34 filtered out; finished in 0.46s
+
+error: test failed, to rerun pass `-p temporal-xtask --bin temporal-xtask`

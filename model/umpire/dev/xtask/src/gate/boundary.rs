@@ -2,8 +2,7 @@ use crate::{Error, Result};
 use serde::Deserialize;
 use std::{
     ffi::OsStr,
-    fs,
-    io::{self, Write},
+    fs, io,
     os::unix::ffi::OsStrExt,
     path::{Path, PathBuf},
 };

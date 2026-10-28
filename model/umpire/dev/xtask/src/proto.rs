@@ -119,10 +119,10 @@ fn version(
 }
 fn plugin_directory(root: &Path) -> Result<PathBuf> {
     let directory = root.join(".bin");
-    if let Ok(metadata) = fs::symlink_metadata(&directory) {
-        if !metadata.is_dir() || metadata.file_type().is_symlink() {
-            return Err(Error::Invalid("generator directory must not be a symlink".into()));
-        }
+    if let Ok(metadata) = fs::symlink_metadata(&directory)
+        && (!metadata.is_dir() || metadata.file_type().is_symlink())
+    {
+        return Err(Error::Invalid("generator directory must not be a symlink".into()));
     }
     fs::create_dir_all(&directory)?;
     if fs::canonicalize(&directory)? != directory {
@@ -307,7 +307,7 @@ fn option(prefix: &str, path: &Path) -> OsString {
 }
 
 /// Framework selectors retain the core/kettle plugin and input closures.
-pub fn go(arguments: Vec<OsString>) -> Result<i32> {
+pub fn go(arguments: &[OsString]) -> Result<i32> {
     let check = arguments.get(1).is_some_and(|value| value == "--check");
     if arguments.is_empty() || arguments.len() > 2 || (arguments.len() == 2 && !check) {
         return Err(Error::Invalid("usage: cargo xtask proto-go <core|kettle> [--check]".into()));
@@ -402,12 +402,12 @@ pub fn go_spec(arguments: Vec<OsString>) -> Result<i32> {
             "proto-go-spec requires --destination, --plugin-root, --include and --input".into(),
         ));
     }
-    if let Some(subtree) = &spec.check_subtree {
-        if subtree.components().any(|part| {
+    if let Some(subtree) = &spec.check_subtree
+        && subtree.components().any(|part| {
             !matches!(part, std::path::Component::Normal(_) | std::path::Component::CurDir)
-        }) {
-            return Err(Error::Invalid("check subtree must remain below the destination".into()));
-        }
+        })
+    {
+        return Err(Error::Invalid("check subtree must remain below the destination".into()));
     }
     generate(&root, &spec, check)
 }

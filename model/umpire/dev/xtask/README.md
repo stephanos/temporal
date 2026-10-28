@@ -28,7 +28,7 @@ repository policy and historical exclusions.
 
 `proto-tools` provisions the pinned Go generators. `proto-go core [--check]` and
 `proto-go kettle [--check]` generate or compare framework Go sources; the system
-workspace owns the `temporal` selector. `build-guests` builds five framework wasm
+workspace owns its schema selector. `build-guests` builds five framework wasm
 guests and two native parity reports. `capability-controls`, `proto-controls` and
 `timing-controls` expose the native behavioral controls; workspace Rust tests retain
 the path, refusal, cleanup and caller-boundary cases. Gate control stages select
