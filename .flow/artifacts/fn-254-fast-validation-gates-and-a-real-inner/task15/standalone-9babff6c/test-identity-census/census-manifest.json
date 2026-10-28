@@ -1,0 +1,15 @@
+{
+  "status": "baseline_extract_and_anticipated_source_map_only",
+  "current_runtime_inventory_pending": true,
+  "files": {
+    "README.md": "b89ef732297ab66f9bde321705c3291b8e3ee962b161d25ac5bdd105da704cf3",
+    "anticipated-identity-map.json": "20e92a7b3c700c7049b09def2f4e1c964665389dcacbcd21329d68afaf2e7ddd",
+    "baseline-child-inventory-identities.json": "9d68bb65c49df7e065257d016fa80806979e20f6fc8cd9933962ce8257aca33f",
+    "baseline-child-nextest-all.stdout.log": "7f76626f31f9660677ab6f8a39314e853a7bb0c7b4794ac61ea91b236d8ae48a",
+    "baseline-source-before.json": "1503e2b7a6667417c5155b94f220e9128e0926b2037dcd29024e9d9cdda0380b",
+    "baseline-validation.json": "d419322cc7f30eb438c7422f4d84ff29dbb47b83588d89c18da7f309eba962d9",
+    "compare_inventory.py": "27b68b94ed5347b7964c3d04d45fc23af9606403fe6ada37dc2185abdf3c7382",
+    "provenance.json": "76fc4167b462f3185b8263b3e441f7a117941a7260915a8fbeef7e00b286ae56",
+    "source-test-function-delta.json": "0f01b2d44ad8cecb232edabad0bf7f263555db1f68974543ae46b391fd16540a"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.15",
+  "status": "prepared_proof_unexecuted",
+  "files": {
+    "proof.py": "035c258cce2ea937d9cbdcd310471079fc9784fce9d3dfa38f781fd41dffa31f",
+    "observer.py": "e97ed64b323631397d8d33a932d228177e7aff8989aa23d785518a1bb15d90a1",
+    "watchdog.py": "65111bd784b2593d3be02b7ef1088617ea48d1369d0936e428a3bd8939c6bba9",
+    "test_watchdog.py": "910fcb042b82ea1b436ea477d3ede8d3ad02b42b72ec783c888a25da5ea4ccab",
+    "PREPARED.md": "03387d0947de96bb08ed7c69dea8ba57f573a0f5943b28a7c49524c1b97b73f4"
+  },
+  "copied_from": {
+    "proof.py": {
+      "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/standalone-60f1c762/harness-source/proof.py",
+      "sha256": "5242717edb12b7c63e0627ebb133ccda4a82376936276bf8e4974f5d4b639117"
+    },
+    "observer.py": {
+      "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/standalone-60f1c762/harness-source/observer.py",
+      "sha256": "e97ed64b323631397d8d33a932d228177e7aff8989aa23d785518a1bb15d90a1"
+    },
+    "watchdog.py": {
+      "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task16/resume-20261028/watchdog.py",
+      "sha256": "f853c35df5bb4e27acddcb96d0a93e10f82f814af5f778cc12e96bb1146a00b1"
+    },
+    "test_watchdog.py": {
+      "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task16/resume-20261028/test_watchdog.py",
+      "sha256": "4d2fe5183aa7dc306a985a319a2eab4ca272384995e38413dec9d0beae112c15"
+    }
+  },
+  "expected_head": "required CLI input; no candidate admitted",
+  "target_owner": "fn254.15",
+  "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target"
+}

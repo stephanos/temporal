@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "tests_run": 4,
+  "failures": 0,
+  "errors": 0,
+  "input_manifest_sha256": "f4e869f0ba33e939c5ccfbf58c224abf9f68ac8bee5f3db269c3a7c8bd6f7ce9",
+  "proof_executed": false,
+  "control_scope": "fake child only; no proof/build/runtime launch"
+}
