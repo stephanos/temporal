@@ -188,7 +188,10 @@ fn open_input(path: &Path) -> io::Result<(File, String, Identity)> {
     if !before.is_file() {
         return Err(invalid("input must be a regular file"));
     }
-    let file = File::open(path)?;
+    let file = OpenOptions::new()
+        .read(true)
+        .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK)
+        .open(path)?;
     let (digest, identity) = hash_file(&file)?;
     if identity != Identity::of(&before) || identity != Identity::of(&fs::symlink_metadata(path)?) {
         return Err(invalid("input path changed while opening"));
