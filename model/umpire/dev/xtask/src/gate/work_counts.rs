@@ -848,6 +848,22 @@ mod tests {
     }
 
     #[test]
+    fn completed_attempts_can_repeat_the_same_successful_parent_test() -> io::Result<()> {
+        let directory = tempfile::tempdir()?;
+        let name = encode_path(Path::new(
+            "umpire-tlc::umpire_tlc$runner::batch_tests::batch_protocol_requires_complete_selected_evidence",
+        ));
+        let digest = "a".repeat(64);
+        for (slot, id) in [(0, "100-0"), (3, "200-0")] {
+            event(directory.path(), slot, &format!("1\ttests-begin\t{id}\n"))?;
+            event(directory.path(), slot + 1, &format!("1\ttests-finish\t{id}\t1\t1\t0\t0\n"))?;
+            event(directory.path(), slot + 2, &format!("1\ttests-pass\t{id}\t{name}\t{digest}\n"))?;
+        }
+        assert_eq!(collect(directory.path())?.executed, Some(2));
+        Ok(())
+    }
+
+    #[test]
     fn selected_attempts_refuse_invalid_names_and_incomplete_producers() -> io::Result<()> {
         let directory = tempfile::tempdir()?;
         event(directory.path(), 0, "1\ttests-begin\t100-0\n")?;
