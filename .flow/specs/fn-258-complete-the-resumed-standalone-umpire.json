@@ -9,7 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-258-complete-the-resumed-standalone-umpire",
   "impl_review_rounds": {
-    "fn-258-complete-the-resumed-standalone-umpire.1": 1
+    "fn-258-complete-the-resumed-standalone-umpire.1": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -244,9 +244,86 @@
       "task": "fn-258-complete-the-resumed-standalone-umpire.1",
       "timestamp": "2026-10-28T05:30:41.889801Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "f854b0893cc07a72d48bfada2f8e522e0036bcb990e75af1e983c6df808ad7a6",
+      "backend": "claude",
+      "base_sha": "05051b84a18f29e8cafbfa6b5ac57981a2aee72f",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-39d40696bcb2460191bf94a82dd90ab1",
+            "classification": "introduced",
+            "findingId": "finding-39d40696bcb2460191bf94a82dd90ab1",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-a5b8092454a43495383626c7f4a75ee6",
+            "classification": "introduced",
+            "findingId": "finding-a5b8092454a43495383626c7f4a75ee6",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4152c065e1cc26083e14e5c5fb6214ac",
+            "classification": "introduced",
+            "findingId": "finding-4152c065e1cc26083e14e5c5fb6214ac",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d47577dccde77aa0afa60ba269dc4404",
+            "classification": "introduced",
+            "findingId": "finding-d47577dccde77aa0afa60ba269dc4404",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4b4152750e3508a3aa6ce5e67cba450a",
+            "classification": "introduced",
+            "findingId": "finding-4b4152750e3508a3aa6ce5e67cba450a",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e4c4642cdc760bd42e1ec29ef422bb814c924694",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3847,
+      "output_sha256": "05137fe1aec61b67623bbb905e454af03636bdc83c706085bfbc9bd6e7b0bebc",
+      "reservation_id": "de2fc37df2204dc9b0aecb937fff920d",
+      "round_consumed": true,
+      "scope": "impl:fn-258-complete-the-resumed-standalone-umpire.1",
+      "superseded_by": null,
+      "task": "fn-258-complete-the-resumed-standalone-umpire.1",
+      "timestamp": "2026-10-28T05:45:22.742412Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-258-complete-the-resumed-standalone-umpire.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -270,5 +347,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-28T05:30:41.896443Z"
+  "updated_at": "2026-10-28T05:45:22.750649Z"
 }
