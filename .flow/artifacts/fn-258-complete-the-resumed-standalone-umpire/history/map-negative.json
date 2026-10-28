@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "source_commit": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "started_at": "2026-10-28T05:20:36.602667+00:00",
+  "completed_checks": [
+    "before/after original source preservation observation"
+  ],
+  "limitations": [
+    "This verifies extraction objects/history and source preservation during this invocation, not standalone builds, generated freshness or paired consumer behavior.",
+    "An optional root HEAD baseline detects HEAD movement since that checkpoint; pre-invocation index/worktree preservation needs a separately captured byte/mode baseline.",
+    "Source preservation includes tracked and nonignored untracked root worktree files, refs, index entries and worktree registry; ignored bytes and other worktrees' content are not inventoried.",
+    "Only the exact .history-support/ namespace is excluded from the final active manifest; all of its historical/current projected tree entries are nevertheless compared.",
+    "A bare export has no checkout to inspect; its complete committed active tree is still verified. Historical blob identities/modes are compared in every projected snapshot; current selected blob payloads are rehashed.",
+    "Source history is shallow. Verification covers exactly the available fixed-source ancestry; unavailable pre-cutoff history, including earlier LICENSE history, is not established."
+  ],
+  "source_state_before": {
+    "head": "05051b84a18f29e8cafbfa6b5ac57981a2aee72f",
+    "head_tree": "a1b0dc9306802da1fc702fefc4b4aae5d7afd02e",
+    "refs_sha256": "f579975663964d6fe8ebb80944f470d4dcbf956b27d14dd56bd34581a43be4d1",
+    "worktree_registry_sha256": "36965317dbc9966734745516463e6370695565a82de54e13fd3598172e4e2dcc",
+    "index_sha256": "b3dfaf9cebab2cadd9a2fbc7557fbe33c0764c899db511670f2cde008cf841e8",
+    "tracked_and_nonignored_untracked_paths": 19103,
+    "worktree_bytes_modes_symlinks_sha256": "f2af285115b23d5bc8e44888fc7adaf784c64cc6a02dd199b3e0da6539d80b73"
+  },
+  "source_history_boundary": {
+    "is_shallow": true,
+    "shallow_file_rows": 1,
+    "unique_source_cutoffs": [
+      "6e176bde5fc2d14241a863bb286a0d74aeafb6d9"
+    ],
+    "cutoffs_in_fixed_ancestry": [
+      "6e176bde5fc2d14241a863bb286a0d74aeafb6d9"
+    ],
+    "accepted_parent_truncations": []
+  },
+  "source_state_after": {
+    "head": "05051b84a18f29e8cafbfa6b5ac57981a2aee72f",
+    "head_tree": "a1b0dc9306802da1fc702fefc4b4aae5d7afd02e",
+    "refs_sha256": "f579975663964d6fe8ebb80944f470d4dcbf956b27d14dd56bd34581a43be4d1",
+    "worktree_registry_sha256": "36965317dbc9966734745516463e6370695565a82de54e13fd3598172e4e2dcc",
+    "index_sha256": "b3dfaf9cebab2cadd9a2fbc7557fbe33c0764c899db511670f2cde008cf841e8",
+    "tracked_and_nonignored_untracked_paths": 19103,
+    "worktree_bytes_modes_symlinks_sha256": "f2af285115b23d5bc8e44888fc7adaf784c64cc6a02dd199b3e0da6539d80b73"
+  },
+  "failures": {
+    "count": 2,
+    "samples": [
+      {
+        "category": "commit-map-coverage",
+        "detail": {
+          "missing": [
+            "ac60daaf47d2513b41eeff612f0e2758d33e186d"
+          ],
+          "unexpected": []
+        }
+      },
+      {
+        "category": "verification-error",
+        "detail": "commit map does not cover exactly fixed-source ancestry"
+      }
+    ]
+  },
+  "status": "fail",
+  "finished_at": "2026-10-28T05:20:39.456443+00:00"
+}

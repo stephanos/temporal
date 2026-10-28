@@ -1,0 +1,8 @@
+{
+  "fsck": "",
+  "bundle_verify": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/current-history.bundle is okay\nThe bundle contains this ref:\na92db0610f13c9f623b526f2aa721abda69aa84d refs/heads/umpire-current\nThe bundle records a complete history.\nThe bundle uses this hash algorithm: sha1\n",
+  "bundle_sha256": "83cb7e061e8fea284108d8380f517b2179b70a1fb8924147e90aae0aa7acec19",
+  "bundle_bytes": 3242800,
+  "bundle_heads": "a92db0610f13c9f623b526f2aa721abda69aa84d refs/heads/umpire-current\n",
+  "clone_only_cleanup": "Removed clone origin and stale shallow boundary; expired clone reflogs and pruned unreachable monorepo objects after independent proof."
+}

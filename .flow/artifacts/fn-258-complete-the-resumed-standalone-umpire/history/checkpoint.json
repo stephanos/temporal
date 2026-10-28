@@ -1,0 +1,19 @@
+{
+  "source_commit": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "export_commit": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+  "source_tip_zero_pruned": true,
+  "available_original_commits": 7261,
+  "retained_commits": 627,
+  "projection_neutral_pruned_commits": 6634,
+  "active_files": 1189,
+  "history_support_files": 30,
+  "bundle": "current-history.bundle",
+  "bundle_ref": "refs/heads/umpire-current",
+  "bundle_sha256": "83cb7e061e8fea284108d8380f517b2179b70a1fb8924147e90aae0aa7acec19",
+  "independent_recovery_checkout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-recovery",
+  "filtered_checkout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-export",
+  "reproduced_checkout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-repro",
+  "original_history_commit_maps_identical": true,
+  "all_source_worktree_preservation_captures_equal": true,
+  "recommended_join": "Merge this checkpoint as the second parent of current portable standalone tip using ours strategy; preserve exact portable first-parent tree; no standalone refs changed."
+}

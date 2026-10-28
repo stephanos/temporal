@@ -11,9 +11,172 @@
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-28T05:23:49.063160Z",
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "3557ff039d13578cea3c9c0724818790745b202d30b8ac1907f0a593927c8da4",
+      "backend": "claude",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-22c5d4709d62f2ba003f6dc80d211a05",
+            "classification": "introduced",
+            "findingId": "finding-22c5d4709d62f2ba003f6dc80d211a05",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-627f14fd0bc11d42474dbc263c4d5f68",
+            "classification": "introduced",
+            "findingId": "finding-627f14fd0bc11d42474dbc263c4d5f68",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-451c9146607e740f69e2563256a1ddfb",
+            "classification": "introduced",
+            "findingId": "finding-451c9146607e740f69e2563256a1ddfb",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4be905fd33a8eb38e8a479496144cc88",
+            "classification": "introduced",
+            "findingId": "finding-4be905fd33a8eb38e8a479496144cc88",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-f804b9e5176ddcb490c000cacdf6715c",
+            "classification": "introduced",
+            "findingId": "finding-f804b9e5176ddcb490c000cacdf6715c",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "05051b84a18f29e8cafbfa6b5ac57981a2aee72f",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 9168,
+      "output_sha256": "e22dee5a095bd4d135eaf7a6f7c1eeef21a792cbf5f0ae670cb9034c1ea16706",
+      "reservation_id": "ac73357c1bd04a1dbbaac756de9e1e84",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-28T05:18:57.408705Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "2dba5b4da528efb025006f92f7ccbb2cfd3c2b23507c3f86c736becbf63c9f7f",
+      "backend": "claude",
+      "base_sha": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-22c5d4709d62f2ba003f6dc80d211a05",
+            "classification": "introduced",
+            "findingId": "finding-22c5d4709d62f2ba003f6dc80d211a05",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-627f14fd0bc11d42474dbc263c4d5f68",
+            "classification": "introduced",
+            "findingId": "finding-627f14fd0bc11d42474dbc263c4d5f68",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-451c9146607e740f69e2563256a1ddfb",
+            "classification": "introduced",
+            "findingId": "finding-451c9146607e740f69e2563256a1ddfb",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4be905fd33a8eb38e8a479496144cc88",
+            "classification": "introduced",
+            "findingId": "finding-4be905fd33a8eb38e8a479496144cc88",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-f804b9e5176ddcb490c000cacdf6715c",
+            "classification": "introduced",
+            "findingId": "finding-f804b9e5176ddcb490c000cacdf6715c",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "05051b84a18f29e8cafbfa6b5ac57981a2aee72f",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 2554,
+      "output_sha256": "b607f6d661e6242cabb05a376a1eda9f218b640716e07f7a07e9d6589d3a5b51",
+      "reservation_id": "11c49deed0444ea6b64366e6a3986f07",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-28T05:23:49.052765Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-258-complete-the-resumed-standalone-umpire.md",
   "status": "open",
   "title": "Complete the resumed standalone Umpire migration",
@@ -28,5 +191,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-28T05:10:42.966716Z"
+  "updated_at": "2026-10-28T05:23:49.064260Z"
 }

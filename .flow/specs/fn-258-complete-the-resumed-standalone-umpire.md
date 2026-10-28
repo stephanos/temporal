@@ -63,7 +63,7 @@ Use the reviewed architecture and complete acceptance contract in MIGRATE.md and
 
 ## Execution
 
-Renew current inventory and candidate-transfer ownership; transfer integrated source delta and finish standalone portability; adapt actual consumers and source quick selection; prove exact pair with fresh-target standalone, generation, release/parity/required paired gates and disposable uncommitted Rust/Go red-green controls; then review cutover/publication and update current docs and milestones. Final proof and timings remain mandatory; historical receipts are provenance only.
+Renew current inventory and candidate-transfer ownership. Repeat the independently verified history projection at ac60daaf47 in a disposable clone, extend the original old-to-new map through every available source commit, and prove each retained snapshot/author/date/message/parent plus every pruned commit's projection neutrality. Join this verified history to the portable standalone without rewriting either branch or changing its admitted active tree; an aggregate source patch alone does not satisfy R2. Transfer the integrated source delta and finish standalone portability; adapt actual consumers and source quick selection; prove exact pair with fresh-target standalone, generation, release/parity/required paired gates and disposable uncommitted Rust/Go red-green controls; then review cutover/publication and update current docs and milestones. Final proof and timings remain mandatory; historical receipts are provenance only.
 
 ## Verification
 
@@ -72,3 +72,13 @@ Use MIGRATE.md Verification evidence in full, with exact source revisions, comma
 ## Conversation Evidence
 
 "complete the migration and then work on MILESTONES.md; when in doubt follow your own recommendations instead of asking for input. use sub agents to parellize work."
+
+## Interim ownership, proof expiry and publication
+
+Temporal's in-tree framework remains authoritative until destination access, publication, current-pair proof and final cutover are established. The refreshed standalone and consumer lane are recoverable source candidates; keep the consumer branch unmerged while a fetchable destination/CI pin is unavailable. Task 3 produces a reviewed, bundled consumer candidate and local-resolution evidence, not CI activation or root-source cutover. Commit its closure/evidence on `umpire`; retain its source branch for the final task's serial integration. Task 4 verifies that exact isolated pair before integration. Task 5 retains R4/R6 ownership of actual CI activation and source cutover; access failure leaves task 5 open and the migration incomplete.
+
+Any subsequent `model/umpire` product change expires the proof pair. Freeze a new immutable source manifest, renew candidate/ref observations, extend and independently verify the filtered history/map, repeat the task 2 adaptation inventory, adapt consumer interfaces and rerun every affected focused/final proof before cutover. Metadata-only Flow/doc changes do not alter source identity, but verify the framework tree matches the frozen manifest before reusing proof. Do not silently resume framework milestone edits against an expired migration checkpoint.
+
+## Decision Context
+
+Maintainability (plan review): duplication - canonical Go identity rewrites must be inventoried by an explicit per-path adaptation rule, regenerated descriptors and repeated freshness checks rather than guessed manual merges; structure - none identified.
