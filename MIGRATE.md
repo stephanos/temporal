@@ -1,16 +1,17 @@
 # Extract Umpire into temporalio/umpire
 
-Status: closed for now by the owner on 2026-10-27 under [fn-257](.flow/specs/fn-257-extract-the-standalone-umpire.md).
-Destination: <https://github.com/temporalio/umpire>. The owner requested migration;
-remote creation, push, release and source removal remain separate authorization boundaries.
-The spec is retired because migration is out of the current work scope; this is
-not a completed migration. Unfinished tasks are retired rather than accepted.
-Reopen or replace this spec before resuming validation and cutover.
-Preserve the source candidates and recovery evidence; current execution follows
-the fn-254 priority in [MILESTONES.md](MILESTONES.md).
-The 2026-10-26 CLI probe returned HTTP 401. The connected GitHub app also returned
-HTTP 403 because `temporalio` requires SAML SSO authorization for that connection;
-destination contents and permissions remain unknown.
+Status: resumed by the owner on 2026-10-27 under [fn-258](.flow/specs/fn-258-complete-the-resumed-standalone-umpire.md),
+replacing retired [fn-257](.flow/specs/fn-257-extract-the-standalone-umpire.md).
+Destination: <https://github.com/temporalio/umpire>. Migration remains unfinished;
+remote publication and source cutover require their recorded access and proof gates.
+The renewed instruction supersedes the earlier stop. Preserve original inventories,
+source candidates and recovery evidence. Freeze current source `ac60daaf47` separately:
+161 framework files changed since the original `c88fdc5506` inventory. Refresh standalone
+`f7b42ce` and adapt consumer `91547f57ec` before current-pair validation.
+After migration, return to the fn-254 priority in [MILESTONES.md](MILESTONES.md).
+The connected GitHub app was rechecked on 2026-10-27 and returned HTTP 422 because
+`temporalio` SAML SSO policy blocks this connection. Destination contents and
+permissions remain unknown; this does not prevent local preparation and validation.
 
 The local history export is verified at `cf8bec4d6`: 1,178 selected files, 581
 retained commits and projection-neutral pruning of 6,568 other available commits.

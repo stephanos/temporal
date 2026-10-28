@@ -4,9 +4,10 @@ The owner's overview of open work, execution order and blockers.
 
 As of 2026-10-27.
 
-The owner requested wrapping current work and stopping. Execution is paused after
-the retained checkpoints; resume requires a new owner instruction. Open Flow
-tasks and unvalidated candidates remain open.
+The owner resumed work on 2026-10-27: complete repository migration first, then
+continue this backlog. [fn-258](.flow/specs/fn-258-complete-the-resumed-standalone-umpire.md)
+replaces retired fn-257 and retains its completed export evidence. Open Flow tasks
+and unvalidated candidates remain open.
 
 The frozen `c5189bd35d` candidate passed the scheduled source-only standalone
 gate: all 17 stages, with 903 tests discovered, 900 executed and three ignored.
@@ -32,10 +33,12 @@ Umpire uses the Rust workspace described in [model/README.md](model/README.md).
 Its guest runs as stock WASM in a pure Go host.
 The Scala tree under `model/archived/` is frozen reference material.
 
-The owner closed repository extraction (**fn-257**) for now on 2026-10-27.
-Migration remains unfinished; preserve its source candidates and recovery evidence
-in [MIGRATE.md](MIGRATE.md) and return to the backlog order below.
-The validation hold is lifted, so focused checks may resume.
+Repository extraction resumes as **fn-258**, ahead of the backlog below. The current
+framework has 161 changed files since the original export checkpoint; refresh the
+standalone candidate and adapt actual consumers before current-pair proof and cutover.
+Preserve source candidates and recovery evidence in [MIGRATE.md](MIGRATE.md).
+Validation may run. GitHub destination inspection remains blocked by SAML SSO; local
+work proceeds while publication remains unverified.
 
 Backlog order remains **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
