@@ -380,6 +380,19 @@ pub(super) fn output(bytes: &[u8]) -> io::Result<Vec<u8>> {
     Ok(output)
 }
 
+#[derive(Default)]
+pub(super) struct OutputRelay;
+
+impl OutputRelay {
+    pub(super) fn feed(&mut self, _bytes: &[u8], _output: &mut dyn std::io::Write) -> io::Result<()> {
+        Ok(())
+    }
+
+    pub(super) fn finish(&mut self, _output: &mut dyn std::io::Write) -> io::Result<()> {
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -395,6 +408,32 @@ mod tests {
                 bytes
             })
             .collect()
+    }
+
+    #[test]
+    fn diagnostic_relay_emits_complete_records_before_the_process_finishes() -> io::Result<()> {
+        let bytes = stream(&[json!({"Action":"output","Package":"p","Output":"live diagnostic\n"})]);
+        let mut relay = OutputRelay::default();
+        let mut output = Vec::new();
+        relay.feed(&bytes[..5], &mut output)?;
+        assert!(output.is_empty());
+        relay.feed(&bytes[5..], &mut output)?;
+        assert_eq!(output, b"live diagnostic\n");
+        relay.finish(&mut output)?;
+        assert_eq!(output, b"live diagnostic\n");
+        Ok(())
+    }
+
+    #[test]
+    fn diagnostic_relay_preserves_malformed_and_truncated_raw_bytes() -> io::Result<()> {
+        for bytes in [b"not JSON\nsecond line".as_slice(), b"unfinished record"] {
+            let mut relay = OutputRelay::default();
+            let mut output = Vec::new();
+            relay.feed(bytes, &mut output)?;
+            relay.finish(&mut output)?;
+            assert_eq!(output, bytes);
+        }
+        Ok(())
     }
 
     fn list() -> Vec<Value> {
