@@ -167,5 +167,11 @@
     "model/dev/xtask/src/script_control_support.rs": "2942613004631000935da382589ae649bcc0e5ab"
   },
   "verification_scope": "Static Git path/blob inspection and current/candidate source analysis; no runtime/build/check/acceptance claim",
-  "dirty_source_assembly": "Preserve; do not use checkout as a mutable integration base"
+  "dirty_source_assembly": "Preserve; do not use checkout as a mutable integration base",
+  "review16_carry_forward": {
+    "finding": "Standalone TLC shell bridge can compile a second xtask-bootstrap closure despite local native tools already built",
+    "disposition": "Existing task15 wrapper retirement must invoke already-built native fetch-tlc under clean env; task8 measures final cost",
+    "review": "../task16/review-60f1c762/merged.md",
+    "nonblocking_task16": true
+  }
 }
