@@ -5,6 +5,10 @@ pub(super) fn is_go_test(_command: &Command) -> bool {
     false
 }
 
+pub(super) fn environment(_command: &Command) -> io::Result<Command> {
+    Err(io::Error::other("Go environment command transform not implemented"))
+}
+
 pub(super) fn inventory(_command: &Command) -> io::Result<Command> {
     Err(io::Error::other("Go inventory command transform not implemented"))
 }
@@ -66,6 +70,21 @@ mod tests {
                 ]
             );
         }
+        Ok(())
+    }
+
+    #[test]
+    fn environment_query_preserves_module_and_complete_command_context() -> io::Result<()> {
+        let original = command("/fixture/bin/mise", "/module with spaces");
+        let query = environment(&original)?;
+        assert_eq!(query.get_program(), original.get_program());
+        assert_eq!(query.get_current_dir(), original.get_current_dir());
+        assert_eq!(query.get_envs().collect::<Vec<_>>(), original.get_envs().collect::<Vec<_>>());
+        assert_eq!(
+            query.get_args().collect::<Vec<_>>(),
+            ["exec", "--", "go", "-C", "/module with spaces", "env", "-json", "GOFLAGS"]
+        );
+        assert!(environment(&Command::new("/bin/sh")).is_err());
         Ok(())
     }
 
