@@ -150,7 +150,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
 | fn-254.12 | ⬜ todo | Budget parser/retry candidate retained; consume .17 Rust/TLC receipts, add actual Go-host counts, then admit tables against final .15/.16 interfaces. Tables remain uncalibrated and refuse budget enforcement until admitted (R8) |
 | fn-254.15 | ⬜ todo | Integrated tree has 29 active shell paths; retained source candidate reduces these to two bootstraps/four controls. Adapt ports to .17 supervision and final .16 interfaces, finish native controls and validate (R7) |
-| fn-254.16 | ⛔ blocked | Focused and real provider controls pass on frozen 60f1c762. Full standalone remains unaccepted; after ≥50 GiB headroom on the actual child filesystem, renew proof/review/integration. [Retained validation state](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/session-wrap-20261027/resource-hold-draft.json) (R7) |
+| fn-254.16 | 🔄 in progress | Resumed on 2026-10-28: frozen 60f1c762 and retained proof-tool hashes verified; both source and actual child filesystems admitted above 50 GiB. Preparing a fresh standalone proof with both filesystems monitored at the unchanged 30 GiB floor; review, closure and integration remain open. [Earlier retained state](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/session-wrap-20261027/resource-hold-draft.json) (R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 
