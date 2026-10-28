@@ -2,6 +2,8 @@
 #[cfg(test)]
 mod go_tests;
 mod tlc_observations;
+mod count_evidence;
+pub use count_evidence::{AuthorityRef, CountEvidence, MetricEvidence, NoWorkReason};
 
 use serde::{Deserialize, Serialize};
 use std::{
