@@ -137,7 +137,16 @@ pub fn scheduled(name: &str, run: impl FnMut() -> io::Result<i32>) -> io::Result
 }
 
 pub(super) fn skipped(name: &str, reason: &str) -> io::Result<i32> {
-    scheduled_with(name, || Ok(0), Some(reason))
+    scheduled_with(
+        name,
+        || {
+            super::count_dispatch::Contract::not_applicable(
+                work_counts::NoWorkReason::SkippedByMode,
+            )
+            .run(|| Ok(0))
+        },
+        Some(reason),
+    )
 }
 
 fn scheduled_with(
@@ -173,6 +182,12 @@ fn scheduled_with(
         observations.parent().ok_or_else(|| io::Error::other("missing work parent"))?,
     )?;
     fs::create_dir(&observations)?;
+    let receipt_root = if scope.is_empty() {
+        &directory
+    } else {
+        directory.parent().ok_or_else(|| io::Error::other("missing scoped receipt root"))?
+    };
+    umpire_backend_process::work::admit_stage(receipt_root, &scope, name)?;
     let attempts_directory = directory
         .parent()
         .filter(|_| !scope.is_empty())
@@ -194,13 +209,14 @@ fn scheduled_with(
         .as_ref()
         .map_err(|error| io::Error::other(error.to_string()))
         .and_then(|attempts| {
-            work_counts::collect_selected(&observations, &attempts[0].event_names())
+            work_counts::collect_selected(&observations, &attempts[0].event_names())?;
+            work_counts::collect_evidenced(&observations)
         })
-        .and_then(|counts| {
-            if name == "tests" && skipped.is_none() && counts.executed.is_none() {
+        .and_then(|observation| {
+            if name == "tests" && skipped.is_none() && observation.counts.executed.is_none() {
                 return Err(io::Error::other("missing test producer observations"));
             }
-            Ok(counts)
+            Ok(observation)
         });
     let count_error = counts.as_ref().err().map(ToString::to_string);
     let mut result = match result {
@@ -218,10 +234,14 @@ fn scheduled_with(
         "error": result.as_ref().err().map(ToString::to_string),
         "seconds": started.elapsed().as_secs_f64(),
         "attempt_event_manifests": attempts.ok(),
-        "child_count_receipts": counts.as_ref().ok().map(|counts| &counts.child_receipts),
-        "counts": counts.ok(), "count_error": count_error,
+        "child_count_receipts": counts.as_ref().ok().map(|observation| &observation.counts.child_receipts),
+        "counts": counts.as_ref().ok().map(|observation| &observation.counts), "count_error": count_error,
         "count_authority": "exclusive-stage",
     });
+    if let Ok(observation) = &counts {
+        receipt["count_evidence"] = serde_json::to_value(&observation.evidence)?;
+        receipt["count_evidence_authority"] = serde_json::to_value(&observation.authority)?;
+    }
     if let Err(error) = work_counts::validate_receipt(&receipt) {
         receipt["count_error"] = error.to_string().into();
         if result.as_ref().is_ok_and(|code| *code == 0) {
@@ -303,7 +323,22 @@ pub(super) fn collect(directory: &Path, expected: &[String], success: bool) -> i
                         ));
                     }
                 }
-                match work_counts::collect(&directory.join("work").join(name)) {
+                let observed = if value.get("count_evidence").is_some() {
+                    let observed =
+                        work_counts::collect_evidenced(&directory.join("work").join(name))?;
+                    if value["count_evidence"] != serde_json::to_value(&observed.evidence)?
+                        || value["count_evidence_authority"]
+                            != serde_json::to_value(&observed.authority)?
+                    {
+                        return Err(io::Error::other(
+                            "count evidence differs from producer authority",
+                        ));
+                    }
+                    Ok(observed.counts)
+                } else {
+                    work_counts::collect(&directory.join("work").join(name))
+                };
+                match observed {
                     Ok(observed) if value["counts"] != serde_json::to_value(&observed)? => {
                         return Err(io::Error::other(
                             "stage counts differ from attempt observations",
@@ -733,6 +768,7 @@ mod execution_controls {
 #[cfg(test)]
 mod receipt_controls {
     use super::*;
+    use std::ffi::OsStr;
 
     #[test]
     fn attempt_manifest_child() -> io::Result<()> {
@@ -743,6 +779,24 @@ mod receipt_controls {
             Ok(if mode == "failure" { 37 } else { 0 })
         })?;
         assert_eq!(code, if mode == "failure" { 37 } else { 0 });
+        let root = PathBuf::from(
+            env::var_os("UMPIRE_GATE_RECEIPTS")
+                .ok_or_else(|| io::Error::other("missing control root"))?,
+        );
+        let error = umpire_backend_process::work::admit_stage(&root, "framework", "other")
+            .expect_err("a process rebound its admitted stage");
+        assert!(error.to_string().contains("cannot be rebound"));
+        let mut child = Command::new("/bin/true");
+        umpire_backend_process::work::configure_scope(&mut child);
+        let child_scope = child.get_envs().collect::<std::collections::BTreeMap<_, _>>();
+        assert_eq!(
+            child_scope.get(OsStr::new("UMPIRE_GATE_STAGE")),
+            Some(&Some(OsStr::new("tests")))
+        );
+        assert_eq!(
+            child_scope.get(OsStr::new("UMPIRE_GATE_SCOPE")),
+            Some(&Some(OsStr::new("framework")))
+        );
         Ok(())
     }
 

@@ -1,5 +1,5 @@
 //! Applicability contracts declared by the native dispatch branches.
-use serde::{Deserialize, Serialize};
+pub use super::work_counts::NoWorkReason;
 use std::{
     io,
     sync::atomic::{AtomicU64, Ordering},
@@ -8,27 +8,6 @@ use umpire_backend_process::work;
 
 static NEXT_DISPATCH: AtomicU64 = AtomicU64::new(0);
 
-/// Why one metric cannot apply to this native dispatch.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum NoWorkReason {
-    /// Native source or metadata scanning.
-    NativeScan,
-    /// Compilation or documentation without test execution.
-    CompileOnly,
-    /// Source formatting.
-    Formatting,
-    /// Protobuf generation or freshness checks.
-    ProtobufGeneration,
-    /// Guest compilation or freshness checks.
-    GuestBuild,
-    /// Provisioning admitted tools.
-    ToolProvisioning,
-    /// Work belongs exclusively to separately collected child stages.
-    ChildExclusive,
-    /// The current mode deliberately skips the stage.
-    SkippedByMode,
-}
 impl NoWorkReason {
     const fn wire(self) -> &'static str {
         match self {
@@ -124,7 +103,11 @@ impl Contract {
     ) -> Result<i32, E> {
         record("dispatch-begin", &format!("{id}\t{}\t{}", self.tests.wire(), self.tlc.wire()))?;
         let code = body()?;
-        record("dispatch-finish", &format!("{id}\t{code}"))?;
+        if let Err(error) = record("dispatch-finish", &format!("{id}\t{code}"))
+            && code == 0
+        {
+            return Err(error.into());
+        }
         Ok(code)
     }
 }
@@ -210,6 +193,20 @@ mod tests {
             )
             .unwrap_err();
         assert_eq!(error.to_string(), "finish refused");
+        let code = Contract::observed()
+            .run_recorded(
+                "dispatch-42-12",
+                |kind, _| {
+                    if kind == "dispatch-finish" {
+                        Err(io::Error::other("finish refused"))
+                    } else {
+                        Ok(())
+                    }
+                },
+                || Ok::<_, io::Error>(37),
+            )
+            .unwrap();
+        assert_eq!(code, 37, "recording failure replaced the original failed payload status");
     }
 
     #[test]

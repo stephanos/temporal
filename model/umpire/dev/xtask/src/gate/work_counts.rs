@@ -1,11 +1,12 @@
 //! Counts observed by native runners, without expected-count substitution.
-mod count_evidence;
 mod count_authority;
+mod count_evidence;
 #[cfg(test)]
 mod go_tests;
 mod tlc_observations;
-pub use count_evidence::{AuthorityRef, CountEvidence, MetricEvidence, NoWorkReason};
 pub use count_authority::{CountAuthority, ObservedWork, collect_evidenced};
+pub use count_evidence::{AuthorityRef, CountEvidence, MetricEvidence, NoWorkReason};
+pub use umpire_backend_process::work::configure_scope;
 
 use serde::{Deserialize, Serialize};
 use std::{
@@ -263,7 +264,7 @@ fn validate_child(child: &serde_json::Value) -> io::Result<()> {
 
 /// Refuse incomplete, duplicated or malformed producer records.
 pub fn collect(directory: &Path) -> io::Result<WorkCounts> {
-    let (mut counts, tlc) = collect_paths(&event_paths(directory)?)?;
+    let (mut counts, tlc, _) = collect_paths(&event_paths(directory)?)?;
     (counts.tlc_launches, counts.tlc_configurations) = tlc.finish(directory)?;
     Ok(counts)
 }
@@ -288,22 +289,23 @@ pub(super) fn collect_selected(directory: &Path, selected: &[String]) -> io::Res
                 .ok_or_else(|| io::Error::other("unknown selected work observation"))
         })
         .collect::<io::Result<Vec<_>>>()?;
-    let (_, all_tlc) = collect_paths(&paths)?;
+    let (_, all_tlc, _) = collect_paths(&paths)?;
     all_tlc.finish(directory)?;
-    let (mut counts, tlc) = collect_paths(&selected_paths)?;
+    let (mut counts, tlc, _) = collect_paths(&selected_paths)?;
     (counts.tlc_launches, counts.tlc_configurations) = tlc.finish_selected(directory, &all_tlc)?;
     Ok(counts)
 }
 
 fn collect_paths(
     paths: &[std::path::PathBuf],
-) -> io::Result<(WorkCounts, tlc_observations::Collector)> {
+) -> io::Result<(WorkCounts, tlc_observations::Collector, count_authority::Trace)> {
     let mut counts = WorkCounts::default();
     let mut tests = [0; 4];
     let mut observed_tests = false;
     let mut test_started = BTreeSet::new();
     let mut test_finished = BTreeSet::new();
     let mut tlc = tlc_observations::Collector::default();
+    let mut trace = count_authority::Trace::default();
     let mut passed = BTreeMap::new();
     for path in paths {
         let record = fs::read_to_string(path)?;
@@ -312,6 +314,9 @@ fn collect_paths(
             .ok_or_else(|| io::Error::other("partial work observation"))?
             .split('\t')
             .collect::<Vec<_>>();
+        if trace.ingest(&fields)? {
+            continue;
+        }
         match fields.as_slice() {
             ["1", "tests-begin", id] if valid_id(id) => {
                 if !test_started.insert(id.to_string()) {
@@ -362,6 +367,7 @@ fn collect_paths(
     if test_started != test_finished {
         return Err(io::Error::other("missing test producer or completion"));
     }
+    trace.validate(&test_started)?;
     if observed_tests {
         counts.discovered = Some(tests[0]);
         counts.executed = Some(tests[1]);
@@ -378,7 +384,7 @@ fn collect_paths(
     for (name, digest) in parent_passes {
         tlc.record_pass(name, digest)?;
     }
-    Ok((counts, tlc))
+    Ok((counts, tlc, trace))
 }
 
 #[derive(Default)]

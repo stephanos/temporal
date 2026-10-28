@@ -16,6 +16,7 @@ pub(crate) mod timing;
 pub(crate) mod timing_controls;
 
 fn admit_command(name: &str, command: &mut Command) -> io::Result<()> {
+    work_counts::configure_scope(command);
     let caller = std::env::current_dir()?;
     let home = umpire_guest_driver::context::cargo_home(&caller).map_err(io::Error::other)?;
     command

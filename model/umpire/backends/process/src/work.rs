@@ -3,10 +3,52 @@ use std::{
     env, fs,
     io::{self, Write},
     path::PathBuf,
-    sync::atomic::{AtomicU64, Ordering},
+    sync::{
+        OnceLock,
+        atomic::{AtomicU64, Ordering},
+    },
 };
 
 static NEXT: AtomicU64 = AtomicU64::new(0);
+static STAGE: OnceLock<StageScope> = OnceLock::new();
+
+#[derive(PartialEq, Eq)]
+struct StageScope {
+    root: PathBuf,
+    scope: String,
+    stage: String,
+}
+
+fn identifier(value: &str) -> bool {
+    value.bytes().all(|byte| byte.is_ascii_alphanumeric() || byte == b'-')
+}
+
+/// Freeze the scheduler's explicit scope without mutating process environment.
+/// A native callback process owns exactly one stage; later rebinding is refused.
+pub fn admit_stage(root: &std::path::Path, scope: &str, stage: &str) -> io::Result<()> {
+    if !root.is_absolute() || stage.is_empty() || !identifier(stage) || !identifier(scope) {
+        return Err(io::Error::other("invalid explicit work observation scope"));
+    }
+    let admitted =
+        StageScope { root: root.canonicalize()?, scope: scope.into(), stage: stage.into() };
+    let frozen = STAGE.get_or_init(|| admitted);
+    if frozen.root != root.canonicalize()? || frozen.scope != scope || frozen.stage != stage {
+        return Err(io::Error::other("work observation scope cannot be rebound"));
+    }
+    directory()?.ok_or_else(|| io::Error::other("missing explicit observation scope"))?;
+    Ok(())
+}
+
+/// Carry an explicitly admitted native stage into its ordinary child commands.
+/// Clean child constructors may subsequently remove these variables as usual.
+pub fn configure_scope(command: &mut std::process::Command) {
+    if let Some(admitted) = STAGE.get() {
+        command
+            .env("UMPIRE_GATE_RECEIPTS", &admitted.root)
+            .env("UMPIRE_GATE_SCOPE", &admitted.scope)
+            .env("UMPIRE_GATE_STAGE", &admitted.stage);
+    }
+}
 /// Maximum completed producer events in one stage.
 pub const MAX_EVENTS: u64 = 100_000;
 /// Maximum bytes in one producer observation.
@@ -14,6 +56,23 @@ pub const MAX_EVENT_BYTES: usize = 16_384;
 
 /// Resolve only the current stage's already-created observation directory.
 pub fn directory() -> io::Result<Option<PathBuf>> {
+    if let Some(admitted) = STAGE.get() {
+        if env::var_os("UMPIRE_GATE_RECEIPTS").is_some_and(|root| {
+            !PathBuf::from(root).canonicalize().is_ok_and(|root| root == admitted.root)
+        }) || env::var_os("UMPIRE_GATE_STAGE")
+            .is_some_and(|stage| stage != admitted.stage.as_str())
+            || env::var_os("UMPIRE_GATE_SCOPE")
+                .is_some_and(|scope| scope != admitted.scope.as_str())
+        {
+            return Err(io::Error::other("environment conflicts with admitted observation scope"));
+        }
+        let directory = admitted.root.join("work").join(&admitted.scope).join(&admitted.stage);
+        let metadata = fs::symlink_metadata(&directory)?;
+        if !metadata.is_dir() || metadata.is_symlink() {
+            return Err(io::Error::other("invalid admitted observation directory"));
+        }
+        return Ok(Some(directory));
+    }
     let Some(root) = env::var_os("UMPIRE_GATE_RECEIPTS") else { return Ok(None) };
     let Some(stage) = env::var_os("UMPIRE_GATE_STAGE") else {
         return Err(io::Error::other("work observation scope lacks stage"));

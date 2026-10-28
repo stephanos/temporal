@@ -15,8 +15,8 @@ use umpire_guest_driver::context::{ToolRoot, cargo_home};
 pub mod admission;
 mod boundary;
 mod budget_attempts;
-mod budget_coordinator;
 mod budget_context;
+mod budget_coordinator;
 mod budgets;
 pub mod count_dispatch;
 mod go_command;
@@ -56,6 +56,7 @@ impl Gate {
     }
     fn command(&self, program: impl AsRef<OsStr>) -> Command {
         let mut command = Command::new(program);
+        umpire_backend_process::work::configure_scope(&mut command);
         command
             .current_dir(&self.root)
             .env("UMPIRE_TOOL_ROOT", &self.root)

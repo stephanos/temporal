@@ -1328,7 +1328,31 @@ fn scheduled_stage_atomically_commits_success_failure_and_scanner_error_receipts
                     .unwrap();
             assert_eq!(manifest, attempts[0]);
             assert_eq!(manifest["ordinal"], 1);
-            assert!(manifest["events"].as_array().unwrap().is_empty());
+            let events = manifest["events"].as_array().unwrap();
+            assert_eq!(events.len(), if expected.is_some() { 2 } else { 1 });
+            let records = events
+                .iter()
+                .map(|event| {
+                    fs::read_to_string(
+                        receipts
+                            .path()
+                            .join("work")
+                            .join(stage)
+                            .join(event["name"].as_str().unwrap()),
+                    )
+                    .unwrap()
+                })
+                .collect::<Vec<_>>();
+            assert!(records.iter().any(|record| record.contains("\tdispatch-begin\t")));
+            assert_eq!(
+                records.iter().any(|record| record.contains("\tdispatch-finish\t")),
+                expected.is_some()
+            );
+            if expected == Some(0) {
+                assert_eq!(receipt["count_evidence"]["tests"]["status"], "not_applicable");
+                assert_eq!(receipt["count_evidence"]["tests"]["reason"], "formatting");
+                assert!(receipt["counts"]["executed"].is_null());
+            }
             if expected.is_none() {
                 fs::remove_file(fixture.root.join("planted")).unwrap();
             }
@@ -1388,7 +1412,10 @@ fn concurrent_duplicate_stage_claim_runs_leaf_exactly_once_and_preserves_receipt
         let first = finish_owned(first);
         let second = finish_owned(second);
         let statuses = [first.status.code().unwrap(), second.status.code().unwrap()];
-        assert!(statuses == [0, 1] || statuses == [1, 0], "{statuses:?}");
+        assert!(
+            statuses == [0, 1] || statuses == [1, 0],
+            "{statuses:?}; first={first:?}; second={second:?}"
+        );
         assert_eq!(fixture.labels(), ["fmt"]);
         let bytes = fs::read(receipts.path().join("fmt.json")).unwrap();
         let receipt: serde_json::Value = serde_json::from_slice(&bytes).unwrap();

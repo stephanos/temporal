@@ -710,7 +710,7 @@ mod tests {
     }
 
     fn stages() -> io::Result<Vec<StageId>> {
-        ["framework/a", "framework/b", "temporal/c", "temporal/standalone"]
+        ["framework/a", "framework/b", "consumer/c", "consumer/standalone"]
             .into_iter()
             .map(StageId::new)
             .collect()
