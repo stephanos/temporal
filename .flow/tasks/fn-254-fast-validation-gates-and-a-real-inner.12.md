@@ -11,7 +11,7 @@ Make the fast-gate goal enforceable for every current and future stage (spec R8)
 Run after .15's native timer/control port, which also incorporates .16's provider changes. Enforce budgets against those final stage interfaces.
 
 **Files:** `model/umpire/dev/gate/budgets.toml` and `model/dev/gate/budgets.toml` (the two locations selected by .9), the framework/Temporal native gate timing and receipts from .17/.15, and their Rust controls.
-**Touches:** [model/umpire/dev/gate/budgets.toml, model/dev/gate/budgets.toml, model/umpire/dev/xtask/**, model/dev/xtask/**, model/umpire/README.md, model/README.md, Makefile]
+**Touches:** [model/umpire/dev/gate/budgets.toml, model/dev/gate/budgets.toml, model/umpire/dev/xtask/**, model/dev/xtask/**, model/umpire/backends/process/src/work.rs, model/umpire/backends/process/src/support.rs, model/umpire/backends/process/src/lib.rs, model/umpire/backends/tlc/src/runner.rs, model/umpire/backends/tlc/src/runner/**, model/umpire/README.md, model/README.md, model/umpire/dev/gate/BUDGETS.md, model/dev/gate/BUDGETS.md, .plans/UMPIRE_MODULES.md, Makefile]
 
 ### Approach
 - Use .1's historical timing references as initial estimates, then calibrate against the optimized stages and actual counts produced by .2/.3/.4/.5/.6/.11. Historical host/workload differences remain explicit; no fresh pre-optimization timing campaign is required. Count budgets use actual discovered/executed inventories and launch counts, not historical estimates.
@@ -28,6 +28,13 @@ Run after .15's native timer/control port, which also incorporates .16's provide
 - `model/design/gate-speed.md` (.1 baseline)
 - `model/design/framework-gate.md` (.9 layout)
 
+### Owner validation cadence (2026-10-25)
+
+Keep stage registration/count/timing/retry controls now. Derive actual count bounds and preserve deferred full-gate/final timing obligations for .8. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
+
+### Producer ownership decision (2026-10-28)
+
+Keep the existing process supervisor and stage DAG. Add observation instrumentation at the existing process/TLC invocation boundary, and closed typed protocol-fixture provenance using the existing clean spawning path. Legacy unconfirmed starts remain unknown. Preserve all negative controls and Model semantics. The canonical six nullable WorkCounts fields remain owned by the gate collector; explicit applicability evidence distinguishes completed native dispatch branches from missing observers. Only actual producers and verified fixture provenance may support admitted bounds.
 ## Owner validation cadence (2026-10-25)
 
 Keep stage registration/count/timing/retry controls now. Derive actual count bounds and preserve deferred full-gate/final timing obligations for .8. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.

@@ -1,4 +1,7 @@
 //! Counts observed by native runners, without expected-count substitution.
+#[cfg(test)]
+mod go_tests;
+
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeMap, BTreeSet, VecDeque},
