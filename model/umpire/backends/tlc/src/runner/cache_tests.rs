@@ -1,5 +1,5 @@
 use super::*;
-use std::{os::unix::fs::PermissionsExt, process::Command, sync::Arc, time::Duration};
+use std::{process::Command, sync::Arc, time::Duration};
 use umpire_tla::Type;
 
 fn owner() -> Result<Scratch, Refusal> {
@@ -69,6 +69,10 @@ fn manifest_integrity_limits_and_interrupted_publication() -> Result<(), Refusal
         assert!(bundle(scratch.path()).load().is_err());
         abandoned.finish(Ok(()))
     })();
+    let result = result.and_then(|()| {
+        fixture::complete(scratch.path())?;
+        Ok(())
+    });
     scratch.finish(result)
 }
 const VERSION_MARKER: &str = cache::VERSION;
@@ -115,6 +119,10 @@ fn concurrent_writers_and_readers_see_only_complete_bundles() -> Result<(), Refu
             Ok(())
         })
     };
+    let result = result.and_then(|()| {
+        fixture::complete(scratch.path())?;
+        Ok(())
+    });
     scratch.finish(result)
 }
 
@@ -125,6 +133,14 @@ fn backend(root: &Path) -> Tlc {
         jar: root.join("tlc.jar"),
         limits: Limits::default(),
         property_workers: 2,
+        origin: if root.join("fixture-test").exists() {
+            InvocationOrigin::ProtocolFixture(
+                fixture::invocation(root, &fixture::Case::Cache)
+                    .unwrap_or_else(|error| panic!("{error}")),
+            )
+        } else {
+            InvocationOrigin::Unclassified
+        },
     }
 }
 fn schema() -> Schema {
@@ -504,58 +520,7 @@ fn fake_backend(root: &Path) -> Result<(), Refusal> {
     fs::write(root.join("tlc.jar"), "jar identity")?;
     fs::write(root.join("mode"), "verified")?;
     fs::write(root.join("java-version"), "fake-java-v1")?;
-    fs::write(
-        root.join("java"),
-        r#"#!/bin/bash
-set -eu
-base=$(dirname "$0")
-if [ "${1:-}" = '-version' ]; then
- if [ "$(cat "$base/mode")" = 'identity-failure' ]; then exit 1; fi
- cat "$base/java-version"; echo version >> "$base/identities"; exit 0
-fi
-config=''
-dump=''
-while [ "$#" -gt 0 ]; do
- case "$1" in
- -dump) shift; dump=$1 ;;
- -config) shift; config=$1 ;;
- esac
- shift
-done
-echo run >> "$base/runs"
-mode=$(cat "$base/mode")
-if [ "$mode" = 'failure' ]; then exit 1; fi
-if [ "$mode" = 'module-failure' ] && /usr/bin/grep -q 'Progress_' "$config"; then exit 1; fi
-message() { printf '@!@!@STARTMSG %s:%s @!@!@\n%s\n@!@!@ENDMSG %s @!@!@\n' "$1" "$2" "$3" "$1"; }
-if [ "$mode" = 'module-failure' ]; then
- : > "$dump"
- message 2199 0 '0 states generated, 0 distinct states found, 0 states left on queue.'
-else
- printf 'State 1:\nx = TRUE\n' > "$dump"
- message 2199 0 '1 states generated, 1 distinct states found, 0 states left on queue.'
-fi
-if [ "$mode" = 'bad-dump' ]; then printf 'State 1:\nx = 99\n' > "$dump"; fi
-if [ "$mode" = 'evaluation' ] && /usr/bin/grep -q 'INVARIANT A' "$config"; then
- message 2111 1 $'Evaluating invariant A failed.\nOverflow'
- exit 1
-fi
-if [ "$mode" = 'refuted' ] && /usr/bin/grep -q 'INVARIANT A' "$config"; then
- message 2110 1 'Invariant A is violated.'
- message 2217 4 $'1: <Initial predicate>\nx = TRUE'
- message 2186 0 Finished
- exit 12
-fi
-if [ "$mode" = 'mixed' ] && /usr/bin/grep -q 'INVARIANT B' "$config"; then
- message 2110 1 'Invariant B is violated.'
- message 2217 4 $'1: <Initial predicate>\nx = TRUE'
- message 2186 0 Finished
- exit 12
-fi
-message 2193 0 'Model checking completed. No error has been found.'
-message 2186 0 Finished
-"#,
-    )?;
-    fs::set_permissions(root.join("java"), fs::Permissions::from_mode(0o700))?;
+    fixture::install(root, &fixture::Case::Cache)?;
     Ok(())
 }
 
@@ -615,6 +580,10 @@ fn populated_cache_hits_and_authoritative_disable_runs_fresh() -> Result<(), Ref
         assert_eq!(fs::read_to_string(scratch.path().join("identities"))?.lines().count(), 4);
         Ok(())
     })();
+    let result = result.and_then(|()| {
+        fixture::complete(scratch.path())?;
+        Ok(())
+    });
     scratch.finish(result)
 }
 
@@ -639,6 +608,10 @@ fn verified_configuration_publishes_despite_refuted_sibling() -> Result<(), Refu
         assert_eq!(fs::read_dir(cache_root.join("quick-tlc-v1"))?.count(), 1);
         Ok(())
     })();
+    let result = result.and_then(|()| {
+        fixture::complete(scratch.path())?;
+        Ok(())
+    });
     scratch.finish(result)
 }
 
@@ -662,6 +635,10 @@ fn identity_refreshes_between_module_calls_and_is_shared_between_configurations(
         )?;
         Ok(())
     })();
+    let result = result.and_then(|()| {
+        fixture::complete(scratch.path())?;
+        Ok(())
+    });
     scratch.finish(result)
 }
 
@@ -689,6 +666,10 @@ fn cache_root_refusal_reports_its_cause_without_following_symlinks() -> Result<(
         assert_eq!(runs(scratch.path()), 2);
         Ok(())
     })();
+    let result = result.and_then(|()| {
+        fixture::complete(scratch.path())?;
+        Ok(())
+    });
     scratch.finish(result)
 }
 
@@ -720,6 +701,10 @@ fn failures_refutations_and_incomplete_modules_never_publish() -> Result<(), Ref
         }
         Ok(())
     })();
+    let result = result.and_then(|()| {
+        fixture::complete(scratch.path())?;
+        Ok(())
+    });
     scratch.finish(result)
 }
 

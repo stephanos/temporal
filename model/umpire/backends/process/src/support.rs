@@ -457,6 +457,45 @@ pub fn run_process_cancelled_with_policy(
     cancelled: &AtomicBool,
     policy: DescendantPolicy,
 ) -> Result<(ExitStatus, String), ProcessFailure> {
+    run_process_inner(command, directory, label, limits, dump, cancelled, policy, None)
+}
+
+/// Execute a backend-admitted invocation with explicit accounting provenance.
+pub fn run_process_observed(
+    command: &mut Command,
+    directory: &Path,
+    label: &str,
+    limits: Limits,
+    dump: Option<&Path>,
+    invocation: &crate::work::TlcInvocation,
+) -> Result<(ExitStatus, String), ProcessFailure> {
+    run_process_inner(
+        command,
+        directory,
+        label,
+        limits,
+        dump,
+        &AtomicBool::new(false),
+        DescendantPolicy::Checker,
+        Some(invocation),
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn run_process_inner(
+    command: &mut Command,
+    directory: &Path,
+    label: &str,
+    limits: Limits,
+    dump: Option<&Path>,
+    cancelled: &AtomicBool,
+    policy: DescendantPolicy,
+    invocation: Option<&crate::work::TlcInvocation>,
+) -> Result<(ExitStatus, String), ProcessFailure> {
+    let typed = invocation
+        .map(|invocation| crate::work::TlcAttempt::begin(invocation, command))
+        .transpose()?
+        .flatten();
     let stdout = directory.join(format!("{label}.stdout"));
     let stderr = directory.join(format!("{label}.stderr"));
     let open =
@@ -464,12 +503,28 @@ pub fn run_process_cancelled_with_policy(
     let mut out = open(&stdout)?;
     let mut err = open(&stderr)?;
     if cancelled.load(Ordering::Relaxed) {
+        if let Some(attempt) = typed {
+            attempt.finish(command, b"", "refused", None)?;
+        }
         return Err(Refusal(format!("subprocess cancelled ({label})")).into());
     }
-    let mut child = OwnedProcess::spawn(command, directory, &out, &err, policy)
-        .map_err(|error| Refusal(format!("cannot spawn {label}: {error}")))?;
+    let clean = invocation.and_then(|invocation| invocation.clean_command(command));
+    let spawned = if let Some(clean) = &clean {
+        OwnedProcess::spawn_clean(clean, directory, &out, &err, policy)
+    } else {
+        OwnedProcess::spawn(command, directory, &out, &err, policy)
+    };
+    let mut child = match spawned {
+        Ok(child) => child,
+        Err(error) => {
+            if let Some(attempt) = typed {
+                attempt.finish(command, b"", "spawn-error", None)?;
+            }
+            return Err(Refusal(format!("cannot spawn {label}: {error}")).into());
+        }
+    };
     let start = Instant::now();
-    let observation = crate::work::spawned(command)?;
+    let observation = if invocation.is_none() { crate::work::spawned(command)? } else { None };
     let result = (|| loop {
         if cancelled.load(Ordering::Relaxed) {
             return Err(Refusal(format!("subprocess cancelled ({label})")));
@@ -494,18 +549,6 @@ pub fn run_process_cancelled_with_policy(
     out.by_ref().take(limits.output_bytes).read_to_end(&mut bytes)?;
     let remaining = limits.output_bytes.saturating_sub(bytes.len() as u64);
     err.by_ref().take(remaining).read_to_end(&mut bytes)?;
-    let output = match String::from_utf8(bytes) {
-        Ok(output) => output,
-        Err(error) => {
-            let mut output = String::from_utf8_lossy(error.as_bytes()).into_owned();
-            let limit = usize::try_from(limits.output_bytes).unwrap_or(usize::MAX);
-            output.truncate(output.floor_char_boundary(limit));
-            return Err(ProcessFailure {
-                refusal: Refusal(format!("non-UTF8 subprocess output: {error}")),
-                output,
-            });
-        }
-    };
     let result = result.and_then(|status| {
         if out.metadata()?.len().saturating_add(err.metadata()?.len()) > limits.output_bytes
             || !same_file(&stdout, &out)?
@@ -518,12 +561,53 @@ pub fn run_process_cancelled_with_policy(
         }
         Ok(status)
     });
-    let observation = crate::work::finished(observation.as_deref(), &output);
-    match result {
-        Ok(status) if status.success() => {
-            observation?;
-            Ok((status, output))
+    let cause = if std::str::from_utf8(&bytes).is_err() {
+        "nonutf8"
+    } else if result.is_err() {
+        "refused"
+    } else {
+        "completed"
+    };
+    let accounting = typed
+        .map(|attempt| {
+            attempt.finish(command, &bytes, cause, result.as_ref().ok().and_then(ExitStatus::code))
+        })
+        .transpose();
+    let output = match String::from_utf8(bytes) {
+        Ok(output) => output,
+        Err(error) => {
+            let mut output = String::from_utf8_lossy(error.as_bytes()).into_owned();
+            let limit = usize::try_from(limits.output_bytes).unwrap_or(usize::MAX);
+            output.truncate(output.floor_char_boundary(limit));
+            let refusal = match accounting {
+                Ok(_) => format!("non-UTF8 subprocess output: {error}"),
+                Err(accounting) => format!(
+                    "non-UTF8 subprocess output: {error}; accounting observation failed: {accounting}"
+                ),
+            };
+            crate::work::finished(observation.as_deref(), "")?;
+            return Err(ProcessFailure { refusal: Refusal(refusal), output });
         }
+    };
+    if let Err(error) = accounting {
+        return Err(ProcessFailure {
+            refusal: Refusal(format!(
+                "accounting observation failed: {error}; process outcome: {result:?}"
+            )),
+            output,
+        });
+    }
+    let observation = crate::work::finished(observation.as_deref(), &output);
+    if let Err(error) = observation {
+        return Err(ProcessFailure {
+            refusal: Refusal(format!(
+                "accounting observation failed: {error}; process outcome: {result:?}"
+            )),
+            output,
+        });
+    }
+    match result {
+        Ok(status) if status.success() => Ok((status, output)),
         Ok(status) => Ok((status, output)),
         Err(refusal) => Err(ProcessFailure { refusal, output }),
     }
