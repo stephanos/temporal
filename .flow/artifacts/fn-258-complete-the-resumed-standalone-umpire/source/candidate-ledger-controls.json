@@ -1,0 +1,22 @@
+{
+  "result": "pass",
+  "controls": [
+    {
+      "name": "dirty-standalone-path-has-independent-framework-owner",
+      "passed": true
+    },
+    {
+      "name": "wrong-standalone-owner-is-refused",
+      "passed": true
+    },
+    {
+      "name": "missing-original-object-retains-unknown-recovery-gap",
+      "passed": true
+    },
+    {
+      "name": "orphan-capture-gap-and-verifier-error-are-explicit",
+      "passed": true
+    }
+  ],
+  "method": "In-memory entries and synthetic Git responses exercise the same capture/verification helpers; no repository/ref/worktree changes."
+}

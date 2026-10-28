@@ -10,10 +10,15 @@
   "bundle": "current-history.bundle",
   "bundle_ref": "refs/heads/umpire-current",
   "bundle_sha256": "83cb7e061e8fea284108d8380f517b2179b70a1fb8924147e90aae0aa7acec19",
+  "filtered_checkout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-final-export",
+  "reproduced_checkout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-final-repro",
   "independent_recovery_checkout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-recovery",
-  "filtered_checkout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-export",
-  "reproduced_checkout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-repro",
   "original_history_commit_maps_identical": true,
   "all_source_worktree_preservation_captures_equal": true,
-  "recommended_join": "Merge this checkpoint as the second parent of current portable standalone tip using ours strategy; preserve exact portable first-parent tree; no standalone refs changed."
+  "export_graph_equals_nonzero_mapped_values": true,
+  "ordered_source_retained_frontier": [
+    "a92db0610f13c9f623b526f2aa721abda69aa84d"
+  ],
+  "recommended_join": "Merge as second parent with ours strategy, preserving exact portable first-parent tree. No standalone refs changed.",
+  "generator": "refresh-checkpoint-proof.py"
 }

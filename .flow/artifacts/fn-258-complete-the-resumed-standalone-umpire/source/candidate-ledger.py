@@ -7,6 +7,7 @@ import hashlib
 import json
 import pathlib
 import subprocess
+from unittest import mock
 
 HERE = pathlib.Path(__file__).resolve().parent
 TEMPORAL = next(p for p in HERE.parents if (p / '.flow/specs').is_dir())
@@ -39,6 +40,121 @@ def refs(repo):
 
 def ancestor(repo, older, newer):
     return git(repo, 'merge-base', '--is-ancestor', older, newer, check=False).returncode == 0
+
+
+def change_mapping(repository, path, temporal_mappings):
+    if repository == 'umpire':
+        return {'ownership': 'framework', 'repository': 'umpire', 'path': path,
+                'mapping_status': 'standalone repository root; independent of Temporal path namespace'}
+    return temporal_mappings.get(path)
+
+
+def mapping_errors(entry, temporal_mappings):
+    errors = []
+    for change in entry['committed_changes'] + entry['dirty_changes']:
+        mapping = change_mapping(entry['repository'], change['path'], temporal_mappings)
+        if mapping is None:
+            errors.append('candidate path lacks ownership mapping: ' + entry['repository'] + ':' + change['path'])
+        elif change['ownership'] != mapping['ownership']:
+            errors.append('candidate ownership differs from mapping: ' + entry['repository'] + ':' + change['path'])
+    return errors
+
+
+def original_recovery(repo, original_head, current_head):
+    if original_head is None:
+        return {'original_head_object_present': None,
+                'original_head_reachable_from_current_ref': None,
+                'current_refs_containing_original_head': [], 'original_recovery_gaps': []}
+    present = git(repo, 'cat-file', '-e', original_head + '^{commit}', check=False).returncode == 0
+    gaps, containing = [], []
+    if present:
+        result = git(repo, 'for-each-ref', '--contains', original_head, '--format=%(refname)', check=False)
+        if result.returncode:
+            gaps.append('Original head containing refs unknown: ' + result.stderr.decode(errors='replace').strip())
+        else:
+            containing = result.stdout.decode().splitlines()
+    else:
+        gaps.append('Original head object missing: ' + original_head + '; recovery reachability is unknown.')
+    return {'original_head_object_present': present,
+            'original_head_reachable_from_current_ref': ancestor(repo, original_head, current_head) if present and current_head else None,
+            'current_refs_containing_original_head': containing, 'original_recovery_gaps': gaps}
+
+
+def candidate_delta(repo, source, head):
+    result = git(repo, 'merge-base', source, head, check=False)
+    if result.returncode:
+        diagnostic = result.stderr.decode(errors='replace').strip() or 'no common ancestor'
+        return None, [], 'merge-base unavailable: ' + diagnostic
+    base = result.stdout.decode().strip()
+    result = git(repo, 'diff', '--no-renames', '--name-status', '-z', base, head, check=False)
+    if result.returncode:
+        return base, [], 'candidate diff unavailable: ' + result.stderr.decode(errors='replace').strip()
+    parts = result.stdout.split(b'\0')
+    changes = [{'status': parts[i].decode(), 'path': parts[i + 1].decode(errors='surrogateescape')}
+               for i in range(0, len(parts) - 1, 2)]
+    return base, changes, None
+
+
+def candidate_errors(entry, mappings):
+    errors = mapping_errors(entry, mappings)
+    if entry['repository'] != 'temporal' or not entry['observed_head']:
+        return errors
+    base, changes, delta_error = candidate_delta(TEMPORAL, SOURCE, entry['observed_head'])
+    if delta_error:
+        errors.append('candidate delta cannot be verified: ' + entry['ref'] + ': ' + delta_error)
+        return errors
+    observed = [(e['status'], e['path']) for e in changes]
+    recorded = [(e['status'], e['path']) for e in entry['committed_changes']]
+    if base != entry['merge_base_with_frozen_source'] or observed != recorded:
+        errors.append('candidate delta differs: ' + entry['ref'])
+    return errors
+
+
+def synthetic_controls():
+    controls = []
+    path = '.flow/shared-path.json'
+    mappings = {path: {'ownership': 'tracker-evidence', 'repository': 'temporal', 'path': path}}
+    entry = {'repository': 'umpire', 'observed_head': 'synthetic-head', 'committed_changes': [],
+             'dirty_changes': [{'status': '??', 'path': path, 'ownership': 'framework'}]}
+    controls.append({'name': 'dirty-standalone-path-has-independent-framework-owner',
+                     'passed': not candidate_errors(entry, mappings)
+                     and change_mapping('umpire', path, mappings)['repository'] == 'umpire'
+                     and mappings[path]['ownership'] == 'tracker-evidence'})
+    bad = dict(entry, dirty_changes=[dict(entry['dirty_changes'][0], ownership='tracker-evidence')])
+    controls.append({'name': 'wrong-standalone-owner-is-refused', 'passed': bool(candidate_errors(bad, mappings))})
+    calls = []
+
+    def missing_object(repo, *args, check=True):
+        calls.append(args)
+        if args != ('cat-file', '-e', 'missing-object^{commit}') or check:
+            raise AssertionError('Unavailable object must not reach a checked contains/ancestry query')
+        return subprocess.CompletedProcess(args, 128, b'', b'fatal: not a valid object name')
+
+    with mock.patch.dict(globals(), {'git': missing_object}):
+        recovery = original_recovery(TEMPORAL, 'missing-object', 'current-head')
+    controls.append({'name': 'missing-original-object-retains-unknown-recovery-gap',
+                     'passed': recovery['original_head_object_present'] is False
+                     and recovery['original_head_reachable_from_current_ref'] is None
+                     and recovery['current_refs_containing_original_head'] == []
+                     and bool(recovery['original_recovery_gaps']) and len(calls) == 1})
+
+    def orphan(repo, *args, check=True):
+        if args != ('merge-base', SOURCE, 'orphan-head') or check:
+            raise AssertionError('Orphan branch must report missing merge-base without running diff')
+        return subprocess.CompletedProcess(args, 1, b'', b'')
+
+    orphan_entry = {'repository': 'temporal', 'observed_head': 'orphan-head', 'ref': 'refs/heads/synthetic-orphan',
+                    'committed_changes': [], 'dirty_changes': [], 'merge_base_with_frozen_source': None}
+    with mock.patch.dict(globals(), {'git': orphan}):
+        base, changes, gap = candidate_delta(TEMPORAL, SOURCE, 'orphan-head')
+        errors = candidate_errors(orphan_entry, {})
+    controls.append({'name': 'orphan-capture-gap-and-verifier-error-are-explicit',
+                     'passed': base is None and changes == [] and gap == 'merge-base unavailable: no common ancestor'
+                     and errors == ['candidate delta cannot be verified: refs/heads/synthetic-orphan: ' + gap]})
+    result = {'result': 'pass' if all(c['passed'] for c in controls) else 'fail', 'controls': controls,
+              'method': 'In-memory entries and synthetic Git responses exercise the same capture/verification helpers; no repository/ref/worktree changes.'}
+    save('candidate-ledger-controls.json', result)
+    return result
 
 
 def worktrees(repo):
@@ -109,20 +225,17 @@ def capture():
             original_head = original.get('head')
             prior = old_transfer.get(ref, {}) if name == 'temporal' else {}
             related = [w for w in snapshots[name]['worktrees'] if w.get('branch') == ref]
-            changes = []
-            base = None
+            changes, base, delta_error = [], None, None
             if head and name == 'temporal':
-                base_result = git(repo, 'merge-base', SOURCE, head, check=False)
-                if base_result.returncode == 0:
-                    base = base_result.stdout.decode().strip()
-                    parts = git(repo, 'diff', '--no-renames', '--name-status', '-z', base, head).stdout.split(b'\0')
-                    for i in range(0, len(parts) - 1, 2):
-                        path = parts[i + 1].decode(errors='surrogateescape')
-                        changes.append({'status': parts[i].decode(), 'path': path, 'ownership': ownership(path)['ownership']})
+                base, changes, delta_error = candidate_delta(repo, SOURCE, head)
+                for change in changes:
+                    change['ownership'] = ownership(change['path'])['ownership']
+            recovery = original_recovery(repo, original_head, head)
             dirty = [dict(d, worktree=w['worktree']) for w in related for d in w['dirty_paths']]
             classes = collections.Counter(e['ownership'] for e in changes)
             for d in dirty:
-                d['ownership'] = ownership(d['path'])['ownership'] if name == 'temporal' else 'framework'
+                mapping = ownership(d['path']) if name == 'temporal' else change_mapping(name, d['path'], mappings)
+                d['ownership'] = mapping['ownership']
             all_classes = set(classes) | {d['ownership'] for d in dirty}
             has_framework = bool(all_classes & {'framework', 'export-framework', 'historical-framework'}) or any('framework' in c for c in all_classes)
             has_other = bool(all_classes - {'framework', 'export-framework', 'historical-framework'})
@@ -141,11 +254,9 @@ def capture():
             entries.append({
                 'repository': name, 'ref': ref, 'observed_head': head,
                 'original_ledger_index': original_index, 'original_head': original_head,
-                'original_head_reachable_from_current_ref': ancestor(repo, original_head, head) if original_head and head else None,
-                'original_head_object_present': git(repo, 'cat-file', '-e', original_head + '^{commit}', check=False).returncode == 0 if original_head else None,
-                'current_refs_containing_original_head': git(repo, 'for-each-ref', '--contains', original_head, '--format=%(refname)').stdout.decode().splitlines() if original_head else [],
+                **recovery,
                 'missing_ref': head is None, 'preservation': 'retain current ref and worktree unchanged; missing/uncertain candidates stay explicitly frozen here',
-                'merge_base_with_frozen_source': base,
+                'merge_base_with_frozen_source': base, 'committed_delta_error': delta_error,
                 'head_integrated_in_frozen_source': ancestor(repo, head, SOURCE) if head and name == 'temporal' else None,
                 'ownership': category, 'committed_delta_counts': dict(classes), 'committed_changes': changes,
                 'worktrees': [w['worktree'] for w in related], 'dirty_changes': dirty,
@@ -159,7 +270,7 @@ def capture():
                 'historical_evidence_paths': prior.get('retained_evidence_paths', original.get('changed_tracker_evidence_paths', [])),
                 'destination_obligations': {'receiving_candidate_refs': [], 'receiving_tracker_records': [], 'required_action': 'Review actual candidate hunks, deduplicate inherited assembly changes, preserve original task/proof links and dependencies; establish destination recovery and tracker records before claiming transfer.'},
                 'transfer_status': 'ongoing-preparation-only' if ongoing else 'not-transferred', 'r6_disposition_complete': False,
-                'gaps': (['Observed ref is missing; retain original OID and historical evidence; resolve recovery before retirement.'] if head is None else []) + ([] if tasks else ['No corroborated historical task assignment; ownership remains provisional.']) + ['Dirty/untracked/unique ignored source or evidence has not been backed up by this inventory.'],
+                'gaps': recovery['original_recovery_gaps'] + ([delta_error] if delta_error else []) + (['Observed ref is missing; retain original OID and historical evidence; resolve recovery before retirement.'] if head is None else []) + ([] if tasks else ['No corroborated historical task assignment; ownership remains provisional.']) + ['Dirty/untracked/unique ignored source or evidence has not been backed up by this inventory.'],
             })
     counts = {'original_candidates': len(old_entries), 'original_refs_found': sum(e['original_ledger_index'] is not None and not e['missing_ref'] for e in entries), 'repository_ref_entries': len(entries), 'entries_by_ownership': dict(collections.Counter(e['ownership'] for e in entries)), 'r6_completed_dispositions': 0, 'original_candidates_transferred': 0}
     ledger = {'schema_version': 1, 'status': 'renewed provisional inventory; no R6 transfer completion', 'observed_at': now, 'source_commit': SOURCE,
@@ -218,17 +329,7 @@ def verify():
         if sha(TEMPORAL/path) != digest:
             errors.append('input digest differs: ' + path)
     for entry in ledger['entries']:
-        if entry['repository'] != 'temporal' or not entry['observed_head']:
-            continue
-        base = git(TEMPORAL, 'merge-base', SOURCE, entry['observed_head']).stdout.decode().strip()
-        parts = git(TEMPORAL, 'diff', '--no-renames', '--name-status', '-z', base, entry['observed_head']).stdout.split(b'\0')
-        observed = [(parts[i].decode(), parts[i + 1].decode(errors='surrogateescape')) for i in range(0, len(parts) - 1, 2)]
-        recorded = [(e['status'], e['path']) for e in entry['committed_changes']]
-        if base != entry['merge_base_with_frozen_source'] or observed != recorded:
-            errors.append('candidate delta differs: ' + entry['ref'])
-        for change in entry['committed_changes'] + entry['dirty_changes']:
-            if change['path'] not in ledger['path_mappings']:
-                errors.append('candidate path lacks ownership mapping: ' + change['path'])
+        errors.extend(candidate_errors(entry, ledger['path_mappings']))
     for name, repo in [('temporal', TEMPORAL), ('umpire', STANDALONE)]:
         snapshot = ledger['repository_snapshots'][name]
         frozen_heads = {r for r in snapshot['refs'] if r.startswith('refs/heads/')}
@@ -243,7 +344,10 @@ def verify():
                 errors.append(name + ' frozen recovery object missing: ' + ref)
         for ref in current.keys() - snapshot['refs'].keys():
             drift.append({'repository': name, 'new_ref_after_observation': ref})
-    result = {'source_commit': SOURCE, 'ledger_sha256': sha(HERE/'candidate-ledger.json'), 'manifest_sha256': sha(HERE/'source-manifest.json'), 'verified_manifest_records': len(manifest['records']), 'verified_original_candidates': len(original), 'errors': errors, 'live_ref_drift_since_capture': drift, 'result': 'pass' if not errors else 'fail', 'interpretation': 'Completeness and frozen recovery-object verification only; no transfer, dirty backup or current-pair execution claim.'}
+    controls = synthetic_controls()
+    if controls['result'] != 'pass':
+        errors.append('synthetic ledger controls failed')
+    result = {'synthetic_controls': controls, 'source_commit': SOURCE, 'ledger_sha256': sha(HERE/'candidate-ledger.json'), 'manifest_sha256': sha(HERE/'source-manifest.json'), 'verified_manifest_records': len(manifest['records']), 'verified_original_candidates': len(original), 'errors': errors, 'live_ref_drift_since_capture': drift, 'result': 'pass' if not errors else 'fail', 'interpretation': 'Completeness and frozen recovery-object verification only; no transfer, dirty backup or current-pair execution claim.'}
     save('candidate-ledger-verification.json', result)
     print(json.dumps(result, indent=2))
     if errors:
@@ -253,7 +357,12 @@ def verify():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--capture', action='store_true', help='Replace only renewed ledger observation; never alters refs/worktrees')
+    parser.add_argument('--controls-only', action='store_true', help='Run in-memory synthetic controls without reading live refs')
     args = parser.parse_args()
+    if args.controls_only:
+        controls = synthetic_controls()
+        print(json.dumps(controls, indent=2))
+        raise SystemExit(0 if controls['result'] == 'pass' else 1)
     if args.capture:
         capture()
     verify()

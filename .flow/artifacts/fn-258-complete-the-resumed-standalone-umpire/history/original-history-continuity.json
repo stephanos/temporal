@@ -3,5 +3,6 @@
   "current_source_commits": 7261,
   "original_rows_changed": 0,
   "changed_sample": [],
-  "original_export_is_current_export_ancestor": true
+  "original_export_is_current_export_ancestor": true,
+  "generator": "refresh-checkpoint-proof.py"
 }

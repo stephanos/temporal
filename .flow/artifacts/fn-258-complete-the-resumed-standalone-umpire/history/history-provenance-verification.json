@@ -1,0 +1,8 @@
+{
+  "status": "pass",
+  "source_commit": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "ancestry_definitions_reproduced": 15,
+  "representative_histories_reproduced": 6,
+  "history_map_sha256": "3499c1cc7e0c26f87dbb148cf6f0f830360811f4260b64e4a8c195e657860ffa",
+  "script_sha256": "6158288f51fcae2bd86d105684d58dba64e2f15618f3bf3bb01d9a200d0686e6"
+}

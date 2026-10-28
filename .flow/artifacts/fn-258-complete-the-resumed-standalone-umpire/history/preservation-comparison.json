@@ -1,6 +1,6 @@
 {
   "before_equals_after": true,
-  "before_sha256": "f97d90b6b9a0de6943a5faea02fb1949fb9284a854c9a3092cd665a398731903",
-  "after_sha256": "f97d90b6b9a0de6943a5faea02fb1949fb9284a854c9a3092cd665a398731903",
+  "before_sha256": "bef2455c327ae8bb46d2d79e4ca3a207d187ae4ad3e1f86b40fdb2ae113801e2",
+  "after_sha256": "bef2455c327ae8bb46d2d79e4ca3a207d187ae4ad3e1f86b40fdb2ae113801e2",
   "scope": "All 39 registered Temporal worktree refs/indexes/status and dirty byte/mode fingerprints; root .flow/MILESTONES/MIGRATE excluded as declared migration evidence. Ignored caches not inventoried."
 }

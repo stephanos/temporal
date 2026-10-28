@@ -156,72 +156,72 @@
   },
   "ancestry_sets": {
     "H": {
-      "definition_command": "git rev-list c88fdc550694020eb1c6a2e09577813d906c9ffe",
+      "definition_command": "git rev-list ac60daaf47d2513b41eeff612f0e2758d33e186d",
       "count": 7261,
       "sha256_sorted_lf_terminated": "89aed81121bd32a7e8af01cdeb00436ef77ab9469356ecd00cf224a318cd5125"
     },
     "D_rust_birth": {
-      "definition_command": "{038ac1c6ce271ec704a625f8644bba957c4e6790} union git rev-list --ancestry-path 038ac1c6ce271ec704a625f8644bba957c4e6790..c88fdc550694020eb1c6a2e09577813d906c9ffe",
+      "definition_command": "{038ac1c6ce271ec704a625f8644bba957c4e6790} union git rev-list --ancestry-path 038ac1c6ce271ec704a625f8644bba957c4e6790..ac60daaf47d2513b41eeff612f0e2758d33e186d",
       "count": 1422,
       "sha256_sorted_lf_terminated": "afe8f6adf96b7798a51c84986aca4c8cff4279496b0f09add0187946fe56dea9"
     },
     "D_framework_rename": {
-      "definition_command": "{a5040fa23b30e8f3464e13e60e2dcad64c3cf663} union git rev-list --ancestry-path a5040fa23b30e8f3464e13e60e2dcad64c3cf663..c88fdc550694020eb1c6a2e09577813d906c9ffe",
+      "definition_command": "{a5040fa23b30e8f3464e13e60e2dcad64c3cf663} union git rev-list --ancestry-path a5040fa23b30e8f3464e13e60e2dcad64c3cf663..ac60daaf47d2513b41eeff612f0e2758d33e186d",
       "count": 1403,
       "sha256_sorted_lf_terminated": "34f518f77167d22bcb58abaf077ef6e36a9ede028c806527be3714cfe4312b40"
     },
     "D_canonical_archive_move": {
-      "definition_command": "{6264f117607d756d41a97342273ebff189ef77f1} union git rev-list --ancestry-path 6264f117607d756d41a97342273ebff189ef77f1..c88fdc550694020eb1c6a2e09577813d906c9ffe",
+      "definition_command": "{6264f117607d756d41a97342273ebff189ef77f1} union git rev-list --ancestry-path 6264f117607d756d41a97342273ebff189ef77f1..ac60daaf47d2513b41eeff612f0e2758d33e186d",
       "count": 1335,
       "sha256_sorted_lf_terminated": "b3b5fcdfabe6a4125296aad12fb5ab3de61b5fef7a7fc98eb20a8231d012aa51"
     },
     "D_sibling_archive_move": {
-      "definition_command": "{0fc76f7805f1ef68f828b03ed78d7f86fcb03cfc} union git rev-list --ancestry-path 0fc76f7805f1ef68f828b03ed78d7f86fcb03cfc..c88fdc550694020eb1c6a2e09577813d906c9ffe",
+      "definition_command": "{0fc76f7805f1ef68f828b03ed78d7f86fcb03cfc} union git rev-list --ancestry-path 0fc76f7805f1ef68f828b03ed78d7f86fcb03cfc..ac60daaf47d2513b41eeff612f0e2758d33e186d",
       "count": 1336,
       "sha256_sorted_lf_terminated": "d0259c77d7ea8fdf83c92fdc7958fe0e8d9dffe66d1379bc7dea8c3bd554b6e3"
     },
     "D_archive_join": {
-      "definition_command": "{e87ee28f2dbb0bf640b61cee81bb86c9a6b9cf03} union git rev-list --ancestry-path e87ee28f2dbb0bf640b61cee81bb86c9a6b9cf03..c88fdc550694020eb1c6a2e09577813d906c9ffe",
+      "definition_command": "{e87ee28f2dbb0bf640b61cee81bb86c9a6b9cf03} union git rev-list --ancestry-path e87ee28f2dbb0bf640b61cee81bb86c9a6b9cf03..ac60daaf47d2513b41eeff612f0e2758d33e186d",
       "count": 1334,
       "sha256_sorted_lf_terminated": "5b199c743d3c6bf1ce66461f4a81fadd4c9de0752e14f0f55ba1fe7c5c8f12a5"
     },
     "D_host_birth": {
-      "definition_command": "{31f8ee3baa622dd3af16f46b658f7310ce64e721} union git rev-list --ancestry-path 31f8ee3baa622dd3af16f46b658f7310ce64e721..c88fdc550694020eb1c6a2e09577813d906c9ffe",
+      "definition_command": "{31f8ee3baa622dd3af16f46b658f7310ce64e721} union git rev-list --ancestry-path 31f8ee3baa622dd3af16f46b658f7310ce64e721..ac60daaf47d2513b41eeff612f0e2758d33e186d",
       "count": 1379,
       "sha256_sorted_lf_terminated": "4dd10a3742fcef45afb53b26b331922ea60df113dd98a9054e45381c9f44dac2"
     },
     "D_host_birth_other_lineage": {
-      "definition_command": "{211c75ee262733e6d0f15ae028b285eeccbc8306} union git rev-list --ancestry-path 211c75ee262733e6d0f15ae028b285eeccbc8306..c88fdc550694020eb1c6a2e09577813d906c9ffe",
+      "definition_command": "{211c75ee262733e6d0f15ae028b285eeccbc8306} union git rev-list --ancestry-path 211c75ee262733e6d0f15ae028b285eeccbc8306..ac60daaf47d2513b41eeff612f0e2758d33e186d",
       "count": 1378,
       "sha256_sorted_lf_terminated": "1237f06a094e43b9284e742450e14494be97d1988d82746b8b1a4390f60d8c74"
     },
     "D_host_move_inside_framework": {
-      "definition_command": "{d905b5b906c4df73aa5927a8fbbd47f8f3ce1d9f} union git rev-list --ancestry-path d905b5b906c4df73aa5927a8fbbd47f8f3ce1d9f..c88fdc550694020eb1c6a2e09577813d906c9ffe",
+      "definition_command": "{d905b5b906c4df73aa5927a8fbbd47f8f3ce1d9f} union git rev-list --ancestry-path d905b5b906c4df73aa5927a8fbbd47f8f3ce1d9f..ac60daaf47d2513b41eeff612f0e2758d33e186d",
       "count": 1321,
       "sha256_sorted_lf_terminated": "9964610114ca17ce62a311e2d3f18e5c0564d7a6573f0571e470eb54d3d1839e"
     },
     "D_independent_workspace": {
-      "definition_command": "{a020561cbbcc9fe102a44e3678438a1a1432890e} union git rev-list --ancestry-path a020561cbbcc9fe102a44e3678438a1a1432890e..c88fdc550694020eb1c6a2e09577813d906c9ffe",
+      "definition_command": "{a020561cbbcc9fe102a44e3678438a1a1432890e} union git rev-list --ancestry-path a020561cbbcc9fe102a44e3678438a1a1432890e..ac60daaf47d2513b41eeff612f0e2758d33e186d",
       "count": 206,
       "sha256_sorted_lf_terminated": "446e35cdeb6806bc11f5eaaac30c7b2b05d97bf545a8189a249cc05dcdccbf7b"
     },
     "D_native_tool_birth": {
-      "definition_command": "{4b7e225cb0d1d419e5ccfe737fc252c1eba4fa53} union git rev-list --ancestry-path 4b7e225cb0d1d419e5ccfe737fc252c1eba4fa53..c88fdc550694020eb1c6a2e09577813d906c9ffe",
+      "definition_command": "{4b7e225cb0d1d419e5ccfe737fc252c1eba4fa53} union git rev-list --ancestry-path 4b7e225cb0d1d419e5ccfe737fc252c1eba4fa53..ac60daaf47d2513b41eeff612f0e2758d33e186d",
       "count": 540,
       "sha256_sorted_lf_terminated": "31129b44500cdad6c09ebdb1f3ceb88595ff1af61c05f2c8a1987d21f8e2bcec"
     },
     "D_native_tool_split": {
-      "definition_command": "{8983c3d9d180cc65ba9b6d9503f251ff153942fd} union git rev-list --ancestry-path 8983c3d9d180cc65ba9b6d9503f251ff153942fd..c88fdc550694020eb1c6a2e09577813d906c9ffe",
+      "definition_command": "{8983c3d9d180cc65ba9b6d9503f251ff153942fd} union git rev-list --ancestry-path 8983c3d9d180cc65ba9b6d9503f251ff153942fd..ac60daaf47d2513b41eeff612f0e2758d33e186d",
       "count": 199,
       "sha256_sorted_lf_terminated": "e3f8adb8ba3d36539c0ba2d632f983b7ae01de94f073605c184858b94be2b4be"
     },
     "D_framework_script_localization": {
-      "definition_command": "{26fbd97163d800b62e05f4791048ce2a387d25d6} union git rev-list --ancestry-path 26fbd97163d800b62e05f4791048ce2a387d25d6..c88fdc550694020eb1c6a2e09577813d906c9ffe",
+      "definition_command": "{26fbd97163d800b62e05f4791048ce2a387d25d6} union git rev-list --ancestry-path 26fbd97163d800b62e05f4791048ce2a387d25d6..ac60daaf47d2513b41eeff612f0e2758d33e186d",
       "count": 204,
       "sha256_sorted_lf_terminated": "5fab30b5633c4e0f9077115d4dbdbb0bbf723acf0cf6800413f68712d065f8bc"
     },
     "D_package_role_layout": {
-      "definition_command": "{e13ed2374bc7634c1e1731f9de6ecb4132c7df7b} union git rev-list --ancestry-path e13ed2374bc7634c1e1731f9de6ecb4132c7df7b..c88fdc550694020eb1c6a2e09577813d906c9ffe",
+      "definition_command": "{e13ed2374bc7634c1e1731f9de6ecb4132c7df7b} union git rev-list --ancestry-path e13ed2374bc7634c1e1731f9de6ecb4132c7df7b..ac60daaf47d2513b41eeff612f0e2758d33e186d",
       "count": 689,
       "sha256_sorted_lf_terminated": "d54d1489f2a7af12dbe8c2182cbb14d20d2afab7903377216cea334029b9936a"
     },
@@ -2038,7 +2038,7 @@
     "Emit a deterministic projected-tree diff against the projected original first parent, retaining original parent relationships and original authors/committers/dates/messages. Handle root commits with an empty parent tree. Account explicitly for any empty/pruned commits in the commit map.",
     "Do not implement only a per-file-change rename: move commits may delete an old prefix and add the same target via a new prefix; sibling moves and their merge must resolve from complete original snapshots.",
     "In the isolated clone only, preserve provenance support through the history export, then remove .history-support in a separate explicit layout commit. That deletion must not hide support paths from prior history.",
-    "Compare the selected current active projection (excluding history-support) against every source-manifest record: destination, raw blob bytes, executable/symlink mode, and symlink target. The expected active count is 1178 including LICENSE.",
+    "Compare the selected current active projection (excluding history-support) against every source-manifest record: destination, raw blob bytes, executable/symlink mode, and symlink target. The expected active count is 1189 including LICENSE.",
     "Verify both archive-move histories, old host paths and native-tool split in the resulting commit map; rerun representative history queries against mapped revisions before layout adaptation."
   ],
   "collision_constraints": [
@@ -2060,7 +2060,7 @@
         "log",
         "--follow",
         "--format=%H%x09%aI%x09%an%x09%s",
-        "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+        "ac60daaf47d2513b41eeff612f0e2758d33e186d",
         "--",
         "model/umpire/author/dsl/src/lib.rs"
       ],
@@ -2109,7 +2109,7 @@
         "log",
         "--follow",
         "--format=%H%x09%aI%x09%an%x09%s",
-        "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+        "ac60daaf47d2513b41eeff612f0e2758d33e186d",
         "--",
         "model/umpire/backends/native/src/lib.rs"
       ],
@@ -2142,7 +2142,7 @@
         "log",
         "--follow",
         "--format=%H%x09%aI%x09%an%x09%s",
-        "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+        "ac60daaf47d2513b41eeff612f0e2758d33e186d",
         "--",
         "model/umpire/author/dsl/macros/src/lib.rs"
       ],
@@ -2179,7 +2179,7 @@
         "log",
         "--follow",
         "--format=%H%x09%aI%x09%an%x09%s",
-        "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+        "ac60daaf47d2513b41eeff612f0e2758d33e186d",
         "--",
         "model/umpire/backends/native/tests/fixtures/choices/model.rs"
       ],
@@ -2206,7 +2206,7 @@
         "log",
         "--follow",
         "--format=%H%x09%aI%x09%an%x09%s",
-        "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+        "ac60daaf47d2513b41eeff612f0e2758d33e186d",
         "--",
         "model/umpire/hosts/go/host/host.go"
       ],
@@ -2240,7 +2240,7 @@
         "log",
         "--follow",
         "--format=%H%x09%aI%x09%an%x09%s",
-        "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+        "ac60daaf47d2513b41eeff612f0e2758d33e186d",
         "--",
         "model/umpire/protocol/proto/umpire/model/v1/model.proto"
       ],
@@ -2279,7 +2279,7 @@
       "source": "model/umpire/.config/nextest.toml",
       "destination": ".config/nextest.toml",
       "mode": "100644",
-      "blob": "bd9d3518906051c678e0e19c4fc1ec27aa49cc2b"
+      "blob": "9e2f43684c09364199ab9dd176ae92901237bf59"
     },
     {
       "source": "model/umpire/.gitignore",
@@ -2291,7 +2291,7 @@
       "source": "model/umpire/Cargo.lock",
       "destination": "Cargo.lock",
       "mode": "100644",
-      "blob": "8ddc405dd2e4833e0d39836e2e292f823ca281f4"
+      "blob": "18cf43883ffa175f8d8c29adfcf32f050fe117c6"
     },
     {
       "source": "model/umpire/Cargo.toml",
@@ -2399,7 +2399,7 @@
       "source": "model/umpire/author/dsl/macros/tests/fixtures.rs",
       "destination": "author/dsl/macros/tests/fixtures.rs",
       "mode": "100644",
-      "blob": "c872d974d5ca725000e15067299f675e9acbf68f"
+      "blob": "daac40c49cf7314aa58b49c8c17494e9a7fc0aea"
     },
     {
       "source": "model/umpire/author/dsl/macros/tests/fixtures/action/expected/expansion.rs.snap",
@@ -2522,6 +2522,756 @@
       "blob": "1267ebd125f51c7ec7dd1677af0d2a8699272d4d"
     },
     {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/MAPPING.md",
+      "destination": "author/dsl/macros/tests/parser_refusals/MAPPING.md",
+      "mode": "100644",
+      "blob": "553f5f49618c49e7188c35e9397a00c4fd319bd0"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/cases.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/cases.rs",
+      "mode": "100644",
+      "blob": "1c1fa6bd0b0a5a3d01a8674f447d0884c91eef0c"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_conflict.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_domain_conflict.rs",
+      "mode": "100644",
+      "blob": "a797cb64829bbf8d3a1c38d31d38618f0bda88d0"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_conflict.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_domain_conflict.stderr",
+      "mode": "100644",
+      "blob": "5f1cc92204d7ab4347c3204cdaee565a94949dcf"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_duplicate.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_domain_duplicate.rs",
+      "mode": "100644",
+      "blob": "c08ee83d8be5c9a0d5d6cc66d3f3cbc2aec6011c"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_duplicate.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_domain_duplicate.stderr",
+      "mode": "100644",
+      "blob": "1dbfa2925e126c68c4423be459a2a4ded08f70de"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_variant.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_domain_variant.rs",
+      "mode": "100644",
+      "blob": "710b4f26f938ac30679c02c81b44fe313658cacb"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_variant.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_domain_variant.stderr",
+      "mode": "100644",
+      "blob": "e8b4b58bcf549ed0e34591f8cf6fe957b1ac2429"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_without_world.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_domain_without_world.rs",
+      "mode": "100644",
+      "blob": "4084df9b93661ea2dee5ecc6386b28d9c95e46af"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_without_world.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_domain_without_world.stderr",
+      "mode": "100644",
+      "blob": "1971e3da43ba4b236edda1dad01dce9361cb9963"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_duplicate.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_duplicate.rs",
+      "mode": "100644",
+      "blob": "d7ade5fc63141332f613f0c1e1987ed8f7f3c322"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_duplicate.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_duplicate.stderr",
+      "mode": "100644",
+      "blob": "e5270c6d17034902cab19effa30efb807dd8128c"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_invalid.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_invalid.rs",
+      "mode": "100644",
+      "blob": "402769e8bb89c4216f8bb009baec8e681d863a6c"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_invalid.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_invalid.stderr",
+      "mode": "100644",
+      "blob": "9879a504b9a2d60154fef394dd3477c9ad71e0ac"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_missing.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_missing.rs",
+      "mode": "100644",
+      "blob": "a31c47cd6af7c5dc17181075c183563d2385d2f6"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_missing.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_missing.stderr",
+      "mode": "100644",
+      "blob": "3f41d5601b61fe05a4d8f16d16aa42bda93a929b"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_variant_fault.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_variant_fault.rs",
+      "mode": "100644",
+      "blob": "86eac9bc22fb4deab13153d7cdaa993a90f3ce05"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_variant_fault.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_variant_fault.stderr",
+      "mode": "100644",
+      "blob": "80bb39da1a2d46149a820a02ab1ab391336f88b0"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_metadata_duplicate.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_metadata_duplicate.rs",
+      "mode": "100644",
+      "blob": "e49c8d6e33c7849bda91821b9b1332a5f4fbacdf"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_metadata_duplicate.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_metadata_duplicate.stderr",
+      "mode": "100644",
+      "blob": "49255e728d606c43dabe5c76e638235b12a297ee"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_metadata_namespace.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_metadata_namespace.rs",
+      "mode": "100644",
+      "blob": "bf464fe08878115d5fee7e91d03d2356a9a5cd93"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_metadata_namespace.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_metadata_namespace.stderr",
+      "mode": "100644",
+      "blob": "637a9f41fd7cd871fe666e0e0440fc689916cdb5"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_metadata_placement.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_metadata_placement.rs",
+      "mode": "100644",
+      "blob": "c092a7aa620afb5bc2e558339ab10bc23c5b922c"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_metadata_placement.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/action_metadata_placement.stderr",
+      "mode": "100644",
+      "blob": "b077773ad6b60e6d24e539daa362d59ac91bb56c"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/finite_shape.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/finite_shape.rs",
+      "mode": "100644",
+      "blob": "fe8774ad2eaa904d9888efb64f32eaf4ddaa31d6"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/finite_shape.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/finite_shape.stderr",
+      "mode": "100644",
+      "blob": "b3fc44e16c771c6ae887aa90b3ced82f6a3ab5a7"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_actor_arity.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_actor_arity.rs",
+      "mode": "100644",
+      "blob": "b58eda672fac7c9c8fadd81e07616ab58d7ef30d"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_actor_arity.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_actor_arity.stderr",
+      "mode": "100644",
+      "blob": "60e2b54b226fa17b64a7d720b6fc25128b75c5d9"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_actor_mismatch.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_actor_mismatch.rs",
+      "mode": "100644",
+      "blob": "eb48c78db46710d49d745f747a5a8f0e3bf1bde2"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_actor_mismatch.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_actor_mismatch.stderr",
+      "mode": "100644",
+      "blob": "8aaa73f7fa19b820c56ab3af881d57c75a3d6305"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_actor_receiver.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_actor_receiver.rs",
+      "mode": "100644",
+      "blob": "22b9e41e5c8630a7b6691cb9e8c0e31f8db16fa5"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_actor_receiver.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_actor_receiver.stderr",
+      "mode": "100644",
+      "blob": "be24378440cf0dda6c1db2535b001a545eda164e"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_after_inputs.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_after_inputs.rs",
+      "mode": "100644",
+      "blob": "4d53696aab2bc5ffa31a4239387c6f7507341b4b"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_after_inputs.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_after_inputs.stderr",
+      "mode": "100644",
+      "blob": "56f93bb168662b989642df10a535408175ed59ca"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_claim_async.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_claim_async.rs",
+      "mode": "100644",
+      "blob": "495b4e3c14e3674e64e88b30f01e11a3e375fb36"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_claim_async.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_claim_async.stderr",
+      "mode": "100644",
+      "blob": "854e360ce7e862e3fcb740168a565fe90d76868c"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_claim_returns.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_claim_returns.rs",
+      "mode": "100644",
+      "blob": "d862a4e8202a1a0d16a580690bed6873550b8369"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_claim_returns.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_claim_returns.stderr",
+      "mode": "100644",
+      "blob": "2a80cba6011f001d3a5c027645eaf4e43d7f1289"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_actor.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_actor.rs",
+      "mode": "100644",
+      "blob": "a560e3d5622e5304e24d92545a0c23bd976ccac5"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_actor.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_actor.stderr",
+      "mode": "100644",
+      "blob": "54fb228dfd8c8462a949535b9f9cc074922d49df"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_kind.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_kind.rs",
+      "mode": "100644",
+      "blob": "7652e78df7ace8600d4942d3efaf204926a19af4"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_kind.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_kind.stderr",
+      "mode": "100644",
+      "blob": "9cbcc168b0197ede1d639eb7a8601e1700f38a17"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_effect_arguments.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_effect_arguments.rs",
+      "mode": "100644",
+      "blob": "2dd86404ed1c8d994d2881116e7d993972323828"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_effect_arguments.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_effect_arguments.stderr",
+      "mode": "100644",
+      "blob": "39340f3a49f020297b2739bd4a780cc98d84eca3"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_generic.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_generic.rs",
+      "mode": "100644",
+      "blob": "385d4bb6b2636447e6f5951e4ba3036a37e8b574"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_generic.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_generic.stderr",
+      "mode": "100644",
+      "blob": "18496b5ba5d86834464d908266616e98fe543ab4"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_handler_async.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_handler_async.rs",
+      "mode": "100644",
+      "blob": "9bb53bd5bff8cd9efa588f9fa700392dcc00a8f9"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_handler_async.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_handler_async.stderr",
+      "mode": "100644",
+      "blob": "4573b92748478dfe6be467ef4c1acc683288be99"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_handler_returns.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_handler_returns.rs",
+      "mode": "100644",
+      "blob": "a5e9b5478aa9e9a4aabee72e7d81d4a478e91064"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_handler_returns.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_handler_returns.stderr",
+      "mode": "100644",
+      "blob": "503ee8419075721481c90908a78bfd3527529a75"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_invariant_parameters.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_invariant_parameters.rs",
+      "mode": "100644",
+      "blob": "af1beae9ba7696b4ad9070760491a78b9ad9e2ea"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_invariant_parameters.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_invariant_parameters.stderr",
+      "mode": "100644",
+      "blob": "5dc00390f785d73d27752b3ef4a8772019afd5e1"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_effects.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_effects.rs",
+      "mode": "100644",
+      "blob": "1e07ef98d6bcdf964ccffa836423201080a2a9c4"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_effects.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_effects.stderr",
+      "mode": "100644",
+      "blob": "b8245bd49ea4f5b7a52b70070960f75ee95852b6"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_invariants.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_invariants.rs",
+      "mode": "100644",
+      "blob": "fc11aebcf1fc0dc3d1b6abb811ab3b36e2a8e3a3"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_invariants.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_invariants.stderr",
+      "mode": "100644",
+      "blob": "7681450fac9652958a44fefd295b105e4c85b1dd"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_scopes.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_scopes.rs",
+      "mode": "100644",
+      "blob": "ded8f1bda0fb9dfd1935acdf0a71c9b54f601bf4"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_scopes.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_scopes.stderr",
+      "mode": "100644",
+      "blob": "ed87175e1be6900863d21fbe442ac83ff86b45fe"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_transitions.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_transitions.rs",
+      "mode": "100644",
+      "blob": "ea4b360b98f29809a6c826fe8a7c2a4a2e709706"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_transitions.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_transitions.stderr",
+      "mode": "100644",
+      "blob": "34ada33cf3e9744b319637c9aa69ec3fccaab15f"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_marker_trait.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_marker_trait.rs",
+      "mode": "100644",
+      "blob": "0dacde732c7f55b4f8577b3c87387d7c36387121"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_marker_trait.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_marker_trait.stderr",
+      "mode": "100644",
+      "blob": "d6701fcbcc775aba474ad9f389bf0121b1512ad2"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_misplaced_effect.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_misplaced_effect.rs",
+      "mode": "100644",
+      "blob": "15310fd26b85d57ff2e1d94bdf9618c309593881"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_misplaced_effect.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_misplaced_effect.stderr",
+      "mode": "100644",
+      "blob": "a231fa64b4806e587130affcea8a53775b971877"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_missing_actor.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_missing_actor.rs",
+      "mode": "100644",
+      "blob": "3c9b87707510ebfb80e6211cc70f7612b4113a0a"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_missing_actor.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_missing_actor.stderr",
+      "mode": "100644",
+      "blob": "7fa271e36fb23028c6514fa5e540c6234c6cb2b9"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_helper.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_helper.rs",
+      "mode": "100644",
+      "blob": "8ef9e4e565bee418a130ddae929cf1c7f0eaad17"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_helper.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_helper.stderr",
+      "mode": "100644",
+      "blob": "9652df9833120cc2ab35125dbfcf29a65a336157"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_invariant.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_invariant.rs",
+      "mode": "100644",
+      "blob": "139f15d37add26c64f2316f23e352c2e73acfa97"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_invariant.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_invariant.stderr",
+      "mode": "100644",
+      "blob": "328eb6c9f8917ea317859f0003c0f497a09c9c9a"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_typed_helper.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_typed_helper.rs",
+      "mode": "100644",
+      "blob": "37b96cf2de6363cf7e64872a25a362edb9b26331"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_typed_helper.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_typed_helper.stderr",
+      "mode": "100644",
+      "blob": "39192dc3dca8358d32cf396ab4dec6334e4500e2"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_nonactor_parameter.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_nonactor_parameter.rs",
+      "mode": "100644",
+      "blob": "0ec0f1127b61f588bffabc2d0540e8ec3c637e1f"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_nonactor_parameter.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_nonactor_parameter.stderr",
+      "mode": "100644",
+      "blob": "a1727136c0b7edbc5a718a4c00a9b772b2b162d9"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_noncontiguous_kind.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_noncontiguous_kind.rs",
+      "mode": "100644",
+      "blob": "0f82743144c452d3c3e43f5d0dafa768044ec8c3"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_noncontiguous_kind.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_noncontiguous_kind.stderr",
+      "mode": "100644",
+      "blob": "a374dc8c28425fa3e0af5fd13fbd4b98141222c3"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_out_of_order.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_out_of_order.rs",
+      "mode": "100644",
+      "blob": "6461e5713e86d6190f85ba214e2eeffdea0a88ec"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_out_of_order.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_out_of_order.stderr",
+      "mode": "100644",
+      "blob": "e8c157605640f2022b40b7e6ebfa5f07fc3a810d"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_path_builders.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_path_builders.rs",
+      "mode": "100644",
+      "blob": "b59baef8586fd6606f4a82c968bc78d22087c3dd"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_path_builders.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_path_builders.stderr",
+      "mode": "100644",
+      "blob": "17274d1f9ae0b65b8b5fb200e351ccf3c7617e2a"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_post_async.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_post_async.rs",
+      "mode": "100644",
+      "blob": "106de881ce9b96ad4f357909e1e927a1d61803cb"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_post_async.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_post_async.stderr",
+      "mode": "100644",
+      "blob": "8777e9b15ecf0f18add0e2c3b06e2232e15ec340"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_post_returns_unit.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_post_returns_unit.rs",
+      "mode": "100644",
+      "blob": "6001f6160e328c17e15703a5739e77148d8f4de7"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_post_returns_unit.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_post_returns_unit.stderr",
+      "mode": "100644",
+      "blob": "6a28cebeb683d9e76607c7d054fbf68d24a045e7"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_progress_chain.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_progress_chain.rs",
+      "mode": "100644",
+      "blob": "4b12ab59973ef5e0e71b71ec22d9cdf4bae5c1ba"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_progress_chain.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_progress_chain.stderr",
+      "mode": "100644",
+      "blob": "aa7389cedaca307d8f5790385b8dc3043505d942"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_progress_gap.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_progress_gap.rs",
+      "mode": "100644",
+      "blob": "bcbf2cc008bed68003df52964e23ac5c819f5c2e"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_progress_gap.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_progress_gap.stderr",
+      "mode": "100644",
+      "blob": "24b7f8136c099f906931038635d7e5e1c576ff71"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_starts_without_world.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_starts_without_world.rs",
+      "mode": "100644",
+      "blob": "fc16bb832d92c8b600ff146252c8ffdc163d1dce"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_starts_without_world.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_starts_without_world.stderr",
+      "mode": "100644",
+      "blob": "e2735027937716527f52f689776eada8bc1f16fe"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_actor.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_actor.rs",
+      "mode": "100644",
+      "blob": "d96a3147a5c0e1c5fdbea7673c9af332e7ca2045"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_actor.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_actor.stderr",
+      "mode": "100644",
+      "blob": "e5ea77309e6ce61f82a44cc366f663bad75355d1"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_after.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_after.rs",
+      "mode": "100644",
+      "blob": "8a52004428c59a709510e54ef51ca763c8a36461"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_after.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_after.stderr",
+      "mode": "100644",
+      "blob": "6da130c88dd07a8d1e18b193e13bb0f9df3de6bf"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_scope.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_scope.rs",
+      "mode": "100644",
+      "blob": "2012f3366aaf8134880e2ec03ae55e1980009baf"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_scope.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_scope.stderr",
+      "mode": "100644",
+      "blob": "c58f37466a0f092694427e9a832a9652eafd5106"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_within_bare.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_within_bare.rs",
+      "mode": "100644",
+      "blob": "dd48c9785109a3c29ad62edb4bb17338c50b076b"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_within_bare.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/machine_within_bare.stderr",
+      "mode": "100644",
+      "blob": "cef4cd9785ef9cbe834226ec2d49e10e136ccc07"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/non_range_starts.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/non_range_starts.rs",
+      "mode": "100644",
+      "blob": "30d49fe58a8540f0972f32b6bc9cf614a5b4f288"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/non_range_starts.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/non_range_starts.stderr",
+      "mode": "100644",
+      "blob": "0db0e308d9ec898e8e4857b1c49ec9659621fc57"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/non_unit_internal.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/non_unit_internal.rs",
+      "mode": "100644",
+      "blob": "6c5a0249fb351a6ac72b35d16ad386ef3f87150a"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/non_unit_internal.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/non_unit_internal.stderr",
+      "mode": "100644",
+      "blob": "441744999f740070ba5a72df2258324a4a6be03d"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/optional_facts_payload.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/optional_facts_payload.rs",
+      "mode": "100644",
+      "blob": "89b70f76b01c77f23dce0077bd6a08ae2bde7922"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/optional_facts_payload.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/optional_facts_payload.stderr",
+      "mode": "100644",
+      "blob": "9a7c0c26300aa9772d511a7b219aded5d204f559"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/variant_internal.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/variant_internal.rs",
+      "mode": "100644",
+      "blob": "8d3677b240777b05ad394279cacd30228a20906b"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/variant_internal.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/variant_internal.stderr",
+      "mode": "100644",
+      "blob": "bb867cb0c5938157e4a4d0a5a13aeda806ce6aaf"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_duplicate.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/world_duplicate.rs",
+      "mode": "100644",
+      "blob": "b76c361af496b8089401c45f8efda2836f8866c9"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_duplicate.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/world_duplicate.stderr",
+      "mode": "100644",
+      "blob": "09513036b14da6a8eda8a0018f3ab6f8dc15fcae"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_parameter_duplicate.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/world_parameter_duplicate.rs",
+      "mode": "100644",
+      "blob": "58f2383d11c69e76ab5a2e6736105e3869dd2dc8"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_parameter_duplicate.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/world_parameter_duplicate.stderr",
+      "mode": "100644",
+      "blob": "896f15cc4fc4281ca8f1408884e8e33eba6e6e8b"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_parameter_mutable.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/world_parameter_mutable.rs",
+      "mode": "100644",
+      "blob": "32d71c5d6fd40c0fc22ea7d93d660e3f778f2a8b"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_parameter_mutable.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/world_parameter_mutable.stderr",
+      "mode": "100644",
+      "blob": "895259f4817bbd2d484d2220392642bfc089a3aa"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_parameter_position.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/world_parameter_position.rs",
+      "mode": "100644",
+      "blob": "da057052ac4cb4fb28b182fdba3f4125ce59b091"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_parameter_position.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/world_parameter_position.stderr",
+      "mode": "100644",
+      "blob": "8836eed132382ca15a8e6547fdcc4413a69f039b"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_empty_mixed.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_empty_mixed.rs",
+      "mode": "100644",
+      "blob": "d4f74904ccabf8071b6dbe238db02c479291098d"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_empty_mixed.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_empty_mixed.stderr",
+      "mode": "100644",
+      "blob": "26b362246de9512524138d0ddb86dfddbead24e4"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_impl_block.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_impl_block.rs",
+      "mode": "100644",
+      "blob": "1af7fe9aa68d20359caa6c0c84016b8beafff4a7"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_impl_block.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_impl_block.stderr",
+      "mode": "100644",
+      "blob": "2c17dcc50dc7e4d438d67c8bbf9b7f740a3e3ffb"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_mixed.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_mixed.rs",
+      "mode": "100644",
+      "blob": "b4f6bcfc599424f27b7ee41867289dcd727bbae4"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_mixed.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_mixed.stderr",
+      "mode": "100644",
+      "blob": "3681c2b8178611f864e4960a17873f02e81ed399"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_receiver.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_receiver.rs",
+      "mode": "100644",
+      "blob": "cded50f1f973a2e3e06de88ef3fc8d55e9867dc7"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_receiver.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_receiver.stderr",
+      "mode": "100644",
+      "blob": "00d6f22e120bbfad1a223e0970697506e9edd949"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_twice.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_twice.rs",
+      "mode": "100644",
+      "blob": "cc3775b30fc399032f78b52416db8de3fa52e7df"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_twice.stderr",
+      "destination": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_twice.stderr",
+      "mode": "100644",
+      "blob": "585ad8cd8a6b7ffb16aea2f2316e1dcf9b2f9a8a"
+    },
+    {
+      "source": "model/umpire/author/dsl/macros/tests/parser_refusals/mod.rs",
+      "destination": "author/dsl/macros/tests/parser_refusals/mod.rs",
+      "mode": "100644",
+      "blob": "2e2663a6f228b18a578230d694ebab1363a57071"
+    },
+    {
       "source": "model/umpire/author/dsl/macros/tests/pass/action_metadata.rs",
       "destination": "author/dsl/macros/tests/pass/action_metadata.rs",
       "mode": "100644",
@@ -2544,30 +3294,6 @@
       "destination": "author/dsl/macros/tests/pass/public_actor_private_state.rs",
       "mode": "100644",
       "blob": "a6189842b6d907ef81c0b536df742188237ab298"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_domain_conflict.rs",
-      "destination": "author/dsl/macros/tests/ui/action_domain_conflict.rs",
-      "mode": "100644",
-      "blob": "a797cb64829bbf8d3a1c38d31d38618f0bda88d0"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_domain_conflict.stderr",
-      "destination": "author/dsl/macros/tests/ui/action_domain_conflict.stderr",
-      "mode": "100644",
-      "blob": "5f1cc92204d7ab4347c3204cdaee565a94949dcf"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_domain_duplicate.rs",
-      "destination": "author/dsl/macros/tests/ui/action_domain_duplicate.rs",
-      "mode": "100644",
-      "blob": "c08ee83d8be5c9a0d5d6cc66d3f3cbc2aec6011c"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_domain_duplicate.stderr",
-      "destination": "author/dsl/macros/tests/ui/action_domain_duplicate.stderr",
-      "mode": "100644",
-      "blob": "1dbfa2925e126c68c4423be459a2a4ded08f70de"
     },
     {
       "source": "model/umpire/author/dsl/macros/tests/ui/action_domain_item_type.rs",
@@ -2594,30 +3320,6 @@
       "blob": "eee0b019539ebd968de640f16ab8fccc75b1cbf2"
     },
     {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_domain_variant.rs",
-      "destination": "author/dsl/macros/tests/ui/action_domain_variant.rs",
-      "mode": "100644",
-      "blob": "710b4f26f938ac30679c02c81b44fe313658cacb"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_domain_variant.stderr",
-      "destination": "author/dsl/macros/tests/ui/action_domain_variant.stderr",
-      "mode": "100644",
-      "blob": "e8b4b58bcf549ed0e34591f8cf6fe957b1ac2429"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_domain_without_world.rs",
-      "destination": "author/dsl/macros/tests/ui/action_domain_without_world.rs",
-      "mode": "100644",
-      "blob": "4084df9b93661ea2dee5ecc6386b28d9c95e46af"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_domain_without_world.stderr",
-      "destination": "author/dsl/macros/tests/ui/action_domain_without_world.stderr",
-      "mode": "100644",
-      "blob": "1971e3da43ba4b236edda1dad01dce9361cb9963"
-    },
-    {
       "source": "model/umpire/author/dsl/macros/tests/ui/action_domain_world_mismatch.rs",
       "destination": "author/dsl/macros/tests/ui/action_domain_world_mismatch.rs",
       "mode": "100644",
@@ -2642,342 +3344,6 @@
       "blob": "63f9d877a5f1bb5590a263bf667cd753d7ded98f"
     },
     {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_inputs_duplicate.rs",
-      "destination": "author/dsl/macros/tests/ui/action_inputs_duplicate.rs",
-      "mode": "100644",
-      "blob": "d7ade5fc63141332f613f0c1e1987ed8f7f3c322"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_inputs_duplicate.stderr",
-      "destination": "author/dsl/macros/tests/ui/action_inputs_duplicate.stderr",
-      "mode": "100644",
-      "blob": "e5270c6d17034902cab19effa30efb807dd8128c"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_inputs_invalid.rs",
-      "destination": "author/dsl/macros/tests/ui/action_inputs_invalid.rs",
-      "mode": "100644",
-      "blob": "402769e8bb89c4216f8bb009baec8e681d863a6c"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_inputs_invalid.stderr",
-      "destination": "author/dsl/macros/tests/ui/action_inputs_invalid.stderr",
-      "mode": "100644",
-      "blob": "9879a504b9a2d60154fef394dd3477c9ad71e0ac"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_inputs_missing.rs",
-      "destination": "author/dsl/macros/tests/ui/action_inputs_missing.rs",
-      "mode": "100644",
-      "blob": "a31c47cd6af7c5dc17181075c183563d2385d2f6"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_inputs_missing.stderr",
-      "destination": "author/dsl/macros/tests/ui/action_inputs_missing.stderr",
-      "mode": "100644",
-      "blob": "3f41d5601b61fe05a4d8f16d16aa42bda93a929b"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_inputs_variant_fault.rs",
-      "destination": "author/dsl/macros/tests/ui/action_inputs_variant_fault.rs",
-      "mode": "100644",
-      "blob": "86eac9bc22fb4deab13153d7cdaa993a90f3ce05"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_inputs_variant_fault.stderr",
-      "destination": "author/dsl/macros/tests/ui/action_inputs_variant_fault.stderr",
-      "mode": "100644",
-      "blob": "80bb39da1a2d46149a820a02ab1ab391336f88b0"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_metadata_duplicate.rs",
-      "destination": "author/dsl/macros/tests/ui/action_metadata_duplicate.rs",
-      "mode": "100644",
-      "blob": "e49c8d6e33c7849bda91821b9b1332a5f4fbacdf"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_metadata_duplicate.stderr",
-      "destination": "author/dsl/macros/tests/ui/action_metadata_duplicate.stderr",
-      "mode": "100644",
-      "blob": "49255e728d606c43dabe5c76e638235b12a297ee"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_metadata_namespace.rs",
-      "destination": "author/dsl/macros/tests/ui/action_metadata_namespace.rs",
-      "mode": "100644",
-      "blob": "bf464fe08878115d5fee7e91d03d2356a9a5cd93"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_metadata_namespace.stderr",
-      "destination": "author/dsl/macros/tests/ui/action_metadata_namespace.stderr",
-      "mode": "100644",
-      "blob": "637a9f41fd7cd871fe666e0e0440fc689916cdb5"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_metadata_placement.rs",
-      "destination": "author/dsl/macros/tests/ui/action_metadata_placement.rs",
-      "mode": "100644",
-      "blob": "c092a7aa620afb5bc2e558339ab10bc23c5b922c"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/action_metadata_placement.stderr",
-      "destination": "author/dsl/macros/tests/ui/action_metadata_placement.stderr",
-      "mode": "100644",
-      "blob": "b077773ad6b60e6d24e539daa362d59ac91bb56c"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/finite_shape.rs",
-      "destination": "author/dsl/macros/tests/ui/finite_shape.rs",
-      "mode": "100644",
-      "blob": "fe8774ad2eaa904d9888efb64f32eaf4ddaa31d6"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/finite_shape.stderr",
-      "destination": "author/dsl/macros/tests/ui/finite_shape.stderr",
-      "mode": "100644",
-      "blob": "b3fc44e16c771c6ae887aa90b3ced82f6a3ab5a7"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_actor_arity.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_actor_arity.rs",
-      "mode": "100644",
-      "blob": "b58eda672fac7c9c8fadd81e07616ab58d7ef30d"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_actor_arity.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_actor_arity.stderr",
-      "mode": "100644",
-      "blob": "60e2b54b226fa17b64a7d720b6fc25128b75c5d9"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_actor_mismatch.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_actor_mismatch.rs",
-      "mode": "100644",
-      "blob": "eb48c78db46710d49d745f747a5a8f0e3bf1bde2"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_actor_mismatch.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_actor_mismatch.stderr",
-      "mode": "100644",
-      "blob": "8aaa73f7fa19b820c56ab3af881d57c75a3d6305"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_actor_receiver.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_actor_receiver.rs",
-      "mode": "100644",
-      "blob": "22b9e41e5c8630a7b6691cb9e8c0e31f8db16fa5"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_actor_receiver.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_actor_receiver.stderr",
-      "mode": "100644",
-      "blob": "be24378440cf0dda6c1db2535b001a545eda164e"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_after_inputs.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_after_inputs.rs",
-      "mode": "100644",
-      "blob": "4d53696aab2bc5ffa31a4239387c6f7507341b4b"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_after_inputs.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_after_inputs.stderr",
-      "mode": "100644",
-      "blob": "56f93bb168662b989642df10a535408175ed59ca"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_claim_async.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_claim_async.rs",
-      "mode": "100644",
-      "blob": "495b4e3c14e3674e64e88b30f01e11a3e375fb36"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_claim_async.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_claim_async.stderr",
-      "mode": "100644",
-      "blob": "854e360ce7e862e3fcb740168a565fe90d76868c"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_claim_returns.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_claim_returns.rs",
-      "mode": "100644",
-      "blob": "d862a4e8202a1a0d16a580690bed6873550b8369"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_claim_returns.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_claim_returns.stderr",
-      "mode": "100644",
-      "blob": "2a80cba6011f001d3a5c027645eaf4e43d7f1289"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_duplicate_actor.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_duplicate_actor.rs",
-      "mode": "100644",
-      "blob": "a560e3d5622e5304e24d92545a0c23bd976ccac5"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_duplicate_actor.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_duplicate_actor.stderr",
-      "mode": "100644",
-      "blob": "54fb228dfd8c8462a949535b9f9cc074922d49df"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_duplicate_kind.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_duplicate_kind.rs",
-      "mode": "100644",
-      "blob": "7652e78df7ace8600d4942d3efaf204926a19af4"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_duplicate_kind.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_duplicate_kind.stderr",
-      "mode": "100644",
-      "blob": "9cbcc168b0197ede1d639eb7a8601e1700f38a17"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_effect_arguments.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_effect_arguments.rs",
-      "mode": "100644",
-      "blob": "2dd86404ed1c8d994d2881116e7d993972323828"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_effect_arguments.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_effect_arguments.stderr",
-      "mode": "100644",
-      "blob": "39340f3a49f020297b2739bd4a780cc98d84eca3"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_generic.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_generic.rs",
-      "mode": "100644",
-      "blob": "385d4bb6b2636447e6f5951e4ba3036a37e8b574"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_generic.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_generic.stderr",
-      "mode": "100644",
-      "blob": "18496b5ba5d86834464d908266616e98fe543ab4"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_handler_async.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_handler_async.rs",
-      "mode": "100644",
-      "blob": "9bb53bd5bff8cd9efa588f9fa700392dcc00a8f9"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_handler_async.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_handler_async.stderr",
-      "mode": "100644",
-      "blob": "4573b92748478dfe6be467ef4c1acc683288be99"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_handler_returns.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_handler_returns.rs",
-      "mode": "100644",
-      "blob": "a5e9b5478aa9e9a4aabee72e7d81d4a478e91064"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_handler_returns.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_handler_returns.stderr",
-      "mode": "100644",
-      "blob": "503ee8419075721481c90908a78bfd3527529a75"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_invariant_parameters.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_invariant_parameters.rs",
-      "mode": "100644",
-      "blob": "af1beae9ba7696b4ad9070760491a78b9ad9e2ea"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_invariant_parameters.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_invariant_parameters.stderr",
-      "mode": "100644",
-      "blob": "5dc00390f785d73d27752b3ef4a8772019afd5e1"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_legacy_effects.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_legacy_effects.rs",
-      "mode": "100644",
-      "blob": "1e07ef98d6bcdf964ccffa836423201080a2a9c4"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_legacy_effects.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_legacy_effects.stderr",
-      "mode": "100644",
-      "blob": "b8245bd49ea4f5b7a52b70070960f75ee95852b6"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_legacy_invariants.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_legacy_invariants.rs",
-      "mode": "100644",
-      "blob": "fc11aebcf1fc0dc3d1b6abb811ab3b36e2a8e3a3"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_legacy_invariants.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_legacy_invariants.stderr",
-      "mode": "100644",
-      "blob": "7681450fac9652958a44fefd295b105e4c85b1dd"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_legacy_scopes.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_legacy_scopes.rs",
-      "mode": "100644",
-      "blob": "ded8f1bda0fb9dfd1935acdf0a71c9b54f601bf4"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_legacy_scopes.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_legacy_scopes.stderr",
-      "mode": "100644",
-      "blob": "ed87175e1be6900863d21fbe442ac83ff86b45fe"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_legacy_transitions.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_legacy_transitions.rs",
-      "mode": "100644",
-      "blob": "ea4b360b98f29809a6c826fe8a7c2a4a2e709706"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_legacy_transitions.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_legacy_transitions.stderr",
-      "mode": "100644",
-      "blob": "34ada33cf3e9744b319637c9aa69ec3fccaab15f"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_marker_trait.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_marker_trait.rs",
-      "mode": "100644",
-      "blob": "0dacde732c7f55b4f8577b3c87387d7c36387121"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_marker_trait.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_marker_trait.stderr",
-      "mode": "100644",
-      "blob": "d6701fcbcc775aba474ad9f389bf0121b1512ad2"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_misplaced_effect.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_misplaced_effect.rs",
-      "mode": "100644",
-      "blob": "15310fd26b85d57ff2e1d94bdf9618c309593881"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_misplaced_effect.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_misplaced_effect.stderr",
-      "mode": "100644",
-      "blob": "a231fa64b4806e587130affcea8a53775b971877"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_missing_actor.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_missing_actor.rs",
-      "mode": "100644",
-      "blob": "3c9b87707510ebfb80e6211cc70f7612b4113a0a"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_missing_actor.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_missing_actor.stderr",
-      "mode": "100644",
-      "blob": "7fa271e36fb23028c6514fa5e540c6234c6cb2b9"
-    },
-    {
       "source": "model/umpire/author/dsl/macros/tests/ui/machine_mutable_aliased_helper.rs",
       "destination": "author/dsl/macros/tests/ui/machine_mutable_aliased_helper.rs",
       "mode": "100644",
@@ -3000,30 +3366,6 @@
       "destination": "author/dsl/macros/tests/ui/machine_mutable_const_helper.stderr",
       "mode": "100644",
       "blob": "f2024e44f986646e07b6896a8b0e4b2644eaabce"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_mutable_helper.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_mutable_helper.rs",
-      "mode": "100644",
-      "blob": "8ef9e4e565bee418a130ddae929cf1c7f0eaad17"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_mutable_helper.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_mutable_helper.stderr",
-      "mode": "100644",
-      "blob": "9652df9833120cc2ab35125dbfcf29a65a336157"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_mutable_invariant.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_mutable_invariant.rs",
-      "mode": "100644",
-      "blob": "139f15d37add26c64f2316f23e352c2e73acfa97"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_mutable_invariant.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_mutable_invariant.stderr",
-      "mode": "100644",
-      "blob": "328eb6c9f8917ea317859f0003c0f497a09c9c9a"
     },
     {
       "source": "model/umpire/author/dsl/macros/tests/ui/machine_mutable_local_helper.rs",
@@ -3074,42 +3416,6 @@
       "blob": "fe6e6a90eb0e82e4ccaf9828b4fe03e645f399f7"
     },
     {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_mutable_typed_helper.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_mutable_typed_helper.rs",
-      "mode": "100644",
-      "blob": "37b96cf2de6363cf7e64872a25a362edb9b26331"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_mutable_typed_helper.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_mutable_typed_helper.stderr",
-      "mode": "100644",
-      "blob": "39192dc3dca8358d32cf396ab4dec6334e4500e2"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_nonactor_parameter.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_nonactor_parameter.rs",
-      "mode": "100644",
-      "blob": "0ec0f1127b61f588bffabc2d0540e8ec3c637e1f"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_nonactor_parameter.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_nonactor_parameter.stderr",
-      "mode": "100644",
-      "blob": "a1727136c0b7edbc5a718a4c00a9b772b2b162d9"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_noncontiguous_kind.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_noncontiguous_kind.rs",
-      "mode": "100644",
-      "blob": "0f82743144c452d3c3e43f5d0dafa768044ec8c3"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_noncontiguous_kind.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_noncontiguous_kind.stderr",
-      "mode": "100644",
-      "blob": "a374dc8c28425fa3e0af5fd13fbd4b98141222c3"
-    },
-    {
       "source": "model/umpire/author/dsl/macros/tests/ui/machine_nonexhaustive_actor.rs",
       "destination": "author/dsl/macros/tests/ui/machine_nonexhaustive_actor.rs",
       "mode": "100644",
@@ -3122,78 +3428,6 @@
       "blob": "6bc7ad141f541e68195ecfd5a941cbd3695fd6be"
     },
     {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_out_of_order.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_out_of_order.rs",
-      "mode": "100644",
-      "blob": "6461e5713e86d6190f85ba214e2eeffdea0a88ec"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_out_of_order.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_out_of_order.stderr",
-      "mode": "100644",
-      "blob": "e8c157605640f2022b40b7e6ebfa5f07fc3a810d"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_path_builders.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_path_builders.rs",
-      "mode": "100644",
-      "blob": "b59baef8586fd6606f4a82c968bc78d22087c3dd"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_path_builders.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_path_builders.stderr",
-      "mode": "100644",
-      "blob": "17274d1f9ae0b65b8b5fb200e351ccf3c7617e2a"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_post_async.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_post_async.rs",
-      "mode": "100644",
-      "blob": "106de881ce9b96ad4f357909e1e927a1d61803cb"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_post_async.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_post_async.stderr",
-      "mode": "100644",
-      "blob": "8777e9b15ecf0f18add0e2c3b06e2232e15ec340"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_post_returns_unit.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_post_returns_unit.rs",
-      "mode": "100644",
-      "blob": "6001f6160e328c17e15703a5739e77148d8f4de7"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_post_returns_unit.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_post_returns_unit.stderr",
-      "mode": "100644",
-      "blob": "6a28cebeb683d9e76607c7d054fbf68d24a045e7"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_progress_chain.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_progress_chain.rs",
-      "mode": "100644",
-      "blob": "4b12ab59973ef5e0e71b71ec22d9cdf4bae5c1ba"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_progress_chain.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_progress_chain.stderr",
-      "mode": "100644",
-      "blob": "aa7389cedaca307d8f5790385b8dc3043505d942"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_progress_gap.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_progress_gap.rs",
-      "mode": "100644",
-      "blob": "bcbf2cc008bed68003df52964e23ac5c819f5c2e"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_progress_gap.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_progress_gap.stderr",
-      "mode": "100644",
-      "blob": "24b7f8136c099f906931038635d7e5e1c576ff71"
-    },
-    {
       "source": "model/umpire/author/dsl/macros/tests/ui/machine_scope_actor.rs",
       "destination": "author/dsl/macros/tests/ui/machine_scope_actor.rs",
       "mode": "100644",
@@ -3204,18 +3438,6 @@
       "destination": "author/dsl/macros/tests/ui/machine_scope_actor.stderr",
       "mode": "100644",
       "blob": "250d4f24ad84a3e71d2ffa29235b9ceff1025811"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_starts_without_world.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_starts_without_world.rs",
-      "mode": "100644",
-      "blob": "fc16bb832d92c8b600ff146252c8ffdc163d1dce"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_starts_without_world.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_starts_without_world.stderr",
-      "mode": "100644",
-      "blob": "e2735027937716527f52f689776eada8bc1f16fe"
     },
     {
       "source": "model/umpire/author/dsl/macros/tests/ui/machine_stay_effect.rs",
@@ -3242,42 +3464,6 @@
       "blob": "b477c1df6c304d42b975be15f95bfaf013e29252"
     },
     {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_unknown_actor.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_unknown_actor.rs",
-      "mode": "100644",
-      "blob": "d96a3147a5c0e1c5fdbea7673c9af332e7ca2045"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_unknown_actor.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_unknown_actor.stderr",
-      "mode": "100644",
-      "blob": "e5ea77309e6ce61f82a44cc366f663bad75355d1"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_unknown_after.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_unknown_after.rs",
-      "mode": "100644",
-      "blob": "8a52004428c59a709510e54ef51ca763c8a36461"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_unknown_after.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_unknown_after.stderr",
-      "mode": "100644",
-      "blob": "6da130c88dd07a8d1e18b193e13bb0f9df3de6bf"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_unknown_scope.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_unknown_scope.rs",
-      "mode": "100644",
-      "blob": "2012f3366aaf8134880e2ec03ae55e1980009baf"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_unknown_scope.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_unknown_scope.stderr",
-      "mode": "100644",
-      "blob": "c58f37466a0f092694427e9a832a9652eafd5106"
-    },
-    {
       "source": "model/umpire/author/dsl/macros/tests/ui/machine_unsafe_allowed.rs",
       "destination": "author/dsl/macros/tests/ui/machine_unsafe_allowed.rs",
       "mode": "100644",
@@ -3288,42 +3474,6 @@
       "destination": "author/dsl/macros/tests/ui/machine_unsafe_allowed.stderr",
       "mode": "100644",
       "blob": "64094bb6be62acf517fc91c84ac516b82fe7eba3"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_within_bare.rs",
-      "destination": "author/dsl/macros/tests/ui/machine_within_bare.rs",
-      "mode": "100644",
-      "blob": "dd48c9785109a3c29ad62edb4bb17338c50b076b"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/machine_within_bare.stderr",
-      "destination": "author/dsl/macros/tests/ui/machine_within_bare.stderr",
-      "mode": "100644",
-      "blob": "cef4cd9785ef9cbe834226ec2d49e10e136ccc07"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/non_range_starts.rs",
-      "destination": "author/dsl/macros/tests/ui/non_range_starts.rs",
-      "mode": "100644",
-      "blob": "30d49fe58a8540f0972f32b6bc9cf614a5b4f288"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/non_range_starts.stderr",
-      "destination": "author/dsl/macros/tests/ui/non_range_starts.stderr",
-      "mode": "100644",
-      "blob": "0db0e308d9ec898e8e4857b1c49ec9659621fc57"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/non_unit_internal.rs",
-      "destination": "author/dsl/macros/tests/ui/non_unit_internal.rs",
-      "mode": "100644",
-      "blob": "6c5a0249fb351a6ac72b35d16ad386ef3f87150a"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/non_unit_internal.stderr",
-      "destination": "author/dsl/macros/tests/ui/non_unit_internal.stderr",
-      "mode": "100644",
-      "blob": "441744999f740070ba5a72df2258324a4a6be03d"
     },
     {
       "source": "model/umpire/author/dsl/macros/tests/ui/optional_facts_direct_reject.rs",
@@ -3338,18 +3488,6 @@
       "blob": "54bacb86fb37483276adddff54179b3a653d393a"
     },
     {
-      "source": "model/umpire/author/dsl/macros/tests/ui/optional_facts_payload.rs",
-      "destination": "author/dsl/macros/tests/ui/optional_facts_payload.rs",
-      "mode": "100644",
-      "blob": "89b70f76b01c77f23dce0077bd6a08ae2bde7922"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/optional_facts_payload.stderr",
-      "destination": "author/dsl/macros/tests/ui/optional_facts_payload.stderr",
-      "mode": "100644",
-      "blob": "9a7c0c26300aa9772d511a7b219aded5d204f559"
-    },
-    {
       "source": "model/umpire/author/dsl/macros/tests/ui/stay_outside_machine.rs",
       "destination": "author/dsl/macros/tests/ui/stay_outside_machine.rs",
       "mode": "100644",
@@ -3362,114 +3500,6 @@
       "blob": "a71a202b4b14ff763f917ff38e294373e2173a6a"
     },
     {
-      "source": "model/umpire/author/dsl/macros/tests/ui/variant_internal.rs",
-      "destination": "author/dsl/macros/tests/ui/variant_internal.rs",
-      "mode": "100644",
-      "blob": "8d3677b240777b05ad394279cacd30228a20906b"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/variant_internal.stderr",
-      "destination": "author/dsl/macros/tests/ui/variant_internal.stderr",
-      "mode": "100644",
-      "blob": "bb867cb0c5938157e4a4d0a5a13aeda806ce6aaf"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/world_duplicate.rs",
-      "destination": "author/dsl/macros/tests/ui/world_duplicate.rs",
-      "mode": "100644",
-      "blob": "b76c361af496b8089401c45f8efda2836f8866c9"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/world_duplicate.stderr",
-      "destination": "author/dsl/macros/tests/ui/world_duplicate.stderr",
-      "mode": "100644",
-      "blob": "09513036b14da6a8eda8a0018f3ab6f8dc15fcae"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/world_parameter_duplicate.rs",
-      "destination": "author/dsl/macros/tests/ui/world_parameter_duplicate.rs",
-      "mode": "100644",
-      "blob": "58f2383d11c69e76ab5a2e6736105e3869dd2dc8"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/world_parameter_duplicate.stderr",
-      "destination": "author/dsl/macros/tests/ui/world_parameter_duplicate.stderr",
-      "mode": "100644",
-      "blob": "896f15cc4fc4281ca8f1408884e8e33eba6e6e8b"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/world_parameter_mutable.rs",
-      "destination": "author/dsl/macros/tests/ui/world_parameter_mutable.rs",
-      "mode": "100644",
-      "blob": "32d71c5d6fd40c0fc22ea7d93d660e3f778f2a8b"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/world_parameter_mutable.stderr",
-      "destination": "author/dsl/macros/tests/ui/world_parameter_mutable.stderr",
-      "mode": "100644",
-      "blob": "895259f4817bbd2d484d2220392642bfc089a3aa"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/world_parameter_position.rs",
-      "destination": "author/dsl/macros/tests/ui/world_parameter_position.rs",
-      "mode": "100644",
-      "blob": "da057052ac4cb4fb28b182fdba3f4125ce59b091"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/world_parameter_position.stderr",
-      "destination": "author/dsl/macros/tests/ui/world_parameter_position.stderr",
-      "mode": "100644",
-      "blob": "8836eed132382ca15a8e6547fdcc4413a69f039b"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/world_starts_empty_mixed.rs",
-      "destination": "author/dsl/macros/tests/ui/world_starts_empty_mixed.rs",
-      "mode": "100644",
-      "blob": "d4f74904ccabf8071b6dbe238db02c479291098d"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/world_starts_empty_mixed.stderr",
-      "destination": "author/dsl/macros/tests/ui/world_starts_empty_mixed.stderr",
-      "mode": "100644",
-      "blob": "26b362246de9512524138d0ddb86dfddbead24e4"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/world_starts_impl_block.rs",
-      "destination": "author/dsl/macros/tests/ui/world_starts_impl_block.rs",
-      "mode": "100644",
-      "blob": "1af7fe9aa68d20359caa6c0c84016b8beafff4a7"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/world_starts_impl_block.stderr",
-      "destination": "author/dsl/macros/tests/ui/world_starts_impl_block.stderr",
-      "mode": "100644",
-      "blob": "2c17dcc50dc7e4d438d67c8bbf9b7f740a3e3ffb"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/world_starts_mixed.rs",
-      "destination": "author/dsl/macros/tests/ui/world_starts_mixed.rs",
-      "mode": "100644",
-      "blob": "b4f6bcfc599424f27b7ee41867289dcd727bbae4"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/world_starts_mixed.stderr",
-      "destination": "author/dsl/macros/tests/ui/world_starts_mixed.stderr",
-      "mode": "100644",
-      "blob": "3681c2b8178611f864e4960a17873f02e81ed399"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/world_starts_receiver.rs",
-      "destination": "author/dsl/macros/tests/ui/world_starts_receiver.rs",
-      "mode": "100644",
-      "blob": "cded50f1f973a2e3e06de88ef3fc8d55e9867dc7"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/world_starts_receiver.stderr",
-      "destination": "author/dsl/macros/tests/ui/world_starts_receiver.stderr",
-      "mode": "100644",
-      "blob": "00d6f22e120bbfad1a223e0970697506e9edd949"
-    },
-    {
       "source": "model/umpire/author/dsl/macros/tests/ui/world_starts_return.rs",
       "destination": "author/dsl/macros/tests/ui/world_starts_return.rs",
       "mode": "100644",
@@ -3480,18 +3510,6 @@
       "destination": "author/dsl/macros/tests/ui/world_starts_return.stderr",
       "mode": "100644",
       "blob": "f0b09b4fc47e8c884eda427abb0e88df170193af"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/world_starts_twice.rs",
-      "destination": "author/dsl/macros/tests/ui/world_starts_twice.rs",
-      "mode": "100644",
-      "blob": "cc3775b30fc399032f78b52416db8de3fa52e7df"
-    },
-    {
-      "source": "model/umpire/author/dsl/macros/tests/ui/world_starts_twice.stderr",
-      "destination": "author/dsl/macros/tests/ui/world_starts_twice.stderr",
-      "mode": "100644",
-      "blob": "585ad8cd8a6b7ffb16aea2f2316e1dcf9b2f9a8a"
     },
     {
       "source": "model/umpire/author/dsl/src/action.rs",
@@ -5441,37 +5459,43 @@
       "source": "model/umpire/backends/process/src/lib.rs",
       "destination": "backends/process/src/lib.rs",
       "mode": "100644",
-      "blob": "4b03edd7bb8ffad917ceb700db096873f390569e"
+      "blob": "f8daadc9c2c8eba336eb09da259cf464894511cc"
     },
     {
       "source": "model/umpire/backends/process/src/support.rs",
       "destination": "backends/process/src/support.rs",
       "mode": "100644",
-      "blob": "d6d3edff4f20aecfdec585c078a4d9b3a02c7566"
+      "blob": "ffde3ea78ff61f5f73572ebf8857e1e7906a84f1"
     },
     {
       "source": "model/umpire/backends/process/src/syscall.rs",
       "destination": "backends/process/src/syscall.rs",
       "mode": "100644",
-      "blob": "a856f739083b1fd3496456132d4b325c6f2e507d"
+      "blob": "d2bbfb2c0528c1c02b4e8b56b45d07db7d535926"
     },
     {
       "source": "model/umpire/backends/process/src/syscall/calls.rs",
       "destination": "backends/process/src/syscall/calls.rs",
       "mode": "100644",
-      "blob": "f82047b2ccb6f3340451092596f177e02926830a"
+      "blob": "a8cc198207d84c5d4e68a32b572a6aec407b1ee5"
+    },
+    {
+      "source": "model/umpire/backends/process/src/work.rs",
+      "destination": "backends/process/src/work.rs",
+      "mode": "100644",
+      "blob": "efdf198ab205b5e6f02cde9b54d06362e0172adb"
     },
     {
       "source": "model/umpire/backends/process/tests/fixtures/process_fixture.rs",
       "destination": "backends/process/tests/fixtures/process_fixture.rs",
       "mode": "100644",
-      "blob": "157a0b69aff47826b0d37c959e834ea378f999d8"
+      "blob": "2fa82a7b06fd29d7bd5f4d723a707a8ffe4e73d4"
     },
     {
       "source": "model/umpire/backends/process/tests/process.rs",
       "destination": "backends/process/tests/process.rs",
       "mode": "100644",
-      "blob": "56d46d14293716aeabbdbea047cdd18c0f8483b6"
+      "blob": "8fcb62e1a577dcb8e30874bb19943a8ffe7d245f"
     },
     {
       "source": "model/umpire/backends/tla/Cargo.toml",
@@ -5741,7 +5765,7 @@
       "source": "model/umpire/backends/tlc/src/runner.rs",
       "destination": "backends/tlc/src/runner.rs",
       "mode": "100644",
-      "blob": "8d1e15e32d16daf215dd76b13abc4696c229a121"
+      "blob": "e82344f0cee7d810ce60209d16b699905e9f9b7b"
     },
     {
       "source": "model/umpire/backends/tlc/src/runner/batch_tests.rs",
@@ -5753,7 +5777,7 @@
       "source": "model/umpire/backends/tlc/src/runner/cache_tests.rs",
       "destination": "backends/tlc/src/runner/cache_tests.rs",
       "mode": "100644",
-      "blob": "c08374672942f51200ad83684cb373755fd70c4a"
+      "blob": "3070278d914f61ef22425005d21353c3435491a7"
     },
     {
       "source": "model/umpire/backends/tlc/tests/fixtures/scaling_model.rs",
@@ -6365,7 +6389,7 @@
       "source": "model/umpire/dev/fixtures/build.rs",
       "destination": "dev/fixtures/build.rs",
       "mode": "100644",
-      "blob": "80177414cd41c29b987d104457cc9eb1e9035c9d"
+      "blob": "b8a9ec37a9712605a15a1de37aea0277270f6e59"
     },
     {
       "source": "model/umpire/dev/fixtures/crowded.rs",
@@ -6377,7 +6401,7 @@
       "source": "model/umpire/dev/fixtures/fixtures.rs",
       "destination": "dev/fixtures/fixtures.rs",
       "mode": "100644",
-      "blob": "dcdbb0d3d4889e143a109c2ef84284797638f17a"
+      "blob": "cbfb5f56e0d81e66aa578139fa5cbefcd91f2030"
     },
     {
       "source": "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/lift.txt.snap",
@@ -7991,7 +8015,7 @@
       "source": "model/umpire/dev/testing/src/lib.rs",
       "destination": "dev/testing/src/lib.rs",
       "mode": "100644",
-      "blob": "22ba338ae86bf6ff9f72778b680d2da20eedbdb2"
+      "blob": "b67a5002897da34c9f5447ca5713524a70550cb7"
     },
     {
       "source": "model/umpire/dev/testing/src/render.rs",
@@ -8003,7 +8027,7 @@
       "source": "model/umpire/dev/testing/src/runner.rs",
       "destination": "dev/testing/src/runner.rs",
       "mode": "100644",
-      "blob": "3ea63059fa3ba6d7517f8251b74c89e20a4062af"
+      "blob": "660e61ce5a65603cab8f200d8ec7a2d8acd85dc3"
     },
     {
       "source": "model/umpire/dev/testing/src/snapshot_payload.rs",
@@ -8027,7 +8051,7 @@
       "source": "model/umpire/dev/testing/tests/consumers.rs",
       "destination": "dev/testing/tests/consumers.rs",
       "mode": "100644",
-      "blob": "6f6e7ef609aef5bcb594ebd8b99da2f47e472378"
+      "blob": "2c56073a7bfd08028b385e073ef2eefca927ce63"
     },
     {
       "source": "model/umpire/dev/testing/tests/external_consumers.rs",
@@ -8087,13 +8111,13 @@
       "source": "model/umpire/dev/xtask/Cargo.toml",
       "destination": "dev/xtask/Cargo.toml",
       "mode": "100644",
-      "blob": "d206618c29ad5d6a6a624e296b7261bcb98f2a12"
+      "blob": "07fbdca67fe38cd4689bec71ae8ec7e3c20164e8"
     },
     {
       "source": "model/umpire/dev/xtask/README.md",
       "destination": "dev/xtask/README.md",
       "mode": "100644",
-      "blob": "f859dcfee9695eed9cb0e6eefef0e2756bd9731d"
+      "blob": "d7c089c07dc02f7a9aae72e1fc099c12487bd21c"
     },
     {
       "source": "model/umpire/dev/xtask/src/apalache_pins.rs",
@@ -8111,7 +8135,13 @@
       "source": "model/umpire/dev/xtask/src/gate.rs",
       "destination": "dev/xtask/src/gate.rs",
       "mode": "100644",
-      "blob": "bf567777f7ade2664e3b59e1563fe7e757cf023c"
+      "blob": "7cff6f659f3e3c9e4b7a83d451a397b9c57f90f1"
+    },
+    {
+      "source": "model/umpire/dev/xtask/src/gate/admission.rs",
+      "destination": "dev/xtask/src/gate/admission.rs",
+      "mode": "100644",
+      "blob": "08304a777b4522a6c63020db6b1d295dfc5b0d85"
     },
     {
       "source": "model/umpire/dev/xtask/src/gate/boundary.rs",
@@ -8120,10 +8150,34 @@
       "blob": "7e9029cc983bd0503fbc77386819379937bb4013"
     },
     {
+      "source": "model/umpire/dev/xtask/src/gate/lease.rs",
+      "destination": "dev/xtask/src/gate/lease.rs",
+      "mode": "100644",
+      "blob": "4197429f866dbe4d9515d1cf94124d7a5cff0c73"
+    },
+    {
+      "source": "model/umpire/dev/xtask/src/gate/scheduler.rs",
+      "destination": "dev/xtask/src/gate/scheduler.rs",
+      "mode": "100644",
+      "blob": "82b6f7591aade7e068004bb1ab212734d46ee861"
+    },
+    {
       "source": "model/umpire/dev/xtask/src/gate/standalone.rs",
       "destination": "dev/xtask/src/gate/standalone.rs",
       "mode": "100644",
-      "blob": "c43b53287e9a9ad7999c0dd4da58bf0cce1e6f90"
+      "blob": "47e69f17ebaf48d59c6dcec5cd2d8e78b06ac1fb"
+    },
+    {
+      "source": "model/umpire/dev/xtask/src/gate/tasks.toml",
+      "destination": "dev/xtask/src/gate/tasks.toml",
+      "mode": "100644",
+      "blob": "8367ba52a67c8ee37a3f378dbc79615673f7b0a2"
+    },
+    {
+      "source": "model/umpire/dev/xtask/src/gate/work_counts.rs",
+      "destination": "dev/xtask/src/gate/work_counts.rs",
+      "mode": "100644",
+      "blob": "85007da3ea09d179ceba91190ad47342aaf20ac8"
     },
     {
       "source": "model/umpire/dev/xtask/src/lib.rs",
@@ -8135,25 +8189,25 @@
       "source": "model/umpire/dev/xtask/src/main.rs",
       "destination": "dev/xtask/src/main.rs",
       "mode": "100644",
-      "blob": "49c1063cf15baf9af09b9110832530a95bfe1792"
+      "blob": "a11c386aa19a286f2ab654927a58cd945bce25bf"
     },
     {
       "source": "model/umpire/dev/xtask/src/quick/mod.rs",
       "destination": "dev/xtask/src/quick/mod.rs",
       "mode": "100644",
-      "blob": "8f268bf3a56151dc5f4c0898ea67c2516baa869d"
+      "blob": "aa5a9fb053b4364f872d42b120f60dd56d2b42be"
     },
     {
       "source": "model/umpire/dev/xtask/src/quick/selection.rs",
       "destination": "dev/xtask/src/quick/selection.rs",
       "mode": "100644",
-      "blob": "c86199c7363925ea976ca58dc12b190a6a0ecaf9"
+      "blob": "6daaaccfaaa2e85e129b3c6b01586cfda23908ed"
     },
     {
       "source": "model/umpire/dev/xtask/src/quick/tests.rs",
       "destination": "dev/xtask/src/quick/tests.rs",
       "mode": "100644",
-      "blob": "2c266681350ab2f5cc57dffa5868c65967321eda"
+      "blob": "bb32b49f2c8d9f8359a09ef6ac42c20b1f398a7d"
     },
     {
       "source": "model/umpire/dev/xtask/src/retired_names.rs",
@@ -8165,7 +8219,7 @@
       "source": "model/umpire/dev/xtask/src/test_run.rs",
       "destination": "dev/xtask/src/test_run.rs",
       "mode": "100644",
-      "blob": "ed03972baf4f9f7b9ccada765302f133e50a1a9e"
+      "blob": "804f9946e0a6be1b599ef873107cdab305931317"
     },
     {
       "source": "model/umpire/dev/xtask/tests/apalache/cases.rs",
@@ -8180,16 +8234,28 @@
       "blob": "e4cf112c002253051411b626509c1cb785f034d2"
     },
     {
+      "source": "model/umpire/dev/xtask/tests/controller_counts.rs",
+      "destination": "dev/xtask/tests/controller_counts.rs",
+      "mode": "100644",
+      "blob": "f2b64c0a2081514b58ac0725cc7e48250212f5f2"
+    },
+    {
+      "source": "model/umpire/dev/xtask/tests/gate_graph.rs",
+      "destination": "dev/xtask/tests/gate_graph.rs",
+      "mode": "100644",
+      "blob": "8eff093825d4064c56028bb1fbc9aafee91e0d90"
+    },
+    {
       "source": "model/umpire/dev/xtask/tests/gate_wiring.rs",
       "destination": "dev/xtask/tests/gate_wiring.rs",
       "mode": "100644",
-      "blob": "1916c42976598b41ce6693675384a9ce867db8a9"
+      "blob": "71b44a54e35784343fa8818acff4346f60bc0139"
     },
     {
       "source": "model/umpire/dev/xtask/tests/main.rs",
       "destination": "dev/xtask/tests/main.rs",
       "mode": "100644",
-      "blob": "359859b34a724cdbe604cfc5e9028d123044c984"
+      "blob": "8ab6cfba09e602946e48dbd52a09e0feb6b63cb1"
     },
     {
       "source": "model/umpire/dev/xtask/tests/retired_names.rs",
@@ -8657,7 +8723,7 @@
       "source": "model/umpire/mise.toml",
       "destination": "mise.toml",
       "mode": "100644",
-      "blob": "be7ece1cf0a7fcc2ca35a17f994a2d59471e55a1"
+      "blob": "f584ecc6a7a75b5fc2302d462f9d9808c51f0ece"
     },
     {
       "source": "model/umpire/protocol/proto/README.md",
@@ -9358,44 +9424,53 @@
       "disposition": "Optional thin command aliases; native cargo xtask commands already exist"
     }
   ],
+  "original_input_map_provenance": {
+    "source_commit": "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+    "investigation_target_objects": [
+      {
+        "path": "MIGRATE.md",
+        "blob": "aaa397ef48d0828bbe1e0803a932a61f4df9fc55",
+        "bytes": 19986,
+        "sha256": "9991fc9f455d43241668b4d6f4bf15e9d3a0f91b1f97f51320384df1bcab0239"
+      },
+      {
+        "path": "model/README.md",
+        "blob": "80680e80b946856028d50f24116c9b5e2ee93e2b",
+        "bytes": 75796,
+        "sha256": "ac8d13f5a0af118fbe2b62c0c50620c984e97f7d1d191b9543519710d728334b"
+      },
+      {
+        "path": "model/umpire/README.md",
+        "blob": "a78217c42e218e0cd8cb5980f34431030abf82bc",
+        "bytes": 7981,
+        "sha256": "96b06402c474be862ab4f892dd543454f9fc9707db3317f2b868d22c47b35803"
+      },
+      {
+        "path": ".flow/specs/fn-254-fast-validation-gates-and-a-real-inner.md",
+        "blob": "fe4863248b5b01efada1ce4ebcaaf1ec6926a1de",
+        "bytes": 32931,
+        "sha256": "91f54356eaf29078874264987f915d6a848bcb0bf43c073b0a11d1d640789b0e"
+      },
+      {
+        "path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.11.md",
+        "blob": "b2e978945110d66634182d26ef21e58feb0b0e24",
+        "bytes": 7173,
+        "sha256": "c41a274c2833959d6443e58c2348bd9f602fb3c0d9b8b2011fbeb005a050dca8"
+      }
+    ],
+    "unresolved_evidence_gaps_at_original_capture": [
+      "History-filter implementation and exact selected-tree comparison have not run; this artifact is the input map, not an export proof.",
+      "Independent export commit map, empty-commit dispositions and representative post-filter history remain task2 evidence.",
+      "Destination state remains unknown under the separately recorded HTTP401; no destination read was attempted by this worker.",
+      "Build, test, generated-code freshness, guest reproduction and paired consumer proofs remain deferred under the validation hold.",
+      "Support provenance allowlist includes mixed historical files intentionally; portable layout must remove its namespace without copying unrelated server content into active source."
+    ],
+    "qualification": "Frozen original investigation/capture context only; not current-source objects or current validation status."
+  },
   "unresolved_evidence_gaps": [
-    "History-filter implementation and exact selected-tree comparison have not run; this artifact is the input map, not an export proof.",
-    "Independent export commit map, empty-commit dispositions and representative post-filter history remain task2 evidence.",
-    "Destination state remains unknown under the separately recorded HTTP401; no destination read was attempted by this worker.",
-    "Build, test, generated-code freshness, guest reproduction and paired consumer proofs remain deferred under the validation hold.",
-    "Support provenance allowlist includes mixed historical files intentionally; portable layout must remove its namespace without copying unrelated server content into active source."
-  ],
-  "investigation_target_objects": [
-    {
-      "path": "MIGRATE.md",
-      "blob": "aaa397ef48d0828bbe1e0803a932a61f4df9fc55",
-      "bytes": 19986,
-      "sha256": "9991fc9f455d43241668b4d6f4bf15e9d3a0f91b1f97f51320384df1bcab0239"
-    },
-    {
-      "path": "model/README.md",
-      "blob": "80680e80b946856028d50f24116c9b5e2ee93e2b",
-      "bytes": 75796,
-      "sha256": "ac8d13f5a0af118fbe2b62c0c50620c984e97f7d1d191b9543519710d728334b"
-    },
-    {
-      "path": "model/umpire/README.md",
-      "blob": "a78217c42e218e0cd8cb5980f34431030abf82bc",
-      "bytes": 7981,
-      "sha256": "96b06402c474be862ab4f892dd543454f9fc9707db3317f2b868d22c47b35803"
-    },
-    {
-      "path": ".flow/specs/fn-254-fast-validation-gates-and-a-real-inner.md",
-      "blob": "fe4863248b5b01efada1ce4ebcaaf1ec6926a1de",
-      "bytes": 32931,
-      "sha256": "91f54356eaf29078874264987f915d6a848bcb0bf43c073b0a11d1d640789b0e"
-    },
-    {
-      "path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.11.md",
-      "blob": "b2e978945110d66634182d26ef21e58feb0b0e24",
-      "bytes": 7173,
-      "sha256": "c41a274c2833959d6443e58c2348bd9f602fb3c0d9b8b2011fbeb005a050dca8"
-    }
+    "Downstream portable-layout, runtime/build and paired-consumer proofs are outside this immutable history checkpoint.",
+    "Destination permission/publication remains separately authorized and is not established by this history proof.",
+    "Support provenance remains under .history-support for separate portable-layout removal."
   ],
   "adapted_from": "fn-257/task1/history-map.json; unchanged historical path/provenance qualification rules; recomputed fixed-source ancestry"
 }

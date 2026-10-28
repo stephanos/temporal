@@ -1,0 +1,128 @@
+{
+  "source_commit": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "original": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+  "clone": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-reviewed-repro",
+  "source_identity": {
+    "head": "ba8ede3a6a078d3ede43245a7764c081a5daa1d6",
+    "refs_sha256": "04fd7adc5845ac5a05e5f239313bc3f29dda24fbf03ae5bd59278edd19e430ee",
+    "worktrees": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2462-once-entity-lens",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-baseline",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2533-once-countdown-library",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn254-source-assembly",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25411-standalone",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25412-budget-wiring",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25414-probes",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25415-native-controls-v2",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25415-shell-finish",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-mise-adapter-v2",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2553-stable-harness",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2555-once-miri",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2556-coverage-fixes",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2561-retirement",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2562-once-retirement",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2583-consumers",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/once2552-differential",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/once2556-coverage",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2532-countdown",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep254-receipt-counts",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25412-budgets",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25415-proto",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25415-scripts",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25416-tools",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25417-controls",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25417-gate",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25417-mise",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25417-nextest",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2545-compiler",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2545-fixtures",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2545-parser",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2553-fuzz",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2554-mutants"
+    ],
+    "shallow_file_sha256": "ef7d07756cb29242403b96f2ed65951e9edd7f8e20293ed90cefb4add39740b7"
+  },
+  "history_map_sha256": "ce9a45dc4edae843f1b99ddd8bdc661df093fe0fc5005aac02fce321700a70cf",
+  "source_manifest_sha256": "a29ea7017bf9138701d1580e1a466071a1c151b849526a55648484b27175a2c3",
+  "filter_module_sha256": "67447413e273fc76809289111748870b6f6072f08b17efe94863a92d810b7d94",
+  "export_script_sha256": "c63c31b855dcdd458a4b110cab40d2c5f970558c14bab514c239814ae67ac975",
+  "filter_arguments": [
+    "--refs",
+    "HEAD",
+    "--prune-empty",
+    "always",
+    "--prune-degenerate",
+    "auto",
+    "--preserve-commit-hashes",
+    "--preserve-commit-encoding",
+    "--replace-refs",
+    "delete-no-add",
+    "--no-gc"
+  ],
+  "selected_files": 1189,
+  "ancestry_counts": {
+    "H": 7261,
+    "D_rust_birth": 1422,
+    "D_framework_rename": 1403,
+    "D_canonical_archive_move": 1335,
+    "D_sibling_archive_move": 1336,
+    "D_archive_join": 1334,
+    "D_host_birth": 1379,
+    "D_host_birth_other_lineage": 1378,
+    "D_host_move_inside_framework": 1321,
+    "D_independent_workspace": 206,
+    "D_native_tool_birth": 540,
+    "D_native_tool_split": 199,
+    "D_framework_script_localization": 204,
+    "D_package_role_layout": 689,
+    "R": 1337
+  },
+  "source_history_boundary": {
+    "repositories": {
+      "original": {
+        "shallow": true,
+        "boundary_entry_count": 1,
+        "unique_boundaries": [
+          "6e176bde5fc2d14241a863bb286a0d74aeafb6d9"
+        ],
+        "boundary_file_sha256": "ef7d07756cb29242403b96f2ed65951e9edd7f8e20293ed90cefb4add39740b7"
+      },
+      "clone": {
+        "shallow": true,
+        "boundary_entry_count": 215,
+        "unique_boundaries": [
+          "6e176bde5fc2d14241a863bb286a0d74aeafb6d9"
+        ],
+        "boundary_file_sha256": "5510947b6fb92963068ea3dda95e1f504d2bfe740d10fc812385a8bd0ebb07ed"
+      }
+    },
+    "matching_unique_boundary_sets": true,
+    "available_ancestry_matches_recorded_H": true,
+    "cutoff_proofs": [
+      {
+        "cutoff": "6e176bde5fc2d14241a863bb286a0d74aeafb6d9",
+        "strict_ancestor_of_all_recorded_anchors": true,
+        "anchor_count": 13,
+        "inspected_prefixes": [
+          "model2/framework",
+          "model2/umpire",
+          "model/umpire",
+          "model2/hosts/go",
+          "model/hosts/go",
+          "model/dev/xtask"
+        ],
+        "selected_prefix_entries_at_cutoff": 0
+      }
+    ],
+    "limitation": "Export preserves only the supplied available source history. History before the recorded shallow cutoffs, including earlier LICENSE history, is unavailable and is not claimed as preserved. No fetching, unshallowing or shallow-file changes occur."
+  },
+  "pruning": "Prune empty projected single-parent commits and degenerate no-op merges; reset meaningful merges to their exact projected tree",
+  "partial_semantics": "--refs HEAD implies --partial: no other refs exist, origin remains local, automatic GC/reflog expiration is disabled; original unreachable monorepo objects remain until separately authorized clone-only cleanup after independent proof",
+  "support_disposition": "Retained separately under .history-support; no layout adaptation performed"
+}

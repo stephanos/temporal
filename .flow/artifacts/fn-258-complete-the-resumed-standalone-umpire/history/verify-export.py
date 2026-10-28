@@ -251,6 +251,11 @@ def verify(args, report, failures):
         require(mapping[SOURCE] in {checkpoint, None}, "checkpoint", "supplied checkpoint is neither the mapped source nor a projection-neutral source frontier")
         export_rows = exported.git("rev-list", "--parents", checkpoint).decode().splitlines()
         export_graph = {row.split()[0]: row.split()[1:] for row in export_rows}
+        mapped_values = {new for new in mapping.values() if new}
+        require(set(export_graph) == mapped_values, "export-graph-bounded", {
+            "unmapped_export_commits": sorted(set(export_graph) - mapped_values),
+            "unreachable_mapped_commits": sorted(mapped_values - set(export_graph)),
+        })
         flags = {name: set() for name in history["boundaries"]}
         for oid in order:
             for name, boundary in history["boundaries"].items():
@@ -368,6 +373,15 @@ def verify(args, report, failures):
                 disposition = "zero-pruned; compared with nearest nonredundant retained-parent frontier"
             if oid in required:
                 boundary_results.append({"original": oid, "mapped": mapped, "disposition": disposition, "projected_files": len(expected), "projection_sha256": projected_hash})
+        require(ordered_frontiers[SOURCE] == [checkpoint], "source-checkpoint-frontier", {
+            "source": SOURCE, "ordered_retained_frontier": ordered_frontiers[SOURCE],
+            "checkpoint": checkpoint,
+        })
+        report["checkpoint_binding"] = {
+            "export_graph_equals_nonzero_mapped_values": set(export_graph) == mapped_values,
+            "ordered_source_retained_frontier": ordered_frontiers[SOURCE],
+            "checkpoint": checkpoint,
+        }
         report["history"] = {"original_commits": len(graph), "retained_metadata_and_snapshot_comparisons": retained, "retained_parent_frontier_comparisons": retained, "zero_pruned_projection_comparisons": pruned, "required_boundaries_and_representatives": boundary_results, "qualification": "Recomputed graph ancestry; every original snapshot independently projected, including pre-R exclusions and host/native-tool cutoffs. Retained parents follow original frontier order; omitted parents must remain ancestors of retained parents."}
         report["completed_checks"].append("all mapped historical snapshots, retained metadata, rewritten parent frontiers/order and zero-pruned projection neutrality")
         missing_required = required - set(graph)

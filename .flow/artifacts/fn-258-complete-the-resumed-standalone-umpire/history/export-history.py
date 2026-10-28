@@ -346,6 +346,7 @@ def main():
             "source_commit": SOURCE, "original": str(original), "clone": str(clone),
             "source_identity": before, "history_map_sha256": digest(history_raw),
             "source_manifest_sha256": digest(manifest_raw), "filter_module_sha256": digest(module_path.read_bytes()),
+            "export_script_sha256": digest(Path(__file__).read_bytes()),
             "filter_arguments": flags, "selected_files": len(active),
             "ancestry_counts": {name: len(value) for name, value in sets.items()},
             "source_history_boundary": history_boundary,
@@ -370,6 +371,35 @@ def main():
         require(mapped_source is not None, "Source checkpoint has no export map row")
         export_head = git(clone, "rev-parse", "HEAD").strip()
         require(mapped_source == b"0" * 40 or export_head == mapped_source, "Detached HEAD did not follow the exported checkpoint")
+        retained_values = {value for value in mappings.values() if value != b"0" * 40}
+        export_graph = {}
+        for row in git(clone, "rev-list", "--parents", "HEAD").splitlines():
+            revision, *parents = row.split()
+            export_graph[revision] = parents
+        require(set(export_graph) == retained_values, "Export graph differs from nonzero commit-map values")
+        ancestors = {}
+        def export_ancestors(revision):
+            if revision not in ancestors:
+                seen, pending = set(), [revision]
+                while pending:
+                    current = pending.pop()
+                    if current not in seen:
+                        seen.add(current)
+                        pending.extend(export_graph[current])
+                ancestors[revision] = seen
+            return ancestors[revision]
+        frontiers = {}
+        for row in git(original, "rev-list", "--reverse", "--topo-order", "--parents", SOURCE).splitlines():
+            revision, *parents = row.split()
+            mapped = mappings[revision]
+            candidates = list(dict.fromkeys(item for parent in parents for item in frontiers[parent]))
+            if mapped != b"0" * 40:
+                frontiers[revision] = [mapped]
+            else:
+                frontiers[revision] = [candidate for candidate in candidates if not any(
+                    candidate != other and candidate in export_ancestors(other) for other in candidates
+                )]
+        require(frontiers[SOURCE.encode()] == [export_head], "Export HEAD differs from unique ordered retained source frontier")
         exported_tree = {}
         for record in git(clone, "ls-tree", "-r", "-z", "HEAD").split(b"\0"):
             if record:
@@ -389,6 +419,8 @@ def main():
             "snapshot_cache": projection.snapshot.cache_info()._asdict(),
             "source_identity_unchanged": True,
             "source_tip_projection_neutral_pruned": mapped_source == b"0" * 40,
+            "export_graph_equals_nonzero_mapped_values": True,
+            "ordered_source_retained_frontier": [value.decode() for value in frontiers[SOURCE.encode()]],
             "head_tree_matches_complete_projection": True,
             "head_index_worktree_synchronized": True,
             "source_history_boundary": history_boundary,

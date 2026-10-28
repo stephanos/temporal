@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "source_commit": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
-  "started_at": "2026-10-28T05:20:30.654703+00:00",
+  "started_at": "2026-10-28T05:41:01.331381+00:00",
   "completed_checks": [
     "all mapped historical snapshots, retained metadata, rewritten parent frontiers/order and zero-pruned projection neutrality",
     "1189-file final object and active path inventory; checked-out files when present",
@@ -16,13 +16,13 @@
     "Source history is shallow. Verification covers exactly the available fixed-source ancestry; unavailable pre-cutoff history, including earlier LICENSE history, is not established."
   ],
   "source_state_before": {
-    "head": "05051b84a18f29e8cafbfa6b5ac57981a2aee72f",
-    "head_tree": "a1b0dc9306802da1fc702fefc4b4aae5d7afd02e",
-    "refs_sha256": "f579975663964d6fe8ebb80944f470d4dcbf956b27d14dd56bd34581a43be4d1",
-    "worktree_registry_sha256": "36965317dbc9966734745516463e6370695565a82de54e13fd3598172e4e2dcc",
-    "index_sha256": "b3dfaf9cebab2cadd9a2fbc7557fbe33c0764c899db511670f2cde008cf841e8",
-    "tracked_and_nonignored_untracked_paths": 19103,
-    "worktree_bytes_modes_symlinks_sha256": "228bf07e0d6ce26ec609205373a0214d65a76a95d2a8328ebcbb4a08283ebffb"
+    "head": "ba8ede3a6a078d3ede43245a7764c081a5daa1d6",
+    "head_tree": "d46f20952f89a7d8cc2970b7595dafa6877b3d74",
+    "refs_sha256": "04fd7adc5845ac5a05e5f239313bc3f29dda24fbf03ae5bd59278edd19e430ee",
+    "worktree_registry_sha256": "e3e48b8e7d6cc8a6a94a991a909bedc6044942139d9c1cdc105dba2742cf937a",
+    "index_sha256": "bb31addeead7ecebd0b870f4726746dfc215055dd45a2d4d91ad4f8f26d4c848",
+    "tracked_and_nonignored_untracked_paths": 19208,
+    "worktree_bytes_modes_symlinks_sha256": "41d23a60ff139db692f6f1f15273e3cc639bc38a0a02a66b832c14acdf3a6770"
   },
   "source_history_boundary": {
     "is_shallow": true,
@@ -42,6 +42,13 @@
         "available_graph_parents": []
       }
     ]
+  },
+  "checkpoint_binding": {
+    "export_graph_equals_nonzero_mapped_values": true,
+    "ordered_source_retained_frontier": [
+      "a92db0610f13c9f623b526f2aa721abda69aa84d"
+    ],
+    "checkpoint": "a92db0610f13c9f623b526f2aa721abda69aa84d"
   },
   "history": {
     "original_commits": 7261,
@@ -517,17 +524,17 @@
   },
   "input_hashes": {
     "manifest_sha256": "a29ea7017bf9138701d1580e1a466071a1c151b849526a55648484b27175a2c3",
-    "history_map_sha256": "a9695863c955c08038268e4869a583daf787d0fb2a9a405a0e032e29f46347af",
+    "history_map_sha256": "3499c1cc7e0c26f87dbb148cf6f0f830360811f4260b64e4a8c195e657860ffa",
     "commit_map_sha256": "ee6a8e0de6d53124599f66f3daf57e8accc4b4bca327ac49b9a4a36e8c108502"
   },
   "source_state_after": {
-    "head": "05051b84a18f29e8cafbfa6b5ac57981a2aee72f",
-    "head_tree": "a1b0dc9306802da1fc702fefc4b4aae5d7afd02e",
-    "refs_sha256": "f579975663964d6fe8ebb80944f470d4dcbf956b27d14dd56bd34581a43be4d1",
-    "worktree_registry_sha256": "36965317dbc9966734745516463e6370695565a82de54e13fd3598172e4e2dcc",
-    "index_sha256": "b3dfaf9cebab2cadd9a2fbc7557fbe33c0764c899db511670f2cde008cf841e8",
-    "tracked_and_nonignored_untracked_paths": 19103,
-    "worktree_bytes_modes_symlinks_sha256": "228bf07e0d6ce26ec609205373a0214d65a76a95d2a8328ebcbb4a08283ebffb"
+    "head": "ba8ede3a6a078d3ede43245a7764c081a5daa1d6",
+    "head_tree": "d46f20952f89a7d8cc2970b7595dafa6877b3d74",
+    "refs_sha256": "04fd7adc5845ac5a05e5f239313bc3f29dda24fbf03ae5bd59278edd19e430ee",
+    "worktree_registry_sha256": "e3e48b8e7d6cc8a6a94a991a909bedc6044942139d9c1cdc105dba2742cf937a",
+    "index_sha256": "bb31addeead7ecebd0b870f4726746dfc215055dd45a2d4d91ad4f8f26d4c848",
+    "tracked_and_nonignored_untracked_paths": 19208,
+    "worktree_bytes_modes_symlinks_sha256": "41d23a60ff139db692f6f1f15273e3cc639bc38a0a02a66b832c14acdf3a6770"
   },
   "failures": {
     "count": 1,
@@ -539,5 +546,5 @@
     ]
   },
   "status": "fail",
-  "finished_at": "2026-10-28T05:20:36.532017+00:00"
+  "finished_at": "2026-10-28T05:41:07.184356+00:00"
 }

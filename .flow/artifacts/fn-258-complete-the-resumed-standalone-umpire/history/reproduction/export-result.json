@@ -13,6 +13,10 @@
   },
   "source_identity_unchanged": true,
   "source_tip_projection_neutral_pruned": true,
+  "export_graph_equals_nonzero_mapped_values": true,
+  "ordered_source_retained_frontier": [
+    "a92db0610f13c9f623b526f2aa721abda69aa84d"
+  ],
   "head_tree_matches_complete_projection": true,
   "head_index_worktree_synchronized": true,
   "source_history_boundary": {

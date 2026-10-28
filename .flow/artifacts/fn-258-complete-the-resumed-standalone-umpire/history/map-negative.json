@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "source_commit": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
-  "started_at": "2026-10-28T05:20:36.602667+00:00",
+  "started_at": "2026-10-28T05:41:07.268416+00:00",
   "completed_checks": [
     "before/after original source preservation observation"
   ],
@@ -14,13 +14,13 @@
     "Source history is shallow. Verification covers exactly the available fixed-source ancestry; unavailable pre-cutoff history, including earlier LICENSE history, is not established."
   ],
   "source_state_before": {
-    "head": "05051b84a18f29e8cafbfa6b5ac57981a2aee72f",
-    "head_tree": "a1b0dc9306802da1fc702fefc4b4aae5d7afd02e",
-    "refs_sha256": "f579975663964d6fe8ebb80944f470d4dcbf956b27d14dd56bd34581a43be4d1",
-    "worktree_registry_sha256": "36965317dbc9966734745516463e6370695565a82de54e13fd3598172e4e2dcc",
-    "index_sha256": "b3dfaf9cebab2cadd9a2fbc7557fbe33c0764c899db511670f2cde008cf841e8",
-    "tracked_and_nonignored_untracked_paths": 19103,
-    "worktree_bytes_modes_symlinks_sha256": "f2af285115b23d5bc8e44888fc7adaf784c64cc6a02dd199b3e0da6539d80b73"
+    "head": "ba8ede3a6a078d3ede43245a7764c081a5daa1d6",
+    "head_tree": "d46f20952f89a7d8cc2970b7595dafa6877b3d74",
+    "refs_sha256": "04fd7adc5845ac5a05e5f239313bc3f29dda24fbf03ae5bd59278edd19e430ee",
+    "worktree_registry_sha256": "e3e48b8e7d6cc8a6a94a991a909bedc6044942139d9c1cdc105dba2742cf937a",
+    "index_sha256": "bb31addeead7ecebd0b870f4726746dfc215055dd45a2d4d91ad4f8f26d4c848",
+    "tracked_and_nonignored_untracked_paths": 19208,
+    "worktree_bytes_modes_symlinks_sha256": "333ea3e5c0689c9e3b92efed3cde801dc174fd1a9b07e3e6c4e5ec154dbd015d"
   },
   "source_history_boundary": {
     "is_shallow": true,
@@ -34,13 +34,13 @@
     "accepted_parent_truncations": []
   },
   "source_state_after": {
-    "head": "05051b84a18f29e8cafbfa6b5ac57981a2aee72f",
-    "head_tree": "a1b0dc9306802da1fc702fefc4b4aae5d7afd02e",
-    "refs_sha256": "f579975663964d6fe8ebb80944f470d4dcbf956b27d14dd56bd34581a43be4d1",
-    "worktree_registry_sha256": "36965317dbc9966734745516463e6370695565a82de54e13fd3598172e4e2dcc",
-    "index_sha256": "b3dfaf9cebab2cadd9a2fbc7557fbe33c0764c899db511670f2cde008cf841e8",
-    "tracked_and_nonignored_untracked_paths": 19103,
-    "worktree_bytes_modes_symlinks_sha256": "f2af285115b23d5bc8e44888fc7adaf784c64cc6a02dd199b3e0da6539d80b73"
+    "head": "ba8ede3a6a078d3ede43245a7764c081a5daa1d6",
+    "head_tree": "d46f20952f89a7d8cc2970b7595dafa6877b3d74",
+    "refs_sha256": "04fd7adc5845ac5a05e5f239313bc3f29dda24fbf03ae5bd59278edd19e430ee",
+    "worktree_registry_sha256": "e3e48b8e7d6cc8a6a94a991a909bedc6044942139d9c1cdc105dba2742cf937a",
+    "index_sha256": "bb31addeead7ecebd0b870f4726746dfc215055dd45a2d4d91ad4f8f26d4c848",
+    "tracked_and_nonignored_untracked_paths": 19208,
+    "worktree_bytes_modes_symlinks_sha256": "333ea3e5c0689c9e3b92efed3cde801dc174fd1a9b07e3e6c4e5ec154dbd015d"
   },
   "failures": {
     "count": 2,
@@ -61,5 +61,5 @@
     ]
   },
   "status": "fail",
-  "finished_at": "2026-10-28T05:20:39.456443+00:00"
+  "finished_at": "2026-10-28T05:41:17.157136+00:00"
 }

@@ -18,9 +18,15 @@ source history beyond the original export.
 identical to `export/commit-map`. The initial run's original retained-tip guard refused
 after rewriting because the frozen source tip itself is projection-neutral. New-only
 tooling accepts that zero map row only alongside complete final projection equality
-and independent neutrality/reachability checks. `initial-refusal.json` and
+and independent neutrality checks, exact exported-graph/nonzero-map equality,
+and a unique ordered source retained frontier equal to the checkpoint. `initial-refusal.json` and
 `verification-tip-guard-refusal.json` retain the failed attempts. Original fn-257
 scripts, inventory and export evidence were not modified.
+
+`checkpoint-negative-controls.json` reproduces old-verifier false passes for an
+unmapped identical-tree tip and a tip with a foreign second parent; both corrected
+checks reject each graph. `history-provenance-verification.json` independently
+reproduces every declared ancestry definition and representative history at ac60.
 
 `negative-controls.json` proves file corruption, omitted source map coverage and a
 synthetic extra sibling parent are rejected. The synthetic parent retains identical
@@ -48,3 +54,20 @@ an ancestor. No standalone refs were changed by this lane.
 The supplied Temporal source is shallow before all selected Rust/host/tool births;
 unavailable earlier history, including pre-cutoff LICENSE history, is not recovered.
 No builds, runtime tests, remote writes or source deletion occurred.
+
+Review correction: `review-before/` retains superseded evidence and the old verifier
+strictly as the regression fixture. Canonical `export/` and `reproduction/` reports
+were regenerated from two fresh isolated clones with the corrected filter and map,
+including actual preflight hashes. The exported checkpoint/map/bundle are unchanged.
+Representative commands, records, counts, hashes and blob identities are recomputed
+at the frozen current source; no c88 definition commands are represented as current.
+Source-refusal control now uses an external report path and records its full argv,
+so it reaches the original-repository identity guard. Earlier verification sessions
+may observe different source refs between invocations; preservation claims compare
+before/after within each invocation and the declared preservation capture window.
+
+The final rebinding also rebuilds current_source_map from all 1,189 manifest
+records and updates the algorithm inventory count. Original investigation objects
+and capture-time gap statements are explicitly nested under c88-bound original
+input provenance. Intermediate review-fix reports retain their actual inputs in
+review-before/checkpoint-fix; canonical reports use the final rebound map.
