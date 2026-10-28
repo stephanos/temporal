@@ -88,8 +88,17 @@ fn serialized(value: &impl Serialize) -> io::Result<Vec<u8>> {
 fn invalid_json(error: serde_json::Error) -> io::Error {
     invalid(error.to_string())
 }
+fn hex(bytes: &[u8]) -> String {
+    const DIGITS: &[u8; 16] = b"0123456789abcdef";
+    bytes
+        .iter()
+        .flat_map(|byte| {
+            [char::from(DIGITS[usize::from(byte >> 4)]), char::from(DIGITS[usize::from(byte & 15)])]
+        })
+        .collect()
+}
 fn hex_digest(bytes: &[u8]) -> String {
-    format!("{:x}", Sha256::digest(bytes))
+    hex(&Sha256::digest(bytes))
 }
 fn normal_relative(path: &Path) -> bool {
     let bytes = path.as_os_str().as_bytes();
@@ -171,7 +180,7 @@ fn hash_file(file: &File) -> io::Result<(String, Identity)> {
     if offset != before.len() || identity != Identity::of(&file.metadata()?) {
         return Err(invalid("input changed while hashing"));
     }
-    Ok((format!("{:x}", digest.finalize()), identity))
+    Ok((hex(&digest.finalize()), identity))
 }
 fn open_input(path: &Path) -> io::Result<(File, String, Identity)> {
     canonical(path)?;
@@ -179,7 +188,10 @@ fn open_input(path: &Path) -> io::Result<(File, String, Identity)> {
     if !before.is_file() {
         return Err(invalid("input must be a regular file"));
     }
-    let file = File::open(path)?;
+    let file = OpenOptions::new()
+        .read(true)
+        .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK)
+        .open(path)?;
     let (digest, identity) = hash_file(&file)?;
     if identity != Identity::of(&before) || identity != Identity::of(&fs::symlink_metadata(path)?) {
         return Err(invalid("input path changed while opening"));
