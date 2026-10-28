@@ -24,7 +24,7 @@ cache, sources and recovery stores were preserved. [Cleanup proof](.flow/artifac
 The .12 producer checkpoint passes all three public Go stages (170 tests) and a
 mixed TLC proof accounting for 85 protocol fixtures separately from six real
 starts and three configurations. [Count evidence](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task12/count-producers-20261028/summary.json).
-Budget admission and enforcement remain open. macOS validation remains owner-deferred.
+The budget/attempt checkpoint passes all 227 native xtask tests and the Temporal xtask consumer compile check. Strict policy controls and bounded retry coordination pass; scheduled callbacks now retain and verify immutable attempt event manifests. Production applicability, admitted tables and automatic retry wiring remain open; unused preparation warnings are not strict-lint acceptance. [Budget/attempt evidence](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task12/budget-attempts-20261028/summary.json). macOS validation remains owner-deferred.
 
 ## Keeping this page current
 
@@ -152,7 +152,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | --- | --- | --- |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
-| fn-254.12 | 🔄 in progress | Go and mixed-control TLC producers verified through real execution and native wiring controls. Next: explicit applicability evidence, admitted stage/workload tables and immediate drained retry against .15/.16/.17; enforcement and task closure remain open (R8) |
+| fn-254.12 | 🔄 in progress | Go/TLC producers, strict budget policy, bounded coordination and native attempt manifests verified; 227 xtask tests pass. Next: applicability/input authority, admitted tables and automatic immediate retry; enforcement and closure remain open (R8) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 

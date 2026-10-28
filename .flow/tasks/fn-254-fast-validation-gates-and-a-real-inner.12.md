@@ -62,6 +62,13 @@ Keep stage registration/count/timing/retry controls now. Derive actual count bou
 - [ ] Work-count overruns and unbudgeted stages fail; wall-time overruns fail only on repeat; all listed registration/count/timing/retry controls pass.
 - [ ] README documents how to add a stage and how to change a budget.
 
+### Final producer graph
+
+Consume .17's authoritative stage DAG, uniform runner identities and invocation-local timing/count receipts after .5/.6/.11 and the .16/.15 provider and native timer/control ports. Budget internal/child costs without double-charging inclusive parent elapsed time. Provider/port changes must preserve or explicitly update these registrations; no second scheduler or budget mechanism belongs here.
+
+### Remaining admission work
+
+The verified Go/TLC producer and budget/attempt checkpoints above supply current count evidence. Explicit applicability and positive-zero coverage, admitted stage/workload tables and automatic exact-context immediate retry remain incomplete. Missing observation is neither zero nor proof that a metric is inapplicable. Preserve all controls, the six numeric/null count fields, invocation ownership, exclusive child authorities and the single mise DAG.
 ## Final producer graph
 
 Consume .17's authoritative stage DAG, uniform runner identities and invocation-local timing/count receipts after .5/.6/.11 and the .16/.15 provider and native timer/control ports. Budget internal/child costs without double-charging inclusive parent elapsed time. Provider/port changes must preserve or explicitly update these registrations; no second scheduler or budget mechanism belongs here.
