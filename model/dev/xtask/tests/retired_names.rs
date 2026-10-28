@@ -1,10 +1,18 @@
 //! Repository-owned historical name policy controls.
 #![forbid(unsafe_code)]
 #![allow(clippy::unwrap_used, clippy::expect_used)]
-use std::{
-    io::Write,
-    process::{Command, Stdio},
-};
+use std::{path::Path, process::Command};
+
+#[test]
+#[ignore = "isolated native policy child"]
+fn scan_child() {
+    let root = std::env::var_os("UMPIRE_RETIRED_POLICY_ROOT").expect("missing policy child root");
+    std::process::exit(crate::retired_names::run(Path::new(&root)));
+}
+
+fn execute(command: &Command) -> std::process::Output {
+    xtask::gate::scheduler::execute(command, false, false).unwrap()
+}
 struct Scratch(std::path::PathBuf);
 impl Scratch {
     fn new() -> Self {
@@ -17,33 +25,41 @@ impl Scratch {
         std::fs::create_dir(&path).unwrap();
         Self(path)
     }
-    fn write(&self, path: &str, bytes: impl AsRef<[u8]>) {
+    fn write(&self, path: impl AsRef<Path>, bytes: impl AsRef<[u8]>) {
         let path = self.0.join(path);
         std::fs::create_dir_all(path.parent().unwrap()).unwrap();
         std::fs::write(path, bytes).unwrap();
     }
+    fn scan_command(&self) -> Command {
+        let mut command = Command::new(std::env::current_exe().unwrap());
+        command
+            .args([
+                "--exact",
+                "retired_name_policy_controls::scan_child",
+                "--nocapture",
+                "--ignored",
+            ])
+            .env_remove("BASH_ENV")
+            .env("UMPIRE_RETIRED_POLICY_ROOT", &self.0);
+        command
+    }
     fn scan(&self) -> std::process::Output {
-        Command::new("bash")
-            .arg(self.0.join("model/scripts/retired-names.sh"))
-            .env("UMPIRE_XTASK", xtask_binary())
-            .output()
-            .unwrap()
+        execute(&self.scan_command())
     }
 }
 impl Drop for Scratch {
     fn drop(&mut self) {
-        std::fs::remove_dir_all(&self.0).unwrap();
+        if let Err(error) = std::fs::remove_dir_all(&self.0) {
+            use std::io::Write;
+            let _ = writeln!(std::io::stderr(), "retired policy scratch cleanup failed: {error}");
+        }
     }
 }
 
 #[test]
 fn active_spellings_and_historical_exclusions() {
     let scratch = Scratch::new();
-    scratch.write(
-        "model/scripts/retired-names.sh",
-        include_bytes!("../../../scripts/retired-names.sh"),
-    );
-    assert!(Command::new("git").args(["init", "-q"]).arg(&scratch.0).status().unwrap().success());
+    assert!(execute(Command::new("git").args(["init", "-q"]).arg(&scratch.0)).status.success());
     let mut legacy = Vec::new();
     for separator in ["-", "_", "/"] {
         for name in ["wasm", "tests"] {
@@ -111,13 +127,7 @@ fn active_spellings_and_historical_exclusions() {
         scratch.write(path, layout.join("\n"));
     }
     assert!(
-        Command::new("git")
-            .arg("-C")
-            .arg(&scratch.0)
-            .args(["add", "-A"])
-            .status()
-            .unwrap()
-            .success()
+        execute(Command::new("git").arg("-C").arg(&scratch.0).args(["add", "-A"])).status.success()
     );
     assert_eq!(scratch.scan().status.code(), Some(0));
     for path in history {
@@ -135,45 +145,22 @@ fn active_spellings_and_historical_exclusions() {
 fn tool_failures_never_report_clean() {
     use std::os::unix::fs::PermissionsExt;
     let scratch = Scratch::new();
-    scratch.write(
-        "model/scripts/retired-names.sh",
-        include_bytes!("../../../scripts/retired-names.sh"),
-    );
-    for (tool, body, expected) in
-        [("git", "exit 7", 7), ("git", "printf malformed", 2), ("grep", "exit 9", 9)]
-    {
+    for (body, expected) in [
+        ("exit 7", 7),
+        ("printf malformed", 2),
+        ("printf '/escape\\000'", 2),
+        ("printf '../escape\\000'", 2),
+    ] {
         let bin = Scratch::new();
-        bin.write(tool, format!("#!/bin/sh\n{body}\n"));
-        std::fs::set_permissions(bin.0.join(tool), std::fs::Permissions::from_mode(0o755)).unwrap();
+        bin.write("git", format!("#!/bin/sh\n{body}\n"));
+        std::fs::set_permissions(bin.0.join("git"), std::fs::Permissions::from_mode(0o755))
+            .unwrap();
         let path = std::env::join_paths(
             std::iter::once(bin.0.clone())
                 .chain(std::env::split_paths(&std::env::var_os("PATH").unwrap())),
         )
         .unwrap();
-        let output = if tool == "git" {
-            Command::new("bash")
-                .arg(scratch.0.join("model/scripts/retired-names.sh"))
-                .env("UMPIRE_XTASK", xtask_binary())
-                .env("PATH", &path)
-                .output()
-                .unwrap()
-        } else {
-            let mut child = Command::new(xtask_binary())
-                .args(["retired-names", "anything"])
-                .env("PATH", &path)
-                .stdin(Stdio::piped())
-                .stdout(Stdio::piped())
-                .stderr(Stdio::piped())
-                .spawn()
-                .unwrap();
-            child
-                .stdin
-                .take()
-                .unwrap()
-                .write_all(["file\0", "1\0author/umpire/", "tests/x\n"].concat().as_bytes())
-                .unwrap();
-            child.wait_with_output().unwrap()
-        };
+        let output = execute(scratch.scan_command().env("PATH", &path));
         assert_eq!(output.status.code(), Some(expected), "{output:?}");
         assert!(!String::from_utf8_lossy(&output.stdout).contains("clean"));
     }
@@ -181,46 +168,36 @@ fn tool_failures_never_report_clean() {
 
 #[cfg(unix)]
 #[test]
-fn shell_preserves_filter_failure_when_git_grep_gets_sigpipe() {
-    use std::os::unix::fs::PermissionsExt;
+fn raw_path_bytes_and_io_failures_reach_native_policy() {
+    use std::{
+        ffi::OsString,
+        os::unix::{
+            ffi::OsStringExt,
+            fs::{PermissionsExt, symlink},
+        },
+    };
     let scratch = Scratch::new();
-    scratch.write(
-        "model/scripts/retired-names.sh",
-        include_bytes!("../../../scripts/retired-names.sh"),
-    );
-    assert!(Command::new("git").args(["init", "-q"]).arg(&scratch.0).status().unwrap().success());
-    scratch.write("model/source.rs", ["author/umpire/", "tests/x\n"].concat().repeat(50_000));
-    for (git_failure, code, expected) in [(None, 2, 2), (None, 9, 9), (Some(7), 9, 7)] {
-        let bin = Scratch::new();
-        bin.write("grep", format!("#!/bin/sh\nexit {code}\n"));
-        std::fs::set_permissions(bin.0.join("grep"), std::fs::Permissions::from_mode(0o755))
-            .unwrap();
-        if let Some(git_failure) = git_failure {
-            bin.write(
-                "git",
-                format!(
-                    "#!/bin/sh\nprintf 'file\\0001\\000{}\\n'\nexit {git_failure}\n",
-                    ["author/umpire/", "tests/x"].concat()
-                ),
-            );
-            std::fs::set_permissions(bin.0.join("git"), std::fs::Permissions::from_mode(0o755))
-                .unwrap();
-        }
-        let path = std::env::join_paths(
-            std::iter::once(bin.0.clone())
-                .chain(std::env::split_paths(&std::env::var_os("PATH").unwrap())),
-        )
-        .unwrap();
-        let output = Command::new("bash")
-            .arg(scratch.0.join("model/scripts/retired-names.sh"))
-            .env("BASH_ENV", "/dev/null")
-            .env("UMPIRE_XTASK", xtask_binary())
-            .env("PATH", path)
-            .output()
-            .unwrap();
-        assert_eq!(output.status.code(), Some(expected), "{output:?}");
-        assert!(!String::from_utf8_lossy(&output.stdout).contains("clean"));
-    }
-}
+    assert!(execute(Command::new("git").args(["init", "-q"]).arg(&scratch.0)).status.success());
+    let raw = OsString::from_vec(b"raw-\xff.rs".to_vec());
+    let contents = [b"umpire".as_slice(), b"-wasm \xfe\n"].concat();
+    scratch.write(&raw, &contents);
+    let output = scratch.scan();
+    assert_eq!(output.status.code(), Some(1), "{output:?}");
+    let record = [raw.into_vec(), b":1:".to_vec(), contents].concat();
+    assert!(output.stdout.windows(record.len()).any(|bytes| bytes == record));
+    assert!(!String::from_utf8_lossy(&output.stdout).contains("clean"));
 
-use crate::xtask_binary;
+    let bin = Scratch::new();
+    bin.write("git", "#!/bin/sh\nprintf 'loop/active.rs\\000'\n");
+    std::fs::set_permissions(bin.0.join("git"), std::fs::Permissions::from_mode(0o755)).unwrap();
+    symlink("loop", scratch.0.join("loop")).unwrap();
+    let path = std::env::join_paths(
+        std::iter::once(bin.0.clone())
+            .chain(std::env::split_paths(&std::env::var_os("PATH").unwrap())),
+    )
+    .unwrap();
+    let output = execute(scratch.scan_command().env("PATH", path));
+    assert_eq!(output.status.code(), Some(2), "{output:?}");
+    assert!(!String::from_utf8_lossy(&output.stdout).contains("clean"));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("retired-name scan failed"));
+}
