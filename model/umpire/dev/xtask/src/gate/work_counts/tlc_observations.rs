@@ -471,4 +471,16 @@ mod tests {
         }
     }
 
+    #[test]
+    fn refuses_authority_documents_when_all_fixture_events_are_missing() -> io::Result<()> {
+        let scratch = tempfile::tempdir()?;
+        let receipts = scratch.path().canonicalize()?;
+        let directory = receipts.join("work/scope/tests");
+        fs::create_dir_all(&directory)?;
+        fs::create_dir_all(receipts.join("authorities/scope/tests"))?;
+        fs::write(receipts.join("authorities/scope/tests/100-0.json"), b"{}")?;
+        assert!(Collector::default().finish(&directory).is_err());
+        Ok(())
+    }
+
 }
