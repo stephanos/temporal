@@ -160,6 +160,7 @@ impl Environment {
             );
         }
         if let RustExpr::Path(path) = call.func.as_ref()
+            && path.path.segments.len() == 1
             && path.path.leading_colon.is_none()
             && locals.contains_key(&path.path.segments[0].ident.to_string())
         {

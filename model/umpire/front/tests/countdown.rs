@@ -156,9 +156,9 @@ fn unsupported_forms_have_located_refusal_goldens() {
         ),
         (
             "shadowed-path",
-            SOURCE.replace(
+            SOURCE.replace("{Ticks, Remaining}", "{Ticks, Remaining, arm}").replace(
                 "self.left = countdown::arm(self.configured)",
-                "let countdown = true; self.left = countdown::arm(self.configured)",
+                "let arm = true; self.left = arm(self.configured)",
             ),
         ),
         (
@@ -226,11 +226,31 @@ fn call_frames_isolate_consts_and_specializations_and_keep_check_indices() -> Re
 }
 
 #[test]
-fn absolute_library_calls_ignore_caller_local_roots() -> Result<(), String> {
-    admit(&SOURCE.replace(
-        "self.left = countdown::arm(self.configured)",
-        "let umpire_dsl = true; self.left = ::umpire_dsl::countdown::arm(self.configured)",
-    ))?;
+fn qualified_library_calls_ignore_caller_value_bindings() -> Result<(), String> {
+    let original = admit(SOURCE)?;
+    for (name, call) in
+        [("countdown", "countdown::arm"), ("umpire_dsl", "::umpire_dsl::countdown::arm")]
+    {
+        let model = admit(&SOURCE.replace(
+            "self.left = countdown::arm(self.configured)",
+            &format!("let {name} = false; self.left = {call}(self.configured)"),
+        ))?;
+        assert_eq!(original.actions[0].branches[0].updates, model.actions[0].branches[0].updates);
+    }
+    for constructor in [
+        "countdown::arm(Some(countdown::Ticks::<3>(2)))",
+        "Some(countdown::Remaining::<3> { ticks: 2 })",
+    ] {
+        let baseline = admit(&SOURCE.replace("countdown::arm(self.configured)", constructor))?;
+        let shadowed = admit(&SOURCE.replace(
+            "self.left = countdown::arm(self.configured)",
+            &format!("let countdown = false; self.left = {constructor}"),
+        ))?;
+        assert_eq!(
+            baseline.actions[0].branches[0].updates,
+            shadowed.actions[0].branches[0].updates
+        );
+    }
     Ok(())
 }
 
