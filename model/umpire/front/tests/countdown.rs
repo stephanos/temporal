@@ -78,6 +78,7 @@ fn constructors_bounds_and_explicit_call_arguments_preserve_identity() -> Result
 }
 
 #[test]
+#[expect(clippy::too_many_lines, reason = "one table pins every refusal and its source location")]
 fn unsupported_forms_have_located_refusal_goldens() {
     let cases = [
         ("zero", SOURCE.replace("<3>", "<0>")),
@@ -166,6 +167,11 @@ fn unsupported_forms_have_located_refusal_goldens() {
                 .replace("#[derive(State)]", "const N: u8 = 3; #[derive(State)]")
                 .replace("Ticks<3>", "Ticks<N>"),
         ),
+        (
+            "imported-associated",
+            SOURCE.replace("use umpire_dsl::countdown::{Ticks, Remaining};", "use umpire_dsl::countdown::{Ticks, Remaining}; use umpire_dsl::countdown::Ticks::contains;")
+                .replace("!countdown::expired(self.left)", "contains::<3>(2)"),
+        ),
     ];
     let mut observed = String::new();
     for (name, source) in cases {
@@ -216,5 +222,38 @@ fn call_frames_isolate_consts_and_specializations_and_keep_check_indices() -> Re
     found.sort_unstable();
     assert_eq!(found, (0..checks.len()).collect::<Vec<_>>());
     assert_eq!(checks.len(), 9);
+    Ok(())
+}
+
+#[test]
+fn absolute_library_calls_ignore_caller_local_roots() -> Result<(), String> {
+    admit(&SOURCE.replace(
+        "self.left = countdown::arm(self.configured)",
+        "let umpire_dsl = true; self.left = ::umpire_dsl::countdown::arm(self.configured)",
+    ))?;
+    Ok(())
+}
+
+#[test]
+fn explicit_closure_state_types_preserve_existing_admission() -> Result<(), String> {
+    let source = include_str!("../../dev/fixtures/fixtures/phased_rejection/model.rs");
+    for state in ["Model", "Self"] {
+        admit(&source.replace(
+            "closable::terminal_remains(self, before)",
+            &format!("closable::terminal_remains::<{state}>(self, before)"),
+        ))?;
+    }
+    for (arguments, expected) in [
+        ("Model, Model", "argument count"),
+        ("3", "state type argument"),
+        ("bool", "state type argument"),
+    ] {
+        let source = source.replace(
+            "closable::terminal_remains(self, before)",
+            &format!("closable::terminal_remains::<{arguments}>(self, before)"),
+        );
+        let error = admit(&source).err().ok_or_else(|| format!("admitted {arguments}"))?;
+        assert!(error.contains(expected), "{arguments}: {error}");
+    }
     Ok(())
 }
