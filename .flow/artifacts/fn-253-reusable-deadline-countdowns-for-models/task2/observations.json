@@ -1,0 +1,191 @@
+[
+  {
+    "path": "activity-baseline.rs",
+    "outcome": "admitted",
+    "line": 0,
+    "column": 0,
+    "snippet": "//! Bounded activity retries, optional deadlines and cooperative cancellation.",
+    "message": "",
+    "owner": "positive control"
+  },
+  {
+    "path": "activity-local.rs",
+    "outcome": "model_refusal",
+    "line": 213,
+    "column": 29,
+    "snippet": "                            Self::arm(world.start_to_close);",
+    "message": "unsupported expression `Self :: arm (world . start_to_close)`",
+    "owner": "body/expr.rs:300\u2013325"
+  },
+  {
+    "path": "activity-library.rs",
+    "outcome": "model_refusal",
+    "line": 145,
+    "column": 5,
+    "snippet": "    impl countdown::Configured for Ticks {",
+    "message": "trait or generic impl in machine module is unsupported",
+    "owner": "shape.rs:161\u2013177"
+  },
+  {
+    "path": "activity-shared.rs",
+    "outcome": "model_refusal",
+    "line": 26,
+    "column": 32,
+    "snippet": "        pub schedule_to_start: Option<Ticks<3>>,",
+    "message": "unsupported type `Option<Ticks<3>>`",
+    "owner": "body/typer.rs:10\u201340; body/optional.rs:62\u201386"
+  },
+  {
+    "path": "control.rs",
+    "outcome": "admitted",
+    "line": 0,
+    "column": 0,
+    "snippet": "use umpire_dsl::machine;",
+    "message": "",
+    "owner": "positive control"
+  },
+  {
+    "path": "local-arm.rs",
+    "outcome": "model_refusal",
+    "line": 23,
+    "column": 57,
+    "snippet": "            match action { Clock::Tick => { self.left = Self::arm(world.timeout); } }",
+    "message": "unsupported expression `Self :: arm (world . timeout)`",
+    "owner": "body/expr.rs:300\u2013325"
+  },
+  {
+    "path": "local-arm-initial.rs",
+    "outcome": "admitted",
+    "line": 0,
+    "column": 0,
+    "snippet": "use umpire_dsl::machine;",
+    "message": "",
+    "owner": "positive control"
+  },
+  {
+    "path": "local-tick.rs",
+    "outcome": "model_refusal",
+    "line": 23,
+    "column": 57,
+    "snippet": "            match action { Clock::Tick => { self.left = Self::tick(self.left); } }",
+    "message": "unsupported expression `Self :: tick (self . left)`",
+    "owner": "body/expr.rs:300\u2013325"
+  },
+  {
+    "path": "local-generic.rs",
+    "outcome": "model_refusal",
+    "line": 15,
+    "column": 1,
+    "snippet": "#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Finite)] pub struct Boxed<const N: u8>(#[inputs(0..=3)] pub u8);",
+    "message": "bounded newtypes must be nongeneric",
+    "owner": "body/optional.rs:10\u201312"
+  },
+  {
+    "path": "local-alias.rs",
+    "outcome": "model_refusal",
+    "line": 15,
+    "column": 1,
+    "snippet": "type Left = Remaining;",
+    "message": "unsupported declaration in machine module",
+    "owner": "shape.rs:70\u201379 (keep refused)"
+  },
+  {
+    "path": "local-trait.rs",
+    "outcome": "model_refusal",
+    "line": 16,
+    "column": 5,
+    "snippet": "    impl countdown::Configured for Ticks {",
+    "message": "trait or generic impl in machine module is unsupported",
+    "owner": "shape.rs:161\u2013177"
+  },
+  {
+    "path": "unused-generic.rs",
+    "outcome": "admitted",
+    "line": 0,
+    "column": 0,
+    "snippet": "use umpire_dsl::machine;",
+    "message": "",
+    "owner": "positive control"
+  },
+  {
+    "path": "receiver-args.rs",
+    "outcome": "model_refusal",
+    "line": 25,
+    "column": 9,
+    "snippet": "        fn is_expired(&self, left: Option<Remaining>) -> bool { left.is_some() }",
+    "message": "only pure helper calls with an optional trailing World are admitted",
+    "owner": "body/mod.rs:224\u2013245"
+  },
+  {
+    "path": "library-assignment.rs",
+    "outcome": "model_refusal",
+    "line": 23,
+    "column": 57,
+    "snippet": "            match action { Clock::Tick => { self.left = countdown::tick(self.left); } }",
+    "message": "unsupported expression `countdown :: tick (self . left)`",
+    "owner": "body/expr.rs:300\u2013325"
+  },
+  {
+    "path": "library-condition.rs",
+    "outcome": "model_refusal",
+    "line": 23,
+    "column": 48,
+    "snippet": "            match action { Clock::Tick => { if countdown::armed(self.left) { self.left = None; } } }",
+    "message": "unsupported expression `countdown :: armed (self . left)`",
+    "owner": "body/expr.rs:300\u2013325"
+  },
+  {
+    "path": "library-within-law.rs",
+    "outcome": "model_refusal",
+    "line": 26,
+    "column": 56,
+    "snippet": "        #[invariant] fn bounds(&self, world: &World) { countdown::within(self.left, world.timeout); }",
+    "message": "claim body supports check! and conditional checks only",
+    "owner": "body/claim.rs:141\u2013176"
+  },
+  {
+    "path": "library-descends-law.rs",
+    "outcome": "model_refusal",
+    "line": 26,
+    "column": 63,
+    "snippet": "        #[postcondition] fn decreases(&self, before: &Self) { countdown::descends(self.left, before.left); }",
+    "message": "claim body supports check! and conditional checks only",
+    "owner": "body/claim.rs:141\u2013176"
+  },
+  {
+    "path": "project-library.rs",
+    "outcome": "model_refusal",
+    "line": 23,
+    "column": 48,
+    "snippet": "            match action { Clock::Tick => { if temporal_countdown::armed(self.left) { self.left = None; } } }",
+    "message": "unsupported expression `temporal_countdown :: armed (self . left)`",
+    "owner": "body/expr.rs:300\u2013325; library.rs:4\u20135"
+  },
+  {
+    "path": "shared-ticks.rs",
+    "outcome": "model_refusal",
+    "line": 10,
+    "column": 44,
+    "snippet": "    pub struct World { pub timeout: Option<SharedTicks<3>> }",
+    "message": "unsupported type `SharedTicks<3>`",
+    "owner": "body/typer.rs:10\u201340; body/optional.rs:62\u201386"
+  },
+  {
+    "path": "shared-remaining.rs",
+    "outcome": "model_refusal",
+    "line": 12,
+    "column": 41,
+    "snippet": "    pub struct Model { pub left: Option<SharedRemaining<3>> }",
+    "message": "unsupported type `SharedRemaining<3>`",
+    "owner": "body/typer.rs:10\u201340; body/optional.rs:62\u201386"
+  },
+  {
+    "path": "parse-error.rs",
+    "outcome": "parse_error",
+    "line": 2,
+    "column": 16,
+    "snippet": "pub mod broken {",
+    "message": "cannot parse string into token stream",
+    "owner": "syn parser control; no front-end change"
+  }
+]
