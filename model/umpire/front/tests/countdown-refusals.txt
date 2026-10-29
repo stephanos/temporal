@@ -16,6 +16,6 @@ module-generic	15:16	unsupported library call path
 value-statement	17:41	library laws are claim statements; value functions require expression position
 law-expression	18:48	library laws are claim statements; value functions require expression position
 alias-function	4:5	library imports require explicit unaliased bindings
-shadowed-path	10:66	library call path is shadowed by a local binding
+shadowed-path	10:60	library call path is shadowed by a local binding
 named-bound	5:79	library bounded type requires a literal const argument
 imported-associated	18:48	unsupported imported library associated function

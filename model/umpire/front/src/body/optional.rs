@@ -230,7 +230,9 @@ impl Environment {
                     .segments
                     .iter()
                     .any(|s| !matches!(s.arguments, syn::PathArguments::None)))
-            || (path.path.leading_colon.is_none() && locals.contains_key(&names[0]))
+            || (path.path.leading_colon.is_none()
+                && (!descriptor.name.starts_with("umpire_dsl::") || path.path.segments.len() == 1)
+                && locals.contains_key(&names[0]))
         {
             return self.err(call, "bounded constructor requires the local nominal type");
         }
