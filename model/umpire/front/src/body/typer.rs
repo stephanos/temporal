@@ -8,6 +8,11 @@ use quote::ToTokens;
 
 impl Environment {
     pub(crate) fn ty(&self, ty: &syn::Type) -> Result<Type> {
+        if let syn::Type::Path(path) = ty
+            && let Some(descriptor) = self.library_bounded(&path.path)?
+        {
+            return Ok(Type::Bounded(descriptor));
+        }
         if let Some(ty) = self.optional_type(ty)? {
             return Ok(ty);
         }
