@@ -106,6 +106,7 @@ print_stdout = "warn"
 print_stderr = "warn"
 
 [profile.dev]
+debug = "line-tables-only"
 overflow-checks = true
 
 [profile.test]

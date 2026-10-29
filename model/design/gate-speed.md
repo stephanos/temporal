@@ -196,3 +196,67 @@ failures, monotonic elapsed/exit evidence, actual source/profile/backend identit
 interference disclosure. Final R6 results must measure the actual edited activity path,
 distinguish emission-preserving cache hits from changed-emission fresh TLC, and report
 missed targets honestly. Historical data alone does not establish those outcomes.
+
+
+## Dev-profile observations (fn-254.18, 2026-10-29)
+
+Both workspace roots now set `profile.dev.debug = "line-tables-only"`, matching
+`profile.test`. Parsed before/after profile tables establish that this is the sole
+profile change: checked overflow, test settings and release/guest optimization,
+stripping, LTO and panic settings are preserved. Both xtask aliases explicitly
+select `--profile dev`. The native parity reports in
+`umpire/dev/xtask/src/build_guests.rs` still select `--profile guest`, which inherits
+release; native execution alone does not imply a dev build.
+
+The committed [profile proof](../../.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task18/dev-profile-proof.json)
+retains commands, effective rustc invocations, artifact hashes/sizes, parsed profiles,
+source/config hashes, toolchain, cache conditions and full-log hashes. Raw logs and the
+measurement script are retained under `.flow/tmp/fn25418/` in the conductor checkout.
+Source base: `93a13e47a7097bcb7ae77b824e3d6490edda0320` plus the two manifest edits.
+The host was Linux/aarch64, rustc 1.99.1 (`58cf8f9c3`), Cargo 1.99.1, 12 logical
+processors and 19 GiB RAM. These runs provide no Darwin execution evidence.
+
+From `model/umpire` and `model`, respectively, the focused commands were
+`mise exec -- cargo build --locked --profile dev -p xtask --bin xtask -vv` and
+`mise exec -- cargo build --locked --profile dev -p temporal-xtask --bin temporal-xtask -vv`.
+All before/after builds exited 0. Profile/flag/wrapper overrides were unset (the exact
+sanitization is in the proof), with a newly created task-owned target
+`/home/agent/.cache/codex-build/fn25418-dev-debug`; tool and registry caches were inherited.
+After preparing each profile, each matched observation touched only that binary's
+`main.rs` timestamp, preserving source bytes, and rebuilt it with warm same-profile
+dependencies and incremental state. Each verbose log contains one actual rustc binary
+invocation with `--emit=dep-info,link`, rather than only Cargo Fresh output.
+
+| Matched leaf compile + relink | Before wall (s) | After wall (s) | Before executable bytes | After executable bytes |
+| --- | ---: | ---: | ---: | ---: |
+| Framework xtask | 0.878 | 0.680 | 60,460,704 | 27,540,720 |
+| Temporal xtask | 0.888 | 0.633 | 57,657,728 | 24,492,256 |
+
+These are single observations, including mise/Cargo overhead, without a measured
+compile/link split or isolated limiter. Cargo used default job concurrency with
+`CARGO_BUILD_JOBS` unset. Independent frontend work and other sessions were active;
+there is no quiet-host or repeated comparison. Preparation builds have different cache
+histories and are recorded separately. **Speedup attribution is inconclusive**; these
+numbers establish neither an end-to-end improvement nor a full-gate pass.
+
+Effective rustc arguments changed from `-C debuginfo=2` to
+`-C debuginfo=line-tables-only`. Cargo's JSON artifact profiles additionally report
+`overflow_checks=true`, `debug_assertions=true`, `opt_level="0"` and line-table
+debuginfo for both binaries. Fresh JSON metadata is settings evidence only.
+Actual alias builds/runs passed with `cargo -vv xtask retired-names '^fn25418-proof$'`
+(empty stdin, framework) and `cargo -vv xtask gate --list` (Temporal); the latter lists
+stages without executing the gate. An earlier framework `gate --list` compiled but
+failed at runtime because inherited mise task inventory required undefined
+`UMPIRE_TEMPORAL_ROOT`; an omitted regex argument in an initial filtering smoke
+returned 2. Both failed attempts remain in the proof; neither is counted as a pass.
+
+The focused driver build also passed. Its executable shrank from 20,172,520 to
+10,913,744 bytes; SHA-256 changed from
+`4244471a914bcc44ab6f50874302312d8dd0c78276d9c483d21bdc8246cd4572` to
+`0d2c5b48585eeac14e41ceb2dce7a0869058c50acdccdf8de439aa99c51bc5f2`.
+This changes the guest-cache namespace and invalidates prior driver-bound freshness
+evidence. **No guest reproduction was run here.** Task .8 must rebuild the driver
+after integration, record its old/new identities, reproduce committed guest bytes in
+the new namespace, and renew final combined/standalone checks. Flag inspection does
+not renew that proof. No shared cache was cleaned; the task-owned target remains
+available with its logs and identities preserved.
