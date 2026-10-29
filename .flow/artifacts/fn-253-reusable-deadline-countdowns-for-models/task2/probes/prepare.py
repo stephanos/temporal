@@ -200,7 +200,7 @@ machine('library-descends-law', extra='use umpire_dsl::countdown;', claim='#[pos
 machine('unused-generic', extra='pub struct Boxed<const N: u8>(pub u8);')
 machine('local-generic', extra='#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Finite)] pub struct Boxed<const N: u8>(#[inputs(0..=3)] pub u8);')
 machine('local-alias', extra='type Left = Remaining;')
-machine('local-trait', extra=trait_impls.replace('Ticks {', 'Ticks {').replace('    impl countdown', '    impl countdown') + 'use umpire_dsl::countdown;')
+machine('local-trait', extra=trait_impls + 'use umpire_dsl::countdown;')
 machine('project-library', extra='use crate::temporal_countdown;', effect='if temporal_countdown::armed(self.left) { self.left = None; }')
 # Imported shared wrappers test signature and state typing separately from function calls.
 for generic, label in [('Ticks', 'shared-ticks'), ('Remaining', 'shared-remaining')]:

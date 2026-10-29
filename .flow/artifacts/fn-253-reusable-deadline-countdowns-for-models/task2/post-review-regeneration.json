@@ -1,0 +1,31 @@
+{
+  "source_files": {
+    "native-baseline.rs": "9418cc75a9a2fb26c81f7114dc19406e6e0fcd0033fe96140c29217bde466c32",
+    "library-assignment.rs": "952defdd518c1bc83117e7077928e347922705e5e161105cada38017f9b9039a",
+    "native-library.rs": "47c8057f4a5b4ee449911db331439dc53b58786e0dab90e1bacb89caf4f51ca7",
+    "receiver-args.rs": "c06597e14dbf4f0b2658a116d386bb44534a18b18620d01bcd49b28dd9194dcd",
+    "activity-local.rs": "31924e6e393413ea08128aa6fccf3d9c6fd63f522dc372fb6b23f2b1c83b17ed",
+    "native-shared.rs": "917e22f4f74ab7025de06c32d40cbecb64b0ab69a42d046491c48abd5764d95a",
+    "local-arm.rs": "152a414a2b85d8fd14ea91db6fc40cd9b8bdae7af6bd78de89ea3ca0ca6f3e5d",
+    "unused-generic.rs": "cec08c3a270da7439d80e8625b645070a2ae4e4a4b33bac51d123ba13845944a",
+    "library-condition.rs": "92c92257cf2ab1b20c4a0fb5190f789ac82758591514b225498b2fe8ed853374",
+    "project-library.rs": "1ffdc42221b6614d765fff41fdd3ce273683dbfa082f2f6d438771800289cce7",
+    "parse-error.rs": "6f4c68c5077d16a1cd27a39d5f6aeec303d8dee43ef6e104738335853dcd4fad",
+    "shared-ticks.rs": "ea2e8d91c85ebc2ea699ee15da86ec08d63d8d445083e10e849329d0da42c13b",
+    "local-alias.rs": "c783c0ef788adaa7934992248a67c656d7c019f2b93beec6154b7c6b190c2a7f",
+    "native-local.rs": "d77d1923d3c290e2744edf59aafbb6d578a9c466c22f56ed0c819fab28574e24",
+    "local-tick.rs": "01aa88f980bce34b707fb592223bb870f82680b8d67653781e4d5f2fdb9ceea9",
+    "activity-library.rs": "2a029176e57719aa64cd4d30da13676f6fabdcbcca44ddd211caf0dbc4c4edf0",
+    "local-trait.rs": "ce1561e35386cf8c070382c8188e6d609cd80b5af12a2bbf837e34d0ad1dcdf1",
+    "library-descends-law.rs": "00897f91e7f641e172faee4ff67b15a5172e2a0a9c97aef7354bf885e087f7be",
+    "local-generic.rs": "c33bfc14c75549edddb678977ddd72ae6c301b53c67c5fdb34d2abe2c656af94",
+    "library-within-law.rs": "8782389fece409ccd7c083593f0084f3602c2484053112b84878d605c3f80e15",
+    "control.rs": "1a825285de5e12cf27bfe27217f1d153a97b73acc7645348f37fbdd291f89740",
+    "local-arm-initial.rs": "8dbe0fcf65229b2ec18a5de32732747097fc65baf2e5e541badbc376b0caec11",
+    "activity-shared.rs": "f00f633c6120a06f403a9e96e67ce4ba61cc3edce187b956fe9f7822a5915303",
+    "activity-baseline.rs": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767",
+    "shared-remaining.rs": "8d706ad8e988a8784f70152b8d486d26b528d0680acbe44e3234fb2024806ed1"
+  },
+  "unchanged": true,
+  "observed_expectations_rechecked": 21
+}
