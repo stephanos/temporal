@@ -1,0 +1,613 @@
+{
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.18",
+  "base_commit": "93a13e47a7097bcb7ae77b824e3d6490edda0320",
+  "source_model_tree": "6adf5171cf03f12e3fb11b0a72b3138cb439f867",
+  "input_sha256": {
+    "model/Cargo.toml": "54effc0c4de5972c224a10c1d9eeab581a4307d44c9a301a6484fa4f3f485919",
+    "model/umpire/Cargo.toml": "fe12027279d7307eb6b5421643b4c1045ca243987cb5fef91deb962b272cfeb7",
+    "model/Cargo.lock": "b613e6eeb7a0e46bbf473dba4cd180e1ef5a59f77aa0285a4f7dc160ca8c493a",
+    "model/umpire/Cargo.lock": "c19e0382a1d58af1566875d0df23862ee0cb590eb7ae199a748c79f506e65f93",
+    "model/.cargo/config.toml": "a75024f36a4117636ecc7ff1b4496a3c50bfe077644c63bdb6fe134673baf42c",
+    "model/umpire/.cargo/config.toml": "5d2ce595163d042c37cbd8baff63f9f88630af985a1704a1c543027547cf0625",
+    "model/rust-toolchain.toml": "620f5ba2c76cfec3b2e8b29ca27138401535b21919339a8aaef86f250b335b27",
+    "model/umpire/rust-toolchain.toml": "620f5ba2c76cfec3b2e8b29ca27138401535b21919339a8aaef86f250b335b27",
+    "model/umpire/mise.toml": "17e680c4d4ce2aa8c2a01c006ea58c4b07405f7e18bdbebfe43dd72eba7b0ec0"
+  },
+  "before": {
+    "removed": {},
+    "environment": {
+      "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/fn25418-dev-debug",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false"
+    },
+    "records": [
+      {
+        "label": "before-xtask-prepare",
+        "command": [
+          "mise",
+          "exec",
+          "--",
+          "cargo",
+          "build",
+          "--locked",
+          "--profile",
+          "dev",
+          "-p",
+          "xtask",
+          "--bin",
+          "xtask",
+          "-vv"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/umpire",
+        "exit_code": 0,
+        "elapsed_seconds": 6.602113127999473,
+        "artifact": "/home/agent/.cache/codex-build/fn25418-dev-debug/debug/xtask",
+        "size": 60460704,
+        "sha256": "a1e3f9c2603d7835cf2da6fe0e584376bf30c958a07073a4571e58c5a0a91f06"
+      },
+      {
+        "label": "before-xtask-matched",
+        "command": [
+          "mise",
+          "exec",
+          "--",
+          "cargo",
+          "build",
+          "--locked",
+          "--profile",
+          "dev",
+          "-p",
+          "xtask",
+          "--bin",
+          "xtask",
+          "-vv"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/umpire",
+        "exit_code": 0,
+        "elapsed_seconds": 0.8777607919764705,
+        "artifact": "/home/agent/.cache/codex-build/fn25418-dev-debug/debug/xtask",
+        "size": 60460704,
+        "sha256": "a1e3f9c2603d7835cf2da6fe0e584376bf30c958a07073a4571e58c5a0a91f06"
+      },
+      {
+        "label": "before-temporal-xtask-prepare",
+        "command": [
+          "mise",
+          "exec",
+          "--",
+          "cargo",
+          "build",
+          "--locked",
+          "--profile",
+          "dev",
+          "-p",
+          "temporal-xtask",
+          "--bin",
+          "temporal-xtask",
+          "-vv"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model",
+        "exit_code": 0,
+        "elapsed_seconds": 3.7130469600087963,
+        "artifact": "/home/agent/.cache/codex-build/fn25418-dev-debug/debug/temporal-xtask",
+        "size": 57657728,
+        "sha256": "be80e457e0593ebf973585b4503528b5af2780f56866463766c9223a224a944b"
+      },
+      {
+        "label": "before-temporal-xtask-matched",
+        "command": [
+          "mise",
+          "exec",
+          "--",
+          "cargo",
+          "build",
+          "--locked",
+          "--profile",
+          "dev",
+          "-p",
+          "temporal-xtask",
+          "--bin",
+          "temporal-xtask",
+          "-vv"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model",
+        "exit_code": 0,
+        "elapsed_seconds": 0.8875829169992357,
+        "artifact": "/home/agent/.cache/codex-build/fn25418-dev-debug/debug/temporal-xtask",
+        "size": 57657728,
+        "sha256": "be80e457e0593ebf973585b4503528b5af2780f56866463766c9223a224a944b"
+      },
+      {
+        "label": "before-driver",
+        "command": [
+          "mise",
+          "exec",
+          "--",
+          "cargo",
+          "build",
+          "--locked",
+          "--profile",
+          "dev",
+          "-p",
+          "umpire-guest-driver",
+          "--bin",
+          "umpire-guest-driver",
+          "-vv"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/umpire",
+        "exit_code": 0,
+        "elapsed_seconds": 1.6452510009985417,
+        "size": 20172520,
+        "sha256": "4244471a914bcc44ab6f50874302312d8dd0c78276d9c483d21bdc8246cd4572"
+      }
+    ]
+  },
+  "after": {
+    "removed": {},
+    "environment": {
+      "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/fn25418-dev-debug",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false"
+    },
+    "records": [
+      {
+        "label": "after-xtask-prepare",
+        "command": [
+          "mise",
+          "exec",
+          "--",
+          "cargo",
+          "build",
+          "--locked",
+          "--profile",
+          "dev",
+          "-p",
+          "xtask",
+          "--bin",
+          "xtask",
+          "-vv"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/umpire",
+        "exit_code": 0,
+        "elapsed_seconds": 11.972466214007,
+        "artifact": "/home/agent/.cache/codex-build/fn25418-dev-debug/debug/xtask",
+        "size": 27540720,
+        "sha256": "cbefec1d26c745026d0efb32729da72774fef3770f638c607f9109458efed4f9"
+      },
+      {
+        "label": "after-xtask-matched",
+        "command": [
+          "mise",
+          "exec",
+          "--",
+          "cargo",
+          "build",
+          "--locked",
+          "--profile",
+          "dev",
+          "-p",
+          "xtask",
+          "--bin",
+          "xtask",
+          "-vv"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/umpire",
+        "exit_code": 0,
+        "elapsed_seconds": 0.6801872920186725,
+        "artifact": "/home/agent/.cache/codex-build/fn25418-dev-debug/debug/xtask",
+        "size": 27540720,
+        "sha256": "cbefec1d26c745026d0efb32729da72774fef3770f638c607f9109458efed4f9"
+      },
+      {
+        "label": "after-temporal-xtask-prepare",
+        "command": [
+          "mise",
+          "exec",
+          "--",
+          "cargo",
+          "build",
+          "--locked",
+          "--profile",
+          "dev",
+          "-p",
+          "temporal-xtask",
+          "--bin",
+          "temporal-xtask",
+          "-vv"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model",
+        "exit_code": 0,
+        "elapsed_seconds": 3.206526793015655,
+        "artifact": "/home/agent/.cache/codex-build/fn25418-dev-debug/debug/temporal-xtask",
+        "size": 24492256,
+        "sha256": "c8ae8b8d548b384dbb188fd518e322050aee1a606269d0abcefc71bd1d650bb3"
+      },
+      {
+        "label": "after-temporal-xtask-matched",
+        "command": [
+          "mise",
+          "exec",
+          "--",
+          "cargo",
+          "build",
+          "--locked",
+          "--profile",
+          "dev",
+          "-p",
+          "temporal-xtask",
+          "--bin",
+          "temporal-xtask",
+          "-vv"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model",
+        "exit_code": 0,
+        "elapsed_seconds": 0.6329278750054073,
+        "artifact": "/home/agent/.cache/codex-build/fn25418-dev-debug/debug/temporal-xtask",
+        "size": 24492256,
+        "sha256": "c8ae8b8d548b384dbb188fd518e322050aee1a606269d0abcefc71bd1d650bb3"
+      },
+      {
+        "label": "after-driver",
+        "command": [
+          "mise",
+          "exec",
+          "--",
+          "cargo",
+          "build",
+          "--locked",
+          "--profile",
+          "dev",
+          "-p",
+          "umpire-guest-driver",
+          "--bin",
+          "umpire-guest-driver",
+          "-vv"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/umpire",
+        "exit_code": 0,
+        "elapsed_seconds": 1.4492629999876954,
+        "size": 10913744,
+        "sha256": "0d2c5b48585eeac14e41ceb2dce7a0869058c50acdccdf8de439aa99c51bc5f2"
+      }
+    ]
+  },
+  "profile_comparison": {
+    "model/Cargo.toml": {
+      "before": {
+        "dev": {
+          "overflow-checks": true
+        },
+        "test": {
+          "debug": "line-tables-only",
+          "overflow-checks": true
+        },
+        "release": {
+          "overflow-checks": true,
+          "debug": 1,
+          "lto": "thin",
+          "codegen-units": 1
+        },
+        "guest": {
+          "inherits": "release",
+          "debug": false,
+          "strip": "symbols",
+          "lto": "fat",
+          "codegen-units": 1,
+          "overflow-checks": true,
+          "panic": "unwind"
+        }
+      },
+      "after": {
+        "dev": {
+          "debug": "line-tables-only",
+          "overflow-checks": true
+        },
+        "test": {
+          "debug": "line-tables-only",
+          "overflow-checks": true
+        },
+        "release": {
+          "overflow-checks": true,
+          "debug": 1,
+          "lto": "thin",
+          "codegen-units": 1
+        },
+        "guest": {
+          "inherits": "release",
+          "debug": false,
+          "strip": "symbols",
+          "lto": "fat",
+          "codegen-units": 1,
+          "overflow-checks": true,
+          "panic": "unwind"
+        }
+      },
+      "sha256_after": "54effc0c4de5972c224a10c1d9eeab581a4307d44c9a301a6484fa4f3f485919"
+    },
+    "model/umpire/Cargo.toml": {
+      "before": {
+        "dev": {
+          "overflow-checks": true
+        },
+        "test": {
+          "debug": "line-tables-only",
+          "overflow-checks": true
+        },
+        "release": {
+          "overflow-checks": true,
+          "debug": 1,
+          "lto": "thin",
+          "codegen-units": 1
+        },
+        "guest": {
+          "inherits": "release",
+          "debug": false,
+          "strip": "symbols",
+          "lto": "fat",
+          "codegen-units": 1,
+          "overflow-checks": true,
+          "panic": "unwind"
+        }
+      },
+      "after": {
+        "dev": {
+          "debug": "line-tables-only",
+          "overflow-checks": true
+        },
+        "test": {
+          "debug": "line-tables-only",
+          "overflow-checks": true
+        },
+        "release": {
+          "overflow-checks": true,
+          "debug": 1,
+          "lto": "thin",
+          "codegen-units": 1
+        },
+        "guest": {
+          "inherits": "release",
+          "debug": false,
+          "strip": "symbols",
+          "lto": "fat",
+          "codegen-units": 1,
+          "overflow-checks": true,
+          "panic": "unwind"
+        }
+      },
+      "sha256_after": "fe12027279d7307eb6b5421643b4c1045ca243987cb5fef91deb962b272cfeb7"
+    }
+  },
+  "verification": [
+    {
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/umpire",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "-vv",
+        "xtask",
+        "retired-names",
+        "^fn25418-proof$"
+      ],
+      "exit_code": 0,
+      "log": "xtask-alias-success.log"
+    },
+    {
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/umpire",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "build",
+        "--locked",
+        "--profile",
+        "dev",
+        "-p",
+        "xtask",
+        "--bin",
+        "xtask",
+        "--message-format=json"
+      ],
+      "exit_code": 0,
+      "log": "xtask-profile.log",
+      "profile": {
+        "opt_level": "0",
+        "debuginfo": "line-tables-only",
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": false
+      }
+    },
+    {
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "-vv",
+        "xtask",
+        "gate",
+        "--list"
+      ],
+      "exit_code": 0,
+      "log": "temporal-xtask-alias-success.log"
+    },
+    {
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "build",
+        "--locked",
+        "--profile",
+        "dev",
+        "-p",
+        "temporal-xtask",
+        "--bin",
+        "temporal-xtask",
+        "--message-format=json"
+      ],
+      "exit_code": 0,
+      "log": "temporal-xtask-profile.log",
+      "profile": {
+        "opt_level": "0",
+        "debuginfo": "line-tables-only",
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": false
+      }
+    }
+  ],
+  "host": "['uname', '-a']\nLinux dev-build 7.0.14 #1 SMP PREEMPT Mon Oct 12 09:57:44 UTC 2026 aarch64 GNU/Linux\n['getconf', '_NPROCESSORS_ONLN']\n12\n['free', '-h']\n               total        used        free      shared  buff/cache   available\nMem:            19Gi       7.5Gi       546Mi       432Ki        11Gi        12Gi\nSwap:             0B          0B          0B\n['df', '-h', '.']\nFilesystem      Size  Used Avail Use% Mounted on\nhost            927G  880G   48G  95% /Users/stephan/Workspace/skunkworks\n['mise', 'exec', '--', 'rustc', '-vV']\nrustc 1.99.1 (58cf8f9c3 2026-10-13)\nbinary: rustc\ncommit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67\ncommit-date: 2026-10-13\nhost: aarch64-unknown-linux-gnu\nrelease: 1.99.1\nLLVM version: 23.1.1\n['mise', 'exec', '--', 'cargo', '-V']\ncargo 1.99.1 (5f94df478 2026-08-27)\n['git', 'rev-parse', 'HEAD']\n93a13e47a7097bcb7ae77b824e3d6490edda0320\n",
+  "effective_commands": {
+    "before-xtask-matched.log": [
+      "Running `CARGO=/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo CARGO_BIN_NAME=xtask CARGO_CRATE_NAME=xtask CARGO_MANIFEST_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/umpire/dev/xtask CARGO_MANIFEST_PATH=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/umpire/dev/xtask/Cargo.toml CARGO_PKG_AUTHORS='' CARGO_PKG_DESCRIPTION='Host-only native development tools for Umpire' CARGO_PKG_HOMEPAGE='' CARGO_PKG_LICENSE=MIT CARGO_PKG_LICENSE_FILE='' CARGO_PKG_NAME=xtask CARGO_PKG_README=README.md CARGO_PKG_REPOSITORY='' CARGO_PKG_RUST_VERSION=1.99 CARGO_PKG_VERSION=0.0.1 CARGO_PKG_VERSION_MAJOR=0 CARGO_PKG_VERSION_MINOR=0 CARGO_PKG_VERSION_PATCH=1 CARGO_PKG_VERSION_PRE='' CARGO_PRIMARY_PACKAGE=1 LD_LIBRARY_PATH='/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib' /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc --crate-name xtask --edition=2024 dev/xtask/src/main.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type bin --emit=dep-info,link -C embed-bitcode=no -C debuginfo=2 --warn=rust_2018_idioms '--warn=clippy::pedantic' '--warn=clippy::all' '--warn=clippy::unwrap_used' --warn=unused_qualifications --deny=unsafe_code --warn=unreachable_pub '--warn=clippy::todo' '--warn=clippy::print_stdout' '--warn=clippy::print_stderr' '--allow=clippy::must_use_candidate' '--allow=clippy::module_name_repetitions' '--allow=clippy::missing_panics_doc' '--allow=clippy::missing_errors_doc' --warn=missing_docs '--warn=clippy::expect_used' '--warn=clippy::dbg_macro' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' -C metadata=8c5b4470b7b63a9a -C extra-filename=-432cfddba5116d25 --out-dir /home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps -C incremental=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/incremental -L dependency=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps --extern libc=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/liblibc-5fcb938f80d19e49.rlib --extern regex=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libregex-a76d6c70d09cb080.rlib --extern serde=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libserde-6af11228e3f4ddf9.rlib --extern serde_json=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libserde_json-67817ac566fd5231.rlib --extern sha2=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libsha2-6fd99d5bd802a73f.rlib --extern tempfile=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libtempfile-6a4436171743a79e.rlib --extern thiserror=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libthiserror-7d67ba34a770506f.rlib --extern toml=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libtoml-8e3144e25a43686d.rlib --extern umpire_backend_process=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libumpire_backend_process-ae2d286e3cbec0af.rlib --extern umpire_guest_driver=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libumpire_guest_driver-e0f41110ed2dc28e.rlib --extern xtask=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libxtask-08560242e3900a23.rlib`"
+    ],
+    "before-temporal-xtask-matched.log": [
+      "Running `CARGO=/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo CARGO_BIN_NAME=temporal-xtask CARGO_CRATE_NAME=temporal_xtask CARGO_MANIFEST_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/dev/xtask CARGO_MANIFEST_PATH=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/dev/xtask/Cargo.toml CARGO_PKG_AUTHORS='' CARGO_PKG_DESCRIPTION='' CARGO_PKG_HOMEPAGE='' CARGO_PKG_LICENSE=MIT CARGO_PKG_LICENSE_FILE='' CARGO_PKG_NAME=temporal-xtask CARGO_PKG_README=README.md CARGO_PKG_REPOSITORY='' CARGO_PKG_RUST_VERSION=1.99 CARGO_PKG_VERSION=0.0.1 CARGO_PKG_VERSION_MAJOR=0 CARGO_PKG_VERSION_MINOR=0 CARGO_PKG_VERSION_PATCH=1 CARGO_PKG_VERSION_PRE='' CARGO_PRIMARY_PACKAGE=1 LD_LIBRARY_PATH='/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib' /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc --crate-name temporal_xtask --edition=2024 dev/xtask/src/main.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type bin --emit=dep-info,link -C embed-bitcode=no -C debuginfo=2 --warn=rust_2018_idioms '--warn=clippy::pedantic' '--warn=clippy::all' '--warn=clippy::unwrap_used' --warn=unused_qualifications --deny=unsafe_code --warn=unreachable_pub '--warn=clippy::todo' '--warn=clippy::print_stdout' '--warn=clippy::print_stderr' '--allow=clippy::must_use_candidate' '--allow=clippy::module_name_repetitions' '--allow=clippy::missing_panics_doc' '--allow=clippy::missing_errors_doc' --warn=missing_docs '--warn=clippy::expect_used' '--warn=clippy::dbg_macro' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' -C metadata=a4933f061cfdf6f9 -C extra-filename=-12d6ecb36458e8d9 --out-dir /home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps -C incremental=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/incremental -L dependency=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps --extern serde_json=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libserde_json-67817ac566fd5231.rlib --extern umpire_guest_driver=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libumpire_guest_driver-481bffca4e0140dd.rlib --extern xtask=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libxtask-2b5d70fb091f310f.rlib`"
+    ],
+    "after-xtask-matched.log": [
+      "Running `CARGO=/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo CARGO_BIN_NAME=xtask CARGO_CRATE_NAME=xtask CARGO_MANIFEST_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/umpire/dev/xtask CARGO_MANIFEST_PATH=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/umpire/dev/xtask/Cargo.toml CARGO_PKG_AUTHORS='' CARGO_PKG_DESCRIPTION='Host-only native development tools for Umpire' CARGO_PKG_HOMEPAGE='' CARGO_PKG_LICENSE=MIT CARGO_PKG_LICENSE_FILE='' CARGO_PKG_NAME=xtask CARGO_PKG_README=README.md CARGO_PKG_REPOSITORY='' CARGO_PKG_RUST_VERSION=1.99 CARGO_PKG_VERSION=0.0.1 CARGO_PKG_VERSION_MAJOR=0 CARGO_PKG_VERSION_MINOR=0 CARGO_PKG_VERSION_PATCH=1 CARGO_PKG_VERSION_PRE='' CARGO_PRIMARY_PACKAGE=1 LD_LIBRARY_PATH='/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib' /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc --crate-name xtask --edition=2024 dev/xtask/src/main.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type bin --emit=dep-info,link -C embed-bitcode=no -C debuginfo=line-tables-only --warn=rust_2018_idioms '--warn=clippy::pedantic' '--warn=clippy::all' '--warn=clippy::unwrap_used' --warn=unused_qualifications --deny=unsafe_code --warn=unreachable_pub '--warn=clippy::todo' '--warn=clippy::print_stdout' '--warn=clippy::print_stderr' '--allow=clippy::must_use_candidate' '--allow=clippy::module_name_repetitions' '--allow=clippy::missing_panics_doc' '--allow=clippy::missing_errors_doc' --warn=missing_docs '--warn=clippy::expect_used' '--warn=clippy::dbg_macro' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' -C metadata=b04e5a4efb3b0fba -C extra-filename=-25c17d9e92b6cfab --out-dir /home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps -C incremental=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/incremental -L dependency=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps --extern libc=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/liblibc-9f96e0cbe479ba61.rlib --extern regex=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libregex-2abc09337e907b19.rlib --extern serde=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libserde-126cd0f064e81f31.rlib --extern serde_json=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libserde_json-e3b9244b60b10dc6.rlib --extern sha2=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libsha2-6a5aab6a47b4bc04.rlib --extern tempfile=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libtempfile-41b7afd6c0d52b97.rlib --extern thiserror=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libthiserror-bc8a74c018267d85.rlib --extern toml=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libtoml-b534f371eb2aeb3a.rlib --extern umpire_backend_process=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libumpire_backend_process-b076b463e10ce95a.rlib --extern umpire_guest_driver=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libumpire_guest_driver-6223561eb0b684d3.rlib --extern xtask=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libxtask-dc5d2908a6f1aeea.rlib`"
+    ],
+    "after-temporal-xtask-matched.log": [
+      "Running `CARGO=/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo CARGO_BIN_NAME=temporal-xtask CARGO_CRATE_NAME=temporal_xtask CARGO_MANIFEST_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/dev/xtask CARGO_MANIFEST_PATH=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/dev/xtask/Cargo.toml CARGO_PKG_AUTHORS='' CARGO_PKG_DESCRIPTION='' CARGO_PKG_HOMEPAGE='' CARGO_PKG_LICENSE=MIT CARGO_PKG_LICENSE_FILE='' CARGO_PKG_NAME=temporal-xtask CARGO_PKG_README=README.md CARGO_PKG_REPOSITORY='' CARGO_PKG_RUST_VERSION=1.99 CARGO_PKG_VERSION=0.0.1 CARGO_PKG_VERSION_MAJOR=0 CARGO_PKG_VERSION_MINOR=0 CARGO_PKG_VERSION_PATCH=1 CARGO_PKG_VERSION_PRE='' CARGO_PRIMARY_PACKAGE=1 LD_LIBRARY_PATH='/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib' /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc --crate-name temporal_xtask --edition=2024 dev/xtask/src/main.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type bin --emit=dep-info,link -C embed-bitcode=no -C debuginfo=line-tables-only --warn=rust_2018_idioms '--warn=clippy::pedantic' '--warn=clippy::all' '--warn=clippy::unwrap_used' --warn=unused_qualifications --deny=unsafe_code --warn=unreachable_pub '--warn=clippy::todo' '--warn=clippy::print_stdout' '--warn=clippy::print_stderr' '--allow=clippy::must_use_candidate' '--allow=clippy::module_name_repetitions' '--allow=clippy::missing_panics_doc' '--allow=clippy::missing_errors_doc' --warn=missing_docs '--warn=clippy::expect_used' '--warn=clippy::dbg_macro' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' -C metadata=b8477f496e9d3f78 -C extra-filename=-199361f894ccbf9b --out-dir /home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps -C incremental=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/incremental -L dependency=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps --extern serde_json=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libserde_json-e3b9244b60b10dc6.rlib --extern umpire_guest_driver=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libumpire_guest_driver-d3fbccd7b2d0d5e9.rlib --extern xtask=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libxtask-3a2b4a0ce45d15e3.rlib`"
+    ],
+    "xtask-alias-success.log": [
+      "Running `CARGO=/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo CARGO_BIN_NAME=xtask CARGO_CRATE_NAME=xtask CARGO_MANIFEST_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/umpire/dev/xtask CARGO_MANIFEST_PATH=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/umpire/dev/xtask/Cargo.toml CARGO_PKG_AUTHORS='' CARGO_PKG_DESCRIPTION='Host-only native development tools for Umpire' CARGO_PKG_HOMEPAGE='' CARGO_PKG_LICENSE=MIT CARGO_PKG_LICENSE_FILE='' CARGO_PKG_NAME=xtask CARGO_PKG_README=README.md CARGO_PKG_REPOSITORY='' CARGO_PKG_RUST_VERSION=1.99 CARGO_PKG_VERSION=0.0.1 CARGO_PKG_VERSION_MAJOR=0 CARGO_PKG_VERSION_MINOR=0 CARGO_PKG_VERSION_PATCH=1 CARGO_PKG_VERSION_PRE='' CARGO_PRIMARY_PACKAGE=1 LD_LIBRARY_PATH='/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib' /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc --crate-name xtask --edition=2024 dev/xtask/src/main.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type bin --emit=dep-info,link -C embed-bitcode=no -C debuginfo=line-tables-only --warn=rust_2018_idioms '--warn=clippy::pedantic' '--warn=clippy::all' '--warn=clippy::unwrap_used' --warn=unused_qualifications --deny=unsafe_code --warn=unreachable_pub '--warn=clippy::todo' '--warn=clippy::print_stdout' '--warn=clippy::print_stderr' '--allow=clippy::must_use_candidate' '--allow=clippy::module_name_repetitions' '--allow=clippy::missing_panics_doc' '--allow=clippy::missing_errors_doc' --warn=missing_docs '--warn=clippy::expect_used' '--warn=clippy::dbg_macro' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' -C metadata=b04e5a4efb3b0fba -C extra-filename=-25c17d9e92b6cfab --out-dir /home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps -C incremental=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/incremental -L dependency=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps --extern libc=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/liblibc-9f96e0cbe479ba61.rlib --extern regex=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libregex-2abc09337e907b19.rlib --extern serde=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libserde-126cd0f064e81f31.rlib --extern serde_json=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libserde_json-e3b9244b60b10dc6.rlib --extern sha2=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libsha2-6a5aab6a47b4bc04.rlib --extern tempfile=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libtempfile-41b7afd6c0d52b97.rlib --extern thiserror=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libthiserror-bc8a74c018267d85.rlib --extern toml=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libtoml-b534f371eb2aeb3a.rlib --extern umpire_backend_process=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libumpire_backend_process-b076b463e10ce95a.rlib --extern umpire_guest_driver=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libumpire_guest_driver-6223561eb0b684d3.rlib --extern xtask=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libxtask-dc5d2908a6f1aeea.rlib`",
+      "Running `CARGO=/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo CARGO_MANIFEST_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/umpire/dev/xtask CARGO_MANIFEST_PATH=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/umpire/dev/xtask/Cargo.toml CARGO_PKG_AUTHORS='' CARGO_PKG_DESCRIPTION='Host-only native development tools for Umpire' CARGO_PKG_HOMEPAGE='' CARGO_PKG_LICENSE=MIT CARGO_PKG_LICENSE_FILE='' CARGO_PKG_NAME=xtask CARGO_PKG_README=README.md CARGO_PKG_REPOSITORY='' CARGO_PKG_RUST_VERSION=1.99 CARGO_PKG_VERSION=0.0.1 CARGO_PKG_VERSION_MAJOR=0 CARGO_PKG_VERSION_MINOR=0 CARGO_PKG_VERSION_PATCH=1 CARGO_PKG_VERSION_PRE='' LD_LIBRARY_PATH='/home/agent/.cache/codex-build/fn25418-dev-debug/debug:/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/aarch64-unknown-linux-gnu/lib:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib' /home/agent/.cache/codex-build/fn25418-dev-debug/debug/xtask retired-names '^fn25418-proof$'`"
+    ],
+    "temporal-xtask-alias-success.log": [
+      "Running `CARGO=/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo CARGO_BIN_NAME=temporal-xtask CARGO_CRATE_NAME=temporal_xtask CARGO_MANIFEST_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/dev/xtask CARGO_MANIFEST_PATH=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/dev/xtask/Cargo.toml CARGO_PKG_AUTHORS='' CARGO_PKG_DESCRIPTION='' CARGO_PKG_HOMEPAGE='' CARGO_PKG_LICENSE=MIT CARGO_PKG_LICENSE_FILE='' CARGO_PKG_NAME=temporal-xtask CARGO_PKG_README=README.md CARGO_PKG_REPOSITORY='' CARGO_PKG_RUST_VERSION=1.99 CARGO_PKG_VERSION=0.0.1 CARGO_PKG_VERSION_MAJOR=0 CARGO_PKG_VERSION_MINOR=0 CARGO_PKG_VERSION_PATCH=1 CARGO_PKG_VERSION_PRE='' CARGO_PRIMARY_PACKAGE=1 LD_LIBRARY_PATH='/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib' /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc --crate-name temporal_xtask --edition=2024 dev/xtask/src/main.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type bin --emit=dep-info,link -C embed-bitcode=no -C debuginfo=line-tables-only --warn=rust_2018_idioms '--warn=clippy::pedantic' '--warn=clippy::all' '--warn=clippy::unwrap_used' --warn=unused_qualifications --deny=unsafe_code --warn=unreachable_pub '--warn=clippy::todo' '--warn=clippy::print_stdout' '--warn=clippy::print_stderr' '--allow=clippy::must_use_candidate' '--allow=clippy::module_name_repetitions' '--allow=clippy::missing_panics_doc' '--allow=clippy::missing_errors_doc' --warn=missing_docs '--warn=clippy::expect_used' '--warn=clippy::dbg_macro' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' -C metadata=b8477f496e9d3f78 -C extra-filename=-199361f894ccbf9b --out-dir /home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps -C incremental=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/incremental -L dependency=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps --extern serde_json=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libserde_json-e3b9244b60b10dc6.rlib --extern umpire_guest_driver=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libumpire_guest_driver-d3fbccd7b2d0d5e9.rlib --extern xtask=/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps/libxtask-3a2b4a0ce45d15e3.rlib`",
+      "Running `CARGO=/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo CARGO_MANIFEST_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/dev/xtask CARGO_MANIFEST_PATH=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn25418-dev-debug/model/dev/xtask/Cargo.toml CARGO_PKG_AUTHORS='' CARGO_PKG_DESCRIPTION='' CARGO_PKG_HOMEPAGE='' CARGO_PKG_LICENSE=MIT CARGO_PKG_LICENSE_FILE='' CARGO_PKG_NAME=temporal-xtask CARGO_PKG_README=README.md CARGO_PKG_REPOSITORY='' CARGO_PKG_RUST_VERSION=1.99 CARGO_PKG_VERSION=0.0.1 CARGO_PKG_VERSION_MAJOR=0 CARGO_PKG_VERSION_MINOR=0 CARGO_PKG_VERSION_PATCH=1 CARGO_PKG_VERSION_PRE='' LD_LIBRARY_PATH='/home/agent/.cache/codex-build/fn25418-dev-debug/debug:/home/agent/.cache/codex-build/fn25418-dev-debug/debug/deps:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/aarch64-unknown-linux-gnu/lib:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib' /home/agent/.cache/codex-build/fn25418-dev-debug/debug/temporal-xtask gate --list`"
+    ]
+  },
+  "raw_log_directory": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25418",
+  "raw_logs": {
+    "after-temporal-xtask-prepare.log": {
+      "sha256": "526ed31348dd5f510825e03247890a9c88d8bbc067ae4a2b273fd3d8bfa9ed2f",
+      "bytes": 44056,
+      "lock_wait_lines": []
+    },
+    "before-temporal-xtask-prepare.log": {
+      "sha256": "a43957addf2ab65b358b4f2dc6a2c45e2f2e7b01c9dc8db9e64cd433d96c0fb7",
+      "bytes": 43996,
+      "lock_wait_lines": []
+    },
+    "xtask-alias-retired.log": {
+      "sha256": "3b54c4a7d5ec17cd27b895e700a9924abce58e6bad799665eb0cb200c401eee3",
+      "bytes": 36796,
+      "lock_wait_lines": []
+    },
+    "xtask-alias.log": {
+      "sha256": "b2d3100ea6fb6a63bf18f818c3d31e049e3475f1b11e1811bece9254986e68f1",
+      "bytes": 38611,
+      "lock_wait_lines": []
+    },
+    "temporal-xtask-alias-success.log": {
+      "sha256": "ce8e17930edef7682ca7a22fa52d00ec1473ebb792aedd60a0631ffbf1346fc6",
+      "bytes": 37931,
+      "lock_wait_lines": []
+    },
+    "host-inputs.log": {
+      "sha256": "2c2a93f522d0e519369e2e2530218f359898f931488f66e9b9a1ea52b141ea44",
+      "bytes": 880,
+      "lock_wait_lines": []
+    },
+    "before-temporal-xtask-matched.log": {
+      "sha256": "64644245dad9a762044b7aac5aa1cca5c1f5d0b6f916107d3abad00f28f9b42c",
+      "bytes": 35463,
+      "lock_wait_lines": []
+    },
+    "after-driver.log": {
+      "sha256": "9205c80003c7ca2bbc30237eb7fe9b0951a7810a9ccbfd030c68afe300e1f359",
+      "bytes": 21717,
+      "lock_wait_lines": []
+    },
+    "before-xtask-matched.log": {
+      "sha256": "44bb32548993e223b24e94e677a21641b65d6c0d9195f0a03cac598e4179e3b1",
+      "bytes": 35647,
+      "lock_wait_lines": []
+    },
+    "after-xtask-prepare.log": {
+      "sha256": "e2de502e5eab238a9c4fe22776182a0b42b716e15887406c7dec38d07f4fc260",
+      "bytes": 157512,
+      "lock_wait_lines": []
+    },
+    "before-xtask-prepare.log": {
+      "sha256": "74e5550f80638b6a3a76a163a9b5d2433833f7c099c7dafbf4941bbd3e00d376",
+      "bytes": 196192,
+      "lock_wait_lines": []
+    },
+    "temporal-xtask-profile.log": {
+      "sha256": "ff5d53ada173511430d9f4ebeb2adf1681a631b0aa3056e1f3c60414a881319f",
+      "bytes": 185580,
+      "lock_wait_lines": []
+    },
+    "after-xtask-matched.log": {
+      "sha256": "159ca17e0765fbb079f96ff9c1271787ed5b60ff6c1145928b2f5865dc6a982d",
+      "bytes": 35662,
+      "lock_wait_lines": []
+    },
+    "after-temporal-xtask-matched.log": {
+      "sha256": "050a078a3f8206e5b7c093ad4644c98b20b2efee253b1593876acdc812d256c2",
+      "bytes": 35487,
+      "lock_wait_lines": []
+    },
+    "before-driver.log": {
+      "sha256": "74b2252a58c2dfd858050d976a8834d76cf71e35860d1b29838bc3bb6a70a9b2",
+      "bytes": 24962,
+      "lock_wait_lines": []
+    },
+    "xtask-profile.log": {
+      "sha256": "2eb94a1c4bd3ad3e7ede3a357247cb54be58b9a5baed28a7c66fd1bb39efa5f3",
+      "bytes": 184005,
+      "lock_wait_lines": []
+    },
+    "xtask-alias-success.log": {
+      "sha256": "bfdf2ed2092a8e902916c217f769c5809a41ffa98acff5bc8ac399b856b5639c",
+      "bytes": 36813,
+      "lock_wait_lines": []
+    }
+  },
+  "measurement_script_sha256": "e015803713866c677c95dd4d2cade901ffc3d322f844832a27523e06ac9fac62",
+  "conditions": {
+    "target": "/home/agent/.cache/codex-build/fn25418-dev-debug",
+    "target_initial_state": "task-owned target newly created; registry/tool caches inherited; no shared target modified",
+    "concurrency": "Cargo default jobs (12 logical processors); CARGO_BUILD_JOBS unset; independent frontend and other session activity concurrent; host not quiet",
+    "matched_work": "Each matched invocation touches only the relevant xtask main.rs timestamp, retaining identical source bytes, then compiles/links that one binary with warm same-profile dependencies and incremental cache. No runtime included. Prepare rows have different cache histories and are not comparable.",
+    "speedup_verdict": "inconclusive: single observation each, no profiler or isolated limiter, concurrent activity; no speedup threshold or claim",
+    "compile_link_split": "rustc emits link; wall intervals combine compile/link, Cargo and mise overhead; no link-only attribution",
+    "fresh_profile_metadata": "JSON Cargo artifact profiles may be Fresh and are settings evidence only, not compilation evidence",
+    "disk": "54GiB before first build; 47GiB after; task-owned target 1.4GiB; no cleanup",
+    "baseline": "green: pre-edit focused builds and driver build all exit0; no task/spec Quick commands defined"
+  },
+  "attempts": [
+    {
+      "command": "(model/umpire) mise exec -- cargo -vv xtask gate --list",
+      "exit_code": 1,
+      "result": "alias dev compilation succeeded; runtime mise inventory failed rendering inherited env.UMPIRE_TEMPORAL_ROOT; no full gate run or pass claimed"
+    },
+    {
+      "command": "(model/umpire) mise exec -- cargo -vv xtask retired-names",
+      "exit_code": 2,
+      "result": "caller omitted required regex argument; corrected smoke is alias-success with regex and empty stdin"
+    },
+    {
+      "command": "scratch JSON profile extraction",
+      "result": "initial extractor selected both lib and bin named xtask; corrected to target.kind=bin without rerunning any suite"
+    }
+  ],
+  "guest_freshness": {
+    "invalidated": true,
+    "reason": "dev profile changes exact guest-driver executable bytes and therefore the guest cache namespace",
+    "renewal_owner": "fn-254-fast-validation-gates-and-a-real-inner.8",
+    "obligation": "Rebuild the driver after integration, record old/new driver identities, and reproduce committed guests with the current driver in a fresh namespace; repeat final combined/standalone checks. This task built no guest and renewed no guest freshness proof."
+  }
+}
