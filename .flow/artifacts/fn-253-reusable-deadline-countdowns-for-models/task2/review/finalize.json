@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-253-reusable-deadline-countdowns-for-models.2",
+  "verdict": "SHIP",
+  "session_id": "86591a62-a805-4dc9-a546-26063d3d6dac",
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "effort": "high",
+  "spec": "claude:claude-fable-5-1:high",
+  "standalone": false,
+  "review": "## Issue 1\n- **Severity**: P3\n- **Title**: The verdict says the preparer produces three split invariants named `policy_in_range`, `attempt_within_policy`, `countdowns_within_budget`\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: The verdict says the preparer produces three split invariants named `policy_in_range`, `attempt_within_policy`, `countdowns_within_budget`. The archived rewrite (`probes/prepare.py:1262`, `line-counts.json`) names the third one `countdown_bounds`. A reader following the linked line-count file will not find the name the verdict quotes.\n- **Suggestion**: Change the doc to `countdown_bounds`, or note that the spec's R4 name `countdowns_within_budget` is the target name for .7 and the probe used a shorter one.\n- **File:Line**: model/design/deadline-countdowns.md:47\n- **R-IDs**: R1\n\n## Issue 2\n- **Severity**: P3\n- **Title**: `trait_impls\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: `trait_impls.replace('Ticks {', 'Ticks {').replace('    impl countdown', '    impl countdown')` are two identity replacements. Dead code in a reproduction script invites the reader to look for an effect that does not exist.\n- **Suggestion**: Use `trait_impls` directly.\n- **File:Line**: .flow/artifacts/fn-253-reusable-deadline-countdowns-for-models/task2/probes/prepare.py:1380\n\n```json\n{\"classification_counts\": {\"introduced\": 2, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>SHIP</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "claude-fable-5-1",
+      "session_id": "86591a62-a805-4dc9-a546-26063d3d6dac",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "claude-fable-5-1",
+      "session_id": "644e4736-f761-4c56-a4c9-d55f49a9740a",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "claude-fable-5-1",
+      "session_id": "a399d31a-9c11-4e27-bc93-482846d792ea",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": 0,
+  "introduced_count": 2,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}

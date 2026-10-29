@@ -1,6 +1,6 @@
 # Deadline countdowns
 
-Status: measured fn-253.2 spike verdict, 2026-10-28. The proposed abstraction compiles natively; its rewritten Models are **not yet admitted** by the front end.
+Status: measured fn-253.2 spike verdict, 2026-10-29. The proposed abstraction compiles natively; its rewritten Models are **not yet admitted** by the front end.
 
 ## Decision
 
