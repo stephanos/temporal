@@ -253,9 +253,21 @@ impl Environment {
                     }
                     (
                         syn::GenericParam::Type(_),
+                        syn::GenericArgument::Type(syn::Type::Infer(_)),
+                    ) => {}
+                    (
+                        syn::GenericParam::Type(_),
                         syn::GenericArgument::Type(syn::Type::Path(ty)),
                     ) if ty.qself.is_none()
-                        && (ty.path.is_ident("Self") || ty.path.is_ident(&self.state)) => {}
+                        && ty.path.segments.iter().all(|segment| {
+                            matches!(segment.arguments, syn::PathArguments::None)
+                        })
+                        && (ty.path.is_ident("Self")
+                            || ty
+                                .path
+                                .segments
+                                .last()
+                                .is_some_and(|segment| segment.ident == self.state.as_str())) => {}
                     (syn::GenericParam::Type(_), _) => {
                         return self.err(
                             argument,

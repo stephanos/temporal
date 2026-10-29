@@ -237,7 +237,7 @@ fn absolute_library_calls_ignore_caller_local_roots() -> Result<(), String> {
 #[test]
 fn explicit_closure_state_types_preserve_existing_admission() -> Result<(), String> {
     let source = include_str!("../../dev/fixtures/fixtures/phased_rejection/model.rs");
-    for state in ["Model", "Self"] {
+    for state in ["Model", "Self", "_", "self::Model"] {
         admit(&source.replace(
             "closable::terminal_remains(self, before)",
             &format!("closable::terminal_remains::<{state}>(self, before)"),
@@ -247,6 +247,7 @@ fn explicit_closure_state_types_preserve_existing_admission() -> Result<(), Stri
         ("Model, Model", "argument count"),
         ("3", "state type argument"),
         ("bool", "state type argument"),
+        ("self::Model<3>", "state type argument"),
     ] {
         let source = source.replace(
             "closable::terminal_remains(self, before)",
