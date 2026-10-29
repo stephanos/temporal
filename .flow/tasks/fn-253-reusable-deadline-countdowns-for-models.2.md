@@ -47,9 +47,16 @@ fn-246.15 delivered the timeout-retry correction and fn-246.13 owns the approved
 - [ ] The verdict decides whether `Ticks`/`Remaining` become shared `umpire-dsl` types with a Model-selected bound.
 
 ## Done summary
-TBD
+Completed the measured countdown spike at baseline02d4f55660. Chose shared library-owned Ticks<N>/Remaining<N> with one Model-selected bound1..255 and a README Temporal authoring pattern with named per-Model effects. Fixed six function/law signatures for .3; no production Model, framework, golden or schema change.
 
+Measured21 admission expectations (4 admitted controls,16 Model refusals,1 parse control), precise refusal positions/messages/owners, four full native Model typechecks, compiled project-helper-body control, generic/trait finite-domain and real claim-frame law controls, and1+2 standalone tests. Reconstructed from committed assets and Cargo.lock in a fresh disposable checkout with identical observations. Removed both disposable checkouts; canonical scratch plus durable sources/archives remain.
+
+stage: impl-review - ran [02d4f55660..3eef3b3b75], configured claude-fable-5-1/high, cross-family from GPT writer; correctness/contracts/integration allSHIP. Applied two nonblockingP3 corrections and verified regeneration leaves all25 generated source hashes unchanged; rechecked21 expectations. No blocking or unaddressed R1 findings.
+
+Not proved: interpreted/TLC equivalence or admission of rewritten Models. .3 native library, .4 front end and later fixture/migration/full-gate obligations remain. Protocol sharing of Temporal semantics stays the explicit owner decision permitted by this task; it does not block R1. Broader milestone work and fn254.12 remain paused; migration deferred. No subsequent task starts.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3eef3b3b75a03c500afa51c5cd65a491a6bcdaa3, daba61c4313b718987822c4ef8da4ccda8fd5669, aa0faf536664c81ee2d5df239a686f2a758381e0
+- Tests: In BASE disposable worktree: env -u BASH_ENV CARGO_TARGET_DIR=<task-owned-target> CARGO_BUILD_JOBS=1 CARGO_INCREMENTAL=0 CARGO_PROFILE_DEV_DEBUG=0 bash .flow/tmp/fn253-spike/run.sh (exit0;21 expectations,4+1 native typechecks,finite/law controls,1+2 tests), Repeat documented reconstruction from durable probes and Cargo.lock in a fresh BASE worktree (exit0;observations identical), python3 .flow/tmp/fn253-spike/check-results.py .flow/artifacts/fn-253-reusable-deadline-countdowns-for-models/task2/admission.jsonl (21 verified), Post-review prepare.py regeneration: all25 generated source SHA256 unchanged; shell/Python syntax checks pass, Artifact SHA256 audit; no disposable worktree; no diff to production model/umpire or model/temporal
 - PRs:

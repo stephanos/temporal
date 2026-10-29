@@ -94,5 +94,8 @@
   },
   "measured_date_utc": "2026-10-29",
   "implementation_commit": "3eef3b3b75",
-  "post_review_correction_commit": "daba61c431"
+  "post_review_correction_commit": "daba61c431",
+  "task_status": "done",
+  "broader_milestone_goal": "paused; no following task started",
+  "disposable_checkouts_removed": 2
 }

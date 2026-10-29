@@ -2,9 +2,9 @@
 
 The owner's overview of open work, execution order and blockers.
 
-As of 2026-10-28.
+As of 2026-10-29.
 
-The broader milestone run remains paused after fn-254.12. The owner separately authorized only fn-253.2; its countdown spike is measured and under review. No budget admission or migration work is resumed.
+The broader milestone run remains paused after fn-254.12. The separately authorized fn-253.2 countdown spike is reviewed and complete; no further task, budget admission or migration work is started.
 
 The owner deferred repository migration on 2026-10-28 and resumed this backlog.
 [fn-258](.flow/specs/fn-258-complete-the-resumed-standalone-umpire.md) remains open
@@ -270,8 +270,8 @@ outstanding performance comparison of the interpreter and compiled checker.
 
 A generic countdown (`umpire_dsl::countdown`: pure arm/tick/expired functions and within/descends laws,
 lowered from source like `closable`) plus Temporal deadline semantics in `model/temporal`, so the
-activity and later workflow, Nexus and timer Models stop hand-writing each countdown. The measured
-[activity spike](model/design/deadline-countdowns.md) selects shared bounded types and a README pattern; current admission gaps remain explicit. The spike and `umpire-dsl` work (.2–.5) are
+activity and later workflow, Nexus and timer Models stop hand-writing each countdown. The reviewed
+[activity spike](model/design/deadline-countdowns.md) completes R1: shared bounded types and a README pattern are selected, 21 admission controls are reproducible, and current admission gaps remain explicit. The spike and `umpire-dsl` work (.2–.5) are
 independent of fn-246. Activity edits consume committed fn-246.15/.13 corrections and run serially as .1 → .7 → .9 → .10; .8 validates their final combined result.
 Whether fn-246.13's protocol Model may share the Temporal layer is an open owner question.
 
@@ -280,8 +280,7 @@ Whether fn-246.13's protocol Model may share the Temporal layer is an open owner
 | Name | Status | What |
 | --- | --- | --- |
 | fn-253.1 | ⬜ todo | After committed fn-246.13: Option equality, named expiry effects/progress helpers, deduplicated Tick postconditions, split `state_bounds` (R4) |
-| fn-253.2 | 🔄 in progress | Measured verdict: shared `Ticks<N>`/`Remaining<N>`, README pattern; 21 admission controls and native probes reproduced from durable assets. Review/closure pending (R1) |
-| fn-253.3 | ⬜ todo | After .2: adapt the retained candidate to the selected shared bounded pair and six functions/laws; native tests/docs/build evidence remain. Front-end admission belongs to .4 (R2) |
+| fn-253.3 | ⬜ todo | Next native library task: adapt the retained candidate to the selected shared bounded pair and six functions/laws; native tests/docs/build evidence remain. Front-end admission belongs to .4. Not started (R2) |
 | fn-253.4 | ⬜ todo | After .3: front end lowers countdown calls in handlers, effects and claims (R2) |
 | fn-253.5 | ⬜ todo | After .4: shared `countdowns` fixture with refuting mutants (R2) |
 | fn-253.6 | ⬜ todo | After .2, .5: Temporal deadline semantics as a named pattern (R3) |
