@@ -30,9 +30,19 @@ Add the `countdown` module to `umpire-dsl` with the surface .2's verdict fixed. 
 - [ ] No Temporal names in the module (gate check for model/umpire).
 
 ## Done summary
-TBD
+Implemented the fixed native `umpire_dsl::countdown` surface: public bounded Ticks/Remaining types, Finite domains and membership, arm/tick/armed/expired, and explicit within/descends laws. The six unit tests exercise absence, armed zero, positive/maximal counts, forged raw values and N=0 through real claim frames. No front-end admission or Temporal migration is claimed; those remain later tasks.
 
+Measured verification: 73 umpire-dsl tests pass, including six countdown tests; strict package Clippy (all targets/features), scoped rustfmt and wasm32-wasip1 build pass. Initial tests failed on the absent API before implementation.
+
+`make model-check` was attempted and failed in unchanged existing xtask gate-budget tooling: strict Clippy reported 94 library and 30 library-test errors, including unused budget/context items and existing scheduler/count-authority lint violations. The xtask source is identical to baseline f998db36bb. Full gate success remains open; owner-paused fn-254.12 was not resumed or modified. Full output: .flow/tmp/fn2533-model-check.log.
+
+stage: impl-review - ran; SHIP, no findings, configured claude:claude-fable-5-1:high (cross-family), one correctness reviewer for this isolated native module. Review reservation f1d16c84d2de4ab88aa16bb3742fe338.
+Tier: implementer - gpt-6.1-sol at medium effort (model: gpt-6.1-sol, host spawn metadata).
+
+Task-specific scope is complete. R2's source lowering, admission and mutant coverage remain fn-253.4/.5; final combined validation remains fn-253.8. Broader milestone execution and migration remain paused/deferred.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e5e5455b937515fdd3cefb66fb35f851a7d46962
+- Tests: cd model/umpire && mise exec -- cargo test -p umpire-dsl --lib countdown --locked, cd model/umpire && mise exec -- cargo test -p umpire-dsl --locked, cd model/umpire && mise exec -- cargo clippy -p umpire-dsl --all-targets --all-features --locked -- -D warnings, cd model/umpire && mise exec -- cargo build -p umpire-dsl --target wasm32-wasip1 --locked, make model-check (FAILED: unchanged xtask gate-budget Clippy errors; recorded in summary)
 - PRs:

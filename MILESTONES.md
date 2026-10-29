@@ -4,7 +4,7 @@ The owner's overview of open work, execution order and blockers.
 
 As of 2026-10-29.
 
-The broader milestone run remains paused after fn-254.12. The separately authorized fn-253.2 countdown spike is reviewed and complete; no further task, budget admission or migration work is started.
+The broader milestone run remains paused after fn-254.12. The separately authorized fn-253.2 spike and fn-253.3 native countdown library are reviewed and complete. Build-speed gaps are filed as fn-254.18–.21 with plan review pending; no budget admission or migration work is resumed.
 
 The owner deferred repository migration on 2026-10-28 and resumed this backlog.
 [fn-258](.flow/specs/fn-258-complete-the-resumed-standalone-umpire.md) remains open
@@ -280,7 +280,7 @@ Whether fn-246.13's protocol Model may share the Temporal layer is an open owner
 | Name | Status | What |
 | --- | --- | --- |
 | fn-253.1 | ⬜ todo | After committed fn-246.13: Option equality, named expiry effects/progress helpers, deduplicated Tick postconditions, split `state_bounds` (R4) |
-| fn-253.3 | ⬜ todo | Next native library task: adapt the retained candidate to the selected shared bounded pair and six functions/laws; native tests/docs/build evidence remain. Front-end admission belongs to .4. Not started (R2) |
+| fn-253.3 | ✅ done | Shared bounded pair and six native functions/laws, documented and reviewed SHIP; 73 DSL tests, strict package Clippy and WASI build pass. Full `make model-check` fails on unchanged gate-budget Clippy errors; front-end admission remains .4 (R2) |
 | fn-253.4 | ⬜ todo | After .3: front end lowers countdown calls in handlers, effects and claims (R2) |
 | fn-253.5 | ⬜ todo | After .4: shared `countdowns` fixture with refuting mutants (R2) |
 | fn-253.6 | ⬜ todo | After .2, .5: Temporal deadline semantics as a named pattern (R3) |
