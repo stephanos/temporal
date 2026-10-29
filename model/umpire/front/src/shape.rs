@@ -46,6 +46,7 @@ pub(crate) fn parse(
         declared_world: declared.world,
         world_fields: Vec::new(),
         constants: Env::new(),
+        const_parameters: BTreeMap::new(),
         enums: BTreeMap::new(),
         defaults: BTreeMap::new(),
         bounded: BTreeMap::new(),
@@ -506,6 +507,18 @@ fn admit_imports(items: &[Item]) -> Result<bool> {
     for (item, name, path) in imports(items) {
         let dsl = crate::syntax::dsl_path(&path);
         let umpire = dsl == Some(name.as_str()) && name != "matches";
+        if let Some(path) = dsl
+            && path
+                .split("::")
+                .next()
+                .is_some_and(|module| crate::library::source(module).is_some())
+            && (name == "*" || path.rsplit("::").next() != Some(name.as_str()))
+        {
+            return Err(Diagnostic::at(
+                item,
+                "library imports require explicit unaliased bindings",
+            ));
+        }
         if (name == "*" && dsl != Some("*")) || (READ_BY_NAME.contains(&name.as_str()) && !umpire) {
             return Err(Diagnostic::at(
                 item,

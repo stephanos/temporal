@@ -1,0 +1,20 @@
+zero	5:62	library bounded const argument must be in 1..=255
+overflow	5:62	library bounded const argument must be in 1..=255
+nested	5:49	Option requires a bounded newtype payload
+alias-module	3:5	library imports require explicit unaliased bindings
+alias-type	4:5	library imports require explicit unaliased bindings
+glob	4:5	library imports require explicit unaliased bindings
+qualified-macro	18:41	claim body supports check! and conditional checks only
+wrong-argument	10:59	type mismatch: expected Some(Optional(Bounded { name: "umpire_dsl::countdown::Ticks<3>", field: None, backing: "u8", min: 0, max: 255, low: 1, high: 3 })), got Bool
+wrong-count	10:44	`umpire_dsl::countdown::arm` takes 1 arguments
+wrong-nominal	10:59	type mismatch: expected Some(Optional(Bounded { name: "umpire_dsl::countdown::Ticks<3>", field: None, backing: "u8", min: 0, max: 255, low: 1, high: 3 })), got Optional(Bounded { name: "umpire_dsl::countdown::Remaining<3>", field: Some("ticks"), backing: "u8", min: 0, max: 255, low: 0, high: 3 })
+different-bound	10:44	library const arguments do not agree
+zero-call	15:35	library bounded const argument must be in 1..=255
+generic-count	15:32	library call has the wrong const argument count
+generic-type	15:35	library call requires literal const arguments
+module-generic	15:16	unsupported library call path
+value-statement	17:41	library laws are claim statements; value functions require expression position
+law-expression	18:48	library laws are claim statements; value functions require expression position
+alias-function	4:5	library imports require explicit unaliased bindings
+shadowed-path	10:66	library call path is shadowed by a local binding
+named-bound	5:79	library bounded type requires a literal const argument

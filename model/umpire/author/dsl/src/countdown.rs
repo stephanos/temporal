@@ -6,13 +6,56 @@
 
 use crate::{Finite, check};
 
+struct NominalName {
+    bytes: [u8; 37],
+    len: usize,
+}
+
+impl NominalName {
+    const fn new(prefix: &str, bound: u8) -> Self {
+        let mut name = Self { bytes: [0; 37], len: 0 };
+        let prefix = prefix.as_bytes();
+        while name.len < prefix.len() {
+            name.bytes[name.len] = prefix[name.len];
+            name.len += 1;
+        }
+        name.bytes[name.len] = b'<';
+        name.len += 1;
+        if bound >= 100 {
+            name.bytes[name.len] = b'0' + bound / 100;
+            name.len += 1;
+        }
+        if bound >= 10 {
+            name.bytes[name.len] = b'0' + (bound / 10) % 10;
+            name.len += 1;
+        }
+        name.bytes[name.len] = b'0' + bound % 10;
+        name.bytes[name.len + 1] = b'>';
+        name.len += 2;
+        name
+    }
+
+    fn as_str(&'static self) -> &'static str {
+        std::str::from_utf8(&self.bytes[..self.len])
+            .unwrap_or_else(|error| panic!("invalid nominal type name: {error}"))
+    }
+}
+
 /// A configured duration with finite domain `1..=N`.
 ///
 /// Use `None` for absence. The public field permits forged zero or out-of-range values.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Ticks<const N: u8>(pub u8);
 
+impl<const N: u8> crate::IntoValue for Ticks<N> {
+    fn value(&self) -> crate::Value {
+        crate::Value::Bounded { name: Self::NAME.as_str(), raw: i128::from(self.0) }
+    }
+}
+
 impl<const N: u8> Ticks<N> {
+    const NAME: NominalName = NominalName::new("umpire_dsl::countdown::Ticks", N);
+
     /// Reports membership in the positive configured domain `1..=N`.
     pub fn contains(value: u8) -> bool {
         N > 0 && value > 0 && value <= N
@@ -32,7 +75,15 @@ pub struct Remaining<const N: u8> {
     pub ticks: u8,
 }
 
+impl<const N: u8> crate::IntoValue for Remaining<N> {
+    fn value(&self) -> crate::Value {
+        crate::Value::Bounded { name: Self::NAME.as_str(), raw: i128::from(self.ticks) }
+    }
+}
+
 impl<const N: u8> Remaining<N> {
+    const NAME: NominalName = NominalName::new("umpire_dsl::countdown::Remaining", N);
+
     /// Reports membership in the remaining domain `0..=N`.
     pub fn contains(value: u8) -> bool {
         value <= N
@@ -112,6 +163,36 @@ pub fn descends<const N: u8>(after: Option<Remaining<N>>, before: Option<Remaini
 mod tests {
     use super::*;
     use crate::{Verdict, claim};
+
+    #[test]
+    fn nominal_names_preserve_literal_bounds_at_every_decimal_width() {
+        fn exported<const N: u8>() {
+            use crate::IntoValue;
+            assert_eq!(
+                Ticks::<N>(1).value(),
+                crate::Value::Bounded { name: Ticks::<N>::NAME.as_str(), raw: 1 }
+            );
+            assert_eq!(Ticks::<N>::NAME.as_str(), format!("umpire_dsl::countdown::Ticks<{N}>"));
+            assert_eq!(
+                Remaining::<N>::NAME.as_str(),
+                format!("umpire_dsl::countdown::Remaining<{N}>")
+            );
+        }
+
+        for bound in 0..=255 {
+            let name = NominalName::new("umpire_dsl::countdown::Remaining", bound);
+            assert_eq!(
+                std::str::from_utf8(&name.bytes[..name.len]).unwrap_or_else(|e| panic!("{e}")),
+                format!("umpire_dsl::countdown::Remaining<{bound}>")
+            );
+        }
+        exported::<1>();
+        exported::<9>();
+        exported::<10>();
+        exported::<99>();
+        exported::<100>();
+        exported::<255>();
+    }
 
     #[test]
     fn finite_domains_and_membership_cover_the_boundaries() {
