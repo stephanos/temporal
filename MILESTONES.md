@@ -6,6 +6,8 @@ As of 2026-10-29.
 
 Broader milestone execution remains stopped after fn-254.12, and the prior goal has been cleared. The separately authorized countdown work fn-253.2–.4 and lighter dev profiles fn-254.18 are reviewed and complete. fn-254.19–.21 remain open under a reviewed plan; no budget admission or migration work is resumed.
 
+The latest `make model-check` attempt failed on 94 strict-Clippy errors in unchanged xtask gate-budget code. Focused checks pass; a full-gate pass remains open.
+
 The owner deferred repository migration on 2026-10-28 and resumed this backlog.
 [fn-258](.flow/specs/fn-258-complete-the-resumed-standalone-umpire.md) remains open
 with its source checkpoints, recovery evidence and unfinished validation preserved.
