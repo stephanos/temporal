@@ -32,9 +32,21 @@ Cargo reads profiles from the workspace root, and config/environment overrides c
 - [ ] The driver-byte/cache-namespace invalidation and .8's guest-reproduction obligation are recorded; prior guest freshness evidence is not claimed to cover the changed driver.
 
 ## Done summary
-TBD
+Both workspace dev profiles now use line-table debug info with checked overflow. Parsed profile comparisons show no other test/release/guest changes. Real compiler invocations and Cargo artifact profiles establish the effective settings; both xtask aliases and native parity helper profile selection are preserved.
 
+Before/after focused native builds and alias smoke checks pass. Matched warm leaf rebuilds record actual compilation/linking and executable sizes in the committed task18 proof and model/design/gate-speed.md. Timing attribution remains inconclusive under concurrent work. No end-to-end speedup or full-gate success is claimed.
+
+Final integrated verification on bc26d214f598a87fd03ceed51943632588288ad5 passes both native dev tool builds, 130 selected tests and strict Clippy for the five packages affected by the concurrent countdown task. The broad model gate was attempted and fails on the unchanged paused gate-budget tooling's 94 Clippy errors.
+
+stage: impl-review - ran; SHIP from the configured claude:claude-fable-5-1:high correctness reviewer, with no blocking findings.
+Tier: implementer - AGENTS.md gpt-6.1-sol at medium effort; actual worker model not reported.
+
+The driver hash changed, selecting a new guest-cache namespace. Prior driver-bound guest freshness proof is invalidated. Task .8 owns fresh integrated-driver/guest reproduction against committed bytes and final combined/standalone proof. No guest reproduction is claimed here. Failed exploratory alias attempts remain explicitly recorded in the proof; corrected smoke checks passed. The task-owned target and raw logs are retained; no shared cache was cleaned.
+
+The sccache, mold and residual consolidation tasks remain open. Budget admission and migration were not resumed.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 2c5350e3bc2964755e3dd81863217f46514fcf1d, aad703bc63cdacac1468e137a06ceb721b57c287
+- Tests: (model/umpire) sanitized CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn25418-dev-debug mise exec -- cargo build --locked --profile dev -p xtask --bin xtask -vv (before prepare/matched and after prepare/matched: exit 0; actual compilation/link), (model) sanitized CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn25418-dev-debug mise exec -- cargo build --locked --profile dev -p temporal-xtask --bin temporal-xtask -vv (before prepare/matched and after prepare/matched: exit 0; actual compilation/link), (model/umpire) sanitized CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn25418-dev-debug mise exec -- cargo build --locked --profile dev -p umpire-guest-driver --bin umpire-guest-driver -vv (before/after: exit 0), (model/umpire) sanitized CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn25418-dev-debug mise exec -- cargo -vv xtask retired-names '^fn25418-proof$' < /dev/null (exit 0; alias compile/run), (model) sanitized CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn25418-dev-debug mise exec -- cargo -vv xtask gate --list (exit 0; alias compile/run; no gate execution), Cargo --message-format=json focused builds both roots (exit 0; bin profile line-tables-only, overflow_checks=true, debug_assertions=true, opt_level=0; metadata only, not compilation evidence), Parsed git HEAD vs edited workspace profile tables: exactly dev.debug added in each root; all test/release/guest settings identical (passed before commit), git diff --check (exit 0), flowctl gate classify --base 93a13e47a7097bcb7ae77b824e3d6490edda0320 (exit 1 FULL: .toml executable config; focused build verification applied), FAILED OBSERVATION: (model/umpire) cargo -vv xtask gate --list (exit 1 after successful dev compilation; inherited mise inventory undefined env.UMPIRE_TEMPORAL_ROOT), FAILED CALLER ATTEMPT: (model/umpire) cargo -vv xtask retired-names (exit 2; missing regex; corrected command above passed), Integrated bc26d214: native framework and Temporal xtask dev builds exit 0, Integrated bc26d214: 114 front/DSL/macros/consumer tests plus 16 TLA values/phased/optional tests pass, Integrated bc26d214: strict Clippy for front, DSL, macros, facade consumer and TLA passes
 - PRs:
