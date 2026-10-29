@@ -1,5 +1,5 @@
 ---
-satisfies: [R4, R9, R7]
+satisfies: [R9, R7]
 ---
 # fn-254-fast-validation-gates-and-a-real-inner.20 Measure and adopt a mise-pinned Linux host mold linker
 
@@ -14,6 +14,7 @@ Close .4's unmeasured alternate-linker follow-up using mold pinned through mise.
 - Resolve a supported pinned Linux mold asset via mise in each owning tool context. Preserve no-auto-install and fail-hard conventions; do not require an unpinned system linker installation or make non-Linux hosts provision mold. Serialize shared manifests/configuration with .19 and existing pin owners.
 - Follow target-scoped Cargo linker configuration rather than global RUSTFLAGS. Prove Linux host links actually invoke the pinned mold, including any compiler-driver requirement. Existing quick/bootstrap sanitation and driver-owned encoded flags/remaps must still apply.
 - Inspect `model/umpire/dev/guest-driver/src/guest.rs:159`: wasm32-wasip1/build-std must keep its own linker path. Verify host flags do not leak to WASI, native parity helper guest-profile builds, unsupported targets or non-Linux hosts. Keep framework-only execution independent of parent config/tools.
+- Distinguish WASI target units from host build scripts/proc macros compiled during that same guest build: Cargo may apply the host target's linker to those host units. Prove they link under the pinned driver/mold environment, and record any resulting host-variant sidecar identity/cache invalidation. A clean WASI-unit command alone does not prove guest-build isolation.
 - Compare the current linker with mold on identical source/profile/features/target/toolchain and equivalent forced-relink work; report link/build wall time and host conditions, with sccache held fixed or disabled for both arms. A no-op warm Cargo run is not a linker measurement. Adopt only with measured benefit; otherwise retain the control/configuration decision and evidence without declaring a speedup.
 - Keep affected execution and isolation controls here; full current-input/standalone gate renewal and combined timings remain .8. Do not resume fn-258 or .12.
 

@@ -121,6 +121,8 @@ Owner amendment, 2026-10-25: run focused checks for each implementation and defe
 
 2026-10-25: filed from the conversation above. The owner ranks fast feedback among the most important properties.
 
+Maintainability (plan review): duplication - producer tasks retain detailed measurements; .8 summarizes them by reference rather than duplicating raw observations in its combined table. Shared evidence/tool files intentionally serialize overlapping producers; structure - none identified.
+
 Rejected options:
 - **Dropping TLC from gates:** it is the independent checker.
 - **Persistent TLC JVM server:** TLC keeps static state between runs; batching gets most of the gain without that risk.
@@ -241,6 +243,13 @@ separate targets. These tasks feed .8's combined measurement and current-input p
 The local compilation cache is not a semantic-result cache: full validation still executes
 every selected check and bypasses the quick TLC-result cache. .7 stays blocked until
 fn-246's committed whole-spec closure; .12 stays owner-paused in_progress; fn-258 stays deferred.
+Cache-enabled cold worktree/bootstrap builds disable incremental compilation; ordinary warm
+quick re-edits retain it. Task .19 measures both paths so cross-worktree hits cannot hide a
+warm-edit regression. Tasks .18–.21 share the evidence document and some compiler/tool inputs:
+execute these producers serially where their Touches overlap, regardless of dependency-ready
+status. Task .8 summarizes their detailed evidence by reference and renews guest freshness
+after changed dev-built driver bytes or admitted compiler/linker inputs; producer flag checks
+alone do not renew that proof.
 
 ## Quick commands
 

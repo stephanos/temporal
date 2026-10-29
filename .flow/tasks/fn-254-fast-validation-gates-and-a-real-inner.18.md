@@ -1,5 +1,5 @@
 ---
-satisfies: [R4, R9]
+satisfies: [R9]
 ---
 # fn-254-fast-validation-gates-and-a-real-inner.18 Use lighter dev debuginfo in both Rust workspaces
 
@@ -14,6 +14,7 @@ Complete the dev-profile portion left optional by .4. Both independent workspace
 - Set `[profile.dev] debug = "line-tables-only"` in both roots, following their existing `[profile.test]` setting. Retain checked overflow and existing test settings. Do not change release/guest optimization, stripping, LTO or panic contracts.
 - Verify actual effective compiler arguments with profile/flag overrides unset, including both dev-profile xtask aliases. The guest and native parity helpers use the custom guest profile inheriting release; preserve that distinction.
 - Record focused matched compile/relink observations and artifact sizes where available. Separate compilation from runtime; a no-op Cargo Fresh run is not compilation evidence. Use the owner's focused-check cadence; final full gates remain .8.
+- Changing dev debuginfo changes the guest-driver executable bytes and therefore its guest-cache namespace. Record that invalidation explicitly. Task .8 owns fresh-driver/fresh-namespace guest reproduction against committed guest bytes, including old/new driver hashes; this task does not renew the guest freshness proof by inspecting flags alone.
 
 ### Investigation targets
 **Required:**
@@ -28,6 +29,7 @@ Cargo reads profiles from the workspace root, and config/environment overrides c
 - [ ] Both workspace dev builds demonstrably use line-table debuginfo with checked overflow; existing test and optimized release/guest settings are preserved.
 - [ ] A focused native/xtask build in each workspace passes; guest/parity profile selection remains unchanged under the inspected effective commands.
 - [ ] Matched build observations, effective flags, host/toolchain and comparison limits are recorded without an invented speedup threshold or a full-gate pass claim.
+- [ ] The driver-byte/cache-namespace invalidation and .8's guest-reproduction obligation are recorded; prior guest freshness evidence is not claimed to cover the changed driver.
 
 ## Done summary
 TBD

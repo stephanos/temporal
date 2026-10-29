@@ -3,14 +3,13 @@ satisfies: [R2]
 ---
 # fn-253-reusable-deadline-countdowns-for-models.4 Front end: lower countdown calls in handlers, effects and claims
 
-Touches: [model/umpire/front/src/library.rs, model/umpire/front/src/body/**, model/umpire/front/src/shape.rs, model/umpire/front/tests/**]
 
 ## Description
 Admit `countdown::` calls where Models need them: assignments and conditions in `#[on]`/`#[effect]`, value-returning calls, and laws in `#[invariant]`/`#[postcondition]`. Lower them from `countdown.rs` source, with no recognition by name. The backends receive ordinary IR, so no emitter change is expected; if one is needed, record why.
 
 **Size:** M
-**Files:** `model/umpire/front/src/library.rs`, `body/{claim,expr,effects,optional,typer}.rs`, `shape.rs`, the front end's refusal goldens.
-**Touches:** [model/umpire/front/src/library.rs, model/umpire/front/src/body/**, model/umpire/front/src/shape.rs, model/umpire/front/tests/**]
+**Files:** `model/umpire/front/src/library.rs`, `body/{claim,expr,effects,optional,typer}.rs`, `shape.rs`, the front end's refusal goldens; `model/umpire/author/dsl/macros/src/lifted.rs` and `model/umpire/author/dsl/src/countdown.rs` for required native type/value plumbing.
+**Touches:** [model/umpire/front/src/library.rs, model/umpire/front/src/body/**, model/umpire/front/src/shape.rs, model/umpire/front/tests/**, model/umpire/author/dsl/macros/src/lifted.rs, model/umpire/author/dsl/src/countdown.rs, model/umpire/author/dsl/tests/**]
 
 ### Approach
 - Consume .2's chosen representation and refusal-owner list before fixing the admission changes. The files above are investigation anchors. Source-local wrappers and imported library-owned const-generic wrappers require different type admission; `body/optional.rs` currently requires nongeneric source-local `Finite` types. Reanchor the affected front-end owners from the verdict rather than assuming expression lowering alone admits the chosen types.
@@ -19,6 +18,8 @@ Admit `countdown::` calls where Models need them: assignments and conditions in 
 - Extend `body/claim.rs:165`'s claim-statement path to expression position: bind arguments, inline the library body, and preserve the configured/remaining nominal types and optional descriptors chosen in .2.
 - Unsupported forms refuse at their span: aliased or glob imports, qualified macro paths, nested Options and non-countdown arguments.
 - Add refusal golden rows for each new refusal.
+
+- Native compilation must exercise the imported types: decode canonical instantiated bounded names as typed Rust paths rather than treating them as identifiers (`author/dsl/macros/src/lifted.rs`), and implement the existing `IntoValue` contract for the shared countdown types (`author/dsl/src/countdown.rs`). Preserve ordinary IR/value representation and add focused regression coverage. These owners were identified during .4 investigation; they close its existing compile/admit contract, not a new backend feature.
 
 ### Investigation targets
 **Required:**

@@ -38,6 +38,12 @@ the final table. Record combined results on matched current source/profile/tool/
 concurrency inputs; separate each optimization's measured effect from unavailable attribution.
 Compilation-cache reuse never skips semantic checks or enables the quick TLC-result cache
 in full validation. Renew affected framework-only/tool/guest proof after these producers.
+For .18's changed dev-built guest driver, retain old/new driver hashes and reproduce guests
+with a fresh driver and fresh cache namespace against committed guest bytes. Changed driver
+bytes invalidate earlier guest-cache/freshness proof even when the optimized guest profile
+itself is unchanged. Apply the same renewal after .19/.20 alter admitted driver/linker inputs.
+The combined table summarizes and links producer evidence; it does not duplicate each
+producer's detailed build observations or claim attribution absent matched measurements.
 
 ## Done summary
 TBD
