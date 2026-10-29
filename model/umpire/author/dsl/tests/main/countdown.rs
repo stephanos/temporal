@@ -3,9 +3,9 @@
 
 use umpire_dsl::__lifted::{Interprets, Lifts, value::Value as Scalar};
 use umpire_dsl::countdown::{Remaining, Ticks};
-use umpire_dsl::{IntoValue, Machine, Value, Verdict};
+use umpire_dsl::{IntoValue, Machine, Value, Verdict, machine};
 
-#[umpire_dsl::machine]
+#[machine]
 mod clock {
     use umpire_dsl::countdown::{Remaining, Ticks};
     use umpire_dsl::{Action, State, World, check, countdown, stay};
@@ -96,4 +96,25 @@ fn imported_values_have_real_admission_native_behavior_and_decoders() {
         Remaining::<255> { ticks: 0 }.value(),
         Value::Bounded { name: "umpire_dsl::countdown::Remaining<255>", raw: 0 }
     );
+}
+
+#[test]
+fn admitted_countdown_model_binds_emits_and_validates_its_schema() {
+    let source = include_str!("countdown.rs");
+    let module = umpire_testing::bound(clock::World::new(Some(Ticks(2))), 8, None)
+        .lift_source("countdown.rs", source)
+        .unwrap_or_else(|error| panic!("{error}"));
+    let schema = module.schema().unwrap_or_else(|error| panic!("{error}"));
+    assert_eq!(schema.fields.len(), 2);
+    let umpire_dsl::__lifted::Type::Optional(remaining) = &schema.fields["left"] else {
+        panic!("remaining type")
+    };
+    assert_eq!(remaining.name, "umpire_dsl::countdown::Remaining<3>");
+    assert!(module.tla.contains("Next =="));
+    let mut bad_field = module.clone();
+    bad_field.metadata.fields[0].name = "bad::field".into();
+    assert!(bad_field.schema().is_err());
+    let mut bad_module = module;
+    bad_module.name = "bad::module".into();
+    assert!(bad_module.schema().is_err());
 }

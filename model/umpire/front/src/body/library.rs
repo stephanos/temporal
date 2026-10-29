@@ -149,7 +149,8 @@ impl Environment {
             return self.err(call, "recursive library expansion is unsupported");
         }
         let function = crate::library::function(&module, &member).ok_or_else(|| {
-            Diagnostic::at(call, format!("unknown `umpire_dsl::{module}` function `{member}`"))
+            let kind = if claim { "law" } else { "function" };
+            Diagnostic::at(call, format!("unknown `umpire_dsl::{module}` {kind} `{member}`"))
         })?;
         let name = format!("umpire_dsl::{module}::{member}");
         if claim != matches!(function.sig.output, syn::ReturnType::Default) {
@@ -159,6 +160,7 @@ impl Environment {
             );
         }
         if let RustExpr::Path(path) = call.func.as_ref()
+            && path.path.leading_colon.is_none()
             && locals.contains_key(&path.path.segments[0].ident.to_string())
         {
             return self.err(call, "library call path is shadowed by a local binding");
@@ -188,7 +190,14 @@ impl Environment {
         }
         let mut env = Env::new();
         let RustExpr::Path(path) = call.func.as_ref() else { unreachable!() };
-        let generic_index = path.path.segments.len() - if member.contains("::") { 2 } else { 1 };
+        let generic_index = path
+            .path
+            .segments
+            .len()
+            .checked_sub(if member.contains("::") { 2 } else { 1 })
+            .ok_or_else(|| {
+                Diagnostic::at(call, "unsupported imported library associated function")
+            })?;
         if path.qself.is_some()
             || path.path.segments.iter().enumerate().any(|(index, segment)| {
                 index != generic_index && !matches!(segment.arguments, syn::PathArguments::None)
@@ -212,21 +221,51 @@ impl Environment {
             let syn::PathArguments::AngleBracketed(arguments) = arguments else {
                 return self.err(call, "library call requires const arguments");
             };
-            let parameters: Vec<_> = function.sig.generics.const_params().collect();
+            let parameters: Vec<_> = function.sig.generics.params.iter().collect();
             if arguments.args.len() != parameters.len() {
-                return self.err(arguments, "library call has the wrong const argument count");
+                let kind = if parameters
+                    .iter()
+                    .all(|parameter| matches!(parameter, syn::GenericParam::Const(_)))
+                {
+                    "const"
+                } else {
+                    "generic"
+                };
+                return self
+                    .err(arguments, format!("library call has the wrong {kind} argument count"));
             }
             for (parameter, argument) in parameters.iter().zip(&arguments.args) {
-                let syn::GenericArgument::Const(expr) = argument else {
-                    return self.err(argument, "library call requires literal const arguments");
-                };
-                let bound = self.const_value(expr).ok_or_else(|| {
-                    Diagnostic::at(argument, "library call requires literal const arguments")
-                })?;
-                if !(1..=255).contains(&bound) {
-                    return self.err(argument, "library bounded const argument must be in 1..=255");
+                match (parameter, argument) {
+                    (syn::GenericParam::Const(parameter), syn::GenericArgument::Const(expr)) => {
+                        let bound = self.const_value(expr).ok_or_else(|| {
+                            Diagnostic::at(
+                                argument,
+                                "library call requires literal const arguments",
+                            )
+                        })?;
+                        if !(1..=255).contains(&bound) {
+                            return self.err(
+                                argument,
+                                "library bounded const argument must be in 1..=255",
+                            );
+                        }
+                        scope.bind_library_const(&parameter.ident, bound, argument)?;
+                    }
+                    (
+                        syn::GenericParam::Type(_),
+                        syn::GenericArgument::Type(syn::Type::Path(ty)),
+                    ) if ty.qself.is_none()
+                        && (ty.path.is_ident("Self") || ty.path.is_ident(&self.state)) => {}
+                    (syn::GenericParam::Type(_), _) => {
+                        return self.err(
+                            argument,
+                            "library call requires a state type argument naming Self or the State",
+                        );
+                    }
+                    _ => {
+                        return self.err(argument, "library call requires literal const arguments");
+                    }
                 }
-                scope.bind_library_const(&parameter.ident, bound, argument)?;
             }
         }
         if let Some(expected) = expected {

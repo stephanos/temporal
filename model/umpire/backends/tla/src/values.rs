@@ -202,7 +202,13 @@ fn nested(ty: &Type, depth: usize) -> Result<(), Refusal> {
 }
 
 fn descriptor_names(bound: &crate::Bounded) -> Result<(), Refusal> {
-    identifier(&bound.name)?;
+    identifier(&bound.name).or_else(|refusal| {
+        syn::parse_str::<syn::TypePath>(&bound.name)
+            .ok()
+            .filter(|path| path.qself.is_none())
+            .map(|_| ())
+            .ok_or(refusal)
+    })?;
     bound.field.as_deref().map_or(Ok(()), identifier)
 }
 
@@ -270,6 +276,32 @@ mod tests {
             assert!(validate_type(&Type::Bounded(signed.clone())).is_ok());
             assert!(validate_type(&Type::Optional(signed.clone())).is_err());
         }
+    }
+
+    #[test]
+    fn nominal_metadata_accepts_qualified_const_paths_without_relaxing_identifiers() {
+        for name in ["_", "type", "RustType", "library::Budget<3>", "::other::Budget<255>"] {
+            let bound = Bounded { name: name.into(), ..ticks() };
+            assert!(validate_type(&Type::Bounded(bound.clone())).is_ok(), "{name}");
+            assert!(validate_type(&Type::Optional(bound)).is_ok(), "{name}");
+        }
+        for name in ["", "not a name", "Budget<", "<T as Trait>::Budget<3>"] {
+            let bound = Bounded { name: name.into(), ..ticks() };
+            assert!(validate_type(&Type::Bounded(bound)).is_err(), "{name}");
+        }
+        let bad_field = Bounded {
+            name: "library::Budget<3>".into(),
+            field: Some("bad::field".into()),
+            ..ticks()
+        };
+        assert!(validate_type(&Type::Bounded(bad_field)).is_err());
+        assert!(
+            validate_type(&Type::Enum {
+                name: "library::Phase".into(),
+                variants: vec!["library::Phase::Open".into()]
+            })
+            .is_err()
+        );
     }
 
     #[test]
