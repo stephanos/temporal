@@ -42,9 +42,21 @@ Admit `countdown::` calls where Models need them: assignments and conditions in 
 - [ ] No backend recognizes `countdown` by name.
 
 ## Done summary
-TBD
+Models can call countdown value functions and laws in handlers, effects and claims. The front end admits the imported bounded const-generic types and lowers authored library bodies into ordinary IR through shared call frames. Native exports and generated decode preserve canonical specializations, including maximum bounds and renamed facade-only consumers. Located refusal controls cover unsupported imports, argument kinds, bounds and call forms.
 
+The TLA schema needed a generic validator correction because qualified bounded type identities are metadata rather than emitted identifiers. The validator preserves old simple names, accepts qualified nominal paths and retains malformed-name and emitted-identifier checks. A real World-bound countdown Model now emits and validates its schema. Existing closure-law type arguments, diagnostics and Rust namespace behavior are preserved.
+
+Measured final verification on integrated bc26d214f598a87fd03ceed51943632588288ad5: 114 front/DSL/macros/consumer tests and 16 focused TLA values/phased/optional tests pass, with zero failures or ignored cases. Strict Clippy passes for all five affected packages; both native dev tool builds pass. The DSL WASI build also passed during this task. Real red/green regressions cover facade decode, schema refusal, imported-associated underflow and namespace collisions. The inherited missing-Finite UI hint list was updated narrowly while retaining the Opaque rejection.
+
+stage: impl-review - ran; three-axis first round NEEDS_WORK, followed by one fix pass and a single rereview SHIP from claude:claude-fable-5-1:high. Source parsing performance and unreachable malformed-descriptor hardening remain non-blocking observations.
+Tier: implementer - AGENTS.md gpt-6.1-sol at medium effort; actual worker model not reported.
+
+`make model-check` was attempted on integrated 58bfa28c09d7fb29e6061fd1f2ca2ed4db222ee3 and failed on the unchanged xtask gate-budget library's 94 strict-Clippy errors. The xtask source remains identical to bb8e406eff. Focused checks cover the subsequent review fixes; no full-gate pass is claimed and the paused budget task was not resumed.
+
+The shared countdown fixture, full native/interpreter/TLC agreement and refuting mutants remain fn-253.5. Final combined proof remains open. This closes task .4's admission and lowering scope, not the whole R2 requirement. Migration and broader milestone execution remain stopped.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e7558fd88897824c81d7c4df8478552081e1b5cb, 58bfa28c09d7fb29e6061fd1f2ca2ed4db222ee3, a1ba00962907fd9b7103352c2b4bae43e89aaab6, d971757c92f1202ff0550ecdefc69ed9c55a292e, d4eb89de5bfcb6847abfd206d11d151dce16b95c, 315e37346ae3b423a4cefd97ec9c0c0fd2054b71, 8d2f1bd022a6fe93064c0f92576325598d786c7d, bc26d214f598a87fd03ceed51943632588288ad5
+- Tests: mise exec -- cargo test --manifest-path model/umpire/Cargo.toml -p umpire-front -p umpire-dsl -p umpire-dsl-macros -p umpire-author-consumer --locked, mise exec -- cargo test --manifest-path model/umpire/Cargo.toml -p umpire-tla --lib values::tests --locked, mise exec -- cargo test --manifest-path model/umpire/Cargo.toml -p umpire-tla --test main phased --locked, mise exec -- cargo test --manifest-path model/umpire/Cargo.toml -p umpire-tla --test main optional_ticks --locked, mise exec -- cargo clippy --manifest-path model/umpire/Cargo.toml -p umpire-front -p umpire-dsl -p umpire-dsl-macros -p umpire-author-consumer -p umpire-tla --all-targets --all-features --locked -- -D warnings, cd model/umpire && mise exec -- cargo build -p umpire-dsl --target wasm32-wasip1 --locked, env -u BASH_ENV CARGO_BUILD_JOBS=2 make model-check
 - PRs:
