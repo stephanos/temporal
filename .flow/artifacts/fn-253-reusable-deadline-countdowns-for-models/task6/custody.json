@@ -1,0 +1,8 @@
+{
+  "readme_sha256": "9ac9dc7a15de4e843a647a28246438fd62dfe9741455e1d909470a13d175d421",
+  "model_sha256": "fd1d3e1e3fd393d84037c756819b3cb221b226831c395cc85f62eeaad80eb0bf",
+  "local_targets_verified": 8,
+  "anchor_interpretation": "anchor_valid=false on targets without a fragment means not applicable, not a failed anchor. All requested fragments passed.",
+  "source_scope": "One README insertion; existing protocol provenance preserved. No Model or framework code changed. Parent protocol candidate must close/integrate before this branch.",
+  "task_scope": "Task .2 chose feature README; both carried Touches signposts now match root reanchoring."
+}
