@@ -127,9 +127,11 @@ Provisional; task .2 fixes it.
 
 2026-10-25: filed from the conversation above. Rejected: a Scala-style capability object with closure parameters (`Deadline.scala`). Its laws took `S => Boolean` bindings the Rust lifter cannot lower, and it left the mechanics duplicated. Also rejected: automatic inheritance of laws from a trait, for the visibility reasons given for `closable`.
 
-Current placement follows MILESTONES: .2–.5 may run as a disjoint lane. Activity edits in .1/.7/.9/.10 wait for committed fn-246.15 and fn-246.13 closures. Serialize the activity changes as .1 → .7 → .9 → .10, then .8 validates the final result. The unresolved compatibility-control decision still gates .10; this review does not authorize changing that control.
+Current placement follows MILESTONES: .2–.5 may run as a disjoint lane. Activity edits in .1/.7/.9/.10 wait for committed fn-246.15 and fn-246.13 closures. Serialize the activity changes as .1 → .7 → .9 → .10, then .8 validates the final result. The owner resolved the compatibility-control question on 2026-10-30 (below); .10 no longer waits on it.
 
 2026-10-25, owner: remove the cancellation-mode flag and always model cooperative cancellation (R6, task .10). The atomic World matched no live behaviour; it existed for fn-227's retained lifecycle comparison and the atomic live binding. Reopens fn-237 R3's control shape.
+
+2026-10-30, owner: retire fn-237's R3 compatibility control in .10 rather than re-expressing it as a projection. Keep the old lifecycle graph and evidence as provenance and document the limits that motivate retirement (R6's retirement branch). The independent protocol Model (fn-246.13) may share the generic `countdown` mechanics only, not the Temporal deadline layer, so one misreading cannot pass both sides of the refinement check.
 
 2026-10-25, owner question "where do we file this": the tested deadline-handler cleanup and the `state_bounds` split belong to task .1 and remain independent of the spike, before the abstraction migration. The original placement waited for fn-246.15; current activity gates additionally wait for fn-246.13's approved correction, as stated above. fn-252 (quick wins) is closed.
 
@@ -150,6 +152,5 @@ The final proof in .8 consumes .9's recorded outcome and .10's approved implemen
 
 ## Parked unknowns
 
-- May the independent protocol Model (fn-246.13) use the Temporal deadline layer, or only the generic countdown?
 - Library-owned countdown types vs a trait over each Model's `Finite` wrappers. Owner, 2026-10-25, asked whether `Ticks` should be a shared Umpire concern. Proposed answer: the abstract tick and the configured/remaining pair are system-agnostic and belong with `countdown` in `umpire-dsl`; the bound stays Model-selected (it sizes the state space), ideally one const parameter shared by both types. .2 decides.
 - Whether a registered project library (shared `model/temporal` source read by the front end) is worth its cost, or the authoring-pattern form suffices.
