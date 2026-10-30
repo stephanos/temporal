@@ -1,0 +1,17 @@
+{
+  "name": "tdbg-controls",
+  "command": "mise exec -- go test -count=1 -tags test_dep ./tools/tdbg -run \"^TestDLQCommand_V2$\"",
+  "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+  "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "start": "2026-10-30T03:47:46.585991+00:00",
+  "end": "2026-10-30T03:48:22.254565+00:00",
+  "status": 0,
+  "log_sha256": "8faa850df6cc47a87091d5beb6ae5817f529734476898742a6af331687a760ee",
+  "environment": {
+    "GOFLAGS": "-p=2",
+    "GOCACHE": null,
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+    "CARGO_BUILD_JOBS": "2",
+    "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+  }
+}

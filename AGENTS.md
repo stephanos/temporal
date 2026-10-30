@@ -55,7 +55,7 @@ Before starting the implementation of any request, you MUST REVIEW the following
 - `/service/matching`: matching service implementation
 - `/service/worker`: worker service implementation
 - `/tools/canary`: runs one pinned Case against a deployment
-- `/tools/umpire`: Go tooling that reads the model's IR: reader, lowering to Cases, conformance, export, exploration and their commands
+- `/tools/umpire`: the `cmd/umpire` Runner command and `temporaldriver`, which composes the live Temporal Driver
 
 ## Important Commands:
 

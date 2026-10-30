@@ -36,20 +36,10 @@ The removal exposes `lint-code-fast` returning a failure when its final changed 
 
 
 ## Done summary
-Blocked:
-Source/proof checkpoint d9a58c62ddbe931083bebb368a24065480ec0e85 is preserved on work/fn2561-retirement in .worktrees/fn2561-retirement. It is not yet reviewed, integrated or complete.
+Reviewed and removed six Scala-era Go reader/interpreter/checker/realization/export/internal trees, Quint helper/pin and backend hooks. CI retains current tools packages; documentation separates current and historical ownership. Pointer-preserving DLQ iteration repairs required vet; deleted-directory lint wrapper retains actual linter failures. Four independent dependency modes exclude removed trees. Current production build, both broad vet modes, retained Umpire/Testpilot/canary and DLQ tests, canary build/harness, actual fast lint and failure control pass. Current guest8b9ea freshness passes. Full actual make umpire-check-live-tests passes all prerequisites and1251umbrella identities after explicit source-attributed gap golden renewal (81/81authored Confirmed,0mismatch). Snapshot header normalized without payload change; old/new/failure/success evidence and3SHIPreviews retained. Orphan duration package preserved and ownership accurately records no current importer; Scala Make/pin/archive cleanup remains task2.
 
-The required live gate failed twice at raw/SDK judgment-path equality (seeds21/3). Slice failure prevents gaps/umbrella execution. A whole-prefix consumer diagnostic and exact regression follow-up are recorded in existing fn-246.9; no Model refutation was reported, and no assertion is waived. Resume task1 after that consumer obligation is resolved and the actual full live gate passes. The final current guest/policy producer renewal from fn-254.13 is also required before full canary tests can pass. Neither a source/import identity argument nor a dry run counts as a green gate.
-
-Build, broad vet in both modes, retained tests, DLQ controls, canary harness/build and positive/negative lint controls passed at the checkpoint. Keep private Go cache idle/protected for fn-254.13's coordinated policy/preflight checks; retain unfinished branch/checkout and all committed proof. Continue fn-254 now, then the existing fn-246 order; this is a task prerequisite, not a block of the milestone goal.
-
-Blocked:
-Source/proof checkpoint d9a58c62ddbe931083bebb368a24065480ec0e85 is preserved on work/fn2561-retirement in .worktrees/fn2561-retirement. It is not yet reviewed, integrated or complete.
-
-The required live gate failed twice at raw/SDK judgment-path equality (seeds21/3). Slice failure prevents gaps/umbrella execution. A whole-prefix consumer diagnostic and exact regression follow-up are recorded in existing fn-246.9; no Model refutation was reported, and no assertion is waived. Resume task1 after that consumer obligation is resolved and the actual full live gate passes. fn-254.13 is now done and its closure is integrated into umpire, satisfying that former prerequisite at its proven source identity. Changes from fn-246 must still receive current guest/policy freshness proof where affected; this does not replace the outstanding complete live gate. Neither a source/import identity argument nor a dry run counts as a green gate.
-
-Build, broad vet in both modes, retained tests, DLQ controls, canary harness/build and positive/negative lint controls passed at the checkpoint. Keep private Go cache idle/protected for fn-254.13's coordinated policy/preflight checks; retain unfinished branch/checkout and all committed proof. Continue fn-254 now, then the existing fn-246 order; this is a task prerequisite, not a block of the milestone goal.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d9a58c62dd, 1888b3f702, 442e068641
+- Tests: Four separate readonly production/test_dep/integration/canarydependencyinventories:pass,no removedprefix, go build ./...; broad vet production+test_dep; retained Umpire/Testpilot/canarytests; DLQV2controls:pass, make canary-build,canaryharness,actualfastlint:pass; false-lintercontrol exits2, Current native driver Temporal guest--check:pass,unchanged8b9ea, ExplicitRustgapcandidate importer+no-updateverification:pass; exact1178removals2additions4strengthenedpredictions accounted against reviewedproducerinventory, Actual make umpire-check-live-tests:exit0,slice+gaps+umbrella1251pass,emptyfailures; exactsourceequivalence andloghash verified, Postreviewdocsandheader-onlycorrections:source-scopediffcheckpass,parsedpayloadbyte-identical
 - PRs:

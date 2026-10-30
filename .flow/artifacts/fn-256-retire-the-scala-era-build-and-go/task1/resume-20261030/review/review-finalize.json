@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-256-retire-the-scala-era-build-and-go.1",
+  "verdict": "SHIP",
+  "session_id": "14092bf8-d865-4bb0-b3a8-a1815ed0d87f",
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "effort": "high",
+  "spec": "claude:claude-fable-5-1:high",
+  "standalone": false,
+  "review": "All three source reviewers returned SHIP. Duplicate duration ownership findings collapsed, orphan package retained for a future scope. Actual complete live gate subsequently returned exit0, with1251passing umbrella identities; final custody will bind exact logs.\n\n## Finding 1\n\n- **Severity**: P3\n- **Title**: Correct retained duration ownership\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: `.plans/UMPIRE_MODULES.md:137`\n- **R-IDs**: []\n- **Problem**: Retained duration package row names deleted realization importer; the now-orphan package still builds.\n- **Suggestion**: Correct row to reflect no current in-repo importer; defer package removal beyond this task.\n\n## Finding 2\n\n- **Severity**: P3\n- **Title**: Match documented CI selector\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: `tools/umpire/README.md:44`\n- **R-IDs**: []\n- **Problem**: Wildcard documented selector and explicit CI selector resolve identically today but can diverge later.\n- **Suggestion**: Mirror the two explicit retained tools packages.\n\n## Finding 3\n\n- **Severity**: P3\n- **Title**: Normalize accepted snapshot header\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `model/temporal/feature/activity/expected/gaps.txt.snap:3`\n- **R-IDs**: []\n- **Problem**: Accepted snapshot retains pending-candidate assertion_line metadata; readers tolerate it but insta acceptance strips it.\n- **Suggestion**: Remove assertion_line only and verify identical parsed payload.\n\nUnaddressed R-IDs: []\n\nClassification counts: 3 introduced,0 pre_existing.\n\n<verdict>SHIP</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "claude-fable-5-1",
+      "session_id": "14092bf8-d865-4bb0-b3a8-a1815ed0d87f",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "claude-fable-5-1",
+      "session_id": "a7e73d93-dca8-4243-9ada-f94bfc3c6927",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "claude-fable-5-1",
+      "session_id": "afe00ce8-569d-4aca-b36a-7c8c28d40595",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": null,
+  "introduced_count": 3,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}

@@ -1,0 +1,7 @@
+{
+  "verified_manifest_members": 80,
+  "verified_archive_sha256": "7ff5e3c885783f8fd7cb1d25de1eefd1b9b486b715cc95c4eeeb58519e728ee0",
+  "all_required_gates_status_zero": true,
+  "full_live_passes": 1251,
+  "final_metadata_only_header_and_docs_hashes_match": true
+}

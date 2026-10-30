@@ -1,0 +1,17 @@
+{
+  "name": "guest-check",
+  "command": "cd model && tool=$(./scripts/xtask.sh) && \"$tool\" guest umpire-temporal-guest \"$PWD/temporal/hosts/go/umpire_temporal_guest.wasm\" --check",
+  "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+  "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "start": "2026-10-30T03:46:29.346384+00:00",
+  "end": "2026-10-30T03:46:29.484401+00:00",
+  "status": 126,
+  "log_sha256": "26c2be28a391a14d804c8cbde8020f2f7dcb49ddfa49534686e715b2b2b3b6da",
+  "environment": {
+    "GOFLAGS": "-p=2",
+    "GOCACHE": null,
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+    "CARGO_BUILD_JOBS": "2",
+    "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+  }
+}
