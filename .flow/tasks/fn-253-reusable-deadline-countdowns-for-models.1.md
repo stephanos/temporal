@@ -29,7 +29,7 @@ Quick readability wins that need no new framework: the lifter already admits Opt
 - [ ] `state_bounds` replaced by three named invariants; name lookups updated.
 - [ ] Equivalence pin holds; every mutant still discriminates.
 - [ ] `mise exec -- cargo test -p umpire-temporal-tests --test fixtures` passes, also with `UMPIRE_BACKENDS=require`.
-- [ ] `tick_priority` uses Option equality throughout; progress preconditions are named helpers (or a recorded refusal).
+- [ ] `tick_priority` retains the corrected baseline’s `<= 1` checks, including forged-zero coverage; there were no `== 1` pairs to rewrite. Progress preconditions are named helpers (or a recorded refusal).
 - [ ] Each removed Tick/Heartbeat check has a recorded remaining owner with the required forged-zero/boundary and mutant coverage; any checks with distinct coverage remain. Re-pointed mutant expectations still discriminate under `UMPIRE_BACKENDS=require`.
 
 ## Done summary

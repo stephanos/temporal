@@ -1,0 +1,16 @@
+{
+  "recorded_at_utc": "2026-10-30 03:55:11 UTC",
+  "supersedes_for_final_evidence": ".flow/artifacts/fn-253-reusable-deadline-countdowns-for-models/task1/review-preflight-20261030/equivalence-and-owners.json",
+  "historical_artifact_sha256": "07891dc6726d439a2195230b8e2e3c1fe37da3b27f32a76f787e09f052e93a96",
+  "preserve_historical_bytes": true,
+  "correction": {
+    "path": "model/temporal/feature/activity/expected/tlc.txt.snap",
+    "historical_preflight_hash": "1900ad9ac69d73b56454900c44d0b7b86c4cb933332acafc4d36657e8f42c477",
+    "final_reviewed_and_fixture_verified_hash": "88aa6e00ca9b737eadaa18530b7d4a71ce44edbd06be8620757cfcf71792426d",
+    "cause": "Preflight inventory was captured before the mechanical three-invariant TLC claim-list update. It is historical, not the authoritative final snapshot manifest.",
+    "actual_fixture_result": "Full required run: test fixtures passed with final TLC claim list and all frozen source/expected hashes unchanged.",
+    "authoritative_final_inventory": "equivalence-and-owners.json alongside frozen-source-expected.json in final worker evidence",
+    "unchanged_semantics": "States and rows remain exactly corrected baseline bytes; no Tick/Heartbeat claims removed or narrowed."
+  },
+  "required_result_policy": "Honest full required result60pass2fail2inheritedignore; each stale-anchor failure must be covered by its entire corrected targeted required test. Final union record is authoritative; no claim of a green single full invocation."
+}

@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-253-reusable-deadline-countdowns-for-models.1",
+  "verdict": "SHIP",
+  "session_id": "c8d144d8-07b0-401b-a2f9-aff56fe45f0e",
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "effort": "high",
+  "spec": "claude:claude-fable-5-1:high",
+  "standalone": false,
+  "review": "All three reviewers returned SHIP; duplicate hash finding collapsed at highest reported severityP2. Source semantics,10clause preservation, typed Option encoding and unchanged state/edge pins verified. Full required coverage remains a separate closure gate.\n\n## Finding 1\n\n- **Severity**: P2\n- **Title**: Correct the TLC snapshot equivalence record\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `.flow/artifacts/fn-253-reusable-deadline-countdowns-for-models/task1/review-preflight-20261030/equivalence-and-owners.json:378`\n- **R-IDs**: []\n- **Problem**: Preflight hashes_after retains old TLC snapshot hash1900ad while final frozen record and actual source have88aa6e. States/rows pins agree.\n- **Suggestion**: Record capture timing and final authoritative hashes with provenance.\n\n## Finding 2\n\n- **Severity**: P3\n- **Title**: Update current helper names in design note\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `model/design/deadline-countdowns.md:98`\n- **R-IDs**: []\n- **Problem**: Design note still names expire_attempt as current and time_out effects as future.\n- **Suggestion**: Update names to current source owners.\n\n## Finding 3\n\n- **Severity**: P3\n- **Title**: Align tick priority acceptance with corrected baseline\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `model/temporal/feature/activity/model.rs:596`\n- **R-IDs**: []\n- **Problem**: Baseline tick_priority has <=1, not ==1; correct forged-zero retention means literal Option-equality acceptance is inapplicable.\n- **Suggestion**: Record intentional <=1 retention in task acceptance and done summary.\n\nUnaddressed R-IDs: []\n\nClassification counts: 3 introduced,0 pre_existing.\n\n<verdict>SHIP</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "claude-fable-5-1",
+      "session_id": "c8d144d8-07b0-401b-a2f9-aff56fe45f0e",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "claude-fable-5-1",
+      "session_id": "2998f011-da02-4d91-a773-e21e30df9ab1",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "claude-fable-5-1",
+      "session_id": "3374b5a6-bd9e-4b9e-8c42-3f1b6c989baf",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": null,
+  "introduced_count": 3,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}
