@@ -463,7 +463,7 @@ fn forged_countdowns_refute_bounds_and_armed_zero_expires() -> umpire_testing::T
     let bounds = world
         .invariants()
         .into_iter()
-        .find(|claim| claim.name == "state_bounds")
+        .find(|claim| claim.name == "countdowns_within_budget")
         .ok_or("missing bounds invariant")?;
     let start = world.starts()[0].clone();
     let started = world.step(&start, Worker::Poll(1).into())[0].2.clone();
@@ -528,8 +528,8 @@ fn forged_countdowns_refute_bounds_and_armed_zero_expires() -> umpire_testing::T
 
 fn global_mutants(healthy: &str) -> Vec<(&'static str, String, &'static str)> {
     let reset = "Worker::Heartbeat if self.phase == Phase::Started => {";
-    let expiry = "if self.schedule_to_close_remaining.is_some() && self.schedule_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks == 0 {";
-    let tick = "Deadline::Tick if !self.closed() && (";
+    let expiry = "if self.schedule_to_close_remaining == Some(Remaining { ticks: 0 }) {";
+    let tick = "Deadline::Tick if !self.closed() && self.armed()";
     vec![
         (
             "reset",
@@ -549,7 +549,11 @@ fn global_mutants(healthy: &str) -> Vec<(&'static str, String, &'static str)> {
         ),
         (
             "missing_tick",
-            replace_code(healthy, tick, "Deadline::Tick if false && !self.closed() && ("),
+            replace_code(
+                healthy,
+                tick,
+                "Deadline::Tick if false && !self.closed() && self.armed()",
+            ),
             "",
         ),
     ]
@@ -620,7 +624,9 @@ fn actual_tlc_global_tick_law_bundle_on_selected_worlds() -> umpire_testing::Tes
     for (maximum, ticks) in [(1, 1), (2, 2), (3, 3)] {
         let world = configured(maximum, true, [Some(3), Some(3), Some(ticks), Some(3)]);
         let properties = [
-            "Invariant_state_bounds",
+            "Invariant_policy_in_range",
+            "Invariant_attempt_within_policy",
+            "Invariant_countdowns_within_budget",
             "Invariant_deadline_arming",
             "Post_global_never_replenished",
             "Post_tick_descends_and_expires",
@@ -662,18 +668,18 @@ fn source_only_pending_cancellation_outcome_controls_keep_independent_laws()
             "pending_retryable_failure_fails",
         ),
         (
-            "fn expire_attempt(",
+            "fn time_out_attempt(",
             "fn clear_terminal(",
-            "if self.cancel_requested {\n                self.phase = Phase::TimedOut;",
-            "if self.cancel_requested {\n                self.phase = Phase::Canceled;",
+            "if self.cancel_requested {\n                self.time_out();",
+            "if self.cancel_requested {\n                self.phase = Phase::Canceled; self.clear_terminal();",
             [None, Some(1), None, None],
             "tick_priority",
         ),
         (
-            "fn expire_attempt(",
+            "fn time_out_attempt(",
             "fn clear_terminal(",
-            "if self.cancel_requested {\n                self.phase = Phase::TimedOut;",
-            "if self.cancel_requested {\n                self.phase = Phase::Canceled;",
+            "if self.cancel_requested {\n                self.time_out();",
+            "if self.cancel_requested {\n                self.phase = Phase::Canceled; self.clear_terminal();",
             [None, None, None, Some(1)],
             "tick_priority",
         ),
@@ -705,7 +711,7 @@ fn source_only_pending_cancellation_outcome_controls_keep_independent_laws()
 fn timeout_retry_mutant(healthy: &str, name: &str) -> String {
     use umpire_testing::replace_in;
 
-    let local = "fn expire_attempt(";
+    let local = "fn time_out_attempt(";
     let retry = "fn retry(";
     let end = "fn clear_terminal(";
     match name {
@@ -743,7 +749,7 @@ fn timeout_retry_mutant(healthy: &str, name: &str) -> String {
         }
         _ => replace_code(
             healthy,
-            "if self.schedule_to_close_remaining.is_some() && self.schedule_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks == 0 {",
+            "if self.schedule_to_close_remaining == Some(Remaining { ticks: 0 }) {",
             "if false {",
         ),
     }
