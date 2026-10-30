@@ -86,8 +86,7 @@ fn countdowns_source_mutants_refute_and_replay() -> umpire_testing::TestResult {
             "Invariant_within",
         ),
     ] {
-        assert_eq!(source.matches(from).count(), 1, "{name}");
-        let mutant = source.replace(from, to);
+        let mutant = umpire_testing::replace_once(&source, from, to);
         let (tree, _, _) = umpire_front::read(&syn::parse_file(&mutant)?, &[])
             .map_err(|error| format!("{error:?}"))?;
         let world = selected(first, None);
