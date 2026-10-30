@@ -3,6 +3,7 @@ use super::activity::protocol::{
     World,
 };
 use umpire_dsl::{Machine, Outcome, Rejection};
+use umpire_temporal::activity_protocol::parameters;
 
 type TestResult = umpire_testing::TestResult;
 const BUDGET: usize = 4096;
@@ -180,9 +181,6 @@ fn erased_budgets_and_present_zero_are_observable_to_full_state_laws() -> TestRe
     Ok(())
 }
 
-#[allow(unreachable_pub)]
-#[path = "parameters.rs"]
-mod parameters;
 #[path = "parameters_tests.rs"]
 mod parameters_tests;
 

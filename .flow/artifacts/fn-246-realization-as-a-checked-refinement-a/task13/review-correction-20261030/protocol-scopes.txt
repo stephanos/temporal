@@ -1,0 +1,252 @@
+Parameters { maximum_attempts: 1, schedule_to_start: Some(1), start_to_close: Some(1), schedule_to_close: None, heartbeat_timeout: None, asynchronous_cancel: false }; timeout-scope=raw-realizable; cancellation-scope=atomic-compatibility; bound=4096
+TLC 1.7.4; complete source-lifted exploration
+states: 8; native: 8; agreement: yes
+claim attempt_changes_only_by_retry: Verified; native: Verified; agreement: yes
+claim cancellation_request_preserves_running_timers: Verified; native: Verified; agreement: yes
+claim every_live_budget_descends: Verified; native: Verified; agreement: yes
+claim exact_budget_arming: Verified; native: Verified; agreement: yes
+claim execution_expiry_dominates: Verified; native: Verified; agreement: yes
+claim heartbeat_resets_only_its_interval: Verified; native: Verified; agreement: yes
+claim local_expiry_priority_retains_its_cause: Verified; native: Verified; agreement: yes
+claim outcome_and_pending_are_distinct: Verified; native: Verified; agreement: yes
+claim pending_expiry_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim pending_failure_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim positive_bounded_budgets: Verified; native: Verified; agreement: yes
+claim rejection_preserves_full_state: Verified; native: Verified; agreement: yes
+claim retry_rearms_queue_preserves_execution: Verified; native: Verified; agreement: yes
+claim selected_attempts: Verified; native: Verified; agreement: yes
+claim spanning_budget_never_increases: Verified; native: Verified; agreement: yes
+claim terminal_is_final: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+
+Parameters { maximum_attempts: 3, schedule_to_start: Some(1), start_to_close: Some(1), schedule_to_close: None, heartbeat_timeout: None, asynchronous_cancel: false }; timeout-scope=raw-realizable; cancellation-scope=atomic-compatibility; bound=4096
+TLC 1.7.4; complete source-lifted exploration
+states: 28; native: 28; agreement: yes
+claim attempt_changes_only_by_retry: Verified; native: Verified; agreement: yes
+claim cancellation_request_preserves_running_timers: Verified; native: Verified; agreement: yes
+claim every_live_budget_descends: Verified; native: Verified; agreement: yes
+claim exact_budget_arming: Verified; native: Verified; agreement: yes
+claim execution_expiry_dominates: Verified; native: Verified; agreement: yes
+claim heartbeat_resets_only_its_interval: Verified; native: Verified; agreement: yes
+claim local_expiry_priority_retains_its_cause: Verified; native: Verified; agreement: yes
+claim outcome_and_pending_are_distinct: Verified; native: Verified; agreement: yes
+claim pending_expiry_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim pending_failure_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim positive_bounded_budgets: Verified; native: Verified; agreement: yes
+claim rejection_preserves_full_state: Verified; native: Verified; agreement: yes
+claim retry_rearms_queue_preserves_execution: Verified; native: Verified; agreement: yes
+claim selected_attempts: Verified; native: Verified; agreement: yes
+claim spanning_budget_never_increases: Verified; native: Verified; agreement: yes
+claim terminal_is_final: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+
+Parameters { maximum_attempts: 3, schedule_to_start: None, start_to_close: None, schedule_to_close: None, heartbeat_timeout: None, asynchronous_cancel: true }; timeout-scope=abstract-checker; cancellation-scope=cooperative; bound=4096
+TLC 1.7.4; complete source-lifted exploration
+states: 21; native: 21; agreement: yes
+claim attempt_changes_only_by_retry: Verified; native: Verified; agreement: yes
+claim cancellation_request_preserves_running_timers: Verified; native: Verified; agreement: yes
+claim every_live_budget_descends: Verified; native: Verified; agreement: yes
+claim exact_budget_arming: Verified; native: Verified; agreement: yes
+claim execution_expiry_dominates: Verified; native: Verified; agreement: yes
+claim heartbeat_resets_only_its_interval: Verified; native: Verified; agreement: yes
+claim local_expiry_priority_retains_its_cause: Verified; native: Verified; agreement: yes
+claim outcome_and_pending_are_distinct: Verified; native: Verified; agreement: yes
+claim pending_expiry_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim pending_failure_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim positive_bounded_budgets: Verified; native: Verified; agreement: yes
+claim rejection_preserves_full_state: Verified; native: Verified; agreement: yes
+claim retry_rearms_queue_preserves_execution: Verified; native: Verified; agreement: yes
+claim selected_attempts: Verified; native: Verified; agreement: yes
+claim spanning_budget_never_increases: Verified; native: Verified; agreement: yes
+claim terminal_is_final: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+
+Parameters { maximum_attempts: 2, schedule_to_start: Some(1), start_to_close: Some(1), schedule_to_close: None, heartbeat_timeout: None, asynchronous_cancel: true }; timeout-scope=raw-realizable; cancellation-scope=cooperative; bound=4096
+TLC 1.7.4; complete source-lifted exploration
+states: 23; native: 23; agreement: yes
+claim attempt_changes_only_by_retry: Verified; native: Verified; agreement: yes
+claim cancellation_request_preserves_running_timers: Verified; native: Verified; agreement: yes
+claim every_live_budget_descends: Verified; native: Verified; agreement: yes
+claim exact_budget_arming: Verified; native: Verified; agreement: yes
+claim execution_expiry_dominates: Verified; native: Verified; agreement: yes
+claim heartbeat_resets_only_its_interval: Verified; native: Verified; agreement: yes
+claim local_expiry_priority_retains_its_cause: Verified; native: Verified; agreement: yes
+claim outcome_and_pending_are_distinct: Verified; native: Verified; agreement: yes
+claim pending_expiry_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim pending_failure_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim positive_bounded_budgets: Verified; native: Verified; agreement: yes
+claim rejection_preserves_full_state: Verified; native: Verified; agreement: yes
+claim retry_rearms_queue_preserves_execution: Verified; native: Verified; agreement: yes
+claim selected_attempts: Verified; native: Verified; agreement: yes
+claim spanning_budget_never_increases: Verified; native: Verified; agreement: yes
+claim terminal_is_final: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+
+Parameters { maximum_attempts: 1, schedule_to_start: None, start_to_close: None, schedule_to_close: Some(3), heartbeat_timeout: None, asynchronous_cancel: true }; timeout-scope=abstract-checker; cancellation-scope=cooperative; bound=4096
+TLC 1.7.4; complete source-lifted exploration
+states: 14; native: 14; agreement: yes
+claim attempt_changes_only_by_retry: Verified; native: Verified; agreement: yes
+claim cancellation_request_preserves_running_timers: Verified; native: Verified; agreement: yes
+claim every_live_budget_descends: Verified; native: Verified; agreement: yes
+claim exact_budget_arming: Verified; native: Verified; agreement: yes
+claim execution_expiry_dominates: Verified; native: Verified; agreement: yes
+claim heartbeat_resets_only_its_interval: Verified; native: Verified; agreement: yes
+claim local_expiry_priority_retains_its_cause: Verified; native: Verified; agreement: yes
+claim outcome_and_pending_are_distinct: Verified; native: Verified; agreement: yes
+claim pending_expiry_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim pending_failure_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim positive_bounded_budgets: Verified; native: Verified; agreement: yes
+claim rejection_preserves_full_state: Verified; native: Verified; agreement: yes
+claim retry_rearms_queue_preserves_execution: Verified; native: Verified; agreement: yes
+claim selected_attempts: Verified; native: Verified; agreement: yes
+claim spanning_budget_never_increases: Verified; native: Verified; agreement: yes
+claim terminal_is_final: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+
+Parameters { maximum_attempts: 3, schedule_to_start: None, start_to_close: None, schedule_to_close: None, heartbeat_timeout: Some(2), asynchronous_cancel: true }; timeout-scope=abstract-checker; cancellation-scope=cooperative; bound=4096
+TLC 1.7.4; complete source-lifted exploration
+states: 44; native: 44; agreement: yes
+claim attempt_changes_only_by_retry: Verified; native: Verified; agreement: yes
+claim cancellation_request_preserves_running_timers: Verified; native: Verified; agreement: yes
+claim every_live_budget_descends: Verified; native: Verified; agreement: yes
+claim exact_budget_arming: Verified; native: Verified; agreement: yes
+claim execution_expiry_dominates: Verified; native: Verified; agreement: yes
+claim heartbeat_resets_only_its_interval: Verified; native: Verified; agreement: yes
+claim local_expiry_priority_retains_its_cause: Verified; native: Verified; agreement: yes
+claim outcome_and_pending_are_distinct: Verified; native: Verified; agreement: yes
+claim pending_expiry_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim pending_failure_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim positive_bounded_budgets: Verified; native: Verified; agreement: yes
+claim rejection_preserves_full_state: Verified; native: Verified; agreement: yes
+claim retry_rearms_queue_preserves_execution: Verified; native: Verified; agreement: yes
+claim selected_attempts: Verified; native: Verified; agreement: yes
+claim spanning_budget_never_increases: Verified; native: Verified; agreement: yes
+claim terminal_is_final: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+
+Parameters { maximum_attempts: 3, schedule_to_start: Some(3), start_to_close: Some(3), schedule_to_close: Some(3), heartbeat_timeout: Some(3), asynchronous_cancel: true }; timeout-scope=raw-realizable; cancellation-scope=cooperative; bound=4096
+TLC 1.7.4; complete source-lifted exploration
+states: 90; native: 90; agreement: yes
+claim attempt_changes_only_by_retry: Verified; native: Verified; agreement: yes
+claim cancellation_request_preserves_running_timers: Verified; native: Verified; agreement: yes
+claim every_live_budget_descends: Verified; native: Verified; agreement: yes
+claim exact_budget_arming: Verified; native: Verified; agreement: yes
+claim execution_expiry_dominates: Verified; native: Verified; agreement: yes
+claim heartbeat_resets_only_its_interval: Verified; native: Verified; agreement: yes
+claim local_expiry_priority_retains_its_cause: Verified; native: Verified; agreement: yes
+claim outcome_and_pending_are_distinct: Verified; native: Verified; agreement: yes
+claim pending_expiry_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim pending_failure_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim positive_bounded_budgets: Verified; native: Verified; agreement: yes
+claim rejection_preserves_full_state: Verified; native: Verified; agreement: yes
+claim retry_rearms_queue_preserves_execution: Verified; native: Verified; agreement: yes
+claim selected_attempts: Verified; native: Verified; agreement: yes
+claim spanning_budget_never_increases: Verified; native: Verified; agreement: yes
+claim terminal_is_final: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+
+Parameters { maximum_attempts: 2, schedule_to_start: Some(1), start_to_close: Some(1), schedule_to_close: Some(1), heartbeat_timeout: Some(1), asynchronous_cancel: true }; timeout-scope=raw-realizable; cancellation-scope=cooperative; bound=4096
+TLC 1.7.4; complete source-lifted exploration
+states: 16; native: 16; agreement: yes
+claim attempt_changes_only_by_retry: Verified; native: Verified; agreement: yes
+claim cancellation_request_preserves_running_timers: Verified; native: Verified; agreement: yes
+claim every_live_budget_descends: Verified; native: Verified; agreement: yes
+claim exact_budget_arming: Verified; native: Verified; agreement: yes
+claim execution_expiry_dominates: Verified; native: Verified; agreement: yes
+claim heartbeat_resets_only_its_interval: Verified; native: Verified; agreement: yes
+claim local_expiry_priority_retains_its_cause: Verified; native: Verified; agreement: yes
+claim outcome_and_pending_are_distinct: Verified; native: Verified; agreement: yes
+claim pending_expiry_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim pending_failure_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim positive_bounded_budgets: Verified; native: Verified; agreement: yes
+claim rejection_preserves_full_state: Verified; native: Verified; agreement: yes
+claim retry_rearms_queue_preserves_execution: Verified; native: Verified; agreement: yes
+claim selected_attempts: Verified; native: Verified; agreement: yes
+claim spanning_budget_never_increases: Verified; native: Verified; agreement: yes
+claim terminal_is_final: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+
+Parameters { maximum_attempts: 2, schedule_to_start: None, start_to_close: Some(2), schedule_to_close: None, heartbeat_timeout: Some(2), asynchronous_cancel: true }; timeout-scope=raw-realizable; cancellation-scope=cooperative; bound=4096
+TLC 1.7.4; complete source-lifted exploration
+states: 33; native: 33; agreement: yes
+claim attempt_changes_only_by_retry: Verified; native: Verified; agreement: yes
+claim cancellation_request_preserves_running_timers: Verified; native: Verified; agreement: yes
+claim every_live_budget_descends: Verified; native: Verified; agreement: yes
+claim exact_budget_arming: Verified; native: Verified; agreement: yes
+claim execution_expiry_dominates: Verified; native: Verified; agreement: yes
+claim heartbeat_resets_only_its_interval: Verified; native: Verified; agreement: yes
+claim local_expiry_priority_retains_its_cause: Verified; native: Verified; agreement: yes
+claim outcome_and_pending_are_distinct: Verified; native: Verified; agreement: yes
+claim pending_expiry_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim pending_failure_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim positive_bounded_budgets: Verified; native: Verified; agreement: yes
+claim rejection_preserves_full_state: Verified; native: Verified; agreement: yes
+claim retry_rearms_queue_preserves_execution: Verified; native: Verified; agreement: yes
+claim selected_attempts: Verified; native: Verified; agreement: yes
+claim spanning_budget_never_increases: Verified; native: Verified; agreement: yes
+claim terminal_is_final: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+
+Parameters { maximum_attempts: 3, schedule_to_start: Some(3), start_to_close: Some(1), schedule_to_close: Some(3), heartbeat_timeout: None, asynchronous_cancel: true }; timeout-scope=raw-realizable; cancellation-scope=cooperative; bound=4096
+TLC 1.7.4; complete source-lifted exploration
+states: 69; native: 69; agreement: yes
+claim attempt_changes_only_by_retry: Verified; native: Verified; agreement: yes
+claim cancellation_request_preserves_running_timers: Verified; native: Verified; agreement: yes
+claim every_live_budget_descends: Verified; native: Verified; agreement: yes
+claim exact_budget_arming: Verified; native: Verified; agreement: yes
+claim execution_expiry_dominates: Verified; native: Verified; agreement: yes
+claim heartbeat_resets_only_its_interval: Verified; native: Verified; agreement: yes
+claim local_expiry_priority_retains_its_cause: Verified; native: Verified; agreement: yes
+claim outcome_and_pending_are_distinct: Verified; native: Verified; agreement: yes
+claim pending_expiry_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim pending_failure_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim positive_bounded_budgets: Verified; native: Verified; agreement: yes
+claim rejection_preserves_full_state: Verified; native: Verified; agreement: yes
+claim retry_rearms_queue_preserves_execution: Verified; native: Verified; agreement: yes
+claim selected_attempts: Verified; native: Verified; agreement: yes
+claim spanning_budget_never_increases: Verified; native: Verified; agreement: yes
+claim terminal_is_final: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+
+Parameters { maximum_attempts: 2, schedule_to_start: None, start_to_close: Some(3), schedule_to_close: Some(3), heartbeat_timeout: Some(2), asynchronous_cancel: true }; timeout-scope=abstract-checker; cancellation-scope=cooperative; bound=4096
+TLC 1.7.4; complete source-lifted exploration
+states: 59; native: 59; agreement: yes
+claim attempt_changes_only_by_retry: Verified; native: Verified; agreement: yes
+claim cancellation_request_preserves_running_timers: Verified; native: Verified; agreement: yes
+claim every_live_budget_descends: Verified; native: Verified; agreement: yes
+claim exact_budget_arming: Verified; native: Verified; agreement: yes
+claim execution_expiry_dominates: Verified; native: Verified; agreement: yes
+claim heartbeat_resets_only_its_interval: Verified; native: Verified; agreement: yes
+claim local_expiry_priority_retains_its_cause: Verified; native: Verified; agreement: yes
+claim outcome_and_pending_are_distinct: Verified; native: Verified; agreement: yes
+claim pending_expiry_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim pending_failure_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim positive_bounded_budgets: Verified; native: Verified; agreement: yes
+claim rejection_preserves_full_state: Verified; native: Verified; agreement: yes
+claim retry_rearms_queue_preserves_execution: Verified; native: Verified; agreement: yes
+claim selected_attempts: Verified; native: Verified; agreement: yes
+claim spanning_budget_never_increases: Verified; native: Verified; agreement: yes
+claim terminal_is_final: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+
+Parameters { maximum_attempts: 3, schedule_to_start: Some(2), start_to_close: None, schedule_to_close: None, heartbeat_timeout: None, asynchronous_cancel: true }; timeout-scope=abstract-checker; cancellation-scope=cooperative; bound=4096
+TLC 1.7.4; complete source-lifted exploration
+states: 27; native: 27; agreement: yes
+claim attempt_changes_only_by_retry: Verified; native: Verified; agreement: yes
+claim cancellation_request_preserves_running_timers: Verified; native: Verified; agreement: yes
+claim every_live_budget_descends: Verified; native: Verified; agreement: yes
+claim exact_budget_arming: Verified; native: Verified; agreement: yes
+claim execution_expiry_dominates: Verified; native: Verified; agreement: yes
+claim heartbeat_resets_only_its_interval: Verified; native: Verified; agreement: yes
+claim local_expiry_priority_retains_its_cause: Verified; native: Verified; agreement: yes
+claim outcome_and_pending_are_distinct: Verified; native: Verified; agreement: yes
+claim pending_expiry_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim pending_failure_is_not_acknowledgement: Verified; native: Verified; agreement: yes
+claim positive_bounded_budgets: Verified; native: Verified; agreement: yes
+claim rejection_preserves_full_state: Verified; native: Verified; agreement: yes
+claim retry_rearms_queue_preserves_execution: Verified; native: Verified; agreement: yes
+claim selected_attempts: Verified; native: Verified; agreement: yes
+claim spanning_budget_never_increases: Verified; native: Verified; agreement: yes
+claim terminal_is_final: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+

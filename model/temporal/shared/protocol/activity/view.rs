@@ -30,7 +30,8 @@ pub enum Status {
     Completed,
     /// Failure ended execution.
     Failed,
-    /// Cancellation was acknowledged or closed a queued execution.
+    /// Cancellation was acknowledged, closed a queued execution, or closed an
+    /// atomic-compatibility running attempt.
     Canceled,
     /// A deadline ended execution.
     TimedOut,

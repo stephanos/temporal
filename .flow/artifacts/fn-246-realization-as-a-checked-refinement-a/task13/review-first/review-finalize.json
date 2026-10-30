@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-246-realization-as-a-checked-refinement-a.13",
+  "verdict": "SHIP",
+  "session_id": "c71502b7-08b5-4fee-b62a-1ef8a8a2ec45",
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "effort": "high",
+  "spec": "claude:claude-fable-5-1:high",
+  "standalone": false,
+  "review": "All three review draws returned SHIP. Coordinator preserves the actionable reuse and evidence-documentation findings below; duplicate parameter-copy notes collapse onto issue1. Other non-blocking mutant-isolation/independence FYIs remain in raw reviews. Compact correctness formatting is repaired without changing any verdict.\n\n## Issue 1\n- **Severity**: P2\n- **Title**: Parameter tests should use the existing production contract\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: model/temporal/shared/protocol/activity/tests.rs:203\n- **R-IDs**: []\n- **Problem**: parameters.rs is compiled again through a path module, making a second Parameters/validator alongside the already imported public activity_protocol::parameters module. Its generic validators already accept the testing and feature Worlds, so the extra compiled copy is unnecessary and can diverge under cfg changes.\n- **Suggestion**: Remove the path module and use the public library parameter module from scope/scopes and parameters_tests.\n\n## Issue 2\n- **Severity**: P3\n- **Title**: Protocol README timing must match retained evidence\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: model/temporal/shared/protocol/activity/README.md:151\n- **R-IDs**: [R5]\n- **Problem**: README claims a22-test45.96-second run with66.566 seconds including compilation; those logs could not be recovered, while the retained renewed run took96.08 seconds. The current narrative should not assert unsupported timing.\n- **Suggestion**: Cite the actual renewed evidence or omit the timing.\n\n## Issue 3\n- **Severity**: P3\n- **Title**: Canceled status documentation should include atomic compatibility\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: model/temporal/shared/protocol/activity/view.rs:34\n- **R-IDs**: []\n- **Problem**: The Canceled variant documentation omits running cancellation under asynchronous_cancel=false, which the Model and README intentionally retain as atomic compatibility.\n- **Suggestion**: Include the atomic-compatibility case without changing behavior.\n\nAll draws agree the protected historical hash manifest is not active authority; stale task wording should describe semantic checking and preserved history accurately.\n\nUnaddressed R-IDs: []\n\nClassification counts: 3 introduced, 0 pre_existing.\n\n<verdict>SHIP</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "claude-fable-5-1",
+      "session_id": "c71502b7-08b5-4fee-b62a-1ef8a8a2ec45",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "claude-fable-5-1",
+      "session_id": "c0b5ab87-78de-467b-bf63-183e1d440a67",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "claude-fable-5-1",
+      "session_id": "db1acf59-3e6a-44e2-b605-dfbe2a064e2a",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": null,
+  "introduced_count": 3,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}

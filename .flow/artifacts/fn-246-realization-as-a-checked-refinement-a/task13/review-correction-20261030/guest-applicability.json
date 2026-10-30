@@ -1,0 +1,18 @@
+{
+  "view_compiled_for_wasi": true,
+  "source_basis": [
+    "model/temporal/realization/src/lib.rs:75-76 unconditionally exports activity_protocol",
+    "model/temporal/shared/protocol/activity/mod.rs:7 unconditionally exports view"
+  ],
+  "changed_input": "view.rs changes only Status::Canceled documentation; production Model and parameter code unchanged.",
+  "fresh_changed_input_check": {
+    "command": "mise exec -- cargo xtask guest umpire-temporal-guest temporal/hosts/go/umpire_temporal_guest.wasm --check",
+    "exit_code": 0,
+    "elapsed_guest_profile": "39.92s",
+    "log": "guest-freshness.log"
+  },
+  "guest_sha256": "8b9ea3c0b29ab0b0f727cf083027c9ad9a6886634d8ce8be25a84115e315be50",
+  "canary_policy_sha256": "0bfdbb37bd9e490e973596d9bf91d46965715f917ae813ca7121aba25c7dc0fe",
+  "canary_modelHash": "8b9ea3c0b29ab0b0f727cf083027c9ad9a6886634d8ce8be25a84115e315be50",
+  "publication": "No guest or canary edits; current changed-input reproduction matches committed bytes."
+}
