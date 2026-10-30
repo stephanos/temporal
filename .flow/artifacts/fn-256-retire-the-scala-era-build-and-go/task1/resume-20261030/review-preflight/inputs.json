@@ -1,0 +1,13 @@
+{
+  "Makefile": "be1293053bb42dbbde3f3c9c1ee062ed24d2f1a78e3a8f6b945a0ec06e6dab52",
+  ".github/workflows/umpire.yml": "c2de69897858ddad7b68649bcbebb5fe615140345a1d6744adb632517733fdde",
+  "go.mod": "b38656014e9bf6e473520a59728a84d2dbd17b95bdb07c0a65a1b53c5d2ab13f",
+  "go.sum": "1bce0efcc6083ca4e0b3d42751dfa5dc101a0a6fe91cc71f5a3f88b0a854aecc",
+  "AGENTS.md": "3f66ca0358a7e11108625ab3a17b851a7f8a41755359c3ffc132844a87ffde06",
+  "model/README.md": "3270097a813e289ff2028b1c0d9874c6a707a614afb65f74723de837231172ef",
+  "tools/umpire/README.md": "5aaa82bbcfda6008403e5b05b9262a2fca36687a0afbc25f4bcaa8d904db38b1",
+  ".plans/UMPIRE_MODULES.md": "3872b355ad2a7a40dcb633add453e927e718d09b0b3afa46026e864214e2cf89",
+  "common/testing/testpilot/dependency_boundary_test.go": "d2a6818249c4f520e47ed4c0105c6725a06c9586d602fb2036d5ac57a6dad84c",
+  "tools/tdbg/dlq_v2_service.go": "79b82b03c1a1c4450bc01f38e978ea045ce1d3db74c1a0537102752ec713b1df",
+  "model/temporal/hosts/go/umpire_temporal_guest.wasm": "8b9ea3c0b29ab0b0f727cf083027c9ad9a6886634d8ce8be25a84115e315be50"
+}

@@ -1,0 +1,19 @@
+{
+  "review_run": "ea7fc57e72694037858e01bf460ace76",
+  "source_review_verdicts": "three SHIP",
+  "changes": [
+    "duration ownership row states no current importer; retained package unchanged",
+    "README check exactly mirrors CI explicit package selector",
+    "remove only pending assertion_line metadata from accepted snapshot"
+  ],
+  "snapshot_old_header": "source: temporal/testing/fixtures.rs\nassertion_line: 90\n",
+  "snapshot_new_header": "source: temporal/testing/fixtures.rs\n",
+  "snapshot_payload_identical": true,
+  "snapshot_payload_sha256": "ca0ef28a2d3e5f5adadf0522780d9ac7fe9f27cbbf08ba9723c88fe9c3735e4b",
+  "files": {
+    ".plans/UMPIRE_MODULES.md": "c2939cf804ffc6c4c6616dc640b42655b2b08df3f12dd5b388b86d2fd9826a2a",
+    "tools/umpire/README.md": "257cc357c8d9d23b0b3235430ea80ec43b250fd00b2366bfb430c62f5b1a0e25",
+    "model/temporal/feature/activity/expected/gaps.txt.snap": "f53b68c9fae6d9486f90b439270fefec9ffcf47c5e94963d9fdaa088c861ab12"
+  },
+  "validation_rationale": "Documentation and one pending snapshot metadata line only; no production Go/Rust source, probe/golden payload or live input changed. Completed full live evidence applies unchanged."
+}

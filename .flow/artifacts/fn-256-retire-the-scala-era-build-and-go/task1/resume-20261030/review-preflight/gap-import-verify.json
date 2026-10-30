@@ -1,0 +1,17 @@
+{
+  "name": "gap-import-verify",
+  "command": "cd model && UMPIRE_GAP_CANDIDATE=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2561-retirement/.flow/tmp/fn2174-live-gap-report.txt INSTA_UPDATE=no mise exec -- cargo test -p umpire-temporal-tests --test fixtures import_live_gap_candidate -- --ignored",
+  "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+  "source_diff_sha256": "89c4d47faf64cdcd0106de90bba25cd475c57909a21a59e3b81803884805fc5d",
+  "start": "2026-10-30T03:54:45.368211+00:00",
+  "end": "2026-10-30T03:54:50.317627+00:00",
+  "status": 0,
+  "log_sha256": "cc82478ca3b96d20a68020a191ace2e8b784e3a04205f8e8a5dc72d4227dd82a",
+  "environment": {
+    "GOFLAGS": "-p=2",
+    "GOCACHE": null,
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+    "CARGO_BUILD_JOBS": "2",
+    "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+  }
+}

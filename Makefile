@@ -437,7 +437,7 @@ TESTPILOT_PROTOCOL_PROTOS := \
 	proto/internal/temporal/server/api/testpilot/v1/source.proto \
 	proto/internal/temporal/server/api/testpilot/v1/value.proto
 
-.PHONY: canary-build umpire-check-testpilot-protocol umpire umpire-check-live-tests umpire-check-backends fmt-model lint-model fix-model umpire-check-model umpire-gen-model
+.PHONY: canary-build umpire-check-testpilot-protocol umpire umpire-check-live-tests fmt-model lint-model fix-model umpire-check-model umpire-gen-model
 
 canary-build:
 	@printf $(COLOR) "Build the production canary..."
@@ -525,18 +525,6 @@ umpire-check-live-tests: umpire-check-model-slice umpire-check-model-gaps
 			exit 1; \
 		fi; \
 		printf 'Live Testpilot failure identities match the empty expected set across %s passing identities.\n' "$$passing"
-
-# The backend agreement: Quint reads the lifted IR and is held to Go's reading of it. The tests
-# pin their tools and fail when one is missing; the pins are in tools/umpire/export/tools_test.go.
-# UMPIRE_BACKENDS_OUT names a directory that
-# keeps every export, dump and report. Run from the package's directory, the receipts are printed.
-# Warm the pinned Quint package in npm's cache. Apalache is downloaded by `quint verify` on first use.
-.PHONY: umpire-install-backends
-umpire-install-backends:
-	@mise exec -- tools/umpire/export/quint.sh --version
-
-umpire-check-backends:
-	@UMPIRE_BACKENDS=require CC="$${CC:-/usr/bin/clang}" mise exec -- go test -C ./tools/umpire/export -count=1 -timeout 30m -tags test_dep
 
 # Archived Scala targets are unmaintained and are not expected to build. Their explicit source
 # roots keep authoring, the IR generator (export) and the check separate under model/archived.
@@ -848,7 +836,7 @@ lint-code-fast:
 		git diff --no-renames --name-only "$$base" -- '*.go' ':(exclude,glob).flow/**' ':(exclude,glob)**/testdata/**' $$excludes; \
 		git ls-files --others --exclude-standard -- '*.go' ':(exclude,glob).flow/**' ':(exclude,glob)**/testdata/**' $$excludes; \
 	} | sed 's|^|./|; s|/[^/]*$$||' | sort -u \
-	  | while read -r dir; do [ -d "$$dir" ] && printf '%s ' "$$dir"; done); \
+	  | while read -r dir; do if [ -d "$$dir" ]; then printf '%s ' "$$dir"; fi; done); \
 	if [ -z "$$targets" ]; then \
 		printf $(COLOR) "No changed Go packages to lint."; \
 	else \

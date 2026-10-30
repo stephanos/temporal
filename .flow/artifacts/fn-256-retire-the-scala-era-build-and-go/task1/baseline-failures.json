@@ -1,0 +1,27 @@
+{
+  "base": "71ff747ebb42638fdf932b47eb380094b84d25df",
+  "production_and_test_dep_vet": {
+    "status": 1,
+    "path": "tools/tdbg/dlq_v2_service.go",
+    "lines": [
+      450,
+      459,
+      460
+    ],
+    "cause": "copying protobuf MessageState mutex in value slice",
+    "unchanged_from_base": true
+  },
+  "canary": {
+    "status": 1,
+    "guest_path": "model/temporal/hosts/go/umpire_temporal_guest.wasm",
+    "guest_sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+    "policy_path": "tools/canary/policy/production-canary.json",
+    "policy_model_hash": "b4a4f57f1a64525ae568bd56a73eff85b0b253aeae44d9e4de3e2d88f546cf2a",
+    "changed_by_retirement": false,
+    "source_of_guest_change": "4be1219220",
+    "control": "policy_test.go TestTheCommittedPolicyPinsTheCommittedGuest and preflight.go Check refuse mismatched bytes before namespace lookup",
+    "prior_guest_sha256": "40cfbb9199e5b5e9e1536fe113d992d8221b5a328660d89ffc882059c6134695",
+    "last_matching_policy_guest_commit": "fad276dfc399766a28b51d4262829f90be6e73b6",
+    "mismatch_predates_task13": true
+  }
+}

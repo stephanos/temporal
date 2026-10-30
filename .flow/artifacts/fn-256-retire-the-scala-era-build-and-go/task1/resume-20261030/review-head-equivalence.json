@@ -1,0 +1,10 @@
+{
+  "gate_launch_head": "d960113963efb6cd6d00fe49367c19558877b18c",
+  "gate_launch_diff_sha256": "89c4d47faf64cdcd0106de90bba25cd475c57909a21a59e3b81803884805fc5d",
+  "committed_review_head": "1888b3f70254839faad72940c955954d19e9e879",
+  "source_paths_changed_by_review_commit": [
+    "model/temporal/feature/activity/expected/gaps.txt.snap"
+  ],
+  "review_head_snapshot_sha256": "2e61d3c4b0f2b672751109a7c28333bcdd4cde09e045c81fe1156e146a35ef09",
+  "live_snapshot_sha256": "2e61d3c4b0f2b672751109a7c28333bcdd4cde09e045c81fe1156e146a35ef09"
+}

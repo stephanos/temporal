@@ -1,0 +1,17 @@
+{
+  "name": "source-audit-final",
+  "command": "python3 .flow/tmp/fn2561-resume-20261030/audit.py",
+  "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+  "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "start": "2026-10-30T03:49:24.029214+00:00",
+  "end": "2026-10-30T03:49:25.529623+00:00",
+  "status": 0,
+  "log_sha256": "ea6645b091fa275e36152bbb2fe04058924fbcbbd32c01fca37e82805cffe520",
+  "environment": {
+    "GOFLAGS": "-p=2",
+    "GOCACHE": null,
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+    "CARGO_BUILD_JOBS": "2",
+    "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+  }
+}

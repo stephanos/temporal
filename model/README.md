@@ -18,6 +18,10 @@ mise exec -- cargo test --workspace --locked
 (cd umpire && mise exec -- cargo test --workspace --locked)
 ```
 
+The server's `tools/umpire/` retains the `cmd/umpire` Runner command and
+`temporaldriver` composition for live runs. The Scala-era Go IR reader and its
+Quint backend tooling have been retired; the Rust workspaces own Model checking.
+
 ## Crate map
 
 Paths below are relative to `model/umpire/`. Role directories group crates; each crate's
