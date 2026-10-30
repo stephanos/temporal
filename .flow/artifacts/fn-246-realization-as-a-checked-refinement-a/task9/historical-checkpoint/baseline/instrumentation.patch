@@ -1,0 +1,22 @@
+diff --git a/tests/testpilot_model_slice_umpire_test.go b/tests/testpilot_model_slice_umpire_test.go
+index 4f07543171..7ec2182a7b 100644
+--- a/tests/testpilot_model_slice_umpire_test.go
++++ b/tests/testpilot_model_slice_umpire_test.go
+@@ -140,6 +140,17 @@ func (s *umpireSlice) runObserved(driverEnv map[string]string, observe func(<-ch
+ 		recorded, err := runner.Load(path)
+ 		require.NoError(t, err)
+ 		result.runs[path] = recorded
++		if kind := driverEnv[act.EnvExecutorKind]; kind != "" && args[0] == "explore" && (recorded.GetSeed() == 3 || recorded.GetSeed() == 21) {
++			capture := filepath.Join("/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn246-task9/baseline", kind)
++			require.NoError(t, os.MkdirAll(capture, 0o700))
++			original, err := os.ReadFile(path)
++			require.NoError(t, err)
++			name := fmt.Sprintf("seed%d", recorded.GetSeed())
++			require.NoError(t, os.WriteFile(filepath.Join(capture, name+".binpb"), original, 0o600))
++			decoded, err := (protojson.MarshalOptions{Indent: "  "}).Marshal(recorded)
++			require.NoError(t, err)
++			require.NoError(t, os.WriteFile(filepath.Join(capture, name+".json"), decoded, 0o600))
++		}
+ 		return nil
+ 	}))
+ 	t.Logf("umpire %s: exit %d\n%s%s", args[0], result.code, result.stdout, result.stderr)

@@ -218,7 +218,7 @@ subprocess refusal remains recorded separately.
 | Name | Status | What |
 | --- | --- | --- |
 | fn-246.13 | 🔄 in progress | Renewed 22 required protocol tests, 62 native fixture tests, snapshot ownership and strict focused lint pass; current driver reproduces exact guest bytes. Feature policy TLC matrix running; review/root integration/closure remain open (R5) |
-| fn-246.9 | 🔄 in progress | Whole-prefix recording/replay and consumer repair checkpoint prepared; 59-row Model-slice proof retained. Root integration/review/closure pending; full live umbrella remains separate (R1, R5) |
+| fn-246.9 | 🔄 in progress | Whole-prefix recording/replay checkpoint retained; all27 historical proof files are now tracked with verified hashes, including59 passing Model-slice rows on the older guest. Renew joined proof after .13; review/root integration/closure and full live umbrella remain open (R1, R5) |
 | fn-246.10 | ⬜ todo | After .9: bounded alternatives and coherent explanation publication (R1, R5) |
 | fn-246.2 | ⬜ todo | shared entity lens and filler-driven probes with equivalence pins (R3) |
 | fn-246.3 | ⬜ todo | After .2, .13: activity migration, exact probe parity and mapping count (R4, R7) |
