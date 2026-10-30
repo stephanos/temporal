@@ -1,5 +1,9 @@
 # The Temporal behavior model
 
+This tree is read-only reference material. Its Scala build tooling and Make targets were removed
+in commit `427a45e11309e11665c28883cafa1b0844320c86`; it no longer builds. The instructions below
+record the former system. Current development uses the [Rust workspaces](../README.md).
+
 This directory holds a description of how Temporal features are expected to behave, written so
 that tools can use it. You describe a feature once, as a small state machine and the promises it
 makes. From that one description you get:
