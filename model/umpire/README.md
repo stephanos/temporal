@@ -29,6 +29,23 @@ protobufs, guests and both Go host modules. `cargo xtask fmt`, `update`, `time` 
 The full gate sets `UMPIRE_QUICK_CACHE=0` and `UMPIRE_CACHE_DISABLE=1` for all children.
 Apalache remains opt-in through `UMPIRE_APALACHE=require`.
 
+Framework integration controls normally share each package's `tests/main.rs` target.
+The fixture-composition, runtime Reach, native catalog-admission and suite-retention
+controls now run there, under their module names:
+
+```sh
+mise exec -- cargo test --locked -p umpire-testing --test main fixture_composition::
+mise exec -- cargo test --locked -p umpire-runtime --test main reach::
+mise exec -- cargo test --locked -p umpire-checker --test main catalog_admission::
+mise exec -- cargo test --locked -p umpire-suite --test main retained::
+```
+
+Dedicated targets retain compiler admission/UI cases, generated fixture registries,
+self-executing child controls and the ignored Kettle live-snapshot importer. Catalog
+derive controls also retain separate targets because they test incompatible default
+`crate::CatalogContext` aliases. The [consolidation inventory](../../.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task21/identities.json)
+records every retained target's contract and the complete test-name mapping.
+
 The native [xtask](dev/xtask/README.md) provides pinned tool installation and development
 commands. Guest builds execute the independent [guest driver](dev/guest-driver/README.md).
 `mise exec -- cargo xtask build-guests` builds the five generic guests and native parity reports;

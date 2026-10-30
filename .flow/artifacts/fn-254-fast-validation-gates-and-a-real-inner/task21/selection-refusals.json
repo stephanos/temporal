@@ -1,0 +1,12 @@
+[
+  {
+    "name": "retired-target",
+    "command": "mise exec -- cargo nextest list --locked -p umpire-suite --test retained",
+    "exit": 101
+  },
+  {
+    "name": "missing-case",
+    "command": "mise exec -- cargo nextest run --locked -p umpire-suite --test main -E test(=retained::missing_case)",
+    "exit": 4
+  }
+]

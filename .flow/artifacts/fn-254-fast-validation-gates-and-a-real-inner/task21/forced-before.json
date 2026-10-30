@@ -1,0 +1,7 @@
+{
+  "command": "cargo test --locked -p umpire-suite --tests --no-run --timings",
+  "seconds": 9.853578088000177,
+  "exit": 0,
+  "forced_roots": 2,
+  "scope": "test root recompilation and link; no test execution; shared warm dependency cache"
+}

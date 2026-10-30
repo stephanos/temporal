@@ -14,6 +14,8 @@ mod fixtures;
 mod full_patterns;
 #[path = "main/large_space.rs"]
 mod large_space;
+#[path = "main/retained.rs"]
+mod retained;
 #[path = "main/world_domains.rs"]
 mod world_domains;
 

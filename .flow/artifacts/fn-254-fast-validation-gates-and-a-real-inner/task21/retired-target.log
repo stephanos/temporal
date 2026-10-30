@@ -1,0 +1,4 @@
+error: no test target named `retained` in `umpire-suite` package
+help: available test targets:
+    main
+error: command `/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo '--color=auto' test --no-run --message-format json-render-diagnostics --package umpire-suite --test retained --locked` exited with code 101
