@@ -1,0 +1,7 @@
+{
+  "status": "Frozen retirement source plus reviewed explicit gap golden renewal; actual complete live rerun pending, not acceptance.",
+  "predecessor": "fn246.9 closeda4c3b54a02 integrated9212a1caed, former slice failure nowgreen",
+  "current_gates": "Production build, both broad vet modes, retained Umpire/Testpilot/canary tests,canary harness/build,4separate dependency inventories,tdbg controls,lintwrapper positive/negative,currentguest8b9ea--checkpass.",
+  "gap_renewal": "Prior fullgate got past raw/SDKslice, failed stalegolden with81/81authored Confirmed0Mismatch. Inventory delta matches previously reviewed producer accounting exactly; explicitRustimporter then no-updateverificationpass. Full old/new/diff/provenance retained.",
+  "remaining": "Actual complete make umpire-check-live-tests rerun; review/rootclosure/integration."
+}

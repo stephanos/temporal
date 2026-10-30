@@ -1,0 +1,7 @@
+{
+  "accepted_path": "model/temporal/feature/activity/expected/gaps.txt.snap",
+  "original_sha256": "b1c78e93bbd919fe10e1a4c5e21ad4dfbe51f59ec3b7dabe93635ac15da35e60",
+  "accepted_sha256": "2e61d3c4b0f2b672751109a7c28333bcdd4cde09e045c81fe1156e146a35ef09",
+  "candidate_body_exact_live_report": true,
+  "reason": "Exact old/new case sets match integrated fn246.12 accounting; reviewed gap-delta-review.json; no Model/catalog changes."
+}

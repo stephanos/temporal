@@ -1,0 +1,17 @@
+{
+  "name": "dependencies-canary",
+  "command": "mise exec -- go list -mod=readonly -deps -test -tags 'test_dep canary_harness' ./tools/canary/cmd/umpire-canary ./tools/canary/testharness",
+  "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+  "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "start": "2026-10-30T03:45:34.318772+00:00",
+  "end": "2026-10-30T03:45:34.547200+00:00",
+  "status": 0,
+  "log_sha256": "4ea8f87a01e42e356c2f0b1cfcf8d985db48bcdaa05d30f1c5543cb79d0ab78f",
+  "environment": {
+    "GOFLAGS": "-p=2",
+    "GOCACHE": null,
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+    "CARGO_BUILD_JOBS": "2",
+    "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+  "sole_changed_input": [
+    "model/temporal/feature/activity/expected/gaps.txt.snap"
+  ],
+  "source_diff_sha256": "89c4d47faf64cdcd0106de90bba25cd475c57909a21a59e3b81803884805fc5d",
+  "reuse_rationale": "Dependency inventories, production build/vet, retained tests, canary build/harness, lint and guest freshness were renewed at clean d960. Sole subsequent change is externally produced activity gap text snapshot. It changes no Go source/build/import input or guest producer/input bytes. Final real full live gate rereads this exact changed snapshot; existing scoped proofs remain applicable.",
+  "guest_sha256": "8b9ea3c0b29ab0b0f727cf083027c9ad9a6886634d8ce8be25a84115e315be50"
+}
