@@ -4,7 +4,7 @@ The owner's overview of open work, execution order and blockers.
 
 As of 2026-10-30.
 
-Execution is paused at the owner's request after eight milestones were reviewed, closed and locally integrated. Running checks and reviews are wrapped up. Three committed source checkpoints remain unmerged: fn-246.10 has a SHIP follow-up and awaits current Temporal guest acceptance; fn-253.7 passes default-stack native and focused required checks but awaits source review and guest acceptance; fn-256.2 has tooling-removal evidence but its full Rust gate obligation remains open. Resume these checkpoints before admitting another milestone. Budget admission fn-254.12 and migration fn-258 remain owner-deferred. fn-254.19 remains blocked by released sccache Rust checkout-path identity.
+Execution is paused at the owner's request after eight milestones were reviewed, closed and locally integrated. Running checks and reviews are wrapped up. Three committed source checkpoints remain unmerged: fn-246.10 has a SHIP follow-up and awaits current Temporal guest acceptance; fn-253.7 passes default-stack native and focused required checks but awaits source review and guest acceptance; fn-256.2 has tooling-removal evidence but its full Rust gate obligation remains open. Resume these checkpoints before admitting another milestone. Budget admission fn-254.12 and migration fn-258 remain owner-deferred. The owner withdrew the sccache proposal; it no longer blocks final validation.
 
 The latest `make model-check` attempt failed on 94 strict-Clippy errors in unchanged xtask gate-budget code. Focused checks pass; a full-gate pass remains open.
 
@@ -157,7 +157,6 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
 | fn-254.12 | 🔄 in progress | Owner-paused after applicability/custody checkpoint:244 framework,39 consumer and66 process tests pass. Resume real observer/context wiring, admitted tables and automatic retry; enforcement and closure remain open (R8) |
-| fn-254.19 | ⛔ blocked | Released sccache cannot safely normalize Rust workspace paths across checkouts; actual pinned-tool control and upstream source evidence retained. Full acceptance and production integration remain open (R9) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 

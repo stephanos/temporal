@@ -1,0 +1,10 @@
+{
+  "owner_instruction": "let's remove sccache then",
+  "disposition": "Withdraw proposed integration and cross-checkout compiler-cache requirement.",
+  "original_request_sha256": "3174dd4c46e032e3f20a2615d4d96002485e64e86468472d034faa22545d285b",
+  "original_cache_acceptance_achieved": false,
+  "production_pins_or_wiring_present": false,
+  "preserve": "Historical experiment, source research and reproducer.",
+  "scope": "Repository requirements, task dependencies and maintained guidance; no global installation, daemon or shared cache changes.",
+  "counts_as_verified_implementation": false
+}

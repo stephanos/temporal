@@ -93,7 +93,7 @@ The R7 tool contract also requires a dedicated guest-driver executable independe
 
   `time-gate` reports every stage against its budget. A work count above budget fails the stage. A wall-time overrun above a tolerance (proposal: 25%) is reported, and fails on a repeat run, so one slow run on a busy host does not fail the gate. Adding a stage without a budget entry fails the gate. Errors: a planted over-budget count, a planted unbudgeted stage and two consecutive planted slow runs each fail with the stage's name.
 
-- **R9:** Host build costs are reduced through lighter dev debuginfo in both independent Rust workspaces, measured local compiler-cache reuse across different checkout paths, and a measured mise-pinned mold adoption decision for supported Linux host targets. Errors: effective flags and cache statistics distinguish compilation reuse from Cargo Fresh and final links; incompatible source/compiler/profile/target inputs do not reuse stale compilation; missing pinned tools and cache failures remain visible under the existing fail-hard policy; bootstrap isolation, guest-driver wrapper/compiler/lock identity, optimized release/guest profiles, WASI linking and framework-only operation remain intact. No speedup is claimed without comparable workload evidence.
+- **R9:** Host build costs are reduced through lighter dev debuginfo in both independent Rust workspaces and a measured mise-pinned mold adoption decision for supported Linux host targets. Errors: effective flags and timings distinguish compilation from final linking; source/compiler/lock/profile/target admission remains intact; missing pinned tools and cache failures remain visible under the existing fail-hard policy; bootstrap isolation, guest-driver wrapper/compiler/lock identity, optimized release/guest profiles, WASI linking and framework-only operation remain intact. No speedup is claimed without comparable workload evidence.
 
 ## Boundaries
 
@@ -231,59 +231,20 @@ cleanup and invocation-local complete stage receipts. A changed scheduler gets f
 proof, including its standalone control, once frozen; unrelated final suites remain .8.
 
 
-### Residual build-cost amendment (2026-10-28)
+### Residual build-cost amendment (2026-10-28; revised 2026-10-30)
 
-Owner: "file tasks to close gaps" after reviewing dev debuginfo, cross-worktree sccache,
-Linux mold and remaining integration binaries. Tasks .18–.20 close build-cost work left
-unimplemented by .4: its completion proves the cheaper test profile and 108-to-36 target
-consolidation, explicitly not a dev-profile change or alternate-linker measurement.
-Task .21 rechecks current residual framework targets against .4/.5's identity/isolation
-contracts and consolidates only safe candidates; explicit evidence can justify retaining
-separate targets. These tasks feed .8's combined measurement and current-input proof.
-The local compilation cache is not a semantic-result cache: full validation still executes
-every selected check and bypasses the quick TLC-result cache. .7 stays blocked until
-fn-246's committed whole-spec closure; .12 stays owner-paused in_progress; fn-258 stays deferred.
-Cache-enabled cold worktree/bootstrap builds disable incremental compilation; ordinary warm
-quick re-edits retain it. Task .19 measures both paths so cross-worktree hits cannot hide a
-warm-edit regression. Tasks .18–.21 share the evidence document and some compiler/tool inputs:
-execute these producers serially where their Touches overlap, regardless of dependency-ready
-status. Task .8 summarizes their detailed evidence by reference and renews guest freshness
-after changed dev-built driver bytes or admitted compiler/linker inputs; producer flag checks
-alone do not renew that proof.
+The owner withdrew sccache integration on 2026-10-30. Task .19 now records retirement
+of that proposal; its original experiment remains historical evidence. Cross-checkout
+compiler-cache reuse is no longer an acceptance requirement or a dependency of .8.
 
-## Quick commands
-
-```bash
-cd model/umpire && mise exec -- cargo build --locked -p xtask --bin xtask --profile dev
-cd model && mise exec -- cargo build --locked -p temporal-xtask --bin temporal-xtask --profile dev
-```
-
-Run each command from the repository root. These are focused host-build checks; task-specific
-compiler/cache/linker/identity controls and .8's final full gates remain required.
-
-## Memory findings
-
-| Track | Category | Entry | Why relevant |
-| --- | --- | --- | --- |
-| bug | integration | `full-integration-gates-must-select-the-2026-09-04` | .21 must preserve complete selection and refuse accidental zero-case success. |
-
-## Requirement coverage
-
-| Req | Description | Task(s) | Gap justification |
-| --- | --- | --- | --- |
-| R1 | `model/design/gate-speed.md` consolidates existing historical gate, stage, binary/test, compile/link and TLC-launch evidence. The owner waived fresh baseline measurements on 2026-10-25; no new baseline gate or serial observer runs are required before optimization. Retain source, backend mode, workload, host/profile conditions and evidence references where available. Errors: missing costs/counts are explicitly unknown, structural predictions are labelled estimates, and differing modes/sources/coverage are never presented as equivalent measured runs. Correctness inventories before test migrations remain required by R4/R5. R6's final measurements remain required. | fn-254-fast-validation-gates-and-a-real-inner.1, fn-254-fast-validation-gates-and-a-real-inner.8 | — |
-| R2 | `make model-quick` exists. After an edit to `temporal/feature/activity/model.rs` it re-checks the activity natively and through the interpreter. It runs TLC only when the emitted TLA+ changed, and finishes in under 60 s warm. Errors: a changed emitted module always runs TLC fresh; a cache hit is labelled as such; `model-validate` never uses the cache; a planted stale entry with a different key is ignored. | fn-254-fast-validation-gates-and-a-real-inner.6 | — |
-| R3 | The TLC runner checks all properties of a module in one batched run and splits only on failure, with optional parallel property runs. Errors: an equivalence control over every TLC fixture and mutant shows identical verdicts and traces to per-property runs, including a module with two violated properties and a liveness violation under fairness. | fn-254-fast-validation-gates-and-a-real-inner.2 | — |
-| R4 | Tests run in parallel across binaries, with integration tests consolidated to one binary per crate where that cuts link time, and a cheaper test debuginfo profile. Errors: the full logical test inventory, including ignored status, is identical before and after under the checked identity mapping above; JVM-backed tests run in a bounded concurrency group. | fn-254-fast-validation-gates-and-a-real-inner.17, fn-254-fast-validation-gates-and-a-real-inner.18, fn-254-fast-validation-gates-and-a-real-inner.20, fn-254-fast-validation-gates-and-a-real-inner.21, fn-254-fast-validation-gates-and-a-real-inner.3, fn-254-fast-validation-gates-and-a-real-inner.4, fn-254-fast-validation-gates-and-a-real-inner.5, fn-254-fast-validation-gates-and-a-real-inner.7 | — |
-| R5 | Gate composition: | fn-254-fast-validation-gates-and-a-real-inner.17, fn-254-fast-validation-gates-and-a-real-inner.5 | — |
-| R6 | Final warm measurements are recorded beside R1's historical references in `model/design/gate-speed.md`. The native gate timer ported by .15 gains the realistic Model-edit inner loop. Execution targets: `model-quick` under 60 s for an activity edit, `model-check` under 3 min, TLC-required `model-validate` under 10 min. Errors: a missed target is reported with its cause, not relabelled as met; incomparable historical modes/workloads are separated and do not support an attributed speedup claim. | fn-254-fast-validation-gates-and-a-real-inner.8 | — |
-| R7 | The framework's checks live in `model/umpire` and run without the Temporal tree. One framework entry point (decided in task .9) runs every framework stage: fmt, clippy, docs and tests of `umpire` crates; the stock, control and Kettle guests; core and Kettle protobuf; the generic and Kettle Go hosts; framework controls. The root `Makefile` keeps only Temporal steps and calls that entry point. Framework tools, pins and caches (TLC/Apalache jars, protoc generators, xtask modules) resolve relative to `model/umpire`, not the Temporal repository root. Errors: a control runs the framework entry point on a copy of `model/umpire` alone, with no `model/temporal` and no root `Makefile`, and it passes; a planted dependency from an `umpire` crate on a Temporal crate, or a Temporal name in `model/umpire`, fails the framework gate. The R7 tool contract also requires a dedicated guest-driver executable independent of the general xtask/gate executable. Guest cache invalidation follows the exact guest driver, current lockfile and compiler inputs. Unrelated general-CLI/gate implementation changes must not select a new guest cache. One admitted context owns framework tool/pin roots, caller workspace/output/target resolution, raw-OS environment encoding and canonical physical-to-logical remaps; commands do not rediscover these independently. Missing local pins or escaping/ambiguous roots refuse explicitly. These requirements retain existing compiler/lock/source admission and cache invalidation for actual guest-driver changes. | fn-254-fast-validation-gates-and-a-real-inner.10, fn-254-fast-validation-gates-and-a-real-inner.11, fn-254-fast-validation-gates-and-a-real-inner.13, fn-254-fast-validation-gates-and-a-real-inner.14, fn-254-fast-validation-gates-and-a-real-inner.15, fn-254-fast-validation-gates-and-a-real-inner.16, fn-254-fast-validation-gates-and-a-real-inner.17, fn-254-fast-validation-gates-and-a-real-inner.19, fn-254-fast-validation-gates-and-a-real-inner.20, fn-254-fast-validation-gates-and-a-real-inner.9 | — |
-| R8 | Each gate stage has a committed budget in `model/umpire/dev/gate/budgets.toml` (plus `model/dev/gate/budgets.toml` for Temporal stages), as selected by .9: | fn-254-fast-validation-gates-and-a-real-inner.12 | — |
-| R9 | Host build costs are reduced through lighter dev debuginfo in both independent Rust workspaces, measured local compiler-cache reuse across different checkout paths, and a measured mise-pinned mold adoption decision for supported Linux host targets. Errors: effective flags and cache statistics distinguish compilation reuse from Cargo Fresh and final links; incompatible source/compiler/profile/target inputs do not reuse stale compilation; missing pinned tools and cache failures remain visible under the existing fail-hard policy; bootstrap isolation, guest-driver wrapper/compiler/lock identity, optimized release/guest profiles, WASI linking and framework-only operation remain intact. No speedup is claimed without comparable workload evidence. | fn-254-fast-validation-gates-and-a-real-inner.18, fn-254-fast-validation-gates-and-a-real-inner.19, fn-254-fast-validation-gates-and-a-real-inner.20 | — |
-
-## Parked unknowns
-
-- How compile/link time splits against run time inside the 1,707 s `tests` stage (R1 measures it).
+Tasks .18, .20 and .21 cover lighter dev profiles, measured Linux mold adoption and
+safe residual test-binary consolidation. They feed .8's combined measurements and
+current-input proof. Keep ordinary warm quick builds incremental and preserve native
+bootstrap wrapper isolation. Full validation executes every selected check and bypasses
+the quick TLC-result cache. Shared compiler/tool inputs remain serialized where their
+Touches overlap. Task .8 renews guest freshness after changed dev-built driver bytes or
+admitted compiler/linker inputs; producer flag checks alone do not renew that proof.
+Task .7 still waits for fn-246's committed whole-spec closure; migration remains deferred.
 
 ### Native tool simplification amendment
 

@@ -11,6 +11,6 @@
   "spec": "fn-254-fast-validation-gates-and-a-real-inner",
   "spec_path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.19.md",
   "status": "todo",
-  "title": "Enable measured local sccache reuse across worktrees",
-  "updated_at": "2026-10-29T04:05:25.735364Z"
+  "title": "Retire the withdrawn sccache integration proposal",
+  "updated_at": "2026-10-30T14:24:36.528114Z"
 }
