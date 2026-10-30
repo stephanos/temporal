@@ -9,6 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-253-reusable-deadline-countdowns-for-models",
   "impl_review_rounds": {
+    "fn-253-reusable-deadline-countdowns-for-models.1": 0,
     "fn-253-reusable-deadline-countdowns-for-models.2": 0,
     "fn-253-reusable-deadline-countdowns-for-models.3": 0,
     "fn-253-reusable-deadline-countdowns-for-models.4": 0,
@@ -549,9 +550,70 @@
       "task": "fn-253-reusable-deadline-countdowns-for-models.6",
       "timestamp": "2026-10-30T02:36:44.842007Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e78de0fc377a57969e655d14039d7ec1dd51d84874575214cfb8e2cb2e27190f",
+      "backend": "claude",
+      "base_sha": "36a03b6b81e62659b800e62a85e00153d5887f43",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-2bd8c484d05a5fee71a20ef46447e2e9",
+            "classification": "introduced",
+            "findingId": "finding-2bd8c484d05a5fee71a20ef46447e2e9",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-0bf8b822f61a98d99e725185e38f3147",
+            "classification": "introduced",
+            "findingId": "finding-0bf8b822f61a98d99e725185e38f3147",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d0fddbf5c25509999d27903bf37c80b7",
+            "classification": "introduced",
+            "findingId": "finding-d0fddbf5c25509999d27903bf37c80b7",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b7347d8d5c04af94c3bdd8c9effccf50157467ea",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 1751,
+      "output_sha256": "d0d11ad92aec270b032a4e428c27a55ee78f1d365afb8e079265cc3ed5f0d5ad",
+      "reservation_id": "7b22d66621a344069891aba220508621",
+      "round_consumed": true,
+      "scope": "impl:fn-253-reusable-deadline-countdowns-for-models.1",
+      "superseded_by": null,
+      "task": "fn-253-reusable-deadline-countdowns-for-models.1",
+      "timestamp": "2026-10-30T03:54:42.468637Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-253-reusable-deadline-countdowns-for-models.1": 1,
     "impl:fn-253-reusable-deadline-countdowns-for-models.2": 1,
     "impl:fn-253-reusable-deadline-countdowns-for-models.3": 1,
     "impl:fn-253-reusable-deadline-countdowns-for-models.4": 1,
@@ -563,6 +625,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-253-reusable-deadline-countdowns-for-models.1": 0,
     "impl:fn-253-reusable-deadline-countdowns-for-models.2": 0,
     "impl:fn-253-reusable-deadline-countdowns-for-models.3": 0,
     "impl:fn-253-reusable-deadline-countdowns-for-models.4": 0,
@@ -584,5 +647,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-30T02:36:44.857083Z"
+  "updated_at": "2026-10-30T03:54:42.475920Z"
 }

@@ -1,0 +1,16 @@
+{
+  "model/temporal/feature/activity/model.rs": "f8e5391666a66ca37a488ca29625c767fc0259f5e892f334ada5c430fe75e066",
+  "model/temporal/feature/activity/proof_checks.rs": "0c4123b4355c1ebbc8e46d75574ab605c1471dd70b3e095e3a2a7fcb70228bae",
+  "model/temporal/feature/activity/policy_checks.rs": "bbc1a56ee99f37edcd999115febfa5cd52106f77aa9619693682ab8b4c104599",
+  "model/temporal/feature/activity/README.md": "a1896335ea58c7e7376d5111a5d8cd23ac9c531b962b67c7a855874b49874bb2",
+  "model/temporal/feature/activity/expected/Activity.cfg.snap": "f9b407e3182278aac2019e8e63f2f1b8850cf00f8937b53f69afa9c447cf03b0",
+  "model/temporal/feature/activity/expected/Activity.tla.snap": "ff20dcb394cfa8c95b79c82ce211cf1f1d781898a11845d768339c108c63a243",
+  "model/temporal/feature/activity/expected/coverage.txt.snap": "343cda550a3737b7adc3c5522ecf09cf35538bfb38042a3b846bc0e205cdecfc",
+  "model/temporal/feature/activity/expected/gaps.txt.snap": "b1c78e93bbd919fe10e1a4c5e21ad4dfbe51f59ec3b7dabe93635ac15da35e60",
+  "model/temporal/feature/activity/expected/lift.txt.snap": "daa500e6d747cd5ed479626aef0e0c35bcdf3abbb37050b34e6e77203bca9434",
+  "model/temporal/feature/activity/expected/realization.txt.snap": "0da6db0eb7ee111248187b864ac78e88999e349cd20bf3952800f129e5c1f0e6",
+  "model/temporal/feature/activity/expected/report.txt.snap": "00e6b92e993e91b41b3dc0f139729dc940b06b534eae82f13d3257c544899168",
+  "model/temporal/feature/activity/expected/rows.txt.snap": "3ca9a7465d411a68561eea9a4feab9463137880d04f960b82c0be0c4349d1e86",
+  "model/temporal/feature/activity/expected/states.txt.snap": "03ab217aa9e8fe23df09861108232e49936b43d7d0fd947a896b8c2143f3c7a8",
+  "model/temporal/feature/activity/expected/tlc.txt.snap": "88aa6e00ca9b737eadaa18530b7d4a71ce44edbd06be8620757cfcf71792426d"
+}

@@ -1,0 +1,60 @@
+{
+  "head_before_guest_commit": "fe21941c2dbb41509b210c8b0e33457acbeb9b65",
+  "source_input_manifest": "guest-build-source-inputs.json",
+  "source_input_count": 925,
+  "all_source_input_hashes_unchanged_after_build_and_parity": true,
+  "reviewed_model_expected_manifest": "frozen-source-expected.json",
+  "reviewed_model_expected_hashes_unchanged": true,
+  "old_guest": {
+    "path": "model/temporal/hosts/go/umpire_temporal_guest.wasm",
+    "sha256": "8b9ea3c0b29ab0b0f727cf083027c9ad9a6886634d8ce8be25a84115e315be50",
+    "bytes": 3988325
+  },
+  "new_guest": {
+    "guest_sha256": "4df13deb3b312f66874934760012fd4e6698d21148f2f4e07bd086c01c62236d",
+    "guest_bytes": 3989794,
+    "canary_modelHash": "4df13deb3b312f66874934760012fd4e6698d21148f2f4e07bd086c01c62236d",
+    "publication_command": "/home/agent/.cache/codex-build/cargo-target/xtask-bootstrap/debug/umpire-guest-driver guest umpire-temporal-guest <activity-checkout>/model/temporal/hosts/go/umpire_temporal_guest.wasm",
+    "publication_exit": 0,
+    "final_output_equals_both_scratch_builds": true
+  },
+  "compiler_sidecar_records": [
+    "guest-scratch.json",
+    "temporal-guest.umpire-id",
+    "guest-prepublication-inputs.json",
+    "temporal-guest-prepublication.umpire-id"
+  ],
+  "closure_map": "guest-closure-map.json",
+  "prepublication_stale_control": {
+    "exit": 2,
+    "log": "guest-prepublication-check.log",
+    "offset": 602
+  },
+  "native_guest_report_rows_parity": {
+    "exit": 0,
+    "passed": 1,
+    "log": "native-guest-report-parity.log"
+  },
+  "temporal_host_complete_module_suite": {
+    "exit": 0,
+    "log": "temporal-host-tests.log",
+    "root_package_seconds": 58.194,
+    "worker_sdk_seconds": 9.131,
+    "CGO_ENABLED": "0",
+    "GOMAXPROCS": "2"
+  },
+  "canary_policy_preflight": {
+    "exit": 0,
+    "log": "canary-pin-tests.log"
+  },
+  "no_other_checkout_publication": {
+    "main_asset_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm",
+    "main_asset_sha256_still_old": "8b9ea3c0b29ab0b0f727cf083027c9ad9a6886634d8ce8be25a84115e315be50"
+  },
+  "latency_finding": "Native bootstrap driver identity changed between registered build-guests and guest --check, selecting different cache keys. Both produced byte-identical4df13deb guest; no driver refactor in this task. Direct bootstrapped driver publication still rebuilt Temporal because existing build-script outputs were refreshed. Future task7 should reuse one bootstrapped driver for build/publication/check.",
+  "owner_deferred_final_freshness": "Root owns final registered --check after integrating current main/retirement. This worker does not claim a post-integration freshness check.",
+  "stageable_paths": [
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm",
+    "tools/canary/policy/production-canary.json"
+  ]
+}

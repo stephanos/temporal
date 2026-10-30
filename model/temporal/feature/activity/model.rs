@@ -4,6 +4,7 @@
 use umpire_dsl::machine;
 
 /// One activity's finite lifecycle, independent of any SDK or server observation.
+#[expect(clippy::unused_self, reason = "invariants evaluate policy in every Model state")]
 #[machine]
 pub mod activity {
     use umpire_dsl::{
@@ -236,46 +237,24 @@ pub mod activity {
         #[on(Deadline)]
         fn deadline(&mut self, action: Deadline, world: &World) -> Option<ExpiredDeadline> {
             match action {
-                Deadline::Tick
-                    if !self.closed()
-                        && (self.schedule_to_start_remaining.is_some()
-                            || self.start_to_close_remaining.is_some()
-                            || self.schedule_to_close_remaining.is_some()
-                            || self.heartbeat_remaining.is_some()) =>
-                {
+                Deadline::Tick if !self.closed() && self.armed() => {
                     self.decrement();
-                    if self.schedule_to_close_remaining.is_some()
-                        && self.schedule_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                            == 0
-                    {
-                        self.phase = Phase::TimedOut;
-                        self.clear_terminal();
+                    if self.schedule_to_close_remaining == Some(Remaining { ticks: 0 }) {
+                        self.time_out();
                         Some(ExpiredDeadline::ScheduleToClose)
-                    } else if (self.start_to_close_remaining.is_some()
-                        && self.start_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                            == 0)
-                        || (self.heartbeat_remaining.is_some()
-                            && self.heartbeat_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                                == 0)
+                    } else if (self.start_to_close_remaining == Some(Remaining { ticks: 0 }))
+                        || (self.heartbeat_remaining == Some(Remaining { ticks: 0 }))
                     {
-                        let start_to_close_expired = self.start_to_close_remaining.is_some()
-                            && self
-                                .start_to_close_remaining
-                                .unwrap_or(Remaining { ticks: 0 })
-                                .ticks
-                                == 0;
-                        self.expire_attempt(world);
+                        let start_to_close_expired =
+                            self.start_to_close_remaining == Some(Remaining { ticks: 0 });
+                        self.time_out_attempt(world);
                         if start_to_close_expired {
                             Some(ExpiredDeadline::StartToClose)
                         } else {
                             Some(ExpiredDeadline::Heartbeat)
                         }
-                    } else if self.schedule_to_start_remaining.is_some()
-                        && self.schedule_to_start_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                            == 0
-                    {
-                        self.phase = Phase::TimedOut;
-                        self.clear_terminal();
+                    } else if self.schedule_to_start_remaining == Some(Remaining { ticks: 0 }) {
+                        self.time_out();
                         Some(ExpiredDeadline::ScheduleToStart)
                     } else {
                         None
@@ -298,15 +277,19 @@ pub mod activity {
         }
 
         #[effect]
-        fn expire_attempt(&mut self, world: &World) {
+        fn time_out(&mut self) {
+            self.phase = Phase::TimedOut;
+            self.clear_terminal();
+        }
+
+        #[effect]
+        fn time_out_attempt(&mut self, world: &World) {
             if self.cancel_requested {
-                self.phase = Phase::TimedOut;
-                self.clear_terminal();
+                self.time_out();
             } else if self.attempt < world.maximum_attempts {
                 self.retry(world);
             } else {
-                self.phase = Phase::TimedOut;
-                self.clear_terminal();
+                self.time_out();
             }
         }
 
@@ -354,14 +337,49 @@ pub mod activity {
             }
         }
 
+        fn armed(&self) -> bool {
+            self.schedule_to_start_remaining.is_some()
+                || self.start_to_close_remaining.is_some()
+                || self.schedule_to_close_remaining.is_some()
+                || self.heartbeat_remaining.is_some()
+        }
+
+        fn pending_cancel(&self, world: &World) -> bool {
+            world.asynchronous_cancel && self.phase == Phase::Started && self.cancel_requested
+        }
+
+        fn running_without_cancel(&self) -> bool {
+            self.phase == Phase::Started && !self.cancel_requested
+        }
+
         #[invariant]
-        fn state_bounds(&self, world: &World) {
+        fn policy_in_range(&self, world: &World) {
             check!(world.maximum_attempts >= 1 && world.maximum_attempts <= 3);
-            check!(self.attempt >= 1 && self.attempt <= world.maximum_attempts);
             check!(
                 world.schedule_to_start.is_none()
                     || Ticks::contains(world.schedule_to_start.unwrap_or(Ticks(1)).0)
             );
+            check!(
+                world.start_to_close.is_none()
+                    || Ticks::contains(world.start_to_close.unwrap_or(Ticks(1)).0)
+            );
+            check!(
+                world.schedule_to_close.is_none()
+                    || Ticks::contains(world.schedule_to_close.unwrap_or(Ticks(1)).0)
+            );
+            check!(
+                world.heartbeat_timeout.is_none()
+                    || Ticks::contains(world.heartbeat_timeout.unwrap_or(Ticks(1)).0)
+            );
+        }
+
+        #[invariant]
+        fn attempt_within_policy(&self, world: &World) {
+            check!(self.attempt >= 1 && self.attempt <= world.maximum_attempts);
+        }
+
+        #[invariant]
+        fn countdowns_within_budget(&self, world: &World) {
             check!(
                 self.schedule_to_start_remaining.is_none()
                     || (Remaining::contains(
@@ -378,10 +396,6 @@ pub mod activity {
                             <= world.schedule_to_start.unwrap_or(Ticks(1)).0)
             );
             check!(
-                world.start_to_close.is_none()
-                    || Ticks::contains(world.start_to_close.unwrap_or(Ticks(1)).0)
-            );
-            check!(
                 self.start_to_close_remaining.is_none()
                     || (Remaining::contains(
                         self.start_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
@@ -389,10 +403,6 @@ pub mod activity {
                         > 0
                         && self.start_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
                             <= world.start_to_close.unwrap_or(Ticks(1)).0)
-            );
-            check!(
-                world.schedule_to_close.is_none()
-                    || Ticks::contains(world.schedule_to_close.unwrap_or(Ticks(1)).0)
             );
             check!(
                 self.schedule_to_close_remaining.is_none()
@@ -408,10 +418,6 @@ pub mod activity {
                             .unwrap_or(Remaining { ticks: 0 })
                             .ticks
                             <= world.schedule_to_close.unwrap_or(Ticks(1)).0)
-            );
-            check!(
-                world.heartbeat_timeout.is_none()
-                    || Ticks::contains(world.heartbeat_timeout.unwrap_or(Ticks(1)).0)
             );
             check!(
                 self.heartbeat_remaining.is_none()
@@ -675,30 +681,20 @@ pub mod activity {
 
         #[progress]
         fn pending_retryable_failure_fails(&self, world: &World) -> LeadsTo {
-            path![
-                world.asynchronous_cancel && self.phase == Phase::Started && self.cancel_requested,
-                ..=1,
-                self.phase == Phase::Failed
-            ]
-            .assuming(only([Worker::RespondFailed { retryable: true }]))
+            path![self.pending_cancel(world), ..=1, self.phase == Phase::Failed]
+                .assuming(only([Worker::RespondFailed { retryable: true }]))
         }
 
         #[progress]
         fn pending_nonretryable_failure_fails(&self, world: &World) -> LeadsTo {
-            path![
-                world.asynchronous_cancel && self.phase == Phase::Started && self.cancel_requested,
-                ..=1,
-                self.phase == Phase::Failed
-            ]
-            .assuming(only([Worker::RespondFailed { retryable: false }]))
+            path![self.pending_cancel(world), ..=1, self.phase == Phase::Failed]
+                .assuming(only([Worker::RespondFailed { retryable: false }]))
         }
 
         #[progress]
         fn ordinary_retry_rearms(&self, world: &World) -> LeadsTo {
             path![
-                self.phase == Phase::Started
-                    && !self.cancel_requested
-                    && self.attempt < world.maximum_attempts,
+                self.running_without_cancel() && self.attempt < world.maximum_attempts,
                 ..=1,
                 self.phase == Phase::Scheduled
             ]
@@ -708,9 +704,7 @@ pub mod activity {
         #[progress]
         fn ordinary_retry_at_cap_fails(&self, world: &World) -> LeadsTo {
             path![
-                self.phase == Phase::Started
-                    && !self.cancel_requested
-                    && self.attempt == world.maximum_attempts,
+                self.running_without_cancel() && self.attempt == world.maximum_attempts,
                 ..=1,
                 self.phase == Phase::Failed
             ]
@@ -719,12 +713,8 @@ pub mod activity {
 
         #[progress]
         fn ordinary_nonretryable_failure_fails(&self) -> LeadsTo {
-            path![
-                self.phase == Phase::Started && !self.cancel_requested,
-                ..=1,
-                self.phase == Phase::Failed
-            ]
-            .assuming(only([Worker::RespondFailed { retryable: false }]))
+            path![self.running_without_cancel(), ..=1, self.phase == Phase::Failed]
+                .assuming(only([Worker::RespondFailed { retryable: false }]))
         }
     }
 }

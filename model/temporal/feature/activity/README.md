@@ -120,16 +120,16 @@ remain in scope. Removing the mode flag belongs to the separately gated
 not to adoption of this pattern.
 
 Current implementation owners are `initial` and `worker` for arming/reset,
-`deadline` plus `decrement` for Tick/priority, `expire_attempt` for local expiry,
-`retry` for rearming, and `clear_terminal` for terminal clearing. `state_bounds`,
+`deadline` plus `decrement` for Tick/priority, `time_out_attempt` for local expiry,
+`retry` for rearming, and `time_out` plus `clear_terminal` for terminal clearing.
+`policy_in_range`, `attempt_within_policy`, `countdowns_within_budget`,
 `deadline_arming` and `pending_is_cooperative` check live-state constraints;
 `countdowns_decrement`, `tick_priority`, `heartbeat_preserves_attempt_and_global`,
 `attempt_changes_only_on_retry`, `global_never_replenished` and
 `tick_descends_and_expires` check transition obligations. The
 [consumer refactor](../../../../.flow/tasks/fn-253-reusable-deadline-countdowns-for-models.7.md)
-will demonstrate named `time_out`/`time_out_attempt` effects and countdown library
-calls while preserving these obligations and the corrected behavior. Those effects
-are planned names, not additional compiled helpers already present here.
+will adopt countdown library calls while preserving these obligations and the
+corrected behavior.
 
 Authority is the existing pinned API
 `go.temporal.io/api@v1.63.6-0.20260909222256-20151aa90480`:

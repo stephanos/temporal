@@ -1,0 +1,81 @@
+{
+  "type": "impl_review_fanout",
+  "focus": "Activity deadline clarity only. Frozen source0bda5f62c2 and review-preflight artifacts: Option equality, named effects/helpers, state_bounds split with all10clauses retained, no Tick/Heartbeat claims removed; preserve pending cancellation correction13 and retry15, exact states/rows hashes. Native62pass2inherited ignores, scoped Clippy/fmt pass. Required TLC full fixture currently running independently against frozen hashes: one policy source-mutant anchor correction has focused required complement pass, remainder proof pending and required before closure. Review source semantics, DSL admitted helper behavior, named-claim/mutant ownership, snapshot renames; do not treat pending full proof as passed. Guest publication is separate root coordination after source review, no stale publication claim. Full broad model gates owner deferred254.8.",
+  "claim_token": null,
+  "id": "fn-253-reusable-deadline-countdowns-for-models.1",
+  "standalone": false,
+  "base_branch": "36a03b6b81",
+  "reviewed_base_sha": "36a03b6b81e62659b800e62a85e00153d5887f43",
+  "reviewed_head_sha": "b7347d8d5c04af94c3bdd8c9effccf50157467ea",
+  "artifact_sha256": "e78de0fc377a57969e655d14039d7ec1dd51d84874575214cfb8e2cb2e27190f",
+  "reservation_id": "7b22d66621a344069891aba220508621",
+  "rid": "7b22d66621a344069891aba220508621",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "c8d144d8-07b0-401b-a2f9-aff56fe45f0e",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-30T03:47:28.454093Z",
+      "finished_at": "2026-10-30T03:51:37.726764Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2531-deadline-clarity/.flow/review-fanout/7b22d66621a344069891aba220508621/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2531-deadline-clarity/.flow/review-fanout/7b22d66621a344069891aba220508621/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "2998f011-da02-4d91-a773-e21e30df9ab1",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-30T03:47:28.454725Z",
+      "finished_at": "2026-10-30T03:51:38.173958Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2531-deadline-clarity/.flow/review-fanout/7b22d66621a344069891aba220508621/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2531-deadline-clarity/.flow/review-fanout/7b22d66621a344069891aba220508621/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "unparsed",
+        "reason": "no-findings-container",
+        "block": null
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "3374b5a6-bd9e-4b9e-8c42-3f1b6c989baf",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-30T03:47:28.455407Z",
+      "finished_at": "2026-10-30T03:54:02.518656Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2531-deadline-clarity/.flow/review-fanout/7b22d66621a344069891aba220508621/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2531-deadline-clarity/.flow/review-fanout/7b22d66621a344069891aba220508621/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-b58ab5c1b9ab-fn-253-reusable-deadline-countdowns-for-models.1.json",
+  "created_at": "2026-10-30T03:54:02.569143Z"
+}

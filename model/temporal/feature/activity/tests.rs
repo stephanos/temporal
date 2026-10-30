@@ -328,8 +328,8 @@ fn tlc_refutes_closure_law_mutants_of_this_source() -> umpire_testing::TestResul
         ),
         (
             Some((
-                "Deadline::Tick\n                    if !self.closed()",
-                "Deadline::Tick if self.closed() => { stay!(); None },\n                Deadline::Tick\n                    if !self.closed()",
+                "Deadline::Tick if !self.closed()",
+                "Deadline::Tick if self.closed() => { stay!(); None },\n                Deadline::Tick if !self.closed()",
             )),
             [Verified, Refuted],
         ),
