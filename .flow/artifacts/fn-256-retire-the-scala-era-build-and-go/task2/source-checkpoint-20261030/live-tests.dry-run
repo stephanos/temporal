@@ -1,0 +1,54 @@
+set -eu; \
+	temporary=$(mktemp); \
+	trap 'rm -f "$temporary"' EXIT HUP INT TERM; \
+	status=0; \
+	CGO_ENABLED=0 \
+		mise exec -- go test -v -count=1 -timeout 10m -tags 'test_dep integration' \
+		./tests -run '^TestTestpilotModelSlice(ThroughUmpire)?$' > "$temporary" 2>&1 || status=$?; \
+	cat "$temporary"; \
+	if [ "$status" -ne 0 ]; then exit "$status"; fi; \
+	awk '/^[[:space:]]*--- PASS:/ { passed[$3] = 1 } \
+		END { count = split("TestTestpilotModelSlice TestTestpilotModelSlice/Annotations TestTestpilotModelSlice/Transport TestTestpilotModelSlice/Reconciliation TestTestpilotModelSlice/Reconciliation/raw/Complete TestTestpilotModelSlice/Reconciliation/raw/Fail TestTestpilotModelSlice/Reconciliation/raw/wrong-result TestTestpilotModelSlice/Reconciliation/raw/wrong-failure TestTestpilotModelSlice/Reconciliation/raw/complete-instead-of-fail TestTestpilotModelSlice/Reconciliation/raw/Terminal/Complete TestTestpilotModelSlice/Reconciliation/raw/Terminal/Fail TestTestpilotModelSlice/Reconciliation/raw/Terminal/wrong-result TestTestpilotModelSlice/Reconciliation/raw/Terminal/wrong-failure TestTestpilotModelSlice/Reconciliation/raw/Terminal/complete-instead-of-fail TestTestpilotModelSlice/Reconciliation/raw/Terminal/response-mutated-history TestTestpilotModelSlice/Reconciliation/sdk/Complete TestTestpilotModelSlice/Reconciliation/sdk/Fail TestTestpilotModelSlice/Reconciliation/sdk/wrong-result TestTestpilotModelSlice/Reconciliation/sdk/wrong-failure TestTestpilotModelSlice/Reconciliation/sdk/complete-instead-of-fail TestTestpilotModelSlice/Reconciliation/sdk/Terminal/Complete TestTestpilotModelSlice/Reconciliation/sdk/Terminal/Fail TestTestpilotModelSlice/Reconciliation/sdk/Terminal/wrong-result TestTestpilotModelSlice/Reconciliation/sdk/Terminal/wrong-failure TestTestpilotModelSlice/Reconciliation/sdk/Terminal/complete-instead-of-fail TestTestpilotModelSlice/Reconciliation/sdk/Terminal/response-mutated-history TestTestpilotModelSliceThroughUmpire TestTestpilotModelSliceThroughUmpire/raw TestTestpilotModelSliceThroughUmpire/raw/UnheldCancelScope TestTestpilotModelSliceThroughUmpire/raw/Complete TestTestpilotModelSliceThroughUmpire/raw/Fail TestTestpilotModelSliceThroughUmpire/raw/RetryThenComplete TestTestpilotModelSliceThroughUmpire/raw/CancelBeforeWorkerStart TestTestpilotModelSliceThroughUmpire/raw/CancelAfterCompletion TestTestpilotModelSliceThroughUmpire/raw/HostRefusal TestTestpilotModelSliceThroughUmpire/sdk TestTestpilotModelSliceThroughUmpire/sdk/UnheldCancelScope TestTestpilotModelSliceThroughUmpire/sdk/Complete TestTestpilotModelSliceThroughUmpire/sdk/Fail TestTestpilotModelSliceThroughUmpire/sdk/RetryThenComplete TestTestpilotModelSliceThroughUmpire/sdk/CancelBeforeWorkerStart TestTestpilotModelSliceThroughUmpire/sdk/CancelAfterCompletion TestTestpilotModelSliceThroughUmpire/sdk/HostRefusal TestTestpilotModelSliceThroughUmpire/Controls TestTestpilotModelSliceThroughUmpire/Controls/complete-instead-of-fail TestTestpilotModelSliceThroughUmpire/Controls/wrong-result TestTestpilotModelSliceThroughUmpire/Controls/empty TestTestpilotModelSliceThroughUmpire/ProvisionLifecycle TestTestpilotModelSliceThroughUmpire/UnreachableEndpoint TestTestpilotModelSliceThroughUmpire/ReplayWithoutServer", required, " "); \
+			for (i = 1; i <= count; i++) if (!passed[required[i]]) { \
+				printf "Required Model slice test did not pass: %s\n", required[i]; failed = 1 \
+			} exit failed }' "$temporary"
+set -eu; \
+	temporary=$(mktemp); \
+	trap 'rm -f "$temporary"' EXIT HUP INT TERM; \
+	status=0; \
+	CGO_ENABLED=0 \
+		mise exec -- go test -v -count=1 -timeout 20m -tags 'test_dep integration' \
+		./tests -run '^TestTestpilotModelGap(s|LoggerPreservesFailuresWithoutPrivateOutput)$' > "$temporary" 2>&1 || status=$?; \
+	cat "$temporary"; \
+	if [ "$status" -ne 0 ]; then exit "$status"; fi; \
+	awk '/^--- PASS:/ { passed[$3] = 1 } \
+		END { count = split("TestTestpilotModelGaps TestTestpilotModelGapLoggerPreservesFailuresWithoutPrivateOutput", required, " "); \
+			for (i = 1; i <= count; i++) if (!passed[required[i]]) { \
+				printf "Required Model gap test did not pass: %s\n", required[i]; failed = 1 \
+			} exit failed }' "$temporary"
+set -eu; \
+	physical_tmpdir=$(cd "${TMPDIR:-/tmp}" && pwd -P); \
+	temporary=$(TMPDIR="$physical_tmpdir" mktemp); \
+	expected=$(TMPDIR="$physical_tmpdir" mktemp); \
+	actual=$(TMPDIR="$physical_tmpdir" mktemp); \
+	trap 'rm -f "$temporary" "$expected" "$actual"' EXIT HUP INT TERM; \
+	status=0; \
+	TMPDIR="$physical_tmpdir" mise exec -- go test -v -count=1 -timeout 30m -tags 'test_dep integration' \
+		./tests -run '^TestTestpilot' > "$temporary" 2>&1 || status=$?; \
+	cat "$temporary"; \
+	sed -n -E 's/^[[:space:]]*--- FAIL: ([^ ]+).*/\1/p' "$temporary" | LC_ALL=C sort -u > "$actual"; \
+	: > "$expected"; \
+	if [ "$status" -ne 0 ] && [ ! -s "$actual" ]; then \
+		printf 'The live suite failed without reporting a test identity.\n'; \
+		exit "$status"; \
+	fi; \
+	if ! diff -u "$expected" "$actual"; then \
+		printf 'Live Testpilot failure identities differ from the empty expected set.\n'; \
+		exit 1; \
+	fi; \
+	passing=$(sed -n -E 's/^[[:space:]]*--- PASS: ([^ ]+).*/\1/p' "$temporary" | LC_ALL=C sort -u | grep -c . || true); \
+	if [ "$passing" -lt 1 ]; then \
+		printf 'The live Testpilot selector matched no passing test identity.\n'; \
+		exit 1; \
+	fi; \
+	printf 'Live Testpilot failure identities match the empty expected set across %s passing identities.\n' "$passing"

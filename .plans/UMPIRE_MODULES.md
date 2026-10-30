@@ -499,6 +499,8 @@ code. `tableSide`/`sideOf` stay as dedicated reader test support.
 
 ## Scala layout and commands
 
+Historical: fn-256.2 removed the Scala Make targets and the `scala-cli` pin in `427a45e113`; the Scala tree under `model/archived/` is read-only reference and no longer builds. The commands named in this section and in "Shared leaves decision" (including `make check-model-boundary`) no longer exist.
+
 `model/framework/dsl/project.scala` is the framework core's directive file: compile the DSL and the
 realization core with `model/framework/dsl` and `model/framework/realize` alone. `model/project.scala`
 adds the Temporal Models' settings: compile/test/package Models with that file plus

@@ -5,9 +5,9 @@ Temporal extension under `temporal/`. Each owns its lockfile, configuration and 
 and checker surface; the activity slice additionally hosts one real SDK run through a Model.
 See [DESIGN.md](DESIGN.md) for the scope, measurements and retained authoring decisions.
 
-`archived/` holds the former Scala tree unchanged for reference, including its retained build
-caches. Its internal paths describe the old layout, and its Scala targets are unmaintained and
-not expected to build. The Cargo workspace and Rust gate do not build the archive.
+`archived/` holds the former Scala tree as read-only reference material, including its retained
+build caches. Its internal paths describe the old layout; the Scala build tooling and Make targets
+have been removed. The Cargo workspaces and Rust gate do not build the archive.
 
 Each workspace owns its `mise.toml` toolchain pins (`rust = "1.99.1"`); run through mise:
 

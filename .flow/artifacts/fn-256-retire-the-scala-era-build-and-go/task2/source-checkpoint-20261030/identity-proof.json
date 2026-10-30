@@ -1,0 +1,10 @@
+{
+  "baseline": "78801d1feb67bd918b3c2902ad08239cd56c112e",
+  "archive_tracked_blob_count": 1627,
+  "archive_changed_paths": [],
+  "archive_uncommitted_status": "",
+  "rust_section_sha256": "d751aa37314c689913f5f6a4bd7c1992414a76397011dd8bb155267665dc38a1",
+  "rust_section_byte_identical": true,
+  "model_quote_byte_identical": true,
+  "R4_behavioral_gate": "OPEN; owner-deferred to fn-254.8; no full model-check or model-validate run in this lane"
+}

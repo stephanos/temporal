@@ -55,6 +55,6 @@
 # Locally built tool binaries
 /.build/
 
-# scala-cli build state, written wherever scala-cli runs (fmt, compile); remove with `make umpire-clean-scratch`
+# Historical Scala build state; `make umpire-clean-scratch` removes only named .flow/tmp directories.
 .bsp/
 .scala-build/

@@ -1,0 +1,17 @@
+{
+  "baseline_sha": "78801d1feb67bd918b3c2902ad08239cd56c112e",
+  "existing_tooling_removal_commit": "427a45e11309e11665c28883cafa1b0844320c86",
+  "final_documentation_commit": "PENDING root commit",
+  "archive_tracked_count": 1627,
+  "archive_changed_paths": [
+    "model/archived/README.md"
+  ],
+  "other_1626_archived_blobs_identical": true,
+  "rust_section_byte_identical": true,
+  "rust_section_sha256": "d751aa37314c689913f5f6a4bd7c1992414a76397011dd8bb155267665dc38a1",
+  "six_tooling_source_hashes_unchanged_since_phase1": true,
+  "prior_build_dry_run_lint_scratch_evidence_preserved": true,
+  "lock_only_removed_projected_key": "tools.scala-cli",
+  "lock_non_scala_bytes_identical": true,
+  "R4_behavioral_gate": "OPEN; owner-deferred fn-254.8; no full model-check/model-validate run"
+}
