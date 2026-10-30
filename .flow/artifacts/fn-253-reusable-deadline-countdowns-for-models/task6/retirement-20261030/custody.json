@@ -1,0 +1,22 @@
+{
+  "checkout": ".worktrees/fn2536-deadline-pattern",
+  "branch": "work/fn2536-deadline-pattern",
+  "integrated_by": "902d2d20c1",
+  "no_live_process_cwd": true,
+  "archive_sha256": "7218ab0d5e57cfc39c9baaee0046afd342dbea92196aba1b35bc50d3cce0b179",
+  "members": {
+    ".flow/locks/review-rounds-8ccf984c5524dd8b391c45193c7f5dc32dfbb2495729f82caa116588e78c399e.lock": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+    ".flow/review-fanout/825d40c5e25a4a75980ee143e874f272/contracts.json": "0c837b91b3799f3601a3eb53f75aa3e507861b2313976dcc9c8ed1faca27c076",
+    ".flow/review-fanout/825d40c5e25a4a75980ee143e874f272/contracts.out.txt": "6a90e1faf67243ffc6440e3fc130ebea50ee4bd2f441900491db81b41a9bd6b5",
+    ".flow/review-fanout/825d40c5e25a4a75980ee143e874f272/contracts.review.md": "6a90e1faf67243ffc6440e3fc130ebea50ee4bd2f441900491db81b41a9bd6b5",
+    ".flow/review-fanout/825d40c5e25a4a75980ee143e874f272/meta.json": "57712e3d63254d4e2deb6f83b65d957937e7991dee6dfa9c3a6cda2807a76933",
+    ".flow/review-fanout/825d40c5e25a4a75980ee143e874f272/progress.log": "7f99ca38143c69d2baa4d19e6fdbb0d9e6ea5edf526a262575a7f3b0e0093c77",
+    ".flow/tmp/claude-review/825d40c5e25a4a75980ee143e874f272-contracts-00ac242-d98a777.diff": "46121c60f9f8117e7be7c13e8a16d3c0f9bb35754cefe012d6db3ae160fa44c4",
+    ".flow/tmp/fn2536-done-evidence.json": "554d3040ad684c3e097624a07b88bb9ec48a2115cc5a1c0eb1248fab584ca877",
+    ".flow/tmp/fn2536-done-summary.md": "038ea98a8d003e8100e8ec6f32b2c3a26b43fbfd258023181bd8c6456adfd727",
+    ".flow/tmp/fn2536-finalize.json": "ee463e5a888911a5e21fadb5705d0e6a1cc19624c823c77dc95b2ebda46f5e79",
+    ".flow/tmp/fn2536-merge.json": "b0cd6cb0c1ba59d8a5914ed2640e01915d86068b25b8152a2ad57c1fc72ae0c7",
+    ".flow/tmp/fn2536-review.json": "6a7f1eb56286355d5a2c7c254844c70490eab2ceb8508114d81eed78ea093dfb",
+    ".flow/tmp/fn2536-review.log": "7f99ca38143c69d2baa4d19e6fdbb0d9e6ea5edf526a262575a7f3b0e0093c77"
+  }
+}

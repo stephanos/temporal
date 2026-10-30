@@ -357,6 +357,58 @@
       "counts_as_closure": false,
       "evidence": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task19/measurements.json",
       "reason": "Pinned sccache Rust cross-checkout normalization unsupported; actual1.99.1 A/B/A cache control retains two checkout misses and same-checkout hit. No narrowed substitute implemented."
+    },
+    {
+      "at": "2026-10-30T02:20:21.897172Z",
+      "type": "verified_task_closure",
+      "task": "fn-246.13",
+      "status": "done",
+      "closure_commit": "0b67ae056a",
+      "integration_commit": "6eb7de1fd3",
+      "source_head": "8e81e2ba7d",
+      "claimed_at": "2026-10-26T02:38:34.542228Z",
+      "done_at": "2026-10-30T02:20:21.897172Z",
+      "claim_to_done_seconds": 344507.354944,
+      "reviews": [
+        {
+          "rid": "84ae82cf883e4da28a372d6dc57cb9eb",
+          "result": "SHIP",
+          "axes": 3,
+          "max_draw_seconds": 502.7
+        },
+        {
+          "rid": "1dc6f0389be9477898d4c515c8bc9bbd",
+          "result": "SHIP",
+          "axes": 1,
+          "max_draw_seconds": 114
+        }
+      ],
+      "verification": "62 active fixture identities covered; required protocol22, policy15, default1 and complementary7 pass; current guest exact reproduction and focused lint pass.",
+      "attribution": "Claim-to-done includes pauses, other sessions and sequential review; not active worker time or causal concurrency speedup.",
+      "deferred": "Full joined gates remain fn254.8; activity adoption and frontier/live integration retain their own tasks."
+    },
+    {
+      "at": "2026-10-30T02:41:09.458358Z",
+      "type": "verified_task_closure",
+      "task": "fn-253.6",
+      "status": "done",
+      "closure_commit": "aff5cdfced",
+      "integration_commit": "902d2d20c1",
+      "source_head": "5457142ad0",
+      "claimed_at": "2026-10-30T01:48:14.469535Z",
+      "done_at": "2026-10-30T02:41:09.458358Z",
+      "claim_to_done_seconds": 3174.988823,
+      "reviews": [
+        {
+          "rid": "825d40c5e25a4a75980ee143e874f272",
+          "result": "SHIP",
+          "axes": 1,
+          "max_draw_seconds": 158.2
+        }
+      ],
+      "verification": "Eight local targets, sixteen helper/law owners and pinned API source/archive/origin verified; doc source hash exact and Model unchanged.",
+      "attribution": "Claim-to-done includes pauses, other sessions and sequential review; not active worker time or causal concurrency speedup.",
+      "deferred": "Full joined gates remain fn254.8; activity adoption and frontier/live integration retain their own tasks."
     }
   ],
   "measurement_limits": "Source handoffs are work-in-progress, not verified closures. Mixed scope, unknown exact worker times and validation/access blockers prevent a causal concurrency speedup estimate."
