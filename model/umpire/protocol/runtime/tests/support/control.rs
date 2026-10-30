@@ -121,17 +121,30 @@ impl umpire_runtime::Dispatch for Control {
                 protocol::ResetRequest::decode(bytes).map(|request| request.configuration);
             match configured {
                 Ok(Some(configuration))
-                    if configuration == any(super::support::frontier::RENEW) =>
+                    if configuration == any(super::support::frontier::RENEW)
+                        || configuration == any(54)
+                        || configuration == any(55) =>
                 {
+                    let fault = if configuration == any(54) {
+                        super::support::frontier::Fault::ExternalProposal
+                    } else if configuration == any(55) {
+                        super::support::frontier::Fault::QuiescentAction
+                    } else {
+                        super::support::frontier::Fault::None
+                    };
                     return (
                         protocol::Response {
                             outcome: Some(protocol::response::Outcome::Reset(
                                 protocol::ResetResponse::current(None),
                             )),
                         },
-                        Some(ControlTransaction::ResetFrontier(Box::new(
-                            super::support::frontier::runtime(),
-                        ))),
+                        Some(ControlTransaction::ResetFrontier(Box::new(Runtime::new(
+                            super::support::frontier::World::default(),
+                            super::support::frontier::Binding {
+                                fault,
+                                ..super::support::frontier::Binding::default()
+                            },
+                        )))),
                     );
                 }
                 Ok(Some(configuration)) if configuration == any(0) || configuration == any(42) => {

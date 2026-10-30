@@ -125,3 +125,18 @@ func TestFrontierReduceReproducesAnUnexplainedContinuationAfterCanonicalPastChan
 		t.Fatal("reduce changed original immutable reports")
 	}
 }
+
+func TestFrontierClosedCanonicalCannotTerminateAnActiveCompatibleAlternative(t *testing.T) {
+	wasm := statefulGuest(t)
+	for _, configuration := range []byte{54, 55} {
+		t.Run(fmt.Sprint(configuration), func(t *testing.T) {
+			script := map[byte][]step{51: {{kind: EventObservation, value: 54}, {kind: EventDone}}}
+			run := newHarness(t, wasm, driverFor(script)).run(ModeExplore, Options{World: control(configuration), Seed: 1})
+			if got := run.Events[2].GetJudgment().GetResponse().GetExplained().GetSteps(); !slices.Equal(got, []string{"Tick", "Tick"}) {
+				t.Fatalf("closed canonical witness = %v", got)
+			}
+			requireRefused(t, run, 3, "REFUSAL_CODE_STATE")
+			requireReplays(t, wasm, run)
+		})
+	}
+}

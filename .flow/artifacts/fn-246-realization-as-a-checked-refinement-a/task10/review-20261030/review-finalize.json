@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-246-realization-as-a-checked-refinement-a.10",
+  "verdict": "SHIP",
+  "session_id": "4c85aa57-2e02-4156-b91a-bb2d782754c6",
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "effort": "high",
+  "spec": "claude:claude-fable-5-1:high",
+  "standalone": false,
+  "review": "All three source reviewers returned SHIP. Highest severity retained for duplicates; two substantiveP2 source issues will be fixed beforeclosure and receive one focused followupreview. Full runtime/task coverage, joinedTemporalguest and additional sourcefixture controls remain required; no wholeR5completionclaim.\n\n## Finding 1\n\n- **Severity**: P2\n- **Title**: Check quiescence across all retained branches\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: `model/umpire/protocol/runtime/src/runtime.rs:596`\n- **R-IDs**: []\n- **Problem**: Canonical external enablement or Quiescent proposal can terminate Run before comparing viable hidden alternatives.\n- **Suggestion**: Resolve frontier first and compare branch enablement/proposal/quiescence results; refuse State disagreement.\n\n## Finding 2\n\n- **Severity**: P2\n- **Title**: Bound or remove redundant per-label prefix validation\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: `model/umpire/protocol/runtime/src/frontier.rs:111`\n- **R-IDs**: []\n- **Problem**: Every popped label revalidates wholeprefix with repeated uncharged Realize calls; work bound does not account this repeated cost.\n- **Suggestion**: Validate retained roots once or account validation work; preserve contextreplacement/revalidation correctness.\n\n## Finding 3\n\n- **Severity**: P3\n- **Title**: Retain cited random-import proof logs\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `model/umpire/protocol/runtime/src/frontier.rs:1`\n- **R-IDs**: []\n- **Problem**: Committed preflight note references original failure and immediate corrected pass logs absent from committed directory; hashes cite scratch paths.\n- **Suggestion**: Retain cited logs and publish portable artifact path/hash manifest.\n\n## Finding 4\n\n- **Severity**: P3\n- **Title**: Reserve history identity sets lazily\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: `model/umpire/protocol/runtime/src/frontier.rs:518`\n- **R-IDs**: []\n- **Problem**: Pre-reserving scope.prefix can cause allocation refusal for large configured bound even when little history exists.\n- **Suggestion**: Reserve only for actual encountered identities.\n\n## Finding 5\n\n- **Severity**: P3\n- **Title**: Clarify singleton compatibility bound\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `model/umpire/protocol/runtime/src/runtime.rs:56`\n- **R-IDs**: []\n- **Problem**: SingletonTarget blanket implementation is now vacuous compatibility machinery.\n- **Suggestion**: Remove unnecessary bound or document deliberate public compatibility role.\n\n## Finding 6\n\n- **Severity**: P3\n- **Title**: Name branch proposal disagreement\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: `model/umpire/protocol/runtime/src/frontier.rs:174`\n- **R-IDs**: []\n- **Problem**: Per-branch proposal error can obscure branch divergence behind original realization error.\n- **Suggestion**: Map differing branch results to explicit State disagreement without weakening original uniformly shared refusal.\n\n## Finding 7\n\n- **Severity**: P3\n- **Title**: Document retained depth-cut refusal\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: `model/umpire/protocol/runtime/src/frontier.rs:140`\n- **R-IDs**: []\n- **Problem**: A retained depthcut correctly prevents universal decision untilReset but this lasting behavior is surprising.\n- **Suggestion**: Document permanent unresolved-bound refusal behavior; retain branches under current policy.\n\nUnaddressed R-IDs: []\n\nClassification counts: 7 introduced,0 pre_existing.\n\n<verdict>SHIP</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "claude-fable-5-1",
+      "session_id": "4c85aa57-2e02-4156-b91a-bb2d782754c6",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "claude-fable-5-1",
+      "session_id": "61fc17c6-5818-4119-99cb-e7c2e3e9a1f0",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "claude-fable-5-1",
+      "session_id": "bca10ea1-7c3d-494b-82a8-cf6f1c7c89bc",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": null,
+  "introduced_count": 7,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}

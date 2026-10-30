@@ -1,0 +1,21 @@
+{
+  "axis": "contracts",
+  "parse_status": {
+    "status": "parsed",
+    "reason": null,
+    "block": null
+  },
+  "backend": "claude",
+  "model": "claude-fable-5-1",
+  "effort": "high",
+  "session_id": "61fc17c6-5818-4119-99cb-e7c2e3e9a1f0",
+  "verdict": "SHIP",
+  "failed": false,
+  "failure_class": null,
+  "failure_message": null,
+  "exit_code": 0,
+  "started_at": "2026-10-30T04:07:22.230769Z",
+  "finished_at": "2026-10-30T04:14:55.497244Z",
+  "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/review-fanout/49c41bbbafd74403ab7f0a563f1fd495/contracts.review.md",
+  "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/review-fanout/49c41bbbafd74403ab7f0a563f1fd495/contracts.out.txt"
+}

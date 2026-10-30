@@ -131,7 +131,46 @@ fn frontier_transcript() -> Vec<Record> {
             assert_eq!(response.continue_polling, value == support::frontier::RENEW);
         }
     }
+    quiescence_transcript(&mut guest, &mut records);
     records
+}
+
+fn quiescence_transcript(guest: &mut Guest<control::Control>, records: &mut Vec<Record>) {
+    use protocol::{Method, response::Outcome};
+    for configuration in [54, 55] {
+        assert!(matches!(
+            call(
+                guest,
+                records,
+                Method::Reset,
+                &protocol::ResetRequest { configuration: Some(support::any(configuration)) }
+            ),
+            Outcome::Reset(_)
+        ));
+        assert!(matches!(
+            call(guest, records, Method::Propose, &protocol::ProposeRequest { seed: 0 }),
+            Outcome::Propose(_)
+        ));
+        let response = call(
+            guest,
+            records,
+            Method::Judge,
+            &protocol::JudgeRequest { observation: Some(support::any(support::frontier::OPAQUE)) },
+        );
+        let Outcome::Judge(response) = response else { panic!("opaque Judge refused") };
+        let Some(protocol::judge_response::Judgment::Explained(explanation)) = response.judgment
+        else {
+            panic!("opaque Judge not explained")
+        };
+        assert_eq!(explanation.steps, ["Tick", "Tick"]);
+        assert_eq!(explanation.outcomes, ["Advanced", "PendingClosed"]);
+        let response = call(guest, records, Method::Propose, &protocol::ProposeRequest { seed: 0 });
+        let Outcome::Refusal(refusal) = response else {
+            panic!("ambiguous quiescence was accepted")
+        };
+        assert_eq!(refusal.code(), protocol::RefusalCode::State);
+        assert!(refusal.message.contains("disagree"));
+    }
 }
 
 fn judge(

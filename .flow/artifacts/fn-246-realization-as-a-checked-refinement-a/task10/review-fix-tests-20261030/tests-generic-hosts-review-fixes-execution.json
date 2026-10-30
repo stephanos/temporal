@@ -1,0 +1,40 @@
+{
+  "cwd": "model/umpire/hosts/go",
+  "environment": {
+    "CGO_ENABLED": "0",
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+    "UMPIRE_WASM": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/tmp/fn24610-frontier-20261030/tests-stock_guest.wasm",
+    "UMPIRE_KETTLE_WASM": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/tmp/fn24610-frontier-20261030/tests-kettle_guest.wasm",
+    "UMPIRE_STATEFUL_WASM": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/tmp/fn24610-frontier-20261030/tests-stateful-review-fixes.wasm",
+    "UMPIRE_CURRENT_CONTRACT_NATIVE": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/tmp/fn24610-frontier-20261030/tests-current-contract-review-fixes",
+    "UMPIRE_CAUGHT_PANIC_WASM": "/home/agent/.cache/codex-build/cargo-target/wasm32-wasip1/guest/caught_panic_control.wasm",
+    "UMPIRE_OVERFLOW_WASM": "/home/agent/.cache/codex-build/cargo-target/wasm32-wasip1/guest/overflow_control.wasm",
+    "UMPIRE_PANIC_NATIVE": "/home/agent/.cache/codex-build/cargo-target/panic-native"
+  },
+  "results": [
+    {
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "./..."
+      ],
+      "log": "tests-generic-hosts-review-fixes-final.jsonl",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "go",
+        "vet",
+        "-tags",
+        "test_dep",
+        "./..."
+      ],
+      "log": "tests-generic-hosts-vet-review-fixes.log",
+      "exit_code": 0
+    }
+  ]
+}

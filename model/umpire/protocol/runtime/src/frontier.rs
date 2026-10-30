@@ -5,8 +5,8 @@ use std::{
 
 use super::{
     AnswerPlan, Any, Event, EventKind, Evidence, EvidenceMatch, Machine, Pending, Prefix,
-    Projection, Proposal, Rc, ReachTarget, Realize, Runtime, SearchLimit, Traversal, prefix_error,
-    protocol, reserve, search_error,
+    Projection, ProposalDecision, Rc, ReachTarget, Realize, Runtime, SearchLimit, Traversal,
+    prefix_error, protocol, reserve, search_error,
 };
 
 type SearchResult<M> = Result<Option<(Prefix<M>, Vec<Node<M>>, bool)>, protocol::Refusal>;
@@ -95,6 +95,15 @@ where
                 .map_err(search_error)?;
         } else {
             for node in &self.frontier {
+                self.validate_prefix_data(
+                    &node.prefix,
+                    node.prefix.events.last().map_or_else(
+                        || self.initial.as_ref().ok_or_else(prefix_error),
+                        |event| Ok(&event.after),
+                    )?,
+                    Self::pending_for_prefix(&node.prefix).as_ref(),
+                )
+                .map_err(|_| disagreement())?;
                 traversal.root(node.copy().map_err(search_error)?).map_err(search_error)?;
             }
         }
@@ -107,14 +116,6 @@ where
                 blocked.push(node);
                 continue;
             }
-            self.validate_prefix_data(
-                &node.prefix,
-                node.prefix.events.last().map_or_else(
-                    || self.initial.as_ref().ok_or_else(prefix_error),
-                    |event| Ok(&event.after),
-                )?,
-                Self::pending_for_prefix(&node.prefix).as_ref(),
-            )?;
             let index = node.prefix.events.len();
             if index == journal.len() {
                 let continues = node.prefix.events.last().is_some_and(|event| event.continues);
@@ -195,7 +196,10 @@ where
                 traversal.push(id, next, None).map_err(search_error)?;
             }
             EventKind::Proposal { request, action, seed, bootstrap } => {
-                if !self.valid_proposal(&node.state, request, action.as_ref(), *seed, *bootstrap)? {
+                if !self
+                    .valid_proposal(&node.state, request, action.as_ref(), *seed, *bootstrap)
+                    .map_err(|_| disagreement())?
+                {
                     return Err(disagreement());
                 }
                 if action.as_ref().is_some_and(|action| self.machine.internal(action)) {
@@ -362,39 +366,15 @@ where
             .ok_or_else(prefix_error)
     }
 
-    pub(super) fn check_proposals(
+    pub(super) fn check_proposal_decisions(
         &self,
         nodes: &[Node<M>],
         seed: u64,
-        expected_action: Option<&M::Action>,
-        expected: &protocol::ProposeResponse,
+        expected: &ProposalDecision<M::Action>,
     ) -> Result<(), protocol::Refusal> {
         for node in nodes {
-            let proposal = if self.admitted {
-                Realize::propose(&self.realization, &self.machine, &node.state, seed)?
-            } else {
-                Realize::bootstrap(&self.realization, &self.machine, &node.state, seed)?
-            };
-            let valid = match proposal {
-                Proposal::Action { action, request } => {
-                    expected_action == Some(&action)
-                        && expected.kind == protocol::ProposalKind::Action as i32
-                        && expected.request.as_ref() == Some(&request)
-                        && expected.action == action.to_string()
-                        && !self.machine.internal(&action)
-                        && self.catalog()?.contains(&action)
-                        && !self.checked_step(&node.state, action)?.is_empty()
-                }
-                Proposal::Read { request } => {
-                    expected.kind == protocol::ProposalKind::Read as i32
-                        && expected.request.as_ref() == Some(&request)
-                }
-                Proposal::Bootstrap { request } => {
-                    expected.kind == protocol::ProposalKind::Bootstrap as i32
-                        && expected.request.as_ref() == Some(&request)
-                }
-            };
-            if !valid {
+            let decision = self.proposal_decision(&node.state, seed).map_err(|_| disagreement())?;
+            if decision != *expected {
                 return Err(disagreement());
             }
         }
@@ -517,8 +497,6 @@ where
         // Identity accounting must not require guest entropy imports.
         let mut edges = HashSet::<_, BuildHasherDefault<DefaultHasher>>::default();
         let mut calls = HashSet::<_, BuildHasherDefault<DefaultHasher>>::default();
-        edges.try_reserve(limit).map_err(|_| super::allocation_error())?;
-        calls.try_reserve(limit).map_err(|_| super::allocation_error())?;
         for node in nodes {
             for edge in node.prefix.edges.iter().chain(&node.edges) {
                 let identity = Rc::as_ptr(edge);
@@ -526,6 +504,7 @@ where
                     if edges.len() + calls.len() == limit {
                         return Err(bound());
                     }
+                    edges.try_reserve(1).map_err(|_| super::allocation_error())?;
                     edges.insert(identity);
                 }
             }
@@ -535,6 +514,7 @@ where
                     if edges.len() + calls.len() == limit {
                         return Err(bound());
                     }
+                    calls.try_reserve(1).map_err(|_| super::allocation_error())?;
                     calls.insert(identity);
                 }
             }

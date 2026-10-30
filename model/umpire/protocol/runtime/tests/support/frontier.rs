@@ -1,6 +1,7 @@
 //! Independent partial-observation countdown fixture shared by native and guest controls.
 #![forbid(unsafe_code)]
 
+use std::{cell::Cell, rc::Rc};
 use umpire_dsl::{Machine, Steps};
 use umpire_runtime::{
     Evidence, EvidenceMatch, Projection, ReachTarget, Realize, Runtime, Scope, prost_types::Any,
@@ -11,6 +12,7 @@ pub(crate) const RENEW: u8 = 50;
 pub(crate) const GLOBAL: u8 = 51;
 pub(crate) const LOCAL: u8 = 52;
 pub(crate) const GLOBAL_POLL: u8 = 53;
+pub(crate) const OPAQUE: u8 = 54;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub(crate) enum Phase {
@@ -53,7 +55,15 @@ impl std::fmt::Display for Action {
         write!(out, "{self:?}")
     }
 }
-pub(crate) struct World;
+#[derive(Clone, Copy, Default, PartialEq, Eq)]
+pub(crate) enum Law {
+    #[default]
+    Standard,
+    ErasedGlobalOnRenew,
+    LocalWinsTie,
+}
+#[derive(Default)]
+pub(crate) struct World(pub(crate) Law);
 impl Machine for World {
     type State = State;
     type Action = Action;
@@ -76,12 +86,18 @@ impl Machine for World {
         let (outcome, facts) = match action {
             Action::Renew => {
                 next.local = 2;
+                if self.0 == Law::ErasedGlobalOnRenew {
+                    next.global = 3;
+                }
                 (Outcome::Renewed, vec![Emission::Renewed])
             }
             Action::Tick => {
                 next.global -= 1;
                 next.local -= 1;
-                if next.global == 0 {
+                if self.0 == Law::LocalWinsTie && next.local == 0 && next.pending {
+                    next.phase = Phase::PendingClosed;
+                    (Outcome::PendingClosed, vec![Emission::FactLocal])
+                } else if next.global == 0 {
                     next.phase = Phase::GlobalClosed;
                     (Outcome::GlobalClosed, vec![Emission::FactGlobal])
                 } else if next.local == 0 && next.pending {
@@ -109,14 +125,22 @@ pub(crate) enum Fault {
     DivergentRead,
     DivergentPoll,
     DivergentAnswer,
+    ExternalProposal,
+    QuiescentAction,
+    UniformRefusal,
 }
 pub(crate) struct Binding {
     pub(crate) scope: Scope,
     pub(crate) fault: Fault,
+    pub(crate) prior_calls: Option<Rc<Cell<usize>>>,
 }
 impl Default for Binding {
     fn default() -> Self {
-        Self { scope: Scope { depth: 4, work: 4096, prefix: 128 }, fault: Fault::None }
+        Self {
+            scope: Scope { depth: 4, work: 4096, prefix: 128 },
+            fault: Fault::None,
+            prior_calls: None,
+        }
     }
 }
 impl umpire_runtime::capability::Identity for Binding {
@@ -138,6 +162,21 @@ impl umpire_runtime::capability::Snapshot<World> for Binding {
         actual: &Any,
         _: &State,
     ) -> Result<Projection<Action, Outcome, Target>, protocol::Refusal> {
+        if super::payload(actual)? == OPAQUE {
+            if let Some(calls) = &self.prior_calls {
+                calls.set(calls.get() + 1);
+            }
+            return Ok(Projection::steps([
+                vec![
+                    umpire_runtime::Transition { action: Action::Tick, choice: 0 },
+                    umpire_runtime::Transition { action: Action::Tick, choice: 0 },
+                ],
+                vec![
+                    umpire_runtime::Transition { action: Action::Tick, choice: 0 },
+                    umpire_runtime::Transition { action: Action::Renew, choice: 0 },
+                ],
+            ]));
+        }
         let phase = match super::payload(actual)? {
             RENEW => Phase::Active,
             GLOBAL | GLOBAL_POLL => Phase::GlobalClosed,
@@ -202,6 +241,18 @@ impl umpire_runtime::capability::ReplyPolicy<World> for Binding {
         state: &State,
         _: u64,
     ) -> Result<umpire_runtime::Proposal<Action>, protocol::Refusal> {
+        if self.fault == Fault::UniformRefusal {
+            return Err(protocol::Refusal::unsupported("uniform countdown refusal"));
+        }
+        if state.global != 3
+            && (self.fault == Fault::ExternalProposal
+                || (self.fault == Fault::QuiescentAction && state.phase == Phase::Active))
+        {
+            return Ok(umpire_runtime::Proposal::Action {
+                action: Action::Renew,
+                request: super::any(RENEW),
+            });
+        }
         if state.phase != Phase::Active {
             return Err(protocol::Refusal::new(
                 protocol::RefusalCode::Quiescent,
@@ -246,5 +297,5 @@ impl umpire_runtime::capability::ReplyPolicy<World> for Binding {
 }
 impl Realize<World> for Binding {}
 pub(crate) fn runtime() -> Runtime<World, Binding> {
-    Runtime::new(World, Binding::default())
+    Runtime::new(World::default(), Binding::default())
 }

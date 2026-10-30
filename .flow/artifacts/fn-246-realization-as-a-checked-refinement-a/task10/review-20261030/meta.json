@@ -1,0 +1,81 @@
+{
+  "type": "impl_review_fanout",
+  "focus": "Bounded compatible whole-prefix frontier, core source e93935db5c, fixed head0fc1c59229. Review deeply correctness of retained fullstates/typed Rc facts/outcomes, immutable actualcall journal vs branchcursors/cuts, suspended Traversal work, canonicalpast changing while earlierreports stay immutable, exactpriorobservations/facts/proposals/callbackorder; branchwide proposal/reply/read/finality decisions and atomicpublicationrollback, globalhistory/work/depthbudget and completeexhaustionUnexplained. Reuses shared checker Traversal fallible pending-position mapping, no arbitrary Machine Clone bounds. Generic global3/local2 pending renewal fixture must preserve [Renew] and [Tick,Renew], laterexactGlobal chooses changedpast and exactLocal alternate. Native72runtime,4checker,16Kettle,strictalltargetClippy and actualGo/nativeguestfrontier+Kettleparity pass; complete genericGo suite/vet pending refresh. Real WASM caught new stdHashSet RandomState forbidden random_get; fixed deterministic hasher, rejectedoldguest+old/newimportinventory preserved, sixpermitted newimports, hostpolicy unchanged. Review-preflight artifacts include exactsourcehashes+actualguestfiles. CurrentjoinedTemporalguest publication/freshness will follow merged activity/retirement boundary and is not yet claimed; root will not close without finalproof. Fullspec integrated live/TLC umbrella belongs .246.6, broadmodel gates owner-deferred254.8. No schema/APIpolicy relaxation.",
+  "claim_token": null,
+  "id": "fn-246-realization-as-a-checked-refinement-a.10",
+  "standalone": false,
+  "base_branch": "36a03b6b81",
+  "reviewed_base_sha": "9212a1caed2cf82c0cd790c1e3ffafdbe4345b8e",
+  "reviewed_head_sha": "0fc1c59229eb9ed21b99b865e672d694a3a8c367",
+  "artifact_sha256": "0045dd21a24e91dc7140cf877f7f240954d3d3d45487c381a28842d80c58ca0f",
+  "reservation_id": "49c41bbbafd74403ab7f0a563f1fd495",
+  "rid": "49c41bbbafd74403ab7f0a563f1fd495",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "4c85aa57-2e02-4156-b91a-bb2d782754c6",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-30T04:07:22.230600Z",
+      "finished_at": "2026-10-30T04:17:06.565288Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/review-fanout/49c41bbbafd74403ab7f0a563f1fd495/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/review-fanout/49c41bbbafd74403ab7f0a563f1fd495/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "61fc17c6-5818-4119-99cb-e7c2e3e9a1f0",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-30T04:07:22.230769Z",
+      "finished_at": "2026-10-30T04:14:55.497244Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/review-fanout/49c41bbbafd74403ab7f0a563f1fd495/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/review-fanout/49c41bbbafd74403ab7f0a563f1fd495/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "bca10ea1-7c3d-494b-82a8-cf6f1c7c89bc",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-30T04:07:22.230895Z",
+      "finished_at": "2026-10-30T04:15:38.393732Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/review-fanout/49c41bbbafd74403ab7f0a563f1fd495/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/review-fanout/49c41bbbafd74403ab7f0a563f1fd495/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-021a713ca9d5-fn-246-realization-as-a-checked-refinement-a.10.json",
+  "created_at": "2026-10-30T04:17:06.762374Z"
+}

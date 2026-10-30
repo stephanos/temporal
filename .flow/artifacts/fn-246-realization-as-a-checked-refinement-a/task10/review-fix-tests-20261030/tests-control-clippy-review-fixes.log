@@ -1,0 +1,7 @@
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model/umpire/front)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model/umpire/protocol/runtime)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model/umpire/author/dsl/macros)
+    Checking umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model/umpire/author/dsl)
+    Checking umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model/umpire/backends/native)
+    Checking umpire-control-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model/umpire/protocol/runtime/guests/control)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.68s

@@ -3,7 +3,7 @@
 
 use crate::support::{
     any,
-    frontier::{self, Binding, Fault, GLOBAL, LOCAL, RENEW, World},
+    frontier::{self, Binding, Fault, GLOBAL, LOCAL, Law, OPAQUE, RENEW, World},
 };
 use prost::Message as _;
 use umpire_dsl::Machine as _;
@@ -39,20 +39,20 @@ fn countdown_global_and_local_expiry_require_distinct_compatible_pasts() {
 #[test]
 fn countdown_fixture_global_wins_ties_and_emits_the_exact_expiry_fact() {
     use frontier::{Action, Emission, Outcome, Phase};
-    let mut state = World.starts().remove(0);
+    let mut state = World::default().starts().remove(0);
     for action in [Action::Tick, Action::Renew, Action::Tick] {
-        state = World.step(&state, action).remove(0).2;
+        state = World::default().step(&state, action).remove(0).2;
     }
     assert_eq!((state.global, state.local), (1, 1));
-    let (outcome, facts, state) = World.step(&state, Action::Tick).remove(0);
+    let (outcome, facts, state) = World::default().step(&state, Action::Tick).remove(0);
     assert_eq!(outcome, Outcome::GlobalClosed);
     assert_eq!(facts, [Emission::FactGlobal]);
     assert_eq!(state.phase, Phase::GlobalClosed);
-    let mut state = World.starts().remove(0);
+    let mut state = World::default().starts().remove(0);
     for action in [Action::Renew, Action::Tick] {
-        state = World.step(&state, action).remove(0).2;
+        state = World::default().step(&state, action).remove(0).2;
     }
-    let (outcome, facts, state) = World.step(&state, Action::Tick).remove(0);
+    let (outcome, facts, state) = World::default().step(&state, Action::Tick).remove(0);
     assert_eq!(outcome, Outcome::PendingClosed);
     assert_eq!(facts, [Emission::FactLocal]);
     assert_eq!(state.phase, Phase::PendingClosed);
@@ -105,7 +105,7 @@ fn countdown_finite_bounds_refuse_deterministically_and_preserve_the_frontier() 
         Scope { depth: 4, work: 1, prefix: 128 },
         Scope { depth: 4, work: 4096, prefix: 1 },
     ] {
-        let mut runtime = Runtime::new(World, Binding { scope, ..Binding::default() });
+        let mut runtime = Runtime::new(World::default(), Binding { scope, ..Binding::default() });
         let request = protocol::JudgeRequest { observation: Some(any(RENEW)) }.encode_to_vec();
         let first = runtime.dispatch(protocol::Method::Judge as u32, &request);
         // A short witness may publish while compatible longer work remains retained.
@@ -193,8 +193,10 @@ fn countdown_read_policy_cannot_choose_an_arbitrary_hidden_budget() {
 
 #[test]
 fn countdown_finality_cannot_depend_on_an_arbitrary_hidden_budget() {
-    let mut runtime =
-        Runtime::new(World, Binding { fault: Fault::DivergentPoll, ..Binding::default() });
+    let mut runtime = Runtime::new(
+        World::default(),
+        Binding { fault: Fault::DivergentPoll, ..Binding::default() },
+    );
     let proposal = runtime.dispatch(protocol::Method::Propose as u32, &[]);
     assert!(matches!(proposal.outcome, Some(protocol::response::Outcome::Propose(_))));
     let first = protocol::JudgeRequest { observation: Some(any(RENEW)) }.encode_to_vec();
@@ -235,4 +237,98 @@ fn countdown_callback_reply_cannot_choose_an_arbitrary_hidden_budget() {
         runtime.dispatch(protocol::Method::Judge as u32, &later).explanation().steps,
         ["Tick", "Renew", "Tick", "Tick"]
     );
+}
+
+#[test]
+fn closed_canonical_and_active_alternative_must_agree_before_quiescent_proposal() {
+    for fault in [Fault::ExternalProposal, Fault::QuiescentAction] {
+        let mut runtime = Runtime::new(World::default(), Binding { fault, ..Binding::default() });
+        let opaque = protocol::JudgeRequest { observation: Some(any(OPAQUE)) }.encode_to_vec();
+        let first = runtime.dispatch(protocol::Method::Judge as u32, &opaque).explanation();
+        assert_eq!(first.steps, ["Tick", "Tick"]);
+        assert_eq!(first.outcomes, ["Advanced", "PendingClosed"]);
+        let immutable = first.encode_to_vec();
+        for _ in 0..2 {
+            let refused = runtime
+                .dispatch(protocol::Method::Propose as u32, &[])
+                .refusal(protocol::RefusalCode::State);
+            assert!(refused.message.contains("disagree"));
+        }
+        assert_eq!(first.encode_to_vec(), immutable);
+    }
+}
+
+#[test]
+fn erased_budget_and_weakened_global_priority_models_lose_the_real_global_continuation() {
+    for (law, accepts_global) in
+        [(Law::Standard, true), (Law::ErasedGlobalOnRenew, false), (Law::LocalWinsTie, false)]
+    {
+        let mut runtime = Runtime::new(World(law), Binding::default());
+        let renew = protocol::JudgeRequest { observation: Some(any(RENEW)) }.encode_to_vec();
+        assert_eq!(
+            runtime.dispatch(protocol::Method::Judge as u32, &renew).explanation().steps,
+            ["Renew"]
+        );
+        let global = protocol::JudgeRequest { observation: Some(any(GLOBAL)) }.encode_to_vec();
+        let response = runtime.dispatch(protocol::Method::Judge as u32, &global);
+        if accepts_global {
+            assert_eq!(response.explanation().steps, ["Tick", "Renew", "Tick", "Tick"]);
+        } else {
+            response.unexplained();
+        }
+    }
+}
+
+#[test]
+fn countdown_history_ceiling_does_not_eagerly_allocate_its_unused_capacity() {
+    let mut guest = Guest::new(Runtime::new(
+        World::default(),
+        Binding {
+            scope: Scope { prefix: usize::MAX, ..Binding::default().scope },
+            ..Binding::default()
+        },
+    ));
+    assert_eq!(guest.judge(any(RENEW)).explanation().steps, ["Renew"]);
+    assert_eq!(guest.judge(any(GLOBAL)).explanation().steps, ["Tick", "Renew", "Tick", "Tick"]);
+}
+
+#[test]
+fn countdown_uniform_policy_refusal_is_preserved_across_hidden_budgets() {
+    let mut runtime = frontier::runtime();
+    let renew = protocol::JudgeRequest { observation: Some(any(RENEW)) }.encode_to_vec();
+    runtime.dispatch(protocol::Method::Judge as u32, &renew).explanation();
+    runtime.replace_realization(Binding { fault: Fault::UniformRefusal, ..Binding::default() });
+    for _ in 0..2 {
+        let refused = runtime
+            .dispatch(protocol::Method::Propose as u32, &[])
+            .refusal(protocol::RefusalCode::Unsupported);
+        assert_eq!(refused.message, "uniform countdown refusal");
+    }
+    runtime.replace_realization(Binding::default());
+    let global = protocol::JudgeRequest { observation: Some(any(GLOBAL)) }.encode_to_vec();
+    assert_eq!(
+        runtime.dispatch(protocol::Method::Judge as u32, &global).explanation().steps,
+        ["Tick", "Renew", "Tick", "Tick"]
+    );
+}
+
+#[test]
+fn retained_prefix_validation_is_bounded_by_retained_roots_not_each_search_label() {
+    let mut runtime = frontier::runtime();
+    let opaque = protocol::JudgeRequest { observation: Some(any(OPAQUE)) }.encode_to_vec();
+    assert_eq!(
+        runtime.dispatch(protocol::Method::Judge as u32, &opaque).explanation().steps,
+        ["Tick", "Tick"]
+    );
+    let calls = std::rc::Rc::new(std::cell::Cell::new(0));
+    runtime.replace_realization(Binding {
+        prior_calls: Some(std::rc::Rc::clone(&calls)),
+        ..Binding::default()
+    });
+    let global = protocol::JudgeRequest { observation: Some(any(GLOBAL)) }.encode_to_vec();
+    assert_eq!(
+        runtime.dispatch(protocol::Method::Judge as u32, &global).explanation().steps,
+        ["Tick", "Renew", "Tick", "Tick"]
+    );
+    assert_eq!(calls.get(), 3, "one canonical validation plus two retained roots");
 }

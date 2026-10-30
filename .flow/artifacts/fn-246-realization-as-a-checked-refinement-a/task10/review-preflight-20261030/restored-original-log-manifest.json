@@ -1,0 +1,10 @@
+{
+  "tests-go-frontier-final.log": {
+    "sha256": "70cbe4f9e4abacbe00aa4aee8b1130285b387e79cb7370f4dab77fe47a022bde",
+    "bytes": 1568
+  },
+  "tests-go-frontier-deterministic.log": {
+    "sha256": "96a3bd8fea0e44da891df40eab5b3ea38150db56c8542b26b63de3dc596a5660",
+    "bytes": 74
+  }
+}

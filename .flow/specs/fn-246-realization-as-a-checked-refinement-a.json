@@ -14,6 +14,7 @@
   "id": "fn-246-realization-as-a-checked-refinement-a",
   "impl_review_rounds": {
     "fn-246-realization-as-a-checked-refinement-a.1": 0,
+    "fn-246-realization-as-a-checked-refinement-a.10": 0,
     "fn-246-realization-as-a-checked-refinement-a.11": 0,
     "fn-246-realization-as-a-checked-refinement-a.12": 0,
     "fn-246-realization-as-a-checked-refinement-a.13": 0,
@@ -1137,10 +1138,103 @@
       "task": "fn-246-realization-as-a-checked-refinement-a.9",
       "timestamp": "2026-10-30T03:40:00.473219Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "0045dd21a24e91dc7140cf877f7f240954d3d3d45487c381a28842d80c58ca0f",
+      "backend": "claude",
+      "base_sha": "9212a1caed2cf82c0cd790c1e3ffafdbe4345b8e",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3a32d836662f4a4c705c7295b04b7a2a",
+            "classification": "introduced",
+            "findingId": "finding-3a32d836662f4a4c705c7295b04b7a2a",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-dab8b817877f797a217af8206efdef44",
+            "classification": "introduced",
+            "findingId": "finding-dab8b817877f797a217af8206efdef44",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-883a4697277a62161678b5c85e62e9c8",
+            "classification": "introduced",
+            "findingId": "finding-883a4697277a62161678b5c85e62e9c8",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ac6f008f135d174e516124676c1e71e7",
+            "classification": "introduced",
+            "findingId": "finding-ac6f008f135d174e516124676c1e71e7",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-24cf9c557ce8fbdda80f7a55477a5375",
+            "classification": "introduced",
+            "findingId": "finding-24cf9c557ce8fbdda80f7a55477a5375",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e449ac99c179ce98e48b36e4b7960e55",
+            "classification": "introduced",
+            "findingId": "finding-e449ac99c179ce98e48b36e4b7960e55",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-964e80f7b666470d3e1682121bc2851a",
+            "classification": "introduced",
+            "findingId": "finding-964e80f7b666470d3e1682121bc2851a",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0fc1c59229eb9ed21b99b865e672d694a3a8c367",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3632,
+      "output_sha256": "501f13ae40ef054538f0975b372661470c3a45ddd574039653386ff77c398fbe",
+      "reservation_id": "49c41bbbafd74403ab7f0a563f1fd495",
+      "round_consumed": true,
+      "scope": "impl:fn-246-realization-as-a-checked-refinement-a.10",
+      "superseded_by": null,
+      "task": "fn-246-realization-as-a-checked-refinement-a.10",
+      "timestamp": "2026-10-30T04:20:36.156387Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-246-realization-as-a-checked-refinement-a.1": 1,
+    "impl:fn-246-realization-as-a-checked-refinement-a.10": 1,
     "impl:fn-246-realization-as-a-checked-refinement-a.11": 2,
     "impl:fn-246-realization-as-a-checked-refinement-a.12": 2,
     "impl:fn-246-realization-as-a-checked-refinement-a.13": 2,
@@ -1156,6 +1250,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-246-realization-as-a-checked-refinement-a.1": 0,
+    "impl:fn-246-realization-as-a-checked-refinement-a.10": 0,
     "impl:fn-246-realization-as-a-checked-refinement-a.11": 0,
     "impl:fn-246-realization-as-a-checked-refinement-a.12": 0,
     "impl:fn-246-realization-as-a-checked-refinement-a.13": 0,
@@ -1180,5 +1275,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-30T03:40:00.478205Z"
+  "updated_at": "2026-10-30T04:20:36.166320Z"
 }

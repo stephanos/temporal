@@ -53,7 +53,8 @@ impl<S> ReachTarget<S> for NoTarget {
     }
 }
 
-/// A compatibility target admitted by the bounded frontier runtime.
+/// Compatibility name retained for callers of the former singleton runtime.
+/// Every `ReachTarget` is admitted by the bounded frontier runtime.
 pub trait SingletonTarget<S>: ReachTarget<S> {}
 
 impl<S, T: ReachTarget<S>> SingletonTarget<S> for T {}
@@ -65,6 +66,8 @@ mod frontier;
 #[derive(Clone, Copy)]
 pub struct Scope {
     /// Maximum transitions in one Reach path.
+    /// Compatible work cut by this bound remains unresolved until Reset;
+    /// decisions requiring all branches then refuse with Budget.
     pub depth: usize,
     /// Maximum search labels, checked actions and examined emitted choices.
     pub work: usize,
@@ -135,7 +138,8 @@ pub enum Projection<A, O = umpire_dsl::Outcome, T = NoTarget> {
     Stutter(T),
     /// The observation positively matches the current state.
     Current,
-    /// Candidate nonempty paths; none matching is an unexplained observation.
+    /// Compatible nonempty paths, retained in written order when they replay.
+    /// The first matching path is canonical; none matching is unexplained.
     Candidates(Vec<Candidate<A, O>>),
 }
 
@@ -145,7 +149,7 @@ impl<A, O, T> Projection<A, O, T> {
         Self::steps([vec![action.into()]])
     }
 
-    /// Proposes paths in order, accepting any final outcome.
+    /// Retains every replaying path, preferring written order for the canonical witness.
     pub fn steps(paths: impl IntoIterator<Item = Vec<Transition<A>>>) -> Self {
         Self::Candidates(paths.into_iter().map(|path| Candidate { path, outcome: None }).collect())
     }
@@ -169,6 +173,7 @@ impl<A> AnswerPlan<A> {
 }
 
 /// A realization-selected external request, checked against the Model before publication.
+#[derive(PartialEq)]
 pub enum Proposal<A> {
     /// One enabled external Model action, without committing its step.
     Action {
@@ -187,6 +192,13 @@ pub enum Proposal<A> {
         /// Fully filled admission request.
         request: Any,
     },
+}
+
+#[derive(PartialEq)]
+struct ProposalDecision<A> {
+    external: bool,
+    action_enabled: bool,
+    proposal: Result<Proposal<A>, protocol::Refusal>,
 }
 
 /// Assembly of the required typed capabilities for one declared World.
@@ -345,10 +357,7 @@ enum EventKind<M: Machine> {
     Unexplained(Any),
 }
 
-impl<M: Machine, R: Realize<M>> Runtime<M, R>
-where
-    R::Target: SingletonTarget<M::State>,
-{
+impl<M: Machine, R: Realize<M>> Runtime<M, R> {
     /// Creates a private run. Stateful calls refuse zero or multiple declared starts.
     pub fn new(machine: M, realization: R) -> Self {
         let state = unique_start(&machine).ok();
@@ -591,31 +600,22 @@ where
                 "run frozen or proposal pending until final Judge or Reset",
             ));
         }
+        self.validate_prefix()?;
         let frontier = self.resolved_frontier()?;
         let current = self.current()?;
-        let mut external = false;
-        if self.admitted {
-            for action in self.catalog()? {
-                if !self.machine.internal(&action)
-                    && !self.checked_step(current, action)?.is_empty()
-                {
-                    external = true;
-                    break;
-                }
-            }
-        }
-        let proposal = if self.admitted {
-            Realize::propose(&self.realization, &self.machine, current, seed)
-        } else {
-            Realize::bootstrap(&self.realization, &self.machine, current, seed)
-        };
-        if self.admitted && !external && !matches!(proposal, Ok(Proposal::Read { .. })) {
+        let decision = self.proposal_decision(current, seed)?;
+        self.check_proposal_decisions(&frontier, seed, &decision)?;
+        if self.admitted
+            && !decision.external
+            && !matches!(decision.proposal, Ok(Proposal::Read { .. }))
+        {
             return Err(protocol::Refusal::new(
                 protocol::RefusalCode::Quiescent,
                 "no enabled external action",
             ));
         }
-        let (request, action, kind, pending_action) = match proposal? {
+
+        let (request, action, kind, pending_action) = match decision.proposal? {
             Proposal::Action { action, request } => {
                 if !self.admitted
                     || !self.catalog()?.contains(&action)
@@ -652,7 +652,6 @@ where
             return Err(protocol::Refusal::malformed("proposal request type is missing"));
         }
         retainable(&request)?;
-        self.validate_prefix()?;
         let prefix = self.extend_prefix(
             current.clone(),
             Vec::new(),
@@ -665,7 +664,6 @@ where
         )?;
         let response =
             protocol::ProposeResponse { request: Some(request.clone()), action, kind: kind as i32 };
-        self.check_proposals(&frontier, seed, pending_action.as_ref(), &response)?;
         Ok((
             protocol::response::Outcome::Propose(response),
             Some(Transaction {
@@ -986,6 +984,37 @@ where
         })
     }
 
+    fn proposal_decision(
+        &self,
+        state: &M::State,
+        seed: u64,
+    ) -> Result<ProposalDecision<M::Action>, protocol::Refusal> {
+        let mut external = false;
+        if self.admitted {
+            for action in self.catalog()? {
+                if !self.machine.internal(&action) && !self.checked_step(state, action)?.is_empty()
+                {
+                    external = true;
+                    break;
+                }
+            }
+        }
+        let proposal = if self.admitted {
+            Realize::propose(&self.realization, &self.machine, state, seed)
+        } else {
+            Realize::bootstrap(&self.realization, &self.machine, state, seed)
+        };
+        let action_enabled = if let Ok(Proposal::Action { action, .. }) = &proposal {
+            self.admitted
+                && self.catalog()?.contains(action)
+                && !self.machine.internal(action)
+                && !self.checked_step(state, action.clone())?.is_empty()
+        } else {
+            true
+        };
+        Ok(ProposalDecision { external, action_enabled, proposal })
+    }
+
     fn valid_proposal(
         &self,
         state: &M::State,
@@ -1083,7 +1112,6 @@ where
 impl<M: Machine, R: Realize<M>> Dispatch for Runtime<M, R>
 where
     M::Outcome: PartialEq,
-    R::Target: SingletonTarget<M::State>,
 {
     type Transaction = Transaction<M>;
 

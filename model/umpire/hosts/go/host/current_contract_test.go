@@ -2,6 +2,7 @@ package host
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -52,6 +53,11 @@ func TestCurrentContractNativeWasmPublishedResponsesAgree(t *testing.T) {
 					t.Fatal(err)
 				}
 				got, err := host.Call(context.Background(), modelv1.Method(method), request)
+				var refusal *RefusalError
+				if errors.As(err, &refusal) {
+					got = &modelv1.Response{Outcome: &modelv1.Response_Refusal{Refusal: &modelv1.Refusal{Code: refusal.Code, Message: refusal.Message}}}
+					err = nil
+				}
 				if err != nil {
 					t.Fatalf("call %d: %v", index, err)
 				}
