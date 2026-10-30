@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"fmt"
 	"slices"
 	"testing"
 
@@ -81,9 +82,11 @@ func TestWholePrefixRecordingWithCallbacksAndCurrent(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if replayed.GetVerdict().GetRefused() == nil {
-				t.Fatalf("mutant replayed: %v", replayed)
+			event := uint64(10)
+			if name == "wrong earlier prefix" {
+				event = 6
 			}
+			requireRefused(t, replayed, event, fmt.Sprintf("replay: event %d differs", event))
 		})
 	}
 	if string(before) != string(mustMarshal(t, run)) {

@@ -136,13 +136,12 @@ fn positive_current_revalidates_every_earlier_actual_observation() {
 }
 
 #[test]
-fn latest_witness_retains_callback_and_proposal_order_without_changing_prior_reports() {
+fn latest_witness_retains_callback_and_proposal_order() {
     let mut guest = Guest::new(run(64));
     guest.reset(None);
     let initial = guest.judge(any(0)).explanation();
     assert_eq!(initial.steps, [] as [String; 0]);
     assert_eq!(initial.outcomes, [] as [String; 0]);
-    let mut reports = vec![(initial.clone(), initial.encode_to_vec())];
 
     let answer = umpire_runtime::testing::GuestExt::call(
         &mut guest,
@@ -156,7 +155,6 @@ fn latest_witness_retains_callback_and_proposal_order_without_changing_prior_rep
     let delivered = guest.judge(any(1)).explanation();
     assert_eq!(delivered.steps, ["Deliver"]);
     assert_eq!(delivered.outcomes, ["Outcome(1)"]);
-    reports.push((delivered.clone(), delivered.encode_to_vec()));
 
     for (observation, steps, outcomes) in [
         (2, vec!["Deliver", "Respond"], vec!["Outcome(1)", "Outcome(2)"]),
@@ -171,9 +169,5 @@ fn latest_witness_retains_callback_and_proposal_order_without_changing_prior_rep
         let latest = guest.judge(any(observation)).explanation();
         assert_eq!(latest.steps, steps);
         assert_eq!(latest.outcomes, outcomes);
-        for (report, bytes) in &reports {
-            assert_eq!(report.encode_to_vec(), *bytes);
-        }
-        reports.push((latest.clone(), latest.encode_to_vec()));
     }
 }

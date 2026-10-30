@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-246-realization-as-a-checked-refinement-a.9",
+  "verdict": "SHIP",
+  "session_id": "c9ed9315-1446-4447-80fc-910c07de4e19",
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "effort": "high",
+  "spec": "claude:claude-fable-5-1:high",
+  "standalone": false,
+  "review": "All three source reviews returned SHIP. Duplicate protocol-version finding collapsed; raw reviews retained. R1 is partial because frontier/changed past belongs to .10; R5 Model proof belongs to .13/.15 and later integration. Pre-existing unchecked outcome indexing and empty-witness indexing remain outside this change.\n\n## Finding 1\n\n- **Severity**: P3\n- **Title**: Use protocol constant in expected rejection\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `model/umpire/hosts/go/runner/modes_test.go:161`\n- **R-IDs**: []\n- **Problem**: Expected version3 is hardcoded beside ProtocolVersion+1.\n- **Suggestion**: Format the reason using the constant.\n\n## Finding 2\n\n- **Severity**: P3\n- **Title**: Distinguish mutant event rejection\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `model/umpire/hosts/go/runner/prefix_test.go:65`\n- **R-IDs**: []\n- **Problem**: Mutated recording controls prove exact replay; semantic coverage comes from positive expected witnesses and consumer control.\n- **Suggestion**: Assert rejection occurs at the changed event.\n\n## Finding 3\n\n- **Severity**: P3\n- **Title**: Remove vacuous clone immutability assertion\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `model/umpire/protocol/runtime/tests/main/prefix.rs:174`\n- **R-IDs**: []\n- **Problem**: Reencoding owned clones cannot detect runtime mutation; Go recording byte comparison covers immutability meaningfully.\n- **Suggestion**: Remove clone loop and narrow Rust test name.\n\n## Finding 4\n\n- **Severity**: P3\n- **Title**: Make admission reason explicit in table\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `model/umpire/hosts/go/runner/admission_test.go:141`\n- **R-IDs**: []\n- **Problem**: Reason expectation depends on subtest name matching.\n- **Suggestion**: Add explicit wantReason field.\n\nUnaddressed R-IDs: []\n\nClassification counts: 4 introduced, 0 pre_existing.\n\n<verdict>SHIP</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "claude-fable-5-1",
+      "session_id": "c9ed9315-1446-4447-80fc-910c07de4e19",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "claude-fable-5-1",
+      "session_id": "63a54c0f-32da-4c3a-ab5a-d83ab60f836d",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "claude-fable-5-1",
+      "session_id": "65d8d488-2ddf-4a7c-982c-c11ac4cad89d",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": null,
+  "introduced_count": 4,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}

@@ -3,6 +3,7 @@ package runner
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -158,7 +159,7 @@ func TestReplayRejectsAlteredRuns(t *testing.T) {
 		reason string
 	}{
 		{"other model", func(run *Run) { run.ModelHash = strings.Repeat("0", 64) }, 0, "another model"},
-		{"other protocol", func(run *Run) { run.ProtocolVersion = ProtocolVersion + 1 }, 0, "protocol version 3"},
+		{"other protocol", func(run *Run) { run.ProtocolVersion = ProtocolVersion + 1 }, 0, fmt.Sprintf("protocol version %d", ProtocolVersion+1)},
 		{"other world", func(run *Run) { run.World = control(1) }, 0, "recorded world"},
 		{"other seed", func(run *Run) { run.Seed = 9 }, 1, "another seed"},
 		{"missing event", func(run *Run) { run.Events = append(run.Events[:4:4], run.Events[5:]...) }, 4, "out of sequence"},

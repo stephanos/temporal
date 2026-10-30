@@ -1,0 +1,10 @@
+{
+  "reviewed_source_head": "ed931f68c89d8c0a6a493df5fa2309e525359d57",
+  "result": "SHIP",
+  "reviewer": "claude-fable-5-1 high",
+  "implementation_family": "Codex",
+  "review_family": "Claude",
+  "findings": "Four P3 test-only improvements applied after SHIP; no production source changed. Focused Go/Rust tests, vet, strict Clippy and formatting renewed. Original complete proof remains applicable to unchanged production sources.",
+  "scope_limits": "Mutated recording rejection controls prove replay exactness; positive witness expectations and concatenation overlay prove whole-prefix semantics. Rust clone reencoding removed; Go Run byte stability owns immutability. Frontier changed past remains fn246.10.",
+  "merge_note": "Merged confidence for mutant semantic observation and table-name finding was synthesized as100; raw reviewer confidence75 remains authoritative. No verdict changed."
+}

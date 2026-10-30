@@ -115,16 +115,17 @@ func TestCurrentRecordingAdmission(t *testing.T) {
 		t.Fatalf("recording format = %d, want 2", recorded.GetProtocolVersion())
 	}
 	for _, tc := range []struct {
-		name  string
-		alter func(*Run)
+		name       string
+		alter      func(*Run)
+		wantReason string
 	}{
-		{"old format", func(run *Run) { run.ProtocolVersion = 1 }},
+		{"old format", func(run *Run) { run.ProtocolVersion = 1 }, ""},
 		{"missing contract", func(run *Run) {
 			run.Events[0].GetReset_().Response.ProofContract = modelv1.ProofContract_PROOF_CONTRACT_UNSPECIFIED
-		}},
-		{"unknown contract", func(run *Run) { run.Events[0].GetReset_().Response.ProofContract = 99 }},
-		{"missing reset response", func(run *Run) { run.Events[0].GetReset_().Response = nil }},
-		{"other guest", func(run *Run) { run.ModelHash = "other" }},
+		}, "current whole-prefix proof contract"},
+		{"unknown contract", func(run *Run) { run.Events[0].GetReset_().Response.ProofContract = 99 }, "current whole-prefix proof contract"},
+		{"missing reset response", func(run *Run) { run.Events[0].GetReset_().Response = nil }, "current whole-prefix proof contract"},
+		{"other guest", func(run *Run) { run.ModelHash = "other" }, ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			for _, mode := range []Mode{ModeReplay, ModeQuestion, ModeReduce} {
@@ -138,12 +139,12 @@ func TestCurrentRecordingAdmission(t *testing.T) {
 				if err == nil && run.GetVerdict().GetRefused() == nil {
 					t.Fatalf("%s admitted incompatible record: %v", mode, run)
 				}
-				if strings.Contains(tc.name, "contract") || tc.name == "missing reset response" {
+				if tc.wantReason != "" {
 					reason := run.GetVerdict().GetRefused().GetReason()
 					if err != nil {
 						reason = err.Error()
 					}
-					if !strings.Contains(reason, "current whole-prefix proof contract") {
+					if !strings.Contains(reason, tc.wantReason) {
 						t.Fatalf("%s did not reject the recorded contract at admission: %s", mode, reason)
 					}
 				}
