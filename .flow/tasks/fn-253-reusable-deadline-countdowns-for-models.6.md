@@ -34,9 +34,16 @@ Use fn-246.15's committed retry contract and fn-246.13's approved cancellation c
 - [ ] Pattern form has a README authority and named consuming effects without a dead `.rs` file; shared-module form has an explicit compiled owner/module declaration, generic registration and consumer compile/lift evidence, with a refusal row for misuse.
 
 ## Done summary
-TBD
+Added one named Temporal deadline pattern section to the feature-owned activity README selected by task2. It documents phase arming, Tick priority/single expiry fact, heartbeat reset, retry/global-budget preservation, terminal clearing, cooperative pending Failed/TimedOut outcomes and atomic compatibility. Effective checker Worlds/None remain distinct from raw defaults; protocol semantics stay independently authored. Actual helper/law owners are named; time_out/time_out_attempt/countdown consumer adoption remains task7 and mode removal remains task10. No dead module, project-library registration, framework or Model changes.
 
+Verified8 local targets/fragments,16 helper/claim owners and exact README/Model source hashes; surrounding protocol provenance is unchanged. Pinned API cached files agree byte-for-byte with their archive, origin commit and go.sum; external web fetch returned cache miss and is not claimed successful. Source diff formatting passes.
+
+stage: impl-review - ran (model: claude-fable-5-1 at high); one contracts lens for this single-area documentation-only scope returned SHIP. Stale preparation-handoff Touches sentence corrected to actual root reanchoring; optional direct-public-doc link and preexisting old citation FYIs remain in raw review.
+stage: completion-review - skipped(policy: unfinished spec tasks).
+Gates: conservative classifier reported FULL for nested Model README; owner cadence defers unrelated broad Model gates to fn254.8. Focused documentation/source-link/authority checks passed; no full gate or code-test execution claimed for this doc-only change. Protocol parent was reviewed, closed and integrated before branch refresh/adoption.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 138e293c61, 5457142ad0
+- Tests: README exact source hash and unchanged Model hash checked after integrated protocol refresh, Eight local targets/anchors resolve, sixteen current helper/invariant/postcondition owners verified against Model, Pinned API cached files and archive bytes/hash/origin agree with go.mod/go.sum; external fetch not claimed, git diff --check for documentation and corrected handoff passes, flowctl gate classify --base00ac2429ea:FULL(unmatched nested README); unrelated full gates deferred to fn254.8 by owner policy
 - PRs:
