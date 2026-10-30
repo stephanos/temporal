@@ -432,6 +432,30 @@
       "verification": "Current guest8b9ea;59live rows,275generic Go rows,63runtime tests,both root lint modes,concat red/green. Four P3 test improvements pass focused Go/Rust/vet/strict Clippy/fmt.",
       "attribution": "Historical claim spans several days and pauses. Review durations are observed CLI draw wall time, not worker time or causal parallelism speedup.",
       "deferred": "Changed canonical past/retained frontier .10; full live umbrella remains owning tasks."
+    },
+    {
+      "at": "2026-10-30T04:09:24.611621Z",
+      "type": "verified_task_closure",
+      "task": "fn-256.1",
+      "status": "done",
+      "closure_commit": "d002bbe176",
+      "integration_commit": "78801d1feb",
+      "source_head": "442e068641",
+      "claimed_at": "2026-10-25T22:48:02.182194Z",
+      "done_at": "2026-10-30T04:09:24.611621Z",
+      "claim_to_done_seconds": 364882.429427,
+      "reviews": [
+        {
+          "rid": "ea7fc57e72694037858e01bf460ace76",
+          "result": "SHIP",
+          "axes": 3,
+          "max_draw_seconds": 300.622279
+        }
+      ],
+      "verification": "Four independent dependency inventories, production build,both broadvetmodes,retainedtests,canarybuild/harness,tdbg,actualfastlintandnegativecontrol,currentguest--check; actualcomplete livegate1251umbrella passes after reviewed exactproducer gap renewal.",
+      "source_rework": "Three documentation/header improvements only afterSHIP; canonical snapshotpayload unchanged.",
+      "attribution": "Historical claim includes several days and blocked time; no active worker-time or causal concurrency speedup claim.",
+      "deferred": "Scala-target/pin/archive cleanup .2 and broad current modelgates fn254.8 remain."
     }
   ],
   "measurement_limits": "Source handoffs are work-in-progress, not verified closures. Mixed scope, unknown exact worker times and validation/access blockers prevent a causal concurrency speedup estimate."
