@@ -1,0 +1,21 @@
+{
+  "axis": "correctness",
+  "parse_status": {
+    "status": "parsed",
+    "reason": null,
+    "block": null
+  },
+  "backend": "claude",
+  "model": "claude-fable-5-1",
+  "effort": "high",
+  "session_id": "230c539f-3e07-47f7-91ac-2ce6b20aa2de",
+  "verdict": "SHIP",
+  "failed": false,
+  "failure_class": null,
+  "failure_message": null,
+  "exit_code": 0,
+  "started_at": "2026-10-30T05:06:20.494986Z",
+  "finished_at": "2026-10-30T05:14:39.927708Z",
+  "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/review-fanout/1981ee0eefe34ac89888023df9cf6408/correctness.review.md",
+  "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/review-fanout/1981ee0eefe34ac89888023df9cf6408/correctness.out.txt"
+}

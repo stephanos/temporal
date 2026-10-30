@@ -1,0 +1,39 @@
+{
+  "type": "impl_review_fanout",
+  "focus": "One focused followup after initial3SHIP reviews rid49c41bbbafd74403ab7f0a563f1fd495 with2substantiveP2 fixes applied in d9de1c3009. Fresh head also merges integrated activity1 unchangedbehaviorbaseline. Verify (1) quiescence/externalenable/rawproposal/error/chosenactionenable compared acrossresolvedbranches BEFORE canonicalQuiescent; native+actualGo closedcanonical/Activealternative tests preventTERMINATION_QUIESCENT onarbitrarybranch, uniformrefusalsretainmeaning. (2) prefixrevalidation ONCEperretainedroot, notperpoppedlabel; correctcontextreplacement/earlierfacts retained, countertestexpects3 historicalcalls. Lazyfalliblehistorysets avoidlargeunusedcapacity; deterministichashers andhostpolicy preserved. Currentruntime75main+2capabilities,checker4,controlguest16callnative/wasmtranscript,fullgenericGo284pass71top-level0skips,vet/controlclippy pass; earlierKettle16+fullGo evidence unchanged. AddedrealtransitionModelbudget/globalprioritymutants, notrecording-tamper substitution. NewseparateTemporalfeaturemapping test deadline_frontier_mapping.rs proveslegalStartedglobal3/HB2pendingcancel, directrenewal->Heartbeatfact vsTickRenewal->globaltiefact; defaultnative+strictclippy pass, rootwillrefreshcompiledcheckafterModel1merge. Missingrandom_getnegative/positive logs restoredandportablemanifest. Allrawreviews+fixevidencecommittedtask10/review-20261030+review-fix-tests-20261030. JoinedTemporalproductionguest/freshness stillpendingafterSHIP, no completionclaim. WholeR5TLC/liveumbrella remains .246.6; broadgatesownerdeferred254.8.",
+  "claim_token": null,
+  "id": "fn-246-realization-as-a-checked-refinement-a.10",
+  "standalone": false,
+  "base_branch": "0a2770b81c",
+  "reviewed_base_sha": "0a2770b81cc26a0bc7404a88018290bd4fe1e322",
+  "reviewed_head_sha": "e7d1d21eafef612b5f978eb1ae4340a4be5009bb",
+  "artifact_sha256": "d16a8b7f689a7865ce9f6ad72b01505a921aa8c2e0f87fe6dac7b4a35bcf8ed3",
+  "reservation_id": "1981ee0eefe34ac89888023df9cf6408",
+  "rid": "1981ee0eefe34ac89888023df9cf6408",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "230c539f-3e07-47f7-91ac-2ce6b20aa2de",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-30T05:06:20.494986Z",
+      "finished_at": "2026-10-30T05:14:39.927708Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/review-fanout/1981ee0eefe34ac89888023df9cf6408/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/review-fanout/1981ee0eefe34ac89888023df9cf6408/correctness.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-021a713ca9d5-fn-246-realization-as-a-checked-refinement-a.10.json",
+  "created_at": "2026-10-30T05:14:39.938015Z"
+}
