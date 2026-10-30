@@ -1,6 +1,5 @@
 ---
 source: temporal/testing/fixtures.rs
-assertion_line: 90
 ---
 Case: cancel.request_id::temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest.request_id:string.uuid [expects: Accepts]
 temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest.request_id: string.uuid: Confirmed

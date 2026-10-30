@@ -41,6 +41,6 @@ activity slice through the command.
 ## Checks
 
 ```sh
-go test -tags test_dep ./tools/umpire/... ./common/testing/testpilot/...
+mise exec -- go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire ./tools/umpire/temporaldriver ./common/testing/testpilot/...
 make umpire-check-live-tests
 ```
