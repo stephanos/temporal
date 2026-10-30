@@ -48,13 +48,21 @@ From model/: `UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-temporal
 
 
 ## Done summary
-TBD
+Authored an independent full standalone-activity protocol Model with latent budgets/timers, RPC outcomes, separate terminal/retained failure, neutral snapshot view and exact local-World/parameter schema provenance. Applied only the owner-approved pending worker-failure/local-expiry Failed/TimedOut feature cells; scheduled cancellation, acknowledgement, atomic compatibility and task15 retry semantics remain pinned. No imported-World frontend admission or feature-derived protocol edges.
 
+Renewed required evidence: protocol22 tests across12 complete Worlds (bound4096;432 summed states/2506edges/192 own-law rows),20 source-mutant disagreements, feature policy15 tests across33 Worlds plus exact pending/retry controls, default1 and required complement7. Exact fixture partition covers62active=45required+17mode-independent native, with2inherited ignores unchanged. Shared exact-source agreement unit supplies missing-state/verdict/cut/missing-claim refusal; protocol tests independently refuse wrong World/incomplete/cut/unsupported and changed typed expiry facts. No fabricated protocol-specific TLC state-set mutation is claimed.
+
+Final correction uses public production parameter validators rather than a duplicate test copy; native62, required protocol22, strict focused Clippy/fmt and changed-input guest freshness pass. Protocol World/mutant reports remain byte-identical; feature15+7 evidence reuses82 exact unchanged feature/consumer inputs. Snapshot ownership2 and named adapter1 pass. Current driver reproduces the3,988,325-byte guest/canary hash8b9ea3c0b29ab0b0f727cf083027c9ad9a6886634d8ce8be25a84115e315be50. Protected original lifecycle records remain historical provenance; active checkpoint uses semantic1start/6state/11edge comparison with changed-edge rejection. Pinned API source/archive/origin/go.sum proof retained.
+
+stage: impl-review - ran (model: claude-fable-5-1 at high); initial correctness/contracts/integration SHIP onac7679cb09, then retained parameter-reuse/timing/atomic-doc findings fixed and single contracts follow-up SHIP on8eeb9a85af. Final reviewer-requested README evidence-link correction verified locally; no third review for link-only change.
+stage: completion-review - skipped(policy: unfinished spec tasks).
+Gates: focused required fixtures/ownership/lint/format/guest evidence; broad current-input/combined gates remain fn-254.8. No online binding, native refinement, TLC-refinement, observable-view commutation or full live/gaps proof claimed here; those remain .3/.4, fn237.4 and the named live tasks. Retained .9 source remains unintegrated; code-generation ownership was coordinated by exact guest/runtime declaration inspection without runtime/proto/Go edits.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: aaba137190, 5d8c856521, ac7679cb09, 2ac14b2163, 8eeb9a85af, 8e81e2ba7d
+- Tests: Required protocol22 current-source tests pass:12 finite Worlds,16laws each,20 source mutants; scopes/mutant reports unchanged after production-validator reuse, Required feature policy15 plus default1 and seven-test require-sensitive complement pass; exact62active/2ignored fixture coverage partition retained, Native fixtures62pass; snapshot ownership2pass; named adapter1pass; atomic1/6/11 semantic checkpoint and changed-edge rejection pass, Strict focused umpire-temporal/umpire-temporal-tests all-target Clippy and formatting pass; unsupported timing text removed, Current-driver guest reproduction and changed-input --check pass with unchanged guest/canary8b9ea3 hash, Shared exact-source agreement complete-state/verdict/cut/missing-claim negatives reused from recorded fn253.5 required13-test support run, Final source envelope247primary+101driver/tool sources verified; source refresh retains identical executed fixture binary; final link-only documentation check passes
 - PRs:
-
 ## Approved cancellation correction and parameter boundary (2026-10-26)
 
 The explicit user reply is retained at `.flow/artifacts/fn-246-realization-as-a-checked-refinement-a/task13/planning/approved-api-correction.json`. Amend the independent contract from primary pinned API evidence, correct the feature cancellation cells and author the new protocol independently, then renew native/TLC proofs. Preserve historical evidence rather than rewriting the old chosen-policy artifact. New shared protocol snapshots belong to the snapshot-ownership gate.
