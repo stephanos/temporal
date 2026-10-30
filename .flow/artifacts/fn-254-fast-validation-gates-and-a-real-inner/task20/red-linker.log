@@ -1,0 +1,19 @@
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/guest-driver)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.79s
+     Running tests/main.rs (/home/agent/.cache/codex-build/fn25420-mold/debug/deps/main-f2fa5674b583bda5)
+
+running 1 test
+test linker::linux_linker_is_scoped_and_requires_the_pinned_tool ... FAILED
+
+failures:
+
+---- linker::linux_linker_is_scoped_and_requires_the_pinned_tool stdout ----
+Error: "target settings"
+
+
+failures:
+    linker::linux_linker_is_scoped_and_requires_the_pinned_tool
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 33 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p umpire-guest-driver --test main`

@@ -83,6 +83,25 @@ JSON whitespace, Python TOML quirks, exact old diagnostics and historical guest
 bytes are not compatibility contracts. `RUSTFLAGS` accepts whitespace-separated
 UTF-8 tokens; `CARGO_ENCODED_RUSTFLAGS` preserves raw OS tokens separated by 0x1f.
 
+## Linux host linking
+
+Both workspaces select the framework's `scripts/mold-linker.sh` for
+`aarch64-unknown-linux-gnu` and `x86_64-unknown-linux-gnu`. The adapter resolves
+`github:rui314/mold` from the framework's own mise context, refuses a missing
+`bin/ld.mold`, disables automatic installation and invokes the existing `cc`
+driver with that install's `-B` directory and `-fuse-ld=mold`. Install the pinned
+Linux tool through mise before building. Other target triples keep their default
+linker; no global Rust flags are added. Cross compilation still needs an explicit
+suitable compiler/linker override.
+
+The adapter is needed before native xtask/guest-driver can bootstrap, so it cannot
+be implemented by either executable. Target `linker` configuration also applies
+to host build scripts and proc macros during a WASI build, even though the guest
+driver owns `CARGO_ENCODED_RUSTFLAGS`. WASI units keep their own rust-lld path and
+unwind/build-std settings. The native parity helpers retain `--profile guest`.
+The matched Linux link measurement, actual host-unit inspection and guest/native
+parity control are recorded in [gate-speed.md](design/gate-speed.md).
+
 ## Unwinding on the pinned compiler
 
 The shipped wasm32-wasip1 standard library aborts panics even when a manifest asks

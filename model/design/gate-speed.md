@@ -260,3 +260,62 @@ after integration, record its old/new identities, reproduce committed guest byte
 the new namespace, and renew final combined/standalone checks. Flag inspection does
 not renew that proof. No shared cache was cleaned; the task-owned target remains
 available with its logs and identities preserved.
+
+## Linux linker decision (fn-254.20, 2026-10-29)
+
+Adopt mise-pinned mold 3.0.0 for the aarch64 and x86_64 Linux GNU target triples
+in both workspaces. Only aarch64 execution was available. The Linux-only mise
+entries lock both upstream release assets; Darwin and other target triples retain
+the existing tools/linkers. The framework-local adapter resolves the qualified
+`github:rui314/mold` install from its own tool root, refuses a missing executable,
+and passes the existing cc driver `-B<pinned-install>/bin/ -fuse-ld=mold`.
+It needs to exist before native Rust bootstrap; it adds no global Rust flags or
+second version source. Target `linker` configuration remains effective for host
+units when the guest driver supplies its own encoded WASI flags.
+
+The [retained proof](../../.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task20/proof.json)
+binds the matched measurement and input hashes. Raw logs, scripts, matched linker
+arguments and `measurement.json` remain in `.flow/tmp/fn25420/`. The host was
+Linux/aarch64, rustc 1.99.1, GCC 15.2.0 and GNU ld 2.46, with 12 logical CPUs and
+about 19 GiB RAM. Other lane builds paused for the final measurement; unrelated
+host activity was not controlled. Sccache and Rust compiler wrappers were absent.
+
+The workload was the real dev-profile guest-driver executable. A temporary linker
+capture retained rustc's object inputs, then replayed the same cc arguments with
+only the linker selection and output path changed. Every observation forced a
+real link. Both arms used identical objects, rlibs, profile/features and toolchain;
+one warmup per arm preceded six balanced observations per arm. The mold arm
+includes the adapter's mise lookup cost. Median link wall time was **0.230219 s
+for GNU ld and 0.081408 s for mold** (about 65% lower for this link). All 14 links
+succeeded. ELF `.comment` inspection confirms mold 3.0.0 only in the mold arm.
+This establishes a focused link improvement, with no full-build or gate speedup
+claim. The preparation build and failed experimental attempts are retained
+separately and excluded from that comparison.
+
+Actual framework bootstrap, Temporal tool build and a copied framework-local
+configuration outside the parent repository all linked successfully. The complete
+guest-driver controls passed (5 unit and 34 integration tests), including target
+scope, qualified local mise resolution, spaces/non-UTF-8 arguments, automatic
+installation refusal and missing-tool/missing-executable refusal. Scoped clippy
+and formatting passed.
+
+A stock WASI build with build-std kept the guest's existing panic/unwind,
+optimization, stripping, remaps and rust-lld path. Actual host proc-macro shared
+libraries and build-script ELF binaries from that build contain mold's comment.
+A baseline host-linker build (`CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=cc`)
+and a restored mold build used the same driver/lock/compiler namespace; the host
+units rebuilt, and all 20 inspected host outputs changed back to mold. Their
+portable sidecar identities and host-variant records stayed equal. The stock
+WASM bytes stayed equal at 198,992 bytes, SHA-256
+`4979d134ba8ae6afc4ba79dadc046251afbbf4ca34397ed61af184205a371222`.
+An earlier stock build used a different namespace because the concurrent countdown
+lane added a lockfile entry; it is retained but is not the matched namespace proof.
+
+The native current-contract report helper ran with `--profile guest`; a freshly
+built control WASM matched its published responses through the CGO-disabled Go
+host's current-contract parity test, and stock guest export admission passed.
+These are representative affected controls. Final current-input standalone/full
+gates, committed Temporal guest freshness and combined timings remain task .8.
+No Darwin or x86_64 execution proof is claimed. Linker/pin upgrades require fresh
+host-build and guest reproduction evidence; historical linked artifacts do not
+certify a changed linker.

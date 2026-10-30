@@ -6,6 +6,7 @@ protoc = "29.5"
 scala-cli = "1.17.1"
 java = "temurin-27"
 rust = "1.99.1"
+"github:rui314/mold" = { version = "3.0.0", os = ["linux"] }
 "github:nextest-rs/nextest" = { version = "0.9.149", version_prefix = "cargo-nextest-" }
 
 [task_config]

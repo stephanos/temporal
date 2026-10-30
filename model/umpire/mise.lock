@@ -51,3 +51,18 @@ checksum = "sha256:bf904b85c7c5c2a29c340053a8d9d8e8027ff0d55a2bf7cef7d23032f8166
 url = "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-0.9.149/cargo-nextest-0.9.149-x86_64-pc-windows-msvc.zip"
 url_api = "https://api.github.com/repos/nextest-rs/nextest/releases/assets/660828894"
 provenance = "github-attestations"
+
+[[tools."github:rui314/mold"]]
+version = "3.0.0"
+backend = "github:rui314/mold"
+specifiers = ["3.0.0"]
+
+[tools."github:rui314/mold"."platforms.linux-arm64"]
+checksum = "sha256:52c759d3689babaea4c42af2f31062a74ab83e17ffb5a8090232534c67b70577"
+url = "https://github.com/rui314/mold/releases/download/v3.0.0/mold-3.0.0-aarch64-linux.tar.gz"
+url_api = "https://api.github.com/repos/rui314/mold/releases/assets/612121952"
+
+[tools."github:rui314/mold"."platforms.linux-x64"]
+checksum = "sha256:6c90d4a474c7c0409dfb575be03a5345878ac14fdba18de8b40fa58c60121189"
+url = "https://github.com/rui314/mold/releases/download/v3.0.0/mold-3.0.0-x86_64-linux.tar.gz"
+url_api = "https://api.github.com/repos/rui314/mold/releases/assets/612122001"
