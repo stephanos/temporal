@@ -1,0 +1,1085 @@
+{
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.19",
+  "observed_at_utc": "2026-10-30T00:41:34.880923+00:00",
+  "verdict": "unsupported-required-cross-checkout-rust-normalization",
+  "integration_status": "not implemented; no sccache pins or production wrappers changed",
+  "repository_head": "f16a22ce92ba71a57728d5190c572750b742a3e7",
+  "tool": {
+    "path": "/home/agent/.local/share/mise/installs/sccache/0.19.0/sccache-v0.19.0-aarch64-unknown-linux-musl/sccache",
+    "version": "sccache 0.19.0",
+    "sha256": "c192919f21426298532538710488c6c2f0784516ee8b34bb971fb003963526b4"
+  },
+  "compiler": {
+    "path": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc",
+    "resolution_command": [
+      "mise",
+      "-C",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+      "exec",
+      "--",
+      "rustup",
+      "which",
+      "rustc"
+    ],
+    "version": "rustc 1.99.1 (58cf8f9c3 2026-10-13)\nbinary: rustc\ncommit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67\ncommit-date: 2026-10-13\nhost: aarch64-unknown-linux-gnu\nrelease: 1.99.1\nLLVM version: 23.1.1",
+    "sha256": "08383c36a0893aa8bb95fd43ee4616b112a5b20a181683192ca4130c3d3d603c"
+  },
+  "upstream_rust_source": {
+    "url": "https://raw.githubusercontent.com/mozilla/sccache/v0.19.0/src/compiler/rust.rs",
+    "sha256": "128ef5eb2e89dc3ab69ec810e68ab271169b3a74e711fa80023e0578f90aa4eb",
+    "observed_lines": {
+      "arguments_normalization_todo": 1790,
+      "cargo_environment_hashing": 1860,
+      "physical_cwd_hashing": 1879
+    }
+  },
+  "initial_control": {
+    "tool": "/home/agent/.local/share/mise/installs/sccache/0.19.0/sccache-v0.19.0-aarch64-unknown-linux-musl/sccache",
+    "rustc": "/home/agent/.cargo/bin/rustc",
+    "env": {
+      "SCCACHE_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/cache",
+      "SCCACHE_CONF": "/dev/null",
+      "SCCACHE_MULTILEVEL_CHAIN": "disk",
+      "SCCACHE_SERVER_UDS": "/tmp/umpire-fn25419-proof.sock",
+      "SCCACHE_BASEDIRS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/checkout-a:/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/checkout-b",
+      "CARGO_INCREMENTAL": "0"
+    },
+    "results": [
+      {
+        "checkout": "checkout-a",
+        "command": [
+          "/home/agent/.local/share/mise/installs/sccache/0.19.0/sccache-v0.19.0-aarch64-unknown-linux-musl/sccache",
+          "/home/agent/.cargo/bin/rustc",
+          "--crate-name",
+          "cache_control",
+          "--crate-type",
+          "lib",
+          "--emit=link,dep-info",
+          "--out-dir",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/checkout-a/out0",
+          "lib.rs",
+          "-C",
+          "debuginfo=1"
+        ],
+        "wall_seconds": 23.807790011999714,
+        "status": 0,
+        "stderr": "",
+        "stats": {
+          "stats": {
+            "compile_requests": 1,
+            "requests_unsupported_compiler": 0,
+            "requests_not_compile": 0,
+            "requests_not_cacheable": 0,
+            "requests_executed": 1,
+            "cache_errors": {
+              "counts": {},
+              "adv_counts": {}
+            },
+            "cache_hits": {
+              "counts": {},
+              "adv_counts": {}
+            },
+            "cache_misses": {
+              "counts": {
+                "Rust": 1
+              },
+              "adv_counts": {
+                "rust": 1
+              }
+            },
+            "cache_timeouts": 0,
+            "cache_read_errors": 0,
+            "non_cacheable_compilations": 0,
+            "forced_recaches": 0,
+            "cache_write_errors": 0,
+            "cache_writes": 1,
+            "cache_write_duration": {
+              "secs": 0,
+              "nanos": 856042
+            },
+            "cache_read_hit_duration": {
+              "secs": 0,
+              "nanos": 0
+            },
+            "compilations": 1,
+            "compiler_write_duration": {
+              "secs": 0,
+              "nanos": 84184375
+            },
+            "compile_fails": 0,
+            "not_cached": {},
+            "dist_compiles": {},
+            "dist_errors": 0,
+            "multi_level": [
+              {
+                "name": "L0 (disk)",
+                "location": "Local disk: \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/cache\"",
+                "hits": 0,
+                "misses": 1,
+                "writes": 1,
+                "write_failures": 0,
+                "backfills_from": 0,
+                "backfills_to": 0,
+                "hit_duration": {
+                  "secs": 0,
+                  "nanos": 0
+                },
+                "write_duration": {
+                  "secs": 0,
+                  "nanos": 821250
+                }
+              }
+            ]
+          },
+          "cache_location": "Multi-level (1 levels)",
+          "cache_size": 5033,
+          "max_cache_size": 10737418240,
+          "use_preprocessor_cache_mode": true,
+          "version": "0.19.0",
+          "basedirs": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/checkout-a/",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/checkout-b/"
+          ],
+          "effective_cache_mode": "ReadWrite"
+        },
+        "wall_time_scope": "compiler command plus statistics query; first run includes initial daemon/compiler preparation",
+        "source_sha256": "4e92a128107a07131a5b8ebe412161015bc5f4d0202483e71aeb7d8899d4dd7b"
+      },
+      {
+        "checkout": "checkout-b",
+        "command": [
+          "/home/agent/.local/share/mise/installs/sccache/0.19.0/sccache-v0.19.0-aarch64-unknown-linux-musl/sccache",
+          "/home/agent/.cargo/bin/rustc",
+          "--crate-name",
+          "cache_control",
+          "--crate-type",
+          "lib",
+          "--emit=link,dep-info",
+          "--out-dir",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/checkout-b/out1",
+          "lib.rs",
+          "-C",
+          "debuginfo=1"
+        ],
+        "wall_seconds": 0.3999452919997566,
+        "status": 0,
+        "stderr": "",
+        "stats": {
+          "stats": {
+            "compile_requests": 2,
+            "requests_unsupported_compiler": 0,
+            "requests_not_compile": 0,
+            "requests_not_cacheable": 0,
+            "requests_executed": 2,
+            "cache_errors": {
+              "counts": {},
+              "adv_counts": {}
+            },
+            "cache_hits": {
+              "counts": {},
+              "adv_counts": {}
+            },
+            "cache_misses": {
+              "counts": {
+                "Rust": 2
+              },
+              "adv_counts": {
+                "rust": 2
+              }
+            },
+            "cache_timeouts": 0,
+            "cache_read_errors": 0,
+            "non_cacheable_compilations": 0,
+            "forced_recaches": 0,
+            "cache_write_errors": 0,
+            "cache_writes": 2,
+            "cache_write_duration": {
+              "secs": 0,
+              "nanos": 1567584
+            },
+            "cache_read_hit_duration": {
+              "secs": 0,
+              "nanos": 0
+            },
+            "compilations": 2,
+            "compiler_write_duration": {
+              "secs": 0,
+              "nanos": 126760667
+            },
+            "compile_fails": 0,
+            "not_cached": {},
+            "dist_compiles": {},
+            "dist_errors": 0,
+            "multi_level": [
+              {
+                "name": "L0 (disk)",
+                "location": "Local disk: \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/cache\"",
+                "hits": 0,
+                "misses": 2,
+                "writes": 2,
+                "write_failures": 0,
+                "backfills_from": 0,
+                "backfills_to": 0,
+                "hit_duration": {
+                  "secs": 0,
+                  "nanos": 0
+                },
+                "write_duration": {
+                  "secs": 0,
+                  "nanos": 1509084
+                }
+              }
+            ]
+          },
+          "cache_location": "Multi-level (1 levels)",
+          "cache_size": 10062,
+          "max_cache_size": 10737418240,
+          "use_preprocessor_cache_mode": true,
+          "version": "0.19.0",
+          "basedirs": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/checkout-a/",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/checkout-b/"
+          ],
+          "effective_cache_mode": "ReadWrite"
+        },
+        "wall_time_scope": "compiler command plus statistics query; first run includes initial daemon/compiler preparation",
+        "source_sha256": "4e92a128107a07131a5b8ebe412161015bc5f4d0202483e71aeb7d8899d4dd7b"
+      },
+      {
+        "checkout": "checkout-a",
+        "command": [
+          "/home/agent/.local/share/mise/installs/sccache/0.19.0/sccache-v0.19.0-aarch64-unknown-linux-musl/sccache",
+          "/home/agent/.cargo/bin/rustc",
+          "--crate-name",
+          "cache_control",
+          "--crate-type",
+          "lib",
+          "--emit=link,dep-info",
+          "--out-dir",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/checkout-a/out2",
+          "lib.rs",
+          "-C",
+          "debuginfo=1"
+        ],
+        "wall_seconds": 0.06438787500064791,
+        "status": 0,
+        "stderr": "",
+        "stats": {
+          "stats": {
+            "compile_requests": 3,
+            "requests_unsupported_compiler": 0,
+            "requests_not_compile": 0,
+            "requests_not_cacheable": 0,
+            "requests_executed": 3,
+            "cache_errors": {
+              "counts": {},
+              "adv_counts": {}
+            },
+            "cache_hits": {
+              "counts": {
+                "Rust": 1
+              },
+              "adv_counts": {
+                "rust": 1
+              }
+            },
+            "cache_misses": {
+              "counts": {
+                "Rust": 2
+              },
+              "adv_counts": {
+                "rust": 2
+              }
+            },
+            "cache_timeouts": 0,
+            "cache_read_errors": 0,
+            "non_cacheable_compilations": 0,
+            "forced_recaches": 0,
+            "cache_write_errors": 0,
+            "cache_writes": 2,
+            "cache_write_duration": {
+              "secs": 0,
+              "nanos": 1567584
+            },
+            "cache_read_hit_duration": {
+              "secs": 0,
+              "nanos": 225500
+            },
+            "compilations": 2,
+            "compiler_write_duration": {
+              "secs": 0,
+              "nanos": 126760667
+            },
+            "compile_fails": 0,
+            "not_cached": {},
+            "dist_compiles": {},
+            "dist_errors": 0,
+            "multi_level": [
+              {
+                "name": "L0 (disk)",
+                "location": "Local disk: \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/cache\"",
+                "hits": 1,
+                "misses": 2,
+                "writes": 2,
+                "write_failures": 0,
+                "backfills_from": 0,
+                "backfills_to": 0,
+                "hit_duration": {
+                  "secs": 0,
+                  "nanos": 221833
+                },
+                "write_duration": {
+                  "secs": 0,
+                  "nanos": 1509084
+                }
+              }
+            ]
+          },
+          "cache_location": "Multi-level (1 levels)",
+          "cache_size": 10062,
+          "max_cache_size": 10737418240,
+          "use_preprocessor_cache_mode": true,
+          "version": "0.19.0",
+          "basedirs": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/checkout-a/",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/checkout-b/"
+          ],
+          "effective_cache_mode": "ReadWrite"
+        },
+        "wall_time_scope": "compiler command plus statistics query; first run includes initial daemon/compiler preparation",
+        "source_sha256": "4e92a128107a07131a5b8ebe412161015bc5f4d0202483e71aeb7d8899d4dd7b"
+      }
+    ],
+    "compiler_status": "Exploratory default rustup shim resolved to Rust1.98; not project-pinned evidence"
+  },
+  "repeated_control": {
+    "purpose": "Released Rust basedirs limitation, not a completed Cargo integration proof",
+    "sccache": {
+      "path": "/home/agent/.local/share/mise/installs/sccache/0.19.0/sccache-v0.19.0-aarch64-unknown-linux-musl/sccache",
+      "version": "sccache 0.19.0",
+      "sha256": "c192919f21426298532538710488c6c2f0784516ee8b34bb971fb003963526b4"
+    },
+    "rustc": {
+      "path": "/home/agent/.cargo/bin/rustc",
+      "version": "rustc 1.98.0 (88d9e12ae 2026-08-18)\nbinary: rustc\ncommit-hash: 88d9e12ae178fab0fb5cc050a94da85685d449ea\ncommit-date: 2026-08-18\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.0\nLLVM version: 22.1.8",
+      "sha256": "15f6e4ce9f583b929c996c91562bad6d4454f3281de858b02cdfdef615fac433"
+    },
+    "source_sha256": "4e92a128107a07131a5b8ebe412161015bc5f4d0202483e71aeb7d8899d4dd7b",
+    "source": "pub fn value() -> u32 { 42 }\n",
+    "results": [
+      {
+        "checkout": "checkout-a",
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/checkout-a",
+        "command": [
+          "/home/agent/.local/share/mise/installs/sccache/0.19.0/sccache-v0.19.0-aarch64-unknown-linux-musl/sccache",
+          "/home/agent/.cargo/bin/rustc",
+          "--crate-name",
+          "cache_control",
+          "--crate-type",
+          "lib",
+          "--emit=link,dep-info",
+          "--out-dir",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/checkout-a/out0",
+          "lib.rs",
+          "-C",
+          "debuginfo=1"
+        ],
+        "wall_seconds": 0.17507566600033897,
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "statistics_command": [
+          "/home/agent/.local/share/mise/installs/sccache/0.19.0/sccache-v0.19.0-aarch64-unknown-linux-musl/sccache",
+          "--show-stats",
+          "--stats-format=json"
+        ],
+        "stats": {
+          "stats": {
+            "compile_requests": 1,
+            "requests_unsupported_compiler": 0,
+            "requests_not_compile": 0,
+            "requests_not_cacheable": 0,
+            "requests_executed": 1,
+            "cache_errors": {
+              "counts": {},
+              "adv_counts": {}
+            },
+            "cache_hits": {
+              "counts": {},
+              "adv_counts": {}
+            },
+            "cache_misses": {
+              "counts": {
+                "Rust": 1
+              },
+              "adv_counts": {
+                "rust": 1
+              }
+            },
+            "cache_timeouts": 0,
+            "cache_read_errors": 0,
+            "non_cacheable_compilations": 0,
+            "forced_recaches": 0,
+            "cache_write_errors": 0,
+            "cache_writes": 1,
+            "cache_write_duration": {
+              "secs": 0,
+              "nanos": 601916
+            },
+            "cache_read_hit_duration": {
+              "secs": 0,
+              "nanos": 0
+            },
+            "compilations": 1,
+            "compiler_write_duration": {
+              "secs": 0,
+              "nanos": 11783958
+            },
+            "compile_fails": 0,
+            "not_cached": {},
+            "dist_compiles": {},
+            "dist_errors": 0,
+            "multi_level": [
+              {
+                "name": "L0 (disk)",
+                "location": "Local disk: \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/cache\"",
+                "hits": 0,
+                "misses": 1,
+                "writes": 1,
+                "write_failures": 0,
+                "backfills_from": 0,
+                "backfills_to": 0,
+                "hit_duration": {
+                  "secs": 0,
+                  "nanos": 0
+                },
+                "write_duration": {
+                  "secs": 0,
+                  "nanos": 587750
+                }
+              }
+            ]
+          },
+          "cache_location": "Multi-level (1 levels)",
+          "cache_size": 5037,
+          "max_cache_size": 10737418240,
+          "use_preprocessor_cache_mode": true,
+          "version": "0.19.0",
+          "basedirs": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/checkout-a/",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/checkout-b/"
+          ],
+          "effective_cache_mode": "ReadWrite"
+        },
+        "wall_time_scope": "compiler command only; daemon starts on first compile"
+      },
+      {
+        "checkout": "checkout-b",
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/checkout-b",
+        "command": [
+          "/home/agent/.local/share/mise/installs/sccache/0.19.0/sccache-v0.19.0-aarch64-unknown-linux-musl/sccache",
+          "/home/agent/.cargo/bin/rustc",
+          "--crate-name",
+          "cache_control",
+          "--crate-type",
+          "lib",
+          "--emit=link,dep-info",
+          "--out-dir",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/checkout-b/out1",
+          "lib.rs",
+          "-C",
+          "debuginfo=1"
+        ],
+        "wall_seconds": 0.12629937499968946,
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "statistics_command": [
+          "/home/agent/.local/share/mise/installs/sccache/0.19.0/sccache-v0.19.0-aarch64-unknown-linux-musl/sccache",
+          "--show-stats",
+          "--stats-format=json"
+        ],
+        "stats": {
+          "stats": {
+            "compile_requests": 2,
+            "requests_unsupported_compiler": 0,
+            "requests_not_compile": 0,
+            "requests_not_cacheable": 0,
+            "requests_executed": 2,
+            "cache_errors": {
+              "counts": {},
+              "adv_counts": {}
+            },
+            "cache_hits": {
+              "counts": {},
+              "adv_counts": {}
+            },
+            "cache_misses": {
+              "counts": {
+                "Rust": 2
+              },
+              "adv_counts": {
+                "rust": 2
+              }
+            },
+            "cache_timeouts": 0,
+            "cache_read_errors": 0,
+            "non_cacheable_compilations": 0,
+            "forced_recaches": 0,
+            "cache_write_errors": 0,
+            "cache_writes": 2,
+            "cache_write_duration": {
+              "secs": 0,
+              "nanos": 1360708
+            },
+            "cache_read_hit_duration": {
+              "secs": 0,
+              "nanos": 0
+            },
+            "compilations": 2,
+            "compiler_write_duration": {
+              "secs": 0,
+              "nanos": 23059708
+            },
+            "compile_fails": 0,
+            "not_cached": {},
+            "dist_compiles": {},
+            "dist_errors": 0,
+            "multi_level": [
+              {
+                "name": "L0 (disk)",
+                "location": "Local disk: \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/cache\"",
+                "hits": 0,
+                "misses": 2,
+                "writes": 2,
+                "write_failures": 0,
+                "backfills_from": 0,
+                "backfills_to": 0,
+                "hit_duration": {
+                  "secs": 0,
+                  "nanos": 0
+                },
+                "write_duration": {
+                  "secs": 0,
+                  "nanos": 1331417
+                }
+              }
+            ]
+          },
+          "cache_location": "Multi-level (1 levels)",
+          "cache_size": 10072,
+          "max_cache_size": 10737418240,
+          "use_preprocessor_cache_mode": true,
+          "version": "0.19.0",
+          "basedirs": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/checkout-a/",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/checkout-b/"
+          ],
+          "effective_cache_mode": "ReadWrite"
+        },
+        "wall_time_scope": "compiler command only; daemon starts on first compile"
+      },
+      {
+        "checkout": "checkout-a",
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/checkout-a",
+        "command": [
+          "/home/agent/.local/share/mise/installs/sccache/0.19.0/sccache-v0.19.0-aarch64-unknown-linux-musl/sccache",
+          "/home/agent/.cargo/bin/rustc",
+          "--crate-name",
+          "cache_control",
+          "--crate-type",
+          "lib",
+          "--emit=link,dep-info",
+          "--out-dir",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/checkout-a/out2",
+          "lib.rs",
+          "-C",
+          "debuginfo=1"
+        ],
+        "wall_seconds": 0.010003583000070648,
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "statistics_command": [
+          "/home/agent/.local/share/mise/installs/sccache/0.19.0/sccache-v0.19.0-aarch64-unknown-linux-musl/sccache",
+          "--show-stats",
+          "--stats-format=json"
+        ],
+        "stats": {
+          "stats": {
+            "compile_requests": 3,
+            "requests_unsupported_compiler": 0,
+            "requests_not_compile": 0,
+            "requests_not_cacheable": 0,
+            "requests_executed": 3,
+            "cache_errors": {
+              "counts": {},
+              "adv_counts": {}
+            },
+            "cache_hits": {
+              "counts": {
+                "Rust": 1
+              },
+              "adv_counts": {
+                "rust": 1
+              }
+            },
+            "cache_misses": {
+              "counts": {
+                "Rust": 2
+              },
+              "adv_counts": {
+                "rust": 2
+              }
+            },
+            "cache_timeouts": 0,
+            "cache_read_errors": 0,
+            "non_cacheable_compilations": 0,
+            "forced_recaches": 0,
+            "cache_write_errors": 0,
+            "cache_writes": 2,
+            "cache_write_duration": {
+              "secs": 0,
+              "nanos": 1360708
+            },
+            "cache_read_hit_duration": {
+              "secs": 0,
+              "nanos": 184125
+            },
+            "compilations": 2,
+            "compiler_write_duration": {
+              "secs": 0,
+              "nanos": 23059708
+            },
+            "compile_fails": 0,
+            "not_cached": {},
+            "dist_compiles": {},
+            "dist_errors": 0,
+            "multi_level": [
+              {
+                "name": "L0 (disk)",
+                "location": "Local disk: \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/cache\"",
+                "hits": 1,
+                "misses": 2,
+                "writes": 2,
+                "write_failures": 0,
+                "backfills_from": 0,
+                "backfills_to": 0,
+                "hit_duration": {
+                  "secs": 0,
+                  "nanos": 181958
+                },
+                "write_duration": {
+                  "secs": 0,
+                  "nanos": 1331417
+                }
+              }
+            ]
+          },
+          "cache_location": "Multi-level (1 levels)",
+          "cache_size": 10072,
+          "max_cache_size": 10737418240,
+          "use_preprocessor_cache_mode": true,
+          "version": "0.19.0",
+          "basedirs": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/checkout-a/",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/checkout-b/"
+          ],
+          "effective_cache_mode": "ReadWrite"
+        },
+        "wall_time_scope": "compiler command only; daemon starts on first compile"
+      }
+    ],
+    "environment": {
+      "CARGO_HOME": "/home/agent/.cargo",
+      "SCCACHE_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/cache",
+      "SCCACHE_CONF": "/dev/null",
+      "SCCACHE_MULTILEVEL_CHAIN": "disk",
+      "SCCACHE_SERVER_UDS": "/tmp/fn25419-gpi2zgwq/server.sock",
+      "SCCACHE_BASEDIRS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/checkout-a:/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/checkout-b",
+      "CARGO_INCREMENTAL": "0"
+    },
+    "owned_daemon_stop": {
+      "status": 0,
+      "stdout": "Stopping sccache server...\nCompile requests                      3\nCompile requests executed             3\nCache hits                            1\nCache hits (Rust)                     1\nCache misses                          2\nCache misses (Rust)                   2\nCache hits rate                   33.33 %\nCache hits rate (Rust)            33.33 %\nCache timeouts                        0\nCache read errors                     0\nForced recaches                       0\nCache write errors                    0\nCache errors                          0\nCompilations                          2\nCompilation failures                  0\nNon-cacheable compilations            0\nNon-cacheable calls                   0\nNon-compilation calls                 0\nUnsupported compiler calls            0\nAverage cache write               0.000 s\nAverage compiler                  0.011 s\nAverage cache read hit            0.000 s\nFailed distributed compilations       0\nMulti-level cache levels              1\n  L0 (disk) hits                      1\n  L0 (disk) misses                    2\n  L0 (disk) hit rate              33.33 %\n  L0 (disk) writes                    2\n  L0 (disk) write failures            0\n  L0 (disk) backfills from            0\n  L0 (disk) backfills to              0\n  L0 (disk) avg cache write       0.000 s\n  L0 (disk) avg cache read hit    0.000 s\nCache location                  Multi-level (1 levels)\n  L0 (disk)                     Local disk: \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/cache\"\nBase directories                /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/checkout-a/, /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/reproduced/checkout-b/\nVersion (client)                0.19.0\nCache size                           10 KiB\nMax cache size                       10 GiB\n",
+      "stderr": ""
+    },
+    "compiler_status": "Exploratory default rustup shim resolved to Rust1.98; not project-pinned evidence"
+  },
+  "limitations": [
+    "Direct library rustc control isolates cache capability; no Cargo integration, warm quick measurement, bootstrap or guest parity claim.",
+    "No uncached Cargo/control or compiler/profile/target invalidation proof; production integration stopped at unsupported-tool prerequisite.",
+    "No speedup claim; first timing includes cold daemon/compiler preparation and statistics queries.",
+    "Initial and first-repeat exploratory controls used default Rust1.98 via rustup shim; superseded by direct pinned Rust1.99.1 control."
+  ],
+  "isolation": {
+    "initial_socket": "/tmp/umpire-fn25419-proof.sock",
+    "initial_daemon_stopped": true,
+    "repeat_owned_daemon_stop_status": 0,
+    "cache_stats_zeroed": false,
+    "default_daemon_touched": false,
+    "shared_cargo_target_touched": false,
+    "initial_socket_cleanup": "Connection refused after stop-server; removed task-owned inactive socket only"
+  },
+  "pinned_control": {
+    "purpose": "Released Rust basedirs limitation, not a completed Cargo integration proof",
+    "sccache": {
+      "path": "/home/agent/.local/share/mise/installs/sccache/0.19.0/sccache-v0.19.0-aarch64-unknown-linux-musl/sccache",
+      "version": "sccache 0.19.0",
+      "sha256": "c192919f21426298532538710488c6c2f0784516ee8b34bb971fb003963526b4"
+    },
+    "rustc": {
+      "path": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc",
+      "resolution_command": [
+        "mise",
+        "-C",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+        "exec",
+        "--",
+        "rustup",
+        "which",
+        "rustc"
+      ],
+      "version": "rustc 1.99.1 (58cf8f9c3 2026-10-13)\nbinary: rustc\ncommit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67\ncommit-date: 2026-10-13\nhost: aarch64-unknown-linux-gnu\nrelease: 1.99.1\nLLVM version: 23.1.1",
+      "sha256": "08383c36a0893aa8bb95fd43ee4616b112a5b20a181683192ca4130c3d3d603c"
+    },
+    "source_sha256": "4e92a128107a07131a5b8ebe412161015bc5f4d0202483e71aeb7d8899d4dd7b",
+    "source": "pub fn value() -> u32 { 42 }\n",
+    "results": [
+      {
+        "checkout": "checkout-a",
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/checkout-a",
+        "command": [
+          "/home/agent/.local/share/mise/installs/sccache/0.19.0/sccache-v0.19.0-aarch64-unknown-linux-musl/sccache",
+          "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc",
+          "--crate-name",
+          "cache_control",
+          "--crate-type",
+          "lib",
+          "--emit=link,dep-info",
+          "--out-dir",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/checkout-a/out0",
+          "lib.rs",
+          "-C",
+          "debuginfo=1"
+        ],
+        "wall_seconds": 0.11824154100031592,
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "statistics_command": [
+          "/home/agent/.local/share/mise/installs/sccache/0.19.0/sccache-v0.19.0-aarch64-unknown-linux-musl/sccache",
+          "--show-stats",
+          "--stats-format=json"
+        ],
+        "stats": {
+          "stats": {
+            "compile_requests": 1,
+            "requests_unsupported_compiler": 0,
+            "requests_not_compile": 0,
+            "requests_not_cacheable": 0,
+            "requests_executed": 1,
+            "cache_errors": {
+              "counts": {},
+              "adv_counts": {}
+            },
+            "cache_hits": {
+              "counts": {},
+              "adv_counts": {}
+            },
+            "cache_misses": {
+              "counts": {
+                "Rust": 1
+              },
+              "adv_counts": {
+                "rust": 1
+              }
+            },
+            "cache_timeouts": 0,
+            "cache_read_errors": 0,
+            "non_cacheable_compilations": 0,
+            "forced_recaches": 0,
+            "cache_write_errors": 0,
+            "cache_writes": 1,
+            "cache_write_duration": {
+              "secs": 0,
+              "nanos": 961834
+            },
+            "cache_read_hit_duration": {
+              "secs": 0,
+              "nanos": 0
+            },
+            "compilations": 1,
+            "compiler_write_duration": {
+              "secs": 0,
+              "nanos": 9883167
+            },
+            "compile_fails": 0,
+            "not_cached": {},
+            "dist_compiles": {},
+            "dist_errors": 0,
+            "multi_level": [
+              {
+                "name": "L0 (disk)",
+                "location": "Local disk: \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/cache\"",
+                "hits": 0,
+                "misses": 1,
+                "writes": 1,
+                "write_failures": 0,
+                "backfills_from": 0,
+                "backfills_to": 0,
+                "hit_duration": {
+                  "secs": 0,
+                  "nanos": 0
+                },
+                "write_duration": {
+                  "secs": 0,
+                  "nanos": 939459
+                }
+              }
+            ]
+          },
+          "cache_location": "Multi-level (1 levels)",
+          "cache_size": 5345,
+          "max_cache_size": 10737418240,
+          "use_preprocessor_cache_mode": true,
+          "version": "0.19.0",
+          "basedirs": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/checkout-a/",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/checkout-b/"
+          ],
+          "effective_cache_mode": "ReadWrite"
+        }
+      },
+      {
+        "checkout": "checkout-b",
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/checkout-b",
+        "command": [
+          "/home/agent/.local/share/mise/installs/sccache/0.19.0/sccache-v0.19.0-aarch64-unknown-linux-musl/sccache",
+          "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc",
+          "--crate-name",
+          "cache_control",
+          "--crate-type",
+          "lib",
+          "--emit=link,dep-info",
+          "--out-dir",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/checkout-b/out1",
+          "lib.rs",
+          "-C",
+          "debuginfo=1"
+        ],
+        "wall_seconds": 0.018984291999913694,
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "statistics_command": [
+          "/home/agent/.local/share/mise/installs/sccache/0.19.0/sccache-v0.19.0-aarch64-unknown-linux-musl/sccache",
+          "--show-stats",
+          "--stats-format=json"
+        ],
+        "stats": {
+          "stats": {
+            "compile_requests": 2,
+            "requests_unsupported_compiler": 0,
+            "requests_not_compile": 0,
+            "requests_not_cacheable": 0,
+            "requests_executed": 2,
+            "cache_errors": {
+              "counts": {},
+              "adv_counts": {}
+            },
+            "cache_hits": {
+              "counts": {},
+              "adv_counts": {}
+            },
+            "cache_misses": {
+              "counts": {
+                "Rust": 2
+              },
+              "adv_counts": {
+                "rust": 2
+              }
+            },
+            "cache_timeouts": 0,
+            "cache_read_errors": 0,
+            "non_cacheable_compilations": 0,
+            "forced_recaches": 0,
+            "cache_write_errors": 0,
+            "cache_writes": 2,
+            "cache_write_duration": {
+              "secs": 0,
+              "nanos": 1585751
+            },
+            "cache_read_hit_duration": {
+              "secs": 0,
+              "nanos": 0
+            },
+            "compilations": 2,
+            "compiler_write_duration": {
+              "secs": 0,
+              "nanos": 21421167
+            },
+            "compile_fails": 0,
+            "not_cached": {},
+            "dist_compiles": {},
+            "dist_errors": 0,
+            "multi_level": [
+              {
+                "name": "L0 (disk)",
+                "location": "Local disk: \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/cache\"",
+                "hits": 0,
+                "misses": 2,
+                "writes": 2,
+                "write_failures": 0,
+                "backfills_from": 0,
+                "backfills_to": 0,
+                "hit_duration": {
+                  "secs": 0,
+                  "nanos": 0
+                },
+                "write_duration": {
+                  "secs": 0,
+                  "nanos": 1538334
+                }
+              }
+            ]
+          },
+          "cache_location": "Multi-level (1 levels)",
+          "cache_size": 10691,
+          "max_cache_size": 10737418240,
+          "use_preprocessor_cache_mode": true,
+          "version": "0.19.0",
+          "basedirs": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/checkout-a/",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/checkout-b/"
+          ],
+          "effective_cache_mode": "ReadWrite"
+        }
+      },
+      {
+        "checkout": "checkout-a",
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/checkout-a",
+        "command": [
+          "/home/agent/.local/share/mise/installs/sccache/0.19.0/sccache-v0.19.0-aarch64-unknown-linux-musl/sccache",
+          "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc",
+          "--crate-name",
+          "cache_control",
+          "--crate-type",
+          "lib",
+          "--emit=link,dep-info",
+          "--out-dir",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/checkout-a/out2",
+          "lib.rs",
+          "-C",
+          "debuginfo=1"
+        ],
+        "wall_seconds": 0.007529458000135492,
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "statistics_command": [
+          "/home/agent/.local/share/mise/installs/sccache/0.19.0/sccache-v0.19.0-aarch64-unknown-linux-musl/sccache",
+          "--show-stats",
+          "--stats-format=json"
+        ],
+        "stats": {
+          "stats": {
+            "compile_requests": 3,
+            "requests_unsupported_compiler": 0,
+            "requests_not_compile": 0,
+            "requests_not_cacheable": 0,
+            "requests_executed": 3,
+            "cache_errors": {
+              "counts": {},
+              "adv_counts": {}
+            },
+            "cache_hits": {
+              "counts": {
+                "Rust": 1
+              },
+              "adv_counts": {
+                "rust": 1
+              }
+            },
+            "cache_misses": {
+              "counts": {
+                "Rust": 2
+              },
+              "adv_counts": {
+                "rust": 2
+              }
+            },
+            "cache_timeouts": 0,
+            "cache_read_errors": 0,
+            "non_cacheable_compilations": 0,
+            "forced_recaches": 0,
+            "cache_write_errors": 0,
+            "cache_writes": 2,
+            "cache_write_duration": {
+              "secs": 0,
+              "nanos": 1585751
+            },
+            "cache_read_hit_duration": {
+              "secs": 0,
+              "nanos": 213333
+            },
+            "compilations": 2,
+            "compiler_write_duration": {
+              "secs": 0,
+              "nanos": 21421167
+            },
+            "compile_fails": 0,
+            "not_cached": {},
+            "dist_compiles": {},
+            "dist_errors": 0,
+            "multi_level": [
+              {
+                "name": "L0 (disk)",
+                "location": "Local disk: \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/cache\"",
+                "hits": 1,
+                "misses": 2,
+                "writes": 2,
+                "write_failures": 0,
+                "backfills_from": 0,
+                "backfills_to": 0,
+                "hit_duration": {
+                  "secs": 0,
+                  "nanos": 210375
+                },
+                "write_duration": {
+                  "secs": 0,
+                  "nanos": 1538334
+                }
+              }
+            ]
+          },
+          "cache_location": "Multi-level (1 levels)",
+          "cache_size": 10691,
+          "max_cache_size": 10737418240,
+          "use_preprocessor_cache_mode": true,
+          "version": "0.19.0",
+          "basedirs": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/checkout-a/",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/checkout-b/"
+          ],
+          "effective_cache_mode": "ReadWrite"
+        }
+      }
+    ],
+    "environment": {
+      "CARGO_HOME": "/home/agent/.cargo",
+      "SCCACHE_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/cache",
+      "SCCACHE_CONF": "/dev/null",
+      "SCCACHE_MULTILEVEL_CHAIN": "disk",
+      "SCCACHE_SERVER_UDS": "/tmp/fn25419-j5w4ka_f/server.sock",
+      "SCCACHE_BASEDIRS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/checkout-a:/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/checkout-b",
+      "CARGO_INCREMENTAL": "0"
+    },
+    "owned_daemon_stop": {
+      "status": 0,
+      "stdout": "Stopping sccache server...\nCompile requests                      3\nCompile requests executed             3\nCache hits                            1\nCache hits (Rust)                     1\nCache misses                          2\nCache misses (Rust)                   2\nCache hits rate                   33.33 %\nCache hits rate (Rust)            33.33 %\nCache timeouts                        0\nCache read errors                     0\nForced recaches                       0\nCache write errors                    0\nCache errors                          0\nCompilations                          2\nCompilation failures                  0\nNon-cacheable compilations            0\nNon-cacheable calls                   0\nNon-compilation calls                 0\nUnsupported compiler calls            0\nAverage cache write               0.000 s\nAverage compiler                  0.010 s\nAverage cache read hit            0.000 s\nFailed distributed compilations       0\nMulti-level cache levels              1\n  L0 (disk) hits                      1\n  L0 (disk) misses                    2\n  L0 (disk) hit rate              33.33 %\n  L0 (disk) writes                    2\n  L0 (disk) write failures            0\n  L0 (disk) backfills from            0\n  L0 (disk) backfills to              0\n  L0 (disk) avg cache write       0.000 s\n  L0 (disk) avg cache read hit    0.000 s\nCache location                  Multi-level (1 levels)\n  L0 (disk)                     Local disk: \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/cache\"\nBase directories                /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/checkout-a/, /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-254.19/pinned-control/checkout-b/\nVersion (client)                0.19.0\nCache size                           10 KiB\nMax cache size                       10 GiB\n",
+      "stderr": ""
+    },
+    "compiler_status": "Resolved actual Rust1.99.1 binary through framework mise exec; authoritative project-pinned capability control"
+  }
+}

@@ -37,8 +37,8 @@ Rust incremental compilation must be disabled for sccache; linker-invoking crate
 - [ ] Cache measurement and cleanup leave other sessions' stats, daemon state, caches and target leases intact; final gate proof remains .8.
 
 ## Done summary
-TBD
-
+Blocked:
+Sccache 0.19.0 cannot safely normalize Rust workspace compilation across physical checkouts. The project-pinned Rust 1.99.1 A/B/A control records two checkout misses followed by a same-checkout hit, with separate output directories and private cache/daemon. Released Rust hashing retains physical cwd, arguments and Cargo environment. Upstream normalization proposals remain unmerged; normalizing keys alone can reuse checkout-specific ToolRoot authority. Preserve full acceptance; no production cache wiring or dependency-only substitution. Evidence: .flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task19/{measurements.json,research.json,reproduce.py}. Other milestone lanes continue.
 ## Evidence
 - Commits:
 - Tests:
