@@ -45,9 +45,10 @@ Migrate this consumer to the already-required whole-prefix contract. Preserve ra
 - [ ] Current schema/bindings/presentation migrate coherently and the format break is documented. Go contains no Temporal policy; legacy readers, delta mode and old refusal normalization are unnecessary.
 
 ## Done summary
-TBD
+Current-format whole-prefix Run recording/replay and presentation reviewed SHIP across correctness, contracts and integration. Format2 requires current recorded Reset contract before Driver effects; legacy refusal normalization removed. Latest complete witness replaces delta concatenation; immutable recording bytes and callback/Current/proposal order covered. Fresh current-guest proof covers59 live rows,275 generic Go rows,63 runtime tests, both root lint modes and concatenation mutant red/green. Four P3 test improvements verified by focused Go tests/vet, Rust prefix3, strict runtime Clippy and fmt. Changed-canonical-past frontier remains .10 and full live umbrella remains later owner scope.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: eac683e603, ed931f68c8, c1ad60caa25c39d53676b95f531c045133b94a7b
+- Tests: make umpire-check-model-slice:59pass,0skip,current guest8b9ea, Generic Go275pass,0skip; native/WASM parity; Go vet/gofmt, Runtime63pass; strict scoped Clippy/fmt, make lint-code-fast default and integration:pass,fixes disabled, Historical concatenation overlay:red6edges vs4; current consumer:green, Post-review focused Go3 tests/pass with exact mutated event refusal; Go vet; Rust prefix3pass, strict runtime all-target Clippy/fmt
 - PRs:
