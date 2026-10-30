@@ -18,6 +18,7 @@
     "fn-254-fast-validation-gates-and-a-real-inner.17": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.18": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.2": 0,
+    "fn-254-fast-validation-gates-and-a-real-inner.21": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.3": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.4": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.5": 0,
@@ -2433,6 +2434,41 @@
       "task": "fn-254-fast-validation-gates-and-a-real-inner.18",
       "timestamp": "2026-10-29T04:23:34.363100Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "a6d9cc154ca689b26a3d3708395796ce9f3a905780bd77ae615c994c8c0bf3eb",
+      "backend": "claude",
+      "base_sha": "93ae07bee7f750b6f7e26c3d6a042d17832ddd6e",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7e433489e907f9354bc21ba5d40a41aebf4b7bcd",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 995,
+      "output_sha256": "1511d839751940fb6960488bd9a3ebad76eeabcff845b18a9ea508965a2332af",
+      "reservation_id": "9317bd92f700472f9897d8e797ddac96",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.21",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.21",
+      "timestamp": "2026-10-30T00:47:58.646252Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -2445,6 +2481,7 @@
     "impl:fn-254-fast-validation-gates-and-a-real-inner.17": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.18": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.2": 1,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.21": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.3": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.4": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.5": 2,
@@ -2465,6 +2502,7 @@
     "impl:fn-254-fast-validation-gates-and-a-real-inner.17": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.18": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.2": 0,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.21": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.3": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.4": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.5": 0,
@@ -2486,5 +2524,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-29T04:23:34.374098Z"
+  "updated_at": "2026-10-30T00:47:58.662285Z"
 }

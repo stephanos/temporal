@@ -33,3 +33,10 @@ The driver has no dependency on the general CLI. The CLI builds this package and
 `context::ToolRoot` admits `UMPIRE_TOOL_ROOT` when supplied, otherwise the framework root that compiled the driver. It requires local Cargo, mise and Rust-toolchain files and never searches ancestors. Tool execution and Cargo launches use these local pins; metadata/build receive the caller's explicit manifest path. Relative outputs and target overrides resolve against the original caller workspace before tool execution.
 
 The raw OS context codec serves orchestration and the compiler. A single canonical longest-root mapping covers the caller workspace, separately nested framework sources, sysroot, registry and target. Compiler identity normalization and rustc flags consume that mapping; undeclared source roots refuse. The framework mapping is omitted when it equals the caller workspace.
+
+Cross-checkout host compiler caching remains deferred: evaluated sccache 0.19.0 does
+not apply `SCCACHE_BASEDIRS` to Rust cache keys. Hash-only path normalization also
+risks retaining another checkout's embedded `CARGO_MANIFEST_DIR`, which supplies this
+driver's default tool root. Keep native bootstrap wrapper isolation and ordinary
+incremental compilation; task fn-254.19 retains the reproduction and unmet controls
+in its [investigation](../../../../.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task19/INVESTIGATION.md).

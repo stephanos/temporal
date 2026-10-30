@@ -4,7 +4,7 @@ The owner's overview of open work, execution order and blockers.
 
 As of 2026-10-30.
 
-Milestone execution has resumed. Three implementation lanes are active: fn-254.20 measured Linux mold, fn-254.21 residual test-target consolidation, and fn-253.5 countdown fixture agreement and mutants. fn-254.19 is blocked by released sccache Rust path identity: the pinned Rust 1.99.1 A/B/A control misses across checkouts and hits only on the same checkout. [Investigation and reproduction](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task19/measurements.json). Countdown admission fn-253.2–.4 and lighter dev profiles fn-254.18 are reviewed and complete. Budget admission fn-254.12 and migration remain deferred; these lanes do not resume either.
+Milestone execution has resumed. Linux mold fn-254.20 and countdown fixture fn-253.5 have passed focused validation and await review. Residual test-target consolidation fn-254.21 is reviewed and closed: four fewer integration binaries, 393 preserved test identities, and 95 affected tests pass. fn-254.19 is blocked by released sccache Rust path identity: the pinned Rust 1.99.1 A/B/A control misses across checkouts and hits only on the same checkout. [Investigation and reproduction](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task19/measurements.json). Countdown admission fn-253.2–.4 and lighter dev profiles fn-254.18 are reviewed and complete. Budget admission fn-254.12 and migration remain deferred; these lanes do not resume either.
 
 The latest `make model-check` attempt failed on 94 strict-Clippy errors in unchanged xtask gate-budget code. Focused checks pass; a full-gate pass remains open.
 
@@ -159,7 +159,6 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.12 | 🔄 in progress | Owner-paused after applicability/custody checkpoint:244 framework,39 consumer and66 process tests pass. Resume real observer/context wiring, admitted tables and automatic retry; enforcement and closure remain open (R8) |
 | fn-254.19 | ⛔ blocked | Released sccache cannot safely normalize Rust workspace paths across checkouts; actual pinned-tool control and upstream source evidence retained. Full acceptance and production integration remain open (R9) |
 | fn-254.20 | 🔄 in progress | Measured mise-pinned Linux mold decision, preserving guest target and host-unit linking contracts (R7, R9) |
-| fn-254.21 | 🔄 in progress | Consolidate safe residual framework integration targets with exact coverage/isolation evidence; shared-file producers execute serially (R4) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 

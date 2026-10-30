@@ -34,9 +34,20 @@ The existing .4 closure proves a 925-identity mapping and 563 unchanged snapshot
 - [ ] Changed gate/nextest/documented selectors select the complete intended cases, with exact changed work counts and compile/link measurements or clearly explained unavailable attribution recorded. Temporal .7 and paused .12 remain untouched; broad final validation stays .8.
 
 ## Done summary
-TBD
+Consolidated four residual framework integration binaries into existing main targets, preserving every moved file byte for byte. The 20 relocated tests gain module prefixes; 393 scoped libtest identities (including one ignored) retain a complete bijection. All 375 scoped prior .4 cases remain, with 18 later additions. The fresh Cargo target inventory is 39→35 workspace integration binaries and 30→26 in the residual package scope. All 30 original scoped targets have explicit disposition/contracts in identities.json. All 328 scoped snapshot/UI/pass/diagnostic files retain their hashes; .5 fixture/compiler source and dedicated selectors remain untouched.
 
+Affected verification: 95 tests passed, zero failed/skipped; focused rustfmt and strict clippy passed. The README records exact replacement module selectors, and captured inventory verifies each selector's complete moved set. Old retained target selection fails101 and missing-case selection fails4, preserved as negative controls. Gate/nextest selectors require no changes. Source-only doctest coverage is unchanged; no doctest execution is newly claimed.
+
+Representative forced suite test-root compile+link observations were9.854s before (two integration roots) and3.306s after (one); these exclude test execution but cannot establish a causal speedup because before also rebuilt feature-dependent dependencies. Cargo timing reports and raw logs are retained. Exact link-work reduction is four targets; compiler/linker split remains unavailable. Actual affected test runtime was3.683s.
+
+The workspace-wide after inventory attempt failed on a concurrently authored countdown fixture in disjoint umpire-fixtures (now corrected by its owner); its full failure is retained. The accepted after capture scopes all11 named residual packages, compared against the exact same package subset of the successful baseline; the concurrent delta is explicitly recorded. No fixture identities are silently normalized away. Full default/required backend matrices and final gate stay with .8; paused .12 and blocked Temporal .7 remain untouched. No Flow lifecycle writes or commits were made by this worker.
+
+stage: impl-review - ran (model: claude-fable-5-1 at high); correctness/contracts/integration SHIP on 7e433489e9. Non-blocking presentation FYIs retained in raw review; no actionable findings. Contracts compact FYI parser format repaired at merge without changing verdicts.
+stage: completion-review - skipped(policy: unfinished spec tasks; task-scoped closure only).
+Gates: focused; final full gate and backend matrix remain fn-254.8.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c6d87bd34b71d6c6c8646f3877184b611ae117e7, 7e433489e907f9354bc21ba5d40a41aebf4b7bcd
+- Tests: model/umpire: UMPIRE_BACKENDS=skip UMPIRE_APALACHE=skip INSTA_UPDATE=no mise exec -- cargo nextest run --locked -p umpire-testing -p umpire-runtime -p umpire-checker -p umpire-suite --test main --status-level all (95 passed), model/umpire: strict affected-target Clippy and rustfmt checks pass; task21/identities.json contains exact commands, 393-case identity bijection, 328 protected hashes and four byte-identical moves verified; retired-target and missing-case controls fail as expected
 - PRs:
