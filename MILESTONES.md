@@ -169,7 +169,7 @@ section, so it may run as a lane, landing serially.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-256.2 | ⏸️ deferred | Owner stop: removal `427a45e113`, later archive note `9f63c3966e`, proof `c796de882e` retained on `work/fn2562-scala-cleanup`. Scoped checks pass; source review and full Rust R4 evidence remain under fn-254.8 |
+| fn-256.2 | 🔄 in progress | Source reviewed (SHIP) and integrated into `umpire` on 2026-10-30. Only R4's actual `make model-check` evidence remains, batched with fn-254.8 |
 
 ### fn-255: Thorough framework testing
 
