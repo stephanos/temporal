@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.20",
+  "verdict": "NEEDS_WORK",
+  "session_id": "8441d095-3d39-4fa4-98a8-77420a65aeee",
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "effort": "high",
+  "spec": "claude:claude-fable-5-1:high",
+  "standalone": false,
+  "review": "Coordinator format repair: preserve the correctness P1 unchanged; collapse integration:1 as the same config-discovery defect. Optional P3 documentation/diagnostic FYIs remain in raw draws.\n\n## Issue 1\n- **Severity**: P1\n- **Title**: Root Make Cargo misses the workspace linker config and flips shared fingerprints\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: model/.cargo/config.toml:6\n- **R-IDs**: [R9]\n- **Problem**: Cargo discovers `.cargo/config.toml` from the current directory upward, not from `--manifest-path`. Every root `Makefile` Rust entry runs `mise exec -- cargo run --manifest-path \"$(CURDIR)/model/Cargo.toml\" ...` from the repository root, so those builds never see the new `[target.*].linker` and link with GNU ld. Every nested invocation does see it: the gate runs Cargo from the Temporal root (`model/umpire/dev/xtask/src/gate.rs:61`), the driver bootstrap runs from the framework root (`model/umpire/dev/xtask/src/main.rs:37`), and `scripts/xtask.sh:15` changes into it. Cargo hashes the resolved target linker into every unit's fingerprint (dirty reason \"config settings changed\"), and the two paths share one target directory and the `dev` profile. Failing scenario on Linux: `make model-quick` compiles temporal-xtask and its closure with no linker; the nested `quick`/gate Cargo run marks the shared units (serde, toml, thiserror, umpire-guest-driver lib, xtask, ...) dirty and recompiles them with `-C linker=.../mold-linker.sh`; the next `make` flips them back. Each Makefile entry pays a recompile of the shared closure twice. This is the inner loop R6 targets and the host build cost R9 claims to reduce. The proof did not exercise this path: the retained Temporal tool build ran from `model/` (its rustc argv uses the workspace-relative `dev/xtask/src/main.rs`).\n- **Suggestion**: Make the Makefile's Cargo invocations run from `model/` (for example `cd \"$(CURDIR)/model\" && $(RUST_MODEL_CARGO) run ...`, or fold the `cd` into `RUST_MODEL_CARGO`), so the top-level build sees the same config as the nested ones. Then confirm with `cargo build -v` across one `make model-quick` cycle that no unit reports a config-settings dirty reason.\n\nUnaddressed R-IDs: []\n\nClassification counts: 1 introduced, 0 pre_existing.\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "claude-fable-5-1",
+      "session_id": "8441d095-3d39-4fa4-98a8-77420a65aeee",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "claude-fable-5-1",
+      "session_id": "2b24f23a-f629-42d1-aac1-6242bdd76620",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "claude-fable-5-1",
+      "session_id": "10d73571-c180-4a58-8230-dfdae610a2f4",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": 1,
+  "introduced_count": 1,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 1,
+  "review_rounds_cap": 8
+}
