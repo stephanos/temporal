@@ -215,7 +215,6 @@ subprocess refusal remains recorded separately.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-246.10 | ⏸️ deferred | Owner stop: source and focused follow-up SHIP on `work/fn24610-frontier` (`62b6eec383`). Current Temporal guest publication, joined-source validation and closure remain (R1, R5) |
 | fn-246.2 | ⬜ todo | shared entity lens and filler-driven probes with equivalence pins (R3) |
 | fn-246.3 | ⬜ todo | After .2, .13: activity migration, exact probe parity and mapping count (R4, R7) |
 | fn-246.4 | ⬜ todo | After .3, .13: generic native Refinement consumer and activity declaration (R5) |
