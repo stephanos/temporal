@@ -4,7 +4,7 @@ The owner's overview of open work, execution order and blockers.
 
 As of 2026-10-29.
 
-Broader milestone execution remains stopped after fn-254.12, and the prior goal has been cleared. The separately authorized countdown work fn-253.2–.4 and lighter dev profiles fn-254.18 are reviewed and complete. fn-254.19–.21 remain open under a reviewed plan; no budget admission or migration work is resumed.
+Milestone execution resumed on 2026-10-29. Four implementation lanes are active: fn-254.19 local sccache, fn-254.20 measured Linux mold, fn-254.21 residual test-target consolidation, and fn-253.5 countdown fixture agreement and mutants. Countdown admission fn-253.2–.4 and lighter dev profiles fn-254.18 are reviewed and complete. Budget admission fn-254.12 and migration remain deferred; these lanes do not resume either.
 
 The latest `make model-check` attempt failed on 94 strict-Clippy errors in unchanged xtask gate-budget code. Focused checks pass; a full-gate pass remains open.
 
@@ -157,10 +157,9 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
 | fn-254.12 | 🔄 in progress | Owner-paused after applicability/custody checkpoint:244 framework,39 consumer and66 process tests pass. Resume real observer/context wiring, admitted tables and automatic retry; enforcement and closure remain open (R8) |
-| fn-254.18 | ✅ done | Both dev profiles use line tables with checked overflow; native builds and effective flags verified, review SHIP. Driver-cache proof renewal belongs to .8; timing attribution remains inconclusive (R9) |
-| fn-254.19 | ⬜ todo | Shared local sccache for cold worktree/bootstrap builds, with measured reuse and warm quick incremental compilation preserved (R9) |
-| fn-254.20 | ⬜ todo | Measured mise-pinned Linux mold decision, preserving guest target and host-unit linking contracts (R7, R9) |
-| fn-254.21 | ⬜ todo | Consolidate safe residual framework integration targets with exact coverage/isolation evidence; shared-file producers execute serially (R4) |
+| fn-254.19 | 🔄 in progress | Shared local sccache for cold worktree/bootstrap builds, with measured reuse and warm quick incremental compilation preserved (R9) |
+| fn-254.20 | 🔄 in progress | Measured mise-pinned Linux mold decision, preserving guest target and host-unit linking contracts (R7, R9) |
+| fn-254.21 | 🔄 in progress | Consolidate safe residual framework integration targets with exact coverage/isolation evidence; shared-file producers execute serially (R4) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 
@@ -286,9 +285,7 @@ Whether fn-246.13's protocol Model may share the Temporal layer is an open owner
 | Name | Status | What |
 | --- | --- | --- |
 | fn-253.1 | ⬜ todo | After committed fn-246.13: Option equality, named expiry effects/progress helpers, deduplicated Tick postconditions, split `state_bounds` (R4) |
-| fn-253.3 | ✅ done | Shared bounded pair and six native functions/laws, documented and reviewed SHIP; 73 DSL tests, strict package Clippy and WASI build pass. Native subset of R2; .4 owns front-end admission |
-| fn-253.4 | ✅ done | Imported bounded types and source-lowered calls/laws, native/facade decode and TLA schema compatibility reviewed SHIP. 130 selected tests and strict package Clippy pass; full countdown TLC agreement/mutants remain .5 (R2) |
-| fn-253.5 | ⬜ todo | After .4: shared `countdowns` fixture with refuting mutants (R2) |
+| fn-253.5 | 🔄 in progress | After .4: shared `countdowns` fixture with refuting mutants (R2) |
 | fn-253.6 | ⬜ todo | After .2, .5: Temporal deadline semantics as a named pattern (R3) |
 | fn-253.7 | ⬜ todo | After .1, .6: activity uses countdowns and the deadline pattern, behaviour pinned (R4) |
 | fn-253.8 | ⬜ todo | After .7, .9 and .10: final combined docs, parameter/refinement checks and full gates (R5) |
