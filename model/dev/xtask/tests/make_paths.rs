@@ -80,3 +80,54 @@ exec "$PATH_CONTROL_MISE" "$@"
     assert!(calls.lines().any(|line| line == metadata), "{calls}");
     assert!(target.join("xtask-bootstrap/debug/xtask").is_file());
 }
+
+#[test]
+fn shipping_temporal_make_loads_the_workspace_linker_config_without_changing_caller_paths() {
+    let source = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..").canonicalize().unwrap();
+    let config: toml::Value =
+        toml::from_str(&fs::read_to_string(source.join("model/.cargo/config.toml")).unwrap())
+            .unwrap();
+    let targets = config["target"].as_table().unwrap();
+    assert_eq!(targets.len(), 2);
+    for target in ["aarch64-unknown-linux-gnu", "x86_64-unknown-linux-gnu"] {
+        let settings = targets[target].as_table().unwrap();
+        assert_eq!(settings.len(), 1);
+        assert_eq!(settings["linker"].as_str(), Some("umpire/scripts/mold-linker.sh"));
+    }
+    let f = super::Fixture::new();
+    let root = f.root.join("make");
+    fs::create_dir_all(root.join("model")).unwrap();
+    let root = root.canonicalize().unwrap();
+    let makefile = fs::read_to_string(source.join("Makefile")).unwrap();
+    let definition = makefile.lines().find(|line| line.starts_with("RUST_MODEL_CARGO =")).unwrap();
+    let recipe =
+        makefile.lines().find(|line| line.starts_with('\t') && line.ends_with("-- quick")).unwrap();
+    fs::write(root.join("Makefile"), format!("{definition}\ncontrol:\n{recipe}\n")).unwrap();
+    super::support::executable(
+        &root.join("mise"),
+        "#!/bin/sh\nprintf '%s|%s|%s|%s|%s|%s\\n' \"$PWD\" \"$CARGO_HOME\" \"$CARGO_TARGET_DIR\" \"$MISE_AUTO_INSTALL\" \"$MISE_EXEC_AUTO_INSTALL\" \"$*\" > \"$MAKE_PATH_LOG\"\n",
+    );
+    let output = Command::new("make")
+        .args(["--no-print-directory", "control"])
+        .current_dir(&root)
+        .env("PATH", format!("{}:{}", root.display(), env::var("PATH").unwrap()))
+        .env("MAKE_PATH_LOG", root.join("calls"))
+        .env("CARGO_HOME", "caller-home")
+        .env("CARGO_TARGET_DIR", "caller-target")
+        .env_remove("BASH_ENV")
+        .env_remove("MAKEFLAGS")
+        .env_remove("MFLAGS")
+        .env_remove("MAKEOVERRIDES")
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "{output:?}");
+    assert_eq!(
+        fs::read_to_string(root.join("calls")).unwrap(),
+        format!(
+            "{}|caller-home|caller-target|false|false|exec -- cargo --config {}/model/.cargo/config.toml run --manifest-path {}/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- quick\n",
+            root.display(),
+            root.display(),
+            root.display()
+        )
+    );
+}

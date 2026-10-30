@@ -1,0 +1,741 @@
+{
+  "3": {
+    "raw": {
+      "sha256_binpb": "bffa378900b6910683f45e89c72e3d89c96b8bc9ee1da3de2eba1394c01b2d17",
+      "model_hash": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+      "verdict": {
+        "explained": {
+          "termination": "TERMINATION_PROPOSAL_BUDGET",
+          "limit": "7"
+        }
+      },
+      "event_count": 21,
+      "final_witness": [
+        [
+          "Worker::Poll(1)",
+          "Accepted"
+        ],
+        [
+          "Worker::RespondCompleted",
+          "Accepted"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ]
+      ],
+      "flattened_count": 47,
+      "original_path_count": 31,
+      "witness_counts": [
+        {
+          "witness": {},
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondCompleted"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondCompleted",
+              "Client::Cancel"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondCompleted",
+              "Client::Cancel",
+              "Client::Cancel"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondCompleted",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondCompleted",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondCompleted",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel"
+            ]
+          },
+          "count": 1
+        }
+      ]
+    },
+    "sdk": {
+      "sha256_binpb": "59fe2d707868f72bdb4ee6ab82f5463c5be90c784a2336fc4f0fd67f21f689eb",
+      "model_hash": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+      "verdict": {
+        "explained": {
+          "termination": "TERMINATION_PROPOSAL_BUDGET",
+          "limit": "7"
+        }
+      },
+      "event_count": 21,
+      "final_witness": [
+        [
+          "Worker::Poll(1)",
+          "Accepted"
+        ],
+        [
+          "Worker::RespondCompleted",
+          "Accepted"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ]
+      ],
+      "flattened_count": 47,
+      "original_path_count": 31,
+      "witness_counts": [
+        {
+          "witness": {},
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondCompleted"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondCompleted",
+              "Client::Cancel"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondCompleted",
+              "Client::Cancel",
+              "Client::Cancel"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondCompleted",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondCompleted",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondCompleted",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel"
+            ]
+          },
+          "count": 1
+        }
+      ]
+    },
+    "final_witness_equal": true,
+    "verdict_equal": true,
+    "model_hash_equal": true
+  },
+  "21": {
+    "raw": {
+      "sha256_binpb": "d922591c48aaa0b962c434547e13a76cef11c70e4b12ccce637ba8a4e36a5f6a",
+      "model_hash": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+      "verdict": {
+        "explained": {
+          "termination": "TERMINATION_PROPOSAL_BUDGET",
+          "limit": "7"
+        }
+      },
+      "event_count": 46,
+      "final_witness": [
+        [
+          "Worker::Poll(1)",
+          "Accepted"
+        ],
+        [
+          "Worker::RespondFailed { retryable: true }",
+          "Accepted"
+        ],
+        [
+          "Worker::Poll(2)",
+          "Accepted"
+        ],
+        [
+          "Worker::RespondCompleted",
+          "Accepted"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ]
+      ],
+      "flattened_count": 119,
+      "original_path_count": 103,
+      "witness_counts": [
+        {
+          "witness": {},
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondFailed { retryable: true }"
+            ]
+          },
+          "count": 25
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Accepted"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondFailed { retryable: true }",
+              "Worker::Poll(2)",
+              "Worker::RespondCompleted"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondFailed { retryable: true }",
+              "Worker::Poll(2)",
+              "Worker::RespondCompleted",
+              "Client::Cancel"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondFailed { retryable: true }",
+              "Worker::Poll(2)",
+              "Worker::RespondCompleted",
+              "Client::Cancel",
+              "Client::Cancel"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondFailed { retryable: true }",
+              "Worker::Poll(2)",
+              "Worker::RespondCompleted",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondFailed { retryable: true }",
+              "Worker::Poll(2)",
+              "Worker::RespondCompleted",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondFailed { retryable: true }",
+              "Worker::Poll(2)",
+              "Worker::RespondCompleted",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel"
+            ]
+          },
+          "count": 1
+        }
+      ]
+    },
+    "sdk": {
+      "sha256_binpb": "5452926f97471ecd2be5dc42d536703b9367c63643f6fb956633edae5a277c0e",
+      "model_hash": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+      "verdict": {
+        "explained": {
+          "termination": "TERMINATION_PROPOSAL_BUDGET",
+          "limit": "7"
+        }
+      },
+      "event_count": 46,
+      "final_witness": [
+        [
+          "Worker::Poll(1)",
+          "Accepted"
+        ],
+        [
+          "Worker::RespondFailed { retryable: true }",
+          "Accepted"
+        ],
+        [
+          "Worker::Poll(2)",
+          "Accepted"
+        ],
+        [
+          "Worker::RespondCompleted",
+          "Accepted"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ],
+        [
+          "Client::Cancel",
+          "Rejected(NotFound)"
+        ]
+      ],
+      "flattened_count": 120,
+      "original_path_count": 104,
+      "witness_counts": [
+        {
+          "witness": {},
+          "count": 1
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted"
+            ],
+            "steps": [
+              "Worker::Poll(1)"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondFailed { retryable: true }"
+            ]
+          },
+          "count": 25
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Accepted"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondFailed { retryable: true }",
+              "Worker::Poll(2)",
+              "Worker::RespondCompleted"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondFailed { retryable: true }",
+              "Worker::Poll(2)",
+              "Worker::RespondCompleted",
+              "Client::Cancel"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondFailed { retryable: true }",
+              "Worker::Poll(2)",
+              "Worker::RespondCompleted",
+              "Client::Cancel",
+              "Client::Cancel"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondFailed { retryable: true }",
+              "Worker::Poll(2)",
+              "Worker::RespondCompleted",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondFailed { retryable: true }",
+              "Worker::Poll(2)",
+              "Worker::RespondCompleted",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel"
+            ]
+          },
+          "count": 2
+        },
+        {
+          "witness": {
+            "outcomes": [
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Accepted",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)",
+              "Rejected(NotFound)"
+            ],
+            "steps": [
+              "Worker::Poll(1)",
+              "Worker::RespondFailed { retryable: true }",
+              "Worker::Poll(2)",
+              "Worker::RespondCompleted",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel",
+              "Client::Cancel"
+            ]
+          },
+          "count": 1
+        }
+      ]
+    },
+    "final_witness_equal": true,
+    "verdict_equal": true,
+    "model_hash_equal": true
+  }
+}

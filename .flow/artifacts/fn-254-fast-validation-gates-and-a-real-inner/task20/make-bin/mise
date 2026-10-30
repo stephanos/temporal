@@ -1,0 +1,8 @@
+#!/usr/bin/env python3
+import sys,os,json,subprocess,pathlib
+args=sys.argv[1:]
+with open(os.environ['MOLD_MAKE_CALLS'],'a') as f:f.write(json.dumps({'cwd':os.getcwd(),'args':args})+'\n')
+if args[:3]==['exec','--','cargo']:
+ args.insert(3,'-vv')
+ if args[-1]=='quick':args.append('--select-only')
+sys.exit(subprocess.call(['/home/agent/.local/bin/mise',*args]))

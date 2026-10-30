@@ -1,0 +1,69 @@
+{
+  "commits": [
+    "eac683e6033c5861910fc0f0ed61f41b5e02946f"
+  ],
+  "tests": [
+    "bash /home/agent/.cache/codex-build/umpire-milestones-20261024/fn2469-prefix/runner/verify-go.sh (go test -p 2 -tags test_dep ./... -count=1 and go vet -p 2 -tags test_dep ./...; fresh generic guests and native current-contract parity)",
+    "mise exec -- cargo test -p umpire-runtime --locked (63 passed)",
+    "mise exec -- cargo clippy -p umpire-runtime --all-targets --all-features --locked -- -D warnings",
+    "mise exec -- go test -v -p 2 -count=1 -timeout 10m -tags 'test_dep integration' ./tests -run '^TestUmpireWholePrefixJudgmentPath$' (red on old concatenation, green after correction)",
+    "make umpire-check-model-slice (59 passing rows; 84.086s)",
+    "make lint-code-fast GOLANGCI_LINT_BASE_REV=d0469357c11d885ee1f050446e244ab4538f3a0e GOLANGCI_LINT_FIX=false",
+    "make lint-code-fast TEST_TAG=integration GOLANGCI_LINT_BASE_REV=d0469357c11d885ee1f050446e244ab4538f3a0e GOLANGCI_LINT_FIX=false",
+    "mise exec -- rustfmt --check --edition 2024 protocol/runtime/tests/main/prefix.rs; gofmt -l changed Go; git diff --check"
+  ],
+  "prs": [],
+  "base": "d0469357c11d885ee1f050446e244ab4538f3a0e",
+  "scope": [
+    "model/umpire/hosts/go/README.md",
+    "model/umpire/hosts/go/runner/admission_test.go",
+    "model/umpire/hosts/go/runner/modes_test.go",
+    "model/umpire/hosts/go/runner/prefix_test.go",
+    "model/umpire/hosts/go/runner/replay.go",
+    "model/umpire/hosts/go/runner/runner.go",
+    "model/umpire/protocol/proto/README.md",
+    "model/umpire/protocol/runtime/tests/main/prefix.rs",
+    "tests/testpilot_model_slice_umpire_test.go"
+  ],
+  "unchanged_identities": {
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm": {
+      "sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+      "unchanged_from_base": true
+    },
+    "model/temporal/feature/activity/model.rs": {
+      "sha256": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767",
+      "unchanged_from_base": true
+    },
+    "model/temporal/feature/activity/temporal.rs": {
+      "sha256": "bb3c7b404ea950b0ca1424803ef068ed2be01bc7ac57d1f260af138320a049bc",
+      "unchanged_from_base": true
+    }
+  },
+  "baseline": {
+    "metadata": "baseline/capture-metadata.json",
+    "original_failed_log": "baseline/live.log",
+    "comparison": "baseline/comparison.json",
+    "binary_sha256": {
+      "raw3": "bffa378900b6910683f45e89c72e3d89c96b8bc9ee1da3de2eba1394c01b2d17",
+      "sdk3": "59fe2d707868f72bdb4ee6ab82f5463c5be90c784a2336fc4f0fd67f21f689eb",
+      "raw21": "d922591c48aaa0b962c434547e13a76cef11c70e4b12ccce637ba8a4e36a5f6a",
+      "sdk21": "5452926f97471ecd2be5dc42d536703b9367c63643f6fb956633edae5a277c0e"
+    },
+    "seed21_original_flattened_counts": {
+      "raw": 103,
+      "sdk": 104
+    },
+    "seed21_event_counts": {
+      "raw": 46,
+      "sdk": 46
+    },
+    "final_witnesses_exactly_equal": true
+  },
+  "live_rows": "proof/live-row-outcomes.json",
+  "deferred": [
+    "Changed-canonical-past and compatible-frontier runtime/record/replay proof belongs to fn-246.10 and integrated .6.",
+    "Full umpire-check-live-tests umbrella remains fn-256.1 obligation; this lane executed the full model-slice prerequisite target."
+  ],
+  "delegated_agents": 3,
+  "formal_review": "Owned by root conductor; no review verdict or lifecycle mutation from this lane."
+}

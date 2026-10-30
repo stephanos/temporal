@@ -18,6 +18,7 @@
     "fn-254-fast-validation-gates-and-a-real-inner.17": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.18": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.2": 0,
+    "fn-254-fast-validation-gates-and-a-real-inner.20": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.21": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.3": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.4": 0,
@@ -2469,6 +2470,102 @@
       "task": "fn-254-fast-validation-gates-and-a-real-inner.21",
       "timestamp": "2026-10-30T00:47:58.646252Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "97ca107938bf2390e442027eda3b18e7a3db666dc0bed54502dc61ead83e8ac3",
+      "backend": "claude",
+      "base_sha": "305137d447ef2c1834aed2b11ea1e73030d638bd",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-be354f2807de903b5b8a4042b99f46cf",
+            "classification": "introduced",
+            "findingId": "finding-be354f2807de903b5b8a4042b99f46cf",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "75b4ee542c6984fef103d6ba337be18e5293e693",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 2300,
+      "output_sha256": "2afd7a050dc7a65bd1ec123ba6fe8117f7fb58a8a79ddb21834bffee9b1ebb54",
+      "reservation_id": "df6dadca15d44fa6810ab3c9f2537478",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.20",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.20",
+      "timestamp": "2026-10-30T00:57:53.925596Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "ae318809a17c99efc1c240e9042bf4743d429146114a1bbc24d40be782caab80",
+      "backend": "claude",
+      "base_sha": "75b4ee542c6984fef103d6ba337be18e5293e693",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-be354f2807de903b5b8a4042b99f46cf",
+            "classification": "introduced",
+            "findingId": "finding-be354f2807de903b5b8a4042b99f46cf",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b716c48ddc4f7ca6860349445d8c10ae",
+            "classification": "introduced",
+            "findingId": "finding-b716c48ddc4f7ca6860349445d8c10ae",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e6919f360a15451b84f19bf1ca2b69216b766bee",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3747,
+      "output_sha256": "c4f389809cb0f96e9874f713126faf39963a5a795c4714d65234bc5e140459b4",
+      "reservation_id": "ddd4eee07f454d01ad2c3573c95f99ae",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.20",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.20",
+      "timestamp": "2026-10-30T01:13:06.035145Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -2481,6 +2578,7 @@
     "impl:fn-254-fast-validation-gates-and-a-real-inner.17": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.18": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.2": 1,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.20": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.21": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.3": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.4": 1,
@@ -2502,6 +2600,7 @@
     "impl:fn-254-fast-validation-gates-and-a-real-inner.17": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.18": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.2": 0,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.20": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.21": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.3": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.4": 0,
@@ -2524,5 +2623,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-30T00:47:58.662285Z"
+  "updated_at": "2026-10-30T01:13:06.080813Z"
 }

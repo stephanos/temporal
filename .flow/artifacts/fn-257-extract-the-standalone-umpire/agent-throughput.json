@@ -289,6 +289,74 @@
       "source_rework": "No source rework. Compact contracts FYI parser format repaired in merge without verdict changes.",
       "attribution": "Mixed implementation, shared-target wait and review time; build timings incomparable and no causal speedup attributed.",
       "deferred": "Full/backend-mode matrix and final gates fn-254.8; paused budgets .12 unchanged."
+    },
+    {
+      "at": "2026-10-30T01:17:32.299169Z",
+      "type": "verified_task_closure",
+      "task": "fn-254.20",
+      "status": "done",
+      "source_head": "827b76300d",
+      "claimed_at": "2026-10-30T00:35:58.141562Z",
+      "done_at": "2026-10-30T01:17:32.299169Z",
+      "claim_to_done_seconds": 2494.157607,
+      "reviews": [
+        {
+          "rid": "df6dadca15d44fa6810ab3c9f2537478",
+          "result": "NEEDS_WORK",
+          "axes": 3,
+          "max_draw_seconds": 461.4,
+          "retained_findings": 1
+        },
+        {
+          "session_id": "8441d095-3d39-4fa4-98a8-77420a65aeee",
+          "result": "SHIP",
+          "axes": 1,
+          "duration_seconds": null
+        }
+      ],
+      "source_rework": "Explicit Make Cargo config removes43-unit fingerprint flips; final reviewer-requested canonical test fixture root verified with symlink TMPDIR red/green.",
+      "verification": "39 guest-driver tests,5 Temporal integration,symlink control,strict scoped lint/fmt,standalone bootstrap,WASI host units,guest byte/sidecar invariance and native/WASM parity pass.",
+      "attribution": "Matched link-only medians0.230219s vs0.081408s; no whole-build or cross-host speedup attribution. Claim-to-done includes queue/review/rework while countdown work ran independently.",
+      "deferred": "Full current-input/combined/standalone gates .8; unchanged broad lint failures retained; cache .19 blocked and budgets .12 paused."
+    },
+    {
+      "at": "2026-10-30T01:24:52.880271Z",
+      "type": "verified_task_closure",
+      "task": "fn-253.5",
+      "status": "done",
+      "source_head": "3d10f5abfb",
+      "claimed_at": "2026-10-30T00:35:58.786001Z",
+      "done_at": "2026-10-30T01:24:52.880271Z",
+      "claim_to_done_seconds": 2934.09427,
+      "reviews": [
+        {
+          "rid": "12bf50f66d284029a4907ecf308fbc61",
+          "result": "SHIP",
+          "axes": 3,
+          "max_draw_seconds": 397.1,
+          "accepted_followups": 1
+        },
+        {
+          "rid": "b11a07b1efbe4d179d9507228245a916",
+          "result": "SHIP",
+          "axes": 1,
+          "max_draw_seconds": 76.1,
+          "introduced_actionable_findings": 0
+        }
+      ],
+      "source_rework": "Display-only nominal Debug reconstruction; narrow documented source-mutant import exception and exact replacement helper reuse.",
+      "verification": "Required fixture3, testing-lib13, DSL-boundary7; four required mutants freshly reverified after helper reuse; strict focused Clippy/fmt pass.",
+      "attribution": "Includes source work, priority waits, compilation and sequential review queue; no causal speedup attribution.",
+      "deferred": "Activity cleanup/pattern/adoption/final gates retain listed dependencies and source ownership."
+    },
+    {
+      "at": "2026-10-30T00:40:10.402928+00:00",
+      "type": "verified_tooling_blocker",
+      "task": "fn-254.19",
+      "status": "blocked",
+      "counts_as_closure": false,
+      "evidence": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task19/measurements.json",
+      "reason": "Pinned sccache Rust cross-checkout normalization unsupported; actual1.99.1 A/B/A cache control retains two checkout misses and same-checkout hit. No narrowed substitute implemented."
     }
   ],
   "measurement_limits": "Source handoffs are work-in-progress, not verified closures. Mixed scope, unknown exact worker times and validation/access blockers prevent a causal concurrency speedup estimate."

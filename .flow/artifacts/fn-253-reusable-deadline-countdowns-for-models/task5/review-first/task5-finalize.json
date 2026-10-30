@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-253-reusable-deadline-countdowns-for-models.5",
+  "verdict": "SHIP",
+  "session_id": "67cb811b-d53b-4e2a-b042-36a272d304d7",
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "effort": "high",
+  "spec": "claude:claude-fable-5-1:high",
+  "standalone": false,
+  "review": "Coordinator format repair preserves the contracts draw P2; all three draws returned SHIP. Optional FYIs remain in raw draw files.\n\n## Issue 1\n- **Severity**: P2\n- **Title**: Source-mutant fixture direct frontend imports need an explicit module contract\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: model/umpire/dev/fixtures/Cargo.toml:21\n- **R-IDs**: [R2]\n- **Problem**: The module map row for `umpire-fixtures` (`.plans/UMPIRE_MODULES.md:48`) says fixtures \"use author and test support\". This change adds `umpire-front` and `syn` as direct dev-dependencies so the test can call `umpire_front::read` on the mutant source. No existing route exposes the front tree from test support (the `model` field on `umpire_tla::Lifted` is private), so the deviation is understandable, but it is a stated-contract inconsistency on the module boundary that the other mutant fixtures avoided (`optional_ticks` mutates the embedded tree; `phased_rejection` goes through `bound().lift_source`).\n- **Suggestion**: Either record the exception in the module map row, or expose a small `Bound::read_source(file, source) -> umpire_front::Lifted` in `umpire-testing` and drop the two dev-dependencies from the fixture crate.\n\nUnaddressed R-IDs: []\n\nClassification counts: 1 introduced, 0 pre_existing.\n\n<verdict>SHIP</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "claude-fable-5-1",
+      "session_id": "67cb811b-d53b-4e2a-b042-36a272d304d7",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "claude-fable-5-1",
+      "session_id": "90ef6dbc-14c7-4dcc-abf4-161417be6a3b",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "claude-fable-5-1",
+      "session_id": "fc1e8dee-43a4-4658-9e0c-02c8a1767570",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": null,
+  "introduced_count": 1,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}

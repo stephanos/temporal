@@ -1,0 +1,397 @@
+{
+  "source": {
+    "Makefile": "929c28b149b904052e5c79b0097eda90b2bc8eb909e4f6d1a82f8826be98b140",
+    "model/dev/xtask/tests/make_paths.rs": "41764ebc639e72d8cb183bb5b7e594c1cda2ee325a167bc678f31b90b9afee71",
+    "model/design/gate-speed.md": "f2a5c6bd1673f980bb1dbd359c0537b39bf99847a28b428d3f49758c7a383b0f"
+  },
+  "decision": "RUST_MODEL_CARGO explicitly loads model/.cargo/config.toml without changing caller cwd, Cargo home/target or inline environment assignment semantics",
+  "regression": {
+    "red": "make-red.log: omitted explicit config, exact intended command mismatch",
+    "green": "make-green.log",
+    "system_configuration": "both supported target triples have only linker=umpire/scripts/mold-linker.sh; guarded by permanent Temporal test",
+    "caller_semantics": "regression executes extracted shipping Make definition/quick recipe in a path with spaces, preserving relative CARGO_HOME/CARGO_TARGET_DIR and cwd and disabling tool auto installation"
+  },
+  "actual_commands": [
+    "root: make --no-print-directory model-quick",
+    "nested: cd model && mise exec -- cargo build --locked --profile dev -p temporal-xtask --bin temporal-xtask -vv",
+    "root: make --no-print-directory model-quick"
+  ],
+  "observer": "PATH mise observer records original argv/cwd, adds only global Cargo -vv and --select-only after quick, then executes real /home/agent/.local/bin/mise; shipped Make recipe/definition and real bridge/bootstrap/selection execute",
+  "observer_sha256": "78cbbc304bcb9ac50903463577adb418f2d3b0be21f5dae209bb2468ab669715",
+  "cache": "same isolated /home/agent/.cache/codex-build/fn25420-mold; sccache and Rust wrappers absent",
+  "steps": {
+    "before": {
+      "first": {
+        "log": "make-before-first.log",
+        "sha256": "ff0cbe9715ba9e5b4c3b60d5127eb4578d91f0bf1b6f711971d2f37f3f1cde42",
+        "config_dirty_count": 43,
+        "rustc_invocation_count": 43,
+        "mold_rustc_invocation_count": 0,
+        "cargo_finished": [
+          "Finished `dev` profile [unoptimized + debuginfo] target(s) in 13.14s",
+          "Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.06s"
+        ]
+      },
+      "nested": {
+        "log": "make-before-nested.log",
+        "sha256": "66958d46afe547a13dc55e8bf8203a8029d85366ca4fccad39ead0a6b4ca518f",
+        "config_dirty_count": 43,
+        "rustc_invocation_count": 43,
+        "mold_rustc_invocation_count": 43,
+        "cargo_finished": [
+          "Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.74s"
+        ]
+      },
+      "repeat": {
+        "log": "make-before-repeat.log",
+        "sha256": "19a0050368b514db21e3a4bd57f1574cf746c95268c1c2248a86a0bb5263144c",
+        "config_dirty_count": 43,
+        "rustc_invocation_count": 43,
+        "mold_rustc_invocation_count": 0,
+        "cargo_finished": [
+          "Finished `dev` profile [unoptimized + debuginfo] target(s) in 11.98s",
+          "Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s"
+        ]
+      }
+    },
+    "after": {
+      "first": {
+        "log": "make-after-first.log",
+        "sha256": "4a36937d3d821cc87d173c13504cc3465d4838bfc08600d7d89218534350caf8",
+        "config_dirty_count": 0,
+        "rustc_invocation_count": 0,
+        "mold_rustc_invocation_count": 0,
+        "cargo_finished": [
+          "Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s",
+          "Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s"
+        ]
+      },
+      "nested": {
+        "log": "make-after-nested.log",
+        "sha256": "092afa53e60ff5e0b565df8b72cca1d06e7cbf9da896708ab6be142c707d674e",
+        "config_dirty_count": 0,
+        "rustc_invocation_count": 0,
+        "mold_rustc_invocation_count": 0,
+        "cargo_finished": [
+          "Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s"
+        ]
+      },
+      "repeat": {
+        "log": "make-after-repeat.log",
+        "sha256": "1c267ca90d35ea4188ba4d4a90673367b6a46cb521dffff6f39ad28d1fc63fee",
+        "config_dirty_count": 0,
+        "rustc_invocation_count": 0,
+        "mold_rustc_invocation_count": 0,
+        "cargo_finished": [
+          "Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s",
+          "Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s"
+        ]
+      }
+    }
+  },
+  "original_mise_calls": {
+    "before": [
+      {
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+        "args": [
+          "exec",
+          "--",
+          "cargo",
+          "run",
+          "--manifest-path",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/Cargo.toml",
+          "--package",
+          "temporal-xtask",
+          "--bin",
+          "temporal-xtask",
+          "--profile",
+          "dev",
+          "--",
+          "quick"
+        ]
+      },
+      {
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+        "args": [
+          "exec",
+          "--",
+          "cargo",
+          "build",
+          "--locked",
+          "-p",
+          "xtask",
+          "--bin",
+          "xtask",
+          "-p",
+          "umpire-guest-driver",
+          "--bin",
+          "umpire-guest-driver",
+          "--profile",
+          "dev",
+          "--target-dir",
+          "/home/agent/.cache/codex-build/fn25420-mold/xtask-bootstrap"
+        ]
+      },
+      {
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model",
+        "args": [
+          "exec",
+          "--",
+          "cargo",
+          "metadata",
+          "--locked",
+          "--format-version",
+          "1"
+        ]
+      },
+      {
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+        "args": [
+          "exec",
+          "--",
+          "cargo",
+          "metadata",
+          "--locked",
+          "--format-version",
+          "1"
+        ]
+      },
+      {
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+        "args": [
+          "exec",
+          "--",
+          "cargo",
+          "run",
+          "--manifest-path",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/Cargo.toml",
+          "--package",
+          "temporal-xtask",
+          "--bin",
+          "temporal-xtask",
+          "--profile",
+          "dev",
+          "--",
+          "quick"
+        ]
+      },
+      {
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+        "args": [
+          "exec",
+          "--",
+          "cargo",
+          "build",
+          "--locked",
+          "-p",
+          "xtask",
+          "--bin",
+          "xtask",
+          "-p",
+          "umpire-guest-driver",
+          "--bin",
+          "umpire-guest-driver",
+          "--profile",
+          "dev",
+          "--target-dir",
+          "/home/agent/.cache/codex-build/fn25420-mold/xtask-bootstrap"
+        ]
+      },
+      {
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model",
+        "args": [
+          "exec",
+          "--",
+          "cargo",
+          "metadata",
+          "--locked",
+          "--format-version",
+          "1"
+        ]
+      },
+      {
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+        "args": [
+          "exec",
+          "--",
+          "cargo",
+          "metadata",
+          "--locked",
+          "--format-version",
+          "1"
+        ]
+      }
+    ],
+    "after": [
+      {
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+        "args": [
+          "exec",
+          "--",
+          "cargo",
+          "--config",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/.cargo/config.toml",
+          "run",
+          "--manifest-path",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/Cargo.toml",
+          "--package",
+          "temporal-xtask",
+          "--bin",
+          "temporal-xtask",
+          "--profile",
+          "dev",
+          "--",
+          "quick"
+        ]
+      },
+      {
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+        "args": [
+          "exec",
+          "--",
+          "cargo",
+          "build",
+          "--locked",
+          "-p",
+          "xtask",
+          "--bin",
+          "xtask",
+          "-p",
+          "umpire-guest-driver",
+          "--bin",
+          "umpire-guest-driver",
+          "--profile",
+          "dev",
+          "--target-dir",
+          "/home/agent/.cache/codex-build/fn25420-mold/xtask-bootstrap"
+        ]
+      },
+      {
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model",
+        "args": [
+          "exec",
+          "--",
+          "cargo",
+          "metadata",
+          "--locked",
+          "--format-version",
+          "1"
+        ]
+      },
+      {
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+        "args": [
+          "exec",
+          "--",
+          "cargo",
+          "metadata",
+          "--locked",
+          "--format-version",
+          "1"
+        ]
+      },
+      {
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+        "args": [
+          "exec",
+          "--",
+          "cargo",
+          "--config",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/.cargo/config.toml",
+          "run",
+          "--manifest-path",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/Cargo.toml",
+          "--package",
+          "temporal-xtask",
+          "--bin",
+          "temporal-xtask",
+          "--profile",
+          "dev",
+          "--",
+          "quick"
+        ]
+      },
+      {
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+        "args": [
+          "exec",
+          "--",
+          "cargo",
+          "build",
+          "--locked",
+          "-p",
+          "xtask",
+          "--bin",
+          "xtask",
+          "-p",
+          "umpire-guest-driver",
+          "--bin",
+          "umpire-guest-driver",
+          "--profile",
+          "dev",
+          "--target-dir",
+          "/home/agent/.cache/codex-build/fn25420-mold/xtask-bootstrap"
+        ]
+      },
+      {
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model",
+        "args": [
+          "exec",
+          "--",
+          "cargo",
+          "metadata",
+          "--locked",
+          "--format-version",
+          "1"
+        ]
+      },
+      {
+        "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+        "args": [
+          "exec",
+          "--",
+          "cargo",
+          "metadata",
+          "--locked",
+          "--format-version",
+          "1"
+        ]
+      }
+    ]
+  },
+  "final_executable": {
+    "path": "/home/agent/.cache/codex-build/fn25420-mold/debug/temporal-xtask",
+    "sha256": "571d48f00bf5f049244c41de77808148e9bbd6848c139f399f2b9061929b3da2",
+    "comment": "\nString dump of section '.comment':\n  [     0]  mold 3.0.0 (8de38c35a2df16a25f7ff87ac3ad07156a925beb; compatible with GNU ld)\n  [    4e]  rustc version 1.99.1 (58cf8f9c3 2026-10-13)\n  [    7b]  clang version 23.1.0git\n  [    93]  GCC: (Ubuntu 15.2.0-16ubuntu1) 15.2.0\n\n"
+  },
+  "verification": {
+    "temporal_integration_tests": 5,
+    "changed_test_clippy": "cargo clippy --locked -p temporal-xtask --test main -- -D warnings: pass",
+    "format": "cargo fmt --check -p temporal-xtask: pass",
+    "diff_check": "git diff --check: pass",
+    "broadened_clippy": "cargo clippy --locked -p temporal-xtask --all-targets -- -D warnings: fails unchanged gate.rs:244 clippy::too_many_lines (129/100); no unrelated fix"
+  },
+  "limitations": [
+    "quick --select-only covers real Make/bridge/bootstrap/config/selection, not selected validation gates",
+    "This correction does not renew full current-input or committed Temporal guest freshness evidence",
+    "After first step starts with mold units warmed by green regression build; all three after steps remain fresh",
+    "Original task20 proof/source hashes retained unchanged as historical reviewed candidate"
+  ],
+  "log_hashes": {
+    "make-after-repeat.log": "1c267ca90d35ea4188ba4d4a90673367b6a46cb521dffff6f39ad28d1fc63fee",
+    "make-test-clippy.log": "6b63a68f2083573a43f064444754e5817f326b976949f7c7c3e2933047bc2900",
+    "make-green.log": "8a4fc37b41183782b4a75f36b712872e1eea5cc7f7341c881b0931eb994bef81",
+    "make-before-first.log": "ff0cbe9715ba9e5b4c3b60d5127eb4578d91f0bf1b6f711971d2f37f3f1cde42",
+    "make-before-calls.jsonl": "0b126c4ce429c9cfa4caed2850be43bda4acc945d362d1326e0b309e72671275",
+    "make-before-repeat.log": "19a0050368b514db21e3a4bd57f1574cf746c95268c1c2248a86a0bb5263144c",
+    "make-final-tests.log": "36f1c626242515672f6accba8576f961cd42c2958b1fe74d88a2d46856533d3d",
+    "make-after-calls.jsonl": "3902a22bc8806c8cc4ec1249e6e3b5b63757d6eeecb5fa7c9d2aa9564481d317",
+    "make-final-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "make-before-nested.log": "66958d46afe547a13dc55e8bf8203a8029d85366ca4fccad39ead0a6b4ca518f",
+    "make-after-first.log": "4a36937d3d821cc87d173c13504cc3465d4838bfc08600d7d89218534350caf8",
+    "make-after-nested.log": "092afa53e60ff5e0b565df8b72cca1d06e7cbf9da896708ab6be142c707d674e",
+    "make-final-executable.comment": "2f667e207219821b2c58277425c4517580080c17afad468f0b29c921643c2140",
+    "make-red.log": "18a04ab0c5909653c9be258cd380fd2b49d820462c29ae35bc440990d9c12e6e",
+    "make-final-clippy.log": "93c5d8bee01c209e000519ea4d97d3066b8863f0bf97e2db84c083bd0ae48cd2"
+  }
+}

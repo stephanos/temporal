@@ -30,9 +30,16 @@ A small, system-agnostic fixture that exercises every countdown function and law
 - [ ] Passes under `UMPIRE_BACKENDS=require`.
 
 ## Done summary
-TBD
+Added the shared countdown fixture: two live deadlines with deterministic expiry priority, optional Worlds/reset and raw saturation probe. Native/interpreter/TLC agree for six Worlds; four exact source-only mutants refute named laws and replay through interpreted mutants, with compiled-good transition or claim disagreement. Seven reviewed goldens pin four default states, six edges, all three laws Verified and no vacuity.
 
+Required checks pass: fixture3/3, test-support lib13/13 and DSL countdown boundaries7/7. Generic nominal Debug reconstruction now matches Rust while retaining full schema/replay identity, with a red/green regression. Follow-up confines direct front/syn imports to ordinary-IR source-mutant parsing in the module map and reuses replace_once; all four required mutant proofs freshly pass, strict focused Clippy/fmt pass and goldens are unchanged. Evidence and final14 source hashes are retained under task5.
+
+stage: impl-review - ran (model: claude-fable-5-1 at high); initial correctness/contracts/integration SHIP on37aa5f678a; accepted import-contract finding corrected and a single focused contracts follow-up returned SHIP on3d10f5abfb. Payload-free ActionValues adapter FYI retained; no new domain behavior claimed.
+stage: completion-review - skipped(policy: unfinished spec tasks).
+Gates: focused required-mode proof and lint/format; final broad model gates remain fn-254.8 by owner cadence. No Activity semantics, paused budgets or migration changed.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 37aa5f678a, 3d10f5abfb
+- Tests: Required no-update countdown fixture3/3: six Worlds native/interpreter/TLC agree and four named-law mutants refute/replay, Required umpire-testing lib13/13 including nominal Debug regression and typed replay/optional-code controls, Native DSL countdown boundaries7/7, Fresh required no-update countdown source-mutant test1/1 after replace_once reuse, all four interpreter/TLC witnesses checked, Strict focused fixture/support all-target/all-feature Clippy and scoped rustfmt pass; corrected fixture strict Clippy/fmt pass
 - PRs:

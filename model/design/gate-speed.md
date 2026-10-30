@@ -269,13 +269,16 @@ entries lock both upstream release assets; Darwin and other target triples retai
 the existing tools/linkers. The framework-local adapter resolves the qualified
 `github:rui314/mold` install from its own tool root, refuses a missing executable,
 and passes the existing cc driver `-B<pinned-install>/bin/ -fuse-ld=mold`.
-It needs to exist before native Rust bootstrap; it adds no global Rust flags or
-second version source. Target `linker` configuration remains effective for host
+It needs to exist before native Rust bootstrap and adds no global Rust flags.
+The root mise pin provisions the framework tool for root-level `mise install`;
+it must match the framework pin that the adapter resolves. Target `linker`
+configuration remains effective for host
 units when the guest driver supplies its own encoded WASI flags.
 
 The [retained proof](../../.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task20/proof.json)
-binds the matched measurement and input hashes. Raw logs, scripts, matched linker
-arguments and `measurement.json` remain in `.flow/tmp/fn25420/`. The host was
+binds the matched measurement and input hashes. The same task20 artifact directory
+retains raw logs, scripts, matched linker arguments and `measurement.json`;
+`.flow/tmp/fn25420/` retains the local working copies. The host was
 Linux/aarch64, rustc 1.99.1, GCC 15.2.0 and GNU ld 2.46, with 12 logical CPUs and
 about 19 GiB RAM. Other lane builds paused for the final measurement; unrelated
 host activity was not controlled. Sccache and Rust compiler wrappers were absent.
@@ -319,3 +322,17 @@ gates, committed Temporal guest freshness and combined timings remain task .8.
 No Darwin or x86_64 execution proof is claimed. Linker/pin upgrades require fresh
 host-build and guest reproduction evidence; historical linked artifacts do not
 certify a changed linker.
+
+The root Make entry explicitly loads `model/.cargo/config.toml` through
+`RUST_MODEL_CARGO`. `--manifest-path` alone does not load a workspace's Cargo
+configuration. Keeping the caller directory preserves relative Cargo home/target
+paths while selecting the same linker as nested workspace commands. The
+[Make entry proof](../../.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task20/make-entry-proof.json)
+records an actual `make model-quick` bridge/bootstrap/selection cycle around a
+nested Temporal tool build. The observer adds verbose Cargo logging and
+`quick --select-only`, so this checks compilation/configuration consistency rather
+than running the selected validation gates. Before the fix, all three steps
+recompiled 43 Rust units for changed config settings; afterward, all three warm
+steps compiled zero Rust units and reported no changed config settings. The warm
+Make executable contains mold's ELF comment. The permanent Temporal Make control
+also guards both supported target entries and caller-relative path preservation.

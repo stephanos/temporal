@@ -1,0 +1,21 @@
+=== RUN   TestUmpireWholePrefixJudgmentPath
+    testpilot_model_slice_umpire_test.go:194: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/tests/testpilot_model_slice_umpire_test.go:194
+        	Error:      	Not equal: 
+        	            	expected: []string{"Poll Accepted", "Fail Accepted", "Retry Accepted", "Complete Accepted"}
+        	            	actual  : []string{"Poll Accepted", "Fail Accepted", "Poll Accepted", "Fail Accepted", "Retry Accepted", "Complete Accepted"}
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -1,2 +1,4 @@
+        	            	-([]string) (len=4) {
+        	            	+([]string) (len=6) {
+        	            	+ (string) (len=13) "Poll Accepted",
+        	            	+ (string) (len=13) "Fail Accepted",
+        	            	  (string) (len=13) "Poll Accepted",
+        	Test:       	TestUmpireWholePrefixJudgmentPath
+--- FAIL: TestUmpireWholePrefixJudgmentPath (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tests	0.023s
+FAIL
