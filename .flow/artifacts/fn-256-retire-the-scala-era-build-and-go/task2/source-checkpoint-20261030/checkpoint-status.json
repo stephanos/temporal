@@ -1,0 +1,8 @@
+{
+  "status": "Source checkpoint only; not complete and not integrated.",
+  "baseline": "78801d1feb67bd918b3c2902ad08239cd56c112e",
+  "removal_commit": "427a45e11309e11665c28883cafa1b0844320c86",
+  "subsequent_archive_note_commit": "9f63c3966e",
+  "verified": "Actual canarybuild,Make dryruns,scratchcontrols,baseline-scopedlint; identical RustMake section and other1626 archived blobs. Rootlock change onlyscala-cli tool/platform tables.",
+  "open": "R4 actual Model gate or matching integrated proof; ownerdeferred broadmodelgate fn254.8. No behavioral fullgate pass claimed."
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "value": "named",
+    "status": 0,
+    "stdout": "\u001b[1;36mRemove named .flow/tmp scratch...\u001b[0m\n",
+    "stderr": "grep: go.mod: No such file or directory\nfind: \u2018./proto/internal\u2019: No such file or directory\nfind: \u2018./proto/internal\u2019: No such file or directory\nfind: \u2018./chasm/lib\u2019: No such file or directory\n"
+  },
+  {
+    "value": "../keep",
+    "status": 2,
+    "stdout": "\u001b[1;36mRemove named .flow/tmp scratch...\u001b[0m\nrefusing scratch name '../keep'\n",
+    "stderr": "grep: go.mod: No such file or directory\nfind: \u2018./proto/internal\u2019: No such file or directory\nfind: \u2018./proto/internal\u2019: No such file or directory\nfind: \u2018./chasm/lib\u2019: No such file or directory\nmake: *** [/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2562-scala-cleanup/Makefile:526: umpire-clean-scratch] Error 1\n"
+  },
+  {
+    "value": "a/b",
+    "status": 2,
+    "stdout": "\u001b[1;36mRemove named .flow/tmp scratch...\u001b[0m\nrefusing scratch name 'a/b'\n",
+    "stderr": "grep: go.mod: No such file or directory\nfind: \u2018./proto/internal\u2019: No such file or directory\nfind: \u2018./proto/internal\u2019: No such file or directory\nfind: \u2018./chasm/lib\u2019: No such file or directory\nmake: *** [/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2562-scala-cleanup/Makefile:526: umpire-clean-scratch] Error 1\n"
+  },
+  {
+    "value": "..",
+    "status": 2,
+    "stdout": "\u001b[1;36mRemove named .flow/tmp scratch...\u001b[0m\nrefusing scratch name '..'\n",
+    "stderr": "grep: go.mod: No such file or directory\nfind: \u2018./proto/internal\u2019: No such file or directory\nfind: \u2018./proto/internal\u2019: No such file or directory\nfind: \u2018./chasm/lib\u2019: No such file or directory\nmake: *** [/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2562-scala-cleanup/Makefile:526: umpire-clean-scratch] Error 1\n"
+  },
+  {
+    "value": "..unsafe",
+    "status": 2,
+    "stdout": "\u001b[1;36mRemove named .flow/tmp scratch...\u001b[0m\nrefusing scratch name '..unsafe'\n",
+    "stderr": "grep: go.mod: No such file or directory\nfind: \u2018./proto/internal\u2019: No such file or directory\nfind: \u2018./proto/internal\u2019: No such file or directory\nfind: \u2018./chasm/lib\u2019: No such file or directory\nmake: *** [/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2562-scala-cleanup/Makefile:526: umpire-clean-scratch] Error 1\n"
+  },
+  {
+    "value": "",
+    "status": 0,
+    "stdout": "\u001b[1;36mRemove named .flow/tmp scratch...\u001b[0m\n",
+    "stderr": "grep: go.mod: No such file or directory\nfind: \u2018./proto/internal\u2019: No such file or directory\nfind: \u2018./proto/internal\u2019: No such file or directory\nfind: \u2018./chasm/lib\u2019: No such file or directory\n"
+  }
+]

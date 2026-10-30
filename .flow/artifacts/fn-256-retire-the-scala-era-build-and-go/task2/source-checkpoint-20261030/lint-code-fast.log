@@ -1,0 +1,5 @@
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2562-scala-cleanup'
+[1;36mDownloading github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.1[0m
+make[1]: *** [Makefile:206: .bin/golangci-lint-v2.13.1] Terminated
+Terminated
+make: *** [Makefile:565: lint-code-fast] Error 143

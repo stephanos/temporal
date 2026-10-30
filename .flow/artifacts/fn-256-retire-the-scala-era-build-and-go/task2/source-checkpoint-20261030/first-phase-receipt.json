@@ -1,0 +1,26 @@
+{
+  "baseline": "78801d1feb67bd918b3c2902ad08239cd56c112e",
+  "phase": "tooling removal; archived README intentionally pending subsequent documentation commit",
+  "passed": [
+    "GOFLAGS=-p=2 make canary-build",
+    "make -n model-check",
+    "make -n umpire-check-live-tests",
+    "scratch positive/empty/four invalid-name controls; retained Scala state and unrelated scratch",
+    "GOFLAGS=-p=2 make lint-code-fast GOLANGCI_LINT_BASE_REV=78801d1feb67bd918b3c2902ad08239cd56c112e",
+    "git diff --check",
+    "all 1627 archived tracked blobs unchanged",
+    "Rust section bytes unchanged by stable marker",
+    "model_quote unchanged",
+    "lock projection differs only by tools.scala-cli; non-Scala raw bytes unchanged"
+  ],
+  "parse_time_seconds": {
+    "before": 0.096,
+    "after": 0.099
+  },
+  "open": [
+    "R4 actual model-check behavioral gate owner-deferred to fn-254.8; dry run supplies no behavioral proof",
+    "archived README must name existing tooling removal SHA in subsequent commit",
+    "root owns source commits, review and Flow updates"
+  ],
+  "initial_lint_attempt": "default historical baseline selected old Go changes; terminated only own process tree during tool provisioning; correctly scoped retry passed"
+}
