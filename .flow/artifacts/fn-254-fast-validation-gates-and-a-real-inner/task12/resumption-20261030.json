@@ -1,0 +1,11 @@
+{
+  "owner_instruction": "mark budget/gate work as resumed",
+  "scope": "fn-254.12 budget/gate work and its existing tooling/enforcement obligations",
+  "status": "resumed",
+  "retained_checkpoint": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task12/applicability-pause-20261028/summary.json",
+  "supersedes": "Earlier wrap-and-stop restriction for this lane only",
+  "other_backlog_lanes": "remain paused",
+  "migration": "remains deferred",
+  "task_runtime_status": "in_progress",
+  "implementation_or_gate_pass_claimed": false
+}

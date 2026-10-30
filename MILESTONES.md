@@ -4,7 +4,7 @@ The owner's overview of open work, execution order and blockers.
 
 As of 2026-10-30.
 
-Execution is paused at the owner's request after eight milestones were reviewed, closed and locally integrated. Running checks and reviews are wrapped up. Three committed source checkpoints remain unmerged: fn-246.10 has a SHIP follow-up and awaits current Temporal guest acceptance; fn-253.7 passes default-stack native and focused required checks but awaits source review and guest acceptance; fn-256.2 has tooling-removal evidence but its full Rust gate obligation remains open. Resume these checkpoints before admitting another milestone. Budget admission fn-254.12 and migration fn-258 remain owner-deferred. The owner withdrew the sccache proposal; it no longer blocks final validation.
+Budget/gate work is resumed at the owner's request on 2026-10-30. Continue fn-254.12 from its retained applicability/input-custody checkpoint, including gate-tooling fixes and the remaining budget enforcement work. The other backlog lanes remain paused after eight reviewed, closed and locally integrated milestones. Three source checkpoints remain unmerged: fn-246.10 awaits current Temporal guest acceptance; fn-253.7 awaits source review and guest acceptance; fn-256.2 awaits source review and full Rust R4 evidence. Migration fn-258 remains deferred. The sccache proposal was withdrawn and no longer blocks final validation.
 
 The latest `make model-check` attempt failed on 94 strict-Clippy errors in unchanged xtask gate-budget code. Focused checks pass; a full-gate pass remains open.
 
@@ -52,7 +52,7 @@ checkpoint after any framework changes. GitHub destination inspection remains SA
 Backlog order remains **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
 ranks a fast feedback loop among the most important properties. The standalone workspace/driver and independent gate checkpoint are integrated, and the complete isolated proof passed.
-The remaining fn-254 critical path includes budgets .12, consuming the reviewed and integrated .15 native ports, .16 mise provider and .17 nextest/stage-DAG checkpoint. Budget admission remains owner-paused; permitted work advances the retained frontier and activity readability after the integrated whole-prefix, protocol and pattern closures. Final proof .8 also waits for .7 after committed fn-246 closure. The consumer/cache checkpoint is reviewed and closed; verified configurations cache independently of refuted siblings, and test-only Kettle readers no longer expand unrelated libraries. fn-254 gets first admission to shared build/JVM/review capacity. Disjoint source work may continue without delaying fn-254. Finish fn-254.7 after committed fn-246 closure.
+The remaining fn-254 critical path includes budgets .12, consuming the reviewed and integrated .15 native ports, .16 mise provider and .17 nextest/stage-DAG checkpoint. Budget/gate work is resumed; complete .12 from its retained checkpoint before dependent enforcement and final proof. Final proof .8 also waits for .7 after committed fn-246 closure. The consumer/cache checkpoint is reviewed and closed; verified configurations cache independently of refuted siblings, and test-only Kettle readers no longer expand unrelated libraries. fn-254 gets first admission to shared build/JVM/review capacity. Disjoint source work may continue without delaying fn-254. Finish fn-254.7 after committed fn-246 closure.
 The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246; fn-254.13's workspace move is integrated. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; activity changes
 retain their listed dependencies and follow the current priority/source-ownership order.
 fn-255.3 and .4 (fuzz targets and cargo-mutants) may prepare disjoint source before fn-254 closes; execution waits for committed fn-254.12 budget admission. Shared pins, manifests, decoder seams and native command registrations land serially.
@@ -156,7 +156,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | --- | --- | --- |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
-| fn-254.12 | 🔄 in progress | Owner-paused after applicability/custody checkpoint:244 framework,39 consumer and66 process tests pass. Resume real observer/context wiring, admitted tables and automatic retry; enforcement and closure remain open (R8) |
+| fn-254.12 | 🔄 in progress | Resumed by owner on 2026-10-30. Retained checkpoint:244 framework,39 consumer and66 process tests pass. Continue gate-tooling fixes, observer/context wiring, admitted tables and automatic retry; enforcement and closure remain open (R8) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 
