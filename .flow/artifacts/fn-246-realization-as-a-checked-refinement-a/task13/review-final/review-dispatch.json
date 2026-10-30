@@ -1,0 +1,31 @@
+{
+  "success": true,
+  "type": "impl_review_fanout",
+  "phase": "dispatch",
+  "id": "fn-246-realization-as-a-checked-refinement-a.13",
+  "rid": "1dc6f0389be9477898d4c515c8bc9bbd",
+  "reservation_id": "1dc6f0389be9477898d4c515c8bc9bbd",
+  "standalone": false,
+  "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/.flow/review-fanout/1dc6f0389be9477898d4c515c8bc9bbd",
+  "draws": [
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "session_id": "fd1871bb-2801-45b9-abd6-33af5fb8e713",
+      "model": "claude-fable-5-1",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/.flow/review-fanout/1dc6f0389be9477898d4c515c8bc9bbd/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/.flow/review-fanout/1dc6f0389be9477898d4c515c8bc9bbd/contracts.out.txt"
+    }
+  ],
+  "failed_draws": 0,
+  "merged": false,
+  "next": "merge the surviving draws' findings, then run: flowctl claude impl-review-fanout-finalize --rid 1dc6f0389be9477898d4c515c8bc9bbd --merge-plan <merge-plan.json>"
+}

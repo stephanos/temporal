@@ -1008,13 +1008,73 @@
       "task": "fn-246-realization-as-a-checked-refinement-a.13",
       "timestamp": "2026-10-30T01:57:44.358562Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "7368500f433136aca2e686d7aafabcec8fb3d0631b0fd566c29cf3f3ecf9d75f",
+      "backend": "claude",
+      "base_sha": "ac7679cb09861c09e9b0a142d1eaffaa2c6035c0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3bae14e4a074050ee7211a95ac1d02bb",
+            "classification": "introduced",
+            "findingId": "finding-3bae14e4a074050ee7211a95ac1d02bb",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ae5dec9b6f959216cd74f86c384002fa",
+            "classification": "introduced",
+            "findingId": "finding-ae5dec9b6f959216cd74f86c384002fa",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-caebd4cf128da34a743abf12da77ab71",
+            "classification": "introduced",
+            "findingId": "finding-caebd4cf128da34a743abf12da77ab71",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "8eeb9a85aface333f8a284a8b5376f3bd95fffe8",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "1dc6f0389be9477898d4c515c8bc9bbd",
+      "round_consumed": true,
+      "scope": "impl:fn-246-realization-as-a-checked-refinement-a.13",
+      "superseded_by": null,
+      "task": "fn-246-realization-as-a-checked-refinement-a.13",
+      "timestamp": "2026-10-30T02:15:39.197685Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-246-realization-as-a-checked-refinement-a.1": 1,
     "impl:fn-246-realization-as-a-checked-refinement-a.11": 2,
     "impl:fn-246-realization-as-a-checked-refinement-a.12": 2,
-    "impl:fn-246-realization-as-a-checked-refinement-a.13": 1,
+    "impl:fn-246-realization-as-a-checked-refinement-a.13": 2,
     "impl:fn-246-realization-as-a-checked-refinement-a.14": 1,
     "impl:fn-246-realization-as-a-checked-refinement-a.15": 1,
     "impl:fn-246-realization-as-a-checked-refinement-a.7": 1,
@@ -1049,5 +1109,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-30T01:57:44.365948Z"
+  "updated_at": "2026-10-30T02:15:39.203799Z"
 }
