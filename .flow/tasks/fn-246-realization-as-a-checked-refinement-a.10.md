@@ -46,9 +46,10 @@ Focused runtime/Kettle counterexample, control and deterministic record/replay t
 
 
 ## Done summary
-TBD
+Bounded compatible frontier with whole-prefix immutable reports: retained full-state branches and typed witness ancestry reuse the shared search core, branch-wide proposal/quiescence decisions are compared before canonical judgment, prefix data is revalidated once per retained root, and prospective frontier/report state commits only after publication. The generic two-countdown fixture and the Temporal global=3/heartbeat=2 mapping pin keep distinct global and local expiry continuations; greedy, erased-budget and changed-fact mutants fail. Source reviews returned SHIP (initial round plus focused follow-up after two P2 fixes). On 2026-10-30 the joined source was merged with umpire, the Temporal guest republished (6666f339…) and reproduced byte-identically, and the Temporal host suite, live model slice and gaps passed. Whole R5 TLC/live evidence remains with fn-246.6 and broad gates with fn-254.8.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e93935db5c, 0fc1c59229, d9de1c3009, e7d1d21eaf, 62b6eec383, 5ad2cba4aa
+- Tests: CGO_ENABLED=0 go test -count=1 -tags test_dep ./... (model/temporal/hosts/go), make umpire-check-model-slice, make umpire-check-model-gaps, cargo test -p umpire-temporal-tests --test fixtures deadline_frontier_mapping, temporal-xtask guest umpire-temporal-guest --check
 - PRs:

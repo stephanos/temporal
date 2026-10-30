@@ -1,0 +1,55 @@
+## Review: focused followup on the bounded compatible frontier (0a2770b..e7d1d21)
+
+I read the task spec, the full source diff, and the current `frontier.rs`, `runtime.rs`, `search.rs`, the countdown fixture, the control guest dispatcher, the Go runner session and the three new Go tests. No shell was available, so pass/fail claims rest on the committed logs plus hand traces.
+
+**Focus item 1 verified.** In `propose`, the resolved frontier is computed first, `proposal_decision` is evaluated on the canonical state, and `check_proposal_decisions` compares the full `ProposalDecision` (external enablement, the raw `Result<Proposal, Refusal>` including the error, and chosen-action enablement) across every resolved branch before the canonical Quiescent check runs (`runtime.rs:605-620`). Traced the OPAQUE fixture under both `ExternalProposal` and `QuiescentAction`: canonical `[Tick, Tick]` lands in `PendingClosed`, the retained `[Tick, Renew]` branch stays `Active` with `global = 2`, decisions differ, refusal is State "disagree". The Go runner maps only a Quiescent Propose refusal to `TERMINATION_QUIESCENT` (`session.go:159`), so the State refusal yields the Refused verdict at event 3 that `TestFrontierClosedCanonicalCannotTerminateAnActiveCompatibleAlternative` asserts. `UniformRefusal` produces identical `Err` values on every branch, so equality holds and the original Unsupported refusal propagates unchanged.
+
+**Focus item 2 verified.** `validate_prefix_data` is now called only in the root-seeding loop of `search_journal` (`frontier.rs:97-110`), once per retained root; popped labels are not revalidated. In the counter test the OPAQUE Judge retains two completed roots (canonical `[Tick,Tick]` plus `[Tick,Renew]`), so the GLOBAL Judge makes one call from `judge`'s `validate_prefix` and one per root, matching the expected 3. Earlier facts remain enforced because root validation still runs `valid_observation` with the per-branch cursors, and `RejectRenewFact` still refuses State.
+
+Also verified: lazy `HashSet` reservation with a seedless `BuildHasherDefault<DefaultHasher>` in `bound_frontier`; the callback arm of `expand_event` matches the committed `answer` shape (delivery edges only, response action checked but not stepped); `install_context` swaps the live realization at Admit commit, before any Proposal event, so the new per-Proposal revalidation is deterministic on the live path.
+
+### Findings
+
+**1. Root-level `EvidenceMatch::Stutter` now publishes a zero-step witness**
+- **Severity**: P3
+- **Confidence**: 75
+- **Classification**: introduced
+- **File:Line**: `model/umpire/protocol/runtime/src/frontier.rs:298-309`
+- **R-IDs**: []
+- **Problem**: `reach_frontier` accepts `Match | Stutter` at a node with no edges when the target matches. The replaced `reach` accepted only `Match` at the root, and `EvidenceMatch::Stutter` is documented as "full-state-preserving edge evidence". A realization that returns `Stutter` for the empty path would now get an Explained report with no steps instead of being forced to emit a self-loop edge. No in-tree realization returns `Stutter` for an empty path (the reach fixture returns `Continue` there), so no covered scenario fails.
+- **Suggestion**: Restrict the no-edge completion to `Match`, or document that an empty-path `Stutter` is a zero-step completion.
+
+**2. Prefix-bound overflow on one branch aborts the whole search**
+- **Severity**: P3
+- **Confidence**: 75
+- **Classification**: introduced
+- **File:Line**: `model/umpire/protocol/runtime/src/frontier.rs:471-476`
+- **R-IDs**: []
+- **Problem**: `finish_event` returns a Budget refusal through `?` as soon as any single branch's `edges + events` exceeds `scope.prefix`, even in first mode where a shorter canonical continuation may already be queued. Depth overflow is handled softly (node marked `blocked` and retained) while prefix overflow is hard. Both are named Budget refusals and the old frontier is preserved, so this is within the spec's refusal contract, but it means a long compatible alternative can block publication of a short canonical witness.
+- **Suggestion**: Treat prefix overflow like depth: mark the node `blocked: Some(..)` and let `search_journal` decide, so first mode can still publish and retain.
+
+### FYI (non-blocking)
+
+- `resolved_frontier` treats the last committed event as `latest`, so a branch whose recomputed `continues` differs from the committed value is only caught by the cross-branch agreement check. Only reachable after `replace_realization`, which the live path invokes once before any Proposal exists.
+- A depth-cut node remains in the frontier until Reset and makes every later exhaustive search refuse Budget. Now documented on `Scope.depth`; settled in the prior round.
+- `SingletonTarget` is a vacuous blanket trait retained for compatibility; settled P3 from the prior round.
+- Test-support only: `control.rs` forwards a configuration-less Reset to the installed frontier runtime rather than restoring the model runtime. The guest transcript always resets with a configuration.
+
+### Requirements coverage
+
+| R-ID | Status | Evidence |
+|------|--------|----------|
+| R1 | met | Branch-wide quiescence/external/raw-proposal/action-enablement comparison before Quiescent; once-per-root prefix revalidation; native, control-guest and Go closed-canonical tests; whole-prefix immutable reports preserved under question/reduce/replay/publication. |
+| R5 | deferred | Task supplies the generic latent-history retention plus the native activity mapping pin; whole R5 TLC/live umbrella remains with .246.6 per the task's focus statement. |
+
+Unaddressed R-IDs: []
+
+Suppressed findings: 0
+Classification counts: 2 introduced, 0 pre_existing.
+Protected-path filter: 0
+
+```json
+{"classification_counts":{"introduced":2,"pre_existing":0},"unaddressed":[]}
+```
+
+<verdict>SHIP</verdict>

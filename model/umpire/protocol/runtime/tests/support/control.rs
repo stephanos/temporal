@@ -100,9 +100,12 @@ impl Realize<World> for ControlRealization {}
 
 pub(crate) struct Control {
     runtime: Runtime<World, ControlRealization>,
+    frontier: Option<Runtime<super::support::frontier::World, super::support::frontier::Binding>>,
 }
 pub(crate) enum ControlTransaction {
     Model(umpire_runtime::Transaction<World>),
+    Frontier(umpire_runtime::Transaction<super::support::frontier::World>),
+    ResetFrontier(Box<Runtime<super::support::frontier::World, super::support::frontier::Binding>>),
     Reset(Box<Runtime<World, ControlRealization>>),
 }
 impl umpire_runtime::Dispatch for Control {
@@ -117,6 +120,33 @@ impl umpire_runtime::Dispatch for Control {
             let configured =
                 protocol::ResetRequest::decode(bytes).map(|request| request.configuration);
             match configured {
+                Ok(Some(configuration))
+                    if configuration == any(super::support::frontier::RENEW)
+                        || configuration == any(54)
+                        || configuration == any(55) =>
+                {
+                    let fault = if configuration == any(54) {
+                        super::support::frontier::Fault::ExternalProposal
+                    } else if configuration == any(55) {
+                        super::support::frontier::Fault::QuiescentAction
+                    } else {
+                        super::support::frontier::Fault::None
+                    };
+                    return (
+                        protocol::Response {
+                            outcome: Some(protocol::response::Outcome::Reset(
+                                protocol::ResetResponse::current(None),
+                            )),
+                        },
+                        Some(ControlTransaction::ResetFrontier(Box::new(Runtime::new(
+                            super::support::frontier::World::default(),
+                            super::support::frontier::Binding {
+                                fault,
+                                ..super::support::frontier::Binding::default()
+                            },
+                        )))),
+                    );
+                }
                 Ok(Some(configuration)) if configuration == any(0) || configuration == any(42) => {
                     return (
                         protocol::Response {
@@ -145,18 +175,33 @@ impl umpire_runtime::Dispatch for Control {
                 _ => {}
             }
         }
+        if let Some(frontier) = &self.frontier {
+            let (response, transaction) = frontier.prepare(method, bytes);
+            return (response, transaction.map(ControlTransaction::Frontier));
+        }
         let (response, transaction) = self.runtime.prepare(method, bytes);
         (response, transaction.map(ControlTransaction::Model))
     }
     fn commit(&mut self, transaction: Self::Transaction) {
         match transaction {
             ControlTransaction::Model(transaction) => self.runtime.commit(transaction),
+            ControlTransaction::Frontier(transaction) => {
+                self.frontier
+                    .as_mut()
+                    .unwrap_or_else(|| panic!("missing frontier runtime"))
+                    .commit(transaction);
+            }
+            ControlTransaction::ResetFrontier(runtime) => self.frontier = Some(*runtime),
             ControlTransaction::Reset(runtime) => {
+                self.frontier = None;
                 self.runtime = *runtime;
             }
         }
     }
 }
 pub(crate) fn control() -> Control {
-    Control { runtime: Runtime::new(World { starts: 1 }, ControlRealization { bootstrap: false }) }
+    Control {
+        runtime: Runtime::new(World { starts: 1 }, ControlRealization { bootstrap: false }),
+        frontier: None,
+    }
 }

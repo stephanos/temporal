@@ -1,0 +1,20 @@
+--- FAIL: TestFrontierChangesCanonicalPastWithoutChangingEarlierRunReports (0.02s)
+    frontier_test.go:17: explore: model host: model import forbidden: wasi_snapshot_preview1.random_get [127 127] -> [127]
+--- FAIL: TestFrontierReduceReproducesAnUnexplainedContinuationAfterCanonicalPastChanges (0.01s)
+    frontier_test.go:105: explore: model host: model import forbidden: wasi_snapshot_preview1.random_get [127 127] -> [127]
+--- FAIL: TestWholePrefixRecordingWithCallbacksAndCurrent (0.01s)
+    prefix_test.go:20: explore: model host: model import forbidden: wasi_snapshot_preview1.random_get [127 127] -> [127]
+FAIL
+FAIL	umpire.local/model/runner	0.048s
+--- FAIL: TestCurrentContractNativeWasmPublishedResponsesAgree (0.07s)
+    --- FAIL: TestCurrentContractNativeWasmPublishedResponsesAgree/ordinary (0.02s)
+        current_contract_test.go:27: model import forbidden: wasi_snapshot_preview1.random_get [127 127] -> [127]
+    --- FAIL: TestCurrentContractNativeWasmPublishedResponsesAgree/callback (0.02s)
+        current_contract_test.go:27: model import forbidden: wasi_snapshot_preview1.random_get [127 127] -> [127]
+    --- FAIL: TestCurrentContractNativeWasmPublishedResponsesAgree/configured (0.01s)
+        current_contract_test.go:27: model import forbidden: wasi_snapshot_preview1.random_get [127 127] -> [127]
+    --- FAIL: TestCurrentContractNativeWasmPublishedResponsesAgree/frontier (0.01s)
+        current_contract_test.go:27: model import forbidden: wasi_snapshot_preview1.random_get [127 127] -> [127]
+FAIL
+FAIL	umpire.local/model/host	0.075s
+FAIL

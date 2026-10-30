@@ -1,0 +1,11 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running tests/main.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/main-bab55e96c3cd0fce)
+
+running 4 tests
+test search::epsilon_labels_precede_edges_without_spending_depth ... ok
+test search::work_bound_accounts_labels_and_explicit_evaluations_without_partial_admission ... ok
+test search::caller_labels_keep_same_state_with_distinct_cursors_and_nonclone_emissions ... ok
+test search::queued_positions_copy_in_visitation_order_without_consuming_work ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+

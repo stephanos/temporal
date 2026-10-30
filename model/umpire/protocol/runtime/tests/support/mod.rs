@@ -1,3 +1,5 @@
+pub(crate) mod frontier;
+
 use umpire_dsl::{Machine, Steps};
 use umpire_runtime::{
     AnswerPlan, Candidate, Projection, Realize, Runtime, Transition, prost_types::Any, protocol,

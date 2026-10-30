@@ -1,0 +1,36 @@
+{
+  "root": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier",
+  "head": "0fc1c59229eb9ed21b99b865e672d694a3a8c367",
+  "owned_changes": [
+    "model/temporal/feature/activity/deadline_frontier_mapping.rs",
+    "model/temporal/feature/activity/tests.rs"
+  ],
+  "sha256": {
+    "model/temporal/feature/activity/deadline_frontier_mapping.rs": "4913fae609f239f79bf405cafb95015518ca15ddbe1cad90b27afe20914d01e1",
+    "model/temporal/feature/activity/tests.rs": "865f9fd45190d894ee1b4bcffeeadb5af3d8173748b3302af4b4e7c98fb7904b",
+    "model/temporal/feature/activity/model.rs": "fd1d3e1e3fd393d84037c756819b3cb221b226831c395cc85f62eeaad80eb0bf",
+    "model/temporal/feature/activity/policy_checks.rs": "f32babb9e7dc7a590019eee5446ff86f173d3ba15a549f5075ffa4a4e40f5561",
+    "model/temporal/feature/activity/proof_checks.rs": "ec2d75db463c47115aa7cf346718344b7c73c829325fc961ec1ef10ba268af25"
+  },
+  "checks": {
+    "fmt": {
+      "exit": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/tmp/fn24610-frontier-20261030/activity-mapping-fmt.log"
+    },
+    "native": {
+      "command": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/cargo-target CARGO_BUILD_JOBS=2 mise exec -- cargo test --locked -p umpire-temporal-tests --test fixtures deadline_frontier_mapping",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model",
+      "exit": 0,
+      "passed": 1,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/tmp/fn24610-frontier-20261030/activity-mapping-native-final.log"
+    },
+    "clippy": {
+      "command": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/cargo-target CARGO_BUILD_JOBS=2 mise exec -- cargo clippy --locked -p umpire-temporal-tests --test fixtures -- -D warnings",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model",
+      "exit": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/tmp/fn24610-frontier-20261030/activity-mapping-clippy.log"
+    }
+  },
+  "scope": "Native mapping pin only: no live SDK run, full TLC refinement, Model mutation, or generic-core Temporal coupling. Existing policy_checks exact fact/tie/TLC controls remain separately owned.",
+  "model_proof_policy_diff": ""
+}

@@ -16,6 +16,8 @@ mod constructors;
 mod core_protocol;
 #[path = "main/dispatch.rs"]
 mod dispatch;
+#[path = "main/frontier.rs"]
+mod frontier;
 #[path = "main/prefix.rs"]
 mod prefix;
 #[path = "main/proposal.rs"]

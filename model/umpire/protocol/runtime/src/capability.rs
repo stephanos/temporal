@@ -55,7 +55,7 @@ pub trait Fill<A>: Identity {
 
 /// Projection of admitted observations onto checked full Model states.
 pub trait Snapshot<M: Machine> {
-    /// Pure compatibility target; executable admission retains singleton sealing.
+    /// Pure compatibility target over full states retained by the bounded frontier.
     type Target: ReachTarget<M::State>;
     /// Validate and project the actual observation without changing run state.
     fn project(

@@ -530,3 +530,5 @@ fn selected_world_registers_closure_and_failure_progress() {
 mod proof_checks;
 
 mod policy_checks;
+
+mod deadline_frontier_mapping;
