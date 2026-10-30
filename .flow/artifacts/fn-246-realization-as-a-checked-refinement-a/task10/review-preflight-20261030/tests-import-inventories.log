@@ -1,0 +1,22 @@
+/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/tmp/fn24610-frontier-20261030/tests-rejected-random-import-control.wasm
+wasi_snapshot_preview1.random_get [127 127] -> [127]
+wasi_snapshot_preview1.environ_get [127 127] -> [127]
+wasi_snapshot_preview1.environ_sizes_get [127 127] -> [127]
+wasi_snapshot_preview1.fd_close [127] -> [127]
+wasi_snapshot_preview1.fd_seek [127 126 127 127] -> [127]
+wasi_snapshot_preview1.fd_write [127 127 127 127] -> [127]
+wasi_snapshot_preview1.proc_exit [127] -> []
+/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/tmp/fn24610-frontier-20261030/tests-stateful_control.wasm
+wasi_snapshot_preview1.environ_get [127 127] -> [127]
+wasi_snapshot_preview1.environ_sizes_get [127 127] -> [127]
+wasi_snapshot_preview1.fd_close [127] -> [127]
+wasi_snapshot_preview1.fd_seek [127 126 127 127] -> [127]
+wasi_snapshot_preview1.fd_write [127 127 127 127] -> [127]
+wasi_snapshot_preview1.proc_exit [127] -> []
+/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/.flow/tmp/fn24610-frontier-20261030/tests-kettle_guest.wasm
+wasi_snapshot_preview1.environ_get [127 127] -> [127]
+wasi_snapshot_preview1.environ_sizes_get [127 127] -> [127]
+wasi_snapshot_preview1.fd_close [127] -> [127]
+wasi_snapshot_preview1.fd_seek [127 126 127 127] -> [127]
+wasi_snapshot_preview1.fd_write [127 127 127 127] -> [127]
+wasi_snapshot_preview1.proc_exit [127] -> []

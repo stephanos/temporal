@@ -1,0 +1,8 @@
+{
+  "source": "e93935db5c7f3f80d6f4a05730363e0a61a6888f",
+  "scope": "Generic bounded compatible histories, changedcanonicalpast, atomicimmutabletypedwitness journal and branchdecisionagreement; no schema or hostpolicychange.",
+  "passed": "runtime72,checker4,Kettlenative16,fullKettleGo,frontierGo/nativeguestparity,strictscopedClippy",
+  "regression": "Rejected nondeterministicHashSet WASM+oldimportlog retained; seedless deterministic newguests admit with sixpermittedimports,no random_get.",
+  "pending": "Complete genericGo suite/vet refreshing independently; rootreview and later currentjoinedTemporalguest publication/freshness remain beforeclosure.",
+  "deferred": "Complete spec .246.6 integrated live/TLC obligations remain later; no fullgate waiver."
+}

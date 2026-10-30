@@ -1,0 +1,14 @@
+{
+  "model/umpire/backends/native/src/search.rs": "126f7d8bd4104e8f672def9a85d48ab40f45b1eb4f75ba5506d272ec6e5174f9",
+  "model/umpire/backends/native/tests/main/search.rs": "b8b0ff5f545621de24192f664148fc1b96b2ceb095857bb2a63d75ec12e648cc",
+  "model/umpire/hosts/go/host/current_contract_test.go": "c8f8029663eca127dcb21e2ee6d51aeec1bca0df7ecc47cf6a758e90281c43fd",
+  "model/umpire/hosts/go/runner/frontier_test.go": "9ffbf40ed0e3434ed64bc29c03f7efa8d66b8e81ee7e67514640965f7c00e7b2",
+  "model/umpire/protocol/runtime/guests/control/src/bin/current-contract-reports.rs": "dba9b3e0d892b328fb0974e99090ffe721977d20c518fccb485b192d2b8c86fb",
+  "model/umpire/protocol/runtime/src/frontier.rs": "8ca15bc8a1214997992e8bef6b325324299fcd571a36f6330e1c0c1a0a0d103c",
+  "model/umpire/protocol/runtime/src/runtime.rs": "ece303d1129994634bd924297252f8306faf38374db89cdb506a33ae24dec952",
+  "model/umpire/protocol/runtime/tests/main.rs": "c5b9dfcc58951a7f202d52a91f7f69a5beedbfda14689e9ef10319341c452dd7",
+  "model/umpire/protocol/runtime/tests/main/frontier.rs": "513b5a42db7cfe7fd438b37d4abbf62194ecf4bc0c8e0a3794ecccc5fa8cc275",
+  "model/umpire/protocol/runtime/tests/support/control.rs": "93db8ab78eae08b8605d56fae6b1bc87bc5c5e61c67e11cb2e876ab26ba58a98",
+  "model/umpire/protocol/runtime/tests/support/frontier.rs": "948668444fbab6cc43f9f6d89237147793b664a1699bf4a97370f359fbef0730",
+  "model/umpire/protocol/runtime/tests/support/mod.rs": "827f4b75fec3f55ed58e535c691c43f2c8e877a99c52d37707145653b299bf04"
+}

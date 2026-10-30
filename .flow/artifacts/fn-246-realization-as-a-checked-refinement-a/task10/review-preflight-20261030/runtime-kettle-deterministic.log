@@ -1,0 +1,47 @@
+   Compiling rustix v1.1.5
+   Compiling proc-macro-utils v0.10.0
+   Compiling manyhow-macros v0.14.1
+   Compiling petgraph v0.8.3
+   Compiling tempfile v3.27.0
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model/umpire/front)
+   Compiling manyhow v0.14.1
+   Compiling prost-build v0.14.4
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model/umpire/author/dsl/macros)
+   Compiling darling_core v0.24.1
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model/umpire/author/dsl)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model/umpire/protocol/runtime)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model/umpire/backends/native)
+   Compiling darling_macro v0.24.1
+   Compiling getrandom v0.4.3
+   Compiling darling v0.24.1
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model/umpire/catalog/macros)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model/umpire/catalog/build)
+   Compiling umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model/umpire/reference/kettle)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model/umpire/catalog)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model/umpire/author/suite)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24610-frontier/model/umpire/author/umpire)
+   Compiling insta v1.49.0
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.40s
+     Running tests/main.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/main-6909477c20445e5f)
+
+running 16 tests
+test annotations::generated_dispatch_refuses_unknown_routes_and_preserves_out_of_scope_bytes ... ok
+test annotations::scoped_limits_and_nested_predicates_inspect_actual_wire_values ... ok
+test annotations::generic_fill_preserves_supplied_keys_and_response_wire_bytes ... ok
+test realization::describe_never_infers_a_transition ... ok
+test realization::exact_receipts_reject_wrong_state_or_action ... ok
+test realization::heat_projects_reach_with_an_exact_target_and_method_owned_evidence ... ok
+test probes::observations_require_exact_inventory ... ok
+test probes::stateful_prerequisites_and_inapplicable_mutations_never_dispatch ... ok
+test realization::malformed_evidence_refuses_without_advancing ... ok
+test realization::callback_requires_exact_state_identity_and_enabled_action ... ok
+test probes::classification_requires_live_evidence_and_correlated_predictions ... ok
+test descriptor::descriptor_additions_name_the_unreviewed_field_enum_and_method ... ok
+test probes::inventory_and_preparation_are_deterministic ... ok
+test probes::coverage_matches_catalog_golden ... ok
+test realization::explore_retains_canonical_report ... ok
+test realization::healthy_trace_answer_does_not_commit_and_receipt_commits_once ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.67s
+
