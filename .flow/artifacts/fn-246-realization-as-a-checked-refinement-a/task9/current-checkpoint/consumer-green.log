@@ -1,0 +1,4 @@
+=== RUN   TestUmpireWholePrefixJudgmentPath
+--- PASS: TestUmpireWholePrefixJudgmentPath (0.00s)
+PASS
+ok  	go.temporal.io/server/tests	0.031s
