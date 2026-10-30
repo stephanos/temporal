@@ -4,7 +4,7 @@ The owner's overview of open work, execution order and blockers.
 
 As of 2026-10-30.
 
-Budget/gate work is resumed at the owner's request on 2026-10-30. Continue fn-254.12 from its retained applicability/input-custody checkpoint, including gate-tooling fixes and the remaining budget enforcement work. On 2026-10-30 the owner also resumed the three source checkpoints below and asked for the remaining MILESTONES work to be completed. Three source checkpoints remain unmerged: fn-246.10 awaits current Temporal guest acceptance; fn-253.7 awaits source review and guest acceptance; fn-256.2 awaits source review and full Rust R4 evidence. Migration fn-258 remains deferred. The sccache proposal was withdrawn and no longer blocks final validation.
+Budget/gate work is resumed at the owner's request on 2026-10-30. Continue fn-254.12 from its retained applicability/input-custody checkpoint, including gate-tooling fixes and the remaining budget enforcement work. On 2026-10-30 the owner resumed the three source checkpoints, then stopped execution again after wrap-up: fn-246.10 is closed and integrated with a fresh Temporal guest; fn-256.2's source is integrated with only R4 evidence open under fn-254.8; fn-253.7 and fn-246.2 hold stop checkpoints on their branches (see their rows). Three source checkpoints remain unmerged: fn-246.10 awaits current Temporal guest acceptance; fn-253.7 awaits source review and guest acceptance; fn-256.2 awaits source review and full Rust R4 evidence. Migration fn-258 remains deferred. The sccache proposal was withdrawn and no longer blocks final validation.
 
 The latest `make model-check` attempt failed on 94 strict-Clippy errors in unchanged xtask gate-budget code. Focused checks pass; a full-gate pass remains open.
 
@@ -215,7 +215,7 @@ subprocess refusal remains recorded separately.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-246.2 | ⬜ todo | shared entity lens and filler-driven probes with equivalence pins (R3) |
+| fn-246.2 | 🔄 in progress | Owner stop 2026-10-30: donor `7de877e5de` ported onto `umpire` at `dd4d2d83ee` on `work/fn2462-entity-lens`; library builds only. Remaining: warnings, wiring `probe_fillers::registered`, all tests/equivalence/boundary/clippy, guest and Go parity, review (R3) |
 | fn-246.3 | ⬜ todo | After .2, .13: activity migration, exact probe parity and mapping count (R4, R7) |
 | fn-246.4 | ⬜ todo | After .3, .13: generic native Refinement consumer and activity declaration (R5) |
 | fn-246.5 | ⬜ todo | After .3, .4: complete observable-worker policies and derived programs (R6) |
@@ -277,7 +277,7 @@ fn-246.13's protocol Model may share the generic `countdown` only, not the Tempo
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-253.7 | ⏸️ deferred | Owner stop: verified source `108152e23c`, proof `c8c2e4b455` on `work/fn2537-countdown-adoption`. Native63/default stack and exact snapshot pins pass; source review and guest acceptance remain. Native68.9s cost needs assessment (R4) |
+| fn-253.7 | ⏸️ deferred | Owner stop 2026-10-30 on `work/fn2537-countdown-adoption` (`b5ba8686e0`+review). Review NEEDS_WORK: `never_replenished` law fixes P2-1; full TLC-required activity run passes (62/62, 944 s). Remaining: same-machine native cost comparison (35 s now vs ~1.3 s baseline) and lowering follow-up, Touches evidence, strict clippy, follow-up review, guest acceptance (R4) |
 | fn-253.8 | ⬜ todo | After .7, .9 and .10: final combined docs, parameter/refinement checks and full gates (R5) |
 | fn-253.9 | ⬜ todo | After .7: assess `maximum_attempts` as a `Finite` wrapper; preserve native forged-value controls and record admission refusal if unsupported (R4) |
 | fn-253.10 | ⬜ todo | After .9: remove `asynchronous_cancel`, always cooperative; retire the fn-237 R3 compatibility control (owner, 2026-10-30), keeping its evidence as provenance; coordinated with fn-237.4's live binding (R6) |
