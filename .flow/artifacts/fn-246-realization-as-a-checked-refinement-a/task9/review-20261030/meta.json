@@ -1,0 +1,81 @@
+{
+  "type": "impl_review_fanout",
+  "focus": "Review whole-prefix protocol checkpoint and current source acceptance. Nine source files originally eac683e603; current proof task9/current-checkpoint verifies same sources, current guest8b9ea, 59 live rows,275 generic Go rows,63 Rust tests, both required root lint modes and concatenation mutant red/green. Historical-checkpoint is historical only. Task10 frontier revalidation and task6 checked-live remain deferred, do not require their later scope here. Inspect correctness of complete witness validation before effects, immutable existential earlier prefix, reset/replay/reduction and malformed/refusal tests. Broad model gates owner-deferred fn254.8; scoped changed targets pass.",
+  "claim_token": null,
+  "id": "fn-246-realization-as-a-checked-refinement-a.9",
+  "standalone": false,
+  "base_branch": "902d2d20c1",
+  "reviewed_base_sha": "902d2d20c171657f21e7d33578913affd0a6e4d5",
+  "reviewed_head_sha": "ed931f68c89d8c0a6a493df5fa2309e525359d57",
+  "artifact_sha256": "99deb1f7a8ecbe0d0e0872ee7244fa9377aa55eca545d31ba37318e794774a0c",
+  "reservation_id": "7fbfa79233f44151a2262a8f08e7d5f0",
+  "rid": "7fbfa79233f44151a2262a8f08e7d5f0",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "c9ed9315-1446-4447-80fc-910c07de4e19",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-30T03:35:43.158458Z",
+      "finished_at": "2026-10-30T03:38:48.515063Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/.flow/review-fanout/7fbfa79233f44151a2262a8f08e7d5f0/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/.flow/review-fanout/7fbfa79233f44151a2262a8f08e7d5f0/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "63a54c0f-32da-4c3a-ab5a-d83ab60f836d",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-30T03:35:43.158600Z",
+      "finished_at": "2026-10-30T03:38:57.148849Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/.flow/review-fanout/7fbfa79233f44151a2262a8f08e7d5f0/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/.flow/review-fanout/7fbfa79233f44151a2262a8f08e7d5f0/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "65d8d488-2ddf-4a7c-982c-c11ac4cad89d",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-30T03:35:43.158738Z",
+      "finished_at": "2026-10-30T03:39:14.158871Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/.flow/review-fanout/7fbfa79233f44151a2262a8f08e7d5f0/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/.flow/review-fanout/7fbfa79233f44151a2262a8f08e7d5f0/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-15d0d295e339-fn-246-realization-as-a-checked-refinement-a.9.json",
+  "created_at": "2026-10-30T03:39:14.169540Z"
+}

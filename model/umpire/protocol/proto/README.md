@@ -107,7 +107,11 @@ vectors: protobuf permits field ordering differences (prost writes the oneof fir
 writes the scalar first). Both decode to the same message.
 
 `umpire.run.v1.Run` (`umpire/run/v1/run.proto`) is the Go Runner's record of one Run: model
-hash, protocol version, world, seed, ordered events and verdict. Each event embeds the exact
+hash, protocol version, world, seed, ordered events and verdict. The current recording format
+uses `protocol_version = 2` and retains the supported `WHOLE_PREFIX_V1` proof contract in
+the actual recorded Reset response. Admission requires the loaded guest's exact `model_hash`
+and this current contract before Driver effects. Delta records, legacy readers and legacy
+refusal normalization are unsupported. Each event embeds the exact
 `umpire.model.v1` request and response, or the refused request bytes and Refusal, so a Run
 replays against a fresh instance without a Driver. It is generated for Go only; no guest
 reads it. Its canonical bytes are Go's deterministic encoding, and its store key carries

@@ -4,7 +4,7 @@ The owner's overview of open work, execution order and blockers.
 
 As of 2026-10-30.
 
-Milestone execution has resumed. Linux mold fn-254.20 and residual consolidation fn-254.21 are reviewed and closed. Mold reduces the matched Linux/aarch64 forced-link median from 0.230 s to 0.081 s; its Make entry now avoids 43-unit config-switch rebuilds. Consolidation removes four binaries while preserving 393 test identities; 95 affected tests pass. Countdown fixture fn-253.5 and its import-contract follow-up are reviewed and closed: six Worlds agree across native, interpreter and TLC; four source mutants refute and replay. The retained fn-246.13 checkpoint has renewed focused coverage and exact guest custody and is under review. The fn-253.6 deadline pattern is being documented in a parallel lane; its integration stays behind the protocol source boundary. fn-254.19 is blocked by released sccache Rust path identity: the pinned Rust 1.99.1 A/B/A control misses across checkouts and hits only on the same checkout. [Investigation and reproduction](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task19/measurements.json). Countdown admission fn-253.2–.4 and lighter dev profiles fn-254.18 are reviewed and complete. Budget admission fn-254.12 and migration remain deferred; these lanes do not resume either.
+Milestone execution has resumed. Linux mold fn-254.20 and residual consolidation fn-254.21 are reviewed and closed. Mold reduces the matched Linux/aarch64 forced-link median from 0.230 s to 0.081 s; its Make entry now avoids 43-unit config-switch rebuilds. Consolidation removes four binaries while preserving 393 test identities; 95 affected tests pass. Countdown fixture fn-253.5 and its import-contract follow-up are reviewed and closed: six Worlds agree across native, interpreter and TLC; four source mutants refute and replay. The independent protocol Model fn-246.13 and named deadline pattern fn-253.6 are reviewed, closed and integrated. All 62 active Temporal fixture identities are covered, with two inherited ignores; the current guest is reproduced exactly. Whole-prefix fn-246.9 is reviewed, closed and integrated: 59 live rows, 275 generic Go rows, 63 runtime tests and both required lint modes pass. Four implementation workers now cover activity readability, retained-frontier runtime, frontier tests and renewed tooling-retirement live validation. fn-254.19 is blocked by released sccache Rust path identity: the pinned Rust 1.99.1 A/B/A control misses across checkouts and hits only on the same checkout. [Investigation and reproduction](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task19/measurements.json). Countdown admission fn-253.2–.4 and lighter dev profiles fn-254.18 are reviewed and complete. Budget admission fn-254.12 and migration remain deferred; these lanes do not resume either.
 
 The latest `make model-check` attempt failed on 94 strict-Clippy errors in unchanged xtask gate-budget code. Focused checks pass; a full-gate pass remains open.
 
@@ -52,7 +52,7 @@ checkpoint after any framework changes. GitHub destination inspection remains SA
 Backlog order remains **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
 ranks a fast feedback loop among the most important properties. The standalone workspace/driver and independent gate checkpoint are integrated, and the complete isolated proof passed.
-The remaining fn-254 critical path includes budgets .12, consuming the reviewed and integrated .15 native ports, .16 mise provider and .17 nextest/stage-DAG checkpoint. Budget admission remains owner-paused; permitted work renews the fn-246.13/.9 checkpoints and advances the countdown pattern as source ownership permits. Final proof .8 also waits for .7 after committed fn-246 closure. The consumer/cache checkpoint is reviewed and closed; verified configurations cache independently of refuted siblings, and test-only Kettle readers no longer expand unrelated libraries. fn-254 gets first admission to shared build/JVM/review capacity. Already running fn-246.9/.13 work may reach safe checkpoints, and disjoint source work may continue without delaying fn-254. Finish fn-254.7 after committed fn-246 closure.
+The remaining fn-254 critical path includes budgets .12, consuming the reviewed and integrated .15 native ports, .16 mise provider and .17 nextest/stage-DAG checkpoint. Budget admission remains owner-paused; permitted work advances the retained frontier and activity readability after the integrated whole-prefix, protocol and pattern closures. Final proof .8 also waits for .7 after committed fn-246 closure. The consumer/cache checkpoint is reviewed and closed; verified configurations cache independently of refuted siblings, and test-only Kettle readers no longer expand unrelated libraries. fn-254 gets first admission to shared build/JVM/review capacity. Disjoint source work may continue without delaying fn-254. Finish fn-254.7 after committed fn-246 closure.
 The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246; fn-254.13's workspace move is integrated. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; activity changes
 retain their listed dependencies and follow the current priority/source-ownership order.
 fn-255.3 and .4 (fuzz targets and cargo-mutants) may prepare disjoint source before fn-254 closes; execution waits for committed fn-254.12 budget admission. Shared pins, manifests, decoder seams and native command registrations land serially.
@@ -80,7 +80,7 @@ preserved, with no runtime acceptance claim.
 Remaining work includes actual Go/TLC count producers, budget admission and
 final combined-gate measurements. Downstream candidates are unvalidated and not integrated into `umpire`;
 preparation does not advance Flow dependencies or mark tasks complete. Integrate shared CLI/configuration
-changes in dependency order. fn-246.9/.13 have retained source/proof checkpoints awaiting integration and closure.
+changes in dependency order. fn-246.13 and .9 are integrated and closed; retained-frontier .10 is running.
 The owner-approved admission policy is one coordinator, up to four implementation
 workers across the team, and one separate review lane. The coordinator owns admission,
 Git/Flow integration and closure; workers own disjoint source. Admit one review round
@@ -170,7 +170,7 @@ section, so it may run as a lane, landing serially.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-256.1 | ⛔ blocked | Source checkpoint retained; required live gate awaits fn-246.9 whole-prefix consumer repair and current guest/policy renewal (R1, R3) |
+| fn-256.1 | 🔄 in progress | Retirement checkpoint refreshed after integrated whole-prefix consumer repair; renew separate dependency inventories, current guest freshness and actual complete live gate (R1, R3) |
 | fn-256.2 | ⬜ todo | Retirement candidate source-reviewed and assembled: Scala targets/pin removed, archive retained read-only. Prerequisite closure and execution evidence remain (R2–R4) |
 
 ### fn-255: Thorough framework testing
@@ -217,9 +217,7 @@ subprocess refusal remains recorded separately.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-246.13 | 🔄 in progress | Required protocol22, feature policy15, default1 and remaining require-sensitive7 pass; all62 active fixture identities covered, with2 inherited ignores. Exact guest reproduction and focused lint/ownership pass. Review/root integration/closure remain open (R5) |
-| fn-246.9 | 🔄 in progress | Whole-prefix recording/replay checkpoint retained; all27 historical proof files are now tracked with verified hashes, including59 passing Model-slice rows on the older guest. Renew joined proof after .13; review/root integration/closure and full live umbrella remain open (R1, R5) |
-| fn-246.10 | ⬜ todo | After .9: bounded alternatives and coherent explanation publication (R1, R5) |
+| fn-246.10 | 🔄 in progress | Runtime and test writers share one lane for bounded alternatives, changed canonical past and coherent immutable report publication (R1, R5) |
 | fn-246.2 | ⬜ todo | shared entity lens and filler-driven probes with equivalence pins (R3) |
 | fn-246.3 | ⬜ todo | After .2, .13: activity migration, exact probe parity and mapping count (R4, R7) |
 | fn-246.4 | ⬜ todo | After .3, .13: generic native Refinement consumer and activity declaration (R5) |
@@ -282,8 +280,7 @@ Whether fn-246.13's protocol Model may share the Temporal layer is an open owner
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-253.1 | ⬜ todo | After committed fn-246.13: Option equality, named expiry effects/progress helpers, deduplicated Tick postconditions, split `state_bounds` (R4) |
-| fn-253.6 | 🔄 in progress | Feature-owned README pattern being documented against the frozen protocol candidate; preserve atomic compatibility and defer consuming refactors to .7. Integrate serially after .13 (R3) |
+| fn-253.1 | 🔄 in progress | Activity readability after integrated fn-246.13/.15: Option equality, named expiry/progress helpers and split bounds; preserve state/edge goldens and distinct boundary claims (R4) |
 | fn-253.7 | ⬜ todo | After .1, .6: activity uses countdowns and the deadline pattern, behaviour pinned (R4) |
 | fn-253.8 | ⬜ todo | After .7, .9 and .10: final combined docs, parameter/refinement checks and full gates (R5) |
 | fn-253.9 | ⬜ todo | After .7: assess `maximum_attempts` as a `Finite` wrapper; preserve native forged-value controls and record admission refusal if unsupported (R4) |

@@ -106,7 +106,7 @@ refused call's request, which a Refusal holds as bytes (decoded by its method, r
 re-encoded, or removed when it cannot be), and the Run's world, which is its own copy.
 
 `umpire.run.v1.Run` (`../../protocol/proto/umpire/run/v1/run.proto`) is the only artifact. It records
-the model hash (SHA-256 of the guest bytes), protocol version, world, seed, every Reset,
+the model hash (SHA-256 of the owned guest bytes), recording format version 2, world, seed, every Reset,
 Propose, Judge, Answer and Annotate request and response or Refusal in publication order with
 its request and Driver correlation, every DriverFault, and the verdict. The first terminal
 event decides it: an Unexplained judgment (Unexplained at that event), a Refusal other than
@@ -114,6 +114,20 @@ Propose's `QUIESCENT` or a DriverFault (Refused at that event). Only faults whil
 follow it. Otherwise the Run is Explained with its termination: quiescent, proposal budget,
 event budget or question; a budget termination records the budget as its limit. The event
 budget is exact. An Explained Run says only that every recorded event was explained.
+
+The successful recorded Reset response carries the guest's admitted
+`PROOF_CONTRACT_WHOLE_PREFIX_V1` contract. Each Explained judgment is an independent,
+complete witness from that Reset through every observation and callback so far. Later
+witnesses may select another compatible hidden history; earlier reports remain immutable
+existential claims about their observation prefixes. Consumers must compare or present
+complete witnesses individually, never concatenate their steps as deltas. A repeated
+Current observation retains the complete witness, including callback delivery.
+
+Format version 2 is current-only: replay, question and reduce reject other versions,
+unsupported recorded Reset contracts and guest hash mismatches. Replay invokes the
+recorded Reset and compares its actual response before subsequent calls; it adds no
+contract probe. Refused Reset calls also remain exact recorded calls. Refusal verdict
+reasons must match current events exactly; historical reason normalization is removed.
 
 The modes are arguments to the loop. `question` replays a recorded prefix, or only Resets
 without one, then asks one Propose or Judge. `explore` runs seeds 1..n. `repeat` runs that

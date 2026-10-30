@@ -1,0 +1,242 @@
+{
+  "/home/agent/.cache/codex-build/cargo-target/wasm32-wasip1/guest/caught_panic_control.wasm": {
+    "bytes": 228653,
+    "sha256": "16bdf703328273c57741940a4ec420150576a5a02e84fcc5d279afba14429a12"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/wasm32-wasip1/guest/overflow_control.wasm": {
+    "bytes": 228653,
+    "sha256": "7815ea7d693a5cb9f3d6a326c0adcc948b38585d726d751c4cb64e3a2259205e"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/wasm32-wasip1/guest/stateful_control.wasm": {
+    "bytes": 165966,
+    "sha256": "0ce0f654b66cc01a6b52670af9175f1047fa79c51fd5039e7c9742bc205e6b87"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/wasm32-wasip1/guest/umpire_kettle_guest.wasm": {
+    "bytes": 1235811,
+    "sha256": "f47eeca8991182ce5d2160a8794ae3e83007de4a0db2a2c5a095c2a0439f2228"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/wasm32-wasip1/guest/umpire_stock_guest.wasm": {
+    "bytes": 198992,
+    "sha256": "4979d134ba8ae6afc4ba79dadc046251afbbf4ca34397ed61af184205a371222"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/callback-0.request.pb": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/callback-0.response.pb": {
+    "bytes": 4,
+    "sha256": "695bac7c2f9efaf41d628f1c0346f02806c9a8f870d17446f827ca1c5a7be36d"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/callback-1.request.pb": {
+    "bytes": 47,
+    "sha256": "0218870a40c98ac9edaf9b91ec16a3da998e167f43509c6cdb641b23c8e3b65f"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/callback-1.response.pb": {
+    "bytes": 49,
+    "sha256": "e0231f4ec51259d0352f601787ef4cd353c7b5360b48ad3c6750f25e657b8104"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/callback-2.request.pb": {
+    "bytes": 47,
+    "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/callback-2.response.pb": {
+    "bytes": 25,
+    "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/callback-3.request.pb": {
+    "bytes": 47,
+    "sha256": "5409612b12e08c3cb72f885d40a656ecdc839b7c2d32e62eccd6399c96b2df3c"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/callback-3.response.pb": {
+    "bytes": 25,
+    "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/callback-4.request.pb": {
+    "bytes": 47,
+    "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/callback-4.response.pb": {
+    "bytes": 25,
+    "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/callback-5.request.pb": {
+    "bytes": 47,
+    "sha256": "3c52cda26b6d67ea4fef8fd7e7609446de58d5a9d0f78ff8f27dd275ad7cbd24"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/callback-5.response.pb": {
+    "bytes": 46,
+    "sha256": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/callback-6.request.pb": {
+    "bytes": 47,
+    "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/callback-6.response.pb": {
+    "bytes": 46,
+    "sha256": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/callback-7.request.pb": {
+    "bytes": 47,
+    "sha256": "a5d5734ede85c1d312d39df59be6508f869e01b7b526ed2fd58116fc25d8e58b"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/callback-7.response.pb": {
+    "bytes": 66,
+    "sha256": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/callback-8.request.pb": {
+    "bytes": 47,
+    "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/callback-8.response.pb": {
+    "bytes": 66,
+    "sha256": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/callback.methods": {
+    "bytes": 18,
+    "sha256": "229432f7c3a51928d48a43d7599fd1f1d949172cd5afbe9fde184df40f4e8538"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/configured-0.request.pb": {
+    "bytes": 47,
+    "sha256": "941770022d63e4b6a2bfa6c18564a4f0200a2946e45e5b8c0bcd725b47c41789"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/configured-0.response.pb": {
+    "bytes": 51,
+    "sha256": "416a9d19bcde338b35c6b87b563d4a75028b7908aebc3ad87616805ff9cb5e51"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/configured-1.request.pb": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/configured-1.response.pb": {
+    "bytes": 51,
+    "sha256": "ac81d39b5d928a67d89308851f57a3c1523692209faa8ea7ae8f19022cc428dd"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/configured-2.request.pb": {
+    "bytes": 47,
+    "sha256": "bc16d4fd28f67f38479fde4ea0c5acd3dfecc3d3526b67279eb8dc46253a9f84"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/configured-2.response.pb": {
+    "bytes": 4,
+    "sha256": "fd52a50a1e54e5856f8afb7ae62ae9dd45cbc77fec9e597d548f12977236ce51"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/configured-3.request.pb": {
+    "bytes": 47,
+    "sha256": "5409612b12e08c3cb72f885d40a656ecdc839b7c2d32e62eccd6399c96b2df3c"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/configured-3.response.pb": {
+    "bytes": 25,
+    "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/configured-4.request.pb": {
+    "bytes": 47,
+    "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/configured-4.response.pb": {
+    "bytes": 25,
+    "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/configured-5.request.pb": {
+    "bytes": 47,
+    "sha256": "3c52cda26b6d67ea4fef8fd7e7609446de58d5a9d0f78ff8f27dd275ad7cbd24"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/configured-5.response.pb": {
+    "bytes": 46,
+    "sha256": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/configured-6.request.pb": {
+    "bytes": 47,
+    "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/configured-6.response.pb": {
+    "bytes": 46,
+    "sha256": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/configured-7.request.pb": {
+    "bytes": 47,
+    "sha256": "a5d5734ede85c1d312d39df59be6508f869e01b7b526ed2fd58116fc25d8e58b"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/configured-7.response.pb": {
+    "bytes": 66,
+    "sha256": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/configured-8.request.pb": {
+    "bytes": 47,
+    "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/configured-8.response.pb": {
+    "bytes": 66,
+    "sha256": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/configured.methods": {
+    "bytes": 18,
+    "sha256": "83eb0c69d9d81955ba21ce6501bd8b2ad352f982d8b797738a37e86253957b51"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/ordinary-0.request.pb": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/ordinary-0.response.pb": {
+    "bytes": 4,
+    "sha256": "695bac7c2f9efaf41d628f1c0346f02806c9a8f870d17446f827ca1c5a7be36d"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/ordinary-1.request.pb": {
+    "bytes": 47,
+    "sha256": "5409612b12e08c3cb72f885d40a656ecdc839b7c2d32e62eccd6399c96b2df3c"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/ordinary-1.response.pb": {
+    "bytes": 25,
+    "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/ordinary-2.request.pb": {
+    "bytes": 47,
+    "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/ordinary-2.response.pb": {
+    "bytes": 25,
+    "sha256": "945cc96f90b384a04ab783077f51d48d7f35792b5f2de71480edb0302c06f16a"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/ordinary-3.request.pb": {
+    "bytes": 47,
+    "sha256": "3c52cda26b6d67ea4fef8fd7e7609446de58d5a9d0f78ff8f27dd275ad7cbd24"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/ordinary-3.response.pb": {
+    "bytes": 46,
+    "sha256": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/ordinary-4.request.pb": {
+    "bytes": 47,
+    "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/ordinary-4.response.pb": {
+    "bytes": 46,
+    "sha256": "d3594b0eccf61427eaa6eb85d39abe99ab01f7aa285fc7719636163c9af685ca"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/ordinary-5.request.pb": {
+    "bytes": 47,
+    "sha256": "a5d5734ede85c1d312d39df59be6508f869e01b7b526ed2fd58116fc25d8e58b"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/ordinary-5.response.pb": {
+    "bytes": 66,
+    "sha256": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/ordinary-6.request.pb": {
+    "bytes": 47,
+    "sha256": "bbd452a385bb0c41e5a41b5cd31db223988a04c30da7be8a3cf3f5cb666750cf"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/ordinary-6.response.pb": {
+    "bytes": 66,
+    "sha256": "f678c2da893cfd527b337be3e88c4b97790732d2dce5829f06b223a451ba155f"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/current-contract-native/ordinary.methods": {
+    "bytes": 14,
+    "sha256": "cedd86bf57f9e972594b9022dac13fb0385488ab10a89c9abba71b511c742692"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/panic-native/effect_overflow.pb": {
+    "bytes": 402,
+    "sha256": "a6676ea2fe6667eda4b26ea04419c3f7802e377aeb466e72b81399670b378cef"
+  },
+  "/home/agent/.cache/codex-build/cargo-target/panic-native/effect_panic.pb": {
+    "bytes": 387,
+    "sha256": "57e9cbe2fa91e1476b75eb392b7fb8a00cd723adc0a2fe5be4852605d0836c53"
+  }
+}

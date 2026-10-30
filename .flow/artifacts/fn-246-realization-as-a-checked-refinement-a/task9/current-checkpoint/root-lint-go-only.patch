@@ -1,0 +1,77 @@
+diff --git a/tests/testpilot_model_slice_umpire_test.go b/tests/testpilot_model_slice_umpire_test.go
+index 4f07543171..788843d5f0 100644
+--- a/tests/testpilot_model_slice_umpire_test.go
++++ b/tests/testpilot_model_slice_umpire_test.go
+@@ -151,25 +151,51 @@ func (s *umpireSlice) driverEnv(namespace, queue string) map[string]string {
+ }
+ 
+ func explainedSteps(run *runner.Run) []string {
+-	var steps []string
+-	for _, event := range run.GetEvents() {
+-		explanation := event.GetJudgment().GetResponse().GetExplained()
++	for i := len(run.GetEvents()) - 1; i >= 0; i-- {
++		explanation := run.GetEvents()[i].GetJudgment().GetResponse().GetExplained()
++		if explanation == nil {
++			continue
++		}
++		steps := make([]string, len(explanation.GetSteps()))
+ 		for i, step := range explanation.GetSteps() {
+-			steps = append(steps, step+" "+explanation.GetOutcomes()[i])
++			steps[i] = step + " " + explanation.GetOutcomes()[i]
+ 		}
++		return steps
+ 	}
+-	return steps
++	return nil
+ }
+ 
+-func judgmentPath(run *runner.Run) []string {
+-	var path []string
+-	for _, step := range explainedSteps(run) {
+-		if step == "Client::Cancel Rejected(NotFound)" && len(path) > 0 && path[len(path)-1] == step {
+-			continue
++func TestUmpireWholePrefixJudgmentPath(t *testing.T) {
++	judgment := func(steps ...string) *runv1.Event {
++		outcomes := make([]string, len(steps))
++		for i := range outcomes {
++			outcomes[i] = "Accepted"
+ 		}
+-		path = append(path, step)
++		return &runv1.Event{Kind: &runv1.Event_Judgment{Judgment: &runv1.Judgment{
++			Response: &modelv1.JudgeResponse{Judgment: &modelv1.JudgeResponse_Explained{
++				Explained: &modelv1.Explanation{Steps: steps, Outcomes: outcomes},
++			}},
++		}}}
+ 	}
+-	return path
++	raw := &runner.Run{Events: []*runv1.Event{
++		judgment("Poll", "Fail"),
++		judgment("Poll", "Fail", "Retry", "Complete"),
++	}}
++	sdk := proto.CloneOf(raw)
++	sdk.Events = append([]*runv1.Event{judgment("Poll", "Fail")}, sdk.Events...)
++	before := proto.CloneOf(sdk)
++	require.Equal(t, []string{"Poll Accepted", "Fail Accepted", "Retry Accepted", "Complete Accepted"}, explainedSteps(raw))
++	require.Equal(t, explainedSteps(raw), explainedSteps(sdk), "an extra unchanged observation repeats a complete witness")
++	require.True(t, proto.Equal(before, sdk), "presentation preserves prior reports")
++	sdk.Events[0] = judgment("Poll")
++	require.Equal(t, explainedSteps(raw), explainedSteps(sdk), "an earlier partial witness does not change the final witness")
++
++	different := &runner.Run{Events: []*runv1.Event{judgment("Poll", "Complete")}}
++	require.NotEqual(t, explainedSteps(raw), explainedSteps(different), "different final witnesses remain different")
++	repeated := &runner.Run{Events: []*runv1.Event{judgment("Client::Cancel", "Client::Cancel")}}
++	repeated.Events[0].GetJudgment().GetResponse().GetExplained().Outcomes = []string{"Rejected(NotFound)", "Rejected(NotFound)"}
++	require.Equal(t, []string{"Client::Cancel Rejected(NotFound)", "Client::Cancel Rejected(NotFound)"}, explainedSteps(repeated), "actual repeated edges remain in the witness")
++	require.Empty(t, explainedSteps(&runner.Run{Events: []*runv1.Event{judgment()}}))
+ }
+ 
+ func lastLine(text string) string {
+@@ -453,7 +479,7 @@ func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
+ 				for _, seed := range []uint64{1, 3, 4, 19, 21} {
+ 					_, rawRun := invocationRun(t, raw, seed)
+ 					_, sdkRun := invocationRun(t, invocation, seed)
+-					require.Equal(t, judgmentPath(rawRun), judgmentPath(sdkRun), "seed %d has identical judgments", seed)
++					require.Equal(t, explainedSteps(rawRun), explainedSteps(sdkRun), "seed %d has identical judgments", seed)
+ 					require.True(t, proto.Equal(rawRun.GetVerdict(), sdkRun.GetVerdict()), "seed %d has identical verdicts", seed)
+ 				}
+ 			}

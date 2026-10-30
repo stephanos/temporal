@@ -1,0 +1,20 @@
+{
+  "head": "ee8be257139f6404f03ad2387af8b6cf33e44123",
+  "sha256": {
+    "model/umpire/hosts/go/README.md": "d6abb095880909255c4899032803f769269393d5634f32dd2b92f789c2eca4fc",
+    "model/umpire/hosts/go/runner/admission_test.go": "e94cba672923a3c7f8fa363c1b3b02fccf5a313f96b4c1885e338761d18b6277",
+    "model/umpire/hosts/go/runner/modes_test.go": "e1bd07666f230785c5a6a4bf6663f436c370f15ac8e75c4cb3fe920c7a9e31a3",
+    "model/umpire/hosts/go/runner/prefix_test.go": "00d9d4f62a66e92b62d88808676e8264011c726963092397202816a3399ceba1",
+    "model/umpire/hosts/go/runner/replay.go": "652870bf84d3bed6ab8eb07f61e3638575db7f00c4832df1cf9f6d5ab1855793",
+    "model/umpire/hosts/go/runner/runner.go": "abaca85652d991706c56ac79bf2db44e0377f0caca32b356352e2776a6d15812",
+    "model/umpire/protocol/proto/README.md": "89e052e8475a00dd872612649cce319ee0c8244f238e94d9c990c94274fc363d",
+    "model/umpire/protocol/runtime/tests/main/prefix.rs": "7cb42a86675895e608e9053ceecb7db21e4ab1cfc8582aea459b14e8cc7dbed3",
+    "tests/testpilot_model_slice_umpire_test.go": "15873af665ea6ed6c62de1a12b1bd00d126bf47a1c9ad9a27db060b35ac4a08e",
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm": "8b9ea3c0b29ab0b0f727cf083027c9ad9a6886634d8ce8be25a84115e315be50",
+    "model/temporal/feature/activity/model.rs": "fd1d3e1e3fd393d84037c756819b3cb221b226831c395cc85f62eeaad80eb0bf",
+    "model/temporal/feature/activity/temporal.rs": "bb3c7b404ea950b0ca1424803ef068ed2be01bc7ac57d1f260af138320a049bc",
+    "model/umpire/Cargo.lock": "2b59c57448112c0d95210905d168b7f26327aab03eaf65160b7afff200bb8a95",
+    "go.mod": "b38656014e9bf6e473520a59728a84d2dbd17b95bdb07c0a65a1b53c5d2ab13f",
+    "go.sum": "1bce0efcc6083ca4e0b3d42751dfa5dc101a0a6fe91cc71f5a3f88b0a854aecc"
+  }
+}

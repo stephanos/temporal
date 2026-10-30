@@ -1,0 +1,7 @@
+{
+  "proof_head": "ee8be257139f6404f03ad2387af8b6cf33e44123",
+  "review_head_before_custody": "9620f8c63b58542ba25a8561a3143e5e681de1b5",
+  "all_recorded_source_hashes_match": true,
+  "all_manifest_hashes_match": true,
+  "refresh_changes": "Integrated fn253.6 documentation only; all recorded source and guest hashes unchanged."
+}

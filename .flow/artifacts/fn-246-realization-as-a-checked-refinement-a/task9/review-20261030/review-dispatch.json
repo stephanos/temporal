@@ -1,0 +1,63 @@
+{
+  "success": true,
+  "type": "impl_review_fanout",
+  "phase": "dispatch",
+  "id": "fn-246-realization-as-a-checked-refinement-a.9",
+  "rid": "7fbfa79233f44151a2262a8f08e7d5f0",
+  "reservation_id": "7fbfa79233f44151a2262a8f08e7d5f0",
+  "standalone": false,
+  "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/.flow/review-fanout/7fbfa79233f44151a2262a8f08e7d5f0",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "session_id": "c9ed9315-1446-4447-80fc-910c07de4e19",
+      "model": "claude-fable-5-1",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/.flow/review-fanout/7fbfa79233f44151a2262a8f08e7d5f0/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/.flow/review-fanout/7fbfa79233f44151a2262a8f08e7d5f0/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "session_id": "63a54c0f-32da-4c3a-ab5a-d83ab60f836d",
+      "model": "claude-fable-5-1",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/.flow/review-fanout/7fbfa79233f44151a2262a8f08e7d5f0/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/.flow/review-fanout/7fbfa79233f44151a2262a8f08e7d5f0/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "session_id": "65d8d488-2ddf-4a7c-982c-c11ac4cad89d",
+      "model": "claude-fable-5-1",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/.flow/review-fanout/7fbfa79233f44151a2262a8f08e7d5f0/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/.flow/review-fanout/7fbfa79233f44151a2262a8f08e7d5f0/integration.out.txt"
+    }
+  ],
+  "failed_draws": 0,
+  "merged": false,
+  "next": "merge the surviving draws' findings, then run: flowctl claude impl-review-fanout-finalize --rid 7fbfa79233f44151a2262a8f08e7d5f0 --merge-plan <merge-plan.json>"
+}

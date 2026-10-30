@@ -1,0 +1,84 @@
+{
+  "head": "ee8be257139f6404f03ad2387af8b6cf33e44123",
+  "original_source_commit": "eac683e6033c5861910fc0f0ed61f41b5e02946f",
+  "tracked_source_changes": [],
+  "flow_mutations": [],
+  "commits_created": [],
+  "guest_sha256": "8b9ea3c0b29ab0b0f727cf083027c9ad9a6886634d8ce8be25a84115e315be50",
+  "commands": [
+    {
+      "log": "runtime-tests.log",
+      "command": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/cargo-target CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-runtime --locked",
+      "exit": 0,
+      "sha256": "f181028fe22dbcc0bba11300d3951b9ac29c5f658126f3f633ec663935eda711"
+    },
+    {
+      "log": "runtime-clippy.log",
+      "command": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/cargo-target CARGO_BUILD_JOBS=2 mise exec -- cargo clippy -p umpire-runtime --all-targets --all-features --locked -- -D warnings",
+      "exit": 0,
+      "sha256": "08e88b8c731eecd740f51d9adfe6793fa3209428f93858d84d12b0a356886f56"
+    },
+    {
+      "log": "build-guests.log",
+      "command": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/cargo-target CARGO_BUILD_JOBS=2 mise exec -- cargo xtask build-guests",
+      "exit": 0,
+      "sha256": "0300d9343f08b37ad5a47c3e6716e99428a24066f2bfffcd42c6ee35b5707686"
+    },
+    {
+      "log": "generic-go-tests.log",
+      "command": "CGO_ENABLED=0 GOMAXPROCS=2 mise exec -- go test -v -p 2 -tags test_dep ./... -count=1 (hosts/go; CARGO_TARGET_DIR plus caught-panic/overflow/native env point to current build-guests outputs)",
+      "exit": 0,
+      "sha256": "4a4dcd622c87e8ca40568f87e7ed4d6aa4865cd8abbf67f7c56dcf7e17bdd408"
+    },
+    {
+      "log": "generic-go-vet.log",
+      "command": "CGO_ENABLED=0 GOMAXPROCS=2 mise exec -- go vet -p 2 -tags test_dep ./... (hosts/go)",
+      "exit": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "log": "model-slice.log",
+      "command": "GOMAXPROCS=2 GOFLAGS='-p=2' make umpire-check-model-slice",
+      "exit": 0,
+      "sha256": "5bc85ee3169ab830ae2b75a00b6bcd32d2e78a1875cfaeecd519aad32aa68190"
+    },
+    {
+      "log": "consumer-red.log",
+      "command": "CGO_ENABLED=0 GOMAXPROCS=2 mise exec -- go test -v -p 2 -count=1 -timeout 10m -tags 'test_dep integration' -overlay .flow/tmp/fn2469-resume-20261030/consumer-overlay.json ./tests -run '^TestUmpireWholePrefixJudgmentPath$'",
+      "exit": 1,
+      "sha256": "9dfab9605e7bd8d4a3491a645555f14d3ece02b6b3f47b3a2a07dfdb76fe4dce"
+    },
+    {
+      "log": "consumer-green.log",
+      "command": "CGO_ENABLED=0 GOMAXPROCS=2 mise exec -- go test -v -p 2 -count=1 -timeout 10m -tags 'test_dep integration' ./tests -run '^TestUmpireWholePrefixJudgmentPath$'",
+      "exit": 0,
+      "sha256": "dc39ca3a3f26eaeeb40c8c69891933ab70f42ee085304c090034c60165e5c2a3"
+    },
+    {
+      "log": "format.log",
+      "command": "rustfmt --check --edition 2024 runtime prefix test; gofmt -l task9 Go sources; git diff --check",
+      "exit": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "results": {
+    "runtime_main": 60,
+    "runtime_capabilities": 2,
+    "runtime_doctests": 1,
+    "generic_go_passed_rows": 275,
+    "generic_go_skips": 0,
+    "model_slice_passed_rows": 59,
+    "model_slice_skips": 0,
+    "missing_historical_slice_rows": [],
+    "added_slice_rows": [],
+    "model_slice_seconds": 85.125,
+    "consumer_red_discrimination": "historical concatenation yields6 edges where complete witness has4; current helper passes"
+  },
+  "scope": "Current singleton whole-prefix contract recording/replay/question/reduce/admission/presentation, generic native/wasm contract parity, named live model-slice target. Historical artifacts unchanged and not relabeled.",
+  "deferred": [
+    "Changed-canonical-past/compatible-frontier proof: fn246.10 then integrated .6.",
+    "Full umpire-check-live-tests umbrella: later owning tasks including fn256.1.",
+    "No full model-check or model-validate; fn254.8 reserved.",
+    "Root owns review, Flow closure, integration and MILESTONES."
+  ]
+}
