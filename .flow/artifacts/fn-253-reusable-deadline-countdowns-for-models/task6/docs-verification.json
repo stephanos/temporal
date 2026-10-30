@@ -1,0 +1,75 @@
+{
+  "base": "ac7679cb09861c09e9b0a142d1eaffaa2c6035c0",
+  "path": "model/temporal/feature/activity/README.md",
+  "existing_provenance_unchanged": true,
+  "local_links": [
+    {
+      "label": "countdown design",
+      "target": "../../../design/deadline-countdowns.md#temporal-layer-and-independence",
+      "exists": true,
+      "anchor_valid": true
+    },
+    {
+      "label": "the activity Model",
+      "target": "model.rs",
+      "exists": true,
+      "anchor_valid": false
+    },
+    {
+      "label": "independent protocol Model",
+      "target": "../../shared/protocol/activity/model.rs",
+      "exists": true,
+      "anchor_valid": false
+    },
+    {
+      "label": "lifecycle compatibility control",
+      "target": "compatibility/README.md",
+      "exists": true,
+      "anchor_valid": false
+    },
+    {
+      "label": "cancellation task",
+      "target": "../../../../.flow/tasks/fn-253-reusable-deadline-countdowns-for-models.10.md",
+      "exists": true,
+      "anchor_valid": false
+    },
+    {
+      "label": "consumer refactor",
+      "target": "../../../../.flow/tasks/fn-253-reusable-deadline-countdowns-for-models.7.md",
+      "exists": true,
+      "anchor_valid": false
+    },
+    {
+      "label": "approved retry correction",
+      "target": "#approved-local-timeout-retry-correction-fn-24615",
+      "exists": true,
+      "anchor_valid": true
+    },
+    {
+      "label": "approved pending-outcome correction",
+      "target": "#approved-pending-cancellation-outcome-correction-fn-24613",
+      "exists": true,
+      "anchor_valid": true
+    }
+  ],
+  "existing_named_owners": [
+    "initial",
+    "worker",
+    "deadline",
+    "decrement",
+    "expire_attempt",
+    "retry",
+    "clear_terminal",
+    "state_bounds",
+    "deadline_arming",
+    "pending_is_cooperative",
+    "countdowns_decrement",
+    "tick_priority",
+    "heartbeat_preserves_attempt_and_global",
+    "attempt_changes_only_on_retry",
+    "global_never_replenished",
+    "tick_descends_and_expires"
+  ],
+  "source_sha256": "fd1d3e1e3fd393d84037c756819b3cb221b226831c395cc85f62eeaad80eb0bf",
+  "readme_sha256": "9ac9dc7a15de4e843a647a28246438fd62dfe9741455e1d909470a13d175d421"
+}
