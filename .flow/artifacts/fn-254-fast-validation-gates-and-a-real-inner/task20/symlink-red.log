@@ -1,0 +1,17 @@
+
+running 1 test
+test make_paths::shipping_temporal_make_loads_the_workspace_linker_config_without_changing_caller_paths ... FAILED
+
+failures:
+
+failures:
+    make_paths::shipping_temporal_make_loads_the_workspace_linker_config_without_changing_caller_paths
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.14s
+
+
+thread 'make_paths::shipping_temporal_make_loads_the_workspace_linker_config_without_changing_caller_paths' (661260) panicked at dev/xtask/tests/make_paths.rs:123:5:
+assertion `left == right` failed
+  left: "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25420/symlink-tmp-real/native guest controls 661259 0/make|caller-home|caller-target|false|false|exec -- cargo --config /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25420/symlink-tmp-real/native guest controls 661259 0/make/model/.cargo/config.toml run --manifest-path /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25420/symlink-tmp-real/native guest controls 661259 0/make/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- quick\n"
+ right: "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25420/symlink-tmp/native guest controls 661259 0/make|caller-home|caller-target|false|false|exec -- cargo --config /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25420/symlink-tmp/native guest controls 661259 0/make/model/.cargo/config.toml run --manifest-path /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25420/symlink-tmp/native guest controls 661259 0/make/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- quick\n"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

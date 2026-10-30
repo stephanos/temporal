@@ -97,6 +97,7 @@ fn shipping_temporal_make_loads_the_workspace_linker_config_without_changing_cal
     let f = super::Fixture::new();
     let root = f.root.join("make");
     fs::create_dir_all(root.join("model")).unwrap();
+    let root = root.canonicalize().unwrap();
     let makefile = fs::read_to_string(source.join("Makefile")).unwrap();
     let definition = makefile.lines().find(|line| line.starts_with("RUST_MODEL_CARGO =")).unwrap();
     let recipe =

@@ -12,9 +12,10 @@
     "model/GUEST_BUILDS.md": "e4cf47d762610ea7906a0ee82c779f9a4ace486e472c662904e4e6717d28ec55",
     "model/design/gate-speed.md": "f2a5c6bd1673f980bb1dbd359c0537b39bf99847a28b428d3f49758c7a383b0f",
     "Makefile": "929c28b149b904052e5c79b0097eda90b2bc8eb909e4f6d1a82f8826be98b140",
-    "model/dev/xtask/tests/make_paths.rs": "41764ebc639e72d8cb183bb5b7e594c1cda2ee325a167bc678f31b90b9afee71"
+    "model/dev/xtask/tests/make_paths.rs": "e34fa349f0ce13e59916b6793f7d5b1d9fa519d27c66d27829ee0c132ae6fe1c"
   },
   "workspace_lock_sha256": "2b59c57448112c0d95210905d168b7f26327aab03eaf65160b7afff200bb8a95",
   "original_proof": "Historical candidate75b4ee542c; make-entry-proof supersedes the Make entry coverage and changed three source hashes. Other focused guest/linker proof inputs retain their recorded custody.",
-  "full_gate": "Deferred to fn-254.8"
+  "full_gate": "Deferred to fn-254.8",
+  "final_test_followup": "Reviewer-requested canonical fixture root; Linux symlink TMPDIR red/green and focused fmt/strict Clippy pass; no third review round under fix-pass policy."
 }
