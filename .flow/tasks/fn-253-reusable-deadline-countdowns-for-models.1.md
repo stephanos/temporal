@@ -33,9 +33,10 @@ Quick readability wins that need no new framework: the lifter already admits Opt
 - [ ] Each removed Tick/Heartbeat check has a recorded remaining owner with the required forged-zero/boundary and mutant coverage; any checks with distinct coverage remain. Re-pointed mutant expectations still discriminate under `UMPIRE_BACKENDS=require`.
 
 ## Done summary
-TBD
+Reviewed activity deadline clarity: Option equality in expiry guards, named time_out/time_out_attempt effects, armed/pending/running helpers, and ten original bounds clauses split into three invariants. Corrected pending-cancellation and retry semantics preserved. All Tick/Heartbeat checks retained; <=1 guards intentionally preserve forged-zero coverage because no baseline ==1 pairs existed. States/rows byte-identical. Native62pass/2inheritedignore; required backend coverage accounts all62active identities through honest full60pass2anchor-fail run plus two corrected whole-test complements; no green single-full-invocation claim. All source mutants still discriminate. Three source reviews SHIP; final TLC hash supersedes early preflight capture. Current guest4df13deb and canary pin published/reproduced; native report/rows, complete Temporal Go host suite and canary checks pass. Final direct current-driver --check passes against retirement-joined source, only Makefile input/gaps ownership changed. Library adoption remains .7; full broad gates remain fn254.8.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0bda5f62c2, fe21941c2d, 1ebdd66ec2, b9b8c45ac3
+- Tests: Native fixture62pass,2inheritedignored; scoped alltargetClippy/fmt pass, Complete required backend identity union62active: full60pass2staleanchor failures then2corrected exact complement tests pass; zeroomissions, Root independently verifies62native identities match requiredpass union and2complementlogs, states/rows exact baseline; all10bounds retained; allTick/Heartbeatchecks unchanged; no narrowedcoverage, Currentguest4df13deb3989794bytes equalsboth compilercontextscratchbuilds; canaryhashmatches, Native namedadapter report+orderedrows1pass; completeTemporalGo hostmodule+workerSDK suitepass; canarypolicy/preflightpass, Finaljoinedsource currentdriverguest--check exit0; sameb151driver identity, assetunchanged,925sourceinputschecked; retirementgapsdeltaownerrecorded
 - PRs:
