@@ -4,7 +4,7 @@ Before starting the implementation of any request, you MUST REVIEW the following
 # Core Mandates
 
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
-- **Model:** Umpire has an independent Rust workspace under `model/umpire/`; system Models use the workspace under `model/`; read [model/README.md](model/README.md) before working on it and verify with `make model-check`. The former Scala tree is frozen under `model/archived/`, for reference only; its targets are unmaintained and it is not expected to build.
+- **Model:** Umpire has an independent Rust workspace under `model/umpire/`; system Models use the workspace under `model/`; read [model/README.md](model/README.md) before working on it and verify with `make model-check`. The former Scala tree is read-only reference material under `model/archived/`; its build tooling and Make targets have been removed.
 - Update the Model independently of the implementation. When conformance fails, ask a human rather than fitting the Model to the code.
 - **Umpire:** Before any task involving Umpire code (`model/`, `tools/umpire/`, `common/testing/testpilot/`, `tools/canary/`), read and follow [UMPIRE4 Spec](.plans/UMPIRE4_SPEC.md), the high-level architecture and its rules in [UMPIRE4 Vision](.plans/UMPIRE4_VISION.md#high-level-architecture), and the [module map](.plans/UMPIRE_MODULES.md), which states each module's job, public interface and permitted imports.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, and 'go.mod') before employing it.

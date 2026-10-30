@@ -1,11 +1,3 @@
-ifneq ($(filter check-framework,$(MAKECMDGOALS)),)
-ifneq ($(words $(MAKECMDGOALS)),1)
-$(error check-framework runs alone, without system build targets)
-endif
-.PHONY: check-framework
-check-framework:
-	@mise exec -- scala-cli run --server=false --suppress-outdated-dependency-warning model/archived/framework/check -M framework.check.checkFramework
-else
 ############################# Main targets #############################
 # Install all tools and builds binaries.
 install: bins
@@ -437,7 +429,7 @@ TESTPILOT_PROTOCOL_PROTOS := \
 	proto/internal/temporal/server/api/testpilot/v1/source.proto \
 	proto/internal/temporal/server/api/testpilot/v1/value.proto
 
-.PHONY: canary-build umpire-check-testpilot-protocol umpire umpire-check-live-tests fmt-model lint-model fix-model umpire-check-model umpire-gen-model
+.PHONY: canary-build umpire-check-testpilot-protocol umpire umpire-check-live-tests
 
 canary-build:
 	@printf $(COLOR) "Build the production canary..."
@@ -526,267 +518,11 @@ umpire-check-live-tests: umpire-check-model-slice umpire-check-model-gaps
 		fi; \
 		printf 'Live Testpilot failure identities match the empty expected set across %s passing identities.\n' "$$passing"
 
-# Archived Scala targets are unmaintained and are not expected to build. Their explicit source
-# roots keep authoring, the IR generator (export) and the check separate under model/archived.
-MODEL_ROOT := model/archived
-MODEL_CLI := mise exec -- scala-cli
-MODEL_GATE_ARGS ?=
-# Scalafix 0.14.9 reads JDK25's URLClassPath.path; JDK27 renamed that field to searchPath.
-MODEL_SCALAFIX = $(MODEL_CLI) --power fix --jvm 25 --enable-built-in=false \
-	--scalafix-conf "$(CURDIR)/$(MODEL_ROOT)/.scalafix.conf" \
-	--scalac-option -Wunused:all --suppress-outdated-dependency-warning
-MODEL_FEATURE_ROOT := $(MODEL_ROOT)/temporal/features
-MODEL_DISCOVERED_FEATURES := $(shell find $(call model_quote,$(MODEL_FEATURE_ROOT)) -type d \( -name '.*' -o -iname shared -o -iname product -o -iname protocol -o -iname generated \) -prune -o -type f -name '*.scala' ! -name '*.test.scala' -print | awk -v root=$(call model_quote,$(MODEL_FEATURE_ROOT)/) 'function normalized(name) { gsub(/_/,"",name); return tolower(name) } { relative=substr($$0,length(root)+1); n=split(relative,parts,"/"); file=parts[n]; sub(/\.scala$$/,"",file); file=normalized(file); folder=normalized(parts[n-1]); kind=normalized(parts[1]); separator=index(parts[n-1],"_"); reversed=normalized(substr(parts[n-1],separator+1) substr(parts[n-1],1,separator-1)); if ((n==2 && (file==folder || (separator && file==reversed))) || (n==3 && (file==folder || file==folder kind))) { feature=parts[1]; if (n==3) { forms[feature]=1; feature=feature "/" parts[2] } candidates[feature]=1 } } END { for (feature in candidates) if (!(feature in forms)) print feature }' | sort -u)
-FEATURES ?= $(MODEL_DISCOVERED_FEATURES)
-export FEATURES
-MODEL_UNKNOWN_FEATURES := $(filter-out $(MODEL_DISCOVERED_FEATURES),$(FEATURES))
-ifneq ($(strip $(MODEL_UNKNOWN_FEATURES)),)
-$(error feature folder not found: $(MODEL_UNKNOWN_FEATURES))
-endif
-MODEL_FEATURE_PATHS := $(addprefix $(MODEL_FEATURE_ROOT)/,$(FEATURES))
-MODEL_FLAT_KIND_PARENTS := $(foreach feature,$(filter-out %/%,$(FEATURES)),$(if $(findstring _,$(feature)),$(foreach kind,$(wildcard $(MODEL_FEATURE_ROOT)/$(firstword $(subst _, ,$(feature)))),$(kind)/)))
-MODEL_FEATURE_PARENTS := $(filter-out $(MODEL_FEATURE_ROOT)/,$(sort $(dir $(MODEL_FEATURE_PATHS)) $(MODEL_FLAT_KIND_PARENTS)))
-MODEL_FEATURE_SHARED := $(filter-out $(addprefix $(MODEL_FEATURE_ROOT)/,$(MODEL_DISCOVERED_FEATURES)),$(patsubst %/,%,$(wildcard $(addsuffix */,$(MODEL_FEATURE_PARENTS)))))
-# The framework's sources the Models compile against: the DSL and the generic realization core, not
-# the tooling beside them.
-MODEL_FRAMEWORK_SOURCES := $(addprefix $(MODEL_ROOT)/,project.scala framework/dsl framework/realize)
-MODEL_SOURCES := $(MODEL_FRAMEWORK_SOURCES) \
-	$(wildcard $(MODEL_ROOT)/temporal/*.scala) \
-	$(addprefix $(MODEL_ROOT)/temporal/,foundations actors capabilities realize) \
-	$(wildcard $(addsuffix *.scala,$(MODEL_FEATURE_PARENTS))) $(MODEL_FEATURE_SHARED) $(MODEL_FEATURE_PATHS)
-MODEL_UNLISTED_PACKAGES := $(subst /,.,$(addprefix temporal.features.,$(filter-out $(FEATURES),$(MODEL_DISCOVERED_FEATURES))))
-MODEL_SOURCE_ARGS := $(foreach source,$(MODEL_SOURCES),$(call model_quote,$(source)))
-MODEL_EXCLUDED_TESTS := $(if $(MODEL_UNLISTED_PACKAGES),$(shell find $(foreach source,$(filter-out $(MODEL_FRAMEWORK_SOURCES),$(MODEL_SOURCES)),$(call model_quote,$(source))) -name '*.test.scala' -exec grep -l -F $(foreach pkg,$(MODEL_UNLISTED_PACKAGES),-e $(call model_quote,$(pkg))) {} +))
-MODEL_SOURCE_OPTIONS := $(foreach file,$(MODEL_EXCLUDED_TESTS),--exclude $(call model_quote,$(CURDIR)/$(file)))
-# Temporal Model sources have package-only kind headers. Bloop rejects them under -Werror even
-# when scala-cli exits 0, so their package, compile, test and scalafix calls keep --server=false.
-# Direct DSL/export package, compile and run calls also keep it: Bloop can return 0 for -Werror
-# failures, and Make reads exit codes alone. The checks have no -Werror; samples and suite runners
-# read compiler diagnostics.
-model_scalafix_files = $(foreach source,$(1),--scalafix-arg=--files --scalafix-arg="$(CURDIR)/$(source)")
-MODEL_SCALAFIX_FILES = $(call model_scalafix_files,$(MODEL_SOURCES))
-# The lifter's and the checks' Temporal builds: each tool's framework half, whose project.scala is
-# the build's own, and its Temporal half.
-MODEL_EXPORT := $(MODEL_ROOT)/framework/export $(MODEL_ROOT)/temporal/export
-MODEL_CHECK := $(MODEL_ROOT)/framework/check $(MODEL_ROOT)/temporal/check
-# scala-cli hands scalafix every file under a project's directory, so the IR generator names its own
-# sources to leave out the fixtures under testdata, which its build excludes.
-MODEL_IRGEN_SOURCES := $(wildcard $(addsuffix /*.scala,$(MODEL_EXPORT)))
-# The IR generator's fixtures that lift are a build of their own against the packaged Models. The
-# refusal fixtures stay outside scalafix: unsupported's `var` and `while` are what it must refuse,
-# and werror and crossed must not compile, so RemoveUnused has nothing to read. The fixtures' build
-# makes warnings errors, and -Wunused:all also warns of the parameters RemoveUnused keeps
-# (params = false), so the lint keeps warnings as warnings.
-MODEL_LIFTS := $(MODEL_ROOT)/framework/export/testdata/lifts
-# The tools' directories scalafmt formats beside the Models.
-MODEL_TOOL_DIRS := $(foreach tool,export check,$(MODEL_ROOT)/framework/$(tool) $(MODEL_ROOT)/temporal/$(tool))
-MODEL_LIFTS_SCALAFIX = $(MODEL_SCALAFIX) --scalac-option -Werror:false \
-	$(call model_scalafix_files,$(wildcard $(MODEL_LIFTS)/*.scala))
-MODEL_BUILD := $(MODEL_ROOT)/build
-MODEL_PROTO_JARS := $(MODEL_BUILD)/ir-scalapb.jar $(MODEL_BUILD)/api-scalapb.jar
-MODEL_REIFY_PLUGIN := $(MODEL_BUILD)/reify.jar
-MODEL_REIFY_INPUTS := $(wildcard $(MODEL_ROOT)/framework/reify/plugin/*.scala) \
-	$(wildcard $(MODEL_ROOT)/framework/reify/body/*.scala) \
-	$(MODEL_ROOT)/framework/inspect/LiftableSubset.scala \
-	$(MODEL_ROOT)/framework/inspect/LiftError.scala \
-	$(MODEL_ROOT)/framework/reify/plugin/resources/plugin.properties
-MODEL_REIFY_DIGEST = $(shell shasum -a 256 $(call model_quote,$(MODEL_REIFY_PLUGIN)) | awk '{print $$1}')
-MODEL_REIFY_OPTION = --scalac-option $(call model_quote,-Xplugin:$(CURDIR)/$(MODEL_REIFY_PLUGIN)) \
-	--scalac-option -P:umpire-reify:mode=realization \
-	--scalac-option $(call model_quote,-P:umpire-reify:cache-key=$(MODEL_REIFY_DIGEST))
-MODEL_JAR := $(MODEL_BUILD)/model-scala.jar
-MODEL_CLASSPATH := $(MODEL_BUILD)/model-scala.classpath
-# The gate is one Scala program, model/temporal/check; its own arguments follow.
-MODEL_GATE = $(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_CHECK) -M temporal.check.run --
-# The gate's own tests run it against stand-in tools, so they need no jar and no real tool.
-MODEL_GATE_TEST = $(MODEL_CLI) test --server=false --suppress-outdated-dependency-warning $(MODEL_CHECK)
-
-# The IR and linked-API classes the Models compile against. Packaging them runs protoc and the
-# linked-API descriptors through Go (`make protoc` territory, owner-held), so make never does it on
-# its own: a missing jar fails naming the opt-in target, and the model targets read the cached jars.
-# gen-model-api packages both when their inputs changed; the canonical gate (umpire-check-model,
-# umpire-gen-model) still regenerates them itself.
-$(MODEL_PROTO_JARS):
-	@printf '%s is missing; run make gen-model-api once (the held linked-API generation)\n' $@ >&2; exit 1
-
-.PHONY: gen-model-api
-gen-model-api:
-	@printf $(COLOR) "Package model IR and API classes..."
-	@$(MODEL_GATE) --generate-api --if-stale
-
-# The Models retain their authoring identities through this compiler plugin. It is a Model build
-# input, not a framework dependency: the framework-alone boundary below deliberately omits it.
-$(MODEL_REIFY_PLUGIN): $(MODEL_BUILD)/ir-scalapb.jar $(MODEL_REIFY_INPUTS)
-	@printf $(COLOR) "Package the Model reify compiler plugin..."
-	@set -eu; \
-		plugin_tmp=$$(mktemp $(call model_quote,$(MODEL_BUILD)/reify.XXXXXX.jar)); \
-		trap 'rm -f "$$plugin_tmp"' EXIT; \
-		$(MODEL_CLI) --power package --server=false --assembly --preamble=false \
-			--main-class-in-manifest=false --provided org.scala-lang:scala3-compiler_3 \
-			$(MODEL_ROOT)/framework/reify/plugin -f -o "$$plugin_tmp"; \
-		test -s "$$plugin_tmp" || { printf '%s\n' '$@ is missing: scala-cli did not package the reify compiler plugin' >&2; exit 1; }; \
-		mv "$$plugin_tmp" $(call model_quote,$@)
-
-# The Models' TASTy, packaged as the gate's "package the Models' TASTy" step packages it.
-.PHONY: model-source-selection
-$(MODEL_BUILD)/model-sources: model-source-selection $(MODEL_REIFY_PLUGIN)
-	@mkdir -p $(MODEL_BUILD)
-	@printf '%s\n' $(call model_quote,$(MODEL_SOURCES) $(MODEL_SOURCE_OPTIONS) $(MODEL_REIFY_OPTION)) > $@.tmp
-	@cmp -s $@.tmp $@ && rm $@.tmp || mv $@.tmp $@
-
-$(MODEL_JAR): $(MODEL_PROTO_JARS) $(MODEL_REIFY_PLUGIN) $(MODEL_BUILD)/model-sources $(shell find $(MODEL_SOURCE_ARGS) -name '*.scala')
-	@printf $(COLOR) "Package the Models' TASTy..."
-	@set -eu; \
-		jar_tmp=$(call model_quote,$@.tmp.jar); classpath_tmp=$(call model_quote,$(MODEL_CLASSPATH).tmp); \
-		trap 'rm -f "$$jar_tmp" "$$classpath_tmp"' EXIT; \
-		$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --print-class-path --compilation-output "$$jar_tmp" $(MODEL_REIFY_OPTION) $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS) > "$$classpath_tmp"; \
-		test -s "$$jar_tmp"; test -s "$$classpath_tmp"; \
-		mv "$$jar_tmp" $(call model_quote,$@); \
-		mv "$$classpath_tmp" $(call model_quote,$(MODEL_CLASSPATH))
-
-# Lifts the selected features from the packaged Models into LIFT_OUT (default: a fresh directory
-# under model/build/history) and says, per feature, whether the lift equals its checked-in IR.
-MODEL_LIFT_NAMES = $(subst _,-,$(subst /,-,$(FEATURES)))
-.PHONY: lift-model
-lift-model: $(MODEL_JAR)
-	@printf $(COLOR) "Lift the selected features' IR..."
-	@set -eu; out=$${LIFT_OUT:-}; \
-		if [ -z "$$out" ]; then mkdir -p $(MODEL_BUILD)/history; out=$$(mktemp -d $(MODEL_BUILD)/history/lift.XXXXXX); fi; \
-		mkdir -p "$$out"; \
-		$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_EXPORT) --main-class framework.export.lift -- \
-			--ir $(call model_quote,$(CURDIR)/$(MODEL_JAR))=model/archived/ $(MODEL_CLASSPATH) "$$out" $(MODEL_LIFT_NAMES); \
-		for feature in $(FEATURES); do \
-			name=$$(printf '%s' "$$feature" | tr '/_' '--'); \
-			if cmp -s "$$out/$$name.json" $(MODEL_FEATURE_ROOT)/"$$feature"/generated/ir.json; then state=current; else state='differs from its checked-in IR'; fi; \
-			printf 'feature %s: %s/%s.json %s\n' "$$feature" "$$out" "$$name" "$$state"; \
-		done
-
-.PHONY: compile-model
-compile-model: $(MODEL_PROTO_JARS) $(MODEL_REIFY_PLUGIN)
-	@printf $(COLOR) "Compiling model files..."
-	@$(MODEL_CLI) compile --server=false $(MODEL_REIFY_OPTION) $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS)
-
-.PHONY: test-model model model-mini
-test-model: $(MODEL_JAR)
-	@$(MODEL_CLI) run --server=false $(MODEL_CHECK) -M framework.check.nativeModelTests
-	@$(MODEL_CLI) test --server=false $(MODEL_ROOT)/framework/dsl $(MODEL_ROOT)/framework/realize \
-		--test-only framework.realize.RealizationConversionTest
-
-# The loop reads the cached jars (gen-model-api); Go checks the held protobuf generation leaves
-# stale are skipped and named.
-model: $(MODEL_PROTO_JARS)
-	@$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_CHECK) -M temporal.check.modelLoop -- $(MODEL_GATE_ARGS)
-
-model-mini:
-	@$(MAKE) --no-print-directory model FEATURES=activity_mini
-
-fmt-model:
-	@printf $(COLOR) "Formatting model files..."
-	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS) $(MODEL_TOOL_DIRS)
-
-# The four scalafix runs build separate projects, so they run side by side; output-sync prints each
-# run's output whole, after its title. The sugar check builds the gate, which lint-model-check builds
-# with other options, so it runs after them.
-MODEL_LINTS := lint-model-models lint-model-irgen lint-model-irgen-lifts lint-model-check
-.PHONY: $(MODEL_LINTS) lint-model-syntax lint-model-conventions
-
-lint-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)
-	@printf $(COLOR) "Checking model formatting..."
-	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf --check $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS) $(MODEL_TOOL_DIRS)
-	@$(MAKE) --no-print-directory -j4 --output-sync=target $(MODEL_LINTS)
-	@$(MAKE) --no-print-directory lint-model-syntax
-	@$(MAKE) --no-print-directory lint-model-conventions
-
-# Unlike semantic lifting, this lint reads framework and test TASTy as well as production Models.
-lint-model-conventions: $(MODEL_PROTO_JARS) $(MODEL_JAR)
-	@printf $(COLOR) "Checking typed model conventions and imports..."
-	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library --test $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS) -f -o $(MODEL_BUILD)/model-conventions.jar
-	@$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --test --print-classpath $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS) > $(MODEL_BUILD)/model-conventions.classpath
-	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library --test $(MODEL_EXPORT) -f -o $(MODEL_BUILD)/irgen-conventions.jar
-	@$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --test --print-classpath $(MODEL_EXPORT) > $(MODEL_BUILD)/irgen-conventions.classpath
-	@$(MODEL_CLI) --power package --suppress-outdated-dependency-warning --library --test $(MODEL_CHECK) -f -o $(MODEL_BUILD)/check-conventions.jar
-	@$(MODEL_CLI) compile --suppress-outdated-dependency-warning --test --print-classpath $(MODEL_CHECK) > $(MODEL_BUILD)/check-conventions.classpath
-	@$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_EXPORT) -M framework.export.lintConventions -- $(MODEL_BUILD)/model-conventions.jar=model/archived/,$(MODEL_BUILD)/irgen-conventions.jar=model/archived/framework/export/,$(MODEL_BUILD)/check-conventions.jar=model/archived/framework/check/ $(MODEL_BUILD)/model-conventions.classpath $(MODEL_BUILD)/irgen-conventions.classpath $(MODEL_BUILD)/check-conventions.classpath
-
-lint-model-models: $(MODEL_PROTO_JARS)
-	@printf $(COLOR) "Linting model files..."
-	@$(MODEL_SCALAFIX) --server=false $(MODEL_SCALAFIX_FILES) --check $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS)
-
-lint-model-irgen:
-	@printf $(COLOR) "Linting the IR generator..."
-	@$(MODEL_SCALAFIX) $(call model_scalafix_files,$(MODEL_IRGEN_SOURCES)) --check $(MODEL_EXPORT)
-
-lint-model-irgen-lifts:
-	@printf $(COLOR) "Linting the IR generator's lifting fixtures..."
-	@cd $(MODEL_LIFTS) && $(MODEL_LIFTS_SCALAFIX) --check .
-
-lint-model-check:
-	@printf $(COLOR) "Linting the check..."
-	@$(MODEL_SCALAFIX) --server=false --check $(MODEL_CHECK)
-
-# The framework's boundary (fn-169.1): model/framework names no Temporal package and takes no
-# Temporal jar or source (model/framework/check/lint/Boundary.scala), and its core and each of its
-# tools compile on their own, with no Temporal API, Models or tools on their classpath.
-.PHONY: check-model-boundary
-check-model-boundary: $(MODEL_BUILD)/ir-scalapb.jar
-	@printf $(COLOR) "Checking the framework's boundary..."
-	@$(MODEL_GATE) --check-boundary
-	@$(MODEL_CLI) compile --server=false --test $(MODEL_ROOT)/framework/dsl $(MODEL_ROOT)/framework/realize
-	@$(MODEL_CLI) compile --server=false --test $(MODEL_ROOT)/framework/export
-	@$(MODEL_CLI) compile --server=false --test $(MODEL_ROOT)/framework/check
-
-# Sugar is defined only in a Syntax.scala, each definition documented with its `Core form:`, and no
-# core file of the framework or the IR generator imports or names it. Comments are `//` lines in
-# every Scala file of model/, its tests and fixtures too. Temporal rule blocks use canonical braces.
-lint-model-syntax:
-	@printf $(COLOR) "Checking the model's sugar and comments..."
-	@$(MODEL_GATE) --check-syntax
-	@$(MODEL_GATE) --check-comments
-	@$(MODEL_GATE) --check-block-form
-
-# Applies the scalafix rewrites; findings without a rewrite (e.g. DisableSyntax) still fail.
-fix-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)
-	@printf $(COLOR) "Applying model lint fixes..."
-	@$(MODEL_SCALAFIX) --server=false $(MODEL_SCALAFIX_FILES) $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS)
-	@$(MODEL_SCALAFIX) $(call model_scalafix_files,$(MODEL_IRGEN_SOURCES)) $(MODEL_EXPORT)
-	@cd $(MODEL_LIFTS) && $(MODEL_LIFTS_SCALAFIX) .
-	@$(MODEL_SCALAFIX) --server=false $(MODEL_CHECK)
-
-# The gate packages the IR classes itself when the schema changed.
-umpire-check-model:
-	@printf $(COLOR) "Check model IR..."
-	@$(MODEL_GATE_TEST)
-	@$(MODEL_GATE) $(MODEL_GATE_ARGS)
-
-umpire-gen-model:
-	@printf $(COLOR) "Generate model IR..."
-	@$(MODEL_GATE_TEST)
-	@$(MODEL_GATE) --update $(MODEL_GATE_ARGS)
-
-# Seals a batch that keeps the Models' meaning but changes identities (model/README.md, "Sealing a
-# batch"): capture a baseline into a new directory before the batch's first edit, then compare the
-# batch's end with it under the batch's rename map. STEPS_ONLY=1 compares the step tables alone,
-# while the checked-in IR is stale (Batch 1d). DUMPER names the table pins' interpreter dumper
-# (model/testdata/table-pins/README.md) to capture and compare the IR's interpreter tables too.
-.PHONY: umpire-capture-baseline umpire-check-equivalence
-umpire-capture-baseline: $(MODEL_PROTO_JARS) $(MODEL_REIFY_PLUGIN)
-	@test -n "$(OUT)" || { echo "usage: make umpire-capture-baseline OUT=<new directory> [DUMPER=<path>]"; exit 2; }
-	@printf $(COLOR) "Capture a model baseline into $(OUT)..."
-	@$(MODEL_GATE) --capture-baseline "$(OUT)" $(if $(DUMPER),--dumper "$(DUMPER)")
-
-umpire-check-equivalence: $(MODEL_PROTO_JARS) $(MODEL_REIFY_PLUGIN)
-	@test -n "$(BASE)" && test -n "$(MAP)" || { echo "usage: make umpire-check-equivalence BASE=<baseline> MAP=<rename map> [STEPS_ONLY=1] [DUMPER=<path>]"; exit 2; }
-	@printf $(COLOR) "Check the model against the baseline $(BASE)..."
-	@$(MODEL_GATE) --check-equivalence "$(BASE)" "$(MAP)" $(if $(STEPS_ONLY),--steps-only) $(if $(DUMPER),--dumper "$(DUMPER)")
-
-# Removes scala-cli build state (.bsp/, .scala-build/) anywhere in the checkout and the given
-# scratch directories under .flow/tmp (UMPIRE_SCRATCH="fn112-3 fn114-1"). Agents use this target
-# instead of running rm directly; model/build and evidence they did not name are left alone.
+# Removes named scratch directories under .flow/tmp (UMPIRE_SCRATCH="fn112-3 fn114-1").
 UMPIRE_SCRATCH ?=
 .PHONY: umpire-clean-scratch
 umpire-clean-scratch:
-	@printf $(COLOR) "Remove scala-cli build state and named .flow/tmp scratch..."
-	@find . -path ./.git -prune -o -path ./.claude -prune -o \( -name .bsp -o -name .scala-build \) -type d -prune -exec rm -rf {} +
+	@printf $(COLOR) "Remove named .flow/tmp scratch..."
 	@for dir in $(UMPIRE_SCRATCH); do \
 		case "$$dir" in */*|..*|"") echo "refusing scratch name '$$dir'"; exit 1;; esac; \
 		rm -rf ".flow/tmp/$$dir"; \
@@ -1242,7 +978,6 @@ ensure-no-changes:
 	@printf $(COLOR) "========================================================================"
 	@git status --porcelain
 	@test -z "`git status --porcelain`" || (printf $(COLOR) "========================================================================"; printf $(RED) "Above files are not regenerated properly. Regenerate them and try again."; git diff HEAD ; exit 1)
-endif
 
 ##### model: Umpire in Rust (fn-210) #####
 RUST_MODEL_COMPILER_ENV = $(if $(filter require,$(UMPIRE_BACKENDS) $(UMPIRE_APALACHE)),CARGO_BUILD_JOBS=1)
