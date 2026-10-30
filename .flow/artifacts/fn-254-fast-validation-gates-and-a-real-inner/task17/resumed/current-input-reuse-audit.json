@@ -1,0 +1,98 @@
+{
+  "source_head": "dc7feca3c497f039c3d2e6f755bddeddb59a7c1d",
+  "purpose": "Current-input reuse audit before final task17 review; not an acceptance verdict",
+  "quick_proofs": {
+    "activity-semantic-renewal": {
+      "binary_source_files": {
+        "total": 66,
+        "unchanged": 64,
+        "changes": {
+          "model/umpire/dev/xtask/src/quick/tests.rs": {
+            "prior_sha256": "32fd9736298a3910d4957a8f358c583faf40b3b6e4ff6ccb4821f0c6dcb12e82",
+            "current_sha256": "d714f6c11a21ff71571830fee87de84cbc19d511b025d7ed63eceb75049ed949"
+          },
+          "model/umpire/dev/xtask/src/test_run.rs": {
+            "prior_sha256": "8de81c52b013a986c54df121d2b96539bcddd3a7a502b675839de6bb975e58cd",
+            "current_sha256": "44dbd0fad10d9100d9c8e3a0f4dc6b2370366539c498d9fc7042cc5acd9284a0"
+          }
+        }
+      },
+      "source_files": {
+        "total": 78,
+        "unchanged": 76,
+        "changes": {
+          "model/umpire/dev/xtask/src/quick/tests.rs": {
+            "prior_sha256": "32fd9736298a3910d4957a8f358c583faf40b3b6e4ff6ccb4821f0c6dcb12e82",
+            "current_sha256": "d714f6c11a21ff71571830fee87de84cbc19d511b025d7ed63eceb75049ed949"
+          },
+          "model/umpire/dev/xtask/src/test_run.rs": {
+            "prior_sha256": "8de81c52b013a986c54df121d2b96539bcddd3a7a502b675839de6bb975e58cd",
+            "current_sha256": "44dbd0fad10d9100d9c8e3a0f4dc6b2370366539c498d9fc7042cc5acd9284a0"
+          }
+        }
+      }
+    },
+    "kettle-semantic-renewal": {
+      "binary_source_files": {
+        "total": 66,
+        "unchanged": 64,
+        "changes": {
+          "model/umpire/dev/xtask/src/quick/tests.rs": {
+            "prior_sha256": "32fd9736298a3910d4957a8f358c583faf40b3b6e4ff6ccb4821f0c6dcb12e82",
+            "current_sha256": "d714f6c11a21ff71571830fee87de84cbc19d511b025d7ed63eceb75049ed949"
+          },
+          "model/umpire/dev/xtask/src/test_run.rs": {
+            "prior_sha256": "8de81c52b013a986c54df121d2b96539bcddd3a7a502b675839de6bb975e58cd",
+            "current_sha256": "44dbd0fad10d9100d9c8e3a0f4dc6b2370366539c498d9fc7042cc5acd9284a0"
+          }
+        }
+      },
+      "source_files": {
+        "total": 78,
+        "unchanged": 76,
+        "changes": {
+          "model/umpire/dev/xtask/src/quick/tests.rs": {
+            "prior_sha256": "32fd9736298a3910d4957a8f358c583faf40b3b6e4ff6ccb4821f0c6dcb12e82",
+            "current_sha256": "d714f6c11a21ff71571830fee87de84cbc19d511b025d7ed63eceb75049ed949"
+          },
+          "model/umpire/dev/xtask/src/test_run.rs": {
+            "prior_sha256": "8de81c52b013a986c54df121d2b96539bcddd3a7a502b675839de6bb975e58cd",
+            "current_sha256": "44dbd0fad10d9100d9c8e3a0f4dc6b2370366539c498d9fc7042cc5acd9284a0"
+          }
+        }
+      }
+    }
+  },
+  "test_only_deltas": {
+    "model/umpire/dev/xtask/src/quick/tests.rs": "Synthetic DSL manifest/source paths corrected to author/dsl; test name and selection assertions unchanged.",
+    "model/umpire/dev/xtask/src/test_run.rs": "Two cfg(test) fixtures consistently rename synthetic temporal-tests package to system-tests; production runner untouched."
+  },
+  "focused_evidence": "standalone-renewal-dc7feca3-r4/focused-quick-test.stderr.log",
+  "inventory_reconciliation": {
+    "old": "root_broadcast_cancels_checker_while_rust_owner_is_stopped",
+    "current": "linux_cleanup_reaps_checker_while_rust_owner_is_stopped",
+    "process_tests": 52,
+    "evidence": "public-process-context/summary.json"
+  },
+  "documentation": "Framework receipt scopes use framework/ or a consumer-defined prefix; the implementation uses temporal/ in its consumer.",
+  "review_required": true,
+  "standalone_acceptance": "R4 failed after 658 passes, one inherited-scope fixture failure and 212 unexecuted tests; 25 focused gate-wiring tests pass after repair. Final standalone awaits structured producer integration.",
+  "full_inventory_reconciliation": {
+    "actual_total": 873,
+    "runnable": 871,
+    "ignored": 2,
+    "binaries": 69,
+    "historical_total": 860,
+    "added_controls": 13,
+    "missing": [],
+    "extra": [],
+    "actual": "standalone-renewal-dc7feca3-r4/current-nextest-all.json",
+    "expected_delta": "semantic-renewal/framework-affected-equivalence-final.json",
+    "rename_evidence": "public-process-context/summary.json"
+  },
+  "additional_test_only_delta": {
+    "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+    "change": "Isolate inherited scheduler scope/stage/order in mock command fixture",
+    "verification": "standalone-renewal-dc7feca3-r4/summary.json"
+  }
+}

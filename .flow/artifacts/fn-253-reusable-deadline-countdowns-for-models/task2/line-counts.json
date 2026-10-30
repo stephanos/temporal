@@ -1,0 +1,69 @@
+{
+  "base": "02d4f55660e4da54612d703f16bd92170c742539",
+  "variants": {
+    "baseline": {
+      "total": 730,
+      "methods": {
+        "initial": 19,
+        "worker": 53,
+        "deadline": 50,
+        "retry": 10,
+        "decrement": 33,
+        "state_bounds": 67,
+        "policy_in_range": null,
+        "attempt_within_policy": null,
+        "countdown_bounds": null,
+        "countdowns_decrement": 55,
+        "tick_priority": 71
+      }
+    },
+    "local": {
+      "total": 580,
+      "methods": {
+        "initial": 19,
+        "worker": 49,
+        "deadline": 37,
+        "retry": 10,
+        "decrement": 6,
+        "state_bounds": null,
+        "policy_in_range": 7,
+        "attempt_within_policy": 3,
+        "countdown_bounds": 6,
+        "countdowns_decrement": 14,
+        "tick_priority": 32
+      }
+    },
+    "library": {
+      "total": 570,
+      "methods": {
+        "initial": 19,
+        "worker": 49,
+        "deadline": 37,
+        "retry": 10,
+        "decrement": 6,
+        "state_bounds": null,
+        "policy_in_range": 7,
+        "attempt_within_policy": 3,
+        "countdown_bounds": 6,
+        "countdowns_decrement": 14,
+        "tick_priority": 32
+      }
+    },
+    "shared": {
+      "total": 553,
+      "methods": {
+        "initial": 19,
+        "worker": 49,
+        "deadline": 37,
+        "retry": 10,
+        "decrement": 6,
+        "state_bounds": null,
+        "policy_in_range": 7,
+        "attempt_within_policy": 3,
+        "countdown_bounds": 6,
+        "countdowns_decrement": 14,
+        "tick_priority": 32
+      }
+    }
+  }
+}

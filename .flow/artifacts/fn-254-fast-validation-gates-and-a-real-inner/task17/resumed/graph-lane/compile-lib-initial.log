@@ -1,0 +1,34 @@
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/guest-driver)
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/backends/process)
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask)
+error[E0618]: expected function, found `std::result::Result<Vec<std::string::String>, std::io::Error>`
+   --> dev/xtask/src/gate/standalone.rs:495:28
+    |
+ 44 | fn inventory(root: &Path, target: &Path) -> Result<Vec<Input>> {
+    | -------------------------------------------------------------- this function of the same name is available here, but it's shadowed by the local binding
+...
+462 |     let inventory = scheduler::inventory(command, "gate:");
+    |         --------- `inventory` has type `std::result::Result<Vec<std::string::String>, std::io::Error>`
+...
+495 |     let source_unchanged = inventory(&provenance.root, target)? == provenance.inputs;
+    |                            ^^^^^^^^^--------------------------
+    |                            |
+    |                            call expression requires function
+    |
+   ::: dev/xtask/src/gate/scheduler.rs:122:1
+    |
+122 | pub(super) fn inventory(command: Command, prefix: &str) -> io::Result<Vec<String>> {
+    | ---------------------------------------------------------------------------------- this function of the same name is available here, but it's shadowed by the local binding
+    |
+   ::: dev/xtask/src/gate/boundary.rs:77:1
+    |
+ 77 | fn inventory(root: &Path, path: &Path, target: &Path, output: &mut Vec<PathBuf>) -> Result<()> {
+    | ---------------------------------------------------------------------------------------------- this function of the same name is available here, but it's shadowed by the local binding
+    |
+   ::: dev/xtask/src/test_run.rs:694:5
+    |
+694 |     fn inventory(rows: &[(&str, &str, &str, &str, bool, &str)]) -> Vec<u8> {
+    |     ---------------------------------------------------------------------- this function of the same name is available here, but it's shadowed by the local binding
+
+For more information about this error, try `rustc --explain E0618`.
+error: could not compile `xtask` (lib test) due to 1 previous error

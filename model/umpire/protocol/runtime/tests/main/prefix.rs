@@ -134,3 +134,40 @@ fn positive_current_revalidates_every_earlier_actual_observation() {
         ["Deliver"]
     );
 }
+
+#[test]
+fn latest_witness_retains_callback_and_proposal_order() {
+    let mut guest = Guest::new(run(64));
+    guest.reset(None);
+    let initial = guest.judge(any(0)).explanation();
+    assert_eq!(initial.steps, [] as [String; 0]);
+    assert_eq!(initial.outcomes, [] as [String; 0]);
+
+    let answer = umpire_runtime::testing::GuestExt::call(
+        &mut guest,
+        protocol::Method::Answer,
+        &protocol::AnswerRequest { callback: Some(any(4)) },
+    );
+    let Some(protocol::response::Outcome::Answer(answer)) = answer.outcome else {
+        panic!("expected callback answer")
+    };
+    assert_eq!(answer.reply, Some(any(42)));
+    let delivered = guest.judge(any(1)).explanation();
+    assert_eq!(delivered.steps, ["Deliver"]);
+    assert_eq!(delivered.outcomes, ["Outcome(1)"]);
+
+    for (observation, steps, outcomes) in [
+        (2, vec!["Deliver", "Respond"], vec!["Outcome(1)", "Outcome(2)"]),
+        (2, vec!["Deliver", "Respond"], vec!["Outcome(1)", "Outcome(2)"]),
+        (3, vec!["Deliver", "Respond", "Finish"], vec!["Outcome(1)", "Outcome(2)", "Outcome(3)"]),
+    ] {
+        if observation == 3 {
+            let proposed = guest.propose(0);
+            assert_eq!(proposed.action, "Finish");
+            assert_eq!(proposed.request, Some(any(3)));
+        }
+        let latest = guest.judge(any(observation)).explanation();
+        assert_eq!(latest.steps, steps);
+        assert_eq!(latest.outcomes, outcomes);
+    }
+}

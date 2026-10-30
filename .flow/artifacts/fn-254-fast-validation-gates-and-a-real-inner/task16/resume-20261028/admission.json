@@ -1,0 +1,71 @@
+{
+  "accepted": false,
+  "rejected": false,
+  "command": [
+    "python3",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/session-wrap-20261027/retry-harness/proof.py",
+    "--source-root",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt",
+    "--expected-head",
+    "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+    "--output",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-resume-20261028-watchdog-01/proof-output",
+    "--execute"
+  ],
+  "pid": null,
+  "terminal": false,
+  "inputs": {
+    "source": {
+      "head": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+      "status": ""
+    },
+    "hashes": {
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/session-wrap-20261027/resource-hold-draft.json": "f3040e18380582860a47fa7b1d1b7562629c655486e028d9e24a1f1d4d553ba9",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/session-wrap-20261027/retry-harness/census.py": "2653ed1ee5f48abd8bf2da89f976c27adc538e4e32303632e10d155c1bf463f4",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/session-wrap-20261027/retry-harness/observer.py": "e97ed64b323631397d8d33a932d228177e7aff8989aa23d785518a1bb15d90a1",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/session-wrap-20261027/retry-harness/proof.py": "d3d96541a293bf080c71853dcf38a04f24919fe46db98c7bd863c55d31e88df1",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/session-wrap-20261027/retry-harness/test_census.py": "865cb36e43819963f2da28c1bac60de87b588dc7a056c09d1d0d4730f5202d7c",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/session-wrap-20261027/standalone-attempts.json": "a19c798c2a49b983170f52855bed579475978f726f481713fef0d51612cac7c1",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/session-wrap-20261027/standalone-native-build-final.json": "2248b7b9412149f193c6f521208356e6bb111ab4ca9b57d40b99fbf547a84da6",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/xtask-bootstrap/debug/xtask": "dcaa227d09e88174bad9a1368977b957d2d0c5d8315dd515292d48d9962da3d4",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/xtask-bootstrap/debug/umpire-guest-driver": "ddac0ac870240b61e6b84717530225c818be320b4c5571235d21135b504fb682",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/session-wrap-20261027/preservation-manifest.json": "92ef807ea0039cecda51c6bc3a4f7617ed1b9d6b5f518acb3df90399db124981"
+    },
+    "wrapper_sha256": "f853c35df5bb4e27acddcb96d0a93e10f82f814af5f778cc12e96bb1146a00b1",
+    "controls_sha256": "4d2fe5183aa7dc306a985a319a2eab4ca272384995e38413dec9d0beae112c15",
+    "controls": {
+      "success": true,
+      "tests_run": 4,
+      "failures": 0,
+      "errors": 0
+    },
+    "coldness": "reuses existing xtask-bootstrap; no empty-target claim",
+    "growth_guard": "retained harness unchanged at 30GiB",
+    "source_filesystem": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt",
+      "realpath": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt",
+      "st_dev": 58,
+      "free": 62578065408
+    },
+    "actual_private_tmp_filesystem": {
+      "path": "/tmp",
+      "realpath": "/tmp",
+      "st_dev": 29,
+      "free": 55479967744
+    }
+  },
+  "admission_spaces": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt",
+      "realpath": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt",
+      "st_dev": 58,
+      "free": 62578065408
+    },
+    {
+      "path": "/tmp",
+      "realpath": "/tmp",
+      "st_dev": 29,
+      "free": 55479967744
+    }
+  ]
+}

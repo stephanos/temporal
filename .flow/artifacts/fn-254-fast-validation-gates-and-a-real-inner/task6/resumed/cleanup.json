@@ -1,0 +1,19 @@
+{
+  "at": "2026-10-26T21:03:42.089179+00:00",
+  "owner": "fn-254.6",
+  "scope": "Idle reproducible trybuild compiler outputs only; generated helper crate source and all retained validation evidence preserved",
+  "cargo_clean_refusal": "Missing CACHEDIR.TAG; no tag added or admission bypassed",
+  "removed": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/tests/trybuild/debug",
+      "bytes": 946553638,
+      "absent": true
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/tests/trybuild/aarch64-unknown-linux-gnu",
+      "bytes": 882210454,
+      "absent": true
+    }
+  ],
+  "generated_helper_source_retained": true
+}

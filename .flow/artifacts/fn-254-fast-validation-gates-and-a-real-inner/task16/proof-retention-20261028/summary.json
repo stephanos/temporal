@@ -1,0 +1,39 @@
+{
+  "status": "accepted-retention-only",
+  "task_complete": false,
+  "cleanup_performed": false,
+  "source_head": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+  "original_allocated_bytes": {
+    "private_child_target": 6609588224,
+    "source_parent_target": 876285952
+  },
+  "counts": {
+    "nextest_elf": 69,
+    "result_native_or_report_elf": 6,
+    "result_guest_wasm": 5,
+    "native_output_files": 55,
+    "external_rust_runtime": 1
+  },
+  "objects": [
+    {
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn25416-provider-proof/objects/32dfcf1d24440096f62ffb976484473adc38863576e69f48f6d97c2bd7a2b6b5",
+      "sha256": "32dfcf1d24440096f62ffb976484473adc38863576e69f48f6d97c2bd7a2b6b5",
+      "size": 338000596
+    }
+  ],
+  "verification": {
+    "objects": 1,
+    "archive_members": 3548,
+    "original_source_reads": false,
+    "retention_accepted": true,
+    "task_complete": false,
+    "cleanup_performed": false,
+    "corrupted_object_refused": true,
+    "missing_member_refused": true
+  },
+  "manifest_sha256": "b203a100e8982f6760849020fd00a116cbc0d456c3e8603609d4e749ed9bacaf",
+  "preparation_archive": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn25416-provider-proof/provider-proof-payloads.preparing.tar.gz",
+  "preparation_archive_is_hardlink_to_CAS": true,
+  "authoritative_versioned_evidence": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task16/validation-60f1c762",
+  "remaining": "Review/closure/integration and explicit cleanup authorization; retained source and targets unchanged."
+}

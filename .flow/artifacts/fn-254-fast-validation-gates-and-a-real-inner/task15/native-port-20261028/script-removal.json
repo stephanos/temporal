@@ -1,0 +1,39 @@
+{
+  "removed": [
+    "model/scripts/fetch-tlc.sh",
+    "model/scripts/guest-freshness.sh",
+    "model/scripts/guest.sh",
+    "model/scripts/proto-go.sh",
+    "model/scripts/retired-names.sh",
+    "model/scripts/test-capabilities.sh",
+    "model/scripts/test-model-validate.sh",
+    "model/scripts/test-model-wiring.sh",
+    "model/scripts/test-time-gate.sh",
+    "model/scripts/tests/build-guests.sh",
+    "model/scripts/tests/guest-roots.sh",
+    "model/scripts/tests/proto-go.sh",
+    "model/scripts/time-gate.sh",
+    "model/umpire/scripts/fetch-tlc.sh",
+    "model/umpire/scripts/guest-freshness.sh",
+    "model/umpire/scripts/guest.sh",
+    "model/umpire/scripts/proto-go.sh",
+    "model/umpire/scripts/proto-tools.sh",
+    "model/umpire/scripts/retired-names.sh",
+    "model/umpire/scripts/test-capabilities.sh",
+    "model/umpire/scripts/test-time-gate.sh",
+    "model/umpire/scripts/tests/bootstrap.sh",
+    "model/umpire/scripts/tests/build-guests-controls.sh",
+    "model/umpire/scripts/tests/build-guests.sh",
+    "model/umpire/scripts/tests/proto-go.sh",
+    "model/umpire/scripts/tests/proto-tools.sh",
+    "model/umpire/scripts/time-gate.sh"
+  ],
+  "remaining": [
+    "model/umpire/scripts/xtask.sh",
+    "model/scripts/xtask.sh"
+  ],
+  "source_mapping": ".flow/tmp/fn25415-final-control-map.json",
+  "mapping_sha256": "989d49ae86539aec05caa95051d641bafb8f96769133413a004d05c2553efe60",
+  "acceptance": false,
+  "remaining_gate": "Focused TLC checks, fresh full standalone proof, review and Flow closure remain required."
+}

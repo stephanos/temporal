@@ -1,0 +1,144 @@
+{
+  "version": 1,
+  "pair": {
+    "umpire": "5ee8911480c8acb429625bef3f3183e572b9d18f",
+    "temporal": "7e655da80b3810807cbd02a3ea29c26ceb9804e4"
+  },
+  "go_workspace": "/home/agent/.cache/codex-build/tmp/fn258-pair/go.work",
+  "result": "both actual consumers fail on recognizable uncommitted sibling edits and pass after exact restoration",
+  "no_commits_between_runs": true,
+  "trials": [
+    {
+      "language": "rust",
+      "source": "author/dsl/src/lib.rs",
+      "original_sha256": "715b3045319346f626c39c4e7251565b62947934cb3b4262ba4fe0ad39dbacc5",
+      "restored_sha256": "715b3045319346f626c39c4e7251565b62947934cb3b4262ba4fe0ad39dbacc5",
+      "mutation_marker": "fn258_uncommitted_rust_probe",
+      "runs": [
+        {
+          "phase": "baseline",
+          "command": [
+            "mise",
+            "exec",
+            "--",
+            "cargo",
+            "check",
+            "--locked",
+            "-p",
+            "umpire-temporal"
+          ],
+          "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model",
+          "exit_code": 0,
+          "seconds": 6.114809462000267,
+          "log": "rust-baseline.log",
+          "log_sha256": "f59c3c8ebae2ae7c68854ea422590a3ed7b2ffe4ef26247583810427cbf0aeb8"
+        },
+        {
+          "phase": "uncommitted",
+          "command": [
+            "mise",
+            "exec",
+            "--",
+            "cargo",
+            "check",
+            "--locked",
+            "-p",
+            "umpire-temporal"
+          ],
+          "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model",
+          "exit_code": 101,
+          "seconds": 0.1763443749950966,
+          "log": "rust-uncommitted.log",
+          "log_sha256": "22fcc01a6c8e7ca785abab16c8791b52558deaef3cc114a25891e76118d008b8"
+        },
+        {
+          "phase": "restored",
+          "command": [
+            "mise",
+            "exec",
+            "--",
+            "cargo",
+            "check",
+            "--locked",
+            "-p",
+            "umpire-temporal"
+          ],
+          "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model",
+          "exit_code": 0,
+          "seconds": 7.234880878997501,
+          "log": "rust-restored.log",
+          "log_sha256": "6e53f03036cc26ce2c1d4f833f4bd2940d525a8831ca833818387e7924e736ac"
+        }
+      ]
+    },
+    {
+      "language": "go",
+      "source": "hosts/go/host/host.go",
+      "original_sha256": "a5ae3ac30594058a7e0a8102bed88fe50dbe57c6d6b05716e96e21318438266a",
+      "restored_sha256": "a5ae3ac30594058a7e0a8102bed88fe50dbe57c6d6b05716e96e21318438266a",
+      "mutation_marker": "fn258_uncommitted_go_probe",
+      "runs": [
+        {
+          "phase": "baseline",
+          "command": [
+            "mise",
+            "exec",
+            "--",
+            "go",
+            "test",
+            "-tags",
+            "test_dep",
+            "-run",
+            "^$",
+            "./common/testing/testpilot/temporal/act"
+          ],
+          "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal",
+          "exit_code": 0,
+          "seconds": 0.25477804099500645,
+          "log": "go-baseline.log",
+          "log_sha256": "95e221461da473c484d7257a2a14112f04b381caeb4e985aa2f4ef901e0c0c81"
+        },
+        {
+          "phase": "uncommitted",
+          "command": [
+            "mise",
+            "exec",
+            "--",
+            "go",
+            "test",
+            "-tags",
+            "test_dep",
+            "-run",
+            "^$",
+            "./common/testing/testpilot/temporal/act"
+          ],
+          "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal",
+          "exit_code": 1,
+          "seconds": 0.17329191700264346,
+          "log": "go-uncommitted.log",
+          "log_sha256": "266527c5a6c33d159d5d91de44c9b576d90c4e4790c00e1b78972c4143c12493"
+        },
+        {
+          "phase": "restored",
+          "command": [
+            "mise",
+            "exec",
+            "--",
+            "go",
+            "test",
+            "-tags",
+            "test_dep",
+            "-run",
+            "^$",
+            "./common/testing/testpilot/temporal/act"
+          ],
+          "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal",
+          "exit_code": 0,
+          "seconds": 0.19304787598957773,
+          "log": "go-restored.log",
+          "log_sha256": "95e221461da473c484d7257a2a14112f04b381caeb4e985aa2f4ef901e0c0c81"
+        }
+      ]
+    }
+  ]
+}

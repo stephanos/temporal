@@ -1,0 +1,12 @@
+{
+  "revision_proofs_verified": 62,
+  "current_sources_verified": 3043,
+  "source_identity_exception": {
+    "path": "AGENTS.md",
+    "reason": "Concurrent owner commit 652507af02 changes only Claude fast-scout and Codex research model routing; all build/test/runtime source bytes match the reviewed revision. Preserve owner instructions.",
+    "recorded_sha256": "e741ef3d562f360fb620232860b96c7de9edd3233ab243ed85d807e12094f233",
+    "current_sha256": "932de2327ec129e91e1fea98bc9b77b270fd8bbe3390bd31bef3d96ed86cc9d0"
+  },
+  "integrated_source_head": "901dbf8be94d92ed82bfd0a41235ea0d24d7f489",
+  "task_status": "in_progress; re-review pending"
+}

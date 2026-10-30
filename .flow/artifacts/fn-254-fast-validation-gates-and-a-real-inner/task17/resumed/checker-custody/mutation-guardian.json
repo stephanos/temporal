@@ -1,0 +1,42 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "test",
+    "--locked",
+    "-j1",
+    "-p",
+    "umpire-backend-process",
+    "--test",
+    "process",
+    "default_checker_guardian_retains_inherited_custody_without_delegating_to_target",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-supervision-resumed/model/umpire",
+  "started_utc": "2026-10-27T01:17:28.525671+00:00",
+  "phase_baseline": {
+    "target_bytes": 4872112506,
+    "free_bytes": 11079172096
+  },
+  "budget_bytes": 805306368,
+  "free_guard_bytes": 8589934592,
+  "environment": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "TMPDIR": "/tmp/umpire-fn25417-supervision",
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0"
+  },
+  "BASH_ENV": "removed",
+  "exit_code": 101,
+  "elapsed_seconds": 0.8379452500012121,
+  "target_growth_bytes": 66758,
+  "free_after_bytes": 11073216512,
+  "log_sha256": "967b156073bd94822b87545b62c0dad2f80766364f259c3012d8954356cdfaa0"
+}

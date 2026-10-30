@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-257-extract-the-standalone-umpire.2",
+  "verdict": "SHIP",
+  "session_id": "01a17901-68bb-7fb2-af7b-af37e9c92b85",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: The verifier discards rewritten parent IDs and checks only reachability, metadata and snapshots\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: The verifier discards rewritten parent IDs and checks only reachability, metadata and snapshots. An in-memory negative control added the sibling archive move as a parent of the canonical move, recomputed commit IDs and updated the map; verification still reported zero failures. It therefore accepts incorrect ancestry. The committed export itself passed a separate parent-frontier comparison.\n- **Suggestion**: Compare each retained commit\u2019s rewritten parents against the retained frontiers of its original parents, accounting for permitted pruning.\n- **File:Line**: .flow/artifacts/fn-257-extract-the-standalone-umpire/task2/verify-export.py:344\n- **R-IDs**: R2\n\n```json\n{\"classification_counts\": {\"introduced\": 1, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>SHIP</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17901-68bb-7fb2-af7b-af37e9c92b85",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17901-68bc-7e21-bc05-8b426075395e",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17901-68bc-7de3-8b53-64bc20d81a91",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": 0,
+  "introduced_count": 1,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}

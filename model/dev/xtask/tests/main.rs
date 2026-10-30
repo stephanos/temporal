@@ -1,7 +1,7 @@
 //! Extension-owned guest entry point controls.
 #![forbid(unsafe_code)]
 #![allow(clippy::unwrap_used, clippy::expect_used)]
-mod retired_names;
+mod make_paths;
 #[path = "../../../umpire/dev/guest-driver/tests/pipeline/support.rs"]
 #[allow(dead_code)]
 mod support;
@@ -36,6 +36,76 @@ fn compiler_fixture() -> &'static str {
     env!("CARGO_BIN_EXE_identity-compiler-fixture")
 }
 #[test]
+fn public_fmt_finishes_while_host_lease_is_held() {
+    let native = std::env::var_os("UMPIRE_CONTROL_FRAMEWORK_XTASK")
+        .map_or_else(|| xtask_binary().clone(), PathBuf::from);
+    let f = Fixture::new();
+    support::executable(
+        &f.root.join("bin/mise"),
+        r#"#!/bin/bash
+set -euo pipefail
+if [[ " $* " == *' cargo build '* ]]; then
+  previous=""
+  for argument in "$@"; do
+    [[ "$previous" != --target-dir ]] || bootstrap="$argument"
+    previous="$argument"
+  done
+  mkdir -p "$bootstrap/debug"
+  cat > "$bootstrap/debug/xtask" <<'WRAPPER'
+#!/bin/bash
+export UMPIRE_TOOL_ROOT="$CONTROL_FRAMEWORK"
+exec "$CONTROL_NATIVE" "$@"
+WRAPPER
+  chmod 755 "$bootstrap/debug/xtask"
+  cp /bin/true "$bootstrap/debug/umpire-guest-driver"
+  exit 0
+fi
+[[ "$PWD" = "$CONTROL_FRAMEWORK" ]]
+[[ "$*" = 'exec -- cargo fmt --all' ]]
+printf '%s\n' "$*" >> "$CONTROL_LOG"
+exit "$CONTROL_STATUS"
+"#,
+    );
+    let _lease = xtask::gate::lease::JvmLease::inherited_or_acquire().unwrap();
+    for expected in [0, 37] {
+        let mut child = Command::new(env!("CARGO_BIN_EXE_temporal-xtask"))
+            .arg("fmt")
+            .current_dir(&f.model)
+            .env_remove("BASH_ENV")
+            .env_remove("UMPIRE_JVM_LEASE_FD")
+            .env("PATH", format!("{}:/usr/bin:/bin", f.root.join("bin").display()))
+            .env("CARGO_HOME", f.root.join("cargo home"))
+            .env("CARGO_TARGET_DIR", f.root.join("target"))
+            .env("CONTROL_FRAMEWORK", &f.model)
+            .env("CONTROL_NATIVE", &native)
+            .env("CONTROL_LOG", f.root.join("fmt-calls"))
+            .env("CONTROL_STATUS", expected.to_string())
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped())
+            .spawn()
+            .unwrap();
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
+        let completed = loop {
+            if child.try_wait().unwrap().is_some() {
+                break true;
+            }
+            if std::time::Instant::now() >= deadline {
+                child.kill().unwrap();
+                break false;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        };
+        let output = child.wait_with_output().unwrap();
+        assert!(completed, "public bridge fmt waited for the unrelated host lease: {output:?}");
+        assert_eq!(output.status.code(), Some(expected), "{output:?}");
+    }
+    assert_eq!(
+        fs::read_to_string(f.root.join("fmt-calls")).unwrap(),
+        "exec -- cargo fmt --all\nexec -- cargo fmt --all\n"
+    );
+}
+
+#[test]
 fn actual_make_freshness_recipe_propagates_stale_failure() {
     let f = Fixture::new();
     fs::copy(f.model.join("Cargo.lock"), f.model.parent().unwrap().join("Cargo.lock")).unwrap();
@@ -43,16 +113,35 @@ fn actual_make_freshness_recipe_propagates_stale_failure() {
     let makefile = fs::read_to_string(source.join("Makefile")).unwrap();
     let recipe = makefile
         .lines()
-        .find(|line| line.starts_with('\t') && line.contains("temporal-guest-freshness"))
+        .find(|line| {
+            line.starts_with('\t')
+                && line.contains("--bin temporal-xtask")
+                && line.ends_with("-- gate")
+        })
         .unwrap();
     fs::write(
         f.model.join("../freshness-control.mk"),
-        format!(".PHONY: freshness-control\nfreshness-control:\n{recipe}\n"),
+        format!("RUST_MODEL_CARGO := mise exec -- cargo\n.PHONY: freshness-control\nfreshness-control:\n{recipe}\n"),
     )
     .unwrap();
     let output = f.model.join("temporal/hosts/go/umpire_temporal_guest.wasm");
     fs::create_dir_all(output.parent().unwrap()).unwrap();
     fs::write(&output, b"keep").unwrap();
+    fs::rename(f.root.join("bin/mise"), f.root.join("bin/real-mise")).unwrap();
+    support::executable(
+        &f.root.join("bin/mise"),
+        r#"#!/bin/bash
+set -euo pipefail
+if [[ "$*" == *'--bin temporal-xtask --profile dev -- gate' ]]; then
+  printf 'temporal gate freshness delegation\n' >> "$FIXTURE/gate-called"
+  if "$NATIVE_DRIVER" guest-freshness umpire-temporal-guest "$PWD/model/temporal/hosts/go/umpire_temporal_guest.wasm"; then
+    exit 0
+  fi
+  exit 37
+fi
+exec "$FIXTURE/bin/real-mise" "$@"
+"#,
+    );
     let environment = f.command(true, true);
     let mut command = Command::new("make");
     command.current_dir(f.model.parent().unwrap()).args([
@@ -69,12 +158,17 @@ fn actual_make_freshness_recipe_propagates_stale_failure() {
         }
     }
     let result = command.output().unwrap();
-    assert!(!result.status.success());
+    assert_eq!(result.status.code(), Some(2));
+    assert_eq!(
+        fs::read_to_string(f.root.join("gate-called")).unwrap(),
+        "temporal gate freshness delegation\n"
+    );
     assert!(
         String::from_utf8_lossy(&result.stderr).contains("stale"),
         "{}",
         String::from_utf8_lossy(&result.stderr)
     );
+    assert!(String::from_utf8_lossy(&result.stderr).contains("Error 37"));
     assert_eq!(fs::read(&output).unwrap(), b"keep");
 }
 

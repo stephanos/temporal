@@ -84,7 +84,18 @@ where
             .into());
         }
     };
+    if std::env::var("UMPIRE_QUICK_CACHE").as_deref() == Ok("1") {
+        quick_agreement::<M>(states, edges);
+    }
     Ok(Agreement { states, edges, compiled: compiled_time, interpreted: interpreted_time })
+}
+
+#[allow(clippy::print_stderr)]
+fn quick_agreement<M>(states: usize, edges: usize) {
+    eprintln!(
+        "quick native/interpreter agreement {}: {states} states, {edges} edges",
+        std::any::type_name::<M>()
+    );
 }
 
 type Explored = Result<(crate::Files, (usize, usize)), String>;

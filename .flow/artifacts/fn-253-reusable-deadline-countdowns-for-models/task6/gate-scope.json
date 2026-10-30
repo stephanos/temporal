@@ -1,0 +1,6 @@
+{
+  "command": "flowctl gate classify --base00ac2429ea",
+  "exit_code": 1,
+  "classification": "FULL: unmatched:model/temporal/feature/activity/README.md",
+  "execution": "Conservative classifier retained. Owner verification cadence defers unrelated full Model gates to fn254.8. This task changes only documentation; Model hash is unchanged. Local links/owners/authority bytes and semantic comparison were verified; no broad gate pass claimed."
+}

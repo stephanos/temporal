@@ -1,0 +1,10 @@
+{
+  "commits": [],
+  "tests": [
+    "cd model/umpire && CARGO_BUILD_JOBS=2 UMPIRE_BACKENDS=require INSTA_UPDATE=no mise exec -- cargo test -p umpire-fixtures --test fixtures countdowns_source_mutants_refute_and_replay --locked -- --nocapture --test-threads=1",
+    "cd model/umpire && CARGO_BUILD_JOBS=2 mise exec -- cargo clippy -p umpire-fixtures --test fixtures --all-features --locked -- -D warnings",
+    "mise exec -- rustfmt --check --edition 2024 model/umpire/dev/fixtures/fixtures/countdowns/tests.rs",
+    "git diff --check"
+  ],
+  "prs": []
+}

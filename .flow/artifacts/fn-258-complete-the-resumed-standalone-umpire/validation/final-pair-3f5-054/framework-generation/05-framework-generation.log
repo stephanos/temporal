@@ -1,0 +1,2 @@
+argv: ["git", "diff", "--exit-code"]
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire

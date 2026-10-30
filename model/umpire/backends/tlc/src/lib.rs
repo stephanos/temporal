@@ -19,6 +19,7 @@
 
 #![forbid(unsafe_code)]
 
+mod cache;
 mod decode;
 mod module;
 mod runner;

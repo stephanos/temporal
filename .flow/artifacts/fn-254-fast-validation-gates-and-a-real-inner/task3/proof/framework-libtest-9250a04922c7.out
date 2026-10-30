@@ -1,0 +1,7 @@
+tests::fake_execution_failures_never_pass_and_scratch_is_removed: test
+tests::native_depth_is_checked_and_truncation_never_establishes_a_bound: test
+tests::pinned_outcomes_require_consistent_property_bound_exit_and_completion: test
+tests::successful_substring_is_not_a_bounded_proof: test
+tests::traces_have_one_aggregate_budget_and_deterministic_order: test
+tests::unchanged_monitor_can_omit_redundant_per_state_checks: test
+tests::version_admission_rejects_missing_wrong_and_failed_release_output: test

@@ -1,0 +1,87 @@
+{
+  "observed_utc": "2026-10-28T15:50:12.826541+00:00",
+  "authorization": "Root explicitly released exact idle FAILED old-pair target and exact incomplete temporary in current task; no source retirement.",
+  "removed_target": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+  "removed_incomplete_temporary": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/tmp1tdtki_h.tar.gz",
+  "target_absent": true,
+  "temporary_absent": true,
+  "allocated_target_bytes_before": 7233290240,
+  "incomplete_temporary_bytes_before": 338104923,
+  "cargo_tagged_children_cleaned": 6,
+  "orchestration_remainder_reason": "Root has no real CACHEDIR.TAG; after six real tagged Cargo cleans, literal-path guarded owned remainder removal used full content inventory and immediate live checks. No fabricated tag.",
+  "df_before": {
+    "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054": "Filesystem        1B-blocks         Used   Available Use% Mounted on\noverlay        210241560576 151322923008 48164442112  76% /\n",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal": "Filesystem        1B-blocks         Used   Available Use% Mounted on\nhost           994662584320 929256632320 65405952000  94% /Users/stephan/Workspace/skunkworks\n"
+  },
+  "df_after": {
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal": "Filesystem        1B-blocks         Used   Available Use% Mounted on\nhost           994662584320 924899332096 69763252224  93% /Users/stephan/Workspace/skunkworks\n",
+    "/home/agent/.cache/codex-build": "Filesystem        1B-blocks         Used   Available Use% Mounted on\noverlay        210241560576 144089735168 55397629952  73% /\n"
+  },
+  "source_pair_and_all_source_index_ref_launcher_receipt_bytes_unchanged": true,
+  "protected_directory_identities_unchanged": true,
+  "independent_recovery_after_cleanup": {
+    "objects": 2,
+    "unique_objects": 2,
+    "archive_members": 1931,
+    "result": "pass",
+    "original_cache_or_source_reads": false,
+    "controls": {
+      "corrupt_object_digest_refused": true,
+      "missing_archive_member_refused": true
+    }
+  },
+  "unreadable_system_fields": [
+    {
+      "pid": 10,
+      "role": "cwd"
+    },
+    {
+      "pid": 10,
+      "role": "environ"
+    },
+    {
+      "pid": 10,
+      "role": "fd"
+    },
+    {
+      "pid": 10,
+      "role": "maps"
+    },
+    {
+      "pid": 542,
+      "role": "cwd"
+    },
+    {
+      "pid": 542,
+      "role": "environ"
+    },
+    {
+      "pid": 542,
+      "role": "fd"
+    },
+    {
+      "pid": 542,
+      "role": "maps"
+    },
+    {
+      "pid": 557,
+      "role": "cwd"
+    },
+    {
+      "pid": 557,
+      "role": "environ"
+    },
+    {
+      "pid": 557,
+      "role": "fd"
+    },
+    {
+      "pid": 557,
+      "role": "maps"
+    }
+  ],
+  "no_live_readable_target_references_before_mutation": true,
+  "no_other_cache_source_ref_flow_main_mutation": true,
+  "target_content_inventory_sha256": "57ef0f8e575777533241c13db40fb7952b0dd5b628d73903ece8cb875d13b1d5",
+  "protected_inventory_sha256": "79df89bc1984504f10224e3c8ce8bec12cdc7992805bdb38c635687629459a56"
+}

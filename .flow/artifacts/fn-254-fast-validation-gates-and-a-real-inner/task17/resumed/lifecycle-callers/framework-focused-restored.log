@@ -1,0 +1,74 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-lifecycle-callers/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized] target(s) in 1.38s
+────────────
+ Nextest run ID afe3fabb-3725-4718-a011-7a13790f0d36 with nextest profile: default
+    Starting 67 tests across 1 binary
+        PASS [   0.002s] ( 1/67) xtask gate::admission::tests::clean_policy_keeps_stripped_flags_out_and_native_policy_keeps_defaults
+        PASS [   0.003s] ( 2/67) xtask gate::admission::tests::required_tool_policy_caps_work_and_retains_other_caller_flags
+        PASS [   0.008s] ( 3/67) xtask gate::boundary::tests::character_literals_and_lifetimes_cannot_hide_source_escapes
+        PASS [   0.001s] ( 4/67) xtask gate::boundary::tests::character_recognition_requires_a_valid_closed_literal
+        PASS [   0.001s] ( 5/67) xtask gate::boundary::tests::declared_unused_dependency_escape_is_refused_before_cargo
+        PASS [   0.001s] ( 6/67) xtask gate::boundary::tests::external_target_alias_cannot_hide_source_subtree
+        PASS [   0.004s] ( 7/67) xtask gate::boundary::tests::organization_exception_preserves_occurrence_token_boundaries
+        PASS [   0.002s] ( 8/67) xtask gate::boundary::tests::source_escape_is_structural_and_contained_deep_paths_work
+        PASS [   0.002s] ( 9/67) xtask gate::boundary::tests::target_cannot_hide_sources
+        PASS [   0.036s] (10/67) xtask gate::scheduler::execution_controls::captured_leaf_preserves_cwd_environment_bytes_and_failed_status
+        PASS [   0.036s] (11/67) xtask gate::scheduler::execution_controls::captured_leaf_preserves_signal_status
+        PASS [   0.033s] (12/67) xtask gate::scheduler::execution_controls::streamed_channels_are_not_returned_as_captured_output
+        PASS [   0.035s] (13/67) xtask gate::scheduler::execution_controls::unconfigured_leaf_uses_the_callers_working_directory
+        PASS [   0.002s] (14/67) xtask gate::scheduler::inventory_controls::assumed_env_object_and_incomplete_metadata_are_refused
+        PASS [   0.002s] (15/67) xtask gate::scheduler::inventory_controls::duplicate_metadata_and_nonliteral_dependency_are_refused
+        PASS [   0.003s] (16/67) xtask gate::scheduler::inventory_controls::upstream_env_directive_array_preserves_logical_order_and_dependencies
+        PASS [   0.003s] (17/67) xtask gate::scheduler::receipt_controls::failed_invocation_distinguishes_cancelled_and_not_started_without_accepting_missing_success
+        PASS [   0.004s] (18/67) xtask gate::scheduler::receipt_controls::scoped_receipts_keep_duplicate_public_names_and_logical_order
+        PASS [   0.005s] (19/67) xtask gate::standalone::tests::copied_config_trust_is_limited_to_copy_and_owned_scratch
+        PASS [   0.002s] (20/67) xtask gate::standalone::tests::copy_refuses_existing_and_dangling_source_symlinks
+        PASS [   0.003s] (21/67) xtask gate::standalone::tests::copy_uses_current_bytes_and_excludes_only_generated_roots
+        PASS [   0.002s] (22/67) xtask gate::standalone::tests::isolated_child_policy_control
+        PASS [   0.041s] (23/67) xtask gate::standalone::tests::isolated_child_uses_the_reported_required_profile_and_thread_cap
+        PASS [   0.003s] (24/67) xtask gate::standalone::tests::report_directory_artifact_hashes_every_generated_file
+        PASS [   0.073s] (25/67) xtask gate::tests::real_stage_child_receives_cache_bypass_and_required_mode
+        PASS [   0.056s] (26/67) xtask gate::tests::stage_reaps_background_children_before_returning_the_failed_status
+        PASS [   0.003s] (27/67) xtask quick::tests::deleted_source_ownership_does_not_require_the_file_to_exist
+        PASS [   0.002s] (28/67) xtask quick::tests::explicit_compiler_only_packages_must_belong_to_an_admitted_workspace
+        PASS [   0.002s] (29/67) xtask quick::tests::external_build_inputs_and_unknown_sources_remain_conservative
+        PASS [   0.002s] (30/67) xtask quick::tests::framework_abi_guests_are_explicit_compiler_only_consumers
+        PASS [   0.178s] (31/67) xtask quick::tests::git_selection_includes_staged_unstaged_untracked_renamed_and_deleted_paths
+        PASS [   0.004s] (32/67) xtask quick::tests::global_and_unmapped_inputs_select_whole_workspace_and_reverse_dependents
+        PASS [   0.003s] (33/67) xtask quick::tests::global_fallback_compiles_zero_harness_members_and_keeps_their_tests_and_doctests
+        PASS [   0.003s] (34/67) xtask quick::tests::mapped_external_sources_and_unchanged_invocations_keep_explicit_execution
+        PASS [   0.003s] (35/67) xtask quick::tests::metadata_named_checkout_ancestors_do_not_hide_external_build_inputs
+        PASS [   0.002s] (36/67) xtask quick::tests::metadata_preserves_doctests_without_requesting_binary_only_docs
+        PASS [   0.003s] (37/67) xtask quick::tests::model_edits_ignore_reported_non_model_metadata_and_docs
+        PASS [   0.002s] (38/67) xtask quick::tests::options_reject_unknown_flags_and_relative_workspaces
+        PASS [   0.002s] (39/67) xtask quick::tests::package_filters_only_narrow_unchanged_or_exclusively_mapped_feature_edits
+        PASS [   0.049s] (40/67) xtask quick::tests::quick_leaf_reaps_background_children_and_preserves_failed_status
+        PASS [   0.002s] (41/67) xtask quick::tests::renamed_sources_select_both_owners_with_metadata_changes
+        PASS [   0.002s] (42/67) xtask quick::tests::reverse_dependencies_merge_workspace_specific_ids_by_manifest
+        PASS [   0.002s] (43/67) xtask quick::tests::shared_feature_inputs_select_every_direct_consumer_and_reverse_guest
+        PASS [   0.002s] (44/67) xtask quick::tests::shared_kettle_model_seeds_source_consumers_and_reverse_guest
+        FAIL [   0.002s] (45/67) xtask quick::tests::stage_receipt_reports_elapsed_and_spawn_failure_without_success_status
+  stdout ───
+
+    running 1 test
+    test quick::tests::stage_receipt_reports_elapsed_and_spawn_failure_without_success_status ... FAILED
+
+    failures:
+
+    failures:
+        quick::tests::stage_receipt_reports_elapsed_and_spawn_failure_without_success_status
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 66 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'quick::tests::stage_receipt_reports_elapsed_and_spawn_failure_without_success_status' (697185) panicked at dev/xtask/src/quick/tests.rs:200:5:
+    quick: stage=test workspace=/tmp/fn25417-lifecycle-callers/tmp/.tmpoey8Mn packages=selected-package elapsed=0.000s exit=spawn-error error=No such file or directory (os error 2)
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+  Cancelling due to test failure
+────────────
+     Summary [   0.633s] 45/67 tests run: 44 passed, 1 failed, 0 skipped
+        FAIL [   0.002s] (45/67) xtask quick::tests::stage_receipt_reports_elapsed_and_spawn_failure_without_success_status
+warning: 22/67 tests were not run due to test failure (run with --no-fail-fast to run all tests, or run with --max-fail)
+error: test run failed

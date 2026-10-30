@@ -1,0 +1,26 @@
+    Checking once_cell v1.21.4
+    Checking toml v1.1.8+spec-1.1.0
+    Checking tempfile v3.27.0
+   Compiling proc-macro-utils v0.10.0
+    Checking umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/dev/guest-driver)
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling manyhow-macros v0.14.1
+   Compiling manyhow v0.14.1
+   Compiling proc-macro-crate v3.5.0
+    Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/backends/process)
+    Checking umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/backends/tla)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/author/dsl/macros)
+    Checking xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/dev/xtask)
+    Checking umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/backends/tlc)
+error: this function has too many lines (103/100)
+  --> dev/guest-driver/tests/pipeline/support.rs:17:5
+   |
+17 |     pub(crate) fn new() -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#too_many_lines
+   = note: `-D clippy::too-many-lines` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::too_many_lines)]`
+
+error: could not compile `umpire-guest-driver` (test "main") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...

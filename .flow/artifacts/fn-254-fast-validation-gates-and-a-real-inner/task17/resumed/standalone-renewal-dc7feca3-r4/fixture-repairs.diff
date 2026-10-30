@@ -1,0 +1,107 @@
+diff --git a/model/umpire/dev/xtask/src/quick/tests.rs b/model/umpire/dev/xtask/src/quick/tests.rs
+index b2c9c97241..bb32b49f2c 100644
+--- a/model/umpire/dev/xtask/src/quick/tests.rs
++++ b/model/umpire/dev/xtask/src/quick/tests.rs
+@@ -524,14 +524,14 @@ fn metadata_named_checkout_ancestors_do_not_hide_external_build_inputs() -> Test
+ #[test]
+ fn workspace_documentation_can_supply_executable_test_inputs() -> TestResult {
+     let mut graph = Graph::default();
+-    graph.add(
+-        Path::new("/repo/model/umpire"),
+-        &metadata(
+-            "repo/model/umpire",
+-            &[("fixtures", "fixtures", &[]), ("dsl", "dsl", &[]), ("other", "other", &[])],
+-            &["fixtures", "dsl", "other"],
+-        ),
+-    )?;
++    let mut metadata: serde_json::Value = serde_json::from_slice(&metadata(
++        "repo/model/umpire",
++        &[("fixtures", "fixtures", &[]), ("dsl", "dsl", &[]), ("other", "other", &[])],
++        &["fixtures", "dsl", "other"],
++    ))?;
++    metadata["packages"][1]["manifest_path"] =
++        serde_json::json!("/repo/model/umpire/author/dsl/Cargo.toml");
++    graph.add(Path::new("/repo/model/umpire"), &serde_json::to_vec(&metadata)?)?;
+     for path in ["/repo/model/umpire/README.md", "/repo/model/umpire/docs/examples.md"] {
+         assert_eq!(
+             selected(&graph, &options(), &[path])?,
+@@ -541,7 +541,7 @@ fn workspace_documentation_can_supply_executable_test_inputs() -> TestResult {
+     }
+     for path in ["/repo/README.md", "/repo/MILESTONES.md", "/repo/docs/development.md"] {
+         assert_eq!(
+-            selected(&graph, &options(), &["/repo/model/umpire/dsl/src/lib.rs", path])?,
++            selected(&graph, &options(), &["/repo/model/umpire/author/dsl/src/lib.rs", path])?,
+             BTreeSet::from(["fixtures".into(), "dsl".into()]),
+             "{path}"
+         );
+diff --git a/model/umpire/dev/xtask/src/test_run.rs b/model/umpire/dev/xtask/src/test_run.rs
+index 37bc223d51..ca40d61050 100644
+--- a/model/umpire/dev/xtask/src/test_run.rs
++++ b/model/umpire/dev/xtask/src/test_run.rs
+@@ -608,7 +608,7 @@ esac
+             Selection { package: "macros", target: None, filter: None, doctests: true },
+             Selection { package: "guest", target: None, filter: None, doctests: false },
+             Selection {
+-                package: "temporal-tests",
++                package: "system-tests",
+                 target: Some("fixtures"),
+                 filter: Some("fixtures"),
+                 doctests: true,
+@@ -634,7 +634,7 @@ esac
+             concat!(
+                 "(package(=api)) | (package(=realization)) | ",
+                 "(package(=macros)) | (package(=guest)) | ",
+-                "(package(=temporal-tests) & kind(test) & binary(=fixtures) & test(=fixtures))"
++                "(package(=system-tests) & kind(test) & binary(=fixtures) & test(=fixtures))"
+             )
+         );
+         assert!(calls[0].1.windows(2).any(|args| args == ["--no-tests", "fail"]));
+@@ -712,7 +712,7 @@ esac
+         let selections = [
+             Selection { package: "api", target: None, filter: None, doctests: true },
+             Selection {
+-                package: "temporal-tests",
++                package: "system-tests",
+                 target: Some("fixtures"),
+                 filter: Some("fixtures"),
+                 doctests: false,
+@@ -722,11 +722,11 @@ esac
+         let api = ("api", "api", "lib", "api_test", false, "matches");
+         for fixture in [
+             ("other", "fixtures", "test", "fixtures", false, "matches"),
+-            ("temporal-tests", "other", "test", "fixtures", false, "matches"),
+-            ("temporal-tests", "fixtures", "lib", "fixtures", false, "matches"),
+-            ("temporal-tests", "fixtures", "test", "other", false, "matches"),
+-            ("temporal-tests", "fixtures", "test", "fixtures", true, "matches"),
+-            ("temporal-tests", "fixtures", "test", "fixtures", false, "mismatch"),
++            ("system-tests", "other", "test", "fixtures", false, "matches"),
++            ("system-tests", "fixtures", "lib", "fixtures", false, "matches"),
++            ("system-tests", "fixtures", "test", "other", false, "matches"),
++            ("system-tests", "fixtures", "test", "fixtures", true, "matches"),
++            ("system-tests", "fixtures", "test", "fixtures", false, "mismatch"),
+         ] {
+             assert!(
+                 admit_inventory(&selections, &compiler_only, &inventory(&[api, fixture])).is_err()
+@@ -735,7 +735,7 @@ esac
+         assert!(admit_inventory(&selections, &compiler_only, &inventory(&[api])).is_err());
+         assert!(admit_inventory(&selections, &compiler_only, b"{}").is_err());
+         assert!(admit_inventory(&selections, &compiler_only, b"truncated").is_err());
+-        let fixture = ("temporal-tests", "fixtures", "test", "fixtures", false, "matches");
++        let fixture = ("system-tests", "fixtures", "test", "fixtures", false, "matches");
+         assert!(admit_inventory(&selections, &compiler_only, &inventory(&[fixture])).is_err());
+         assert!(admit_inventory(&selections, &compiler_only, &inventory(&[api, fixture])).is_ok());
+     }
+diff --git a/model/umpire/dev/xtask/tests/gate_wiring.rs b/model/umpire/dev/xtask/tests/gate_wiring.rs
+index 3cee5d0610..bb00e472a7 100644
+--- a/model/umpire/dev/xtask/tests/gate_wiring.rs
++++ b/model/umpire/dev/xtask/tests/gate_wiring.rs
+@@ -309,6 +309,9 @@ fi
+             .env("CONTROL_LOG", &self.log)
+             .env_remove("UMPIRE_GATE_RECEIPTS")
+             .env_remove("UMPIRE_GATE_EXECUTABLE")
++            .env_remove("UMPIRE_GATE_SCOPE")
++            .env_remove("UMPIRE_GATE_STAGE")
++            .env_remove("UMPIRE_GATE_ORDER")
+             .env_remove("CONTROL_RECEIPT_FAULT")
+             .env_remove("CONTROL_REAL_MISE")
+             .env("CONTROL_EXPECT_TARGET", expected)

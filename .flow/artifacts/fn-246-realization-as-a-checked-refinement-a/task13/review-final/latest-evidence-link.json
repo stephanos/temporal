@@ -1,0 +1,7 @@
+{
+  "source": "model/temporal/shared/protocol/activity/README.md",
+  "sha256": "314ce0a4f47de8ce587c84464beece58b31595f7de49d0081ce269c7cdd6beec",
+  "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/.flow/artifacts/fn-246-realization-as-a-checked-refinement-a/task13/review-correction-20261030/protocol-required.log",
+  "target_sha256": "2fdc030ee6acfb118e194b9621ca5bc64644a87b6f0b5890dfec7e8a2e03e07b",
+  "disposition": "Reviewer-requested link-only follow-up now cites final production-parameter run; local target/count check passed; no third review or code/golden change."
+}

@@ -1,0 +1,5 @@
+backend modes: UMPIRE_BACKENDS=require UMPIRE_APALACHE=skip
+backend modes: UMPIRE_BACKENDS=require UMPIRE_APALACHE=skip
+xtask: standalone recursion refused
+xtask: standalone provenance/context mismatch
+xtask: standalone provenance input hashes changed

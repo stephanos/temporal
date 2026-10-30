@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "/bin/bash",
+    "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/scripts/proto-go.sh",
+    "kettle"
+  ],
+  "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire",
+  "started_unix": 1793199069.2220187,
+  "ended_unix": 1793199069.2476122,
+  "exit": 0,
+  "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/framework-generation-1793199068195925444/02-framework-generation.log",
+  "log_sha256": "c89a0acd8cc8445fcbc18ffa14c457383bf15a9d318653287dd388cea85bf585",
+  "free_before": 55124570112,
+  "free_after": 55124566016
+}

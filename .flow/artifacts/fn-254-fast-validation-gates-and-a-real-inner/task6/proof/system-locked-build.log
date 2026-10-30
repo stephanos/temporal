@@ -1,0 +1,32 @@
+   Compiling serde_core v1.0.229
+   Compiling typenum v1.20.1
+   Compiling hybrid-array v0.4.15
+   Compiling libc v0.2.191
+   Compiling cfg-if v1.0.5
+   Compiling block-buffer v0.12.1
+   Compiling crypto-common v0.2.2
+   Compiling winnow v1.0.4
+   Compiling linux-raw-sys v0.12.1
+   Compiling bitflags v2.13.2
+   Compiling const-oid v0.10.2
+   Compiling rustix v1.1.5
+   Compiling digest v0.11.3
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling cpufeatures v0.3.1
+   Compiling getrandom v0.4.3
+   Compiling zmij v1.0.23
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling serde_spanned v1.1.2
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling once_cell v1.21.4
+   Compiling fastrand v2.5.0
+   Compiling tempfile v3.27.0
+   Compiling serde_json v1.0.154
+   Compiling serde v1.0.229
+   Compiling thiserror v2.0.21
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling sha2 v0.11.1
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/umpire/dev/guest-driver)
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/dev/xtask)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.47s

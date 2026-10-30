@@ -1,0 +1,22 @@
+{
+  "argv": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "test",
+    "-p",
+    "temporal-xtask",
+    "--bin",
+    "temporal-xtask",
+    "--locked",
+    "gate::tests::actual_temporal_gate_wiring_and_named_failures",
+    "--",
+    "--exact"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+  "exit": 101,
+  "seconds": 0.4687350010008231,
+  "expected": "RED: stale once-Cargo command inventory rejects actual nextest plus doctest leaves",
+  "source_commit": "adf475da992685bd601254581e1d397136bd9463"
+}

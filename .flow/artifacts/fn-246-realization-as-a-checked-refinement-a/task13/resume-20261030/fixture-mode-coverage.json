@@ -1,0 +1,697 @@
+{
+  "head": "c9dc4fbc1e3318ad73e1e2f4410db3d22d501c45",
+  "registered_fixture_inventory": [
+    "activity_tests::actual_tlc_agrees_and_replays_retry_payload_counterexamples",
+    "activity_tests::actual_tlc_rejected_outcome_counterexample_replays_in_the_activity_model",
+    "activity_tests::closed_cancel_emits_a_rejected_self_loop",
+    "activity_tests::compatibility::changed_original_lifecycle_edge_fails_the_same_comparison",
+    "activity_tests::compatibility::retained_original_exact_lifecycle_projection",
+    "activity_tests::hypothetical_accepted_and_wrong_rejection_refute_registered_closed_rejection",
+    "activity_tests::hypothetical_reopening_and_terminal_moves_refute_registered_closure_laws",
+    "activity_tests::nonpending_attempt_expiry_retries_with_exact_timeout_fact",
+    "activity_tests::policy_checks::cancellation_and_worker_races_have_exact_reachable_results",
+    "activity_tests::policy_checks::configured_deadlines_reject_zero_and_binding_bypass",
+    "activity_tests::policy_checks::current_and_stale_worker_tokens_preserve_exact_availability",
+    "activity_tests::policy_checks::each_deadline_expires_once_with_its_exact_fact",
+    "activity_tests::policy_checks::poll_retry_and_heartbeat_reset_only_their_applicable_budgets",
+    "activity_tests::policy_checks::remaining_deadline_worlds_agree_compiled_interpreted_and_required_tlc",
+    "activity_tests::policy_checks::required_tlc_fact_only_mutants_fail_replay_on_the_same_pending_tick",
+    "activity_tests::policy_checks::required_tlc_nonexpiring_tick_fact_leak_fails_exact_replay",
+    "activity_tests::policy_checks::required_tlc_refutes_source_only_boundary_policy_mutants",
+    "activity_tests::policy_checks::required_tlc_replays_both_pending_attempt_expiry_facts",
+    "activity_tests::policy_checks::required_tlc_replays_both_pending_failure_payloads_at_every_attempt",
+    "activity_tests::policy_checks::required_tlc_replays_timeout_retries_with_exact_cause_and_budget",
+    "activity_tests::policy_checks::selected_deadline_worlds_agree_compiled_interpreted_and_required_tlc",
+    "activity_tests::policy_checks::simultaneous_expiry_obeys_global_then_attempt_then_heartbeat_priority",
+    "activity_tests::policy_checks::timeout_retry_rearms_waiting_then_poll_and_preserves_spanning_budget",
+    "activity_tests::proof_checks::actual_tlc_global_tick_law_bundle_on_selected_worlds",
+    "activity_tests::proof_checks::actual_tlc_selected_fairness_and_starvation_lassos",
+    "activity_tests::proof_checks::forged_countdowns_refute_bounds_and_armed_zero_expires",
+    "activity_tests::proof_checks::native_fairness_omissions_expose_heartbeat_and_retry_starvation",
+    "activity_tests::proof_checks::selected_worlds_have_exact_poll_and_completion_fairness",
+    "activity_tests::proof_checks::shared_replay_checks_typed_activity_edges_and_retains_native_disagreement",
+    "activity_tests::proof_checks::source_only_global_budget_controls_keep_laws_and_discriminate",
+    "activity_tests::proof_checks::source_only_pending_cancellation_outcome_controls_keep_independent_laws",
+    "activity_tests::proof_checks::source_only_timeout_retry_controls_discriminate_exact_edges",
+    "activity_tests::proof_checks::total_tick_bound_laws_hold_on_complete_interleaving_graphs",
+    "activity_tests::registered_closure_laws_check_every_phase_action_pair",
+    "activity_tests::retry_policy_caps_and_stale_delivery",
+    "activity_tests::selected_world_registers_closure_and_failure_progress",
+    "activity_tests::six_phase_transition_matrix_includes_disabled_actions",
+    "activity_tests::terminal_classification_covers_every_phase",
+    "activity_tests::tlc_refutes_closure_law_mutants_of_this_source",
+    "fixtures",
+    "import_live_gap_candidate",
+    "protocol_fixtures::activity_tests::authored_source_admits_without_graph_emission",
+    "protocol_fixtures::activity_tests::backend_refuses_wrong_world_cut_graph_and_unsupported_source",
+    "protocol_fixtures::activity_tests::cancellation_notification_failure_timeout_and_acknowledgement_are_distinct",
+    "protocol_fixtures::activity_tests::erased_budgets_and_present_zero_are_observable_to_full_state_laws",
+    "protocol_fixtures::activity_tests::latent_budgets_count_down_reset_span_retry_and_select_exact_priority",
+    "protocol_fixtures::activity_tests::mutants::required_tlc_fact_counterexample_replays_and_refuses_changed_expiry_fact",
+    "protocol_fixtures::activity_tests::mutants::source_only_budget_reset_priority_outcome_and_fact_mutants_disagree",
+    "protocol_fixtures::activity_tests::parameters_tests::effective_parameters_preserve_every_selected_field_and_provenance",
+    "protocol_fixtures::activity_tests::parameters_tests::effective_parameters_refuse_invalid_bounds_without_substitution",
+    "protocol_fixtures::activity_tests::parameters_tests::exact_exports_refuse_missing_duplicate_renamed_retyped_and_nominally_wrong_values",
+    "protocol_fixtures::activity_tests::parameters_tests::exact_schema_refuses_missing_duplicate_renamed_retyped_and_changed_domain_fields",
+    "protocol_fixtures::activity_tests::parameters_tests::raw_start_applies_only_the_pinned_waiting_default_at_its_named_boundary",
+    "protocol_fixtures::activity_tests::protocol_local_adapter_and_feature_schema_share_exact_parameters_without_world_import",
+    "protocol_fixtures::activity_tests::selected_worlds_are_complete_compiled_interpreted_and_required_tlc_scopes",
+    "protocol_fixtures::activity_tests::terminal_result_and_retained_failure_are_independent",
+    "protocol_fixtures::activity_tests::view_tests::completion_keeps_last_attempt_failure_separate_from_outcome",
+    "protocol_fixtures::activity_tests::view_tests::full_state_schema_accounts_for_all_fields_and_rejects_erasure_or_retyping",
+    "protocol_fixtures::activity_tests::view_tests::heartbeat_notification_and_worker_acknowledgement_have_distinct_results",
+    "protocol_fixtures::activity_tests::view_tests::latent_countdowns_do_not_become_public_snapshot_fields",
+    "protocol_fixtures::activity_tests::view_tests::optional_remaining_preserves_absence_and_present_zero_in_exported_values",
+    "protocol_fixtures::activity_tests::view_tests::unknown_and_known_absence_constrain_views_differently",
+    "realization_control::added_catalog_field_fails_the_real_coverage_golden",
+    "standalone_activity_protocol_fixtures"
+  ],
+  "ignored_fixture_identities": [
+    "import_live_gap_candidate",
+    "realization_control::added_catalog_field_fails_the_real_coverage_golden"
+  ],
+  "active_fixture_inventory": [
+    "activity_tests::actual_tlc_agrees_and_replays_retry_payload_counterexamples",
+    "activity_tests::actual_tlc_rejected_outcome_counterexample_replays_in_the_activity_model",
+    "activity_tests::closed_cancel_emits_a_rejected_self_loop",
+    "activity_tests::compatibility::changed_original_lifecycle_edge_fails_the_same_comparison",
+    "activity_tests::compatibility::retained_original_exact_lifecycle_projection",
+    "activity_tests::hypothetical_accepted_and_wrong_rejection_refute_registered_closed_rejection",
+    "activity_tests::hypothetical_reopening_and_terminal_moves_refute_registered_closure_laws",
+    "activity_tests::nonpending_attempt_expiry_retries_with_exact_timeout_fact",
+    "activity_tests::policy_checks::cancellation_and_worker_races_have_exact_reachable_results",
+    "activity_tests::policy_checks::configured_deadlines_reject_zero_and_binding_bypass",
+    "activity_tests::policy_checks::current_and_stale_worker_tokens_preserve_exact_availability",
+    "activity_tests::policy_checks::each_deadline_expires_once_with_its_exact_fact",
+    "activity_tests::policy_checks::poll_retry_and_heartbeat_reset_only_their_applicable_budgets",
+    "activity_tests::policy_checks::remaining_deadline_worlds_agree_compiled_interpreted_and_required_tlc",
+    "activity_tests::policy_checks::required_tlc_fact_only_mutants_fail_replay_on_the_same_pending_tick",
+    "activity_tests::policy_checks::required_tlc_nonexpiring_tick_fact_leak_fails_exact_replay",
+    "activity_tests::policy_checks::required_tlc_refutes_source_only_boundary_policy_mutants",
+    "activity_tests::policy_checks::required_tlc_replays_both_pending_attempt_expiry_facts",
+    "activity_tests::policy_checks::required_tlc_replays_both_pending_failure_payloads_at_every_attempt",
+    "activity_tests::policy_checks::required_tlc_replays_timeout_retries_with_exact_cause_and_budget",
+    "activity_tests::policy_checks::selected_deadline_worlds_agree_compiled_interpreted_and_required_tlc",
+    "activity_tests::policy_checks::simultaneous_expiry_obeys_global_then_attempt_then_heartbeat_priority",
+    "activity_tests::policy_checks::timeout_retry_rearms_waiting_then_poll_and_preserves_spanning_budget",
+    "activity_tests::proof_checks::actual_tlc_global_tick_law_bundle_on_selected_worlds",
+    "activity_tests::proof_checks::actual_tlc_selected_fairness_and_starvation_lassos",
+    "activity_tests::proof_checks::forged_countdowns_refute_bounds_and_armed_zero_expires",
+    "activity_tests::proof_checks::native_fairness_omissions_expose_heartbeat_and_retry_starvation",
+    "activity_tests::proof_checks::selected_worlds_have_exact_poll_and_completion_fairness",
+    "activity_tests::proof_checks::shared_replay_checks_typed_activity_edges_and_retains_native_disagreement",
+    "activity_tests::proof_checks::source_only_global_budget_controls_keep_laws_and_discriminate",
+    "activity_tests::proof_checks::source_only_pending_cancellation_outcome_controls_keep_independent_laws",
+    "activity_tests::proof_checks::source_only_timeout_retry_controls_discriminate_exact_edges",
+    "activity_tests::proof_checks::total_tick_bound_laws_hold_on_complete_interleaving_graphs",
+    "activity_tests::registered_closure_laws_check_every_phase_action_pair",
+    "activity_tests::retry_policy_caps_and_stale_delivery",
+    "activity_tests::selected_world_registers_closure_and_failure_progress",
+    "activity_tests::six_phase_transition_matrix_includes_disabled_actions",
+    "activity_tests::terminal_classification_covers_every_phase",
+    "activity_tests::tlc_refutes_closure_law_mutants_of_this_source",
+    "fixtures",
+    "protocol_fixtures::activity_tests::authored_source_admits_without_graph_emission",
+    "protocol_fixtures::activity_tests::backend_refuses_wrong_world_cut_graph_and_unsupported_source",
+    "protocol_fixtures::activity_tests::cancellation_notification_failure_timeout_and_acknowledgement_are_distinct",
+    "protocol_fixtures::activity_tests::erased_budgets_and_present_zero_are_observable_to_full_state_laws",
+    "protocol_fixtures::activity_tests::latent_budgets_count_down_reset_span_retry_and_select_exact_priority",
+    "protocol_fixtures::activity_tests::mutants::required_tlc_fact_counterexample_replays_and_refuses_changed_expiry_fact",
+    "protocol_fixtures::activity_tests::mutants::source_only_budget_reset_priority_outcome_and_fact_mutants_disagree",
+    "protocol_fixtures::activity_tests::parameters_tests::effective_parameters_preserve_every_selected_field_and_provenance",
+    "protocol_fixtures::activity_tests::parameters_tests::effective_parameters_refuse_invalid_bounds_without_substitution",
+    "protocol_fixtures::activity_tests::parameters_tests::exact_exports_refuse_missing_duplicate_renamed_retyped_and_nominally_wrong_values",
+    "protocol_fixtures::activity_tests::parameters_tests::exact_schema_refuses_missing_duplicate_renamed_retyped_and_changed_domain_fields",
+    "protocol_fixtures::activity_tests::parameters_tests::raw_start_applies_only_the_pinned_waiting_default_at_its_named_boundary",
+    "protocol_fixtures::activity_tests::protocol_local_adapter_and_feature_schema_share_exact_parameters_without_world_import",
+    "protocol_fixtures::activity_tests::selected_worlds_are_complete_compiled_interpreted_and_required_tlc_scopes",
+    "protocol_fixtures::activity_tests::terminal_result_and_retained_failure_are_independent",
+    "protocol_fixtures::activity_tests::view_tests::completion_keeps_last_attempt_failure_separate_from_outcome",
+    "protocol_fixtures::activity_tests::view_tests::full_state_schema_accounts_for_all_fields_and_rejects_erasure_or_retyping",
+    "protocol_fixtures::activity_tests::view_tests::heartbeat_notification_and_worker_acknowledgement_have_distinct_results",
+    "protocol_fixtures::activity_tests::view_tests::latent_countdowns_do_not_become_public_snapshot_fields",
+    "protocol_fixtures::activity_tests::view_tests::optional_remaining_preserves_absence_and_present_zero_in_exported_values",
+    "protocol_fixtures::activity_tests::view_tests::unknown_and_known_absence_constrain_views_differently",
+    "standalone_activity_protocol_fixtures"
+  ],
+  "initial_required_partitions": {
+    "protocol-required-renewed.log": [
+      "protocol_fixtures::activity_tests::authored_source_admits_without_graph_emission",
+      "protocol_fixtures::activity_tests::backend_refuses_wrong_world_cut_graph_and_unsupported_source",
+      "protocol_fixtures::activity_tests::cancellation_notification_failure_timeout_and_acknowledgement_are_distinct",
+      "protocol_fixtures::activity_tests::erased_budgets_and_present_zero_are_observable_to_full_state_laws",
+      "protocol_fixtures::activity_tests::latent_budgets_count_down_reset_span_retry_and_select_exact_priority",
+      "protocol_fixtures::activity_tests::mutants::required_tlc_fact_counterexample_replays_and_refuses_changed_expiry_fact",
+      "protocol_fixtures::activity_tests::mutants::source_only_budget_reset_priority_outcome_and_fact_mutants_disagree",
+      "protocol_fixtures::activity_tests::parameters_tests::effective_parameters_preserve_every_selected_field_and_provenance",
+      "protocol_fixtures::activity_tests::parameters_tests::effective_parameters_refuse_invalid_bounds_without_substitution",
+      "protocol_fixtures::activity_tests::parameters_tests::exact_exports_refuse_missing_duplicate_renamed_retyped_and_nominally_wrong_values",
+      "protocol_fixtures::activity_tests::parameters_tests::exact_schema_refuses_missing_duplicate_renamed_retyped_and_changed_domain_fields",
+      "protocol_fixtures::activity_tests::parameters_tests::raw_start_applies_only_the_pinned_waiting_default_at_its_named_boundary",
+      "protocol_fixtures::activity_tests::protocol_local_adapter_and_feature_schema_share_exact_parameters_without_world_import",
+      "protocol_fixtures::activity_tests::selected_worlds_are_complete_compiled_interpreted_and_required_tlc_scopes",
+      "protocol_fixtures::activity_tests::terminal_result_and_retained_failure_are_independent",
+      "protocol_fixtures::activity_tests::view_tests::completion_keeps_last_attempt_failure_separate_from_outcome",
+      "protocol_fixtures::activity_tests::view_tests::full_state_schema_accounts_for_all_fields_and_rejects_erasure_or_retyping",
+      "protocol_fixtures::activity_tests::view_tests::heartbeat_notification_and_worker_acknowledgement_have_distinct_results",
+      "protocol_fixtures::activity_tests::view_tests::latent_countdowns_do_not_become_public_snapshot_fields",
+      "protocol_fixtures::activity_tests::view_tests::optional_remaining_preserves_absence_and_present_zero_in_exported_values",
+      "protocol_fixtures::activity_tests::view_tests::unknown_and_known_absence_constrain_views_differently",
+      "standalone_activity_protocol_fixtures"
+    ],
+    "feature-policy-required.log": [
+      "activity_tests::policy_checks::cancellation_and_worker_races_have_exact_reachable_results",
+      "activity_tests::policy_checks::configured_deadlines_reject_zero_and_binding_bypass",
+      "activity_tests::policy_checks::current_and_stale_worker_tokens_preserve_exact_availability",
+      "activity_tests::policy_checks::each_deadline_expires_once_with_its_exact_fact",
+      "activity_tests::policy_checks::poll_retry_and_heartbeat_reset_only_their_applicable_budgets",
+      "activity_tests::policy_checks::remaining_deadline_worlds_agree_compiled_interpreted_and_required_tlc",
+      "activity_tests::policy_checks::required_tlc_fact_only_mutants_fail_replay_on_the_same_pending_tick",
+      "activity_tests::policy_checks::required_tlc_nonexpiring_tick_fact_leak_fails_exact_replay",
+      "activity_tests::policy_checks::required_tlc_refutes_source_only_boundary_policy_mutants",
+      "activity_tests::policy_checks::required_tlc_replays_both_pending_attempt_expiry_facts",
+      "activity_tests::policy_checks::required_tlc_replays_both_pending_failure_payloads_at_every_attempt",
+      "activity_tests::policy_checks::required_tlc_replays_timeout_retries_with_exact_cause_and_budget",
+      "activity_tests::policy_checks::selected_deadline_worlds_agree_compiled_interpreted_and_required_tlc",
+      "activity_tests::policy_checks::simultaneous_expiry_obeys_global_then_attempt_then_heartbeat_priority",
+      "activity_tests::policy_checks::timeout_retry_rearms_waiting_then_poll_and_preserves_spanning_budget"
+    ],
+    "default-fixture-required.log": [
+      "fixtures"
+    ]
+  },
+  "initial_required_identity_count": 38,
+  "complement_identities": [
+    "activity_tests::actual_tlc_agrees_and_replays_retry_payload_counterexamples",
+    "activity_tests::actual_tlc_rejected_outcome_counterexample_replays_in_the_activity_model",
+    "activity_tests::proof_checks::actual_tlc_global_tick_law_bundle_on_selected_worlds",
+    "activity_tests::proof_checks::actual_tlc_selected_fairness_and_starvation_lassos",
+    "activity_tests::proof_checks::source_only_global_budget_controls_keep_laws_and_discriminate",
+    "activity_tests::proof_checks::source_only_timeout_retry_controls_discriminate_exact_edges",
+    "activity_tests::tlc_refutes_closure_law_mutants_of_this_source"
+  ],
+  "complement_status": "exit0;7 passed;0 failed;57 filtered;244.98s;INSTA_UPDATE=no",
+  "native_mode_independent_only_identities": [
+    "activity_tests::closed_cancel_emits_a_rejected_self_loop",
+    "activity_tests::compatibility::changed_original_lifecycle_edge_fails_the_same_comparison",
+    "activity_tests::compatibility::retained_original_exact_lifecycle_projection",
+    "activity_tests::hypothetical_accepted_and_wrong_rejection_refute_registered_closed_rejection",
+    "activity_tests::hypothetical_reopening_and_terminal_moves_refute_registered_closure_laws",
+    "activity_tests::nonpending_attempt_expiry_retries_with_exact_timeout_fact",
+    "activity_tests::proof_checks::forged_countdowns_refute_bounds_and_armed_zero_expires",
+    "activity_tests::proof_checks::native_fairness_omissions_expose_heartbeat_and_retry_starvation",
+    "activity_tests::proof_checks::selected_worlds_have_exact_poll_and_completion_fairness",
+    "activity_tests::proof_checks::shared_replay_checks_typed_activity_edges_and_retains_native_disagreement",
+    "activity_tests::proof_checks::source_only_pending_cancellation_outcome_controls_keep_independent_laws",
+    "activity_tests::proof_checks::total_tick_bound_laws_hold_on_complete_interleaving_graphs",
+    "activity_tests::registered_closure_laws_check_every_phase_action_pair",
+    "activity_tests::retry_policy_caps_and_stale_delivery",
+    "activity_tests::selected_world_registers_closure_and_failure_progress",
+    "activity_tests::six_phase_transition_matrix_includes_disabled_actions",
+    "activity_tests::terminal_classification_covers_every_phase"
+  ],
+  "native_mode_independent_only_count": 17,
+  "require_sensitive_identity_count": 19,
+  "require_sensitive_branches": {
+    "activity_tests::actual_tlc_agrees_and_replays_retry_payload_counterexamples": {
+      "source": "model/temporal/feature/activity/tests.rs:418",
+      "require_behavior": "Early return outside require; two bounded native/TLC state-set and retry payload replay checks.",
+      "required_log": "required-complement-seven.log"
+    },
+    "activity_tests::actual_tlc_rejected_outcome_counterexample_replays_in_the_activity_model": {
+      "source": "model/temporal/feature/activity/tests.rs:450",
+      "require_behavior": "Early return outside require; rejected-outcome TLC counterexample and concrete native replay.",
+      "required_log": "required-complement-seven.log"
+    },
+    "activity_tests::tlc_refutes_closure_law_mutants_of_this_source": {
+      "source": "model/temporal/feature/activity/tests.rs:312",
+      "require_behavior": "Early return outside require; healthy source and three closure/rejection source mutants.",
+      "required_log": "required-complement-seven.log"
+    },
+    "activity_tests::proof_checks::actual_tlc_global_tick_law_bundle_on_selected_worlds": {
+      "source": "model/temporal/feature/activity/proof_checks.rs:616",
+      "require_behavior": "Early return outside require; three selected global-budget Worlds and five laws each.",
+      "required_log": "required-complement-seven.log"
+    },
+    "activity_tests::proof_checks::actual_tlc_selected_fairness_and_starvation_lassos": {
+      "source": "model/temporal/feature/activity/proof_checks.rs:383",
+      "require_behavior": "Early return outside require; healthy fairness and exact payload starvation lassos, native replay.",
+      "required_log": "required-complement-seven.log"
+    },
+    "activity_tests::proof_checks::source_only_global_budget_controls_keep_laws_and_discriminate": {
+      "source": "model/temporal/feature/activity/proof_checks.rs:560",
+      "require_behavior": "Additional require branch at588; actual TLC global-budget mutants, missing-Tick set cardinality and exact replay refusal.",
+      "required_log": "required-complement-seven.log"
+    },
+    "activity_tests::proof_checks::source_only_timeout_retry_controls_discriminate_exact_edges": {
+      "source": "model/temporal/feature/activity/proof_checks.rs:754",
+      "require_behavior": "Additional require branch at804; actual TLC for two causes by seven timeout-retry mutants and healthy-native disagreement.",
+      "required_log": "required-complement-seven.log"
+    },
+    "activity_tests::policy_checks::required_tlc_replays_both_pending_attempt_expiry_facts": {
+      "source": "model/temporal/feature/activity/policy_checks.rs",
+      "require_behavior": "Early-return outside require; exact payload/cause/budget/fact or boundary mutant TLC controls.",
+      "required_log": "feature-policy-required.log"
+    },
+    "activity_tests::policy_checks::required_tlc_replays_both_pending_failure_payloads_at_every_attempt": {
+      "source": "model/temporal/feature/activity/policy_checks.rs",
+      "require_behavior": "Early-return outside require; exact payload/cause/budget/fact or boundary mutant TLC controls.",
+      "required_log": "feature-policy-required.log"
+    },
+    "standalone_activity_protocol_fixtures": {
+      "source": "model/temporal/testing/fixtures.rs:104",
+      "require_behavior": "Select protocol TLC consumer in required fixture harness.",
+      "required_log": "protocol-required-renewed.log"
+    },
+    "protocol_fixtures::activity_tests::mutants::required_tlc_fact_counterexample_replays_and_refuses_changed_expiry_fact": {
+      "source": "model/temporal/shared/protocol/activity/mutants.rs:175",
+      "require_behavior": "Actual TLC healthy fact counterexample replay and changed fact refusal.",
+      "required_log": "protocol-required-renewed.log"
+    },
+    "activity_tests::policy_checks::required_tlc_fact_only_mutants_fail_replay_on_the_same_pending_tick": {
+      "source": "model/temporal/feature/activity/policy_checks.rs",
+      "require_behavior": "Early-return outside require; exact payload/cause/budget/fact or boundary mutant TLC controls.",
+      "required_log": "feature-policy-required.log"
+    },
+    "activity_tests::policy_checks::required_tlc_replays_timeout_retries_with_exact_cause_and_budget": {
+      "source": "model/temporal/feature/activity/policy_checks.rs",
+      "require_behavior": "Early-return outside require; exact payload/cause/budget/fact or boundary mutant TLC controls.",
+      "required_log": "feature-policy-required.log"
+    },
+    "activity_tests::policy_checks::required_tlc_nonexpiring_tick_fact_leak_fails_exact_replay": {
+      "source": "model/temporal/feature/activity/policy_checks.rs",
+      "require_behavior": "Early-return outside require; exact payload/cause/budget/fact or boundary mutant TLC controls.",
+      "required_log": "feature-policy-required.log"
+    },
+    "fixtures": {
+      "source": "model/temporal/testing/fixtures.rs:56",
+      "require_behavior": "Select TLC consumer in required fixture harness.",
+      "required_log": "default-fixture-required.log"
+    },
+    "activity_tests::policy_checks::selected_deadline_worlds_agree_compiled_interpreted_and_required_tlc": {
+      "source": "model/temporal/feature/activity/policy_checks.rs:943",
+      "require_behavior": "Additional require branch at1000; partitioned33 native/interpreted/TLC complete World comparisons.",
+      "required_log": "feature-policy-required.log"
+    },
+    "protocol_fixtures::activity_tests::selected_worlds_are_complete_compiled_interpreted_and_required_tlc_scopes": {
+      "source": "model/temporal/shared/protocol/activity/tests.rs:299",
+      "require_behavior": "Check all12 selected Worlds with actual TLC and retain scope report.",
+      "required_log": "protocol-required-renewed.log"
+    },
+    "activity_tests::policy_checks::remaining_deadline_worlds_agree_compiled_interpreted_and_required_tlc": {
+      "source": "model/temporal/feature/activity/policy_checks.rs:943",
+      "require_behavior": "Additional require branch at1000; partitioned33 native/interpreted/TLC complete World comparisons.",
+      "required_log": "feature-policy-required.log"
+    },
+    "activity_tests::policy_checks::required_tlc_refutes_source_only_boundary_policy_mutants": {
+      "source": "model/temporal/feature/activity/policy_checks.rs",
+      "require_behavior": "Early-return outside require; exact payload/cause/budget/fact or boundary mutant TLC controls.",
+      "required_log": "feature-policy-required.log"
+    }
+  },
+  "bijection": "62 active =38 initially required +7 exact complement +17 native mode-independent; pairwise disjoint. Adapter/snapshot ownership are separate binaries, excluded from this inventory.",
+  "mode_independence_basis": "All UMPIRE_BACKENDS reads in active fixture owners are enumerated in require_sensitive_branches. Shared testing library production code has no UMPIRE_BACKENDS environment read; fixture runner consumes explicit selected backend lists. Native-only17 tests have no require-sensitive control path.",
+  "no_snapshot_updates": "complement runs with INSTA_UPDATE=no; no source/Flow edits",
+  "complement_log_sha256": "73ce1f94122f796c6399c0b34c3b648fa0995eed2c048bc99adec34a68ac1432",
+  "complete_required_mode_identity_count": 45,
+  "uncovered_require_sensitive_identities": [],
+  "source_hash_verification": {
+    "primary_paths": 247,
+    "driver_guest_paths": 101,
+    "all_unchanged": true
+  },
+  "per_identity_evidence": {
+    "activity_tests::actual_tlc_agrees_and_replays_retry_payload_counterexamples": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": true,
+      "required_log": "required-complement-seven.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::actual_tlc_rejected_outcome_counterexample_replays_in_the_activity_model": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": true,
+      "required_log": "required-complement-seven.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::closed_cancel_emits_a_rejected_self_loop": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": null,
+      "evidence_rule": "native run equivalent because test has no require-sensitive branch"
+    },
+    "activity_tests::compatibility::changed_original_lifecycle_edge_fails_the_same_comparison": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": null,
+      "evidence_rule": "native run equivalent because test has no require-sensitive branch"
+    },
+    "activity_tests::compatibility::retained_original_exact_lifecycle_projection": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": null,
+      "evidence_rule": "native run equivalent because test has no require-sensitive branch"
+    },
+    "activity_tests::hypothetical_accepted_and_wrong_rejection_refute_registered_closed_rejection": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": null,
+      "evidence_rule": "native run equivalent because test has no require-sensitive branch"
+    },
+    "activity_tests::hypothetical_reopening_and_terminal_moves_refute_registered_closure_laws": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": null,
+      "evidence_rule": "native run equivalent because test has no require-sensitive branch"
+    },
+    "activity_tests::nonpending_attempt_expiry_retries_with_exact_timeout_fact": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": null,
+      "evidence_rule": "native run equivalent because test has no require-sensitive branch"
+    },
+    "activity_tests::policy_checks::cancellation_and_worker_races_have_exact_reachable_results": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "feature-policy-required.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::policy_checks::configured_deadlines_reject_zero_and_binding_bypass": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "feature-policy-required.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::policy_checks::current_and_stale_worker_tokens_preserve_exact_availability": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "feature-policy-required.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::policy_checks::each_deadline_expires_once_with_its_exact_fact": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "feature-policy-required.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::policy_checks::poll_retry_and_heartbeat_reset_only_their_applicable_budgets": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "feature-policy-required.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::policy_checks::remaining_deadline_worlds_agree_compiled_interpreted_and_required_tlc": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": true,
+      "required_log": "feature-policy-required.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::policy_checks::required_tlc_fact_only_mutants_fail_replay_on_the_same_pending_tick": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": true,
+      "required_log": "feature-policy-required.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::policy_checks::required_tlc_nonexpiring_tick_fact_leak_fails_exact_replay": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": true,
+      "required_log": "feature-policy-required.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::policy_checks::required_tlc_refutes_source_only_boundary_policy_mutants": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": true,
+      "required_log": "feature-policy-required.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::policy_checks::required_tlc_replays_both_pending_attempt_expiry_facts": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": true,
+      "required_log": "feature-policy-required.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::policy_checks::required_tlc_replays_both_pending_failure_payloads_at_every_attempt": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": true,
+      "required_log": "feature-policy-required.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::policy_checks::required_tlc_replays_timeout_retries_with_exact_cause_and_budget": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": true,
+      "required_log": "feature-policy-required.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::policy_checks::selected_deadline_worlds_agree_compiled_interpreted_and_required_tlc": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": true,
+      "required_log": "feature-policy-required.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::policy_checks::simultaneous_expiry_obeys_global_then_attempt_then_heartbeat_priority": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "feature-policy-required.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::policy_checks::timeout_retry_rearms_waiting_then_poll_and_preserves_spanning_budget": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "feature-policy-required.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::proof_checks::actual_tlc_global_tick_law_bundle_on_selected_worlds": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": true,
+      "required_log": "required-complement-seven.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::proof_checks::actual_tlc_selected_fairness_and_starvation_lassos": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": true,
+      "required_log": "required-complement-seven.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::proof_checks::forged_countdowns_refute_bounds_and_armed_zero_expires": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": null,
+      "evidence_rule": "native run equivalent because test has no require-sensitive branch"
+    },
+    "activity_tests::proof_checks::native_fairness_omissions_expose_heartbeat_and_retry_starvation": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": null,
+      "evidence_rule": "native run equivalent because test has no require-sensitive branch"
+    },
+    "activity_tests::proof_checks::selected_worlds_have_exact_poll_and_completion_fairness": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": null,
+      "evidence_rule": "native run equivalent because test has no require-sensitive branch"
+    },
+    "activity_tests::proof_checks::shared_replay_checks_typed_activity_edges_and_retains_native_disagreement": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": null,
+      "evidence_rule": "native run equivalent because test has no require-sensitive branch"
+    },
+    "activity_tests::proof_checks::source_only_global_budget_controls_keep_laws_and_discriminate": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": true,
+      "required_log": "required-complement-seven.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::proof_checks::source_only_pending_cancellation_outcome_controls_keep_independent_laws": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": null,
+      "evidence_rule": "native run equivalent because test has no require-sensitive branch"
+    },
+    "activity_tests::proof_checks::source_only_timeout_retry_controls_discriminate_exact_edges": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": true,
+      "required_log": "required-complement-seven.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "activity_tests::proof_checks::total_tick_bound_laws_hold_on_complete_interleaving_graphs": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": null,
+      "evidence_rule": "native run equivalent because test has no require-sensitive branch"
+    },
+    "activity_tests::registered_closure_laws_check_every_phase_action_pair": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": null,
+      "evidence_rule": "native run equivalent because test has no require-sensitive branch"
+    },
+    "activity_tests::retry_policy_caps_and_stale_delivery": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": null,
+      "evidence_rule": "native run equivalent because test has no require-sensitive branch"
+    },
+    "activity_tests::selected_world_registers_closure_and_failure_progress": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": null,
+      "evidence_rule": "native run equivalent because test has no require-sensitive branch"
+    },
+    "activity_tests::six_phase_transition_matrix_includes_disabled_actions": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": null,
+      "evidence_rule": "native run equivalent because test has no require-sensitive branch"
+    },
+    "activity_tests::terminal_classification_covers_every_phase": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": null,
+      "evidence_rule": "native run equivalent because test has no require-sensitive branch"
+    },
+    "activity_tests::tlc_refutes_closure_law_mutants_of_this_source": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": true,
+      "required_log": "required-complement-seven.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "fixtures": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": true,
+      "required_log": "default-fixture-required.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::authored_source_admits_without_graph_emission": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::backend_refuses_wrong_world_cut_graph_and_unsupported_source": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::cancellation_notification_failure_timeout_and_acknowledgement_are_distinct": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::erased_budgets_and_present_zero_are_observable_to_full_state_laws": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::latent_budgets_count_down_reset_span_retry_and_select_exact_priority": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::mutants::required_tlc_fact_counterexample_replays_and_refuses_changed_expiry_fact": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": true,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::mutants::source_only_budget_reset_priority_outcome_and_fact_mutants_disagree": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::parameters_tests::effective_parameters_preserve_every_selected_field_and_provenance": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::parameters_tests::effective_parameters_refuse_invalid_bounds_without_substitution": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::parameters_tests::exact_exports_refuse_missing_duplicate_renamed_retyped_and_nominally_wrong_values": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::parameters_tests::exact_schema_refuses_missing_duplicate_renamed_retyped_and_changed_domain_fields": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::parameters_tests::raw_start_applies_only_the_pinned_waiting_default_at_its_named_boundary": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::protocol_local_adapter_and_feature_schema_share_exact_parameters_without_world_import": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::selected_worlds_are_complete_compiled_interpreted_and_required_tlc_scopes": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": true,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::terminal_result_and_retained_failure_are_independent": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::view_tests::completion_keeps_last_attempt_failure_separate_from_outcome": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::view_tests::full_state_schema_accounts_for_all_fields_and_rejects_erasure_or_retyping": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::view_tests::heartbeat_notification_and_worker_acknowledgement_have_distinct_results": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::view_tests::latent_countdowns_do_not_become_public_snapshot_fields": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::view_tests::optional_remaining_preserves_absence_and_present_zero_in_exported_values": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "protocol_fixtures::activity_tests::view_tests::unknown_and_known_absence_constrain_views_differently": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": false,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    },
+    "standalone_activity_protocol_fixtures": {
+      "native_log": "fixtures-native.log",
+      "require_sensitive": true,
+      "required_log": "protocol-required-renewed.log",
+      "evidence_rule": "executed in required mode"
+    }
+  }
+}

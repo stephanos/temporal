@@ -1,0 +1,61 @@
+{
+  "base": "6d7cbebe21db55a55e0b9a607e1838dea54173ba",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "6d7cbebe21db55a55e0b9a607e1838dea54173ba",
+    "headSha": "46e96cfa5cb08c5f79deaaff1be49f7fcdcdf507",
+    "items": [
+      {
+        "body": "The runner change deterministically breaks `gate::tests::actual_temporal_gate_wiring_and_named_failures`. Its expected calls in `model/dev/xtask/src/gate.rs:188` still contain one `cargo test --workspace --locked --quiet` invocation. The changed leaf produces nextest plus doctests, so the existing control\u2019s first successful-dispatch comparison fails. The normal workspace test stage therefore cannot pass.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-03603e8f085a76239f933b38271cf37e78fd2187217a9710a02edb41e314c7a3",
+        "id": "finding-5f56d9db982d5a21891aacde3cb83280",
+        "lastSeenReceiptId": "review-fa733758d4a4f17ff62e1e70bdf43dfa938e8580cbc71ad57bf0ac8d6b2ee947",
+        "ordinal": 1,
+        "rIds": [
+          "R4"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Update that wiring control\u2019s command inventory, failure cases and stage-name indexing for both runner phases, then execute the focused control.",
+        "title": "The runner change deterministically breaks `gate::tests::actual_temporal_gate_wiring_and_named_failures`"
+      },
+      {
+        "body": "`make model-validate` silently skips the new standalone stage. Its actual route is `model-time` \u2192 `model-check` \u2192 framework `gate`, with `UMPIRE_BACKENDS=require`. However, `self.required` is initialized only from `command == \"validate\"`, so this condition skips standalone even during the root validation command. A broken isolated framework can consequently escape the authoritative gate.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-03603e8f085a76239f933b38271cf37e78fd2187217a9710a02edb41e314c7a3",
+        "id": "finding-83cc5bb5a03585afc74fe76e3c8fd88a",
+        "lastSeenReceiptId": "review-fa733758d4a4f17ff62e1e70bdf43dfa938e8580cbc71ad57bf0ac8d6b2ee947",
+        "ordinal": 2,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Make standalone selection recognize the validation mode used by the root caller, while preserving the child recursion exclusion. Cover that actual invocation path in the wiring controls.",
+        "title": "`make model-validate` silently skips the new standalone stage"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-fa733758d4a4f17ff62e1e70bdf43dfa938e8580cbc71ad57bf0ac8d6b2ee947",
+    "supersedesReceiptId": "review-03603e8f085a76239f933b38271cf37e78fd2187217a9710a02edb41e314c7a3"
+  },
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.3",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "Prior finding #1: fixed\nPrior finding #2: fixed\n\nThe Temporal wiring control now expects nextest followed by doctests and checks failures in both phases. Its committed focused test passes, and the current source hash matches that proof.\n\nThe framework now recognizes `UMPIRE_BACKENDS=require`, so the root validation route selects standalone. A regression control covers both `gate` and `time`; the child recursion exclusion remains intact.\n\nNo new blocking issues were found in the fixes. Tests were not rerun in this read-only session.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R4 | met | Runner consumer corrected; focused passing proof matches current source. |\n| R7 | deferred | Routing defect fixed; complete standalone execution remains with tasks .11/.8. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "0142fd1152154fae8b723679b564b70c",
+  "session_id": "01a175cd-2984-7461-86bc-cb8346c1f269",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-26T01:42:17.944717Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}

@@ -1,0 +1,642 @@
+[gate:retired-names] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage re…
+[gate:fmt] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage fmt
+[gate:proto-tools] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage prot…
+[gate:retired-names] Finished in 800.9ms
+[gate:fmt] Finished in 821.2ms
+[gate:proto-tools] Finished in 17.70s
+[gate:timing-controls] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage …
+[gate:timing-controls] Finished in 244.3ms
+[gate:protobuf-controls] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stag…
+[gate:protobuf-controls] Finished in 261.0ms
+[gate:protobuf-freshness] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-sta…
+[gate:protobuf-freshness] Finished in 149.4ms
+[gate:kettle-protobuf-freshness] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --schedu…
+[gate:kettle-protobuf-freshness] Finished in 153.1ms
+[gate:capability-controls] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-st…
+[gate:capability-controls] Finished in 290.1ms
+[gate:source-boundary] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage …
+[gate:source-boundary] Finished in 912.8ms
+[gate:clippy] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage clippy
+[gate:clippy]    Compiling proc-macro2 v1.0.107
+[gate:clippy]    Compiling quote v1.0.47
+[gate:clippy]    Compiling syn v3.0.9
+[gate:clippy]    Compiling getrandom v0.4.3
+[gate:clippy]    Compiling thiserror-impl v2.0.21
+[gate:clippy]     Checking unicode-ident v1.0.27
+[gate:clippy]    Compiling umpire-ir-derive v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/ir/derive)
+[gate:clippy]    Compiling prettyplease v0.3.0
+[gate:clippy]     Checking thiserror v2.0.21
+[gate:clippy]    Compiling equivalent v1.0.3
+[gate:clippy]    Compiling hashbrown v0.17.1
+[gate:clippy]    Compiling indexmap v2.14.2
+[gate:clippy]    Compiling smallvec v1.16.3
+[gate:clippy]    Compiling proc-macro-utils v0.10.0
+[gate:clippy]    Compiling heck v0.5.0
+[gate:clippy]    Compiling manyhow-macros v0.14.1
+[gate:clippy]    Compiling serde_core v1.0.229
+[gate:clippy]    Compiling winnow v1.0.4
+[gate:clippy]    Compiling toml_parser v1.1.5+spec-1.1.0
+[gate:clippy]    Compiling toml_datetime v1.1.2+spec-1.1.0
+[gate:clippy]    Compiling umpire-dsl-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/dsl/macros)
+[gate:clippy]    Compiling toml_edit v0.25.17+spec-1.1.0
+[gate:clippy]    Compiling umpire-ir v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/ir)
+[gate:clippy]    Compiling umpire-front v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/front)
+[gate:clippy]    Compiling proc-macro-crate v3.5.0
+[gate:clippy]    Compiling manyhow v0.14.1
+[gate:clippy]    Compiling umpire-dsl v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/dsl)
+[gate:clippy]    Compiling umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/backends/native)
+[gate:clippy]     Checking bytemuck v1.25.2
+[gate:clippy]     Checking safe_arch v0.7.4
+[gate:clippy]     Checking foldhash v0.1.5
+[gate:clippy]     Checking rand_core v0.9.5
+[gate:clippy]     Checking rand_xoshiro v0.7.0
+[gate:clippy]     Checking hashbrown v0.15.5
+[gate:clippy]     Checking wide v0.7.33
+[gate:clippy]     Checking libc v0.2.191
+[gate:clippy]     Checking imbl-sized-chunks v0.2.0
+[gate:clippy]     Checking fixedbitset v0.5.7
+[gate:clippy]     Checking archery v1.2.3
+[gate:clippy]     Checking cfg-if v1.0.5
+[gate:clippy]     Checking imbl v7.0.2
+[gate:clippy]     Checking petgraph v0.8.3
+[gate:clippy]     Checking rustc-hash v2.1.3
+[gate:clippy]     Checking rand_core v0.10.1
+[gate:clippy]     Checking linux-raw-sys v0.12.1
+[gate:clippy]     Checking bitflags v2.13.2
+[gate:clippy]     Checking rustix v1.1.5
+[gate:clippy]     Checking once_cell v1.21.4
+[gate:clippy]     Checking fastrand v2.5.0
+[gate:clippy]     Checking tempfile v3.27.0
+[gate:clippy]    Compiling anyhow v1.0.104
+[gate:clippy]    Compiling syn v2.0.119
+[gate:clippy]    Compiling either v1.19.0
+[gate:clippy]    Compiling itertools v0.14.0
+[gate:clippy]    Compiling prost-derive v0.14.4
+[gate:clippy]    Compiling prettyplease v0.2.37
+[gate:clippy]    Compiling bytes v1.12.1
+[gate:clippy]    Compiling regex-syntax v0.8.11
+[gate:clippy]    Compiling regex-automata v0.4.18
+[gate:clippy]    Compiling prost v0.14.4
+[gate:clippy]    Compiling prost-types v0.14.4
+[gate:clippy]    Compiling regex v1.13.1
+[gate:clippy]    Compiling log v0.4.34
+[gate:clippy]    Compiling multimap v0.10.1
+[gate:clippy]    Compiling prost-build v0.14.4
+[gate:clippy]    Compiling umpire-runtime v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/protocol/runtime)
+[gate:clippy]     Checking typenum v1.20.1
+[gate:clippy]     Checking hybrid-array v0.4.15
+[gate:clippy]     Checking crypto-common v0.2.2
+[gate:clippy]     Checking block-buffer v0.12.1
+[gate:clippy]     Checking const-oid v0.10.2
+[gate:clippy]     Checking digest v0.11.3
+[gate:clippy]     Checking cpufeatures v0.3.1
+[gate:clippy]     Checking sha2 v0.11.1
+[gate:clippy]     Checking umpire-backend-process v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/backends/process)
+[gate:clippy]    Compiling ident_case v1.0.1
+[gate:clippy]    Compiling darling_core v0.24.1
+[gate:clippy]    Compiling darling_macro v0.24.1
+[gate:clippy]     Checking zmij v1.0.23
+[gate:clippy]    Compiling serde_derive v1.0.229
+[gate:clippy]     Checking memchr v2.8.3
+[gate:clippy]     Checking itoa v1.0.18
+[gate:clippy]     Checking serde_json v1.0.154
+[gate:clippy]     Checking console v0.16.6
+[gate:clippy]     Checking similar v2.7.0
+[gate:clippy]     Checking insta v1.49.0
+[gate:clippy]     Checking serde v1.0.229
+[gate:clippy]     Checking serde_spanned v1.1.2
+[gate:clippy]     Checking toml_writer v1.1.3+spec-1.1.0
+[gate:clippy]     Checking toml v1.1.8+spec-1.1.0
+[gate:clippy]     Checking umpire-tla v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/backends/tla)
+[gate:clippy]    Compiling darling v0.24.1
+[gate:clippy]    Compiling umpire-catalog-syntax v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/catalog/syntax)
+[gate:clippy]    Compiling target-tuple v1.0.2
+[gate:clippy]    Compiling umpire-catalog-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/catalog/macros)
+[gate:clippy]     Checking umpire-tlc v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/backends/tlc)
+[gate:clippy]     Checking glob v0.3.4
+[gate:clippy]     Checking termcolor v1.4.1
+[gate:clippy]     Checking umpire-catalog v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/catalog)
+[gate:clippy]     Checking trybuild v1.0.122
+[gate:clippy]     Checking umpire-testing v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/dev/testing)
+[gate:clippy]    Compiling umpire-suite v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/suite)
+[gate:clippy]     Checking umpire v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/umpire)
+[gate:clippy]    Compiling umpire-catalog-build v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/catalog/build)
+[gate:clippy]     Checking umpire-guest-driver v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/dev/guest-driver)
+[gate:clippy]    Compiling umpire-reference-kettle v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/reference/kettle)
+[gate:clippy]    Compiling autocfg v1.5.1
+[gate:clippy]    Compiling num-traits v0.2.19
+[gate:clippy]     Checking simd-adler32 v0.3.10
+[gate:clippy]     Checking adler2 v2.0.1
+[gate:clippy]     Checking miniz_oxide v0.9.1
+[gate:clippy]     Checking crc32fast v1.5.3
+[gate:clippy]     Checking filetime v0.2.29
+[gate:clippy]     Checking wait-timeout v0.2.1
+[gate:clippy]     Checking fnv v1.0.7
+[gate:clippy]     Checking bit-vec v0.10.1
+[gate:clippy]     Checking quick-error v1.2.3
+[gate:clippy]     Checking rusty-fork v0.3.1
+[gate:clippy]     Checking bit-set v0.11.1
+[gate:clippy]     Checking tar v0.4.46
+[gate:clippy]     Checking flate2 v1.1.10
+[gate:clippy]     Checking rand v0.10.3
+[gate:clippy]     Checking rand_xorshift v0.5.0
+[gate:clippy]     Checking chacha20 v0.10.2
+[gate:clippy]     Checking core_detect v1.0.0
+[gate:clippy]     Checking unarray v0.1.4
+[gate:clippy]     Checking proptest v1.12.0
+[gate:clippy]     Checking xtask v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/dev/xtask)
+[gate:clippy]    Compiling umpire-fixtures v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/dev/fixtures)
+[gate:clippy]     Checking umpire-apalache v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/backends/apalache)
+[gate:clippy]     Checking umpire-kettle-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/reference/kettle/guest)
+[gate:clippy]     Checking umpire-author-consumer v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/umpire/tests/consumer)
+[gate:clippy]     Checking umpire-stock-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/protocol/runtime/guests/stock)
+[gate:clippy]     Checking umpire-control-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/protocol/runtime/guests/control)
+[gate:clippy]     Checking umpire-caught-panic-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/protocol/runtime/guests/caught-panic)
+[gate:clippy]     Checking umpire-overflow-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/protocol/runtime/guests/overflow)
+[gate:clippy]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 54.94s
+[gate:clippy] Finished in 55.12s
+[gate:docs] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage docs
+[gate:docs] Finished in 16.81s
+[gate:tests] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage tests
+[gate:tests]    Compiling proc-macro2 v1.0.107
+[gate:tests]    Compiling unicode-ident v1.0.27
+[gate:tests]    Compiling quote v1.0.47
+[gate:tests]    Compiling syn v3.0.9
+[gate:tests]    Compiling libc v0.2.191
+[gate:tests]    Compiling cfg-if v1.0.5
+[gate:tests]    Compiling rand_core v0.10.1
+[gate:tests]    Compiling getrandom v0.4.3
+[gate:tests]    Compiling rustix v1.1.5
+[gate:tests]    Compiling bitflags v2.13.2
+[gate:tests]    Compiling linux-raw-sys v0.12.1
+[gate:tests]    Compiling serde_core v1.0.229
+[gate:tests]    Compiling once_cell v1.21.4
+[gate:tests]    Compiling fastrand v2.5.0
+[gate:tests]    Compiling tempfile v3.27.0
+[gate:tests]    Compiling thiserror v2.0.21
+[gate:tests]    Compiling thiserror-impl v2.0.21
+[gate:tests]    Compiling winnow v1.0.4
+[gate:tests]    Compiling toml_parser v1.1.5+spec-1.1.0
+[gate:tests]    Compiling toml_datetime v1.1.2+spec-1.1.0
+[gate:tests]    Compiling umpire-ir-derive v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/ir/derive)
+[gate:tests]    Compiling heck v0.5.0
+[gate:tests]    Compiling equivalent v1.0.3
+[gate:tests]    Compiling hashbrown v0.17.1
+[gate:tests]    Compiling prettyplease v0.3.0
+[gate:tests]    Compiling indexmap v2.14.2
+[gate:tests]    Compiling umpire-ir v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/ir)
+[gate:tests]    Compiling umpire-front v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/front)
+[gate:tests]    Compiling foldhash v0.1.5
+[gate:tests]    Compiling hashbrown v0.15.5
+[gate:tests]    Compiling fixedbitset v0.5.7
+[gate:tests]    Compiling smallvec v1.16.3
+[gate:tests]    Compiling proc-macro-utils v0.10.0
+[gate:tests]    Compiling petgraph v0.8.3
+[gate:tests]    Compiling bytemuck v1.25.2
+[gate:tests]    Compiling safe_arch v0.7.4
+[gate:tests]    Compiling manyhow-macros v0.14.1
+[gate:tests]    Compiling toml_edit v0.25.17+spec-1.1.0
+[gate:tests]    Compiling rand_core v0.9.5
+[gate:tests]    Compiling rand_xoshiro v0.7.0
+[gate:tests]    Compiling umpire-dsl-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/dsl/macros)
+[gate:tests]    Compiling proc-macro-crate v3.5.0
+[gate:tests]    Compiling manyhow v0.14.1
+[gate:tests]    Compiling wide v0.7.33
+[gate:tests]    Compiling imbl-sized-chunks v0.2.0
+[gate:tests]    Compiling archery v1.2.3
+[gate:tests]    Compiling imbl v7.0.2
+[gate:tests]    Compiling umpire-dsl v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/dsl)
+[gate:tests]    Compiling umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/backends/native)
+[gate:tests]    Compiling rustc-hash v2.1.3
+[gate:tests]    Compiling regex-syntax v0.8.11
+[gate:tests]    Compiling syn v2.0.119
+[gate:tests]    Compiling typenum v1.20.1
+[gate:tests]    Compiling hybrid-array v0.4.15
+[gate:tests]    Compiling prettyplease v0.2.37
+[gate:tests]    Compiling prost-derive v0.14.4
+[gate:tests]    Compiling bytes v1.12.1
+[gate:tests]    Compiling prost v0.14.4
+[gate:tests]    Compiling regex-automata v0.4.18
+[gate:tests]    Compiling regex v1.13.1
+[gate:tests]    Compiling prost-types v0.14.4
+[gate:tests]    Compiling crypto-common v0.2.2
+[gate:tests]    Compiling block-buffer v0.12.1
+[gate:tests]    Compiling log v0.4.34
+[gate:tests]    Compiling const-oid v0.10.2
+[gate:tests]    Compiling multimap v0.10.1
+[gate:tests]    Compiling digest v0.11.3
+[gate:tests]    Compiling cpufeatures v0.3.1
+[gate:tests]    Compiling sha2 v0.11.1
+[gate:tests]    Compiling prost-build v0.14.4
+[gate:tests]    Compiling umpire-runtime v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/protocol/runtime)
+[gate:tests]    Compiling umpire-backend-process v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/backends/process)
+[gate:tests]    Compiling zmij v1.0.23
+[gate:tests]    Compiling serde_json v1.0.154
+[gate:tests]    Compiling serde_derive v1.0.229
+[gate:tests]    Compiling memchr v2.8.3
+[gate:tests]    Compiling itoa v1.0.18
+[gate:tests]    Compiling ident_case v1.0.1
+[gate:tests]    Compiling darling_core v0.24.1
+[gate:tests]    Compiling darling_macro v0.24.1
+[gate:tests]    Compiling console v0.16.6
+[gate:tests]    Compiling similar v2.7.0
+[gate:tests]    Compiling serde v1.0.229
+[gate:tests]    Compiling insta v1.49.0
+[gate:tests]    Compiling darling v0.24.1
+[gate:tests]    Compiling serde_spanned v1.1.2
+[gate:tests]    Compiling toml_writer v1.1.3+spec-1.1.0
+[gate:tests]    Compiling toml v1.1.8+spec-1.1.0
+[gate:tests]    Compiling umpire-catalog-syntax v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/catalog/syntax)
+[gate:tests]    Compiling umpire-tla v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/backends/tla)
+[gate:tests]    Compiling umpire-tlc v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/backends/tlc)
+[gate:tests]    Compiling umpire-catalog-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/catalog/macros)
+[gate:tests]    Compiling target-tuple v1.0.2
+[gate:tests]    Compiling termcolor v1.4.1
+[gate:tests]    Compiling glob v0.3.4
+[gate:tests]    Compiling umpire-catalog v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/catalog)
+[gate:tests]    Compiling umpire-testing v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/dev/testing)
+[gate:tests]    Compiling trybuild v1.0.122
+[gate:tests]    Compiling umpire-suite v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/suite)
+[gate:tests]    Compiling umpire v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/umpire)
+[gate:tests]    Compiling umpire-guest-driver v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/dev/guest-driver)
+[gate:tests]    Compiling umpire-catalog-build v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/catalog/build)
+[gate:tests]    Compiling crc32fast v1.5.3
+[gate:tests]    Compiling umpire-reference-kettle v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/reference/kettle)
+[gate:tests]    Compiling simd-adler32 v0.3.10
+[gate:tests]    Compiling adler2 v2.0.1
+[gate:tests]    Compiling miniz_oxide v0.9.1
+[gate:tests]    Compiling num-traits v0.2.19
+[gate:tests]    Compiling filetime v0.2.29
+[gate:tests]    Compiling wait-timeout v0.2.1
+[gate:tests]    Compiling bit-vec v0.10.1
+[gate:tests]    Compiling fnv v1.0.7
+[gate:tests]    Compiling quick-error v1.2.3
+[gate:tests]    Compiling rusty-fork v0.3.1
+[gate:tests]    Compiling bit-set v0.11.1
+[gate:tests]    Compiling tar v0.4.46
+[gate:tests]    Compiling flate2 v1.1.10
+[gate:tests]    Compiling rand v0.10.3
+[gate:tests]    Compiling rand_xorshift v0.5.0
+[gate:tests]    Compiling chacha20 v0.10.2
+[gate:tests]    Compiling unarray v0.1.4
+[gate:tests]    Compiling either v1.19.0
+[gate:tests]    Compiling core_detect v1.0.0
+[gate:tests]    Compiling proptest v1.12.0
+[gate:tests]    Compiling itertools v0.14.0
+[gate:tests]    Compiling xtask v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/dev/xtask)
+[gate:tests]    Compiling umpire-apalache v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/backends/apalache)
+[gate:tests]    Compiling umpire-fixtures v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/dev/fixtures)
+[gate:tests]    Compiling umpire-author-consumer v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/umpire/tests/consumer)
+[gate:tests]    Compiling umpire-kettle-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/reference/kettle/guest)
+[gate:tests]    Compiling umpire-control-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/protocol/runtime/guests/control)
+[gate:tests]    Compiling umpire-caught-panic-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/protocol/runtime/guests/caught-panic)
+[gate:tests]    Compiling umpire-overflow-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/protocol/runtime/guests/overflow)
+[gate:tests]    Compiling umpire-stock-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/protocol/runtime/guests/stock)
+[gate:tests]     Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 00s
+[gate:tests]    Compiling umpire-reference-kettle v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/reference/kettle)
+[gate:tests]    Compiling umpire-kettle-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/reference/kettle/guest)
+[gate:tests]     Finished `test` profile [unoptimized + debuginfo] target(s) in 3.77s
+[gate:tests] ────────────
+[gate:tests]  Nextest run ID 7cc855a5-3f66-4ada-9875-cb4fcb58157f with nextest profile: required
+[gate:tests]     Starting 908 tests across 69 binaries (2 tests skipped)
+[gate:tests]         SLOW [> 30.000s] (───────) umpire-catalog::admission declarations_reject_unclassified_or_incompatible_shapes
+[gate:tests]         SLOW [> 30.000s] (───────) umpire-catalog::ui catalog_requires_every_field_and_enum_variant
+[gate:tests]         SLOW [> 30.000s] (───────) umpire-dsl::ui malformed_paths
+[gate:tests]         SLOW [> 30.000s] (───────) umpire-dsl::ui missing_display
+[gate:tests]         SLOW [> 60.000s] (───────) umpire-catalog::ui catalog_requires_every_field_and_enum_variant
+[gate:tests]         SLOW [> 60.000s] (───────) umpire-dsl::ui missing_display
+[gate:tests]         SLOW [> 30.000s] (───────) umpire-dsl-macros::fixtures private_state
+[gate:tests]         SLOW [> 30.000s] (───────) umpire-dsl-macros::fixtures refusals
+[gate:tests] ────────────
+[gate:tests]      Summary [ 277.073s] 908 tests run: 908 passed (6 slow), 2 skipped
+[gate:tests]         SLOW [  40.790s] (312/908) umpire-catalog::admission declarations_reject_unclassified_or_incompatible_shapes
+[gate:tests]         SLOW [  43.435s] (319/908) umpire-dsl::ui malformed_paths
+[gate:tests]         SLOW [  75.404s] (320/908) umpire-dsl::ui missing_display
+[gate:tests]         SLOW [  84.890s] (326/908) umpire-catalog::ui catalog_requires_every_field_and_enum_variant
+[gate:tests]         SLOW [  44.832s] (329/908) umpire-dsl-macros::fixtures private_state
+[gate:tests]         SLOW [  50.656s] (384/908) umpire-dsl-macros::fixtures refusals
+[gate:tests] Finished in 411.63s
+[gate:wasm32-wasip1] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage wa…
+[gate:wasm32-wasip1] Finished in 11.18s
+[gate:core-wasm-clippy] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage…
+[gate:core-wasm-clippy]    Compiling umpire-ir-derive v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/ir/derive)
+[gate:core-wasm-clippy]    Compiling umpire-ir v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/ir)
+[gate:core-wasm-clippy]    Compiling umpire-dsl-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/dsl/macros)
+[gate:core-wasm-clippy]    Compiling umpire-front v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/front)
+[gate:core-wasm-clippy]     Checking hashbrown v0.17.1
+[gate:core-wasm-clippy]     Checking equivalent v1.0.3
+[gate:core-wasm-clippy]     Checking foldhash v0.1.5
+[gate:core-wasm-clippy]    Compiling umpire-dsl v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/dsl)
+[gate:core-wasm-clippy]     Checking hashbrown v0.15.5
+[gate:core-wasm-clippy]     Checking indexmap v2.14.2
+[gate:core-wasm-clippy]     Checking thiserror v2.0.21
+[gate:core-wasm-clippy]     Checking fixedbitset v0.5.7
+[gate:core-wasm-clippy]     Checking smallvec v1.16.3
+[gate:core-wasm-clippy]    Compiling umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/backends/native)
+[gate:core-wasm-clippy]     Checking petgraph v0.8.3
+[gate:core-wasm-clippy]     Checking rustc-hash v2.1.3
+[gate:core-wasm-clippy]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.37s
+[gate:core-wasm-clippy] Finished in 5.53s
+[gate:wasm-guest] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage wasm-…
+[gate:wasm-guest]    Compiling proc-macro2 v1.0.107
+[gate:wasm-guest]    Compiling libc v0.2.191
+[gate:wasm-guest]    Compiling unicode-ident v1.0.27
+[gate:wasm-guest]    Compiling cfg-if v1.0.5
+[gate:wasm-guest]    Compiling quote v1.0.47
+[gate:wasm-guest]    Compiling serde_core v1.0.229
+[gate:wasm-guest]    Compiling typenum v1.20.1
+[gate:wasm-guest]    Compiling hybrid-array v0.4.15
+[gate:wasm-guest]    Compiling syn v3.0.9
+[gate:wasm-guest]    Compiling getrandom v0.4.3
+[gate:wasm-guest]    Compiling rustix v1.1.5
+[gate:wasm-guest]    Compiling crypto-common v0.2.2
+[gate:wasm-guest]    Compiling block-buffer v0.12.1
+[gate:wasm-guest]    Compiling linux-raw-sys v0.12.1
+[gate:wasm-guest]    Compiling bitflags v2.13.2
+[gate:wasm-guest]    Compiling zmij v1.0.23
+[gate:wasm-guest]    Compiling thiserror v2.0.21
+[gate:wasm-guest]    Compiling const-oid v0.10.2
+[gate:wasm-guest]    Compiling digest v0.11.3
+[gate:wasm-guest]    Compiling thiserror-impl v2.0.21
+[gate:wasm-guest]    Compiling cpufeatures v0.3.1
+[gate:wasm-guest]    Compiling serde_json v1.0.154
+[gate:wasm-guest]    Compiling fastrand v2.5.0
+[gate:wasm-guest]    Compiling once_cell v1.21.4
+[gate:wasm-guest]    Compiling serde v1.0.229
+[gate:wasm-guest]    Compiling winnow v1.0.4
+[gate:wasm-guest]    Compiling toml_parser v1.1.5+spec-1.1.0
+[gate:wasm-guest]    Compiling tempfile v3.27.0
+[gate:wasm-guest]    Compiling sha2 v0.11.1
+[gate:wasm-guest]    Compiling serde_spanned v1.1.2
+[gate:wasm-guest]    Compiling toml_datetime v1.1.2+spec-1.1.0
+[gate:wasm-guest]    Compiling serde_derive v1.0.229
+[gate:wasm-guest]    Compiling crc32fast v1.5.3
+[gate:wasm-guest]    Compiling memchr v2.8.3
+[gate:wasm-guest]    Compiling itoa v1.0.18
+[gate:wasm-guest]    Compiling toml v1.1.8+spec-1.1.0
+[gate:wasm-guest]    Compiling adler2 v2.0.1
+[gate:wasm-guest]    Compiling simd-adler32 v0.3.10
+[gate:wasm-guest]    Compiling miniz_oxide v0.9.1
+[gate:wasm-guest]    Compiling umpire-guest-driver v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/dev/guest-driver)
+[gate:wasm-guest]    Compiling filetime v0.2.29
+[gate:wasm-guest]    Compiling tar v0.4.46
+[gate:wasm-guest]    Compiling flate2 v1.1.10
+[gate:wasm-guest]    Compiling umpire-backend-process v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/backends/process)
+[gate:wasm-guest]    Compiling xtask v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/dev/xtask)
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 13.32s
+[gate:wasm-guest]    Compiling rustix v1.1.5
+[gate:wasm-guest]    Compiling linux-raw-sys v0.12.1
+[gate:wasm-guest]    Compiling tempfile v3.27.0
+[gate:wasm-guest]    Compiling umpire-guest-driver v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/dev/guest-driver)
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.45s
+[gate:wasm-guest]    Compiling compiler_builtins v0.1.160 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/compiler-builtins/compiler-builtins)
+[gate:wasm-guest]    Compiling core v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/core)
+[gate:wasm-guest]    Compiling rustc-std-workspace-core v1.99.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/rustc-std-workspace-core)
+[gate:wasm-guest]    Compiling alloc v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc)
+[gate:wasm-guest]    Compiling proc-macro2 v1.0.107
+[gate:wasm-guest]    Compiling unicode-ident v1.0.27
+[gate:wasm-guest]    Compiling quote v1.0.47
+[gate:wasm-guest]    Compiling rustc-std-workspace-alloc v1.99.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/rustc-std-workspace-alloc)
+[gate:wasm-guest]    Compiling libc v0.2.189
+[gate:wasm-guest]    Compiling object v0.39.1
+[gate:wasm-guest]    Compiling unwind v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/unwind)
+[gate:wasm-guest]    Compiling gimli v0.34.0
+[gate:wasm-guest]    Compiling adler2 v2.0.1
+[gate:wasm-guest]    Compiling memchr v2.8.3
+[gate:wasm-guest]    Compiling std v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/std)
+[gate:wasm-guest]    Compiling miniz_oxide v0.9.1
+[gate:wasm-guest]    Compiling addr2line v0.27.1
+[gate:wasm-guest]    Compiling panic_unwind v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/panic_unwind)
+[gate:wasm-guest]    Compiling std_detect v0.1.5 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/std_detect)
+[gate:wasm-guest]    Compiling hashbrown v0.17.1
+[gate:wasm-guest]    Compiling wasip1 v1.0.0
+[gate:wasm-guest]    Compiling cfg-if v1.0.4
+[gate:wasm-guest]    Compiling rustc-demangle v0.1.28
+[gate:wasm-guest]    Compiling panic_abort v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/panic_abort)
+[gate:wasm-guest]    Compiling rustc-literal-escaper v0.0.8
+[gate:wasm-guest]    Compiling proc_macro v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/proc_macro)
+[gate:wasm-guest]    Compiling syn v3.0.9
+[gate:wasm-guest]    Compiling anyhow v1.0.104
+[gate:wasm-guest]    Compiling equivalent v1.0.3
+[gate:wasm-guest]    Compiling indexmap v2.14.2
+[gate:wasm-guest]    Compiling syn v2.0.119
+[gate:wasm-guest]    Compiling either v1.19.0
+[gate:wasm-guest]    Compiling itertools v0.14.0
+[gate:wasm-guest]    Compiling prost-derive v0.14.4
+[gate:wasm-guest]    Compiling heck v0.5.0
+[gate:wasm-guest]    Compiling winnow v1.0.4
+[gate:wasm-guest]    Compiling prettyplease v0.3.0
+[gate:wasm-guest]    Compiling rustix v1.1.5
+[gate:wasm-guest]    Compiling smallvec v1.16.3
+[gate:wasm-guest]    Compiling proc-macro-utils v0.10.0
+[gate:wasm-guest]    Compiling toml_parser v1.1.5+spec-1.1.0
+[gate:wasm-guest]    Compiling umpire-ir-derive v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/ir/derive)
+[gate:wasm-guest]    Compiling bitflags v2.13.2
+[gate:wasm-guest]    Compiling prettyplease v0.2.37
+[gate:wasm-guest]    Compiling regex-syntax v0.8.11
+[gate:wasm-guest]    Compiling bytes v1.12.1
+[gate:wasm-guest]    Compiling toml_datetime v1.1.2+spec-1.1.0
+[gate:wasm-guest]    Compiling linux-raw-sys v0.12.1
+[gate:wasm-guest]    Compiling foldhash v0.1.5
+[gate:wasm-guest]    Compiling hashbrown v0.15.5
+[gate:wasm-guest]    Compiling toml_edit v0.25.17+spec-1.1.0
+[gate:wasm-guest]    Compiling prost v0.14.4
+[gate:wasm-guest]    Compiling regex-automata v0.4.18
+[gate:wasm-guest]    Compiling umpire-ir v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/ir)
+[gate:wasm-guest]    Compiling manyhow-macros v0.14.1
+[gate:wasm-guest]    Compiling thiserror v2.0.21
+[gate:wasm-guest]    Compiling fixedbitset v0.5.7
+[gate:wasm-guest]    Compiling once_cell v1.21.4
+[gate:wasm-guest]    Compiling fastrand v2.5.0
+[gate:wasm-guest]    Compiling umpire-dsl-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/dsl/macros)
+[gate:wasm-guest]    Compiling tempfile v3.27.0
+[gate:wasm-guest]    Compiling petgraph v0.8.3
+[gate:wasm-guest]    Compiling manyhow v0.14.1
+[gate:wasm-guest]    Compiling umpire-front v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/front)
+[gate:wasm-guest]    Compiling regex v1.13.1
+[gate:wasm-guest]    Compiling prost-types v0.14.4
+[gate:wasm-guest]    Compiling proc-macro-crate v3.5.0
+[gate:wasm-guest]    Compiling thiserror-impl v2.0.21
+[gate:wasm-guest]    Compiling log v0.4.34
+[gate:wasm-guest]    Compiling multimap v0.10.1
+[gate:wasm-guest]    Compiling umpire-dsl v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/dsl)
+[gate:wasm-guest]    Compiling prost-build v0.14.4
+[gate:wasm-guest]    Compiling umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/backends/native)
+[gate:wasm-guest] warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+[gate:wasm-guest]   |
+[gate:wasm-guest]   = note: this feature is not stably supported; its behavior can change in the future
+[gate:wasm-guest] 
+[gate:wasm-guest] warning: `umpire-dsl` (lib) generated 1 warning
+[gate:wasm-guest]    Compiling umpire-runtime v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/protocol/runtime)
+[gate:wasm-guest]    Compiling rustc-hash v2.1.3
+[gate:wasm-guest] warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest] warning: `umpire-runtime` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]    Compiling umpire-stock-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/protocol/runtime/guests/stock)
+[gate:wasm-guest] warning: `umpire-stock-guest` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]     Finished `guest` profile [optimized] target(s) in 34.26s
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+[gate:wasm-guest]    Compiling smallvec v1.16.3
+[gate:wasm-guest]    Compiling proc-macro-utils v0.10.0
+[gate:wasm-guest]    Compiling manyhow-macros v0.14.1
+[gate:wasm-guest]    Compiling manyhow v0.14.1
+[gate:wasm-guest]    Compiling fixedbitset v0.5.7
+[gate:wasm-guest]    Compiling petgraph v0.8.3
+[gate:wasm-guest]    Compiling prost v0.14.4
+[gate:wasm-guest]    Compiling umpire-dsl-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/dsl/macros)
+[gate:wasm-guest]    Compiling prost-types v0.14.4
+[gate:wasm-guest]    Compiling bytemuck v1.25.2
+[gate:wasm-guest]    Compiling safe_arch v0.7.4
+[gate:wasm-guest]    Compiling prost-build v0.14.4
+[gate:wasm-guest]    Compiling rand_core v0.9.5
+[gate:wasm-guest]    Compiling rand_xoshiro v0.7.0
+[gate:wasm-guest]    Compiling umpire-runtime v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/protocol/runtime)
+[gate:wasm-guest]    Compiling wide v0.7.33
+[gate:wasm-guest]    Compiling thiserror v2.0.21
+[gate:wasm-guest]    Compiling imbl-sized-chunks v0.2.0
+[gate:wasm-guest]    Compiling archery v1.2.3
+[gate:wasm-guest]    Compiling imbl v7.0.2
+[gate:wasm-guest]    Compiling umpire-dsl v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/dsl)
+[gate:wasm-guest]    Compiling ident_case v1.0.1
+[gate:wasm-guest]    Compiling darling_core v0.24.1
+[gate:wasm-guest]    Compiling umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/backends/native)
+[gate:wasm-guest]    Compiling rustc-hash v2.1.3
+[gate:wasm-guest]    Compiling darling_macro v0.24.1
+[gate:wasm-guest]    Compiling darling v0.24.1
+[gate:wasm-guest]    Compiling umpire-catalog-syntax v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/catalog/syntax)
+[gate:wasm-guest] warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+[gate:wasm-guest]   |
+[gate:wasm-guest]   = note: this feature is not stably supported; its behavior can change in the future
+[gate:wasm-guest] 
+[gate:wasm-guest] warning: `umpire-dsl` (lib) generated 1 warning
+[gate:wasm-guest] warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]    Compiling umpire-suite v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/suite)
+[gate:wasm-guest] warning: `umpire-runtime` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]    Compiling umpire-catalog-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/catalog/macros)
+[gate:wasm-guest]    Compiling umpire-catalog-build v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/catalog/build)
+[gate:wasm-guest]    Compiling umpire-reference-kettle v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/reference/kettle)
+[gate:wasm-guest]    Compiling umpire-catalog v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/catalog)
+[gate:wasm-guest] warning: `umpire-catalog` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest] warning: `umpire-suite` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]    Compiling umpire v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/umpire)
+[gate:wasm-guest] warning: `umpire` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest] warning: `umpire-reference-kettle` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]    Compiling umpire-kettle-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/reference/kettle/guest)
+[gate:wasm-guest] warning: `umpire-kettle-guest` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]     Finished `guest` profile [optimized] target(s) in 30.87s
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+[gate:wasm-guest] warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+[gate:wasm-guest]   |
+[gate:wasm-guest]   = note: this feature is not stably supported; its behavior can change in the future
+[gate:wasm-guest] 
+[gate:wasm-guest] warning: `umpire-dsl` (lib) generated 1 warning
+[gate:wasm-guest] warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest] warning: `umpire-runtime` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]    Compiling umpire-control-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/protocol/runtime/guests/control)
+[gate:wasm-guest] warning: `umpire-control-guest` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]     Finished `guest` profile [optimized] target(s) in 1.59s
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+[gate:wasm-guest] warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+[gate:wasm-guest]   |
+[gate:wasm-guest]   = note: this feature is not stably supported; its behavior can change in the future
+[gate:wasm-guest] 
+[gate:wasm-guest] warning: `umpire-dsl` (lib) generated 1 warning
+[gate:wasm-guest] warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest] warning: `umpire-runtime` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]    Compiling umpire-caught-panic-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/protocol/runtime/guests/caught-panic)
+[gate:wasm-guest] warning: `umpire-caught-panic-guest` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]     Finished `guest` profile [optimized] target(s) in 2.02s
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+[gate:wasm-guest] warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+[gate:wasm-guest]   |
+[gate:wasm-guest]   = note: this feature is not stably supported; its behavior can change in the future
+[gate:wasm-guest] 
+[gate:wasm-guest] warning: `umpire-dsl` (lib) generated 1 warning
+[gate:wasm-guest] warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest] warning: `umpire-runtime` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]    Compiling umpire-overflow-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/protocol/runtime/guests/overflow)
+[gate:wasm-guest] warning: `umpire-overflow-guest` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]     Finished `guest` profile [optimized] target(s) in 1.73s
+[gate:wasm-guest]    Compiling proc-macro2 v1.0.107
+[gate:wasm-guest]    Compiling quote v1.0.47
+[gate:wasm-guest]    Compiling unicode-ident v1.0.27
+[gate:wasm-guest]    Compiling syn v3.0.9
+[gate:wasm-guest]    Compiling anyhow v1.0.104
+[gate:wasm-guest]    Compiling hashbrown v0.17.1
+[gate:wasm-guest]    Compiling equivalent v1.0.3
+[gate:wasm-guest]    Compiling indexmap v2.14.2
+[gate:wasm-guest]    Compiling syn v2.0.119
+[gate:wasm-guest]    Compiling either v1.19.0
+[gate:wasm-guest]    Compiling itertools v0.14.0
+[gate:wasm-guest]    Compiling prost-derive v0.14.4
+[gate:wasm-guest]    Compiling heck v0.5.0
+[gate:wasm-guest]    Compiling umpire-ir-derive v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/ir/derive)
+[gate:wasm-guest]    Compiling prettyplease v0.3.0
+[gate:wasm-guest]    Compiling winnow v1.0.4
+[gate:wasm-guest]    Compiling smallvec v1.16.3
+[gate:wasm-guest]    Compiling rustix v1.1.5
+[gate:wasm-guest]    Compiling proc-macro-utils v0.10.0
+[gate:wasm-guest]    Compiling toml_parser v1.1.5+spec-1.1.0
+[gate:wasm-guest]    Compiling prettyplease v0.2.37
+[gate:wasm-guest]    Compiling linux-raw-sys v0.12.1
+[gate:wasm-guest]    Compiling bitflags v2.13.2
+[gate:wasm-guest]    Compiling foldhash v0.1.5
+[gate:wasm-guest]    Compiling toml_datetime v1.1.2+spec-1.1.0
+[gate:wasm-guest]    Compiling bytes v1.12.1
+[gate:wasm-guest]    Compiling bytemuck v1.25.2
+[gate:wasm-guest]    Compiling regex-syntax v0.8.11
+[gate:wasm-guest]    Compiling regex-automata v0.4.18
+[gate:wasm-guest]    Compiling safe_arch v0.7.4
+[gate:wasm-guest]    Compiling prost v0.14.4
+[gate:wasm-guest]    Compiling toml_edit v0.25.17+spec-1.1.0
+[gate:wasm-guest]    Compiling hashbrown v0.15.5
+[gate:wasm-guest]    Compiling manyhow-macros v0.14.1
+[gate:wasm-guest]    Compiling umpire-ir v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/ir)
+[gate:wasm-guest]    Compiling umpire-dsl-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/dsl/macros)
+[gate:wasm-guest]    Compiling rand_core v0.9.5
+[gate:wasm-guest]    Compiling fixedbitset v0.5.7
+[gate:wasm-guest]    Compiling once_cell v1.21.4
+[gate:wasm-guest]    Compiling thiserror v2.0.21
+[gate:wasm-guest]    Compiling fastrand v2.5.0
+[gate:wasm-guest]    Compiling tempfile v3.27.0
+[gate:wasm-guest]    Compiling petgraph v0.8.3
+[gate:wasm-guest]    Compiling rand_xoshiro v0.7.0
+[gate:wasm-guest]    Compiling umpire-front v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/front)
+[gate:wasm-guest]    Compiling manyhow v0.14.1
+[gate:wasm-guest]    Compiling proc-macro-crate v3.5.0
+[gate:wasm-guest]    Compiling prost-types v0.14.4
+[gate:wasm-guest]    Compiling wide v0.7.33
+[gate:wasm-guest]    Compiling regex v1.13.1
+[gate:wasm-guest]    Compiling thiserror-impl v2.0.21
+[gate:wasm-guest]    Compiling umpire-dsl v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/author/dsl)
+[gate:wasm-guest]    Compiling archery v1.2.3
+[gate:wasm-guest]    Compiling imbl-sized-chunks v0.2.0
+[gate:wasm-guest]    Compiling multimap v0.10.1
+[gate:wasm-guest]    Compiling log v0.4.34
+[gate:wasm-guest]    Compiling prost-build v0.14.4
+[gate:wasm-guest]    Compiling imbl v7.0.2
+[gate:wasm-guest]    Compiling umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/backends/native)
+[gate:wasm-guest]    Compiling umpire-runtime v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/protocol/runtime)
+[gate:wasm-guest]    Compiling rustc-hash v2.1.3
+[gate:wasm-guest]    Compiling umpire-caught-panic-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/protocol/runtime/guests/caught-panic)
+[gate:wasm-guest]     Finished `guest` profile [optimized] target(s) in 25.68s
+[gate:wasm-guest]      Running `/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target/guest/panic-control-reports /home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target/panic-native`
+[gate:wasm-guest] 
+[gate:wasm-guest] thread 'main' (3826168) panicked at protocol/runtime/guests/caught-panic/src/bin/../../../../tests/support/../../../../backends/native/tests/support/mod.rs:84:38:
+[gate:wasm-guest] broken heater
+[gate:wasm-guest] note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+[gate:wasm-guest] 
+[gate:wasm-guest] thread 'main' (3826168) panicked at protocol/runtime/guests/caught-panic/src/bin/../../../../tests/support/../../../../backends/native/tests/support/mod.rs:87:53:
+[gate:wasm-guest] attempt to add with overflow
+[gate:wasm-guest]    Compiling umpire-control-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/framework/protocol/runtime/guests/control)
+[gate:wasm-guest]     Finished `guest` profile [optimized] target(s) in 2.93s
+[gate:wasm-guest]      Running `/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target/guest/current-contract-reports /home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target/current-contract-native`
+[gate:wasm-guest] Finished in 117.60s
+[gate:go-host] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage go-host
+[gate:go-host] Finished in 42.36s
+[gate:kettle-go-host] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage k…
+[gate:kettle-go-host] Finished in 37.21s
+Finished in 717.17s

@@ -1,0 +1,28 @@
+Time the model feedback loop (fn-210 R30)...
+step (warm)                         time
+backend modes: UMPIRE_BACKENDS=require UMPIRE_APALACHE=skip
+gate command: UMPIRE_TIME_STEPS=1 make -C /home/agent/.cache/codex-build/umpire-milestones-20261024/fn25411-standalone/public-route-xk8qacy1 model-check
+backend modes: UMPIRE_BACKENDS=require UMPIRE_APALACHE=skip
+proto-tools                       0.000s
+retired-names                     0.004s
+timing-controls                   0.001s
+timing-controls                   0.001s
+capability-controls               0.001s
+source-boundary                   0.001s
+protobuf-controls                 0.001s
+protobuf-freshness                0.000s
+kettle-protobuf-freshness         0.001s
+fmt                               0.000s
+clippy                            0.001s
+docs                              0.001s
+tests                             0.001s
+wasm32-wasip1                     0.000s
+core-wasm-clippy                  0.000s
+wasm-guest                        0.000s
+go-host                           0.000s
+kettle-go-host                    0.000s
+standalone proof: /home/agent/.cache/codex-build/umpire-milestones-20261024/fn25411-standalone/public-route-xk8qacy1/copies/proof-6yeHPB (tier=validate, TLC=require)
+xtask: framework stage standalone failed: missing or escaping standalone configuration: Cargo.lock
+make[2]: *** [Makefile:11: model-check] Error 1
+make[1]: *** [Makefile:16: model-time] Error 2
+make: *** [Makefile:19: model-validate] Error 2

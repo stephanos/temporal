@@ -17,9 +17,28 @@ fn main() -> std::io::Result<()> {
         std::path::Path::new("fixtures"),
         &output.join("interpreted.rs"),
     )?;
+    generate_cases(&output.join("cases.rs"))?;
     discovery::generate(
         std::path::Path::new("fixtures"),
         discovery::MODEL_AND_TESTS,
         &output.join("fixtures.rs"),
     )
+}
+
+fn generate_cases(output: &std::path::Path) -> std::io::Result<()> {
+    use std::fmt::Write;
+
+    let mut source = String::from("mod fixtures {\n");
+    let fixtures =
+        discovery::discover(std::path::Path::new("fixtures"), discovery::MODEL_AND_TESTS)?;
+    for fixture in fixtures {
+        writeln!(
+            source,
+            "#[test] fn {}() -> umpire_testing::TestResult {{ super::run_fixture({:?}) }}",
+            fixture.module, fixture.name,
+        )
+        .map_err(std::io::Error::other)?;
+    }
+    source.push_str("}\n");
+    std::fs::write(output, source)
 }

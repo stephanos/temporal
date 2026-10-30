@@ -1,0 +1,38 @@
+[
+  {
+    "name": "mutation-guardian",
+    "source": "model/umpire/backends/process/src/syscall.rs",
+    "green_sha256": "f8bb42d9b017e3658b82af7fefec9ed5120e903494df60badc6804446ff778be",
+    "expected_runtime_failure": "Checker guardian lost inherited lease custody",
+    "red_sha256": "e8f507c481f593228d71b6aea454096a0595e1e08a2fd412577140b9e5294cfc",
+    "exit_code": 101,
+    "green_restored": true
+  },
+  {
+    "name": "mutation-target",
+    "source": "model/umpire/backends/process/src/syscall.rs",
+    "green_sha256": "f8bb42d9b017e3658b82af7fefec9ed5120e903494df60badc6804446ff778be",
+    "expected_runtime_failure": "Checker target received FD9",
+    "red_sha256": "db99491632a8391c59a57cb43b7198bba2ec87a9a9b11db7ab226d0a6646efa4",
+    "exit_code": 101,
+    "green_restored": true
+  },
+  {
+    "name": "mutation-env",
+    "source": "model/umpire/backends/process/src/syscall.rs",
+    "green_sha256": "f8bb42d9b017e3658b82af7fefec9ed5120e903494df60badc6804446ff778be",
+    "expected_runtime_failure": "Checker target received lease locator",
+    "red_sha256": "e8439db5b469f12704b96c5db071c2504818e8952f4b7e56097aa7ec20c779e3",
+    "exit_code": 101,
+    "green_restored": true
+  },
+  {
+    "name": "mutation-unheld",
+    "source": "model/umpire/backends/process/src/support.rs",
+    "green_sha256": "006fbc7f079a4b35b22c64f188ce4a4ba2624ca76a103e5b6722197019f9521c",
+    "expected_runtime_failure": "called `Option::unwrap()` on a `None` value",
+    "red_sha256": "b71bf1efadfa7e6350ebfa25b560a9e95f52cc16a89c5e8ee5ccb9b5ab2db483",
+    "exit_code": 101,
+    "green_restored": true
+  }
+]

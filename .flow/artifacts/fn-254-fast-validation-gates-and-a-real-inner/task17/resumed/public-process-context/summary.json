@@ -1,0 +1,64 @@
+{
+  "scope": "Real public required-profile selected process tests; no model JVM/Go semantics or Darwin proof",
+  "red": [
+    {
+      "receipt": "before-fix.json",
+      "failure": "Checker owner EOF changed125 to137 under inherited scope"
+    },
+    {
+      "receipt": "status-fix.json",
+      "failures": [
+        "forged-locator test accidentally inherited valid descriptors",
+        "Linux cleanup reaped stopped Rust owner before redundant CONT"
+      ]
+    }
+  ],
+  "green": {
+    "receipt": "after-context-fix.json",
+    "tests": 52,
+    "ignored": 0,
+    "cargo_doctests": 0,
+    "native_sha256": "862e9f613a84ffe59832379f521060461d6792285d4f2996023d79c2b03e1092",
+    "source_sha256": {
+      "model/umpire/backends/process/tests/process.rs": "22caa992c0786fd8423f3246debf99bb9254fa6dbb6d5f01c8f26ab4bea40796",
+      "model/umpire/backends/process/src/jar.rs": "872270576ae5eed7c7ad5615a2ca42809428291d154f01b2b8a55014dd806888",
+      "model/umpire/backends/process/src/support.rs": "ad97094d972ba0bffc939197d80c20fb23c7714cba6db1f901e322d613af4eb2",
+      "model/umpire/backends/process/src/lib.rs": "39878aead4ac08c9fe2f311553d724b1c288f0f8b3ac230c60671257933f9fab",
+      "model/umpire/backends/process/src/syscall.rs": "a2e4d4ced95a2ec342e5fa20aa17943f283911dd6542ae3a4af92fd41944952d",
+      "model/umpire/backends/process/src/fingerprint.rs": "73c7665b00f560b7e866faaa72484e325e5f1fcfb691351ccd879a1ad555df7a",
+      "model/umpire/backends/process/src/syscall/calls.rs": "fe89573d459c3c9cbfe432803d7e5be0f7eca0cb6e11c5ae19be36f1adc01a73",
+      "model/umpire/backends/process/tests/fixtures/process_fixture.rs": "ce9938d9caddabfc8390b8d1b57291c812eaf4f6ac198c05c9450e0014d48155"
+    }
+  },
+  "fixes": [
+    "Preserve observed natural target completion separately from cancellation/reaping; owner EOF retains125.",
+    "Close10/11 in forged child only.",
+    "Require stopped Rust owner absent at return; rename Linux-only control to describe actual reaping."
+  ],
+  "identity_rename": {
+    "old": "root_broadcast_cancels_checker_while_rust_owner_is_stopped",
+    "new": "linux_cleanup_reaps_checker_while_rust_owner_is_stopped",
+    "counts_changed": false
+  },
+  "additional_checks": [
+    {
+      "command": "env -u BASH_ENV ... mise exec -- cargo clippy --manifest-path model/umpire/Cargo.toml --locked -p umpire-backend-process --all-targets -- -D warnings",
+      "exit_code": 0,
+      "evidence": "Tool result in this session; output not redirected to a raw file."
+    },
+    {
+      "command": "env -u BASH_ENV mise exec -- cargo fmt --manifest-path model/umpire/Cargo.toml --check --package umpire-backend-process",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check -- . ':!*.log'",
+      "exit_code": 0
+    }
+  ],
+  "protected_snapshots_unchanged": true,
+  "limitations": [
+    "No final portable broadcast runtime claim.",
+    "F3.1 inventories precede this one process-control rename; all other names/counts unchanged.",
+    "Real6+5quick and production standalone still pending."
+  ]
+}

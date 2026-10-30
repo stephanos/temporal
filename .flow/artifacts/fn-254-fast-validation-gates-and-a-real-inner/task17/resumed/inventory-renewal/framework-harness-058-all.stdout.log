@@ -1,0 +1,2 @@
+fixture_appends_suite_files_after_retaining_negative_outputs: test
+fixture_refuses_extra_files_that_replace_checker_outputs: test

@@ -1,0 +1,58 @@
+{
+  "observed_pair": {
+    "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "files": [
+    {
+      "file": "before.json",
+      "size": 189,
+      "sha256": "b2bd57e4559a3caf35475373a1bba37484b17f10c664357a68e6cb6e5c4725fa"
+    },
+    {
+      "file": "bridge-controls.log",
+      "size": 2533,
+      "sha256": "9a76d5a0d53cff34742bc23451dcc2eaa2e50968dd54cb1fc5f62f8a7a43ae92"
+    },
+    {
+      "file": "checkout.log",
+      "size": 601,
+      "sha256": "acf64ec86b91b8986fbc705bea630cc5b9a1267e86ab45a896415e6e06c50dc9"
+    },
+    {
+      "file": "checks.json",
+      "size": 1327,
+      "sha256": "34b22ecd250b0012830fd0f4c90e737565bb835b7a348586f277afc2b9341f91"
+    },
+    {
+      "file": "go-workspace.json",
+      "size": 1563,
+      "sha256": "919db35c57664141c88980f677a8dfc743906968ece4c0bcd365df1b0b6d4994"
+    },
+    {
+      "file": "go-workspace.log",
+      "size": 1290,
+      "sha256": "a0102685d5bc98a1391713b025843785edaa652ec4f5f44b8c752cc4170050dd"
+    },
+    {
+      "file": "make-guard-controls.log",
+      "size": 368,
+      "sha256": "55d7aa258569a7ada904a14d477f27d14a7b69882fdc1db3605067ef99257e7c"
+    },
+    {
+      "file": "receipt.json",
+      "size": 2662,
+      "sha256": "1cc2b927dbc188775f7cf59ff264ce706bbe30a4175bdb8e0b082312c50e940d"
+    },
+    {
+      "file": "test-only-simulated-control-receipts.tar.gz",
+      "size": 49423,
+      "sha256": "d51a4bd13ad364ce323cc51cb976a8b573a4d764576d8355e092ac49f387f496"
+    },
+    {
+      "file": "workspace-compilation.log",
+      "size": 2109,
+      "sha256": "2a48522d8c36fa7daeae649d74aa5a0e7587d6ce7eacfbcd55e0cc3b9b58ce12"
+    }
+  ]
+}

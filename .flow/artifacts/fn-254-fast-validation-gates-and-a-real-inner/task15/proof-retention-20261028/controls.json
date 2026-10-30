@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "tests_run": 4,
+  "failures": 0,
+  "errors": 0,
+  "inputs_sha256": {
+    "collect.py": "22378629f2c272e26bc6fa6d5e9d790461482e1f82dc73718c3d1f96f10e98e1",
+    "verify.py": "0c5ae955a82dc0efb1d4c129773f9466ec9e36b2567f80e157be56ba03ec6dca",
+    "test_controls.py": "c73ad6278b9ee93d73af0b7568191b4110fb3c157fba3f8dd3fe1750981fd79c"
+  },
+  "scope": "tiny synthetic files only; no private proof read/collection/CAS write",
+  "proof_collection_executed": false,
+  "binaries_copied": false,
+  "cleanup_authorized": false
+}

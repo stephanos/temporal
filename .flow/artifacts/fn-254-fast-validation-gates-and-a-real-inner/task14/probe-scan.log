@@ -1,0 +1,4 @@
+model/design/framework-gate.md:31:| `mise.toml` | Local Rust 1.99.1, Go 1.27.0, protoc 29.5, Java temurin-27 pins, copied from root `mise.toml:1-6`; omit archived Scala. .3 adds the admitted nextest pin here. |
+model/umpire/backends/tlc/src/runner.rs:987:            fs::write(scratch.path().join("mise.toml"), "java = \"temurin-27\"\n")?;
+model/umpire/mise.toml:4:java = "temurin-27"
+model/archived/temporal/check/Gate.test.scala.disabled:1028:      "\ncase \" $* \" in *\" --version \"*) echo libprotoc-30;; esac\n",

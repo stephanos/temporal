@@ -1,0 +1,21 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25411-standalone/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.62s
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25411-standalone/native-target/debug/deps/main-dcc7a2bdcc375b6b)
+
+running 1 test
+
+thread 'gate_wiring::root_required_backend_environment_selects_standalone_on_gate_and_time_routes' (439633) panicked at dev/xtask/tests/gate_wiring.rs:207:5:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(0)), stdout: "backend modes: UMPIRE_BACKENDS=require UMPIRE_APALACHE=skip (default)\n", stderr: "" }
+  left: Some(0)
+ right: Some(1)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test gate_wiring::root_required_backend_environment_selects_standalone_on_gate_and_time_routes ... FAILED
+
+failures:
+
+failures:
+    gate_wiring::root_required_backend_environment_selects_standalone_on_gate_and_time_routes
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p xtask --test main`

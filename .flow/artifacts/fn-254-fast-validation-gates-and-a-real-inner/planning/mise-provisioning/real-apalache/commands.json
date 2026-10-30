@@ -1,0 +1,80 @@
+[
+  {
+    "label": "mise-version",
+    "argv": [
+      "/home/agent/.local/bin/mise",
+      "--version"
+    ],
+    "cwd": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context",
+    "timeout": 180
+  },
+  {
+    "label": "default-tools",
+    "argv": [
+      "/home/agent/.local/bin/mise",
+      "ls",
+      "--json"
+    ],
+    "cwd": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context",
+    "timeout": 180
+  },
+  {
+    "label": "opt-in-config",
+    "argv": [
+      "/home/agent/.local/bin/mise",
+      "--env",
+      "apalache",
+      "config",
+      "ls"
+    ],
+    "cwd": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context",
+    "timeout": 180
+  },
+  {
+    "label": "install",
+    "argv": [
+      "/home/agent/.local/bin/mise",
+      "--env",
+      "apalache",
+      "install",
+      "http:apalache@0.62.4"
+    ],
+    "cwd": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context",
+    "timeout": 180
+  },
+  {
+    "label": "where",
+    "argv": [
+      "/home/agent/.local/bin/mise",
+      "--env",
+      "apalache",
+      "where",
+      "http:apalache@0.62.4"
+    ],
+    "cwd": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context",
+    "timeout": 180
+  },
+  {
+    "label": "java-version",
+    "argv": [
+      "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+      "-version"
+    ],
+    "cwd": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context",
+    "timeout": 180
+  },
+  {
+    "label": "apalache-version",
+    "argv": [
+      "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+      "-Xmx512m",
+      "-Duser.home=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/runtime",
+      "-Djava.io.tmpdir=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/runtime",
+      "-jar",
+      "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/data/installs/http-apalache/0.62.4/lib/apalache.jar",
+      "version"
+    ],
+    "cwd": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/runtime",
+    "timeout": 30
+  }
+]

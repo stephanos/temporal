@@ -1,0 +1,13 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/temporal/api)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/temporal/realization)
+    Finished `test` profile [unoptimized] target(s) in 13.06s
+     Running tests/registry.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/registry-44da4846d12b18b1)
+
+running 4 tests
+test evidence_decodes_actual_types_and_preserves_the_complete_checked_prefix ... ok
+test proposals_worker_rows_and_probe_baselines_use_one_current_typed_filler ... ok
+test reach::runtime_reach_admits_typed_roots_and_preserves_prefixes_and_refusals ... ok
+test typed_bootstrap_and_read_hooks_keep_correlation_outside_the_action_graph ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+

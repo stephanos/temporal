@@ -1,0 +1,137 @@
+{
+  "observed_utc": "2026-10-28T05:28:16.342476+00:00",
+  "read_only": true,
+  "deleted": [],
+  "df": "Filesystem      Size  Used Avail Use% Mounted on\nhost            927G  854G   73G  93% /Users/stephan/Workspace/skunkworks\noverlay         196G  120G   67G  65% /\n",
+  "ranked_conditional_candidates": [
+    {
+      "rank": 1,
+      "path": "/home/agent/.cache/codex-build/fn258-standalone-45eb554",
+      "KiB": 278652,
+      "status": "idle failed task-owned cache; eligible after next verified task closure, receipt preservation and fresh no-process/lease check",
+      "failed_gate": "source-boundary DESIGN.md:83",
+      "recover_from_commit": "45eb554539fe934f43a1cb906381babd46bfc662",
+      "clean_commands": [
+        "mise exec -- cargo clean --manifest-path /Users/stephan/Workspace/skunkworks/umpire/Cargo.toml --target-dir /home/agent/.cache/codex-build/fn258-standalone-45eb554/xtask-bootstrap"
+      ],
+      "preserve_before_clean": [
+        "Exact gate-receipts subtree (112 KiB)",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-45eb554.log",
+        "Any proof binary/hash required by pending validation; otherwise cache fully reproducible from source commit + Cargo.lock"
+      ],
+      "paired_tmp": {
+        "path": "/home/agent/.cache/codex-build/tmp/fn258-standalone-45eb554",
+        "KiB": 36416,
+        "clean": true,
+        "head": "45eb554539fe934f43a1cb906381babd46bfc662",
+        "status": "future candidate only after source commit reachable in retained standalone refs and no active cwd/fd/lease; preserve receipts outside clone first",
+        "future_removal_command": "test -d /home/agent/.cache/codex-build/tmp/fn258-standalone-45eb554/checkout/.git && test \"$(git -C /home/agent/.cache/codex-build/tmp/fn258-standalone-45eb554/checkout rev-parse HEAD)\" = 45eb554539fe934f43a1cb906381babd46bfc662 && test -z \"$(git -C /home/agent/.cache/codex-build/tmp/fn258-standalone-45eb554/checkout status --porcelain=v1 --untracked-files=all)\" && rm -rf -- /home/agent/.cache/codex-build/tmp/fn258-standalone-45eb554"
+      }
+    },
+    {
+      "rank": 2,
+      "path": "/home/agent/.cache/codex-build/fn258-standalone-5ee8911",
+      "KiB": 777352,
+      "status": "idle failed task-owned cache; eligible after next verified task closure, receipt preservation and fresh no-process/lease check",
+      "failed_gate": "clippy xtask lib tests",
+      "recover_from_commit": "5ee8911480c8acb429625bef3f3183e572b9d18f",
+      "clean_commands": [
+        "mise exec -- cargo clean --manifest-path /Users/stephan/Workspace/skunkworks/umpire/Cargo.toml --target-dir /home/agent/.cache/codex-build/fn258-standalone-5ee8911/xtask-bootstrap",
+        "mise exec -- cargo clean --manifest-path /Users/stephan/Workspace/skunkworks/umpire/Cargo.toml --target-dir /home/agent/.cache/codex-build/fn258-standalone-5ee8911"
+      ],
+      "preserve_before_clean": [
+        "Exact gate-receipts subtree (128 KiB)",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-5ee8911.log",
+        "Any proof binary/hash required by pending validation; otherwise cache fully reproducible from source commit + Cargo.lock"
+      ],
+      "paired_tmp": {
+        "path": "/home/agent/.cache/codex-build/tmp/fn258-standalone-5ee8911",
+        "KiB": 36620,
+        "clean": true,
+        "head": "5ee8911480c8acb429625bef3f3183e572b9d18f",
+        "status": "future candidate only after source commit reachable in retained standalone refs and no active cwd/fd/lease; preserve receipts outside clone first",
+        "future_removal_command": "test -d /home/agent/.cache/codex-build/tmp/fn258-standalone-5ee8911/checkout/.git && test \"$(git -C /home/agent/.cache/codex-build/tmp/fn258-standalone-5ee8911/checkout rev-parse HEAD)\" = 5ee8911480c8acb429625bef3f3183e572b9d18f && test -z \"$(git -C /home/agent/.cache/codex-build/tmp/fn258-standalone-5ee8911/checkout status --porcelain=v1 --untracked-files=all)\" && rm -rf -- /home/agent/.cache/codex-build/tmp/fn258-standalone-5ee8911"
+      }
+    }
+  ],
+  "conditional_expected_reclaim_KiB": 1129040,
+  "worktree_verdict": {
+    "registered_nonroot": 38,
+    "unintegrated": 36,
+    "integrated_dirty": 2,
+    "eligible_clean_integrated": 0,
+    "unregistered": [],
+    "decision": "No registered or unregistered worktree eligible for removal."
+  },
+  "protected": [
+    "/home/agent/.cache/codex-build/cargo-target: active independent gomad session and shared Codex environments",
+    "/home/agent/.cache/codex-build/fn258-consumer: live Cargo/xtask locks/process cwd/env/fds",
+    "/home/agent/.cache/codex-build/tmp/fn258-pair: live paired consumer processes",
+    "/home/agent/.cache/codex-build/fn258-framework: active-spec validation cache; retain until closure/reuse decision",
+    "/home/agent/.cache/codex-build/tmp: shared/live; never remove parent",
+    "Other repos/session caches and claude-1000: uncertain ownership; preserve",
+    "temporal/.flow/tmp/fn254*: fn-254 open; preserve source/evidence",
+    "temporal/.flow/tmp/fn211*: fn-211 open; preserve",
+    "Closed-spec prefixed logs: fn247 58 files ~1.15 MiB, fn230 11 ~96 KiB, fn228 3 ~2 KiB, but numeric prefix is insufficient ownership proof; not approved deletion candidates"
+  ],
+  "history_proofs": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-parent-negative",
+      "KiB": 5900,
+      "status": "protect until validation closure; afterward redundant recoverable proof checkout",
+      "recovery": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/current-history.bundle",
+      "bundle_ref": "refs/heads/umpire-current"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-export",
+      "KiB": 14024,
+      "status": "protect until validation closure; afterward redundant recoverable proof checkout",
+      "recovery": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/current-history.bundle",
+      "bundle_ref": "refs/heads/umpire-current"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-parent-negative-recheck",
+      "KiB": 5900,
+      "status": "protect until validation closure; afterward redundant recoverable proof checkout",
+      "recovery": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/current-history.bundle",
+      "bundle_ref": "refs/heads/umpire-current"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-repro",
+      "KiB": 222584,
+      "status": "protect until validation closure; afterward redundant recoverable proof checkout",
+      "recovery": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/current-history.bundle",
+      "bundle_ref": "refs/heads/umpire-current"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-recovery",
+      "KiB": 13384,
+      "status": "protect until validation closure; afterward redundant recoverable proof checkout",
+      "recovery": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/current-history.bundle",
+      "bundle_ref": "refs/heads/umpire-current"
+    }
+  ],
+  "minimal_history_recovery": {
+    "bundle": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/current-history.bundle",
+    "sha256": "83cb7e061e8fea284108d8380f517b2179b70a1fb8924147e90aae0aa7acec19",
+    "checkpoint": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+    "retained_evidence": [
+      "history/checkpoint.json",
+      "history/export/commit-map",
+      "history/history-map.json",
+      "source/source-manifest.json",
+      "history/bundle-recovery-verification.json",
+      "history/negative-controls.json",
+      "history/current-history.bundle"
+    ],
+    "recovery_command": "git clone --branch umpire-current /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/current-history.bundle /chosen/new/checkout",
+    "synthetic_negative_clones": "Not authoritative source; can regenerate using history/run-controls.py. Keep until validation closure."
+  },
+  "execution_requirements": [
+    "Wait for next verified task closure as requested.",
+    "Recheck df, all process cwd/environment/open fds and any owner lease immediately before exact target cleanup.",
+    "Preserve gate receipts/logs and any required binary proofs outside selected target.",
+    "Use exact cargo clean --target-dir paths; do not cargo clean shared default target.",
+    "After cleanup verify selected reproducible targets absent and protected sources, recovery bundle/hash and active targets present; recheck df."
+  ]
+}

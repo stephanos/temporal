@@ -1,0 +1,103 @@
+{
+  "observed_pair": {
+    "temporal": "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "current_candidate": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+  "current_framework": "05473210b48c3db862f22051eb7154ce98258f98",
+  "identical_inputs": {
+    "model/Cargo.toml": {
+      "observed_object": "d6535a6ee5541d480f83bd6d2125d43a1258de3b",
+      "current_object": "d6535a6ee5541d480f83bd6d2125d43a1258de3b",
+      "identical": true
+    },
+    "model/Cargo.lock": {
+      "observed_object": "bdf51d0c178efaa777e65e3add88fbd7651824b8",
+      "current_object": "bdf51d0c178efaa777e65e3add88fbd7651824b8",
+      "identical": true
+    },
+    "go.mod": {
+      "observed_object": "727f54ab89e453c974cad722f58f409ed8ea8df8",
+      "current_object": "727f54ab89e453c974cad722f58f409ed8ea8df8",
+      "identical": true
+    },
+    "go.sum": {
+      "observed_object": "f3e516df7cef39fe01b3cc280f1c2e254454852b",
+      "current_object": "f3e516df7cef39fe01b3cc280f1c2e254454852b",
+      "identical": true
+    },
+    "mise.toml": {
+      "observed_object": "f1d13178f3df6768b892ec557fe7485e0929d652",
+      "current_object": "f1d13178f3df6768b892ec557fe7485e0929d652",
+      "identical": true
+    },
+    "model/temporal": {
+      "observed_object": "a803d26055b6808696a52cd3766238d85343a94b",
+      "current_object": "a803d26055b6808696a52cd3766238d85343a94b",
+      "identical": true
+    },
+    "model/design/native-symbolic": {
+      "observed_object": "8154659f8bf77d82a2dcb6cb1e75c4f9329030fd",
+      "current_object": "8154659f8bf77d82a2dcb6cb1e75c4f9329030fd",
+      "identical": true
+    },
+    "model/dev/xtask/src": {
+      "observed_object": "47849779ecda1d3e3ead5bde84933fdfef31ed86",
+      "current_object": "47849779ecda1d3e3ead5bde84933fdfef31ed86",
+      "identical": true
+    },
+    "model/dev/xtask/Cargo.toml": {
+      "observed_object": "a2e855e84853c78b8ca8d7b398d73aabb9f65016",
+      "current_object": "a2e855e84853c78b8ca8d7b398d73aabb9f65016",
+      "identical": true
+    },
+    "model/scripts/guest.sh": {
+      "observed_object": "946b248c83443ce4c68e470c39d0b8fea9bfdd6d",
+      "current_object": "946b248c83443ce4c68e470c39d0b8fea9bfdd6d",
+      "identical": true
+    },
+    "model/scripts/guest-freshness.sh": {
+      "observed_object": "008f278c19ed569131cf3c0c5e6b3b3ea68162d4",
+      "current_object": "008f278c19ed569131cf3c0c5e6b3b3ea68162d4",
+      "identical": true
+    },
+    "model/scripts/proto-go.sh": {
+      "observed_object": "5c3f96778ebe21c247496563e4b3061c138503b5",
+      "current_object": "5c3f96778ebe21c247496563e4b3061c138503b5",
+      "identical": true
+    },
+    "model/scripts/xtask.sh": {
+      "observed_object": "bcd36ed690201c5868910c9467c3c048c9e3f155",
+      "current_object": "bcd36ed690201c5868910c9467c3c048c9e3f155",
+      "identical": true
+    }
+  },
+  "cli_comment_only": {
+    "path": "tools/umpire/cmd/umpire/main.go",
+    "before_sha256": "da32b12364c22c1f656e67f18cd2f47bdaf144bfc0e0b0588d94791f975f7a5f",
+    "after_sha256": "73d887d85b3101c79e7e3c706e8991d2a8e624bb3709185987b807770d76a03d",
+    "proof": "Exact bytes differ only by the single package-documentation guide sentence; import declarations and executable Go code are unchanged."
+  },
+  "canonical_guest": {
+    "sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+    "unchanged": true
+  },
+  "portable_observed_go_workspace": "readiness-followup-ec13057/consumer-parent-workspace.json",
+  "reused_scope": [
+    "Cargo/Go local manifest resolution",
+    "Go host/raw/SDK runtime behavior, ordinary Go-without-Rust controls, root Go caller compilation",
+    "Native-symbolic source and quick caller behavior",
+    "Existing bridge Rust source/type and unit controls, with changed Make preflight behavior covered by new shell controls"
+  ],
+  "expired_scope": [
+    "Final current-input paired guest freshness/reproduction binding because model/temporal/api/system.rs watches root Makefile",
+    "Any changed-source full paired gate/source-boundary fingerprint or final local-edit proof binding; task4 must reconcile current input before admission",
+    "Previous task3 source review verdict does not apply to unreviewed current candidate"
+  ],
+  "makefile_declared_input": {
+    "before_object": "fb6c7ef666a8c744a89dbfa009b8f5c2fb0cfe3b",
+    "current_object": "602196da160b2dcba5c6ca543c73ee96bfd3099f",
+    "freshness_claim": "Expired; no new guest build/freshness pass is claimed by this artifact refresh."
+  },
+  "framework_closure_prior_proof": "readiness-logs/readiness-054-guest-closure.json"
+}

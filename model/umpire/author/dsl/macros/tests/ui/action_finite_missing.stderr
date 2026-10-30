@@ -10,8 +10,16 @@ help: the trait `Finite` is not implemented for `Opaque`
 4 | struct Opaque;
   | ^^^^^^^^^^^^^
   = note: derive `Finite`, or give the field `#[inputs(..)]` or a World-bound `#[domain(path)]`
-help: the trait `Finite` is implemented for `bool`
- --> $WORKSPACE/umpire/author/dsl/src/finite.rs
+help: the following other types implement trait `Finite`
+ --> $WORKSPACE/author/dsl/src/finite.rs
   |
   | impl Finite for bool {
-  | ^^^^^^^^^^^^^^^^^^^^
+  | ^^^^^^^^^^^^^^^^^^^^ `bool`
+  |
+ ::: $WORKSPACE/author/dsl/src/countdown.rs
+  |
+  | impl<const N: u8> Finite for Ticks<N> {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Ticks<N>`
+...
+  | impl<const N: u8> Finite for Remaining<N> {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Remaining<N>`

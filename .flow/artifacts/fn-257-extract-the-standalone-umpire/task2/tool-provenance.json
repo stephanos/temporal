@@ -1,0 +1,12 @@
+{
+  "package": "git-filter-repo",
+  "version": "2.47.0",
+  "source": "https://pypi.org/simple",
+  "runtime": "Python stdlib and isolated git-filter-repo tooling only; no workspace dependency added",
+  "module_sha256": "67447413e273fc76809289111748870b6f6072f08b17efe94863a92d810b7d94",
+  "version_output": "a40bce548d2c",
+  "git_version": "git version 2.53.0",
+  "documentation": "https://github.com/newren/git-filter-repo/blob/main/Documentation/git-filter-repo.txt",
+  "clone_command": "git clone --no-local --revision=c88fdc550694020eb1c6a2e09577813d906c9ffe . .flow/tmp/fn257-export",
+  "clone_head": "c88fdc550694020eb1c6a2e09577813d906c9ffe"
+}

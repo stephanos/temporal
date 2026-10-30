@@ -1,0 +1,13 @@
+[
+  "mise.toml",
+  "mise.lock",
+  "model/umpire/mise.toml",
+  "model/umpire/mise.lock",
+  "model/.cargo/config.toml",
+  "model/umpire/.cargo/config.toml",
+  "model/umpire/scripts/mold-linker.sh",
+  "model/umpire/dev/guest-driver/tests/main.rs",
+  "model/umpire/dev/guest-driver/tests/linker.rs",
+  "model/GUEST_BUILDS.md",
+  "model/design/gate-speed.md"
+]

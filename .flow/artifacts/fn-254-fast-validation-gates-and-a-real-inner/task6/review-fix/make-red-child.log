@@ -1,0 +1,1 @@
+true|true|exec -- cargo run --manifest-path /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- quick

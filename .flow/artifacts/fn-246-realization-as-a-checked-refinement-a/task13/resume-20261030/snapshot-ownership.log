@@ -1,0 +1,12 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/temporal/api)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/temporal/realization)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/temporal/testing)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.20s
+     Running snapshot_ownership.rs (/home/agent/.cache/codex-build/fn24613-proof-20261030/debug/deps/snapshot_ownership-b89fef1fe8cf4b9a)
+
+running 2 tests
+test nonfixture_orphan_pending_and_missing_reader_refuse ... ok
+test current_snapshots_have_explicit_owners ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+

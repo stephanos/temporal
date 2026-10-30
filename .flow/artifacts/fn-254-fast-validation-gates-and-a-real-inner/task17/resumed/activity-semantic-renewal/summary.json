@@ -1,0 +1,183 @@
+{
+  "root_head": "22f2c6664284512f65b6a1ad13e988e69fe16161",
+  "scope": "One actual public five-consumer Activity quick; no standalone",
+  "quick_exit": 0,
+  "quick_wall_seconds": 354.6452883359998,
+  "stages": [
+    [
+      "fmt",
+      "0.157",
+      "0"
+    ],
+    [
+      "clippy",
+      "29.489",
+      "0"
+    ],
+    [
+      "compile",
+      "12.565",
+      "0"
+    ],
+    [
+      "test-inventory",
+      "44.372",
+      "0"
+    ],
+    [
+      "test",
+      "241.469",
+      "0"
+    ],
+    [
+      "doctest",
+      "26.032",
+      "0"
+    ]
+  ],
+  "selection_packages": [
+    "umpire-temporal",
+    "umpire-temporal-api",
+    "umpire-temporal-guest",
+    "umpire-temporal-realization-macros",
+    "umpire-temporal-tests"
+  ],
+  "nextest": {
+    "passed": 148,
+    "selected_ignored": 0,
+    "filtered_out_tests": 40,
+    "filtered_out_binaries": 2,
+    "actual_nextest_test_seconds": 201.389,
+    "identity_receipt": "test-statuses.json",
+    "nested_ui_negative_cases": 23,
+    "nested_ui_positive_cases": 2
+  },
+  "doctests": {
+    "packages": [
+      "umpire-temporal",
+      "umpire-temporal-api",
+      "umpire-temporal-realization-macros"
+    ],
+    "targets": 3,
+    "passed": 0,
+    "ignored": 0,
+    "failed": 0,
+    "meaning": "All three Cargo doc targets executed successfully with zero doctest bodies"
+  },
+  "cache": {
+    "mode": "Existing retained cache; no clears, renames or repeated baseline campaign",
+    "files_before": 319,
+    "files_after": 354,
+    "prior_files_unchanged": true,
+    "new_files": 35,
+    "miss_labels": [
+      "TLC cache miss Activity configuration 0 55f9a082cc4e356adacf9dd97f817bbcdf3525ca0e87d40927ea1a6f11b11be3",
+      "TLC cache miss Activity configuration 1 88bd1843f8901e60c74cd87214013bacc7d45aa57df97dc159d140773375ce0f",
+      "TLC cache miss Activity configuration 2 463c3452d6c3a9d3489eeb4a0d1182ddee4efed6b600dff365bf355a018f1106",
+      "TLC cache miss Activity configuration 3 ed7acc7da356eae736b7b1210a638fbe851f1f11487cd4651ed1bddf7ec4e896",
+      "TLC cache miss Activity configuration 4 aaa790b9ecf7f61db08acea1af0af542d67c078cc2aaa62f49e4520c4fb9b3c7",
+      "TLC cache miss Activity configuration 5 ffc250ab555d037cacbea47c591abd314327fb9510f71555268ebf58e1010570",
+      "TLC cache miss Activity configuration 6 144e0878667964ab693bdbd9c7940bd1e3b27359120fbe8921344cd234b96f54"
+    ],
+    "hit_labels": [
+      "TLC cache hit Activity configuration 0 55f9a082cc4e356adacf9dd97f817bbcdf3525ca0e87d40927ea1a6f11b11be3",
+      "TLC cache hit Activity configuration 1 88bd1843f8901e60c74cd87214013bacc7d45aa57df97dc159d140773375ce0f",
+      "TLC cache hit Activity configuration 2 463c3452d6c3a9d3489eeb4a0d1182ddee4efed6b600dff365bf355a018f1106",
+      "TLC cache hit Activity configuration 3 ed7acc7da356eae736b7b1210a638fbe851f1f11487cd4651ed1bddf7ec4e896",
+      "TLC cache hit Activity configuration 4 aaa790b9ecf7f61db08acea1af0af542d67c078cc2aaa62f49e4520c4fb9b3c7",
+      "TLC cache hit Activity configuration 5 ffc250ab555d037cacbea47c591abd314327fb9510f71555268ebf58e1010570",
+      "TLC cache hit Activity configuration 6 144e0878667964ab693bdbd9c7940bd1e3b27359120fbe8921344cd234b96f54"
+    ],
+    "execution_labels": [
+      "TLC execute Activity record 0b413bcec7a02ad9f188b4a547c6a31a001a175a3d9145ed885bb325ad6b0b92",
+      "TLC execute Activity record 076583e4ba7d5779e42388bdaf36227f827627d9818668ae9b15133e2dd130c9",
+      "TLC execute Activity record e910b24d083b925994eddfc8465591c6032641b5705fc5571ef9e34b705c3e44",
+      "TLC execute Activity record d909299b9c6d331e53bdf83b3d3b81ad9a439322983127f1a54429e3bf782e9b",
+      "TLC execute Activity record d535b02aaf1852bc888867083f83033de37ba189f05964dacc29fd388ac1367d",
+      "TLC execute Activity record a4cdf2237802cd9a48392a785b0269d8d565339b060276930cbf5a71d1c26852",
+      "TLC execute Activity record ddc722feb0cdd81575ecf50a79cc9a578d79b85b9b7f9df992306365994bd3fd",
+      "TLC execute Activity record 1730050384631e36880bb024466afc475d9596e9a5fbb2d2bf49973006b41f95",
+      "TLC execute Activity record 5455c95f14682bb5d2d4e4cc2973050c74d1a5c8f2507fdc0d03d743411e381c",
+      "TLC execute Activity record 70830381769a4b1b77bdb29b4d4ff327ea11c5f1ba4efed22c1b62af293e4d41",
+      "TLC execute Activity record 52d2f1046936e416cee7b51c15fc295492839f2b802664ea7931e8ae8a9cdc21",
+      "TLC execute Activity record 7d4859996b5f552253cf93ae78a05cb0d835a3199cec576f06c348b9da377f28",
+      "TLC execute Activity record 4ce9605a989439a112bfdaa9e04a2e4719620f950c891791ec6de632dac3ad0d",
+      "TLC execute Activity record 52560d5f0d275a701088c520c2c6b1e71d4e1dd139707a6a9ea0735a1f56a7e9"
+    ],
+    "meaning": "Seven new Activity configurations execute14records then hit within this single workload; no separate warm run"
+  },
+  "native_interpreter_activity": [
+    "quick native/interpreter agreement fixtures::activity::activity::World: 18 states, 63 edges",
+    "quick native/interpreter agreement fixtures::activity::activity::World: 18 states, 63 edges",
+    "quick native/interpreter agreement fixtures::activity::activity::World: 18 states, 63 edges",
+    "quick native/interpreter agreement fixtures::activity::activity::World: 18 states, 63 edges"
+  ],
+  "jvm_observations": {
+    "sample_period_seconds": 0.2,
+    "sampled_jvm_processes": 14,
+    "sampled_concurrent_jvms": 1,
+    "sampled_concurrent_framework_owners": 1,
+    "overlap_receipt": [
+      {
+        "at": 1793073915.0711432,
+        "owners": [
+          {
+            "pid": 748031,
+            "start_time": "2692983",
+            "case": "fixtures",
+            "argv0": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/fixtures-198ccb187adf2b77",
+            "fd9": {
+              "device": 29,
+              "inode": 10669829,
+              "target": "/tmp/umpire-validation-1000/jvm.lock"
+            },
+            "meaning": "direct child of actual nextest run controller; case supplied by same ancestry"
+          }
+        ]
+      }
+    ],
+    "sampled_max_individual_jvm_rss_kib": 176032,
+    "sampled_max_summed_jvm_rss_kib": 176032,
+    "meaning": "RSS is sampled observation, not a hard peak or total-memory limit",
+    "discovery_unique": 0,
+    "discovery_heap_cap_observed": null,
+    "model_and_discovery_heap_cap_observed": null,
+    "java_host_lease_capability_and_scope_locators_absent_in_all_samples": true,
+    "java_fd9_reuse_note": "Some JVMs reopen numeric slot9 for sockets; no sampled slot9 matches the host lease dev/inode",
+    "owned_fd9_device_inode": [
+      [
+        29,
+        10669829
+      ]
+    ],
+    "theoretical_policy": "required global4 / JVM group2 / per-check recovery2;4heap-capped checker JVMs",
+    "cleanup": {
+      "live": {},
+      "all_observed_owned_pids_absent": true
+    },
+    "model_heap_cap_observed": "-Xmx512m",
+    "discovery_observation_note": "No discovery JVM caught by200ms sampler in this run; unchanged process/tool input hashes permit projection of prior Kettle24discovery cap observations. No additional Java probe ran."
+  },
+  "model_restoration": {
+    "path": "model/temporal/feature/activity/model.rs",
+    "original_sha256": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767",
+    "edited_sha256": "ee3f55d51c39770bd7207782490280526b0070155ac1e3bbbab1c59c59e3c4d8",
+    "restored_sha256": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767",
+    "restored": true,
+    "command_exit": 0
+  },
+  "source_binaries_locks_snapshots_unchanged": true,
+  "root_clean": true,
+  "registry_tuples_count": 119,
+  "historical_protected_snapshots": 202,
+  "all_current_tracked_model_snapshots": 372,
+  "combined_target_go_tmp_growth_bytes": 2068472574,
+  "private_tmp_final_bytes": 0,
+  "free_bytes": 10519031808,
+  "not_run": [
+    "Production standalone",
+    "Other full model gates",
+    "A new old baseline or repeat cold/warm campaign",
+    "Darwin portable cleanup completion"
+  ]
+}

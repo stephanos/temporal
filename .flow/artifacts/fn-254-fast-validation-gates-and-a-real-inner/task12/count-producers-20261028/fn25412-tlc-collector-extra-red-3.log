@@ -1,0 +1,33 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.93s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/deps/xtask-1d211dd4a177cc0d)
+
+running 11 tests
+
+thread 'gate::work_counts::tlc_observations::tests::refuses_authority_documents_when_all_fixture_events_are_missing' (186884) panicked at dev/xtask/src/gate/work_counts/tlc_observations.rs:497:9:
+assertion failed: Collector::default().finish(&directory).is_err()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test gate::work_counts::tlc_observations::tests::empty_observations_do_not_prove_zero ... ok
+test gate::work_counts::tlc_observations::tests::rejects_invalid_record_id_configuration_origin_cause_and_identity ... ok
+test gate::work_counts::tlc_observations::tests::counts_confirmed_v1_launches_and_deduplicates_configurations ... ok
+test gate::work_counts::tlc_observations::tests::refuses_fixture_without_assertions_and_observed_parent_pass ... ok
+test gate::work_counts::tlc_observations::tests::rejects_missing_duplicate_mixed_and_unknown_records ... ok
+test gate::work_counts::tlc_observations::tests::counts_admitted_v2_but_preserves_unknown_legacy_completion ... ok
+test gate::work_counts::tlc_observations::tests::refuses_authority_documents_when_all_fixture_events_are_missing ... FAILED
+test gate::work_counts::tlc_observations::tests::rejects_other_binary_pass_and_crossed_fixture_parent_family ... ok
+
+thread 'gate::work_counts::tlc_observations::tests::refuses_unrecorded_or_partial_fixture_authority_files' (186886) panicked at dev/xtask/src/gate/work_counts/tlc_observations.rs:481:13:
+accepted extra.json
+test gate::work_counts::tlc_observations::tests::refuses_unrecorded_or_partial_fixture_authority_files ... FAILED
+test gate::work_counts::tlc_observations::tests::closed_fixtures_require_positive_proof_and_never_hide_real_unknown ... ok
+test gate::work_counts::tlc_observations::tests::rejects_corrupted_crossed_or_unrecognized_fixture_proof ... ok
+
+failures:
+
+failures:
+    gate::work_counts::tlc_observations::tests::refuses_authority_documents_when_all_fixture_events_are_missing
+    gate::work_counts::tlc_observations::tests::refuses_unrecorded_or_partial_fixture_authority_files
+
+test result: FAILED. 9 passed; 2 failed; 0 ignored; 0 measured; 127 filtered out; finished in 4.78s
+
+error: test failed, to rerun pass `-p xtask --lib`

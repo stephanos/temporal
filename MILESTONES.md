@@ -2,7 +2,33 @@
 
 The owner's overview of open work, execution order and blockers.
 
-As of 2026-10-25.
+As of 2026-10-30.
+
+Milestone execution has resumed. Linux mold fn-254.20 and residual consolidation fn-254.21 are reviewed and closed. Mold reduces the matched Linux/aarch64 forced-link median from 0.230 s to 0.081 s; its Make entry now avoids 43-unit config-switch rebuilds. Consolidation removes four binaries while preserving 393 test identities; 95 affected tests pass. Countdown fixture fn-253.5 and its import-contract follow-up are reviewed and closed: six Worlds agree across native, interpreter and TLC; four source mutants refute and replay. The independent protocol Model fn-246.13 and named deadline pattern fn-253.6 are reviewed, closed and integrated. All 62 active Temporal fixture identities are covered, with two inherited ignores; the current guest is reproduced exactly. Whole-prefix fn-246.9 has fresh green proof (59 live rows, 275 generic Go rows, 63 runtime tests and both required lint modes) and is under review. Activity readability fn-253.1 is running independently, preserving state/edge goldens. fn-254.19 is blocked by released sccache Rust path identity: the pinned Rust 1.99.1 A/B/A control misses across checkouts and hits only on the same checkout. [Investigation and reproduction](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task19/measurements.json). Countdown admission fn-253.2–.4 and lighter dev profiles fn-254.18 are reviewed and complete. Budget admission fn-254.12 and migration remain deferred; these lanes do not resume either.
+
+The latest `make model-check` attempt failed on 94 strict-Clippy errors in unchanged xtask gate-budget code. Focused checks pass; a full-gate pass remains open.
+
+The owner deferred repository migration on 2026-10-28 and resumed this backlog.
+[fn-258](.flow/specs/fn-258-complete-the-resumed-standalone-umpire.md) remains open
+with its source checkpoints, recovery evidence and unfinished validation preserved.
+Temporal’s in-tree framework remains authoritative. New framework changes require
+renewed migration inventories and proof before a later cutover.
+
+The frozen `c5189bd35d` candidate passed the scheduled source-only standalone
+gate: all 17 stages, with 903 tests discovered, 900 executed and three ignored.
+Parent-child receipts include the separate doctests after the controller admission
+repair. Its five-consumer Activity warm run passed all 148 tests and 25 compiler
+controls in 444.463 s; the 60 s target remains unmet. Review fixes align CI's mise
+pin, restore combined Apalache opt-in, keep formatting outside JVM admission and
+make supervisor scratch private. Focused joined controls pass; follow-up review
+returned SHIP and .17 is closed. Provisioning .16 is reviewed, closed and integrated into `umpire`: all 17 standalone stages passed (914 discovered, 911 executed, three ignored), with unchanged source and owned-process cleanup. Its finished worktree was removed; 10.39 GB of idle build targets were reclaimed after verified proof recovery. [Completion and cleanup checkpoint](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task16/resume-20261028/resume.json). About 32 GiB of idle validation caches were reclaimed
+with verified proof-output recovery. A further 6.61 GB of idle .15 private build
+outputs were reclaimed after independent custody verification; the active build
+cache, sources and recovery stores were preserved. [Cleanup proof](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/post-integration-cleanup-20261028/summary.json).
+The .12 producer checkpoint passes all three public Go stages (170 tests) and a
+mixed TLC proof accounting for 85 protocol fixtures separately from six real
+starts and three configurations. [Count evidence](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task12/count-producers-20261028/summary.json).
+The current .12 checkpoint passes 244 framework xtask tests, 39 consumer xtask tests (four ignored helpers) and 66 process tests. Actual native branches publish applicability and event authorities; explicit stage scope is frozen and propagated without environment mutation. Input/image custody and coverage semantics pass fixture controls. Real observer hooks, early image/context wiring, admitted tables and automatic retry remain open; preparation warnings are not strict-lint acceptance. [Pause checkpoint and resume details](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task12/applicability-pause-20261028/summary.json). macOS validation remains owner-deferred.
 
 ## Keeping this page current
 
@@ -17,21 +43,57 @@ Umpire uses the Rust workspace described in [model/README.md](model/README.md).
 Its guest runs as stock WASM in a pure Go host.
 The Scala tree under `model/archived/` is frozen reference material.
 
-Current order: **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
+Repository migration **fn-258 is deferred by the owner**. Retain its source candidates,
+recovery evidence and explicit interrupted validation state in [MIGRATE.md](MIGRATE.md).
+No receiving refs, publication, CI activation or source cutover have occurred.
+Work proceeds on the in-tree framework; resume migration with a renewed source
+checkpoint after any framework changes. GitHub destination inspection remains SAML-blocked.
+
+Backlog order remains **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
-ranks a fast feedback loop among the most important properties. fn-246's in-flight work is wrapped;
-fn-254.13 is extracting the standalone framework workspace and simplifying its native tools. Deliver fn-254's independent framework/gate checkpoint,
-resume fn-246 to closure, then finish fn-254.7/.8.
-The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246, and fn-254.13's workspace move lands at an
-integration boundary. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; activity changes
+ranks a fast feedback loop among the most important properties. The standalone workspace/driver and independent gate checkpoint are integrated, and the complete isolated proof passed.
+The remaining fn-254 critical path includes budgets .12, consuming the reviewed and integrated .15 native ports, .16 mise provider and .17 nextest/stage-DAG checkpoint. Budget admission remains owner-paused; permitted work completes the fn-246.9 checkpoint and advances activity readability after the integrated protocol and pattern closures. Final proof .8 also waits for .7 after committed fn-246 closure. The consumer/cache checkpoint is reviewed and closed; verified configurations cache independently of refuted siblings, and test-only Kettle readers no longer expand unrelated libraries. fn-254 gets first admission to shared build/JVM/review capacity. Already running fn-246.9 work may reach a safe checkpoint, and disjoint source work may continue without delaying fn-254. Finish fn-254.7 after committed fn-246 closure.
+The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246; fn-254.13's workspace move is integrated. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; activity changes
 retain their listed dependencies and follow the current priority/source-ownership order.
-fn-255.1, .3 and .4 (generator spike, fuzz targets, cargo-mutants) touch no gate files and may run as lanes before fn-254 closes.
-fn-256 (Scala-era tooling removal) is independent and may run as a lane; its root `Makefile` edits land serially with fn-254's.
+fn-255.3 and .4 (fuzz targets and cargo-mutants) may prepare disjoint source before fn-254 closes; execution waits for committed fn-254.12 budget admission. Shared pins, manifests, decoder seams and native command registrations land serially.
+fn-256 (Scala-era tooling removal) may run as a lane when its blockers clear; shared Makefile, CI, pin and documentation edits land serially with fn-254's.
 Consolidation and build prerequisites for fn-246 are satisfied. Priority does not create dependencies;
 clear cross-spec blockers only after prerequisite closures are committed in `umpire`.
 Parallel work requires disjoint source and code-generation ownership.
 
-During fn-254, run focused checks for each change and its changed gates. Defer unrelated broad suites and full
+The owner lifted the validation hold on 2026-10-26. Resume focused fn-254 checks
+and retain unvalidated candidates until their required evidence and reviews pass.
+The fn-254.5 fixture/compiler checkpoint is reviewed and closed on `umpire`: all 24 cases,
+Temporal compiler/activity checks, 61 parser rows plus 18 compiler refusals, bounded profiles
+and snapshot repair controls passed. The .16 provider is reviewed, closed and integrated. The .15 native leaves, controls and callers are reviewed, closed and integrated; 27 scripts are removed; two Rust bootstraps remain, with a pinned-tool adapter now handling Linux host linking. Focused xtask, guest-driver, Temporal xtask and TLC checks pass. The fresh17-stage standalone proof passed on `9babff6c81` with938 discovered,935 executed and three ignored; all909 prior inventory identities are retained through four documented renames. Correctness, contracts and the integration follow-up returned SHIP. The current native timer preserves source bytes under interruption through timestamp-only invalidation; realistic content-edit/final timing work remains explicit in .8. The .12 budget candidates remain unvalidated donor snapshots. Use committed objects selectively; preserve the dirty source-assembly checkout.
+Task .17's shared mise task graph, batched nextest runner, supervisor and Rust/TLC
+receipt producers are joined on `umpire`. Inventory, lifecycle, cross-invocation
+lease/handoff and public graph controls pass. The final real scheduled standalone
+passed in 990.582 s on `c5189bd35d`, including all 896 nextest tests and four doctest
+bodies, with matching parent-child receipt authority and all owned processes reaped.
+The retained Activity warm run passed in 444.463 s with exactly five consumers,
+148 tests, 23 negative/two positive compiler controls and three documentation targets;
+14 verified TLC cache hits avoided model executions. Post-review fixes pass focused
+CI, opt-in provisioning, formatting and supervision controls; follow-up review
+returned SHIP and .17 is closed. The owner deferred macOS validation on 2026-10-27; Darwin behavior is
+preserved, with no runtime acceptance claim.
+Remaining work includes actual Go/TLC count producers, budget admission and
+final combined-gate measurements. Downstream candidates are unvalidated and not integrated into `umpire`;
+preparation does not advance Flow dependencies or mark tasks complete. Integrate shared CLI/configuration
+changes in dependency order. fn-246.13 is integrated and closed; fn-246.9 has renewed proof under review.
+The owner-approved admission policy is one coordinator, up to four implementation
+workers across the team, and one separate review lane. The coordinator owns admission,
+Git/Flow integration and closure; workers own disjoint source. Admit one review round
+at a time, preserving required review lenses and a fixed reviewed head. Each source
+handoff gets a fresh reviewer. Retain the earlier extra-batch candidates without
+restarting those extra lanes; new implementation admission uses the four-worker cap.
+Measure verified Flow closures and observed cycle/review/rework/blocked time in
+[the execution record](.flow/artifacts/fn-257-extract-the-standalone-umpire/agent-throughput.json),
+keeping unvalidated preparation out of completed-task counts. Execution gates may now run. fn-254 retains priority for shared build/JVM capacity; retain the
+fn-255 generator/fuzz/mutation and fn-253.2 spike candidates without treating preparation as completion.
+Spike verdicts, performance claims and task completion still require evidence.
+
+When validation resumes, run focused checks for each change and its changed gates. Defer unrelated broad suites and full
 `model-check`/`model-validate` runs to fn-254.8. Exact TLC agreement, migration inventories, gate failure controls
 and the changed standalone gate keep their task-specific checks. Deferred checks remain final requirements.
 
@@ -41,11 +103,49 @@ reviewed validation evidence and a committed validation-cost assessment.
 
 ## Open specs
 
+### fn-258: Complete the resumed standalone Umpire migration
+
+The renewed source inventory and history task is reviewed and closed on `umpire`.
+The standalone preserves current integrated source and both verified histories;
+1,189 mapped files have zero missing or unexpected differences and all 499 protected
+records remain exact. The consumer candidate includes a regenerated guest reproduced
+in two independent sibling layouts, with unchanged public ABI sections and passing
+host/wire controls. These are source candidates; final gates and cutover remain open.
+Standalone and consumer preparation are reviewed and closed on `umpire`; the consumer source branch remains unmerged until cutover. The current required-TLC validation passed all 18 parent and 17 isolated
+child stages, with 912 tests/doctests executed and three ignored in each tests stage.
+Its 1,679.762-second gate and 24.162-second edit loop miss their soft targets.
+Proof binaries, receipts and source snapshots are retained and independently recoverable.
+The idle isolated-child target was then removed, reclaiming 6.20 GiB; recovery still verifies.
+The in-tree framework stays authoritative until publication and verified cutover.
+Destination access remains blocked by SAML/credentials. See [MIGRATE.md](MIGRATE.md).
+
+[Spec](.flow/specs/fn-258-complete-the-resumed-standalone-umpire.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-258.4 | ⏸️ deferred | Owner stopped final-pair validation; standalone proofs and consumer cde control fix retained. Required paired, timing and local-edit acceptance remain incomplete (R3–R5) |
+| fn-258.5 | ⏸️ deferred | Recovery snapshots prepared only; actual receiving refs, destination access, publication, pinned CI and source cutover remain incomplete (R1, R4, R6) |
+
+
 ### fn-254: Fast validation gates and a real inner loop
 
 The TLC-required gate took 2,093 s at fn-247's close against a 60 s soft target; `cargo test --workspace` was 82% of it.
-Causes: test binaries run one after another, TLC starts one JVM per property (about 1.5 s each), Apalache runs
-although deferred, about 134 test binaries each link the whole graph, and no inner loop covers a real Model edit.
+Historical causes included serial test binaries, one TLC JVM per property (about 1.5 s each), about 134 test
+binaries linking the whole graph, and no real Model-edit inner loop. Routine gates now skip Apalache;
+its opt-in cost is separate. The retained complete five-consumer activity quick run took 444.027 s, including 388.875 s in
+realization tests. The corrected six-consumer Kettle quick run took 129.783 s warm (99.527 s fixtures,
+20.229 s TLA tests); these are different workloads, and the 60 s target remains unmet.
+The current .17 edited-source Kettle run took 173.142 s: 45.465 s in inventory/build
+and 110.616 s in its test phase. It retained the existing positive TLC cache and fresh
+negative executions; the 60 s target remains unmet. See [the current proof](.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/kettle-semantic-renewal/summary.json).
+The current five-consumer Activity runs on `c5189bd35d` took 598.237 s for setup
+and 444.463 s warm, with all 148 selected tests and 23 negative/two positive
+compiler controls passing. The warm run had 14 verified TLC hits and no
+model-checker executions; its test phase alone took 346.122 s. The 60 s target
+remains unmet. Earlier pre-counter warm timing was 321.299 s under different
+build/cache conditions; these runs do not establish a causal speed comparison.
+macOS validation is owner-deferred for now; the Linux proof does not establish Darwin cleanup.
+Fixture/compiler batching and nextest scheduling address gate costs.
 Coverage stays: TLC remains the independent checker, and `model-validate` never uses the new TLC result cache.
 cargo-nextest approved, pinned via mise. The framework's checks move into `model/umpire` and must pass on that
 directory alone (R7). First in the current order; only .7 waits for fn-246's closure.
@@ -54,18 +154,10 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-254.3 | ⬜ todo | After .10: cargo-nextest across binaries with a JVM test group; identical logical test inventory (R4) |
-| fn-254.5 | ⬜ todo | After .10: Apalache out of routine gates, overlapping stages, trybuild trim, dead `model-check-changed` removed (R5) |
-| fn-254.6 | ⬜ todo | After .10: `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
-| fn-254.10 | ⬜ todo | After .13/.16: framework gate and root delegation; prove CLI changes preserve guest caches (R7) |
-| fn-254.11 | ⬜ todo | After .10: framework gate passes on `model/umpire` alone; planted Temporal coupling fails (R7) |
-| fn-254.12 | ⬜ todo | After framework optimizations and controls: committed stage budgets; hard work counts, bounded timing retry, unbudgeted stages fail (R8) |
-| fn-254.13 | 🔄 in progress | Separate framework workspace, dedicated guest driver, shared root/context/remap handling (R7) |
-| fn-254.14 | ⬜ todo | After .13: assume mise and pinned tools are installed; drop presence/pin probes and their controls, fail hard (R7) |
-| fn-254.15 | ⬜ todo | After .13, .10, .14: port remaining model shell scripts to xtask/guest-driver/Makefile; only the xtask bootstrap stays shell (R7) |
-| fn-254.16 | ⬜ todo | After .13/.14, before .10: mise provisions pinned TLC and opt-in Apalache; keep runtime JAR hash/path admission (R7) |
+| fn-254.12 | 🔄 in progress | Owner-paused after applicability/custody checkpoint:244 framework,39 consumer and66 process tests pass. Resume real observer/context wiring, admitted tables and automatic retry; enforcement and closure remain open (R8) |
+| fn-254.19 | ⛔ blocked | Released sccache cannot safely normalize Rust workspace paths across checkouts; actual pinned-tool control and upstream source evidence retained. Full acceptance and production integration remain open (R9) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 
@@ -78,8 +170,8 @@ section, so it may run as a lane, landing serially.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-256.1 | ⬜ todo | Delete the Go IR reader packages, Quint export, backends targets and their CI step (R1, R3) |
-| fn-256.2 | ⬜ todo | Delete the archived Scala Make targets and `scala-cli` pin; mark `model/archived` read-only (R2–R4) |
+| fn-256.1 | ⛔ blocked | Source checkpoint retained; required live gate awaits fn-246.9 whole-prefix consumer repair and current guest/policy renewal (R1, R3) |
+| fn-256.2 | ⬜ todo | Retirement candidate source-reviewed and assembled: Scala targets/pin removed, archive retained read-only. Prerequisite closure and execution evidence remain (R2–R4) |
 
 ### fn-255: Thorough framework testing
 
@@ -96,16 +188,20 @@ Its share is at most 30 s in `model-check` and 120 s in `model-validate`. Mutant
 scheduled-tier only. If the gates miss fn-254's targets, fn-255's counts are cut, never the targets.
 Not adopted: Kani, bolero, Loom, Shuttle (a candidate once checking goes parallel), deterministic simulation.
 
+The reviewed [source-generation design](model/design/generated-differential.md) is integrated;
+its measured bounds and same-schema, Verified-only batching guide the maintained harness.
+Execution of .2–.6 waits for committed fn-254.12 budget admission; disjoint source preparation may continue. Their explicit Flow blocks prevent premature admission. Final tier wiring remains .7.
+The [renewed plan review](.flow/artifacts/fn-255-thorough-framework-testing-generated/plan-review-20261027/summary.json) returned SHIP: stable replay and nightly fuzz wrappers have separate ownership, and differential checks must include legitimately Refuted claims.
+
 [Spec](.flow/specs/fn-255-thorough-framework-testing-generated.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-255.1 | ⬜ todo | Spike: generate admitted Models at tree and/or source level, measured, seeded bug caught (R1) |
-| fn-255.2 | ⬜ todo | After .1: differential harness with shrinking and fixture pinning (R1) |
-| fn-255.3 | ⬜ todo | Pinned nightly; cargo-fuzz targets for guest dispatch and TLC decoders, seeded corpora (R2) |
-| fn-255.4 | ⬜ todo | cargo-mutants per core crate; triage every missed mutant (R3) |
-| fn-255.5 | ⬜ todo | After .3: Miri on ABI buffer logic; syscall exclusion recorded (R4) |
-| fn-255.6 | ⬜ todo | After .2, .3: coverage per crate; aim generator and corpora (R5) |
+| fn-255.2 | ⛔ blocked | Adapt retained differential-harness candidate to the admitted source design; validate shrinking and fixture pinning (R1) |
+| fn-255.3 | ⛔ blocked | [Stable harness/nine-wrapper source split retained on 7010baad96](.flow/artifacts/fn-255-thorough-framework-testing-generated/task3/source-preparation-7010baad96.json), unbuilt and unintegrated; budgets, pins, locks, native admission and runtime controls remain (R2) |
+| fn-255.4 | ⛔ blocked | [Four-file runner candidate is unregistered](.flow/artifacts/fn-255-thorough-framework-testing-generated/task4/readiness-20261027.json); tool pin, fixed smoke manifest, budget admission and measured triage pending (R3) |
+| fn-255.5 | ⛔ blocked | Miri ABI candidate prepared and under source review; .3 pin, registration and actual Miri runs pending (R4) |
+| fn-255.6 | ⛔ blocked | Coverage runner/parser candidate prepared and under source review; .2/.3 integration and measured guidance pending (R5) |
 | fn-255.7 | ⬜ todo | After .2–.6 and committed fn-254.6/.10/.12: tier wiring within budget, re-measured gates, docs (R6, R7) |
 
 ### fn-246: Realization as a checked refinement
@@ -121,10 +217,9 @@ subprocess refusal remains recorded separately.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-246.13 | ⬜ todo | Independent standalone-activity protocol Model and native/TLC invariants (R5) |
-| fn-246.9 | ⬜ todo | Current-format whole-prefix Run recording, replay and presentation (R1, R5) |
+| fn-246.9 | 🔄 in progress | Current guest proof passes 59 live rows, 275 generic Go rows, 63 runtime tests, both root lint modes and the concatenation mutant control. Three-lens review running; integration/closure and full live umbrella remain open (R1, R5) |
 | fn-246.10 | ⬜ todo | After .9: bounded alternatives and coherent explanation publication (R1, R5) |
-| fn-246.2 | ⬜ todo | After .10: shared entity lens and filler-driven probes with equivalence pins (R3) |
+| fn-246.2 | ⬜ todo | shared entity lens and filler-driven probes with equivalence pins (R3) |
 | fn-246.3 | ⬜ todo | After .2, .13: activity migration, exact probe parity and mapping count (R4, R7) |
 | fn-246.4 | ⬜ todo | After .3, .13: generic native Refinement consumer and activity declaration (R5) |
 | fn-246.5 | ⬜ todo | After .3, .4: complete observable-worker policies and derived programs (R6) |
@@ -177,25 +272,20 @@ outstanding performance comparison of the interpreter and compiled checker.
 
 A generic countdown (`umpire_dsl::countdown`: pure arm/tick/expired functions and within/descends laws,
 lowered from source like `closable`) plus Temporal deadline semantics in `model/temporal`, so the
-activity and later workflow, Nexus and timer Models stop hand-writing each countdown. A spike on the
-activity settles the surface and the lifter gaps first. The spike and `umpire-dsl` work (.2–.5) are
-independent of fn-246. The activity clarity task is pending; later activity changes retain their listed dependencies.
+activity and later workflow, Nexus and timer Models stop hand-writing each countdown. The reviewed
+[activity spike](model/design/deadline-countdowns.md) completes R1: shared bounded types and a README pattern are selected, 21 admission controls are reproducible, and current admission gaps remain explicit. The spike and `umpire-dsl` work (.2–.5) are
+independent of fn-246. Activity edits consume committed fn-246.15/.13 corrections and run serially as .1 → .7 → .9 → .10; .8 validates their final combined result.
 Whether fn-246.13's protocol Model may share the Temporal layer is an open owner question.
 
 [Spec](.flow/specs/fn-253-reusable-deadline-countdowns-for-models.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-253.1 | ⬜ todo | Option equality in `deadline` and `tick_priority`, named expiry effects and progress helpers, deduplicated Tick postconditions, split `state_bounds` (R4) |
-| fn-253.2 | ⬜ todo | Spike: activity against the proposed `countdown` surface; verdict in `model/design/deadline-countdowns.md` (R1) |
-| fn-253.3 | ⬜ todo | After .2: `umpire_dsl::countdown` functions and laws in plain Rust (R2) |
-| fn-253.4 | ⬜ todo | After .3: front end lowers countdown calls in handlers, effects and claims (R2) |
-| fn-253.5 | ⬜ todo | After .4: shared `countdowns` fixture with refuting mutants (R2) |
-| fn-253.6 | ⬜ todo | After .2, .5: Temporal deadline semantics as a named pattern (R3) |
+| fn-253.1 | 🔄 in progress | Activity readability after integrated fn-246.13/.15: Option equality, named expiry/progress helpers and split bounds; preserve state/edge goldens and distinct boundary claims (R4) |
 | fn-253.7 | ⬜ todo | After .1, .6: activity uses countdowns and the deadline pattern, behaviour pinned (R4) |
-| fn-253.8 | ⬜ todo | After .7: docs and full gates (R5) |
-| fn-253.9 | ⬜ todo | After .1, coordinated with fn-246.13: `maximum_attempts` as a `Finite` wrapper (R4) |
-| fn-253.10 | ⬜ todo | After .1 and an owner decision on the fn-237 R3 compatibility control: remove `asynchronous_cancel`, always cooperative; coordinated with fn-237.4's live binding (R6) |
+| fn-253.8 | ⬜ todo | After .7, .9 and .10: final combined docs, parameter/refinement checks and full gates (R5) |
+| fn-253.9 | ⬜ todo | After .7: assess `maximum_attempts` as a `Finite` wrapper; preserve native forged-value controls and record admission refusal if unsupported (R4) |
+| fn-253.10 | ⬜ todo | After .9 and an owner decision on the fn-237 R3 compatibility control: remove `asynchronous_cancel`, always cooperative; coordinated with fn-237.4's live binding (R6) |
 
 ### fn-240: Symbolic back end (deferred)
 
@@ -207,22 +297,22 @@ through `checked_step` with native agreement; TLC owns liveness. The
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-240.1 | ⏸️ deferred | `umpire-symbolic` crate: BTOR2 emitter over the embedded admitted tree for Kettle-shaped Models, checked arithmetic latch, one-step history, emission goldens (R1) |
-| fn-240.2 | ⏸️ deferred | After .1: pinned rIC3 built into `model/build/ric3`; IC3 proofs, BMC to native depth plus one, lifecycle, verdict kinds (R2) |
-| fn-240.3 | ⏸️ deferred | After .1, .2: witness decoding by declaration index, `checked_step` replay, claim re-judged, replay types shared with `umpire-apalache`, mutation controls (R3, R4) |
+| fn-240.1 | ⏸️ deferred | Rust width/signedness metadata, then Kettle-shaped BTOR2 emission, checked arithmetic, one-step history and goldens (R1) |
+| fn-240.2 | ⏸️ deferred | After .1: pinned rIC3 under the framework build root; standalone admission, IC3 proofs, bounded BMC and lifecycle (R2) |
+| fn-240.3 | ⏸️ deferred | After .1, .2: bounded whole-trace completion and fn-250.3 shared exact-edge replay, claim confirmation and mutation controls (R3, R4) |
 | fn-240.4 | ⏸️ deferred | After .3: `expected/symbolic.txt` consumer, require-mode gating, ownership, Kettle goldens, DESIGN.md and MILESTONES (R4, R5, R8) |
 | fn-240.5 | ⏸️ deferred | After .4: symbolic Worlds over declared finite domains, computed starts, decoded World replay, `parameterized_world` golden (R6) |
-| fn-240.6 | ⏸️ deferred | After .4: action inputs, non-unit outcomes, bounded sequences, Rust widths on `Type::Int`; `action_inputs` and `shared_returns` goldens (R7) |
+| fn-240.6 | ⏸️ deferred | After .4: finite action inputs, outcomes, sequences and fn-245 sets/maps/queue operations with symbolic agreement goldens (R7) |
 
 ### fn-211: Apalache back end (deferred)
 
 Fixture integration and symbolic Worlds remain deferred until set-valued state is admitted.
 Counterexamples require typed decoding and native replay; TLC owns liveness. The unfinished
-consumer is preserved on `work/fn2114-deferred`; resumption restores Apalache's required gate.
+consumer is preserved on `work/fn2114-deferred`; Apalache retains its separate `UMPIRE_APALACHE=require` opt-in.
 
 [Spec](.flow/specs/fn-211-apalache-backend-for-umpire-in-rust.md).
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-211.4 | ⏸️ deferred | Apalache consumer; Kettle's `apalache.txt` agreement golden (R4, R5) |
-| fn-211.5 | ⏸️ deferred | symbolic World constants via `ConstInit`, one run per property across the declared World domain, replayed under the decoded World (R6) |
+| fn-211.5 | ⏸️ deferred | After .4 and the deferred R6 ownership decision: symbolic World constants, checked construction/catalogs and decoded-World replay (R6) |

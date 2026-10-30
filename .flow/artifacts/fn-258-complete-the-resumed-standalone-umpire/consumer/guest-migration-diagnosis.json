@@ -1,0 +1,157 @@
+{
+  "framework": "ac79114a9ad43a9d9fc2a022d07406d217878760",
+  "consumer": "7e655da80b3810807cbd02a3ea29c26ceb9804e4",
+  "old": {
+    "size": 3988334,
+    "sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+    "sections": [
+      {
+        "id": 1,
+        "size": 370,
+        "sha256": "c9a94ff62908d7a3dbdf0140a8cdcfade06cc9dfd84d01e8c6c44d3abb31a630"
+      },
+      {
+        "id": 2,
+        "size": 217,
+        "sha256": "4fc0e585bb40857ddadbf11847c477be6298fd2514c17f363e6b8daec0ad5c56"
+      },
+      {
+        "id": 3,
+        "size": 3477,
+        "sha256": "5ea37aabba2c10faec7ab16661a0d50b722021273993db07d2b356d172b97ee2"
+      },
+      {
+        "id": 4,
+        "size": 7,
+        "sha256": "46562345fea646422837e0a3e4a22b66f57d3f643b8a98489bcc011247217a9e"
+      },
+      {
+        "id": 5,
+        "size": 3,
+        "sha256": "1c9f9c1b8aeaf92a72970a1c769df1a0907d36e3deac12be420dcb568977d104"
+      },
+      {
+        "id": 13,
+        "size": 3,
+        "sha256": "fb50dc0717ff266cf9baf82b1ce7a1c2ef6d9247859680b11a19fb7077f5f222"
+      },
+      {
+        "id": 6,
+        "size": 9,
+        "sha256": "da3c74f89a28b8e9a570d349d0f0a216ef8e69818c7226007164845feaceaf63"
+      },
+      {
+        "id": 7,
+        "size": 73,
+        "sha256": "ac47a043b86ae9cb72484813fc6bdaea89b0b14500edf7ae33b73de0fee3768b"
+      },
+      {
+        "id": 9,
+        "size": 3137,
+        "sha256": "ff6cdd4a7be14af6cae11e56926c5d6821d01b140a0b801ac09460aafb440969"
+      },
+      {
+        "id": 10,
+        "size": 3817550,
+        "sha256": "e7138af6a2d20345c27e376dbac37a5227985724c74df0a24efc7dc46c18fda8"
+      },
+      {
+        "id": 11,
+        "size": 163449,
+        "sha256": "6b8f535939dd6e06182c73988784a2d9b4ed0c2e438b517e80752a0a6663b663"
+      }
+    ]
+  },
+  "new": {
+    "size": 3988382,
+    "sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+    "sections": [
+      {
+        "id": 1,
+        "size": 370,
+        "sha256": "c9a94ff62908d7a3dbdf0140a8cdcfade06cc9dfd84d01e8c6c44d3abb31a630"
+      },
+      {
+        "id": 2,
+        "size": 217,
+        "sha256": "4fc0e585bb40857ddadbf11847c477be6298fd2514c17f363e6b8daec0ad5c56"
+      },
+      {
+        "id": 3,
+        "size": 3477,
+        "sha256": "e6545ba9226b00e7b17c9e0bf8e32c4161f74e08256dd4c6f09c3eab4d727abb"
+      },
+      {
+        "id": 4,
+        "size": 7,
+        "sha256": "46562345fea646422837e0a3e4a22b66f57d3f643b8a98489bcc011247217a9e"
+      },
+      {
+        "id": 5,
+        "size": 3,
+        "sha256": "1c9f9c1b8aeaf92a72970a1c769df1a0907d36e3deac12be420dcb568977d104"
+      },
+      {
+        "id": 13,
+        "size": 3,
+        "sha256": "fb50dc0717ff266cf9baf82b1ce7a1c2ef6d9247859680b11a19fb7077f5f222"
+      },
+      {
+        "id": 6,
+        "size": 9,
+        "sha256": "da3c74f89a28b8e9a570d349d0f0a216ef8e69818c7226007164845feaceaf63"
+      },
+      {
+        "id": 7,
+        "size": 73,
+        "sha256": "ac47a043b86ae9cb72484813fc6bdaea89b0b14500edf7ae33b73de0fee3768b"
+      },
+      {
+        "id": 9,
+        "size": 3137,
+        "sha256": "a0fc8dbdf73b28c6d36a683ecf7448952ae0af4968a6c5e583a7a886ce14cc8c"
+      },
+      {
+        "id": 10,
+        "size": 3817550,
+        "sha256": "b0a7eca5ca20904eb52a1caeb5f524dbc987cd00cebe001bf3d23e5eb196f61a"
+      },
+      {
+        "id": 11,
+        "size": 163497,
+        "sha256": "9731434b96d6abd6c4573f1f9ad04d667d64928072f67a4c5fa31f1f2908e470"
+      }
+    ]
+  },
+  "equal_sections": [
+    1,
+    2,
+    4,
+    5,
+    13,
+    6,
+    7
+  ],
+  "framework_source_path_remaps": {
+    "old_prefix": "umpire/",
+    "new_prefix": "/framework/",
+    "same_suffixes": true,
+    "count": 13,
+    "paths": [
+      "author/dsl/src/path.rs",
+      "author/dsl/src/path_build.rs",
+      "backends/native/src/explore.rs",
+      "backends/native/src/progress.rs",
+      "catalog/src/catalog.rs",
+      "catalog/src/gap.rs",
+      "catalog/src/generic_probe.rs",
+      "catalog/src/value.rs",
+      "catalog/src/views.rs",
+      "protocol/runtime/src/abi.rs",
+      "protocol/runtime/src/annotations.rs",
+      "protocol/runtime/src/any.rs",
+      "protocol/runtime/src/runtime.rs"
+    ]
+  },
+  "diagnosis": "Public ABI/type/import sections identical; path normalization and portable generated identities change with sibling ownership; code/element/function ordering differs; data section alone grows 48 bytes. Runtime validation recorded separately."
+}

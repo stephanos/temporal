@@ -1,0 +1,12 @@
+{
+  "commits": [],
+  "tests": [
+    "cd model/umpire && CARGO_BUILD_JOBS=2 UMPIRE_BACKENDS=require INSTA_UPDATE=no mise exec -- cargo test -p umpire-fixtures --test fixtures countdowns --locked -- --nocapture --test-threads=1",
+    "cd model/umpire && CARGO_BUILD_JOBS=2 UMPIRE_BACKENDS=require INSTA_UPDATE=no mise exec -- cargo test -p umpire-testing --lib --locked -- --test-threads=1",
+    "cd model/umpire && CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-dsl --lib countdown --locked",
+    "cd model/umpire && CARGO_BUILD_JOBS=2 mise exec -- cargo clippy -p umpire-fixtures -p umpire-testing --all-targets --all-features --locked -- -D warnings",
+    "mise exec -- rustfmt --check --edition 2024 model/umpire/dev/fixtures/fixtures/countdowns/model.rs model/umpire/dev/fixtures/fixtures/countdowns/tests.rs model/umpire/dev/testing/src/backend.rs model/umpire/dev/testing/src/backend_tests.rs",
+    "git diff --check"
+  ],
+  "prs": []
+}

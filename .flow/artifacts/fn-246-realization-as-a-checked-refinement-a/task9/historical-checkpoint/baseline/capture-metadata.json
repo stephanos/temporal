@@ -1,0 +1,18 @@
+{
+  "base": "d0469357c11d885ee1f050446e244ab4538f3a0e",
+  "checkout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-baseline",
+  "branch": "work/fn2469-baseline",
+  "command": "unset BASH_ENV; cd /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-baseline; unset RUSTFLAGS CARGO_ENCODED_RUSTFLAGS RUSTC_WRAPPER RUSTC_WORKSPACE_WRAPPER CARGO_TARGET_DIR; GOCACHE=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2469-prefix/baseline/go GOMAXPROCS=2 GOFLAGS=-p=2 CGO_ENABLED=0 mise exec -- go test -v -p 2 -count=1 -timeout 10m -tags 'test_dep integration' ./tests -run '^TestTestpilotModelSliceThroughUmpire$/(raw|sdk)$'",
+  "exit": 1,
+  "reported_test_seconds": 26.337,
+  "cache": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2469-prefix/baseline/go",
+  "diagnosis": [
+    "Seed21 original judgmentPath fails raw103/sdk104 although both Runs have46 events and27 Describe judgments.",
+    "Only differing JudgeResponse is sequence4 request2: raw observes attempt1 Scheduled stateTransitionCount1 and empty witness; sdk observes attempt1 Started count2 and one accepted Worker::Poll(1). Both continuePolling=true.",
+    "Sequence5 through29 both observe attempt2 Scheduled count3 with prior Retry failure and exactly the same two-edge complete witness. Sequence30 both observe attempt2 Completed count5 and identical four-edge complete witness.",
+    "Sequence31 onward responses agree; last sequence45 witnesses exactly match: Poll(1), retryable failure, Poll(2), completion (all Accepted), then five separate Client::Cancel Rejected(NotFound). No final-witness normalization or cancellation collapse was used in the comparison.",
+    "The extra flattened Poll(1) comes from an earlier observation of attempt1 being already started, not an extra recorded worker attempt or different final witness. Runs contain observed attempt/status/worker identity fields; they do not separately record every worker RPC task token.",
+    "Seed3 has21 events,31 original normalized flattened steps and equal exact seven-edge final witness in both executors.",
+    "All captured Runs are Explained with proposal-budget7 and identical model hash. Raw live row passed including HostRefusal; SDK fatal original parity assertion prevented SDK HostRefusal. No full-gate success is claimed."
+  ]
+}

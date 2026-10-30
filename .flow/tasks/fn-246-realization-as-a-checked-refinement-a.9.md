@@ -9,7 +9,7 @@ Implement current-format Run recording, replay/question/reduce and generic prese
 
 **Size:** M
 **Files:** Runner session/admission/replay/question/reduce, current protocol/bindings, report consumers and focused current-format fixtures/documentation.
-**Touches:** [model/umpire/hosts/go/**, model/umpire/protocol/proto/**, model/umpire/protocol/runtime/tests/**]
+**Touches:** [tests/testpilot_model_slice_umpire_test.go, model/umpire/hosts/go/**, model/umpire/protocol/proto/**, model/umpire/protocol/runtime/tests/**]
 
 ## Approach
 
@@ -31,6 +31,12 @@ Implement current-format Run recording, replay/question/reduce and generic prese
 
 Focused generic Go runner/Host tests with test_dep, current-format record/render comparisons and runtime/guest fixture parity. Regenerate current schemas and fixtures as needed. No old recording, old reader or old rendering compatibility gate remains.
 
+### Live consumer regression discovered during fn-256.1
+
+The actual live gate failed twice at the raw/SDK `judgmentPath` equality (seed21: 103/105 flattened steps; seed3: 31/32), while the supported Runs were Explained. The existing helper concatenates complete-prefix Explanation steps from every observation. Source/log analysis strongly suggests differing read-sampling counts repeat the same complete witness; the original per-event Runs were removed by t.TempDir, so capture them on the next targeted reproduction before choosing a fix. Evidence: `.flow/artifacts/fn-246-realization-as-a-checked-refinement-a/task9-planning/live-parity-diagnosis.md`.
+
+Migrate this consumer to the already-required whole-prefix contract. Preserve raw/SDK semantic parity and mutation detection; do not change the Model, accept Unexplained events, discard differing final witnesses, or relax parity based only on flattened-length differences. Verify repeated unchanged observations and genuinely differing semantic paths separately, then execute every required named live row including SDK HostRefusal (not reached after the current fatal equality). fn-256.1 retains its live-gate obligation until an actual green result exists; a cleanup-source/import identity argument is not a passing gate.
+
 ## Acceptance
 
 - [ ] Current Run records the actual admitted contract and exact guest identity; malformed/incompatible records and contract/hash mismatches fail without invented evidence or Driver effects.
@@ -39,9 +45,10 @@ Focused generic Go runner/Host tests with test_dep, current-format record/render
 - [ ] Current schema/bindings/presentation migrate coherently and the format break is documented. Go contains no Temporal policy; legacy readers, delta mode and old refusal normalization are unnecessary.
 
 ## Done summary
-TBD
+Current-format whole-prefix Run recording/replay and presentation reviewed SHIP across correctness, contracts and integration. Format2 requires current recorded Reset contract before Driver effects; legacy refusal normalization removed. Latest complete witness replaces delta concatenation; immutable recording bytes and callback/Current/proposal order covered. Fresh current-guest proof covers59 live rows,275 generic Go rows,63 runtime tests, both root lint modes and concatenation mutant red/green. Four P3 test improvements verified by focused Go tests/vet, Rust prefix3, strict runtime Clippy and fmt. Changed-canonical-past frontier remains .10 and full live umbrella remains later owner scope.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: eac683e603, ed931f68c8, c1ad60caa25c39d53676b95f531c045133b94a7b
+- Tests: make umpire-check-model-slice:59pass,0skip,current guest8b9ea, Generic Go275pass,0skip; native/WASM parity; Go vet/gofmt, Runtime63pass; strict scoped Clippy/fmt, make lint-code-fast default and integration:pass,fixes disabled, Historical concatenation overlay:red6edges vs4; current consumer:green, Post-review focused Go3 tests/pass with exact mutated event refusal; Go vet; Rust prefix3pass, strict runtime all-target Clippy/fmt
 - PRs:

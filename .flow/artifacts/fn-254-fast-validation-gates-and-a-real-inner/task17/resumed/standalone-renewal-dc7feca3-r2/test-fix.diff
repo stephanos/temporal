@@ -1,0 +1,36 @@
+diff --git a/model/umpire/dev/xtask/src/quick/tests.rs b/model/umpire/dev/xtask/src/quick/tests.rs
+index b2c9c97241..bb32b49f2c 100644
+--- a/model/umpire/dev/xtask/src/quick/tests.rs
++++ b/model/umpire/dev/xtask/src/quick/tests.rs
+@@ -524,14 +524,14 @@ fn metadata_named_checkout_ancestors_do_not_hide_external_build_inputs() -> Test
+ #[test]
+ fn workspace_documentation_can_supply_executable_test_inputs() -> TestResult {
+     let mut graph = Graph::default();
+-    graph.add(
+-        Path::new("/repo/model/umpire"),
+-        &metadata(
+-            "repo/model/umpire",
+-            &[("fixtures", "fixtures", &[]), ("dsl", "dsl", &[]), ("other", "other", &[])],
+-            &["fixtures", "dsl", "other"],
+-        ),
+-    )?;
++    let mut metadata: serde_json::Value = serde_json::from_slice(&metadata(
++        "repo/model/umpire",
++        &[("fixtures", "fixtures", &[]), ("dsl", "dsl", &[]), ("other", "other", &[])],
++        &["fixtures", "dsl", "other"],
++    ))?;
++    metadata["packages"][1]["manifest_path"] =
++        serde_json::json!("/repo/model/umpire/author/dsl/Cargo.toml");
++    graph.add(Path::new("/repo/model/umpire"), &serde_json::to_vec(&metadata)?)?;
+     for path in ["/repo/model/umpire/README.md", "/repo/model/umpire/docs/examples.md"] {
+         assert_eq!(
+             selected(&graph, &options(), &[path])?,
+@@ -541,7 +541,7 @@ fn workspace_documentation_can_supply_executable_test_inputs() -> TestResult {
+     }
+     for path in ["/repo/README.md", "/repo/MILESTONES.md", "/repo/docs/development.md"] {
+         assert_eq!(
+-            selected(&graph, &options(), &["/repo/model/umpire/dsl/src/lib.rs", path])?,
++            selected(&graph, &options(), &["/repo/model/umpire/author/dsl/src/lib.rs", path])?,
+             BTreeSet::from(["fixtures".into(), "dsl".into()]),
+             "{path}"
+         );

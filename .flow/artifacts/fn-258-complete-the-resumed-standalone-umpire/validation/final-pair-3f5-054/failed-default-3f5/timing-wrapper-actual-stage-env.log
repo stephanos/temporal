@@ -1,0 +1,5 @@
+command: ["/bin/bash", "model/scripts/test-time-gate.sh"]
+Cache override: {"UMPIRE_QUICK_CACHE": "0", "UMPIRE_CACHE_DISABLE": "1"}
+Model orchestration controls passed (fake children; no execution evidence).
+
+exit: 1

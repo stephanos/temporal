@@ -1,0 +1,123 @@
+{
+  "note": "These per-phase argv receipts are authoritative. successful-build.json command summarizes the multi-command build sequence; it is not a single exec argv.",
+  "commands": {
+    "framework-production-bootstrap": {
+      "command": [
+        "/bin/bash",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/scripts/xtask.sh"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+        "CARGO_HOME": "/home/agent/.cargo",
+        "TMPDIR": "/tmp/umpire-fn25417-frozen-native",
+        "CARGO_BUILD_JOBS": "1",
+        "CARGO_INCREMENTAL": "0",
+        "CARGO_PROFILE_DEV_DEBUG": "0",
+        "CARGO_PROFILE_TEST_DEBUG": "0",
+        "GOFLAGS": "-p=1",
+        "GOMAXPROCS": "1",
+        "UMPIRE_BACKENDS": "require",
+        "UMPIRE_APALACHE": "skip",
+        "UMPIRE_QUICK_CACHE": "0",
+        "UMPIRE_CACHE_DISABLE": "1",
+        "NEXTEST_PROFILE": null,
+        "NEXTEST_TEST_THREADS": null
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 10.936318714000663,
+      "source_unchanged_after": true
+    },
+    "temporal-native-build": {
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "build",
+        "--locked",
+        "-j1",
+        "-p",
+        "temporal-xtask",
+        "--bin",
+        "temporal-xtask",
+        "--profile",
+        "dev"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+        "CARGO_HOME": "/home/agent/.cargo",
+        "TMPDIR": "/tmp/umpire-fn25417-frozen-native",
+        "CARGO_BUILD_JOBS": "1",
+        "CARGO_INCREMENTAL": "0",
+        "CARGO_PROFILE_DEV_DEBUG": "0",
+        "CARGO_PROFILE_TEST_DEBUG": "0",
+        "GOFLAGS": "-p=1",
+        "GOMAXPROCS": "1",
+        "UMPIRE_BACKENDS": "require",
+        "UMPIRE_APALACHE": "skip",
+        "UMPIRE_QUICK_CACHE": "0",
+        "UMPIRE_CACHE_DISABLE": "1",
+        "NEXTEST_PROFILE": null,
+        "NEXTEST_TEST_THREADS": null
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 1.5006742919977114,
+      "source_unchanged_after": true
+    },
+    "public-required-backend-process": {
+      "command": [
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/xtask-bootstrap/debug/xtask",
+        "test-run",
+        "--package",
+        "umpire-backend-process"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+        "CARGO_HOME": "/home/agent/.cargo",
+        "TMPDIR": "/tmp/umpire-fn25417-frozen-native",
+        "CARGO_BUILD_JOBS": "1",
+        "CARGO_INCREMENTAL": "0",
+        "CARGO_PROFILE_DEV_DEBUG": "0",
+        "CARGO_PROFILE_TEST_DEBUG": "0",
+        "GOFLAGS": "-p=1",
+        "GOMAXPROCS": "1",
+        "UMPIRE_BACKENDS": "require",
+        "UMPIRE_APALACHE": "skip",
+        "UMPIRE_QUICK_CACHE": "0",
+        "UMPIRE_CACHE_DISABLE": "1",
+        "NEXTEST_PROFILE": "required",
+        "NEXTEST_TEST_THREADS": "4"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 2.876500459999079,
+      "source_unchanged_after": true
+    },
+    "native-process-inventory": {
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "nextest",
+        "list",
+        "--locked",
+        "--profile",
+        "required",
+        "--message-format",
+        "json",
+        "--run-ignored",
+        "default",
+        "-p",
+        "umpire-backend-process",
+        "-E",
+        "(package(=umpire-backend-process))"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+      "exit_code": 0,
+      "elapsed_seconds": 0.1439400419985759
+    }
+  }
+}

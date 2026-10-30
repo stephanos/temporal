@@ -1,0 +1,5 @@
+mise by @jdx – installing 1 tool
+mise █████████████░░░ 0/1 · 3.0s
+  github:nextest-rs/nextest@0.9.149  verifying  3.0s  11.5/11.5 MB · 11.8 MB/s
+mise ✓ github:nextest-rs/nextest@0.9.149  3.5s  cargo-nextest-0.9.149-aarch64-unknown-linux-gnu.tar.gz
+mise ████████████████ 1/1 · installed 1 tool in 3.5s

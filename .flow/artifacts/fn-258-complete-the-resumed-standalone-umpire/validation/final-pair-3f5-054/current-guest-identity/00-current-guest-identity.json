@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "/bin/bash",
+    "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/scripts/guest.sh",
+    "umpire-temporal-guest",
+    "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/proof/umpire_temporal_guest.wasm"
+  ],
+  "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+  "started_unix": 1793199459.516222,
+  "ended_unix": 1793199603.3007798,
+  "exit": 0,
+  "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/current-guest-identity-1793199459515115315/00-current-guest-identity.log",
+  "log_sha256": "093648aaf86d9db57aebdcbb64af0cc8c0f55c7cd37a1e7ba30709a88a212af0",
+  "free_before": 54887219200,
+  "free_after": 53982248960
+}

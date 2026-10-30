@@ -1,0 +1,242 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s
+────────────
+ Nextest run ID fce8e0eb-a133-4028-9f5a-79af93e466e8 with nextest profile: required
+    Starting 52 tests across 2 binaries
+  stdout ───
+
+    running 1 test
+    test fingerprint::tests::full_sha_and_structural_framing ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test jar::tests::digest_is_in_process_sha256 ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test support::lease_tests::admission_refuses_hardlinks_fifo_and_public_permissions ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test jar::tests::wrong_digest_and_cache_escape_refuse_before_use ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test support::lease_tests::admission_refuses_symlink_directory_and_foreign_file_without_writing ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test support::lease_tests::checker_target_control ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test support::lease_tests::file_replacement_during_wait_refuses_after_original_owner_releases ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test support::lease_tests::inherited_admission_rejects_unheld_canonical_and_held_wrong_description ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test support::lease_tests::kernel_lock_releases_without_unlinking_or_stale_pid_recovery ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test support::lease_tests::lifecycle_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test syscall::supported::tests::close_limit_retains_descriptors_above_lowered_soft_limit ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.02s
+
+
+  stdout ───
+
+    running 1 test
+    test syscall::supported::tests::duplicated_descriptors_are_private_and_close_on_exec ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test support::lease_tests::checker_guardian_holds_last_private_description_while_target_has_no_capability ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test syscall::supported::tests::raw_clone_normalizes_sparc_child_identity ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test syscall::supported::tests::raw_clone_prefix_preserves_flags_and_null_stack ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test syscall::supported::tests::supervisor_retains_first_stop_signal ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test syscall::tests::all_darwin_helpers_prevent_process_creation ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test syscall::tests::orchestration_allows_darwin_children_without_weakening_checker_admission ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test syscall::tests::unsupported_platform_is_an_explicit_refusal ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+
+        FAIL [   0.018s] (20/52) umpire-backend-process syscall::supported::tests::supervisor_owner_eof_returns_125
+  stdout ───
+
+    running 1 test
+    test syscall::supported::tests::supervisor_owner_eof_returns_125 ... FAILED
+
+    failures:
+
+    failures:
+        syscall::supported::tests::supervisor_owner_eof_returns_125
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.02s
+
+  stderr ───
+
+    thread 'syscall::supported::tests::supervisor_owner_eof_returns_125' (714045) panicked at backends/process/src/syscall.rs:1231:13:
+    assertion `left == right` failed
+      left: Some(137)
+     right: Some(125)
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+  Cancelling due to test failure: 3 tests still running
+  stdout ───
+
+    running 1 test
+    test jar::tests::exact_jar_and_pinned_java_reach_the_probe ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.09s
+
+
+  stdout ───
+
+    running 1 test
+
+    running 1 test
+
+    running 1 test
+
+    running 1 test
+    test support::lease_tests::lifecycle_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.07s
+
+    test support::lease_tests::lifecycle_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.08s
+
+    test support::lease_tests::leased_owner_death_excludes_contender_until_escaped_child_is_reaped ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.12s
+
+
+  stdout ───
+
+    running 1 test
+    test bounded_reads_dump_and_scratch_fail_closed ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.67s
+
+
+────────────
+     Summary [   0.717s] 23/52 tests run: 22 passed, 1 failed, 0 skipped
+        FAIL [   0.018s] (20/52) umpire-backend-process syscall::supported::tests::supervisor_owner_eof_returns_125
+  stdout ───
+
+    running 1 test
+    test syscall::supported::tests::supervisor_owner_eof_returns_125 ... FAILED
+
+    failures:
+
+    failures:
+        syscall::supported::tests::supervisor_owner_eof_returns_125
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.02s
+
+  stderr ───
+
+    thread 'syscall::supported::tests::supervisor_owner_eof_returns_125' (714045) panicked at backends/process/src/syscall.rs:1231:13:
+    assertion `left == right` failed
+      left: Some(137)
+     right: Some(125)
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+warning: 29/52 tests were not run due to test failure (run with --no-fail-fast to run all tests, or run with --max-fail)
+error: test run failed

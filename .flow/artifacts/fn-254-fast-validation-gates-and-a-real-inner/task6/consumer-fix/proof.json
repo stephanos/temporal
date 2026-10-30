@@ -1,0 +1,372 @@
+{
+  "source": "26630320a77d2cf899afbabfa27deee87478dfcc",
+  "source_commits": [
+    "917769a552",
+    "26630320a7"
+  ],
+  "source_files": {
+    "model/dev/xtask/src/quick/mod.rs": "83e76a8f0fda96f4df2fa0e8ba274a679592dfc5fc454f6c78df23d844cdb157",
+    "model/umpire/dev/xtask/src/quick/tests.rs": "85775babd09bc3b62618e961a89d8b735184f24ec9b6ab439b79ec33430720a3"
+  },
+  "consumer_audit": {
+    "source": "917769a552",
+    "consumers": {
+      "umpire-temporal-tests": [
+        "model/temporal/testing/build.rs",
+        "model/temporal/testing/fixtures.rs"
+      ],
+      "umpire-temporal": [
+        "model/temporal/realization/src/lib.rs",
+        "model/temporal/feature/activity/temporal.rs",
+        "model/temporal/realization/src/probes/dispositions.rs"
+      ],
+      "umpire-temporal-api": [
+        "model/temporal/api/build.rs",
+        "model/temporal/api/system.rs",
+        "model/temporal/api/tests/build_inputs.rs",
+        "model/temporal/api/tests/services.rs"
+      ],
+      "umpire-temporal-realization-macros": [
+        "model/temporal/realization/macros/build.rs",
+        "model/temporal/realization/macros/src/lib.rs"
+      ]
+    },
+    "reverse_consumer": "umpire-temporal-guest",
+    "mapping_policy": "Conservative full feature-prefix seeds for all four actual direct readers; normal metadata reverse dependencies add guest. Only fixture package retains Model-only test filtering.",
+    "input_hashes": {
+      "model/temporal/testing/build.rs": "abc33cff2ee62ac6528117499cbd668ba975955b6aa33b087755d346cdae82c8",
+      "model/temporal/testing/fixtures.rs": "34ab7c2596e95e220987c0b44c58c5f6b274ba6521f0db502051679a3137da2d",
+      "model/temporal/realization/src/lib.rs": "cbf937bad83021b2a1c445fb2fbd6ad954c2ba36270d7f3366c140b5073a05ec",
+      "model/temporal/feature/activity/temporal.rs": "bb3c7b404ea950b0ca1424803ef068ed2be01bc7ac57d1f260af138320a049bc",
+      "model/temporal/realization/src/probes/dispositions.rs": "97078d784006d357c767475e21f032dccdc7754e729817e48789af20f2e55cc0",
+      "model/temporal/api/build.rs": "88bddbc002d442dd171745c4aeacb0f52876685662eeab7492b2715671f99455",
+      "model/temporal/api/system.rs": "cba06f68d1d8dbeb0afb2d3226639116c541bdb904c9fa893853b7543d322055",
+      "model/temporal/api/tests/build_inputs.rs": "45874690fb654bb4d541c5c30cb398ab9a3c26cbc4dc07f91a59fc19c2e36214",
+      "model/temporal/api/tests/services.rs": "478b6c73ebd5a2b1764433a8586b8e415dd0240676a36eee3ffed1546a545aca",
+      "model/temporal/realization/macros/build.rs": "ec2885e04b0b4592e43dce4060a3b22e7bec7abe682794afad9ec25534306d57",
+      "model/temporal/realization/macros/src/lib.rs": "7a1401942e39bedc1167976bff9bacea0df4fbddf44ae69e1d1698c49e531779"
+    }
+  },
+  "warm": {
+    "mode": "warm",
+    "source": "26630320a77d2cf899afbabfa27deee87478dfcc",
+    "status": 0,
+    "input": "model/temporal/feature/activity/model.rs",
+    "original_sha256": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767",
+    "edited_sha256": "ee3f55d51c39770bd7207782490280526b0070155ac1e3bbbab1c59c59e3c4d8",
+    "selection": {
+      "base": "HEAD",
+      "changed": [
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/feature/activity/model.rs"
+      ],
+      "reasons": [
+        "always: umpire-temporal-tests (native/interpreter/backend fixture execution)",
+        "mapped source: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/feature/activity/model.rs"
+      ],
+      "workspaces": [
+        {
+          "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model",
+          "packages": [
+            "umpire-temporal",
+            "umpire-temporal-api",
+            "umpire-temporal-guest",
+            "umpire-temporal-realization-macros",
+            "umpire-temporal-tests"
+          ]
+        },
+        {
+          "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire",
+          "packages": []
+        }
+      ]
+    },
+    "stage_receipts": [
+      [
+        "fmt",
+        "umpire-temporal,umpire-temporal-api,umpire-temporal-guest,umpire-temporal-realization-macros,umpire-temporal-tests",
+        "0.194",
+        "0"
+      ],
+      [
+        "clippy",
+        "umpire-temporal,umpire-temporal-api,umpire-temporal-guest,umpire-temporal-realization-macros,umpire-temporal-tests",
+        "8.383",
+        "0"
+      ],
+      [
+        "test",
+        "umpire-temporal",
+        "388.875",
+        "0"
+      ],
+      [
+        "test",
+        "umpire-temporal-api",
+        "9.531",
+        "0"
+      ],
+      [
+        "test",
+        "umpire-temporal-guest",
+        "8.806",
+        "0"
+      ],
+      [
+        "test",
+        "umpire-temporal-realization-macros",
+        "12.738",
+        "0"
+      ],
+      [
+        "test",
+        "umpire-temporal-tests",
+        "14.181",
+        "0"
+      ]
+    ],
+    "cache_hits": 14,
+    "cache_misses": 0,
+    "tlc_executions": 0,
+    "native_interpreter": 4,
+    "existing_phase_test_failed": false
+  },
+  "prewarm": {
+    "mode": "prewarm",
+    "source": "917769a5524a21cebff07f7897099ab73a3503a3",
+    "status": 0,
+    "input": "model/temporal/feature/activity/model.rs",
+    "original_sha256": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767",
+    "edited_sha256": "a2c788ea014725c9f84588af20272f08e939a6cf7b85d4858efdd36ac45975d9",
+    "selection": {
+      "base": "HEAD",
+      "changed": [
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/feature/activity/model.rs"
+      ],
+      "reasons": [
+        "always: umpire-temporal-tests (native/interpreter/backend fixture execution)",
+        "mapped source: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/feature/activity/model.rs"
+      ],
+      "workspaces": [
+        {
+          "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model",
+          "packages": [
+            "umpire-temporal",
+            "umpire-temporal-api",
+            "umpire-temporal-guest",
+            "umpire-temporal-realization-macros",
+            "umpire-temporal-tests"
+          ]
+        },
+        {
+          "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire",
+          "packages": []
+        }
+      ]
+    },
+    "stage_receipts": [
+      [
+        "fmt",
+        "umpire-temporal,umpire-temporal-api,umpire-temporal-guest,umpire-temporal-realization-macros,umpire-temporal-tests",
+        "0.141",
+        "0"
+      ],
+      [
+        "clippy",
+        "umpire-temporal,umpire-temporal-api,umpire-temporal-guest,umpire-temporal-realization-macros,umpire-temporal-tests",
+        "16.371",
+        "0"
+      ],
+      [
+        "test",
+        "umpire-temporal",
+        "427.866",
+        "0"
+      ],
+      [
+        "test",
+        "umpire-temporal-api",
+        "22.066",
+        "0"
+      ],
+      [
+        "test",
+        "umpire-temporal-guest",
+        "12.238",
+        "0"
+      ],
+      [
+        "test",
+        "umpire-temporal-realization-macros",
+        "31.789",
+        "0"
+      ],
+      [
+        "test",
+        "umpire-temporal-tests",
+        "14.652",
+        "0"
+      ]
+    ],
+    "cache_hits": 14,
+    "cache_misses": 0,
+    "tlc_executions": 0,
+    "native_interpreter": 4,
+    "existing_phase_test_failed": false
+  },
+  "phase_negative": {
+    "source": "26630320a77d2cf899afbabfa27deee87478dfcc",
+    "input": "model/temporal/feature/activity/phase.rs",
+    "original_sha256": "8a5a0eebc8f17e292c8c8c65ad6415236c1ad84d2b013dceb5a27ece528522c1",
+    "mutant_sha256": "7f990ee2bd548d1ee661cbaa56f8838301ec37185b70ed82395da24486b41761",
+    "status": 101,
+    "existing_test_failed": true,
+    "selection": {
+      "base": "HEAD",
+      "changed": [
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/temporal/feature/activity/phase.rs"
+      ],
+      "reasons": [
+        "always: umpire-temporal-tests (native/interpreter/backend fixture execution)",
+        "mapped source: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/temporal/feature/activity/phase.rs"
+      ],
+      "workspaces": [
+        {
+          "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model",
+          "packages": [
+            "umpire-temporal",
+            "umpire-temporal-api",
+            "umpire-temporal-guest",
+            "umpire-temporal-realization-macros",
+            "umpire-temporal-tests"
+          ]
+        },
+        {
+          "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/umpire",
+          "packages": []
+        }
+      ]
+    },
+    "proof_scope": "Shipping quick select-only plus the existing selected realization support test; full shipping quick healthy run covers this same unfiltered consumer test inventory."
+  },
+  "native_controls": {
+    "framework_quick": 10,
+    "bridge": 1,
+    "red_green": true,
+    "strict_clippy": true,
+    "generic_source_boundary": true
+  },
+  "lock_hashes": {
+    "model/Cargo.lock": "50d2b024555c958b02286fa6ec65976efc9fb9cd69f4d27780e9a01998d5d70f",
+    "model/umpire/Cargo.lock": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5"
+  },
+  "budget": {
+    "limit_seconds": 60,
+    "actual_seconds": 444.027,
+    "passed": false,
+    "cause": "The correctly selected realization tests took 388.875 s. Its realization_admission target took 257.52 s and supplemental_requests target took 51.70 s, including repeated compile-admission controls. All 14 TLC reads hit and zero TLC checks executed."
+  },
+  "historical_timings": "The earlier 20.265 s and 20.403 s results covered an incomplete fixture-only consumer selection and do not establish the corrected quick command budget. Their original receipts remain unchanged.",
+  "runs": [
+    {
+      "name": "consumer-fix/phase-selection",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "run",
+        "--locked",
+        "--manifest-path",
+        "model/Cargo.toml",
+        "-p",
+        "temporal-xtask",
+        "--bin",
+        "temporal-xtask",
+        "--",
+        "quick",
+        "--select-only"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative",
+      "target": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/consumer-negative",
+      "status": 0,
+      "seconds": 16.189,
+      "environment": {
+        "CARGO_BUILD_JOBS": "2",
+        "CARGO_INCREMENTAL": "0",
+        "RUST_TEST_THREADS": "2",
+        "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/consumer-negative"
+      }
+    },
+    {
+      "name": "consumer-fix/phase-existing-test",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "model/Cargo.toml",
+        "-p",
+        "umpire-temporal",
+        "--test",
+        "support",
+        "phase_conversion_preserves_all_pairs_and_unknown_enum_precedence",
+        "--",
+        "--exact",
+        "--nocapture",
+        "--test-threads=2"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative",
+      "target": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/consumer-negative",
+      "status": 101,
+      "seconds": 24.346,
+      "environment": {
+        "CARGO_BUILD_JOBS": "2",
+        "CARGO_INCREMENTAL": "0",
+        "RUST_TEST_THREADS": "2",
+        "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/consumer-negative"
+      }
+    },
+    {
+      "name": "consumer-fix/warm",
+      "command": [
+        "make",
+        "model-quick"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate",
+      "target": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate",
+      "status": 0,
+      "seconds": 444.027,
+      "environment": {
+        "CARGO_BUILD_JOBS": "2",
+        "CARGO_INCREMENTAL": "0",
+        "RUST_TEST_THREADS": "2",
+        "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate:/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate"
+      }
+    }
+  ],
+  "restored_clean": {
+    "candidate": true,
+    "consumer-negative": true
+  },
+  "scope": "Only quick selection/controls changed. No Model, backend, cache, manifest, lock or guest source changes; no repeated guest or TLC invalidation campaign.",
+  "healthy_shipping_phase_test_passed": true,
+  "selected_consumers_run_unfiltered_tests": true,
+  "proof_files": {
+    "warm.log": "7a5a69a29fc1b9dac3e87980fb321bbbff8b591b462c16126a274599b871af1f",
+    "phase-selection.log": "149addbce45cd84689658234aff6fb7b6a0d2fd7aafd4f9e3f331e2d6717cd2b",
+    "phase-existing-test.log": "427a348e189c25a4dbd1fd356412fc290fefbb40872008cb62821d24025851a8",
+    "bridge-red.log": "f4c5727ecb74d3f7a5b0be6423f2281dd159adc7bc0173bbe0c848da4a5c399f",
+    "bridge-green.log": "761ae4da6976ae7eb83a209f1365f9145737a8b67901fca91ded387355b2e73c",
+    "bridge-clippy.log": "4896704155e17943b032e0bc58585252eab650c48113b5e90c35fabd456e7f95",
+    "quick-red.log": "221a5179063fcc8288f649aedf9cb24f83ea2312be55ab84d4a1306ff2d6af56",
+    "quick-green.log": "526b3f0a479c2860d5f09d836725409783bcdf43c82da1a202168feeff7be4a6",
+    "quick-final.log": "caece8361f5b99d0da564e43d6961ad5700f6fe2066e32bc8b9b504d37b353fa",
+    "quick-final-clippy.log": "d8174c5e3f2a3d7b453b2eb737c6a9bae1fd2f6a027dc9eb00fdf79eef6d058c",
+    "generic-boundary.log": "344529e24743e9167916c53c51bbb5f24a9d0a99561d4b39ecb6976d18392b39",
+    "run-scenarios.py": "0a06efb203ce3356460838dd797d51c370ea2d8b4ea2ca574986d69a218fec18"
+  },
+  "prewarm_log_sha256": "6378036c5aec975e00f8c1caed629bfa332b008d6767ad39a07500edcf7ea52f"
+}

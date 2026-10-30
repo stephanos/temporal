@@ -1,0 +1,1627 @@
+{
+  "native_producers": [
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire-5715fdd004f2539c)",
+      "header_line": 138,
+      "result_lines": [
+        142
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire-5715fdd004f2539c",
+      "counts": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 0
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_apalache-45788d1a25ab5417)",
+      "header_line": 143,
+      "result_lines": [
+        155
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_apalache-45788d1a25ab5417",
+      "counts": {
+        "passed": 7,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 7
+    },
+    {
+      "header": "Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-87e26ebc031203f2)",
+      "header_line": 156,
+      "result_lines": [
+        190
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-87e26ebc031203f2",
+      "counts": {
+        "passed": 29,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 29
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_author_consumer-02eba2d08670513c)",
+      "header_line": 191,
+      "result_lines": [
+        199
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_author_consumer-02eba2d08670513c",
+      "counts": {
+        "passed": 3,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 3
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_backend_process-080282e03171adb1)",
+      "header_line": 200,
+      "result_lines": [
+        223,
+        227,
+        245,
+        251,
+        255
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_backend_process-080282e03171adb1",
+      "counts": {
+        "passed": 24,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 24
+    },
+    {
+      "header": "Running tests/process.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/process-a0640ac622267c63)",
+      "header_line": 256,
+      "result_lines": [
+        291
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/process-a0640ac622267c63",
+      "counts": {
+        "passed": 30,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 30
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_catalog-cd8766f6fc201fc2)",
+      "header_line": 292,
+      "result_lines": [
+        298
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_catalog-cd8766f6fc201fc2",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 1
+    },
+    {
+      "header": "Running tests/admission.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/admission-6a3684a50c6207f0)",
+      "header_line": 299,
+      "result_lines": [
+        392
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/admission-6a3684a50c6207f0",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 1
+    },
+    {
+      "header": "Running tests/derive_catalog.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/derive_catalog-77ce0adb93926bb2)",
+      "header_line": 393,
+      "result_lines": [
+        404
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/derive_catalog-77ce0adb93926bb2",
+      "counts": {
+        "passed": 6,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 6
+    },
+    {
+      "header": "Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-cf7d9f7d30299e67)",
+      "header_line": 405,
+      "result_lines": [
+        476
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-cf7d9f7d30299e67",
+      "counts": {
+        "passed": 66,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 66
+    },
+    {
+      "header": "Running tests/message_map.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/message_map-647d1d9079a957ce)",
+      "header_line": 477,
+      "result_lines": [
+        483
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/message_map-647d1d9079a957ce",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 1
+    },
+    {
+      "header": "Running tests/response_checks.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/response_checks-392ffd6da82290e1)",
+      "header_line": 484,
+      "result_lines": [
+        490
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/response_checks-392ffd6da82290e1",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 1
+    },
+    {
+      "header": "Running tests/ui.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/ui-a190e3ac099e3d63)",
+      "header_line": 491,
+      "result_lines": [
+        548
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/ui-a190e3ac099e3d63",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 1
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_catalog_build-b36bb8c7b781c353)",
+      "header_line": 549,
+      "result_lines": [
+        554
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_catalog_build-b36bb8c7b781c353",
+      "counts": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 0
+    },
+    {
+      "header": "Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-0815afda85cb7a2a)",
+      "header_line": 555,
+      "result_lines": [
+        571
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-0815afda85cb7a2a",
+      "counts": {
+        "passed": 11,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 11
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_catalog_macros-2bd0f85ffde39091)",
+      "header_line": 572,
+      "result_lines": [
+        578
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_catalog_macros-2bd0f85ffde39091",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 1
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_catalog_syntax-cad0f3b3c3317000)",
+      "header_line": 579,
+      "result_lines": [
+        604
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_catalog_syntax-cad0f3b3c3317000",
+      "counts": {
+        "passed": 20,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 20
+    },
+    {
+      "header": "Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-7d55a07ddacd21d5)",
+      "header_line": 605,
+      "result_lines": [
+        626
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-7d55a07ddacd21d5",
+      "counts": {
+        "passed": 16,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 16
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/caught_panic_control-57656fbe1de8807a)",
+      "header_line": 627,
+      "result_lines": [
+        632
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/caught_panic_control-57656fbe1de8807a",
+      "counts": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 0
+    },
+    {
+      "header": "Running unittests src/bin/panic-control-reports.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/panic_control_reports-34f7f8539e4d9b10)",
+      "header_line": 633,
+      "result_lines": [
+        639
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/panic_control_reports-34f7f8539e4d9b10",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 1
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_checker-9e13771fa86efc8d)",
+      "header_line": 640,
+      "result_lines": [
+        652
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_checker-9e13771fa86efc8d",
+      "counts": {
+        "passed": 7,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 7
+    },
+    {
+      "header": "Running tests/catalog_admission.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/catalog_admission-2f4da8dd2e43ea1e)",
+      "header_line": 653,
+      "result_lines": [
+        663
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/catalog_admission-2f4da8dd2e43ea1e",
+      "counts": {
+        "passed": 5,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 5
+    },
+    {
+      "header": "Running tests/fixtures.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixtures-709286d11df0cd2f)",
+      "header_line": 664,
+      "result_lines": [
+        681
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixtures-709286d11df0cd2f",
+      "counts": {
+        "passed": 12,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 12
+    },
+    {
+      "header": "Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-21b4fcc9fca87eea)",
+      "header_line": 682,
+      "result_lines": [
+        691
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-21b4fcc9fca87eea",
+      "counts": {
+        "passed": 4,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 4
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/stateful_control-7edbcc5b709214ba)",
+      "header_line": 692,
+      "result_lines": [
+        697
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/stateful_control-7edbcc5b709214ba",
+      "counts": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 0
+    },
+    {
+      "header": "Running unittests src/bin/current-contract-reports.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/current_contract_reports-14ac8dec8f7cbeda)",
+      "header_line": 698,
+      "result_lines": [
+        704
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/current_contract_reports-14ac8dec8f7cbeda",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 1
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_dsl-238518f3caad5260)",
+      "header_line": 705,
+      "result_lines": [
+        711
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_dsl-238518f3caad5260",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 1
+    },
+    {
+      "header": "Running tests/fixtures.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixtures-510ad7eeefdcbff3)",
+      "header_line": 712,
+      "result_lines": [
+        723
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixtures-510ad7eeefdcbff3",
+      "counts": {
+        "passed": 6,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 6
+    },
+    {
+      "header": "Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-3a42935bb56cfa23)",
+      "header_line": 724,
+      "result_lines": [
+        787
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-3a42935bb56cfa23",
+      "counts": {
+        "passed": 58,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 58
+    },
+    {
+      "header": "Running tests/ui.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/ui-1b62e0f714642edd)",
+      "header_line": 788,
+      "result_lines": [
+        847
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/ui-1b62e0f714642edd",
+      "counts": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 2
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_dsl_macros-0297ca116f04ac10)",
+      "header_line": 848,
+      "result_lines": [
+        856
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_dsl_macros-0297ca116f04ac10",
+      "counts": {
+        "passed": 3,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 3
+    },
+    {
+      "header": "Running tests/fixtures.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixtures-f3ce281cb6e7e23f)",
+      "header_line": 857,
+      "result_lines": [
+        944
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixtures-f3ce281cb6e7e23f",
+      "counts": {
+        "passed": 8,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 8
+    },
+    {
+      "header": "Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-829f6194137730a2)",
+      "header_line": 945,
+      "result_lines": [
+        952
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-829f6194137730a2",
+      "counts": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 2
+    },
+    {
+      "header": "Running fixtures.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixtures-63e82cd6925f89f7)",
+      "header_line": 953,
+      "result_lines": [
+        1042
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixtures-63e82cd6925f89f7",
+      "counts": {
+        "passed": 83,
+        "failed": 0,
+        "ignored": 1,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 84
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_front-2fcd8737e607ce59)",
+      "header_line": 1043,
+      "result_lines": [
+        1055
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_front-2fcd8737e607ce59",
+      "counts": {
+        "passed": 7,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 7
+    },
+    {
+      "header": "Running tests/world_fairness.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/world_fairness-4e7bec87cb7a2f3a)",
+      "header_line": 1056,
+      "result_lines": [
+        1067
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/world_fairness-4e7bec87cb7a2f3a",
+      "counts": {
+        "passed": 6,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 6
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_guest_driver-34056505bdf03254)",
+      "header_line": 1068,
+      "result_lines": [
+        1077
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_guest_driver-34056505bdf03254",
+      "counts": {
+        "passed": 4,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 4
+    },
+    {
+      "header": "Running unittests src/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_guest_driver-3448beb5a45242aa)",
+      "header_line": 1078,
+      "result_lines": [
+        1083
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_guest_driver-3448beb5a45242aa",
+      "counts": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 0
+    },
+    {
+      "header": "Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-e6260761972d67c0)",
+      "header_line": 1084,
+      "result_lines": [
+        1120
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-e6260761972d67c0",
+      "counts": {
+        "passed": 31,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 31
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_ir-d3440bcd44a86c8d)",
+      "header_line": 1121,
+      "result_lines": [
+        1132
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_ir-d3440bcd44a86c8d",
+      "counts": {
+        "passed": 6,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 6
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_ir_derive-a58bbf1a261b842d)",
+      "header_line": 1133,
+      "result_lines": [
+        1138
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_ir_derive-a58bbf1a261b842d",
+      "counts": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 0
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_kettle_guest-60cd3a5808518a38)",
+      "header_line": 1139,
+      "result_lines": [
+        1144
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_kettle_guest-60cd3a5808518a38",
+      "counts": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 0
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/overflow_control-4758f37fabad436c)",
+      "header_line": 1145,
+      "result_lines": [
+        1150
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/overflow_control-4758f37fabad436c",
+      "counts": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 0
+    },
+    {
+      "header": "Running unittests lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_reference_kettle-cfac31c5060a2258)",
+      "header_line": 1151,
+      "result_lines": [
+        1156
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_reference_kettle-cfac31c5060a2258",
+      "counts": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 0
+    },
+    {
+      "header": "Running tests/exhaustiveness.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/exhaustiveness-6f498d42568a1987)",
+      "header_line": 1157,
+      "result_lines": [
+        1181
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/exhaustiveness-6f498d42568a1987",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 1
+    },
+    {
+      "header": "Running tests/live_snapshots.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/live_snapshots-2a55f37c1bb7bbe3)",
+      "header_line": 1182,
+      "result_lines": [
+        1188
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/live_snapshots-2a55f37c1bb7bbe3",
+      "counts": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 1,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 1
+    },
+    {
+      "header": "Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-e42dc141dfd47875)",
+      "header_line": 1189,
+      "result_lines": [
+        1210
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-e42dc141dfd47875",
+      "counts": {
+        "passed": 16,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 16
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_runtime-df799720eedcb524)",
+      "header_line": 1211,
+      "result_lines": [
+        1216
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_runtime-df799720eedcb524",
+      "counts": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 0
+    },
+    {
+      "header": "Running tests/capabilities.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/capabilities-43683602aed5f492)",
+      "header_line": 1217,
+      "result_lines": [
+        1224
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/capabilities-43683602aed5f492",
+      "counts": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 2
+    },
+    {
+      "header": "Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-587681c93eee0517)",
+      "header_line": 1225,
+      "result_lines": [
+        1280
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-587681c93eee0517",
+      "counts": {
+        "passed": 50,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 50
+    },
+    {
+      "header": "Running tests/reach.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/reach-a244e00cf62034c2)",
+      "header_line": 1281,
+      "result_lines": [
+        1295
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/reach-a244e00cf62034c2",
+      "counts": {
+        "passed": 9,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 9
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_stock_guest-e04b96744c2dd20e)",
+      "header_line": 1296,
+      "result_lines": [
+        1301
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_stock_guest-e04b96744c2dd20e",
+      "counts": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 0
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_suite-6bcdfc8f8f800e42)",
+      "header_line": 1302,
+      "result_lines": [
+        1318
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_suite-6bcdfc8f8f800e42",
+      "counts": {
+        "passed": 11,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 11
+    },
+    {
+      "header": "Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-452b6173121b1805)",
+      "header_line": 1319,
+      "result_lines": [
+        1340
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-452b6173121b1805",
+      "counts": {
+        "passed": 16,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 16
+    },
+    {
+      "header": "Running tests/retained.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/retained-67a56a71345197e8)",
+      "header_line": 1341,
+      "result_lines": [
+        1350
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/retained-67a56a71345197e8",
+      "counts": {
+        "passed": 4,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 4
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_testing-ec6429914cbf758d)",
+      "header_line": 1351,
+      "result_lines": [
+        1368
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_testing-ec6429914cbf758d",
+      "counts": {
+        "passed": 12,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 12
+    },
+    {
+      "header": "Running tests/consumers.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/consumers-b73f74ed09e3efc5)",
+      "header_line": 1369,
+      "result_lines": [
+        1386
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/consumers-b73f74ed09e3efc5",
+      "counts": {
+        "passed": 12,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 12
+    },
+    {
+      "header": "Running tests/external_consumers.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/external_consumers-9781c18b7a9cd675)",
+      "header_line": 1387,
+      "result_lines": [
+        1395
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/external_consumers-9781c18b7a9cd675",
+      "counts": {
+        "passed": 3,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 3
+    },
+    {
+      "header": "Running tests/fixture_composition.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixture_composition-5c738fb7f819d02e)",
+      "header_line": 1396,
+      "result_lines": [
+        1403
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixture_composition-5c738fb7f819d02e",
+      "counts": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 2
+    },
+    {
+      "header": "Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-bedace5a8d4e385c)",
+      "header_line": 1404,
+      "result_lines": [
+        1414
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-bedace5a8d4e385c",
+      "counts": {
+        "passed": 5,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 5
+    },
+    {
+      "header": "Running tests/native_backend.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/native_backend-24b62e4af06927c3)",
+      "header_line": 1415,
+      "result_lines": [
+        1422
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/native_backend-24b62e4af06927c3",
+      "counts": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 2
+    },
+    {
+      "header": "Running tests/suite_consumers.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/suite_consumers-cec625728a58b22d)",
+      "header_line": 1423,
+      "result_lines": [
+        1433
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/suite_consumers-cec625728a58b22d",
+      "counts": {
+        "passed": 5,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 5
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_tla-85fd968187a42551)",
+      "header_line": 1434,
+      "result_lines": [
+        1454
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_tla-85fd968187a42551",
+      "counts": {
+        "passed": 15,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 15
+    },
+    {
+      "header": "Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-a3d778aef64545f0)",
+      "header_line": 1455,
+      "result_lines": [
+        1556
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-a3d778aef64545f0",
+      "counts": {
+        "passed": 96,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 96
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_tlc-2c2375dd219d0cbd)",
+      "header_line": 1557,
+      "result_lines": [
+        1588
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_tlc-2c2375dd219d0cbd",
+      "counts": {
+        "passed": 26,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 26
+    },
+    {
+      "header": "Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-615d5c88882ae234)",
+      "header_line": 1589,
+      "result_lines": [
+        1602
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-615d5c88882ae234",
+      "counts": {
+        "passed": 8,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 8
+    },
+    {
+      "header": "Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/xtask-00fe51f09ffc641d)",
+      "header_line": 1603,
+      "result_lines": [
+        1650,
+        1665,
+        1671,
+        1677,
+        1686,
+        1765
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/xtask-00fe51f09ffc641d",
+      "counts": {
+        "passed": 96,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 96
+    },
+    {
+      "header": "Running unittests src/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/xtask-fa5210ad20f7aeaa)",
+      "header_line": 1766,
+      "result_lines": [
+        1771
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/xtask-fa5210ad20f7aeaa",
+      "counts": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 0
+    },
+    {
+      "header": "Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-445be5b0c040204c)",
+      "header_line": 1772,
+      "result_lines": [
+        1832
+      ],
+      "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-445be5b0c040204c",
+      "counts": {
+        "passed": 52,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "declared_tests": 52
+    }
+  ],
+  "doctest_producers": [
+    {
+      "header": "Doc-tests umpire",
+      "header_line": 1833,
+      "result_lines": [
+        1838
+      ],
+      "crate": "umpire",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_apalache",
+      "header_line": 1839,
+      "result_lines": [
+        1844
+      ],
+      "crate": "umpire_apalache",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_author_consumer",
+      "header_line": 1845,
+      "result_lines": [
+        1850
+      ],
+      "crate": "umpire_author_consumer",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_backend_process",
+      "header_line": 1851,
+      "result_lines": [
+        1856
+      ],
+      "crate": "umpire_backend_process",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_catalog",
+      "header_line": 1857,
+      "result_lines": [
+        1863,
+        1869
+      ],
+      "crate": "umpire_catalog",
+      "results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_catalog_build",
+      "header_line": 1872,
+      "result_lines": [
+        1876
+      ],
+      "crate": "umpire_catalog_build",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_catalog_macros",
+      "header_line": 1877,
+      "result_lines": [
+        1882
+      ],
+      "crate": "umpire_catalog_macros",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_catalog_syntax",
+      "header_line": 1883,
+      "result_lines": [
+        1888
+      ],
+      "crate": "umpire_catalog_syntax",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_checker",
+      "header_line": 1889,
+      "result_lines": [
+        1894
+      ],
+      "crate": "umpire_checker",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_dsl",
+      "header_line": 1895,
+      "result_lines": [
+        1900
+      ],
+      "crate": "umpire_dsl",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_dsl_macros",
+      "header_line": 1901,
+      "result_lines": [
+        1906
+      ],
+      "crate": "umpire_dsl_macros",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_front",
+      "header_line": 1907,
+      "result_lines": [
+        1912
+      ],
+      "crate": "umpire_front",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_guest_driver",
+      "header_line": 1913,
+      "result_lines": [
+        1918
+      ],
+      "crate": "umpire_guest_driver",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_ir",
+      "header_line": 1919,
+      "result_lines": [
+        1924
+      ],
+      "crate": "umpire_ir",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_ir_derive",
+      "header_line": 1925,
+      "result_lines": [
+        1930
+      ],
+      "crate": "umpire_ir_derive",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_reference_kettle",
+      "header_line": 1931,
+      "result_lines": [
+        1936
+      ],
+      "crate": "umpire_reference_kettle",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_runtime",
+      "header_line": 1937,
+      "result_lines": [
+        1943
+      ],
+      "crate": "umpire_runtime",
+      "results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_suite",
+      "header_line": 1944,
+      "result_lines": [
+        1950,
+        1956
+      ],
+      "crate": "umpire_suite",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1,
+          "measured": 0,
+          "filtered_out": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_testing",
+      "header_line": 1959,
+      "result_lines": [
+        1963
+      ],
+      "crate": "umpire_testing",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_tla",
+      "header_line": 1964,
+      "result_lines": [
+        1969
+      ],
+      "crate": "umpire_tla",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests umpire_tlc",
+      "header_line": 1970,
+      "result_lines": [
+        1975
+      ],
+      "crate": "umpire_tlc",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    },
+    {
+      "header": "Doc-tests xtask",
+      "header_line": 1976,
+      "result_lines": [
+        1981
+      ],
+      "crate": "xtask",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      ]
+    }
+  ],
+  "excluded_nested_summaries": [
+    {
+      "enclosing_producer": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_backend_process-080282e03171adb1",
+      "nested_control_summary": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 23
+      }
+    },
+    {
+      "enclosing_producer": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_backend_process-080282e03171adb1",
+      "nested_control_summary": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 23
+      }
+    },
+    {
+      "enclosing_producer": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_backend_process-080282e03171adb1",
+      "nested_control_summary": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 23
+      }
+    },
+    {
+      "enclosing_producer": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_backend_process-080282e03171adb1",
+      "nested_control_summary": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 23
+      }
+    },
+    {
+      "enclosing_producer": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/xtask-00fe51f09ffc641d",
+      "nested_control_summary": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 95
+      }
+    },
+    {
+      "enclosing_producer": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/xtask-00fe51f09ffc641d",
+      "nested_control_summary": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 95
+      }
+    },
+    {
+      "enclosing_producer": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/xtask-00fe51f09ffc641d",
+      "nested_control_summary": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 95
+      }
+    },
+    {
+      "enclosing_producer": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/xtask-00fe51f09ffc641d",
+      "nested_control_summary": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 95
+      }
+    },
+    {
+      "enclosing_producer": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/xtask-00fe51f09ffc641d",
+      "nested_control_summary": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 95
+      }
+    }
+  ],
+  "native_counts": {
+    "passed": 908,
+    "failed": 0,
+    "ignored": 2,
+    "measured": 0,
+    "filtered_out": 0,
+    "discovered": 910
+  },
+  "doctest_counts": {
+    "passed": 4,
+    "failed": 0,
+    "ignored": 1,
+    "measured": 0,
+    "filtered_out": 0,
+    "discovered": 5
+  },
+  "ignored_test_lines": [
+    "test interpreted::timing ... ignored, timing; run alone in release",
+    "test import_live_candidates ... ignored, requires explicitly exported live Go candidates",
+    "test author/suite/src/lib.rs - expect (line 37) ... ignored"
+  ],
+  "method": "Cargo Running header segments: first declared count must equal final summary; earlier native summaries are nested controls. All doctest blocks retained, including merged run-pass/compile-fail blocks.",
+  "controls": {
+    "missing_result_refused": true,
+    "injected_nested_999_not_added": true
+  }
+}

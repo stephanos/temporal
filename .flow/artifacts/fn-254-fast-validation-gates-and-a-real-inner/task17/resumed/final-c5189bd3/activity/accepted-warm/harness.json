@@ -1,0 +1,19 @@
+{
+  "command": [
+    ".flow/tmp/fn25417-standalone-renewal/prepared/final-scheduled-retry/warm_retry.py",
+    "--expected-head",
+    "c5189bd35d36e0e404c0980cb986bdc970d4b8af",
+    "--standalone-validation",
+    ".flow/tmp/fn25417-standalone-renewal/final-c5189bd3/standalone/validation.json",
+    "--prior-activity",
+    ".flow/tmp/fn25417-standalone-renewal/final-c5189bd3/activity",
+    "--output",
+    ".flow/tmp/fn25417-standalone-renewal/final-c5189bd3/activity-warm-retry"
+  ],
+  "driver_sha256": "1eb9e160293aa8fc70e675f99c874ec5a5a2090ea0090d092a48abcc19bee303",
+  "expected_head": "c5189bd35d36e0e404c0980cb986bdc970d4b8af",
+  "free_before_bytes": 73573814272,
+  "free_guard_bytes": 32212254720,
+  "growth_guard_bytes": 32212254720,
+  "macos": "owner-deferred"
+}

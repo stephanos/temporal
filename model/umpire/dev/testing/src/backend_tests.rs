@@ -47,6 +47,25 @@ fn nominal_debug_preserves_authored_shapes_and_exact_optional_codes() -> crate::
     Ok(())
 }
 
+#[test]
+fn qualified_nominal_debug_matches_rust_without_changing_type_identity() -> crate::TestResult {
+    let left = bounded("left::Budget<3>", None, 1);
+    let right = bounded("right::Budget<3>", Some("ticks"), 0);
+    assert_ne!(left.name, right.name);
+    for (ty, code, expected) in [
+        (Type::Bounded(left.clone()), 3, "Budget(3)"),
+        (Type::Optional(left.clone()), 4, "Some(Budget(3))"),
+        (Type::Optional(right.clone()), 1, "Some(Budget { ticks: 0 })"),
+    ] {
+        assert_eq!(debug_value(&ty, &Value::Int(code))?, expected);
+    }
+    assert_eq!(left.name, "left::Budget<3>");
+    assert_eq!(right.name, "right::Budget<3>");
+    assert!(debug_value(&Type::Optional(left), &Value::Int(1)).is_err());
+    assert!(debug_value(&Type::Optional(right), &Value::Int(5)).is_err());
+    Ok(())
+}
+
 struct Invalid;
 
 impl Machine for Invalid {

@@ -1,0 +1,44 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "test",
+    "--locked",
+    "-j1",
+    "-p",
+    "temporal-xtask",
+    "--bin",
+    "temporal-xtask",
+    "required_backend_policy_caps_inherited_threads_and_preserves_skipped_defaults",
+    "--",
+    "--nocapture"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model",
+  "started_utc": "2026-10-26T23:40:17.599406+00:00",
+  "phase_baseline_bytes": {
+    "rust": 6786422657,
+    "go": 244873430
+  },
+  "phase_budget_bytes": 1610612736,
+  "environment": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "TMPDIR": "/tmp/umpire-fn2545-review-fixes",
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2545-temporal-api/go-cache",
+    "GOFLAGS": "-p=1",
+    "GOMAXPROCS": "1"
+  },
+  "BASH_ENV": "removed",
+  "execution_scope": "actual focused test bodies executed; exact selection is recorded in command",
+  "exit_code": 101,
+  "elapsed_seconds": 1.9024082089999865,
+  "rust_phase_growth_bytes": 13496142,
+  "go_phase_growth_bytes": 0,
+  "free_after_bytes": 23272087552,
+  "log_sha256": "7ccbda5c85d39d3cd9b943257b9aae6cfbc7fb48ca283188bfb1070648e1d5a2"
+}

@@ -11,6 +11,7 @@ mod claim;
 mod effects;
 mod expr;
 mod inputs;
+mod library;
 mod optional;
 mod outcome;
 mod progress;
@@ -81,6 +82,7 @@ pub(super) struct Parameters<'a> {
     pub(super) positional: Vec<&'a syn::PatType>,
 }
 
+#[derive(Clone)]
 pub(crate) struct Environment {
     /// The State struct's name, which `&Self` also spells.
     pub(crate) state: String,
@@ -88,6 +90,7 @@ pub(crate) struct Environment {
     pub(crate) declared_world: bool,
     pub(crate) world_fields: Vec<WorldField>,
     pub(crate) constants: Env,
+    pub(crate) const_parameters: BTreeMap<String, i128>,
     pub(crate) enums: BTreeMap<String, Type>,
     pub(crate) defaults: BTreeMap<String, String>,
     pub(crate) bounded: BTreeMap<String, umpire_ir::Bounded>,
@@ -148,6 +151,7 @@ impl Environment {
             declared_world: model.declared_world,
             world_fields: model.world_fields.clone(),
             constants: model.constants.clone().into_iter().collect(),
+            const_parameters: BTreeMap::new(),
             enums: known,
             bounded,
             bounded_defaults: Vec::new(),

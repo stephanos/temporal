@@ -1,0 +1,136 @@
+{
+  "actual_stages": [
+    "proto-tools",
+    "retired-names",
+    "timing-controls",
+    "capability-controls",
+    "source-boundary",
+    "protobuf-controls",
+    "protobuf-freshness",
+    "kettle-protobuf-freshness",
+    "fmt",
+    "clippy",
+    "docs",
+    "tests",
+    "wasm32-wasip1",
+    "core-wasm-clippy",
+    "wasm-guest",
+    "go-host",
+    "kettle-go-host"
+  ],
+  "apalache": "skip",
+  "artifacts": {
+    ".bin/protoc-gen-go-grpc-v1.3.0": {
+      "files": null,
+      "path": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-Mxf6U4/framework/.bin/protoc-gen-go-grpc-v1.3.0",
+      "sha256": null
+    },
+    ".bin/protoc-gen-go-v1.36.6": {
+      "files": null,
+      "path": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-Mxf6U4/framework/.bin/protoc-gen-go-v1.36.6",
+      "sha256": null
+    },
+    "build/tlc/tla2tools-1.7.4.jar": {
+      "files": null,
+      "path": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-Mxf6U4/framework/build/tlc/tla2tools-1.7.4.jar",
+      "sha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88"
+    },
+    "current-contract-native": {
+      "files": null,
+      "path": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-Mxf6U4/target/current-contract-native",
+      "sha256": null
+    },
+    "panic-native": {
+      "files": null,
+      "path": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-Mxf6U4/target/panic-native",
+      "sha256": null
+    },
+    "wasm32-wasip1/guest/caught_panic_control.wasm": {
+      "files": null,
+      "path": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-Mxf6U4/target/wasm32-wasip1/guest/caught_panic_control.wasm",
+      "sha256": null
+    },
+    "wasm32-wasip1/guest/overflow_control.wasm": {
+      "files": null,
+      "path": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-Mxf6U4/target/wasm32-wasip1/guest/overflow_control.wasm",
+      "sha256": null
+    },
+    "wasm32-wasip1/guest/stateful_control.wasm": {
+      "files": null,
+      "path": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-Mxf6U4/target/wasm32-wasip1/guest/stateful_control.wasm",
+      "sha256": null
+    },
+    "wasm32-wasip1/guest/umpire_kettle_guest.wasm": {
+      "files": null,
+      "path": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-Mxf6U4/target/wasm32-wasip1/guest/umpire_kettle_guest.wasm",
+      "sha256": null
+    },
+    "wasm32-wasip1/guest/umpire_stock_guest.wasm": {
+      "files": null,
+      "path": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-Mxf6U4/target/wasm32-wasip1/guest/umpire_stock_guest.wasm",
+      "sha256": null
+    }
+  },
+  "backend": "require",
+  "binaries": {
+    "debug/umpire-guest-driver": {
+      "path": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-Mxf6U4/target/debug/umpire-guest-driver",
+      "sha256": "33a469ae8cadf6c4bb33567435f1fa262a1fd5eb62ddf41765f288c9e1d64cba"
+    },
+    "debug/xtask": {
+      "path": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-Mxf6U4/target/debug/xtask",
+      "sha256": "29f0c82d50d296d725ada4d653a43c6480f4ca2026302f30a17be312333a6e94"
+    },
+    "guest/current-contract-reports": {
+      "path": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-Mxf6U4/target/guest/current-contract-reports",
+      "sha256": null
+    },
+    "guest/panic-control-reports": {
+      "path": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-Mxf6U4/target/guest/panic-control-reports",
+      "sha256": null
+    },
+    "xtask-bootstrap/debug/umpire-guest-driver": {
+      "path": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-Mxf6U4/target/xtask-bootstrap/debug/umpire-guest-driver",
+      "sha256": null
+    },
+    "xtask-bootstrap/debug/xtask": {
+      "path": "/tmp/umpire-fn25417-standalone-dc7feca3/proof-Mxf6U4/target/xtask-bootstrap/debug/xtask",
+      "sha256": null
+    }
+  },
+  "child_exit": 1,
+  "compile_jobs": "1",
+  "complete": false,
+  "expected_stages": [
+    "proto-tools",
+    "retired-names",
+    "timing-controls",
+    "capability-controls",
+    "source-boundary",
+    "protobuf-controls",
+    "protobuf-freshness",
+    "kettle-protobuf-freshness",
+    "fmt",
+    "clippy",
+    "docs",
+    "tests",
+    "wasm32-wasip1",
+    "core-wasm-clippy",
+    "wasm-guest",
+    "go-host",
+    "kettle-go-host"
+  ],
+  "inventory_error": null,
+  "manifest_sha256": "15c6c9bd59d0e6285e6c9e2f259a683f970efc7e9e7604cf3fd35d0577cadf19",
+  "nextest_profile": "required",
+  "profile": "dev",
+  "seconds": 18.879794842,
+  "skipped_child_stages": [
+    "standalone"
+  ],
+  "source_unchanged": true,
+  "stages_sha256": "1e33aeec9ed0af0c479bb68980eafefcf2654f003bb71424a24858030954dc62",
+  "test_threads": 4,
+  "tier": "validate",
+  "version": 1
+}

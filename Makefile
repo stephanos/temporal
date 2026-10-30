@@ -464,7 +464,7 @@ umpire:
 
 .PHONY: umpire-guest umpire-check-model-slice umpire-check-model-gaps
 umpire-guest: $(API_BINPB)
-	@/bin/bash "$(CURDIR)/model/scripts/guest.sh" umpire-temporal-guest "$(CURDIR)/model/temporal/hosts/go/umpire_temporal_guest.wasm"
+	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- guest umpire-temporal-guest "$(CURDIR)/model/temporal/hosts/go/umpire_temporal_guest.wasm"
 
 umpire-check-model-slice:
 	@set -eu; \
@@ -679,17 +679,6 @@ model: $(MODEL_PROTO_JARS)
 
 model-mini:
 	@$(MAKE) --no-print-directory model FEATURES=activity_mini
-
-# The default check of a change (model/framework/check/ChangeCheck.scala): what changed since BASE
-# (default: the last commit, plus the working tree) selects, by model/temporal/check/Coverage.scala,
-# the current features
-# to lint, compile, lift and compare with their baselines and the suites to run; it writes
-# .flow/tmp/checks/<time>/record.md. The full gates stay the batch-end and sweep tier.
-.PHONY: model-compiler-inputs model-check-changed
-model-compiler-inputs: $(MODEL_PROTO_JARS) $(MODEL_REIFY_PLUGIN)
-
-model-check-changed:
-	@$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_CHECK) -M temporal.check.changed -- $(if $(BASE),--base $(call model_quote,$(BASE)))
 
 fmt-model:
 	@printf $(COLOR) "Formatting model files..."
@@ -1256,52 +1245,35 @@ ensure-no-changes:
 endif
 
 ##### model: Umpire in Rust (fn-210) #####
-RUST_MODEL_CARGO := cd model && mise exec -- cargo
-RUST_MODEL_STEP = $(if $(filter 1,$(UMPIRE_TIME_STEPS)),/bin/bash $(CURDIR)/model/scripts/time-gate.sh --step $(1),)
-RUST_MODEL_WASM_ENV = UMPIRE_WASM="$$target/wasm32-wasip1/guest/umpire_stock_guest.wasm" UMPIRE_KETTLE_WASM="$$target/wasm32-wasip1/guest/umpire_kettle_guest.wasm" UMPIRE_STATEFUL_WASM="$$target/wasm32-wasip1/guest/stateful_control.wasm" UMPIRE_CAUGHT_PANIC_WASM="$$target/wasm32-wasip1/guest/caught_panic_control.wasm" UMPIRE_OVERFLOW_WASM="$$target/wasm32-wasip1/guest/overflow_control.wasm" UMPIRE_PANIC_NATIVE="$$target/panic-native"
+RUST_MODEL_COMPILER_ENV = $(if $(filter require,$(UMPIRE_BACKENDS) $(UMPIRE_APALACHE)),CARGO_BUILD_JOBS=1)
+RUST_MODEL_CARGO = MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false $(RUST_MODEL_COMPILER_ENV) mise exec -- cargo --config "$(CURDIR)/model/.cargo/config.toml"
+RUST_MODEL_FRAMEWORK = helper=$$($(RUST_MODEL_COMPILER_ENV) /bin/bash "$(CURDIR)/model/umpire/scripts/xtask.sh") && "$$helper"
 
-.PHONY: model-check model-fmt model-update model-time model-validate
-model-check: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(API_BINPB)
-	@/bin/bash "$(CURDIR)/model/umpire/scripts/proto-tools.sh"
-	@printf $(COLOR) "Check model (fmt, clippy, docs, workspace and native-tool tests)..."
-	@if [ "$${UMPIRE_BACKENDS:-}" = require ]; then printf '%s\n' 'TLC backend required: real source-lifted agreement and semantic controls'; else printf '%s\n' 'TLC backend skipped: no execution/agreement evidence; use UMPIRE_BACKENDS=require'; fi
-	@if [ "$${UMPIRE_APALACHE:-}" = require ]; then printf '%s\n' 'Apalache backend required: real bounded checks and replay controls'; helper=$$(/bin/bash "$(CURDIR)/model/scripts/xtask.sh") && "$$helper" fetch-apalache "$(CURDIR)/model/umpire"; else printf '%s\n' 'Apalache backend skipped until fn-211 resumes; use UMPIRE_APALACHE=require'; fi
-	@$(call RUST_MODEL_STEP,temporal-guest-freshness) /bin/bash "$(CURDIR)/model/scripts/guest-freshness.sh" umpire-temporal-guest "$(CURDIR)/model/temporal/hosts/go/umpire_temporal_guest.wasm"
-	@$(call RUST_MODEL_STEP,retired-names) /bin/bash $(CURDIR)/model/scripts/retired-names.sh
-	@$(call RUST_MODEL_STEP,timing-controls) /bin/bash $(CURDIR)/model/scripts/test-time-gate.sh
-	@$(call RUST_MODEL_STEP,capability-controls) /bin/bash $(CURDIR)/model/scripts/test-capabilities.sh
-	@cd model && $(call RUST_MODEL_STEP,source-boundary) mise exec -- cargo test -p umpire-temporal-tests --test boundary --quiet
-	@$(call RUST_MODEL_STEP,protobuf-controls) /bin/bash $(CURDIR)/model/scripts/tests/proto-go.sh
-	@$(call RUST_MODEL_STEP,protobuf-freshness) /bin/bash $(CURDIR)/model/scripts/proto-go.sh core --check
-	@$(call RUST_MODEL_STEP,kettle-protobuf-freshness) /bin/bash $(CURDIR)/model/scripts/proto-go.sh kettle --check
-	@$(call RUST_MODEL_STEP,temporal-protobuf-freshness) /bin/bash $(CURDIR)/model/scripts/proto-go.sh temporal --check
-	@cd model && $(call RUST_MODEL_STEP,fmt) mise exec -- cargo fmt --all --check
-	@cd model/umpire && $(call RUST_MODEL_STEP,fmt-framework) mise exec -- cargo fmt --all --check
-	@cd model && $(call RUST_MODEL_STEP,clippy) mise exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings
-	@cd model/umpire && $(call RUST_MODEL_STEP,clippy-framework) mise exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings
-	@cd model && $(call RUST_MODEL_STEP,docs) env RUSTDOCFLAGS="-D warnings" mise exec -- cargo doc --workspace --no-deps --quiet
-	@cd model/umpire && $(call RUST_MODEL_STEP,docs-framework) env RUSTDOCFLAGS="-D warnings" mise exec -- cargo doc --workspace --no-deps --quiet
-	@cd model && $(call RUST_MODEL_STEP,tests) mise exec -- cargo test --workspace --locked --quiet
-	@cd model/umpire && $(call RUST_MODEL_STEP,tests-framework) mise exec -- cargo test --workspace --locked --quiet
-	@cd model/umpire && $(call RUST_MODEL_STEP,wasm32-wasip1) mise exec -- cargo build --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --quiet
-	@cd model/umpire && $(call RUST_MODEL_STEP,core-wasm-clippy) mise exec -- cargo clippy --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --lib --locked -- -D warnings
-	@$(call RUST_MODEL_STEP,wasm-guest) /bin/bash $(CURDIR)/model/scripts/tests/build-guests.sh
-	@cd model && target="$${CARGO_TARGET_DIR:-$$PWD/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && $(RUST_MODEL_WASM_ENV) CGO_ENABLED=0 $(call RUST_MODEL_STEP,go-host) mise exec -- go -C "$$PWD/umpire/hosts/go" test -tags test_dep -count=1 ./...
-	@cd model && target="$${CARGO_TARGET_DIR:-$$PWD/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && $(RUST_MODEL_WASM_ENV) CGO_ENABLED=0 $(call RUST_MODEL_STEP,kettle-go-host) mise exec -- go -C "$$PWD/umpire/reference/kettle" test -tags test_dep -count=1 ./...
-	@cd model && CGO_ENABLED=0 $(call RUST_MODEL_STEP,temporal-go-host) mise exec -- go -C "$$PWD/temporal/hosts/go" test -tags test_dep -count=1 ./...
+.PHONY: model-check model-prerequisites model-quick model-fmt model-update model-time model-validate
+model-quick: RUST_MODEL_COMPILER_ENV = CARGO_BUILD_JOBS=1
+model-quick:
+	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- quick
+
+model-check: override export UMPIRE_QUICK_CACHE = 0
+model-check: override export UMPIRE_CACHE_DISABLE = 1
+model-check:
+	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- gate
+
+model-prerequisites: override export UMPIRE_QUICK_CACHE = 0
+model-prerequisites: override export UMPIRE_CACHE_DISABLE = 1
+model-prerequisites: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(API_BINPB)
 
 model-fmt:
-	@$(RUST_MODEL_CARGO) fmt --all
-	@cd model/umpire && mise exec -- cargo fmt --all
+	@$(RUST_MODEL_FRAMEWORK) fmt
+	@$(RUST_MODEL_CARGO) fmt --manifest-path "$(CURDIR)/model/Cargo.toml" --all
 
 model-update:
-	@printf $(COLOR) "Update model golden files (insta, trybuild)..."
-	@cd model && INSTA_UPDATE=always TRYBUILD=overwrite mise exec -- cargo test --workspace --quiet
-	@cd model/umpire && INSTA_UPDATE=always TRYBUILD=overwrite mise exec -- cargo test --workspace --quiet
+	@$(RUST_MODEL_FRAMEWORK) update
+	@INSTA_UPDATE=always TRYBUILD=overwrite $(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- test-run
 
 model-time:
 	@printf $(COLOR) "Time the model feedback loop (fn-210 R30)..."
-	@$(CURDIR)/model/scripts/time-gate.sh
+	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- time
 
 model-validate:
 	@$(MAKE) UMPIRE_BACKENDS=require model-time

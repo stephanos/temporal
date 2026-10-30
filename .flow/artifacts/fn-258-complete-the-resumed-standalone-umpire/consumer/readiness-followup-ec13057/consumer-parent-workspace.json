@@ -1,0 +1,37 @@
+{
+  "pair": {
+    "temporal": "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "parent_workspace_automatically_discovered": "/home/agent/.cache/codex-build/tmp/fn258-pair/go.work",
+  "modules": [
+    {
+      "Path": "github.com/temporalio/umpire/hosts/go",
+      "Main": true,
+      "Dir": "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/hosts/go",
+      "GoMod": "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/hosts/go/go.mod",
+      "GoVersion": "1.27.0"
+    },
+    {
+      "Path": "github.com/temporalio/umpire/reference/kettle",
+      "Main": true,
+      "Dir": "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/reference/kettle",
+      "GoMod": "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/reference/kettle/go.mod",
+      "GoVersion": "1.27.0"
+    },
+    {
+      "Path": "umpire.local/temporal",
+      "Main": true,
+      "Dir": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/hosts/go",
+      "GoMod": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/hosts/go/go.mod",
+      "GoVersion": "1.27.0"
+    }
+  ],
+  "verified_dirs": true,
+  "workspace_sha256_before": "801520e81bdfd161b9c38ddb19e5d1e87e53b8ddfbc4bb0571c31bf2af3cfff5",
+  "workspace_sha256_after": "801520e81bdfd161b9c38ddb19e5d1e87e53b8ddfbc4bb0571c31bf2af3cfff5",
+  "original_checkout_gowork": "",
+  "original_parent_workspace_exists": false,
+  "original_workspace_action": "observed only; no parent workspace created or overwritten",
+  "log": "/home/agent/.cache/codex-build/fn258-consumer/consumer-parent-workspace.log"
+}

@@ -1,0 +1,81 @@
+{
+  "type": "impl_review_fanout",
+  "focus": "Review task 1 source/history/candidate checkpoint only. Large machine JSON evidence must be inspected with bounded key queries and Git comparisons; do not dump the complete diff or manifests. Check exact selected source blobs/modes, both sibling archive ancestry boundaries, candidate preservation and honest unknown/unrun statuses. No builds/tests: the owner validation hold applies, and only Git object/inventory checks are in scope. Filtering, actual transfers/backups, destination inspection success, standalone/paired execution and cutover belong to later tasks and are explicitly unfinished.",
+  "claim_token": null,
+  "id": "fn-257-extract-the-standalone-umpire.1",
+  "standalone": false,
+  "base_branch": "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+  "reviewed_base_sha": "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+  "reviewed_head_sha": "1ce541e39840f40d30eadcd3cfdfb2322f4d73cc",
+  "artifact_sha256": "c9a649e3631e3c2b1f270ab50e097f276be883af9f70f2db042bb98ba8a35b93",
+  "reservation_id": "4797c20787d149f8bc70dbd71c612620",
+  "rid": "4797c20787d149f8bc70dbd71c612620",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a178d5-f928-7dd3-aa04-5effdf04814f",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-26T15:30:50.612716Z",
+      "finished_at": "2026-10-26T15:34:50.447069Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/4797c20787d149f8bc70dbd71c612620/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/4797c20787d149f8bc70dbd71c612620/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a178d5-f932-79e1-a9cc-5cc62821c355",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-26T15:30:50.612920Z",
+      "finished_at": "2026-10-26T15:34:34.521472Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/4797c20787d149f8bc70dbd71c612620/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/4797c20787d149f8bc70dbd71c612620/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a178d5-f927-7951-8393-8224de74b804",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-26T15:30:50.613209Z",
+      "finished_at": "2026-10-26T15:34:45.287036Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/4797c20787d149f8bc70dbd71c612620/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/4797c20787d149f8bc70dbd71c612620/integration.out.txt"
+    }
+  ],
+  "receipt_path": ".flow/tmp/fn257-task1-review.json",
+  "created_at": "2026-10-26T15:34:50.461719Z"
+}

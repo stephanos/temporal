@@ -1,0 +1,2 @@
+generated_api_catalog_compiles_and_validates_actual_messages: test
+supplemental_requests_require_expectations_and_reject_retired_helpers: test

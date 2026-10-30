@@ -1,0 +1,132 @@
+{
+  "scope": "research only; no project compilation/test/list execution or source/Flow edits",
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+  "head_observed_at_receipt": "fe1412110fcfd9614c8d0f3c1c24a00544e4d4aa",
+  "tool_probe_cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2543-nextest-probe/configcwd",
+  "environment_file": "probe-env.json",
+  "commands": [
+    {
+      "argv": [
+        "mise",
+        "backends",
+        "ls"
+      ],
+      "exit": 0,
+      "log": "backends.log"
+    },
+    {
+      "argv": [
+        "mise",
+        "ls-remote",
+        "github:nextest-rs/nextest"
+      ],
+      "exit": 0,
+      "log": "remote.log"
+    },
+    {
+      "argv": [
+        "mise",
+        "install",
+        "github:nextest-rs/nextest@0.9.149"
+      ],
+      "exit": 0,
+      "log": "install.log"
+    },
+    {
+      "argv": [
+        "mise",
+        "config",
+        "ls"
+      ],
+      "exit": 0,
+      "log": "config-list.log"
+    },
+    {
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo-nextest",
+        "--version"
+      ],
+      "exit": 0,
+      "log": "version.log"
+    },
+    {
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo-nextest",
+        "nextest",
+        "run",
+        "--help"
+      ],
+      "exit": 0,
+      "log": "run-help.log"
+    },
+    {
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo-nextest",
+        "nextest",
+        "list",
+        "--help"
+      ],
+      "exit": 0,
+      "log": "list-help.log"
+    },
+    {
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo-nextest",
+        "nextest",
+        "self",
+        "schema",
+        "--help"
+      ],
+      "exit": 0,
+      "log": "schema-help.log"
+    },
+    {
+      "argv": [
+        "mise",
+        "lock"
+      ],
+      "exit": 0,
+      "log": "lock.log"
+    }
+  ],
+  "input_sha256": {
+    "AGENTS.md": "932de2327ec129e91e1fea98bc9b77b270fd8bbe3390bd31bef3d96ed86cc9d0",
+    "model/umpire/dev/xtask/src/test_run.rs": "8b676efdcb7885f449981f2fe24a5fc6c797790f1f1e9ca98442ff71c7fd126c",
+    "model/dev/xtask/src/test_run.rs": "ca82799aaa2b8017c86bb4fb12d4e425c72abb0ff3ac9336e2c10553161dcca9",
+    "model/umpire/dev/xtask/src/gate.rs": "c2f53af4c3a1ce0ed057996aa998385851b4953da52086a2c1149d1b9ba6094e",
+    "model/dev/xtask/src/gate.rs": "36de0016ab6df22e848a60974634e63cce8a8442fa4015a883799c18f03cc3cd",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task10/index.json": "3dfaa596abec0f654758748dc4190ffd029658d6905e4bd675fc3f110fde3299",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task13/revision1/proof/framework-metadata-final.json": "194afe17cbdbde2e9c742242aded91fb885a9fb00525364bf3b5668ab35b50b7",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task13/revision1/proof/outer-metadata-final.json": "cb7ad90c9ed9d39276aa3ba80cd077a7410887b440cb117f5318272bf8fc2b0b",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task13/revision1/proof/logical-identity-delta.json": "5d800611cb7ee566f7be427495c51b3f3ca0569f11fcaa4fa24a4d03ebc99024",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task13/proof/identity-accounting.json": "dca4401788ea2a85f693e63ece0e811826d59bed25031297559ef63279f49242",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task4/proof/after-inventory.json": "1720d65ac9636f7755f5a33ae893ec6a6a93e3ee222ee633f8ca998fc3e14d7f",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task4/proof/doctest-target-parity.json": "fc1e5daf572fdcd13c3fefcb8e57ce0d8cecf826459c14e14ceed7d3231b912e"
+  },
+  "proof_sha256": {
+    "remote.log": "f3e9798a1175f0ca2e68231c6392d40eb45c7b65bb86305bb6c6fc062421beed",
+    "config-list.log": "4a61b26a60464cbb50fdf931551d8524cd876561f0a1c0822e8acbf640f11c26",
+    "backends.log": "48b758c6a0d7559395eb9a562a391bc5477d6e94fb36d197093b67ff519481fb",
+    "version.log": "dac5c3c42f79f6b1476ff24f07637a80e055b8b0ab430a05e3ca01fc85aa835a",
+    "schema-help.log": "5f4591acc958920d5c3f1a1bc2ef1a6df344207a7afa885839b71ee25a5055f9",
+    "run-help.log": "4d78cb984289b3b44a33666c4a42ae7f22b2972237801eacc0746d52338f3a4c",
+    "install.log": "fcd61f98ef5781c3b7a63373c00062913882ef4d28b0a0c073e73784b9f7aa65",
+    "lock.log": "d0ca2da51a95da14e25aa830baa548c555818cbc68b5674a915e7ced6d1c81e6",
+    "list-help.log": "08972310204cfad0c7a614c6f0bf5c6fbe4886fa832bdc75a223a8d93d47d830"
+  },
+  "platform_executed": "aarch64-unknown-linux-gnu",
+  "macos_execution": "not performed",
+  "no_project_build_or_execution": true
+}

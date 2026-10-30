@@ -8,6 +8,8 @@ mod action_inputs_builders;
 mod catalog_tests;
 #[path = "main/closable.rs"]
 mod closable;
+#[path = "main/countdown.rs"]
+mod countdown;
 #[path = "main/declared_world.rs"]
 mod declared_world;
 #[path = "main/finite_domains.rs"]

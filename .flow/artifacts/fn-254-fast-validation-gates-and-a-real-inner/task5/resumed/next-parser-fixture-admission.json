@@ -1,0 +1,78 @@
+{
+  "status": "Proposed only; not executed or admitted by this worker.",
+  "candidate": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate",
+  "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+  "target_current_size": "4.6GiB retained dependency/compiler cache; separate xtask-only target: 405M",
+  "snapshot_manifest": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task5/resumed/source-final-after.json",
+  "source_manifest_matches_current_root": true,
+  "preconditions": [
+    "Verify candidate git status clean and no process owns candidate or target. Preserve all ignored source/evidence and old quick-cache proof.",
+    "Fetch local origin umpire and checkout --detach current root HEAD using normal checkout. No force/reset.",
+    "Overlay only every source_files path from source-final-after.json: existing roots copy exact bytes; declared deleted UI paths remove from isolated candidate. Validate SHA256/deletion for every path against manifest, including gate_wiring harness fix. Preserve all paths absent from manifest.",
+    "Root remains unchanged and deliberately dirty; isolated candidate becomes exact task5 source snapshot. Record both baseHEAD and content manifest."
+  ],
+  "environment": {
+    "BASH_ENV": "unset",
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "TMPDIR": "/tmp/umpire-fn2545-parser-fixture-controls",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "RUST_TEST_THREADS": "2",
+    "UMPIRE_BACKENDS": "skip for native parser/identity step",
+    "UMPIRE_APALACHE": "skip"
+  },
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire",
+  "sequential_commands_after_admission": [
+    [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "umpire-dsl-macros",
+      "--test",
+      "fixtures",
+      "parser_refusals::",
+      "--",
+      "--nocapture"
+    ],
+    [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "umpire-fixtures",
+      "--test",
+      "fixtures",
+      "--",
+      "--list"
+    ],
+    [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "umpire-testing",
+      "--test",
+      "consumers",
+      "--",
+      "--nocapture"
+    ]
+  ],
+  "assertions": [
+    "Parser refusal table:2selectedlibtestcontrols, first iterates63cases preserving complete diagnostic messages and authored line/column positions. Remaining16rustc-dependent UI cases are not run or claimed by this parser step.",
+    "Framework fixture binary listing:24distinct fixtures::* cases, no executing umbrella fixture(), preserve every other fixture-local/interpreted identity;119dependencytuples remain separate.",
+    "Consumer harness executes current registry/full ownership/snapshot/nondeterminism/orphan refusal controls without required TLC."
+  ],
+  "budget": "Warm dependency reuse likely helps, but profile/path fingerprints may cause rebuilds; inspect target fingerprints and measure each command separately. Recommend first parser admission with provisional512MiB growth budget; stop for root re-admission if exceeded rather than silently launching a cold workspace build. Current free space34.5GiB;30GiB is inspection trigger, not absolute prohibition."
+}

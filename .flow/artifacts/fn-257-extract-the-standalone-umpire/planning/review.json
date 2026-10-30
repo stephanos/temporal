@@ -1,0 +1,13 @@
+{
+  "effort": "medium",
+  "id": "fn-257-extract-the-standalone-umpire",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "I\u2019ll read the epic and task specs, then trace the extraction boundaries in the repository to check feasibility and consistency.\nThe task dependencies are consistent, and the plan includes fresh-checkout and uncommitted-change proofs. I\u2019m checking how the proposed parent Go workspace interacts with the existing build commands and local module replacements.\nI haven\u2019t found a blocking gap. The recorded archive commits are sibling transitions as the plan states, and the current framework already owns its workspace and tooling. The plan also accounts for Go identity changes, Temporal descriptor regeneration, retained candidates, and validation before cutover.\nNo actionable findings identified. Epic requirements and task acceptance criteria align; dependency ordering and Touches declarations are consistent.\n\nThe plan states fresh-checkout, history/tree equality, generated-code, guest/parity and uncommitted-change verification. Retained logs and timings cover batch observability. Performance obligations, source isolation and preservation safeguards are explicit. Execution remains deferred under the recorded validation hold.\n\nmaintainability:\n  duplication: none identified\n  structure: none identified\n\n```json\n{\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>",
+  "review_reservation_id": "42ee19a7235049599e14b935bde67dc6",
+  "session_id": "01a178cc-8b6f-7331-b376-f5b8f5a7d958",
+  "spec": "codex:gpt-6.1-sol:medium",
+  "timestamp": "2026-10-26T15:22:11.853671Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}

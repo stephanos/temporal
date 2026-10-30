@@ -1,0 +1,53 @@
+    Blocking waiting for file lock on package cache
+   Compiling proc-macro2 v1.0.107
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling quote v1.0.47
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling prost-derive v0.14.4
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/ir/derive)
+   Compiling thiserror-impl v2.0.21
+   Compiling proc-macro-utils v0.10.0
+   Compiling manyhow-macros v0.14.1
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/ir)
+   Compiling prettyplease v0.3.0
+   Compiling manyhow v0.14.1
+   Compiling proc-macro-crate v3.5.0
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/front)
+   Compiling prost v0.14.4
+   Compiling rustix v1.1.5
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/author/dsl/macros)
+   Compiling prettyplease v0.2.37
+   Compiling tempfile v3.27.0
+   Compiling prost-types v0.14.4
+   Compiling thiserror v2.0.21
+   Compiling darling_core v0.24.1
+   Compiling prost-build v0.14.4
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/protocol/runtime)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/backends/native)
+   Compiling darling_macro v0.24.1
+   Compiling darling v0.24.1
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/catalog/syntax)
+    Checking libc v0.2.191
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/catalog/build)
+    Checking getrandom v0.4.3
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/temporal/annotate/syntax)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/temporal/realization/macros)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/catalog/macros)
+    Checking umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/catalog)
+    Checking console v0.16.6
+    Checking insta v1.49.0
+   Compiling serde_derive v1.0.229
+    Checking trybuild v1.0.122
+    Checking cpufeatures v0.3.1
+    Checking sha2 v0.11.1
+    Checking umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/temporal/realization)
+    Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/backends/process)
+    Checking umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/backends/tla)
+    Checking umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/backends/tlc)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/temporal/testing)
+    Checking umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/dev/testing)
+    Checking umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/author/suite)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 13.53s

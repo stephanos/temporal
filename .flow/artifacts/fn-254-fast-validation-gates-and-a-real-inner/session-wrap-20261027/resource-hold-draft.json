@@ -1,0 +1,29 @@
+{
+  "status": "RESOURCE HOLD \u2014 NOT ACCEPTED",
+  "source_head": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+  "source_branch": "work/fn25416-provider-adapt",
+  "source_clean": true,
+  "retry_harness_closure_unchanged": {
+    "proof.py": "d3d96541a293bf080c71853dcf38a04f24919fe46db98c7bd863c55d31e88df1",
+    "census.py": "2653ed1ee5f48abd8bf2da89f976c27adc538e4e32303632e10d155c1bf463f4",
+    "observer.py": "e97ed64b323631397d8d33a932d228177e7aff8989aa23d785518a1bb15d90a1",
+    "test_census.py": "865cb36e43819963f2da28c1bac60de87b588dc7a056c09d1d0d4730f5202d7c"
+  },
+  "native_receipt": "standalone-native-build-final.json",
+  "required_remaining": "One complete final-source standalone gate with current inventory/doctest/17child count receipts/exclusive authority/source and owned-cleanup validation, followed by conductor-owned formal review/Flow closure/integration.",
+  "hold": "Conductor resource hold; new full proof requires >=50GiB free plus explicit renewed admission. Existing free30GiB/growth30GiB guards stay unchanged. No product source or harness changes.",
+  "attempt_history": "standalone-attempts.json",
+  "failed_sampler_preservation": "failed-proof-60f-preserved/manifest.json",
+  "failed_free_guard_preservation": "failed-proof-census-preserved/manifest.json",
+  "parent_debug_reclaim": "parent-debug-reclaim.json",
+  "older_runtime_provenance": "older-runtime-retention.json",
+  "accepted_summary_written": false,
+  "curation_draft": "curate.py (requires accepted terminal validation; not executed)",
+  "free_at_draft_bytes": 41687453696,
+  "explicit_exclusions": [
+    "No partial stage stitching",
+    "No full standalone green claim",
+    "No broad task8 combined gates or timing claim",
+    "No source/harness or guard weakening"
+  ]
+}

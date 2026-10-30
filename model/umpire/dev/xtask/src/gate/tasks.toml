@@ -1,0 +1,168 @@
+# The sole framework stage graph. Native xtask admits callers, owns process cleanup
+# and records receipts; these dependencies own scheduling. No task result caching.
+["gate:all"]
+description = "Admitted framework gate, including the required standalone control"
+depends = ["gate:standalone"]
+
+["gate:child"]
+description = "Complete framework gate without recursive standalone copying"
+depends = ["gate:retired-names", "gate:fmt", "gate:kettle-go-host"]
+
+["gate:proto-tools"]
+env.UMPIRE_GATE_STAGE = "proto-tools"
+env.UMPIRE_GATE_ORDER = "0"
+dir = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_TOOL_ROOT = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_GATE_SCOPE = "framework"
+run = 'exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage proto-tools'
+
+["gate:retired-names"]
+env.UMPIRE_GATE_STAGE = "retired-names"
+env.UMPIRE_GATE_ORDER = "1"
+dir = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_TOOL_ROOT = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_GATE_SCOPE = "framework"
+run = 'exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage retired-names'
+
+["gate:timing-controls"]
+depends = ["gate:proto-tools"]
+env.UMPIRE_GATE_STAGE = "timing-controls"
+env.UMPIRE_GATE_ORDER = "2"
+dir = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_TOOL_ROOT = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_GATE_SCOPE = "framework"
+run = 'exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage timing-controls'
+
+["gate:capability-controls"]
+depends = ["gate:kettle-protobuf-freshness"]
+env.UMPIRE_GATE_STAGE = "capability-controls"
+env.UMPIRE_GATE_ORDER = "3"
+dir = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_TOOL_ROOT = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_GATE_SCOPE = "framework"
+run = 'exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage capability-controls'
+
+["gate:source-boundary"]
+depends = ["gate:capability-controls"]
+env.UMPIRE_GATE_STAGE = "source-boundary"
+env.UMPIRE_GATE_ORDER = "4"
+dir = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_TOOL_ROOT = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_GATE_SCOPE = "framework"
+run = 'exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage source-boundary'
+
+["gate:protobuf-controls"]
+depends = ["gate:proto-tools", "gate:timing-controls"]
+env.UMPIRE_GATE_STAGE = "protobuf-controls"
+env.UMPIRE_GATE_ORDER = "5"
+dir = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_TOOL_ROOT = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_GATE_SCOPE = "framework"
+run = 'exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage protobuf-controls'
+
+["gate:protobuf-freshness"]
+depends = ["gate:protobuf-controls"]
+env.UMPIRE_GATE_STAGE = "protobuf-freshness"
+env.UMPIRE_GATE_ORDER = "6"
+dir = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_TOOL_ROOT = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_GATE_SCOPE = "framework"
+run = 'exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage protobuf-freshness'
+
+["gate:kettle-protobuf-freshness"]
+depends = ["gate:protobuf-freshness"]
+env.UMPIRE_GATE_STAGE = "kettle-protobuf-freshness"
+env.UMPIRE_GATE_ORDER = "7"
+dir = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_TOOL_ROOT = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_GATE_SCOPE = "framework"
+run = 'exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage kettle-protobuf-freshness'
+
+["gate:fmt"]
+env.UMPIRE_GATE_STAGE = "fmt"
+env.UMPIRE_GATE_ORDER = "8"
+dir = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_TOOL_ROOT = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_GATE_SCOPE = "framework"
+run = 'exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage fmt'
+
+["gate:clippy"]
+depends = ["gate:source-boundary", "gate:kettle-protobuf-freshness"]
+env.UMPIRE_GATE_STAGE = "clippy"
+env.UMPIRE_GATE_ORDER = "9"
+dir = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_TOOL_ROOT = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_GATE_SCOPE = "framework"
+run = 'exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage clippy'
+
+["gate:docs"]
+depends = ["gate:clippy"]
+env.UMPIRE_GATE_STAGE = "docs"
+env.UMPIRE_GATE_ORDER = "10"
+dir = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_TOOL_ROOT = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_GATE_SCOPE = "framework"
+run = 'exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage docs'
+
+["gate:tests"]
+depends = ["gate:docs"]
+env.UMPIRE_GATE_STAGE = "tests"
+env.UMPIRE_GATE_ORDER = "11"
+dir = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_TOOL_ROOT = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_GATE_SCOPE = "framework"
+run = 'exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage tests'
+
+["gate:wasm32-wasip1"]
+depends = ["gate:tests"]
+env.UMPIRE_GATE_STAGE = "wasm32-wasip1"
+env.UMPIRE_GATE_ORDER = "12"
+dir = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_TOOL_ROOT = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_GATE_SCOPE = "framework"
+run = 'exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage wasm32-wasip1'
+
+["gate:core-wasm-clippy"]
+depends = ["gate:wasm32-wasip1"]
+env.UMPIRE_GATE_STAGE = "core-wasm-clippy"
+env.UMPIRE_GATE_ORDER = "13"
+dir = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_TOOL_ROOT = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_GATE_SCOPE = "framework"
+run = 'exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage core-wasm-clippy'
+
+["gate:wasm-guest"]
+depends = ["gate:core-wasm-clippy"]
+env.UMPIRE_GATE_STAGE = "wasm-guest"
+env.UMPIRE_GATE_ORDER = "14"
+dir = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_TOOL_ROOT = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_GATE_SCOPE = "framework"
+run = 'exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage wasm-guest'
+
+["gate:go-host"]
+depends = ["gate:wasm-guest"]
+env.UMPIRE_GATE_STAGE = "go-host"
+env.UMPIRE_GATE_ORDER = "15"
+dir = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_TOOL_ROOT = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_GATE_SCOPE = "framework"
+run = 'exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage go-host'
+
+["gate:kettle-go-host"]
+depends = ["gate:go-host", "gate:kettle-protobuf-freshness"]
+env.UMPIRE_GATE_STAGE = "kettle-go-host"
+env.UMPIRE_GATE_ORDER = "16"
+dir = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_TOOL_ROOT = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_GATE_SCOPE = "framework"
+run = 'exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage kettle-go-host'
+
+["gate:standalone"]
+depends = ["gate:child"]
+env.UMPIRE_GATE_STAGE = "standalone"
+env.UMPIRE_GATE_ORDER = "17"
+dir = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_TOOL_ROOT = "{{env.UMPIRE_FRAMEWORK_ROOT}}"
+env.UMPIRE_GATE_SCOPE = "framework"
+run = 'exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage standalone'

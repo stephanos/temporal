@@ -1,0 +1,87 @@
+   Compiling libc v0.2.191
+   Compiling proc-macro2 v1.0.107
+   Compiling cfg-if v1.0.5
+   Compiling serde_core v1.0.229
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling typenum v1.20.1
+   Compiling zmij v1.0.23
+   Compiling getrandom v0.4.3
+   Compiling rustix v1.1.5
+   Compiling thiserror v2.0.21
+   Compiling winnow v1.0.4
+   Compiling crc32fast v1.5.3
+   Compiling serde v1.0.229
+   Compiling const-oid v0.10.2
+   Compiling hybrid-array v0.4.15
+   Compiling serde_json v1.0.154
+   Compiling bitflags v2.13.2
+   Compiling linux-raw-sys v0.12.1
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling once_cell v1.21.4
+   Compiling itoa v1.0.18
+   Compiling simd-adler32 v0.3.10
+   Compiling adler2 v2.0.1
+   Compiling fastrand v2.5.0
+   Compiling memchr v2.8.3
+   Compiling syn v3.0.9
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling miniz_oxide v0.9.1
+   Compiling cpufeatures v0.3.1
+   Compiling filetime v0.2.29
+   Compiling tar v0.4.46
+   Compiling flate2 v1.1.10
+   Compiling digest v0.11.3
+   Compiling sha2 v0.11.1
+   Compiling tempfile v3.27.0
+   Compiling serde_spanned v1.1.2
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/guest-driver)
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 16.85s
+     Running unittests src/lib.rs (.flow/tmp/fn2546-selection-review/target/debug/deps/xtask-3c22467feee5d72b)
+
+running 13 tests
+test quick::tests::package_filters_only_narrow_unchanged_or_exclusively_mapped_feature_edits ... ok
+test quick::tests::external_build_inputs_and_unknown_sources_remain_conservative ... ok
+test quick::tests::global_and_unmapped_inputs_select_whole_workspace_and_reverse_dependents ... ok
+test quick::tests::reverse_dependencies_merge_workspace_specific_ids_by_manifest ... ok
+test quick::tests::mapped_external_sources_and_unchanged_invocations_keep_explicit_execution ... ok
+test quick::tests::options_reject_unknown_flags_and_relative_workspaces ... ok
+test quick::tests::deleted_source_ownership_does_not_require_the_file_to_exist ... ok
+test quick::tests::shared_feature_inputs_select_every_direct_consumer_and_reverse_guest ... ok
+test quick::tests::shared_kettle_model_seeds_source_consumers_and_reverse_guest ... FAILED
+test quick::tests::model_edits_ignore_reported_non_model_metadata_and_docs ... FAILED
+test quick::tests::stage_receipt_reports_elapsed_and_spawn_failure_without_success_status ... ok
+test quick::tests::stage_receipts_label_formatting_and_preserve_success_and_failure_statuses ... ok
+test quick::tests::git_selection_includes_staged_unstaged_untracked_renamed_and_deleted_paths ... ok
+
+failures:
+
+---- quick::tests::shared_kettle_model_seeds_source_consumers_and_reverse_guest stdout ----
+
+thread 'quick::tests::shared_kettle_model_seeds_source_consumers_and_reverse_guest' (116015) panicked at dev/xtask/src/quick/tests.rs:329:5:
+assertion `left == right` failed
+  left: {"umpire-apalache", "umpire-fixtures", "umpire-kettle-guest", "umpire-reference-kettle", "umpire-suite", "umpire-testing", "umpire-tla", "unrelated"}
+ right: {"umpire-apalache", "umpire-fixtures", "umpire-kettle-guest", "umpire-reference-kettle", "umpire-suite", "umpire-tla"}
+
+---- quick::tests::model_edits_ignore_reported_non_model_metadata_and_docs stdout ----
+
+thread 'quick::tests::model_edits_ignore_reported_non_model_metadata_and_docs' (116009) panicked at dev/xtask/src/quick/tests.rs:365:9:
+assertion `left == right` failed: /.flow/tasks/task.json
+  left: {"activity", "core", "fixtures", "other"}
+ right: {"activity", "fixtures"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    quick::tests::model_edits_ignore_reported_non_model_metadata_and_docs
+    quick::tests::shared_kettle_model_seeds_source_consumers_and_reverse_guest
+
+test result: FAILED. 11 passed; 2 failed; 0 ignored; 0 measured; 16 filtered out; finished in 0.09s
+
+error: test failed, to rerun pass `-p xtask --lib`

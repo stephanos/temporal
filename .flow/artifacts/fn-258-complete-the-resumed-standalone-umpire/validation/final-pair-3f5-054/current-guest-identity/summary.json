@@ -1,0 +1,105 @@
+{
+  "before": {
+    "sources": {
+      "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+      "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+    },
+    "target": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+    "target_exists": true,
+    "free_bytes": 54887231488,
+    "additional_reservation_gib": 16,
+    "guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+    "workspace_sha256": "5e6ca8f10d627f4d5743ce4f9d2d49e12a67cb0172c3254f021f6c51ce3150db",
+    "step": "current-guest-identity"
+  },
+  "after": {
+    "temporal": {
+      "head": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+      "status": ""
+    },
+    "umpire": {
+      "head": "05473210b48c3db862f22051eb7154ce98258f98",
+      "status": ""
+    }
+  },
+  "commands": [
+    {
+      "argv": [
+        "/bin/bash",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/scripts/guest.sh",
+        "umpire-temporal-guest",
+        "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/proof/umpire_temporal_guest.wasm"
+      ],
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "started_unix": 1793199459.516222,
+      "ended_unix": 1793199603.3007798,
+      "exit": 0,
+      "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/current-guest-identity-1793199459515115315/00-current-guest-identity.log",
+      "log_sha256": "093648aaf86d9db57aebdcbb64af0cc8c0f55c7cd37a1e7ba30709a88a212af0",
+      "free_before": 54887219200,
+      "free_after": 53982248960
+    },
+    {
+      "argv": [
+        "cmp",
+        "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/proof/umpire_temporal_guest.wasm",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm"
+      ],
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "started_unix": 1793199603.3026912,
+      "ended_unix": 1793199603.3294106,
+      "exit": 0,
+      "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/current-guest-identity-1793199459515115315/01-current-guest-identity.log",
+      "log_sha256": "3d91579b6d44a91a22d723b8f78f8081326beddaf5bcddf7d75366c2c20ba03a",
+      "free_before": 53982244864,
+      "free_after": 53982240768
+    },
+    {
+      "argv": [
+        "/bin/bash",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/scripts/guest-freshness.sh",
+        "umpire-temporal-guest",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm"
+      ],
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "started_unix": 1793199603.329913,
+      "ended_unix": 1793199665.0671127,
+      "exit": 0,
+      "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/current-guest-identity-1793199459515115315/02-current-guest-identity.log",
+      "log_sha256": "e808da528bf6d978546210d5bd1ff4e9290cc6fb0bc7f29b9b1893a1e953d9c2",
+      "free_before": 53982236672,
+      "free_after": 53972545536
+    },
+    {
+      "argv": [
+        "make",
+        "umpire-guest"
+      ],
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "started_unix": 1793199665.0686488,
+      "ended_unix": 1793199713.5144749,
+      "exit": 0,
+      "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/current-guest-identity-1793199459515115315/03-current-guest-identity.log",
+      "log_sha256": "cc5936d5c2b2d2024ce41e74666b0106710b2c5f35299dbd1bffcf0a340b1a00",
+      "free_before": 53972541440,
+      "free_after": 53978165248
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--exit-code"
+      ],
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "started_unix": 1793199713.5173957,
+      "ended_unix": 1793199713.583222,
+      "exit": 0,
+      "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/current-guest-identity-1793199459515115315/04-current-guest-identity.log",
+      "log_sha256": "dc4741df5ab41206427d59a3560531b9ce81ade1576129f5b292800f3e01b257",
+      "free_before": 53978161152,
+      "free_after": 53978157056
+    }
+  ],
+  "guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+  "scope": "Command receipts only; final acceptance/Flow state and proof recovery remain root-controlled."
+}

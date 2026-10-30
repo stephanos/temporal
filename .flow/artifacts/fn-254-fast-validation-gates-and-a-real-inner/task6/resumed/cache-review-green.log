@@ -1,0 +1,20 @@
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+    Finished `test` profile [unoptimized] target(s) in 1.06s
+     Running unittests src/lib.rs (.flow/tmp/fn2546-resumed/target/debug/deps/umpire_tlc-c27645a3e9684dea)
+
+running 12 tests
+test runner::cache_tests::cache_child ... ok
+test cache::tests::root_admission_rejects_symlinks_and_relative_paths ... ok
+test runner::cache_tests::invalid_cached_batch_refuses_before_any_singleton_recovery ... ok
+test runner::cache_tests::every_effective_identity_input_invalidates ... ok
+test runner::tests::escaping_cache_symlinks_are_refused_before_creating_files ... ok
+test runner::cache_tests::manifest_integrity_limits_and_interrupted_publication ... ok
+test runner::cache_tests::concurrent_writers_and_readers_see_only_complete_bundles ... ok
+test runner::cache_tests::cache_root_refusal_reports_its_cause_without_following_symlinks ... ok
+test runner::cache_tests::verified_configuration_publishes_despite_refuted_sibling ... ok
+test runner::cache_tests::populated_cache_hits_and_authoritative_disable_runs_fresh ... ok
+test runner::cache_tests::identity_refreshes_between_module_calls_and_is_shared_between_configurations ... ok
+test runner::cache_tests::failures_refutations_and_incomplete_modules_never_publish ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.56s
+

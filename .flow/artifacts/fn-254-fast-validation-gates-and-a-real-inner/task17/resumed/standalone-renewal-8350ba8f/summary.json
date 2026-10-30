@@ -1,0 +1,291 @@
+{
+  "status": "Full source-only standalone execution green; count acceptance remains incomplete due missing doctest interception and unscheduled-parent link scope",
+  "head": "8350ba8f03312d6675145693614b6276672f6941",
+  "parent_command": [
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-standalone-renewal/target/xtask-bootstrap/debug/xtask",
+    "gate",
+    "--stage",
+    "standalone"
+  ],
+  "driver_elapsed_seconds": 1270.3154534799978,
+  "native_elapsed_seconds": 1269.348798938,
+  "child_exit": 0,
+  "complete": true,
+  "source_unchanged": true,
+  "expected_stages": [
+    "proto-tools",
+    "retired-names",
+    "timing-controls",
+    "capability-controls",
+    "source-boundary",
+    "protobuf-controls",
+    "protobuf-freshness",
+    "kettle-protobuf-freshness",
+    "fmt",
+    "clippy",
+    "docs",
+    "tests",
+    "wasm32-wasip1",
+    "core-wasm-clippy",
+    "wasm-guest",
+    "go-host",
+    "kettle-go-host"
+  ],
+  "actual_stages": [
+    "proto-tools",
+    "retired-names",
+    "timing-controls",
+    "capability-controls",
+    "source-boundary",
+    "protobuf-controls",
+    "protobuf-freshness",
+    "kettle-protobuf-freshness",
+    "fmt",
+    "clippy",
+    "docs",
+    "tests",
+    "wasm32-wasip1",
+    "core-wasm-clippy",
+    "wasm-guest",
+    "go-host",
+    "kettle-go-host"
+  ],
+  "all_stage_exits_zero": true,
+  "stage_seconds": {
+    "proto-tools": 23.052352053,
+    "retired-names": 0.915419209,
+    "timing-controls": 0.1540505,
+    "capability-controls": 0.237469917,
+    "source-boundary": 2.744042543,
+    "protobuf-controls": 0.173405917,
+    "protobuf-freshness": 0.0790525,
+    "kettle-protobuf-freshness": 0.048003833,
+    "fmt": 0.83233725,
+    "clippy": 80.360256538,
+    "docs": 20.675021969,
+    "tests": 824.333177351,
+    "wasm32-wasip1": 20.289645927,
+    "core-wasm-clippy": 6.826410128,
+    "wasm-guest": 159.388633993,
+    "go-host": 43.853992355,
+    "kettle-go-host": 60.759641821
+  },
+  "stage_counts": {
+    "proto-tools": {
+      "discovered": null,
+      "executed": null,
+      "ignored": null,
+      "skipped": null,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "retired-names": {
+      "discovered": null,
+      "executed": null,
+      "ignored": null,
+      "skipped": null,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "timing-controls": {
+      "discovered": null,
+      "executed": null,
+      "ignored": null,
+      "skipped": null,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "capability-controls": {
+      "discovered": null,
+      "executed": null,
+      "ignored": null,
+      "skipped": null,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "source-boundary": {
+      "discovered": null,
+      "executed": null,
+      "ignored": null,
+      "skipped": null,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "protobuf-controls": {
+      "discovered": null,
+      "executed": null,
+      "ignored": null,
+      "skipped": null,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "protobuf-freshness": {
+      "discovered": null,
+      "executed": null,
+      "ignored": null,
+      "skipped": null,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "kettle-protobuf-freshness": {
+      "discovered": null,
+      "executed": null,
+      "ignored": null,
+      "skipped": null,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "fmt": {
+      "discovered": null,
+      "executed": null,
+      "ignored": null,
+      "skipped": null,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "clippy": {
+      "discovered": null,
+      "executed": null,
+      "ignored": null,
+      "skipped": null,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "docs": {
+      "discovered": null,
+      "executed": null,
+      "ignored": null,
+      "skipped": null,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "tests": {
+      "discovered": 895,
+      "executed": 893,
+      "ignored": 2,
+      "skipped": 0,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "wasm32-wasip1": {
+      "discovered": null,
+      "executed": null,
+      "ignored": null,
+      "skipped": null,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "core-wasm-clippy": {
+      "discovered": null,
+      "executed": null,
+      "ignored": null,
+      "skipped": null,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "wasm-guest": {
+      "discovered": null,
+      "executed": null,
+      "ignored": null,
+      "skipped": null,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "go-host": {
+      "discovered": null,
+      "executed": null,
+      "ignored": null,
+      "skipped": null,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "kettle-go-host": {
+      "discovered": null,
+      "executed": null,
+      "ignored": null,
+      "skipped": null,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    }
+  },
+  "nextest": {
+    "run_id": "dac0b1ab-830d-4806-bda2-f7ff56039ff0",
+    "selected": 893,
+    "passed": 893,
+    "ignored": 2,
+    "total_inventory": 895,
+    "binaries": 69,
+    "execution_seconds": 621.506,
+    "inventory": "current-nextest-all.json",
+    "identities": "inventory-identities.json"
+  },
+  "doctests": {
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "test",
+      "--doc",
+      "--workspace",
+      "--locked",
+      "--quiet"
+    ],
+    "completed_suite_summaries": 24,
+    "totals": {
+      "passed": 4,
+      "failed": 0,
+      "ignored": 1,
+      "measured": 0,
+      "filtered_out": 0
+    },
+    "raw_stdout_sha256": "d5cb5b1d52225c0e8ec55b68ff7c29ef4e1f0c06a42e74638652b868b06895fc",
+    "stage_receipt_gap": "Numeric tests stage currently includes only nextest; separate doc evidence retained"
+  },
+  "observations": {
+    "event_counts": {
+      "tlc-finish": 836,
+      "tlc-attempt": 836,
+      "tests-finish": 1,
+      "tests-begin": 1
+    },
+    "tlc_confirmed": 752,
+    "tlc_unconfirmed": 84,
+    "observations_complete": true,
+    "sample_interval_seconds": 0.5,
+    "sampled_peak_java_processes": 4,
+    "sampled_peak_total_java_rss_kib": 392640,
+    "java_samples_with_lease_or_lifecycle_environment": 0,
+    "heap_arguments": [
+      "-Xmx512m"
+    ],
+    "cleanup": {
+      "live": {},
+      "all_observed_owned_pids_absent": true
+    },
+    "limitation": "Polling is observational; negative launch controls prevent aggregate TLC counts from becoming known. Separate actual confirmed/unconfirmed evidence retained."
+  },
+  "count_limitations": [
+    "Actual Cargo nextest compilation replaces running native controller; subsequent current_exe comparison appears to lose controller identity, omitting separate Cargo doctest counts. Root assigned repair.",
+    "Mixed actual/negative TLC controls include84 unconfirmed starts, so conservative aggregate TLC launches/configurations remain null despite complete attempt/finish evidence.",
+    "Public gate --stage standalone does not activate parent scheduled observation scope; child17-stage authority is real, parent-child producer link requires next renewed run via valid --scheduled-stage standalone context.",
+    "Go counts remain explicitly null; task12 follow-up remains open."
+  ],
+  "root_input_seal": {
+    "path": "root-source-before.json",
+    "sha256": "7dfd08fbaf15ecba7bc4e7e79c85dfa515d8a55623d3d806ce728cbf4d1ed4c3"
+  },
+  "source_final_seal_sha256": "7dfd08fbaf15ecba7bc4e7e79c85dfa515d8a55623d3d806ce728cbf4d1ed4c3",
+  "raw_evidence": {
+    "output_manifest": "raw-output-manifest.json",
+    "work_manifest": "work-observation-files.json.gz",
+    "work_manifest_summary": "work-observation-files-summary.json"
+  },
+  "active_handles": [],
+  "owned_live_pids": [],
+  "build_lane_released": true,
+  "activity": "Prepared only; root HOLD received before any process or source mutation. Prepared driver ../activity-renewal-8350ba8f/run.py remains unexecuted.",
+  "free_bytes_at_handoff": 63559397376,
+  "macos": "Explicitly owner-deferred; no runtime acceptance claim",
+  "no_commits_or_remote_writes": true
+}

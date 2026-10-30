@@ -1,0 +1,3 @@
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.33s
+     Running unittests src/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/temporal/debug/deps/temporal_xtask-ec453d7574f7d635)

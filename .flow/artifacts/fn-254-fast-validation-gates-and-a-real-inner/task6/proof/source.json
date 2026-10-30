@@ -1,0 +1,26 @@
+{
+  "base": "8cf15a04e60d15f63f7b0de72d1e2f933d6f2ad0",
+  "source": "7b4d3f526c94471542d736e04301246c61c9f3b9",
+  "files": {
+    "Makefile": "109121c7f49cd5713c11c94226d79b6040de300d5391779ac43d25b7f217ad16",
+    "model/dev/xtask/src/main.rs": "6dbd6a6fcfbe4f1af99023f6b392d03312b73c8fec78d0dd2e663b029fd4c119",
+    "model/dev/xtask/src/quick/mod.rs": "71953e4e4707b4efe01986d2fb3afd549a35c0ffb0b335a076d867ac023c3199",
+    "model/umpire/backends/process/src/fingerprint.rs": "73c7665b00f560b7e866faaa72484e325e5f1fcfb691351ccd879a1ad555df7a",
+    "model/umpire/backends/process/src/lib.rs": "39878aead4ac08c9fe2f311553d724b1c288f0f8b3ac230c60671257933f9fab",
+    "model/umpire/backends/tlc/src/cache.rs": "92e6d317e959f445b15a52b17d95d1c1db65a245eeeb69a2e15d7eff8cca15e8",
+    "model/umpire/backends/tlc/src/lib.rs": "a2dc35281a9fa0f2e1446ba541e97ad95341dfbde3d648e97ada687d14ffb731",
+    "model/umpire/backends/tlc/src/runner.rs": "01c407daf4584da51dfa97b8d441a3f0fcd0047fd348ae18818d56bb6fa718cc",
+    "model/umpire/backends/tlc/src/runner/batch_tests.rs": "d41e06e09bbea453b987f721d95b53ed332fc120a7037f69ca4997da2596483e",
+    "model/umpire/backends/tlc/src/runner/cache_tests.rs": "eefc26621943591c4cfbb3e26d497f0e65ef8b5d86f19f7c5c793f15ee2ac43b",
+    "model/umpire/dev/testing/src/interpreted.rs": "30a29b75ffed2984af28badb239a5207c757810f91008a579e36b41de764f08b",
+    "model/umpire/dev/xtask/src/lib.rs": "e9de36caefe2fcd486cea91008d2804f52c2b8121554271bd8befc9ac88ef7af",
+    "model/umpire/dev/xtask/src/main.rs": "8c77f9783b1aa768ee85b14f84c0a7a63130de236503983e2b449f6fcd176b38",
+    "model/umpire/dev/xtask/src/quick/mod.rs": "568cdb22adeb8fe2943a90ede775d0e3fef11fd48034768c53363ac2e66b7372",
+    "model/umpire/dev/xtask/src/quick/selection.rs": "3ae16abbc25b15a06161e516a6dd94afcbbc5309b888ea8733dfba2afe5090be",
+    "model/umpire/dev/xtask/src/quick/tests.rs": "e2c32cbd5196004b2186f7ba802649a799585dc051f0c6985b3f2e59626df061"
+  },
+  "locks": {
+    "model/Cargo.lock": "50d2b024555c958b02286fa6ec65976efc9fb9cd69f4d27780e9a01998d5d70f",
+    "model/umpire/Cargo.lock": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5"
+  }
+}

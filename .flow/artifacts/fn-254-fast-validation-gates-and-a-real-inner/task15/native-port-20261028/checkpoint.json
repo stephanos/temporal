@@ -1,0 +1,105 @@
+{
+  "recorded_utc": "2026-10-28T18:49:57.546487+00:00",
+  "source_head_before_checkpoint": "4d980c9acdb6654b7d460e0aaf87b92aa14709a4",
+  "source_files": {
+    "model/dev/xtask/src/build_guests.rs": "0cff25993b03a4ee5313b7b47a9b65f3dce560d6079966f8673dc3257ecc2c45",
+    "model/dev/xtask/src/gate.rs": "7d8b22fe495b8926b64f229031918804a56e13d9d0b53cb1297e317a8390bee0",
+    "model/dev/xtask/src/main.rs": "8cfc0e54e7875035a51b06d0440cc1287083b34195c043331a4acc17d84641e9",
+    "model/dev/xtask/src/script_control_support.rs": "32e06cbb77fd529bf755529c52a79936376d551717c11bdd0935830df55bcc56",
+    "model/dev/xtask/src/temporal_guest_path_controls.rs": "1b945d65292fe63dd7040b69ac3b1f3ec40ab15069b82aa5f213035d468863a5",
+    "model/scripts/fetch-tlc.sh": "deleted",
+    "model/scripts/guest-freshness.sh": "deleted",
+    "model/scripts/guest.sh": "deleted",
+    "model/scripts/proto-go.sh": "deleted",
+    "model/scripts/retired-names.sh": "deleted",
+    "model/scripts/test-capabilities.sh": "deleted",
+    "model/scripts/test-model-validate.sh": "deleted",
+    "model/scripts/test-model-wiring.sh": "deleted",
+    "model/scripts/test-time-gate.sh": "deleted",
+    "model/scripts/tests/build-guests.sh": "deleted",
+    "model/scripts/tests/guest-roots.sh": "deleted",
+    "model/scripts/tests/proto-go.sh": "deleted",
+    "model/scripts/time-gate.sh": "deleted",
+    "model/umpire/dev/guest-driver/src/guest.rs": "ec123a574a4fab6186efd3bef31b54652aa7b48fe28758d762aaaacd9b654d26",
+    "model/umpire/dev/guest-driver/tests/guest_pipeline.rs": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058",
+    "model/umpire/dev/xtask/README.md": "83150a2203aea4a0bbbf5eee21477868a2d20b8202a9bc73468894c403959f1b",
+    "model/umpire/dev/xtask/src/build_guest_path_controls.rs": "7bd4e1d3b0694bc0e32cafbea73bd517b1fc3a5c1f843c6800424fe3836bfb37",
+    "model/umpire/dev/xtask/src/capability_controls.rs": "86cb1bbadb163b5fcd3beb05b22ae256cebcc4dee1a09f09f58293baf1d0ab72",
+    "model/umpire/dev/xtask/src/gate.rs": "0cb8016352c9712f2286914d0770e2af0968e300782cf9aa841492097728b150",
+    "model/umpire/dev/xtask/src/gate/boundary.rs": "202bf4a5fc6a7e6f082caf11ea174e34ba778eb2fd3b81f73434b06474d29be8",
+    "model/umpire/dev/xtask/src/main.rs": "e9871388f53f558f4deedb0fd16eb05a0d12b066ca298e1b5ef8ac2eb8c2a1f6",
+    "model/umpire/dev/xtask/src/proto.rs": "a6412f662ba3ae31f5b8463c13ac6b994e59304cdbba162e148eca8e0e267ece",
+    "model/umpire/dev/xtask/src/proto_controls.rs": "5323aa2f40e310e0f6d02eb07ea0d4fdcef6ea2acfcc3b4b44eea1c2090c9f3c",
+    "model/umpire/dev/xtask/tests/gate_wiring.rs": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+    "model/umpire/dev/xtask/tests/retired_names.rs": "5e63fdfda6f1449d0b8a0ae01ee5768e4337797fe04902444e39a0980297b908",
+    "model/umpire/scripts/fetch-tlc.sh": "deleted",
+    "model/umpire/scripts/guest-freshness.sh": "deleted",
+    "model/umpire/scripts/guest.sh": "deleted",
+    "model/umpire/scripts/proto-go.sh": "deleted",
+    "model/umpire/scripts/proto-tools.sh": "deleted",
+    "model/umpire/scripts/retired-names.sh": "deleted",
+    "model/umpire/scripts/test-capabilities.sh": "deleted",
+    "model/umpire/scripts/test-time-gate.sh": "deleted",
+    "model/umpire/scripts/tests/bootstrap.sh": "deleted",
+    "model/umpire/scripts/tests/build-guests-controls.sh": "deleted",
+    "model/umpire/scripts/tests/build-guests.sh": "deleted",
+    "model/umpire/scripts/tests/proto-go.sh": "deleted",
+    "model/umpire/scripts/tests/proto-tools.sh": "deleted",
+    "model/umpire/scripts/time-gate.sh": "deleted"
+  },
+  "focused_runtime": {
+    "framework_xtask": {
+      "executed": 158,
+      "passed": 158
+    },
+    "guest_driver": {
+      "executed": 38,
+      "passed": 38
+    },
+    "temporal_xtask": {
+      "executed": 38,
+      "passed": 38,
+      "ignored_child_entries": 3
+    },
+    "tlc": {
+      "executed": 34,
+      "passed": 34
+    }
+  },
+  "strict_clippy": "Both workspaces affected packages all targets/all features pass with -D warnings",
+  "formatting": "Both cargo fmt --all -- --check pass",
+  "removed_scripts": 27,
+  "remaining_scripts": [
+    "model/scripts/xtask.sh",
+    "model/umpire/scripts/xtask.sh"
+  ],
+  "regressions": {
+    "empty_temporal_target": "new case failed before production filter-empty restoration; same case passed afterward",
+    "framework_docs_boundary": "native source-boundary control caught system selector name in framework docs; rewritten to system-neutral wording; actual Temporal shipping-Make source-boundary test passes"
+  },
+  "task_acceptance": false,
+  "pending": [
+    "fresh full standalone17-stage proof",
+    "baseline/current test identity reconciliation",
+    "formal implementation review",
+    "Flow done and committed closure"
+  ],
+  "artifacts": {
+    "native-fetch-tlc.stderr.log": "9a2c420533f5b21db602275a23dfef4006073d8863212745ff8dd9002ca3a421",
+    "fn25415-final-control-map.json": "989d49ae86539aec05caa95051d641bafb8f96769133413a004d05c2553efe60",
+    "verbatim-log-whitespace.json": "9b49c91d3cbde7503eb42dd0948f2192919f2accfd7cd8f3e91292865b583aba",
+    "framework-xtask-native-final.log": "ff04b549954e4be3227747ec843b074a20ecdee40fb3195fb8085a9b37b64429",
+    "temporal-empty-target-red.log": "e4ab700896e178e32b3d2cdd32e44921f427c2de7000ad74a146c91320eb068e",
+    "script-removal.json": "3a3980f4b8ee49c10f7ae110c1d6b6de264a1ebd502c8881f83392dc3079e9ea",
+    "temporal-xtask-native-test-run-retry.log": "00f60b38c9b83a2d8a0f91b0f6ea04af0e6530fdf06598286334e22501d57fdc",
+    "framework-tlc-native-correct-package.log": "9165a71c90f71b34896178dfb36f3edb44f1a4511485fba426f967f51ef5f91f",
+    "temporal-clippy-pass.log": "d0304616406bf8e05c78cb8b88f488669d44e8d03e9e591e92c6b6992f9ff3d8",
+    "maintained-caller-scan.json": "94122b560f03f93583e501207fd98d0f6be177f708920ede6df047856981c09f",
+    "verification-inputs-20261028.json": "92a71b4b27498d335c93b9a77fc9e2cac79e5ee19e31dfda267af7479181c0dd",
+    "native-fetch-tlc.log": "88605cd85983b1bd47b80552ce89996df49039b3ec8532ff5a509ea750521c8c",
+    "temporal-empty-target-green.log": "835c520138a35c0841930d0043dc1bfa3a38564b76958c840591144a8f2bb9f8",
+    "framework-clippy-pass2.log": "124edd6870fcc59bd7f78d576bd8d17c9f09c8d32922b28b5973bbe907816bb1",
+    "framework-guest-driver-native-final.log": "f88afb025f0691d95a438955dd0b97da31ba3a35f0aff2257a935449f7cbbc3b",
+    "fn25415-final-control-map.md": "58876d62bc9d81abb471ddfba10d68f8ab7c59df6d841d45311b5965522688c6"
+  }
+}

@@ -1,0 +1,11 @@
+The activity Model inner loop passes after an actual content edit in an isolated clone of source `7b4d3f526c`. `make model-quick` selects the activity fixture consumer, checks formatting and clippy, and executes native, interpreted and required TLC checks.
+
+- Emission-preserving Model edit passed in 20.265 s. Native/interpreter agreement executed four times, all 14 configuration reads hit, and TLC executed zero checks.
+- Semantically equivalent guard reordering changed emitted TLA bytes and passed in 33.084 s. Seven configurations missed and caused 14 fresh TLC checks; the deterministic second fixture render hit all seven.
+- With 14 populated configuration bundles, the full-gate effective environment `UMPIRE_QUICK_CACHE=0 UMPIRE_CACHE_DISABLE=1` passed the actual fixture in 38.653 s with 28 fresh TLC executions and zero cache hits. Both existing full-gate stage-child controls separately proved these values override inherited cache enablement.
+- Seven quick selection controls, 23 TLC controls and 13 process controls passed. Locked affected builds, both locked metadata resolutions, strict clippy, formatting and the strategy-equivalence build passed. Cache controls cover identity changes, raw/schema corruption, interruption, concurrent readers/writers and failure/refutation exclusion.
+- Two initially empty targets at different source paths reproduced the committed Temporal guest exactly. Both outputs have SHA-256 `c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc`; builder `--check` also passed. Both lockfiles remain byte-identical to admission.
+
+The first isolated quick attempt refused its missing pinned TLC jar. The retained failed log identifies that setup condition. Copying the already admitted jar and running the existing SHA admission enabled the successful scenarios above. Both Model edits and generated golden changes were restored, and both source checkouts are clean.
+
+Source commits are `e9a47cafac` and `7b4d3f526c`. The proof receipt is `.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task6/quick-proof.json`. Detailed logs and harness scripts remain under root `.flow/tmp/fn254-task6/`. Full unrelated Model gates and consolidated documentation remain task .8 obligations; this receipt claims no broad full-gate pass.

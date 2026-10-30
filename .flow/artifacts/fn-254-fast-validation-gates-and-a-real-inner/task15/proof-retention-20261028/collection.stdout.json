@@ -1,0 +1,9 @@
+{
+  "collected": true,
+  "independent_verification_pending": true,
+  "manifest": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.recovery/fn25415-native-proof/manifests/68208a5aa0e5df79783d97b740a07da3f0808dce4935aa076450630a5183b610.json",
+  "manifest_sha256": "68208a5aa0e5df79783d97b740a07da3f0808dce4935aa076450630a5183b610",
+  "selected_members": 4801,
+  "cleanup_performed": false,
+  "all_staging_retained": true
+}

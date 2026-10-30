@@ -1,0 +1,4 @@
+oracle::brute_force_oracle: test
+search::caller_labels_keep_same_state_with_distinct_cursors_and_nonclone_emissions: test
+search::epsilon_labels_precede_edges_without_spending_depth: test
+search::work_bound_accounts_labels_and_explicit_evaluations_without_partial_admission: test

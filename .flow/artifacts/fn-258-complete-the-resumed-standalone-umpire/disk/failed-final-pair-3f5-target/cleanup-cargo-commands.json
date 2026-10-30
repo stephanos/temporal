@@ -1,0 +1,98 @@
+[
+  {
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clean",
+      "--manifest-path",
+      "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/Cargo.toml",
+      "--target-dir",
+      "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/guest-cache/e1ead22e14dcff68c22a6ed0eec052fae1397d9ec505e90ff55a3d32cb415285/wasm32-wasip1"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "     Removed 568 files, 213.7MiB total\n"
+  },
+  {
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clean",
+      "--manifest-path",
+      "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/Cargo.toml",
+      "--target-dir",
+      "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/guest-cache/e96d1995f4bcaabaf51f0cffc9b84d150cd82adf11eef99d311150d5a6754a15/wasm32-wasip1"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "     Removed 496 files, 278.7MiB total\n"
+  },
+  {
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clean",
+      "--manifest-path",
+      "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/Cargo.toml",
+      "--target-dir",
+      "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/tests/runtime-capability-controls/target"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "     Removed 661 files, 305.0MiB total\n"
+  },
+  {
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clean",
+      "--manifest-path",
+      "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/Cargo.toml",
+      "--target-dir",
+      "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/tests/trybuild/aarch64-unknown-linux-gnu"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "     Removed 2438 files, 843.3MiB total\n"
+  },
+  {
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clean",
+      "--manifest-path",
+      "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/Cargo.toml",
+      "--target-dir",
+      "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/wasm32-wasip1"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "     Removed 205 files, 27.7MiB total\n"
+  },
+  {
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clean",
+      "--manifest-path",
+      "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/Cargo.toml",
+      "--target-dir",
+      "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/xtask-bootstrap"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "     Removed 527 files, 435.8MiB total\n"
+  }
+]

@@ -1,6 +1,124 @@
+min_version = "2026.10.11"
+
 [tools]
 go = "1.27.0"
 protoc = "29.5"
 scala-cli = "1.17.1"
 java = "temurin-27"
 rust = "1.99.1"
+"github:rui314/mold" = { version = "3.0.0", os = ["linux"] }
+"github:nextest-rs/nextest" = { version = "0.9.149", version_prefix = "cargo-nextest-" }
+
+[task_config]
+includes = ["model/umpire/dev/xtask/src/gate/tasks.toml"]
+
+# Temporal imports the framework graph once and adds only its own stages and resource edges.
+[tasks."model:all"]
+description = "Admitted combined framework and Temporal gate"
+depends = ["gate:all", "model:retired-names", "model:fmt", "model:temporal-go-host"]
+
+[tasks."model:temporal-prerequisites"]
+depends = ["gate:wasm-guest"]
+env.UMPIRE_GATE_STAGE = "temporal-prerequisites"
+env.UMPIRE_GATE_ORDER = "0"
+env.UMPIRE_GATE_SCOPE = "temporal"
+dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
+run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage temporal-prerequisites'
+
+[tasks."model:temporal-guest-freshness"]
+depends = ["model:temporal-prerequisites"]
+env.UMPIRE_GATE_STAGE = "temporal-guest-freshness"
+env.UMPIRE_GATE_ORDER = "1"
+env.UMPIRE_GATE_SCOPE = "temporal"
+dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
+run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage temporal-guest-freshness'
+
+[tasks."model:retired-names"]
+env.UMPIRE_GATE_STAGE = "retired-names"
+env.UMPIRE_GATE_ORDER = "2"
+env.UMPIRE_GATE_SCOPE = "temporal"
+dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
+run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage retired-names'
+
+[tasks."model:timing-controls"]
+depends = ["model:temporal-guest-freshness"]
+env.UMPIRE_GATE_STAGE = "timing-controls"
+env.UMPIRE_GATE_ORDER = "3"
+env.UMPIRE_GATE_SCOPE = "temporal"
+dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
+run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage timing-controls'
+
+[tasks."model:source-boundary"]
+depends = ["model:timing-controls"]
+env.UMPIRE_GATE_STAGE = "source-boundary"
+env.UMPIRE_GATE_ORDER = "4"
+env.UMPIRE_GATE_SCOPE = "temporal"
+dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
+run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage source-boundary'
+
+[tasks."model:protobuf-controls"]
+depends = ["model:source-boundary"]
+env.UMPIRE_GATE_STAGE = "protobuf-controls"
+env.UMPIRE_GATE_ORDER = "5"
+env.UMPIRE_GATE_SCOPE = "temporal"
+dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
+run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage protobuf-controls'
+
+[tasks."model:temporal-protobuf-freshness"]
+depends = ["model:protobuf-controls"]
+env.UMPIRE_GATE_STAGE = "temporal-protobuf-freshness"
+env.UMPIRE_GATE_ORDER = "6"
+env.UMPIRE_GATE_SCOPE = "temporal"
+dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
+run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage temporal-protobuf-freshness'
+
+[tasks."model:fmt"]
+env.UMPIRE_GATE_STAGE = "fmt"
+env.UMPIRE_GATE_ORDER = "7"
+env.UMPIRE_GATE_SCOPE = "temporal"
+dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
+run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage fmt'
+
+[tasks."model:clippy"]
+depends = ["model:temporal-protobuf-freshness"]
+env.UMPIRE_GATE_STAGE = "clippy"
+env.UMPIRE_GATE_ORDER = "8"
+env.UMPIRE_GATE_SCOPE = "temporal"
+dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
+run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage clippy'
+
+[tasks."model:docs"]
+depends = ["model:clippy"]
+env.UMPIRE_GATE_STAGE = "docs"
+env.UMPIRE_GATE_ORDER = "9"
+env.UMPIRE_GATE_SCOPE = "temporal"
+dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
+run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage docs'
+
+[tasks."model:tests"]
+depends = ["model:docs"]
+env.UMPIRE_GATE_STAGE = "tests"
+env.UMPIRE_GATE_ORDER = "10"
+env.UMPIRE_GATE_SCOPE = "temporal"
+dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
+run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage tests'
+
+[tasks."model:wasm-guest"]
+depends = ["model:tests"]
+env.UMPIRE_GATE_STAGE = "wasm-guest"
+env.UMPIRE_GATE_ORDER = "11"
+env.UMPIRE_GATE_SCOPE = "temporal"
+dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
+run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage wasm-guest'
+
+[tasks."model:temporal-go-host"]
+depends = ["model:wasm-guest", "gate:standalone"]
+env.UMPIRE_GATE_STAGE = "temporal-go-host"
+env.UMPIRE_GATE_ORDER = "12"
+env.UMPIRE_GATE_SCOPE = "temporal"
+dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
+run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage temporal-go-host'
+
+# The shared target is released before either Go host phase.
+[tasks."gate:go-host"]
+wait_for = ["model:wasm-guest"]

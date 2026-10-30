@@ -1,0 +1,21 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.97s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/quick/debug/deps/xtask-77ca01b04ba72586)
+
+running 1 test
+
+thread 'quick::tests::shared_feature_inputs_select_every_direct_consumer_and_reverse_guest' (572249) panicked at dev/xtask/src/quick/tests.rs:286:9:
+assertion `left == right` failed: model.rs
+  left: {"umpire-temporal-tests"}
+ right: {"umpire-temporal", "umpire-temporal-api", "umpire-temporal-guest", "umpire-temporal-realization-macros", "umpire-temporal-tests"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test quick::tests::shared_feature_inputs_select_every_direct_consumer_and_reverse_guest ... FAILED
+
+failures:
+
+failures:
+    quick::tests::shared_feature_inputs_select_every_direct_consumer_and_reverse_guest
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p xtask --lib`

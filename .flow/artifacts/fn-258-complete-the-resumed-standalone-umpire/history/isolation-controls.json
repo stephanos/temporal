@@ -1,0 +1,46 @@
+[
+  {
+    "control": "source-refused",
+    "arguments": [
+      "/usr/bin/python3",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/export-history.py",
+      "--original",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "--clone",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "--history-map",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/history-map.json",
+      "--source-manifest",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/source/source-manifest.json",
+      "--filter-repo-module",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn257-tool/git_filter_repo.py",
+      "--report-dir",
+      "/home/agent/.cache/codex-build/tmp/fn258-reviewed-source-refused"
+    ],
+    "exit": 1,
+    "diagnostic": "Export refused or failed: The original repository cannot be filtered\n",
+    "report_created": false
+  },
+  {
+    "control": "registered-worktree-refused",
+    "arguments": [
+      "/usr/bin/python3",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/export-history.py",
+      "--original",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "--clone",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol",
+      "--history-map",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/history-map.json",
+      "--source-manifest",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/source/source-manifest.json",
+      "--filter-repo-module",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn257-tool/git_filter_repo.py",
+      "--report-dir",
+      "/home/agent/.cache/codex-build/tmp/fn258-reviewed-registered-worktree-refused"
+    ],
+    "exit": 1,
+    "diagnostic": "Export refused or failed: Clone is an original registered worktree\n",
+    "report_created": false
+  }
+]

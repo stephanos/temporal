@@ -1,0 +1,110 @@
+{
+  "result": "pass",
+  "prepared_manifest_sha256": "f7c701dbd53db23637eafdf55d941f846ecd5373405070c4f6939e98718c2363",
+  "verifier_sha256": "d5b4f0567091d86dd84226b0e75b6d43c656087ab445751d5cea83d543555345",
+  "builder_sha256": "3ff6ebeebb41077feb012d13d9a82196b7e75e0de99cdcf3b3aaf6a2c108a210",
+  "common_helper_sha256": "f4528ded9b059c322f8b70edd3b7acf55e9119c12d38c29e67e23d880e2218c1",
+  "frozen_preparation_input_copies": {
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-ref-creation-work.json": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-snapshots/receiving-ref-creation-work.input.json",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/disposition-overlay.json": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-snapshots/disposition-overlay.input.json",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/custody/custody-manifest.json": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-snapshots/custody-manifest.input.json"
+  },
+  "verified_targets": 48,
+  "new_agent_custody_commits": 50,
+  "full_variant_file_records_verified": 57286,
+  "net_projected_deletion_beforeimages": 1942,
+  "mapped_source_deletion_beforeimages": 1931,
+  "exact_candidate049_source_only_paths": 4,
+  "qualified_dirty_variants": 2,
+  "exception_and_selection_controls": [
+    {
+      "name": "missing-file",
+      "expected_refusal": "full projection coverage",
+      "passed": true
+    },
+    {
+      "name": "unexpected-tracker-file",
+      "expected_refusal": "source path coverage",
+      "passed": true
+    },
+    {
+      "name": "wrong-mode",
+      "expected_refusal": "exact mode identity",
+      "passed": true
+    },
+    {
+      "name": "wrong-blob",
+      "expected_refusal": "exact blob identity",
+      "passed": true
+    },
+    {
+      "name": "duplicate-destination",
+      "expected_refusal": "collision rejection",
+      "passed": true
+    },
+    {
+      "name": "system-import",
+      "expected_refusal": "no system dependencies",
+      "passed": true
+    },
+    {
+      "name": "Scala-file",
+      "expected_refusal": "no Scala bytes",
+      "passed": true
+    },
+    {
+      "name": "exception-OID-drift",
+      "expected_refusal": "exact root-approved four-path policy",
+      "passed": true
+    },
+    {
+      "name": "exception-blob-drift",
+      "expected_refusal": "exact root-approved four-path policy",
+      "passed": true
+    },
+    {
+      "name": "exception-extra-prefix-file",
+      "expected_refusal": "exact root-approved four-path policy",
+      "passed": true
+    },
+    {
+      "name": "dirty-path-omitted",
+      "expected_refusal": "full raw custody coverage",
+      "passed": true
+    },
+    {
+      "name": "deletion-beforeimage-corrupt",
+      "expected_refusal": "raw beforeimage hash",
+      "passed": true
+    },
+    {
+      "name": "deletion-after-absence-false",
+      "expected_refusal": "exact after-absence",
+      "passed": true
+    },
+    {
+      "name": "deleted-path-resurrected",
+      "expected_refusal": "exact after-absence",
+      "passed": true
+    },
+    {
+      "name": "original-parent-invention",
+      "expected_refusal": "new custody parents only",
+      "passed": true
+    },
+    {
+      "name": "original-author-spoof",
+      "expected_refusal": "new agent authorship only",
+      "passed": true
+    }
+  ],
+  "bundle_recovery_exact_graph": true,
+  "no_original_authorship_or_parent_claim": true,
+  "transaction_test": "Applied once only to isolated transaction-test.git; repeated create-only transaction refused; never run against real standalone.",
+  "transaction_sha256": "e1eca8201f668b52e10c863dfed14e6b12c12de75e112b1d60c76b7facafb488",
+  "canonical_standalone_unchanged": true,
+  "source_refs_and_dirty_custody_unchanged": true,
+  "real_receiving_refs_created": 0,
+  "actual_transfer_or_activation": false,
+  "task4_or_feature_acceptance": false
+}

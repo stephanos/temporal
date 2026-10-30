@@ -1,0 +1,12 @@
+   Compiling umpire-dsl v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/author/dsl)
+    Checking umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/backends/native)
+    Checking umpire-runtime v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/protocol/runtime)
+   Compiling umpire-catalog-syntax v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/catalog/build)
+   Compiling umpire-catalog-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/catalog/macros)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/annotate/syntax)
+   Compiling umpire-temporal-api v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/api)
+    Checking umpire-catalog v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/catalog)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/realization/macros)
+    Checking umpire-temporal v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/realization)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.21s

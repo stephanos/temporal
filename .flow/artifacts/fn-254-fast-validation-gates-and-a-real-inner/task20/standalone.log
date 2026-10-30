@@ -1,0 +1,11 @@
+   Compiling mold-standalone-proof v0.0.0 (/home/agent/.cache/codex-build/fn25420-standalone)
+     Running `CARGO=/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo CARGO_BIN_NAME=mold-standalone-proof CARGO_CRATE_NAME=mold_standalone_proof CARGO_MANIFEST_DIR=/home/agent/.cache/codex-build/fn25420-standalone CARGO_MANIFEST_PATH=/home/agent/.cache/codex-build/fn25420-standalone/Cargo.toml CARGO_PKG_AUTHORS='' CARGO_PKG_DESCRIPTION='' CARGO_PKG_HOMEPAGE='' CARGO_PKG_LICENSE='' CARGO_PKG_LICENSE_FILE='' CARGO_PKG_NAME=mold-standalone-proof CARGO_PKG_README='' CARGO_PKG_REPOSITORY='' CARGO_PKG_RUST_VERSION='' CARGO_PKG_VERSION=0.0.0 CARGO_PKG_VERSION_MAJOR=0 CARGO_PKG_VERSION_MINOR=0 CARGO_PKG_VERSION_PATCH=0 CARGO_PKG_VERSION_PRE='' CARGO_PRIMARY_PACKAGE=1 LD_LIBRARY_PATH='/home/agent/.cache/codex-build/fn25420-standalone/target/debug/deps:/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib' /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc --crate-name mold_standalone_proof --edition=2024 src/main.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type bin --emit=dep-info,link -C embed-bitcode=no -C debuginfo=2 --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' -C metadata=28209c01356d244e -C extra-filename=-299c37a8f6d0a9e6 --out-dir /home/agent/.cache/codex-build/fn25420-standalone/target/debug/deps -C linker=/home/agent/.cache/codex-build/fn25420-standalone/scripts/mold-linker.sh -C incremental=/home/agent/.cache/codex-build/fn25420-standalone/target/debug/incremental -L dependency=/home/agent/.cache/codex-build/fn25420-standalone/target/debug/deps`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.06s
+
+String dump of section '.comment':
+  [     0]  mold 3.0.0 (8de38c35a2df16a25f7ff87ac3ad07156a925beb; compatible with GNU ld)
+  [    4e]  rustc version 1.99.1 (58cf8f9c3 2026-10-13)
+  [    7b]  clang version 23.1.0git
+  [    93]  GCC: (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+
+framework-local mold proof

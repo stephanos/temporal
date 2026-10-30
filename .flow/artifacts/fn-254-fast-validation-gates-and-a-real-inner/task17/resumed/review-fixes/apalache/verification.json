@@ -1,0 +1,63 @@
+{
+  "base": "884794b825",
+  "scope": [
+    "model/dev/xtask/src/gate.rs"
+  ],
+  "red": {
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-standalone-renewal/target CARGO_BUILD_JOBS=1 mise exec -- cargo test --locked -p temporal-xtask --bin temporal-xtask gate::tests::optional_apalache_is_prepared_before_combined_scheduling -- --exact --nocapture",
+    "exit": 101,
+    "terminal": 24158,
+    "observed": "required mode called bootstrap, inventory, graph, retired; missing apalache between bootstrap and inventory"
+  },
+  "green": {
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-standalone-renewal/target CARGO_BUILD_JOBS=1 mise exec -- cargo test --locked -p temporal-xtask --bin temporal-xtask gate::tests:: -- --nocapture",
+    "exit": 0,
+    "terminal": 16187,
+    "passed": 9
+  },
+  "checks": [
+    {
+      "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-standalone-renewal/target CARGO_BUILD_JOBS=1 mise exec -- cargo clippy --locked -p temporal-xtask --bin temporal-xtask --tests --no-deps -- -D warnings",
+      "exit": 0
+    },
+    {
+      "command": "mise exec -- rustfmt --edition 2024 --check dev/xtask/src/gate.rs",
+      "exit": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0
+    }
+  ],
+  "behavior": [
+    "require fetches via framework executable fetch-apalache <model>/umpire before graph inventory/scheduling",
+    "exit 37 from fetch stops graph and names apalache",
+    "default and skip do not fetch",
+    "timed and untimed output contracts",
+    "caller-relative CARGO_HOME/CARGO_TARGET_DIR, disabled cache and mise auto-install, inherited caller environment"
+  ],
+  "test_boundary": "real Temporal gate run and scheduler with fake framework installer/bootstrap and mise; no real download, JVM, Go or full gate",
+  "logs": {
+    "red.log": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-review-fixes/apalache/red.log",
+      "sha256": "dcc57a82fa1c324d4844b7ce33974acd48af346dc6962896272eeb93b9f5e309"
+    },
+    "green.log": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-review-fixes/apalache/green.log",
+      "sha256": "bbe0877d69c29919675549b8caa1fc4184f821bc4bf17287914e681135e527f3"
+    },
+    "gate-controls-final.log": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-review-fixes/apalache/gate-controls-final.log",
+      "sha256": "1ed2e5df0cbbd0d8faac42d0da45b5bc2d6124199850f9e1d81360f87a2e34a7"
+    },
+    "clippy-green.log": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-review-fixes/apalache/clippy-green.log",
+      "sha256": "e92b41a5542a9fd49096b8c7ca3cf5456dceaeb993a8afbc286c84a778def997"
+    },
+    "fmt.log": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-review-fixes/apalache/fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "remaining_free_gib": 41
+}

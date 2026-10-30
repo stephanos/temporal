@@ -1,0 +1,14 @@
+{
+  "scope": "Preparation review only; no real receiving refs/imports/publication/cutover yet.",
+  "prepared_bundle": "prepared-snapshots.bundle",
+  "bundle_sha256": "efb9a7007b502c7d83f4b458fd5baa3e017ba1b10d9ca261a97557a8bf4d72cd",
+  "bundle_copy": "Exact copy of persistent recovery bundle, made available alongside source and full manifests for review.",
+  "stable_agent_inventory": "../stable-preparation-hashes.json",
+  "stable_agent_inventory_sha256": "8b100071a8fe58bffba250e5983b7d73596feb1ca7cae989a7fb5a5ad1156ada",
+  "canonical_standalone": "05473210b48c3db862f22051eb7154ce98258f98",
+  "candidate_consumer": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+  "actual_source_readiness_closures": "../source-readiness-closures.json",
+  "mutation_gate": "Actual import/create-only transaction waits for task4 acceptance and task5 admission. Current48refnames remain absent.",
+  "receiving_method": "50 explicitly new custody commits,48targets, including committed/rawdirty039075 variants; no fabricated original authorship/monorepo-parent graft or active-source acceptance.",
+  "exception": "Exact049consumerstub fourfiles stay Temporal; generic counterpart retained. Original maps unchanged, explicit candidate-local ownership correction."
+}

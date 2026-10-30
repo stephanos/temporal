@@ -1,0 +1,17 @@
+{"exit":0,"seconds":4.335736877,"stage":"proto-tools"}
+{"exit":0,"seconds":0.606750417,"stage":"retired-names"}
+{"exit":0,"seconds":0.057549083,"stage":"timing-controls"}
+{"exit":0,"seconds":0.155632751,"stage":"capability-controls"}
+{"exit":0,"seconds":0.702856667,"stage":"source-boundary"}
+{"exit":0,"seconds":0.125421333,"stage":"protobuf-controls"}
+{"exit":0,"seconds":0.029621792,"stage":"protobuf-freshness"}
+{"exit":0,"seconds":0.021354708,"stage":"kettle-protobuf-freshness"}
+{"exit":0,"seconds":0.513383292,"stage":"fmt"}
+{"exit":0,"seconds":26.312260179,"stage":"clippy"}
+{"exit":0,"seconds":8.437681004,"stage":"docs"}
+{"exit":0,"seconds":507.203905992,"stage":"tests"}
+{"exit":0,"seconds":6.210141253,"stage":"wasm32-wasip1"}
+{"exit":0,"seconds":3.443089918,"stage":"core-wasm-clippy"}
+{"exit":0,"seconds":66.399119824,"stage":"wasm-guest"}
+{"exit":0,"seconds":6.667788378,"stage":"go-host"}
+{"exit":0,"seconds":35.531615183,"stage":"kettle-go-host"}

@@ -1,0 +1,67 @@
+{
+  "status": "PASS accepted eight preparation corrections; no actual receiving transfer or R6 acceptance",
+  "observed_utc": "2026-10-28T15:44:55.503237+00:00",
+  "reviewed_preparation_head": "764fafd7ff",
+  "historical_inputs_preserved": "historical-preparation-764fafd7-review/",
+  "accepted_items": {
+    "1_committed_bundle": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-snapshots/prepared-snapshots.bundle",
+      "sha256": "efb9a7007b502c7d83f4b458fd5baa3e017ba1b10d9ca261a97557a8bf4d72cd",
+      "size": 1756635,
+      "same_size_corruption_refused": true
+    },
+    "2_host_only_prerequisites": "receiving-snapshots/README.md; original checkout,live source worktrees,external recovery stores required",
+    "3_computed_recovery": {
+      "canonical054_support": 28,
+      "support_gaps": [],
+      "unique_beforeimage_blobs": 232,
+      "bundle_reachability_gaps": []
+    },
+    "4_tracker_count": "computed from unique requested_task; duplicate refusal control",
+    "5_transaction": "48 refs;51 lines including start,prepare,commit",
+    "6_actual_import_guards": {
+      "refusal_controls": 24,
+      "negative_fixture_positive_controls": [
+        "Rust raw-string fixture",
+        "Go raw-string fixture"
+      ],
+      "actual_selected_source_impurity_detected": false
+    },
+    "7_worktree_head": "Actual currentcde branch+ownHEAD+clean verified; task4 harness correction owner; historical3f source-readiness closure remains closed, freshcde empty-target wholepair pending",
+    "8_current_frozen_plan": {
+      "identity_and_mappings_exact": true,
+      "source_recovery_also_equal": true,
+      "administrative_prerequisite_changes": 48,
+      "qualification": "Only required_before_create administrative workflow wording differs; every key is inventoried, no identity/mapping omission"
+    }
+  },
+  "coverage": {
+    "planned": 5044,
+    "receiver_present": 3113,
+    "deletion_beforeimages": 1931,
+    "unaccounted": 0
+  },
+  "prepared_manifest_sha256": "a39de496637de89cb759a2c2d527605eec61a8ac402186ee44f8b649319884ef",
+  "all50_prepared_commit_tree_pairs_unchanged": true,
+  "real_ref_creation": 0,
+  "R6_complete": false,
+  "current_source_pair": {
+    "temporal": "cde1ee67efd266a058193694c2ddb287598b9ea5",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "current_source_scope": {
+    "owner": "fn-258-complete-the-resumed-standalone-umpire.4",
+    "historical_focused_pair": {
+      "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+      "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+    },
+    "prior_fullgate_exit": 2,
+    "current_fresh_pair_empty_target_proof": "PENDING",
+    "new_current_Go_workspace_or_wholegate_claim": false
+  },
+  "proofs": {
+    "current-refresh-verification.json": "296c84c76b348d3ae2020a8cadce5661192f3e6dfb97a21e50964a924d0dbcac",
+    "receiving-snapshots/verification.json": "89845045fc8bd54f13bb1cf7ce2a42ba465a5e1bec4e34c23d44b90d374daeff",
+    "receiving-snapshots/computed-recovery-coverage.json": "623e6032d3bdaccab30e89b84d8eb10a7de2ae1206b092566ba096caf7912674"
+  }
+}

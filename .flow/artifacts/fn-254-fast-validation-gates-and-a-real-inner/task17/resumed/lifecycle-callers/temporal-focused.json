@@ -1,0 +1,26 @@
+{
+  "command": [
+    "cargo",
+    "+1.99.1",
+    "nextest",
+    "run",
+    "--manifest-path",
+    "model/Cargo.toml",
+    "--locked",
+    "-p",
+    "temporal-xtask",
+    "--bin",
+    "temporal-xtask",
+    "-E",
+    "test(gate::) | test(test_run::)",
+    "--test-threads",
+    "1",
+    "--no-tests",
+    "fail"
+  ],
+  "status": 0,
+  "guard": null,
+  "seconds": 18.481873512268066,
+  "cache_kib": 6465224,
+  "free_bytes": 15650480128
+}

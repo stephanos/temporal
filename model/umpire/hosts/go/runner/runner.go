@@ -19,8 +19,8 @@ import (
 	model "umpire.local/model/host"
 )
 
-// ProtocolVersion is the umpire.model.v1 protocol version a Run records.
-const ProtocolVersion = 1
+// ProtocolVersion is the current whole-prefix Run recording format.
+const ProtocolVersion = 2
 
 // The per-Run budgets used when Options leaves them zero.
 const (

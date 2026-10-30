@@ -1,0 +1,43 @@
+pair: consumer3658582dac5b54c1f68c2eb54a312957c97e05b6 framework05473210b48c3db862f22051eb7154ce98258f98
+cwd: /home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model
+$ mise exec -- cargo test -p temporal-xtask --bin temporal-xtask --test main --locked
+   Compiling xtask v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/dev/xtask)
+   Compiling temporal-xtask v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.80s
+     Running unittests src/main.rs (/home/agent/.cache/codex-build/fn258-consumer/debug/deps/temporal_xtask-33228c925029e2eb)
+
+running 16 tests
+test gate::tests::missing_tool_control_child ... ok
+test gate::tests::invalid_working_directory_names_the_stage ... ok
+test gate::tests::run_control_child ... ok
+test gate::tests::test_policy_control_child ... ok
+test test_run::tests::binaries_then_doctests_exactly_once ... ok
+test test_run::tests::binary_failure_stops_before_doctests ... ok
+test quick::tests::bridge_selects_both_workspaces_and_the_authored_model_consumer ... ok
+test test_run::tests::workspace_selection_rejects_an_unexpected_zero_test_run ... ok
+test test_run::tests::doctest_failure_preserves_status ... ok
+test test_run::tests::missing_runner_fails_without_fallback ... ok
+test test_run::tests::required_backend_policy_caps_inherited_threads_and_preserves_skipped_defaults ... ok
+test gate::tests::missing_tool_reports_the_failed_stage ... ok
+Temporal stage control failed (exit 37)
+test gate::tests::full_gate_overrides_cache_and_preserves_failure ... ok
+test gate::tests::test_stage_propagates_required_policy_and_preserves_skipped_defaults ... ok
+test gate::tests::optional_apalache_is_prepared_before_combined_scheduling ... ok
+test gate::tests::actual_temporal_gate_wiring_and_named_failures ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.24s
+
+     Running tests/main.rs (/home/agent/.cache/codex-build/fn258-consumer/debug/deps/main-863b2abe2cf770f7)
+
+running 7 tests
+test absent_embedded_guest_fails_go_compilation ... ok
+test retired_names::tool_failures_never_report_clean ... ok
+test public_fmt_finishes_while_host_lease_is_held ... ok
+test retired_names::shell_preserves_filter_failure_when_git_grep_gets_sigpipe ... ok
+test actual_make_freshness_recipe_propagates_stale_failure ... ok
+test retired_names::active_spellings_and_historical_exclusions ... ok
+test make_paths::shipping_framework_make_bootstrap_preserves_relative_cargo_paths ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.05s
+
+exit: 0

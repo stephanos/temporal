@@ -1,0 +1,6 @@
+mise by @jdx – installing 1 tool
+mise ✓ github:rui314/mold@3.0.0  2.2s  mold-3.0.0-aarch64-linux.tar.gz
+mise ████████████████ 1/1 · installed 1 tool in 2.2s
+mise WARN  github:rui314/mold installed but not activated — it is not in any config file.
+To install and activate, run:
+  mise use github:rui314/mold

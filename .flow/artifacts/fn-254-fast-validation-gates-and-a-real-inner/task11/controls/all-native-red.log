@@ -1,0 +1,85 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25411-standalone/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.06s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25411-standalone/native-target/debug/deps/xtask-77ca01b04ba72586)
+
+running 10 tests
+test gate::boundary::tests::character_recognition_requires_a_valid_closed_literal ... ok
+test gate::boundary::tests::declared_unused_dependency_escape_is_refused_before_cargo ... ok
+test gate::boundary::tests::external_target_alias_cannot_hide_source_subtree ... ok
+test gate::boundary::tests::organization_exception_preserves_occurrence_token_boundaries ... ok
+test gate::boundary::tests::source_escape_is_structural_and_contained_deep_paths_work ... ok
+test gate::boundary::tests::target_cannot_hide_sources ... ok
+test gate::standalone::tests::copy_refuses_existing_and_dangling_source_symlinks ... ok
+test gate::standalone::tests::copy_uses_current_bytes_and_excludes_only_generated_roots ... ok
+framework stage exit-control failed (exit 37)
+test gate::tests::real_stage_child_receives_cache_bypass_and_required_mode ... ok
+test gate::boundary::tests::character_literals_and_lifetimes_cannot_hide_source_escapes ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25411-standalone/native-target/debug/deps/xtask-eabc91214ba4c8a7)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25411-standalone/native-target/debug/deps/main-dcc7a2bdcc375b6b)
+
+running 29 tests
+test apalache_install::installer::tests::download_failure_cleans_private_staging_and_never_publishes ... ok
+test apalache_install::installer::tests::hash_before_parse_and_exact_regular_member_before_publication ... ok
+test apalache_install::installer::tests::malicious_lock_types_refuse_without_following_or_blocking ... ok
+test apalache_install::installer::tests::native_curl_contract_and_download_failure_cleanup ... ok
+test apalache_install::installer::tests::native_dispatch_usage_failure_is_nonzero_and_structured ... ok
+test apalache_install::installer::tests::partial_wrong_and_nonregular_installations_never_download ... ok
+test apalache_install::installer::tests::symlinks_in_every_component_including_dangling_are_refused ... ok
+
+thread 'gate_wiring::compiled_stage_inventory_matches_preserved_framework_stages' (347077) panicked at dev/xtask/tests/gate_wiring.rs:211:5:
+assertion `left == right` failed
+  left: ["proto-tools", "retired-names", "timing-controls", "capability-controls", "source-boundary", "protobuf-controls", "protobuf-freshness", "kettle-protobuf-freshness", "fmt", "clippy", "docs", "tests", "wasm32-wasip1", "core-wasm-clippy", "wasm-guest", "go-host", "kettle-go-host", "standalone"]
+ right: ["proto-tools", "retired-names", "timing-controls", "capability-controls", "source-boundary", "protobuf-controls", "protobuf-freshness", "kettle-protobuf-freshness", "fmt", "clippy", "docs", "tests", "wasm32-wasip1", "core-wasm-clippy", "wasm-guest", "go-host", "kettle-go-host"]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test gate_wiring::compiled_stage_inventory_matches_preserved_framework_stages ... FAILED
+test apalache_install::installer::tests::concurrent_installers_publish_once_and_return_same_path ... ok
+test gate_wiring::every_command_boundary_preserves_failure_status_and_environment_in_both_modes ... ok
+
+thread 'gate_wiring::convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status' (347079) panicked at dev/xtask/tests/gate_wiring.rs:202:5:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "backend modes: UMPIRE_BACKENDS=require UMPIRE_APALACHE=skip (default)\nproto-tools                       0.001s\nretired-names                     0.005s\ntiming-controls                   0.001s\ntiming-controls                   0.001s\ncapability-controls               0.001s\nsource-boundary                   0.001s\nprotobuf-controls                 0.001s\nprotobuf-freshness                0.001s\nkettle-protobuf-freshness         0.001s\nfmt                               0.001s\nclippy                            0.001s\ndocs                              0.001s\ntests                             0.001s\nwasm32-wasip1                     0.001s\ncore-wasm-clippy                  0.001s\nwasm-guest                        0.000s\ngo-host                           0.001s\nkettle-go-host                    0.001s\nstandalone proof: /home/agent/.cache/codex-build/tmp/umpire-standalone-HN0i6f (tier=validate, TLC=require)\n", stderr: "xtask: framework stage standalone failed: missing or escaping standalone configuration: Cargo.lock\n" }
+  left: Some(1)
+ right: Some(37)
+test gate_wiring::convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status ... FAILED
+test gate_wiring::full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_command ... ok
+test gate_wiring::guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths ... ok
+test gate_wiring::required_optional_backend_fetch_failure_is_named_and_prevents_first_stage ... ok
+test gate_wiring::scanner_stages_reject_real_planted_inputs_and_full_gate_stops_before_later_commands ... ok
+test gate_wiring::signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch ... ok
+test gate_wiring::test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes ... ok
+
+thread 'gate_wiring::validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate' (347759) panicked at dev/xtask/tests/gate_wiring.rs:202:5:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "backend modes: UMPIRE_BACKENDS=require UMPIRE_APALACHE=skip (default)\nproto-tools                       0.001s\nretired-names                     0.004s\ntiming-controls                   0.001s\ntiming-controls                   0.001s\ncapability-controls               0.001s\nsource-boundary                   0.001s\nprotobuf-controls                 0.001s\nprotobuf-freshness                0.001s\nkettle-protobuf-freshness         0.001s\nfmt                               0.001s\nclippy                            0.001s\ndocs                              0.001s\ntests                             0.001s\nwasm32-wasip1                     0.001s\ncore-wasm-clippy                  0.001s\nwasm-guest                        0.001s\ngo-host                           0.001s\nkettle-go-host                    0.001s\nstandalone proof: /home/agent/.cache/codex-build/tmp/umpire-standalone-Lv0fTL (tier=validate, TLC=require)\n", stderr: "xtask: framework stage standalone failed: missing or escaping standalone configuration: Cargo.lock\n" }
+  left: Some(1)
+ right: Some(0)
+test gate_wiring::validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate ... FAILED
+retired-name filtering failed: control
+test retired_names::io_and_missing_grep_errors_fail_closed ... ok
+test retired_names::malformed_records_fail_closed ... ok
+test retired_names::posix_ere_recheck_and_grep_failure_propagate ... ok
+test retired_names::raw_records_exempt_only_author_facade_tokens ... ok
+test standalone::child_cannot_reenter_copy_stage ... ok
+test standalone::child_requires_copy_provenance_instead_of_parent_fallback ... ok
+test standalone::copied_missing_local_configuration_refuses_parent_configuration ... ok
+test standalone::declared_existing_outside_dependency_fails_containment ... ok
+test standalone::manifest_root_escape_fails_source_containment ... ok
+test standalone::policy_planted_identifier_fails_named_scanner ... ok
+test gate_wiring::full_dispatch_stops_at_every_failed_leaf_in_both_modes ... ok
+
+failures:
+
+failures:
+    gate_wiring::compiled_stage_inventory_matches_preserved_framework_stages
+    gate_wiring::convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status
+    gate_wiring::validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate
+
+test result: FAILED. 26 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.39s
+
+error: test failed, to rerun pass `-p xtask --test main`

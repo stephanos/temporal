@@ -1,0 +1,4 @@
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-lifecycle-custody/model/umpire/backends/process)
+    Finished `test` profile [unoptimized] target(s) in 0.70s
+  Executable unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/umpire_backend_process-080fd156155bc007)
+  Executable tests/process.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/process-dd3f0d78e1007fbe)

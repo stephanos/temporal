@@ -1,0 +1,109 @@
+{
+  "base": "29cfeba21b",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "29cfeba21b7ea99b66c524e86431897faa476c76",
+    "headSha": "1d754cb492e3004cabe88d738663b01b03437dd6",
+    "items": [
+      {
+        "body": "The new framework stages use `$(call RUST_MODEL_STEP,tests-framework)` after `cd model/umpire`. When timing is enabled, that wrapper invokes `model/scripts/time-gate.sh`, which unconditionally changes directory to `model/`. Consequently, `make model-validate` runs the Temporal workspace\u2019s fmt, clippy, docs and tests again under the framework stage names, silently omitting framework coverage. A read-only execution of the timer\u2019s prologue confirmed the directory reset.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-e97e001a952936456143681dda673b28da0232b13e156ee05dc7c27a40877742",
+        "id": "finding-d26a9adf428f24e97da919cf2f649914",
+        "lastSeenReceiptId": "review-c1611aa0e52dd0fd9e30e03467948d45a018d48bf84cfab543e5aa085ec1b0e1",
+        "ordinal": 4,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Preserve the caller\u2019s directory in `--step` mode, or use the framework-local timer for framework stages. Add a focused control asserting each timed stage\u2019s actual workspace.",
+        "title": "The new framework stages use `$(call RUST_MODEL_STEP,tests-framework)` after `cd model/umpire`"
+      },
+      {
+        "body": "With `CARGO_TARGET_DIR` unset, the root guest builder writes native transcripts to `model/target/current-contract-native`. This changed fallback reads `model/umpire/target/current-contract-native`. The root Makefile supplies explicit Wasm paths and `UMPIRE_PANIC_NATIVE`, but omits `UMPIRE_CURRENT_CONTRACT_NATIVE`; the builder\u2019s exported target does not survive into subsequent recipe processes. Thus ordinary `make model-check` fails the native/Wasm contract test on a clean checkout, or consumes stale framework-local transcripts.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-e97e001a952936456143681dda673b28da0232b13e156ee05dc7c27a40877742",
+        "id": "finding-cb1f361343c16cfd868b7198150bcf74",
+        "lastSeenReceiptId": "review-c1611aa0e52dd0fd9e30e03467948d45a018d48bf84cfab543e5aa085ec1b0e1",
+        "ordinal": 5,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Pass `UMPIRE_CURRENT_CONTRACT_NATIVE=\"$$target/current-contract-native\"` from the root Go-host stage, retaining the correct standalone fallback. Cover the root invocation with `CARGO_TARGET_DIR` unset.",
+        "title": "With `CARGO_TARGET_DIR` unset, the root guest builder writes native transcripts to `model/target/current-contract-native`"
+      },
+      {
+        "body": "Cargo now runs from the framework root while inheriting the caller\u2019s relative `CARGO_HOME`. Although `context.cargo_home` resolves against the caller, that absolute value never reaches Cargo. This selects a different registry/configuration directory and breaks builds or source admission. Verified: the same locked, offline metadata command succeeds from `model/` and fails from `model/umpire` with an unchanged relative `CARGO_HOME`. Tool probes also inherit this mismatch.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-e97e001a952936456143681dda673b28da0232b13e156ee05dc7c27a40877742",
+        "id": "finding-f8696c287d19068e9cf86b65d350a31b",
+        "lastSeenReceiptId": "review-c1611aa0e52dd0fd9e30e03467948d45a018d48bf84cfab543e5aa085ec1b0e1",
+        "ordinal": 1,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Resolve Cargo home before switching directories and pass that absolute `CARGO_HOME` consistently to probes, metadata, builds, and bootstrap commands. Add a control with distinct caller/tool roots and relative Cargo home.",
+        "title": "Cargo now runs from the framework root while inheriting the caller\u2019s relative `CARGO_HOME`"
+      },
+      {
+        "body": "The relocated evidence write targets `build/evidence/fn2372-eager-safety-{site}.log` without creating `build/evidence`. TLC admission and execution create only `build/tlc`. With installed prerequisites and a clean evidence directory, running `optional_ticks::present_optional_keeps_eager_errors_in_guard_assignment_and_claim` alone with `UMPIRE_BACKENDS=require` therefore fails with `NotFound`. Success depends on another test creating the parent first.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-e97e001a952936456143681dda673b28da0232b13e156ee05dc7c27a40877742",
+        "id": "finding-8caa19ae2d0ec4c68e8237dd907c3e21",
+        "lastSeenReceiptId": "review-c1611aa0e52dd0fd9e30e03467948d45a018d48bf84cfab543e5aa085ec1b0e1",
+        "ordinal": 2,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Create the evidence directory before writing, and verify the focused test with that directory initially absent.",
+        "title": "The relocated evidence write targets `build/evidence/fn2372-eager-safety-{site}"
+      },
+      {
+        "body": "The documented `cargo run -p umpire-guest-driver -- guest-lock ...` command fails because the package has two binaries and no `default-run`. Executing it reproduced Cargo\u2019s \u201ccould not determine which binary to run\u201d error.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-e97e001a952936456143681dda673b28da0232b13e156ee05dc7c27a40877742",
+        "id": "finding-9091c3dd48f71f1f39c9c5dba12ac382",
+        "lastSeenReceiptId": "review-c1611aa0e52dd0fd9e30e03467948d45a018d48bf84cfab543e5aa085ec1b0e1",
+        "ordinal": 3,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P3",
+        "status": "fixed",
+        "suggestion": "Specify `--bin umpire-guest-driver` or declare that binary as `default-run`.",
+        "title": "The documented `cargo run -p umpire-guest-driver -- guest-lock"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-c1611aa0e52dd0fd9e30e03467948d45a018d48bf84cfab543e5aa085ec1b0e1",
+    "supersedesReceiptId": "review-e97e001a952936456143681dda673b28da0232b13e156ee05dc7c27a40877742"
+  },
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.13",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "Prior finding #1: fixed\nPrior finding #2: fixed\nPrior finding #3: fixed\nPrior finding #4: fixed\nPrior finding #5: fixed\n\nVerified that Cargo home is normalized and forwarded, the TLC evidence directory is created, the documented command selects its binary, timed steps preserve caller directories, and root Go stages receive the correct native transcript path.\n\nNo surviving findings or new blockers introduced by the fixes. Changed shell syntax passed; all 26 changed source files match the revision evidence inventory. Recorded focused test results were inspected; runtime tests were not rerun.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | deferred | Outside task .13. |\n| R2 | deferred | Outside task .13. |\n| R3 | deferred | Outside task .13. |\n| R4 | deferred | Broader execution belongs to other tasks; preservation evidence retained. |\n| R5 | deferred | Final composition belongs to .10. |\n| R6 | deferred | Final measurements belong to .8. |\n| R7 | partial | Task .13 obligations addressed; final orchestration and standalone gate proof remain assigned to .10/.11. |\n| R8 | deferred | Budget enforcement belongs to .12. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "3826568fdc334ef987ec58473a17ff74",
+  "session_id": "01a1753c-4978-78e3-bce1-4fa9c3d4ead1",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-25T23:20:19.801875Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}

@@ -1,0 +1,208 @@
+{
+  "commands": [
+    {
+      "label": "cli-initial-build",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "build",
+        "--locked",
+        "-p",
+        "xtask",
+        "--bin",
+        "xtask",
+        "-p",
+        "umpire-guest-driver",
+        "--bin",
+        "umpire-guest-driver",
+        "--profile",
+        "dev",
+        "--target-dir",
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "seconds": 0.7145715840006233
+    },
+    {
+      "label": "cli-initial-guest",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "guest",
+        "umpire-stock-guest",
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/stock.wasm",
+        "--check"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "seconds": 0.5794960419998461
+    },
+    {
+      "label": "cli-mutated-build",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "build",
+        "--locked",
+        "-p",
+        "xtask",
+        "--bin",
+        "xtask",
+        "-p",
+        "umpire-guest-driver",
+        "--bin",
+        "umpire-guest-driver",
+        "--profile",
+        "dev",
+        "--target-dir",
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "seconds": 0.4047835000001214
+    },
+    {
+      "label": "cli-mutated-guest",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "guest",
+        "umpire-stock-guest",
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/stock.wasm",
+        "--check"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "seconds": 0.4912572089997411
+    },
+    {
+      "label": "cli-restored-build",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "build",
+        "--locked",
+        "-p",
+        "xtask",
+        "--bin",
+        "xtask",
+        "-p",
+        "umpire-guest-driver",
+        "--bin",
+        "umpire-guest-driver",
+        "--profile",
+        "dev",
+        "--target-dir",
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "exit": 0,
+      "seconds": 0.36583620799956407
+    }
+  ],
+  "env": {
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent",
+    "CARGO_BUILD_JOBS": "2",
+    "RUST_TEST_THREADS": "2",
+    "CARGO_INCREMENTAL": "0"
+  },
+  "source": "model/umpire/dev/xtask/src/main.rs",
+  "mutation": "retained command-help diagnostic; compiled CLI code only",
+  "source_sha256": "7edfba24390d2edd4e87a0990ae791c60126d2554879ce3640b2e5dc33b4f4be",
+  "before": {
+    "cli_sha256": "b29e7fb947ee9318280ffedbde30eeea8742d0e18eae1667eb6288ac5b450e09",
+    "driver_sha256": "ce4a2158f7b00d82e4f18af2def3fb66e4a6b0d72ac870d78a040025b71d4cb4",
+    "lock_sha256": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5",
+    "namespaces": [
+      "a2c4169682b4f0e0bc78ff61e5c0f322e1c27fd725f3078ec80ce92d9004cf34"
+    ],
+    "artifacts": {
+      "guest-cache/a2c4169682b4f0e0bc78ff61e5c0f322e1c27fd725f3078ec80ce92d9004cf34/wasm32-wasip1/guest/deps/umpire_stock_guest.wasm": {
+        "sha256": "4979d134ba8ae6afc4ba79dadc046251afbbf4ca34397ed61af184205a371222",
+        "size": 198992,
+        "mtime_ns": 1792971442253348427,
+        "inode": 7236821
+      },
+      "guest-cache/a2c4169682b4f0e0bc78ff61e5c0f322e1c27fd725f3078ec80ce92d9004cf34/wasm32-wasip1/guest/umpire_stock_guest.wasm": {
+        "sha256": "4979d134ba8ae6afc4ba79dadc046251afbbf4ca34397ed61af184205a371222",
+        "size": 198992,
+        "mtime_ns": 1792971442253348427,
+        "inode": 7236821
+      }
+    }
+  },
+  "mutated_source_sha256": "b1854b8a81ec117933eea2426df3d4bfdb386d55e550cf0c273b681c192a561f",
+  "after_build": {
+    "cli_sha256": "3791ae8a6c4c998f5ca968c4d45727bbdb36014af8103fce842842ae18c33f9e",
+    "driver_sha256": "ce4a2158f7b00d82e4f18af2def3fb66e4a6b0d72ac870d78a040025b71d4cb4",
+    "lock_sha256": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5",
+    "namespaces": [
+      "a2c4169682b4f0e0bc78ff61e5c0f322e1c27fd725f3078ec80ce92d9004cf34"
+    ],
+    "artifacts": {
+      "guest-cache/a2c4169682b4f0e0bc78ff61e5c0f322e1c27fd725f3078ec80ce92d9004cf34/wasm32-wasip1/guest/deps/umpire_stock_guest.wasm": {
+        "sha256": "4979d134ba8ae6afc4ba79dadc046251afbbf4ca34397ed61af184205a371222",
+        "size": 198992,
+        "mtime_ns": 1792971442253348427,
+        "inode": 7236821
+      },
+      "guest-cache/a2c4169682b4f0e0bc78ff61e5c0f322e1c27fd725f3078ec80ce92d9004cf34/wasm32-wasip1/guest/umpire_stock_guest.wasm": {
+        "sha256": "4979d134ba8ae6afc4ba79dadc046251afbbf4ca34397ed61af184205a371222",
+        "size": 198992,
+        "mtime_ns": 1792971442253348427,
+        "inode": 7236821
+      }
+    }
+  },
+  "after_guest": {
+    "cli_sha256": "3791ae8a6c4c998f5ca968c4d45727bbdb36014af8103fce842842ae18c33f9e",
+    "driver_sha256": "ce4a2158f7b00d82e4f18af2def3fb66e4a6b0d72ac870d78a040025b71d4cb4",
+    "lock_sha256": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5",
+    "namespaces": [
+      "a2c4169682b4f0e0bc78ff61e5c0f322e1c27fd725f3078ec80ce92d9004cf34"
+    ],
+    "artifacts": {
+      "guest-cache/a2c4169682b4f0e0bc78ff61e5c0f322e1c27fd725f3078ec80ce92d9004cf34/wasm32-wasip1/guest/deps/umpire_stock_guest.wasm": {
+        "sha256": "4979d134ba8ae6afc4ba79dadc046251afbbf4ca34397ed61af184205a371222",
+        "size": 198992,
+        "mtime_ns": 1792971442253348427,
+        "inode": 7236821
+      },
+      "guest-cache/a2c4169682b4f0e0bc78ff61e5c0f322e1c27fd725f3078ec80ce92d9004cf34/wasm32-wasip1/guest/umpire_stock_guest.wasm": {
+        "sha256": "4979d134ba8ae6afc4ba79dadc046251afbbf4ca34397ed61af184205a371222",
+        "size": 198992,
+        "mtime_ns": 1792971442253348427,
+        "inode": 7236821
+      }
+    }
+  },
+  "status": "passed",
+  "source_restored": true,
+  "restored": {
+    "cli_sha256": "b29e7fb947ee9318280ffedbde30eeea8742d0e18eae1667eb6288ac5b450e09",
+    "driver_sha256": "ce4a2158f7b00d82e4f18af2def3fb66e4a6b0d72ac870d78a040025b71d4cb4",
+    "lock_sha256": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5",
+    "namespaces": [
+      "a2c4169682b4f0e0bc78ff61e5c0f322e1c27fd725f3078ec80ce92d9004cf34"
+    ],
+    "artifacts": {
+      "guest-cache/a2c4169682b4f0e0bc78ff61e5c0f322e1c27fd725f3078ec80ce92d9004cf34/wasm32-wasip1/guest/deps/umpire_stock_guest.wasm": {
+        "sha256": "4979d134ba8ae6afc4ba79dadc046251afbbf4ca34397ed61af184205a371222",
+        "size": 198992,
+        "mtime_ns": 1792971442253348427,
+        "inode": 7236821
+      },
+      "guest-cache/a2c4169682b4f0e0bc78ff61e5c0f322e1c27fd725f3078ec80ce92d9004cf34/wasm32-wasip1/guest/umpire_stock_guest.wasm": {
+        "sha256": "4979d134ba8ae6afc4ba79dadc046251afbbf4ca34397ed61af184205a371222",
+        "size": 198992,
+        "mtime_ns": 1792971442253348427,
+        "inode": 7236821
+      }
+    }
+  }
+}

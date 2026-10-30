@@ -1,0 +1,44 @@
+{
+  "changed_existing_rust_and_manifests": [
+    {
+      "after_sha256": "93f625c63190cb5ed082c82c52d55c87905e36329b86f1ade9b9ee49d4fe5c13",
+      "before_sha256": "4f9fc551e95090276beda6350b77ad6fa9aa34812c2b51d627c81f84fdd539ea",
+      "path": "model/dev/xtask/src/main.rs",
+      "removed_function_names": []
+    },
+    {
+      "after_sha256": "81b4a4e18ddc5cd803133ea6c24ed13fc31857ed14531b93dcefa709069d6735",
+      "before_sha256": "3a839d6e36c0ae63520ed8ece05784b3d90bf31794e64fcec43f1c636574a900",
+      "path": "model/dev/xtask/tests/main.rs",
+      "removed_function_names": []
+    },
+    {
+      "after_sha256": "ebda682a8df412effab763804c02d64370c6d116a17ccd094962b4c42138a670",
+      "before_sha256": "07af7b158784dd36e40d7339e80bbd2e0cd4da77f00df50b1c1802f410002637",
+      "path": "model/umpire/dev/xtask/src/lib.rs",
+      "removed_function_names": []
+    },
+    {
+      "after_sha256": "7edfba24390d2edd4e87a0990ae791c60126d2554879ce3640b2e5dc33b4f4be",
+      "before_sha256": "92fb0d4549bbed62255c475d1bfb8114960a418b2d55ab7caf35d22cd8a51203",
+      "path": "model/umpire/dev/xtask/src/main.rs",
+      "removed_function_names": []
+    },
+    {
+      "after_sha256": "c8453d66adad9c3764c4fd2a9d6e457563fa38aacadd0d6b62fdcb696f5e0cd6",
+      "before_sha256": "a00629bfde2ddcb30bfa565a94d8b7dadda331d70e5613fe1c95109954b1f32b",
+      "path": "model/umpire/dev/xtask/tests/main.rs",
+      "removed_function_names": []
+    }
+  ],
+  "final_coverage_equivalence": false,
+  "final_source_mapping_complete": true,
+  "new_rust_in_proof_logs": 24,
+  "reason": "Source mapped; conductor owns final frozen source/evidence hash renewal and execution evidence.",
+  "shell_gaps": 0,
+  "shell_old_leaf_identities": 152,
+  "stage_old_identities": 23,
+  "stage_partition_uniqueness": true,
+  "stage_partitions": 27,
+  "unlogged_declared_framework_integration_cases": []
+}

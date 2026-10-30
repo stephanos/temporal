@@ -1,0 +1,56 @@
+{
+  "sample_period_seconds": 0.2,
+  "sampled_jvm_processes": 354,
+  "sampled_concurrent_jvms": 4,
+  "sampled_concurrent_framework_owners": 2,
+  "overlap_receipt": [
+    {
+      "at": 1793072679.9660878,
+      "owners": [
+        {
+          "pid": 720480,
+          "start_time": "2569495",
+          "case": "action_inputs_tests::actual_tlc_agrees_and_replays_in_both_selected_worlds",
+          "argv0": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/fixtures-7cabd0f2f49426e0",
+          "fd9": {
+            "device": 29,
+            "inode": 10669829,
+            "target": "/tmp/umpire-validation-1000/jvm.lock"
+          },
+          "meaning": "direct child of actual nextest run controller; case supplied by same ancestry"
+        },
+        {
+          "pid": 720506,
+          "start_time": "2569506",
+          "case": "action_inputs_tests::exact_payload_fairness_mutations_disagree_with_the_native_verdicts",
+          "argv0": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/fixtures-7cabd0f2f49426e0",
+          "fd9": {
+            "device": 29,
+            "inode": 10669829,
+            "target": "/tmp/umpire-validation-1000/jvm.lock"
+          },
+          "meaning": "direct child of actual nextest run controller; case supplied by same ancestry"
+        }
+      ]
+    }
+  ],
+  "sampled_max_individual_jvm_rss_kib": 102224,
+  "sampled_max_summed_jvm_rss_kib": 341328,
+  "meaning": "RSS is sampled observation, not a hard peak or total-memory limit",
+  "discovery_unique": 24,
+  "discovery_heap_cap_observed": "-Xmx512m",
+  "model_and_discovery_heap_cap_observed": "-Xmx512m",
+  "java_host_lease_capability_and_scope_locators_absent_in_all_samples": true,
+  "java_fd9_reuse_note": "Some JVMs reopen numeric slot9 for sockets; no sampled slot9 matches the host lease dev/inode",
+  "owned_fd9_device_inode": [
+    [
+      29,
+      10669829
+    ]
+  ],
+  "theoretical_policy": "required global4 / JVM group2 / per-check recovery2;4heap-capped checker JVMs",
+  "cleanup": {
+    "live": {},
+    "all_observed_owned_pids_absent": true
+  }
+}

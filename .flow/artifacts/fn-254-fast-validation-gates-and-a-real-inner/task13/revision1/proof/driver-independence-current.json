@@ -1,0 +1,31 @@
+{
+  "source_checkpoint": "4f7523c783b9a6f38eba30d2e0b973cc0dbf7d3a",
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "build",
+    "--locked",
+    "-p",
+    "umpire-guest-driver",
+    "--bin",
+    "umpire-guest-driver",
+    "--profile",
+    "dev",
+    "--target-dir",
+    "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/guest-b/xtask-bootstrap"
+  ],
+  "source": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/reproduction/source-b/model/umpire",
+  "target": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/guest-b/xtask-bootstrap",
+  "general_cli_roots_poisoned": [
+    "dev/xtask/src/lib.rs",
+    "dev/xtask/src/main.rs"
+  ],
+  "driver_sha256_before": "d4fc90f3092f570404106d25b04340ec8f6f90f34a01654c322fc174b6ad0a75",
+  "driver_sha256_after": "d4fc90f3092f570404106d25b04340ec8f6f90f34a01654c322fc174b6ad0a75",
+  "exit": 0,
+  "all_cli_source_bytes_restored": true,
+  "same_command_and_features": true,
+  "compiled_cli_mutation_claimed": false
+}

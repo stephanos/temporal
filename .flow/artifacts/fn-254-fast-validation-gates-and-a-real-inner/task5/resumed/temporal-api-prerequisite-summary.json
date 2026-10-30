@@ -1,0 +1,143 @@
+{
+  "scope": "Bounded Temporal API library build only; no realization/compiler/activitytests or JVMexecution.",
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "build",
+    "--locked",
+    "-p",
+    "umpire-temporal-api",
+    "--lib",
+    "-j1"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model",
+  "root_head": "890f7498b4f9c79c1e01b9081b5be3a3439b97e8",
+  "candidate_base_head": "41daa86dcae4c047bd9ef741d135364deedb2045",
+  "candidate_task5_overlay": true,
+  "exit_code": 0,
+  "elapsed_seconds": 48.11341056399942,
+  "prerequisite_source_affinity": {
+    "declared_input_files": 83,
+    "generated_go_files": 40,
+    "root_candidate_bytes_equal": true,
+    "manifest": "temporal-api-prerequisite.json",
+    "locks_unchanged": {
+      "model/Cargo.lock": "50d2b024555c958b02286fa6ec65976efc9fb9cd69f4d27780e9a01998d5d70f",
+      "model/umpire/Cargo.lock": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5"
+    },
+    "task5_273source_manifest_unchanged": true,
+    "framework191snapshotfiles_unchanged": true
+  },
+  "descriptor_reuse": {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/proto/api.binpb",
+    "candidate": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/proto/api.binpb",
+    "bytes": 241086,
+    "sha256": "0f8845ad30e19673abb7b5e7638cd32d4041d9ae7afe32318a673ac62eb4630d",
+    "source_mtime_ns": 1792805333546641154,
+    "candidate_new_mtime_ns": 1793054299443950465,
+    "newest_make_prerequisite_mtime_ns": 1793046296358682342,
+    "copied_without_preserving_mtime": true,
+    "make_q_exit_code": 0,
+    "scope": "Onlydescriptoracquisitionreused; required--linked-api Go linker stillruns."
+  },
+  "actual_execution": {
+    "make_observed": [
+      {
+        "pid": 473948,
+        "ppid": 473947,
+        "argv": [
+          "make",
+          "proto/api.binpb"
+        ],
+        "first_seconds": 8.28439212899957
+      }
+    ],
+    "go_linker_observed": [
+      {
+        "pid": 473999,
+        "ppid": 473998,
+        "argv": [
+          "go",
+          "run",
+          "./cmd/tools/getproto",
+          "--linked-api",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/temporal/api/../../../proto/api.binpb",
+          "--out",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/build/umpire-temporal-api-c373e8b3fe96e5f0/out/annotation-api.binpb"
+        ],
+        "first_seconds": 8.385202462000052
+      }
+    ],
+    "make_acquisition": "Confirmed up-to-date bymake-q beforebuild and actualbuildscriptoutput.",
+    "linked_go_still_executed": true,
+    "build_script_output_copy": "temporal-api-build-script-output.log",
+    "jvm_processes_observed": 0
+  },
+  "build_outputs": {
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/build/umpire-temporal-api-c373e8b3fe96e5f0/out/annotation-api.binpb": {
+      "bytes": 348271,
+      "sha256": "0e99f829e4fe91d10d3375755f98b984b7da1e858a68f98cfa23971782424f0c"
+    },
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/libumpire_temporal_api.rlib": {
+      "bytes": 28518214,
+      "sha256": "6eab79a74b80765be350189d8e1250665a756bff1d0aba99bc911832cee33248"
+    },
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/build/umpire-temporal-api-c373e8b3fe96e5f0/output": {
+      "bytes": 11225,
+      "sha256": "7ec6c423b28ed8e3d93d3fc7c28cd3c387f54d1532fae9239b4f3717a7120564"
+    }
+  },
+  "resource": {
+    "rust_target_growth_bytes": 123725730,
+    "private_go_cache_growth_bytes": 244873430,
+    "combined_growth_bytes": 368599160,
+    "admitted_bytes": 3221225472,
+    "peak_monitored_growth_bytes": 329469097,
+    "free_at_finish_bytes": 49304825856,
+    "free_at_summary_bytes": 45895671808,
+    "private_go_cache": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2545-temporal-api/go-cache",
+    "shared_go_module_cache_read_by_tool": "/home/agent/go/pkg/mod",
+    "shared_cache_cleanup_performed": false,
+    "target_and_private_cache_retained_idle": true
+  },
+  "minimal_next_admission": {
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "build",
+      "--locked",
+      "-p",
+      "umpire-temporal-realization-macros",
+      "--lib",
+      "-j1"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+      "TMPDIR": "/tmp/umpire-fn2545-temporal-api",
+      "CARGO_BUILD_JOBS": "1",
+      "CARGO_INCREMENTAL": "0",
+      "CARGO_PROFILE_DEV_DEBUG": "0",
+      "CARGO_PROFILE_TEST_DEBUG": "0",
+      "GOCACHE": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2545-temporal-api/go-cache",
+      "GOFLAGS": "-p=1",
+      "GOMAXPROCS": "1"
+    },
+    "provisional_additional_rust_and_private_go_cache_budget_bytes": 536870912,
+    "reason": "Compile onlynextprerequisitemacro library; it intentionallyreruns link_descriptors andgo--linked-api usingnowwarmprivateGoCache. Preservedescriptorfreshness andsourcehashes; no registry/supplemental/activitysuite until separatelyadmitted.",
+    "not_executed": true
+  },
+  "finished_utc": "2026-10-26T22:41:17.791424+00:00",
+  "evidence_sha256": {
+    "temporal-api-prerequisite.json": "e5f612c343efd44c323820d242a1d565ae4da23c2837cb581520d3b53dcce0aa",
+    "temporal-api-processes.jsonl": "a799d3a7c228bd1260ccdea5e49d45cf0a50705043990e1451459a2dbd89ec0b",
+    "run-temporal-api-prerequisite.py": "818cb0aaf04496de0f7adedc451b7e6587471d2808418ee1c185635c11d7ccbe",
+    "temporal-api-make-q.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "temporal-api-build.log": "36adf994cc29d6a152d8413ec6c90ee28e87861a8d37d79b3437e699e869acce",
+    "temporal-api-build-script-output.log": "7ec6c423b28ed8e3d93d3fc7c28cd3c387f54d1532fae9239b4f3717a7120564"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix",
+  "head": "ee8be257139f6404f03ad2387af8b6cf33e44123",
+  "requested_base": "00ac2429ea",
+  "actual_merge_base": "00ac2429eaa782d512f5508073fd72734e9efad1",
+  "golangci_version": "golangci-lint has version 2.13.1 built with go1.27.0 from (unknown, modified: ?, mod sum: \"h1:RuM4OcluM4xFQcGuRE6R7jA33pqxK/W1EsBxpugdZjg=\") on (unknown)",
+  "go_version": "go version go1.27.0 linux/arm64",
+  "active_default_invocation": [
+    {
+      "pid": "845174",
+      "args": ".bin/golangci-lint-v2.13.1 run --verbose --build-tags disable_grpc_modules,,test_dep, --timeout 10m --fix=false --new-from-patch=/home/agent/.cache/codex-build/tmp/tmp.Tx1DMC74CN --config=.github/.golangci.yml ./tests "
+    }
+  ],
+  "tool_sha256": {
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/.bin/golangci-lint-v2.13.1": "80c4e2fa90e5979a6afd335078f4cf5aaec5c4ffa28fd1a3f97daa1b137470d5",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/.bin/errortype": "86d43971cff690a43ec8768f6bbaead73c73185c9cf4fe3d9d8412e5a72a4526"
+  },
+  "nested_module_scope": "Make excludes model/umpire/hosts/go via nested go.mod. Its coverage is generic tests/vet/gofmt, not root golangci.",
+  "active_integration_invocation": [
+    {
+      "pid": "862918",
+      "args": ".bin/golangci-lint-v2.13.1 run --verbose --build-tags disable_grpc_modules,,test_dep,integration --timeout 10m --fix=false --new-from-patch=/home/agent/.cache/codex-build/tmp/tmp.79PUEN1Ys7 --config=.github/.golangci.yml ./tests "
+    }
+  ],
+  "actual_targets": [
+    "./tests"
+  ],
+  "default_exit": 0,
+  "integration_exit": 0
+}

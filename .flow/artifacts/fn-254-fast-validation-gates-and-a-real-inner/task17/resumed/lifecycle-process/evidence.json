@@ -1,0 +1,94 @@
+{
+  "baseline": "c68571b04c",
+  "branch": "work/fn25417-lifecycle-custody",
+  "source_sha256": {
+    "model/umpire/backends/process/src/support.rs": "ad97094d972ba0bffc939197d80c20fb23c7714cba6db1f901e322d613af4eb2",
+    "model/umpire/backends/process/src/syscall.rs": "570294524b200841ec54a357dd887da63a0c724fd32bd99e30c6a2cfc40e05bd",
+    "model/umpire/backends/process/src/syscall/calls.rs": "fe89573d459c3c9cbfe432803d7e5be0f7eca0cb6e11c5ae19be36f1adc01a73",
+    "model/umpire/backends/process/tests/fixtures/process_fixture.rs": "ce9938d9caddabfc8390b8d1b57291c812eaf4f6ac198c05c9450e0014d48155",
+    "model/umpire/backends/process/tests/process.rs": "4365b3a72640952a7a5801a019d5d9a67e06d68a0d8454c0d05ad11a9d15f9a6"
+  },
+  "host": "Linux aarch64; no Darwin execution proof",
+  "toolchain": {
+    "cargo": "1.99.1 (5f94df478 2026-08-27)",
+    "rustc": "1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo_sha256": "25b6901ec9ecffaa6a88591a77d3036a63a96ecffd1a45dd622a88385d0956af",
+    "rustc_sha256": "08383c36a0893aa8bb95fd43ee4616b112a5b20a181683192ca4130c3d3d603c",
+    "rustfmt_sha256": "62bd5b5451fc1310ef5912c7741dea64c059f3319aef8e8488c8b650029f926f"
+  },
+  "environment": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "CARGO_INCREMENTAL": "0",
+    "TMPDIR": "/tmp/fn25417-lifecycle-custody/tmp",
+    "BASH_ENV": "removed"
+  },
+  "checks": [
+    {
+      "command": "cargo +1.99.1 test --manifest-path model/umpire/Cargo.toml -p umpire-backend-process -- --test-threads=1",
+      "status": 0,
+      "tests": 52,
+      "selection": "22 unit,30 integration; previous47 retained; 0 doctests",
+      "log": "/tmp/fn25417-lifecycle-custody/green-process.log"
+    },
+    {
+      "command": "cargo +1.99.1 clippy --manifest-path model/umpire/Cargo.toml -p umpire-backend-process --all-targets -- -D warnings",
+      "status": 0,
+      "log": "/tmp/fn25417-lifecycle-custody/clippy.log"
+    },
+    {
+      "command": "rustup run 1.99.1 rustfmt --edition 2024 --check <five changed Rust files>",
+      "status": 0
+    },
+    {
+      "command": "git diff --check",
+      "status": 0
+    }
+  ],
+  "mutation": {
+    "mutation": "Disable final Linux reap_descendants",
+    "test": "timeout_cleans_descendants_before_return",
+    "status": 101,
+    "failure": "owned pid not reaped before fallback cleanup",
+    "log": "/tmp/fn25417-lifecycle-custody/red-linux-reap.log",
+    "restored_green": true
+  },
+  "earlier_candidate_red": {
+    "mutation": "Ignore inherited broadcast cancellation",
+    "test": "root_broadcast_cancels_checker_while_rust_owner_is_stopped",
+    "status": 101,
+    "log": "/tmp/fn25417-lifecycle-custody/red-broadcast.log",
+    "scope": "Before Linux stronger early subreaper cleanup restored; final Linux policy can mask this mutation. No final portable broadcast runtime proof."
+  },
+  "resources": {
+    "target_start_KiB": 6464168,
+    "target_end_sample_KiB": 6464360,
+    "growth_sample_KiB": 192,
+    "minimum_sample_free_KiB": 9897328,
+    "last_sample_free_KiB": 10686320,
+    "budget_MiB": 512,
+    "floor_GiB": 8
+  },
+  "limits": [
+    "Darwin symbol and policy reviewed from Apple sources; not compiled or executed on Darwin.",
+    "Ordinary portable pipeline depends on trusted carriers retaining FD10 and controllers forwarding SIGINT and waiting their groups.",
+    "Arbitrary guardian SIGKILL and controller death before forwarding separate test groups lack portable ownership proof. Linux retains stronger actual subreaper cleanup.",
+    "Exec failure remains existing status1 with stderr, not parent io::Error handshake.",
+    "No Java semantic, Go, full gate, benchmark, or dependency registry changes."
+  ],
+  "references": [
+    "https://raw.githubusercontent.com/apple-oss-distributions/xnu/main/libsyscall/Platforms/MacOSX/arm64/syscall.map",
+    "https://raw.githubusercontent.com/apple-oss-distributions/xnu/main/libsyscall/Platforms/MacOSX/x86_64/syscall.map",
+    "https://raw.githubusercontent.com/apple-oss-distributions/xnu/main/bsd/kern/syscalls.master"
+  ],
+  "log_sha256": {
+    "green-integration.log": "17dc86d58bd039969251e60b44ccc05f4a60a4e33e29e330681d83b03d44c352",
+    "clippy.log": "31d8823b1da2371a86b3b6a63e762f3bade5fee7ad71a2493fd4951afa5041ba",
+    "red-broadcast.log": "a5e479d618bafa5b1c42b0bc185fbaa83fb615f4aeb3ac08d6c7ebd46de9615b",
+    "compile.log": "4832fdfe012a043d71b2619f89decb572c72d2726a0006a080d1dfa2b1656c35",
+    "green-process.log": "d182b7260237a1cc2da0454a4158dcf0cdaa6559e6b15a479c5ba987dab803b0",
+    "red-linux-reap.log": "f6a9ebd5c7489a74f8beaed4e48abe52a23dd84e5d8cd11da3299920370ab49d"
+  }
+}

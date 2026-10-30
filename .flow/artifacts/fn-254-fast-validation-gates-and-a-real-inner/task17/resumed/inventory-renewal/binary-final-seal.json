@@ -1,0 +1,13 @@
+{
+  "binaries": {
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/xtask-bootstrap/debug/xtask": "a486ab3967ab0b81c45f4e3cfa680ce8425abd96d5d4b620d3c8c17f4bb1e983",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/xtask-bootstrap/debug/umpire-guest-driver": "2bca7d08c3734750b41126e33a60c2e76fd66917001a2c82e9b5f72dc546c368",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/temporal-xtask": "e2a8a44a8077688b89abbee0e8ff04b77c4dd95cd10a8935d59f75318a8c282d"
+  },
+  "unchanged_from_successful_native_build": false,
+  "explanation": "Temporal normal binary was rebuilt by actual Cargo test --no-run workspace dependency feature union; original targeted native build receipt remains exact for selector invocation. No postinventory binary execution claimed.",
+  "descriptor": {
+    "path": "proto/api.binpb",
+    "sha256": "0f8845ad30e19673abb7b5e7638cd32d4041d9ae7afe32318a673ac62eb4630d"
+  }
+}

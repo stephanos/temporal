@@ -1,0 +1,2016 @@
+[
+  {
+    "label": "missing-tlc",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 1,
+    "seconds": 0.004205208002531435,
+    "free_before_bytes": 64985407488,
+    "free_after_bytes": 64985403392,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "9293539cf41ce6df781a9d065e94b844d8624e2edba6af8c43e8490f4fe3d926",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "missing-apalache",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 1,
+    "seconds": 0.0018535420022089966,
+    "free_before_bytes": 64985391104,
+    "free_after_bytes": 64985387008,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "f69ed2e79c89a7360fd3b8c50a59407d59e6cb85ed06ef2de66d818e595e00ed",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "clean-tlc-install",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-tlc",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 0,
+    "seconds": 1.2473210419993848,
+    "free_before_bytes": 64985387008,
+    "free_after_bytes": 64980766720,
+    "stdout_sha256": "c75e163d9ac2fb3c7ed24f757a4a087883b7507e064ae6a9608627d8f5209329",
+    "stderr_sha256": "9a2c420533f5b21db602275a23dfef4006073d8863212745ff8dd9002ca3a421",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "default-tools",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "context",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "tlc",
+      "ls",
+      "--json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 0,
+    "seconds": 0.0676222920010332,
+    "free_before_bytes": 64980758528,
+    "free_after_bytes": 64980738048,
+    "stdout_sha256": "1c4775dac8931a2d1a5ae3bc83ec9d03733d310218726ce003bf4fbd1dfe757f",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "default-install",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "context",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "tlc",
+      "install"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 0,
+    "seconds": 0.06561166699975729,
+    "free_before_bytes": 64980738048,
+    "free_after_bytes": 64980721664,
+    "stdout_sha256": "f037a3be3e24217f0c0024fc6968ea4a9f046c1c159b9051f16dce683395e253",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "clean-tlc-execute",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "execute",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 0,
+    "seconds": 1.4869083750018035,
+    "free_before_bytes": 64980721664,
+    "free_after_bytes": 64980086784,
+    "stdout_sha256": "aad1ad0c1acd0f1df3151a79dd0ed230134821715d7f9d7b59056f1d0af9018e",
+    "stderr_sha256": "6ed0abdfa086866386dbf1e5cc96181da2096138dbe26e97203447bdb01be4fc",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "clean-apalache-install",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-apalache",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 0,
+    "seconds": 26.250978388001386,
+    "free_before_bytes": 64980082688,
+    "free_after_bytes": 64056119296,
+    "stdout_sha256": "f72cb047811c49096b1caced5b1e35a4fa97ea708d483214768e76264d998c5e",
+    "stderr_sha256": "14886e2fb18588e3772fdd635314e03296ac206fa1548e7ce48b740264f40d7f",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "opt-in-tools",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "context",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "apalache",
+      "ls",
+      "--json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 0,
+    "seconds": 0.14857991700409912,
+    "free_before_bytes": 64056119296,
+    "free_after_bytes": 64055922688,
+    "stdout_sha256": "e5448a26eaf3149f7168ce5b517ee629e3a37048e333f2f27bb6152707d95462",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "clean-apalache-execute",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "execute",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 0,
+    "seconds": 12.558460255997488,
+    "free_before_bytes": 64055922688,
+    "free_after_bytes": 65148026880,
+    "stdout_sha256": "72bbe8ba611e3a4066f277fcc3c6ca5d03dc12c312973c00537618718b90d20d",
+    "stderr_sha256": "06f82f5f25998a5c444762e6a76e39041e37bc58c1a6a5720c54947dfd3e02dc",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "corrupt-installed-tlc",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-tlc",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 1,
+    "seconds": 0.11602679100178648,
+    "free_before_bytes": 65147375616,
+    "free_after_bytes": 65147232256,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "786200417f9c63cba834ddb019ce705875c7bf174f26ae2f1baa407d0771839c",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "corrupt-runtime-tlc",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 1,
+    "seconds": 0.0334220410004491,
+    "free_before_bytes": 65147224064,
+    "free_after_bytes": 65147240448,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "8923ece4cb0b61dcc479903e37f747db5db89d6e6eb151fd80d23f5a9625c785",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "partial-runtime-tlc",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 1,
+    "seconds": 0.002117916999850422,
+    "free_before_bytes": 65147232256,
+    "free_after_bytes": 65147219968,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "d5b95915d72f5834689c8429c408be97520a673703d38d98f7b129d1ee9257f9",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "nonregular-runtime-tlc",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 1,
+    "seconds": 0.0019025000001420267,
+    "free_before_bytes": 65147215872,
+    "free_after_bytes": 65147211776,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "19acd595fa54ccedcea3a974abde31d472e7e20f4871d9c27914b9ac1bb0a793",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "symlink-runtime-tlc",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 1,
+    "seconds": 0.0017485409989603795,
+    "free_before_bytes": 65147211776,
+    "free_after_bytes": 65147203584,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "beacaafdd5df37a815063651624f0ae67c2ad1b9086c26e8f1ae3f5f6b0ccaa4",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "symlink-version-tlc",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 1,
+    "seconds": 0.0027613330021267757,
+    "free_before_bytes": 65146040320,
+    "free_after_bytes": 65147170816,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "8dbb118915e368874cae070762b4bca34c85e93b284f0d65a6361a5f72a9cb4b",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "corrupt-installed-apalache",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-apalache",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 1,
+    "seconds": 2.1823235010015196,
+    "free_before_bytes": 65147101184,
+    "free_after_bytes": 65146601472,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "b4d9e7ac392bb50a4654ca34efa5683c9c3369bb0d177358785342071d66512e",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "corrupt-runtime-apalache",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 1,
+    "seconds": 1.9319681679990026,
+    "free_before_bytes": 65146601472,
+    "free_after_bytes": 65134571520,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "11695b19b119bd20e849d1382e7132e5d01f1fc71696fd74f2845013dd9b87b3",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "partial-runtime-apalache",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 1,
+    "seconds": 0.0019136660048388876,
+    "free_before_bytes": 65134567424,
+    "free_after_bytes": 65134563328,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "89c32716245a009f9ef808871434925a4ce870097d64b67781ca763dc99283e3",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "nonregular-runtime-apalache",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 1,
+    "seconds": 0.0018305830017197877,
+    "free_before_bytes": 65134559232,
+    "free_after_bytes": 65134551040,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "19acd595fa54ccedcea3a974abde31d472e7e20f4871d9c27914b9ac1bb0a793",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "symlink-runtime-apalache",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 1,
+    "seconds": 0.001950750003743451,
+    "free_before_bytes": 65134551040,
+    "free_after_bytes": 65134546944,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "d9e5b86946333dfb6aeb1f884dec29daf0a06ce72dcb9f06e14a95d50d07a6a3",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "symlink-version-apalache",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 1,
+    "seconds": 0.0024534170006518252,
+    "free_before_bytes": 65134546944,
+    "free_after_bytes": 65134542848,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "7f742a4281fba126597199edc00253c50ba6cf8fb9b2dc832551cf326ad585f7",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "inherited-selector-isolation",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "resolve",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 0,
+    "seconds": 0.06753158300125506,
+    "free_before_bytes": 65134534656,
+    "free_after_bytes": 65134276608,
+    "stdout_sha256": "c75e163d9ac2fb3c7ed24f757a4a087883b7507e064ae6a9608627d8f5209329",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0",
+      "MISE_CONFIG_FILE": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/hostile-selector.toml",
+      "MISE_ENV": "hostile",
+      "MISE_DATA_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/outside-inherited-data"
+    }
+  },
+  {
+    "label": "refuse-build",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-tlc",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-build"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-build",
+    "exit": 1,
+    "seconds": 0.00187358300172491,
+    "free_before_bytes": 65134186496,
+    "free_after_bytes": 65134178304,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "bf245fcfd96b06286b73e596821e7dc4be02ea23da26544e7c6bed96d9451db9",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-build",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "refuse-build-mise-jars",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-tlc",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-build-mise-jars"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-build-mise-jars",
+    "exit": 1,
+    "seconds": 0.0017566250025993213,
+    "free_before_bytes": 65134116864,
+    "free_after_bytes": 65134108672,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "bf245fcfd96b06286b73e596821e7dc4be02ea23da26544e7c6bed96d9451db9",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-build-mise-jars",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "refuse-build-mise-jars-data",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-tlc",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-build-mise-jars-data"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-build-mise-jars-data",
+    "exit": 1,
+    "seconds": 0.002258666994748637,
+    "free_before_bytes": 65134026752,
+    "free_after_bytes": 65134022656,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "bf245fcfd96b06286b73e596821e7dc4be02ea23da26544e7c6bed96d9451db9",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-build-mise-jars-data",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "refuse-build-mise-jars-cache",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-tlc",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-build-mise-jars-cache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-build-mise-jars-cache",
+    "exit": 1,
+    "seconds": 0.002182707998144906,
+    "free_before_bytes": 65133973504,
+    "free_after_bytes": 65133969408,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "bf245fcfd96b06286b73e596821e7dc4be02ea23da26544e7c6bed96d9451db9",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-build-mise-jars-cache",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "refuse-build-mise-jars-state",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-tlc",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-build-mise-jars-state"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-build-mise-jars-state",
+    "exit": 1,
+    "seconds": 0.002151374996174127,
+    "free_before_bytes": 65133903872,
+    "free_after_bytes": 65133858816,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "bf245fcfd96b06286b73e596821e7dc4be02ea23da26544e7c6bed96d9451db9",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-build-mise-jars-state",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "refuse-build-mise-jars-config",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-tlc",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-build-mise-jars-config"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-build-mise-jars-config",
+    "exit": 1,
+    "seconds": 0.001920457994856406,
+    "free_before_bytes": 65134116864,
+    "free_after_bytes": 65134112768,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "bf245fcfd96b06286b73e596821e7dc4be02ea23da26544e7c6bed96d9451db9",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-build-mise-jars-config",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "refuse-config-mise-toml",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-tlc",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-config-mise-toml"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-config-mise-toml",
+    "exit": 1,
+    "seconds": 0.0020917919973726384,
+    "free_before_bytes": 65134055424,
+    "free_after_bytes": 65134026752,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "71916058b6f6594826ed9d90a79a2a78c440d038df57a0eb066750e3276a5a98",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-config-mise-toml",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "refuse-config-mise-lock",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-tlc",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-config-mise-lock"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-config-mise-lock",
+    "exit": 1,
+    "seconds": 0.001899208000395447,
+    "free_before_bytes": 65133895680,
+    "free_after_bytes": 65133891584,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "502ab95e1cde2114bef465981704c00ca62f80dac533cee0fc635ee38dc6f0a6",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-config-mise-lock",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "refuse-config-mise-apalache-lock",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-tlc",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-config-mise-apalache-lock"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-config-mise-apalache-lock",
+    "exit": 1,
+    "seconds": 0.002020207997702528,
+    "free_before_bytes": 65133830144,
+    "free_after_bytes": 65133821952,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "aeb35af7554ad40ef890a1876b70f4f9a98774b493201822c40871beea5df4e8",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/symlink-config-mise-apalache-lock",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "actual-concurrent-tlc-install",
+    "statuses": [
+      0,
+      0
+    ],
+    "seconds": 1.2769959180004662,
+    "result": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/concurrent/build/mise-jars/data/installs/http-tlc/1.7.4/tla2tools.jar",
+      "bytes": 2274532,
+      "sha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88"
+    },
+    "capture_cleanup": true
+  },
+  {
+    "label": "bad-download-checksum-tlc",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-tlc",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/bad-checksum-tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/bad-checksum-tlc",
+    "exit": 1,
+    "seconds": 0.06553112500114366,
+    "free_before_bytes": 65123721216,
+    "free_after_bytes": 65124589568,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "92ca130707752102e991c136381c93df5d2241b50312d655cbeb9235e45f5e07",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/bad-checksum-tlc",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "bad-checksum-runtime-tlc",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/bad-checksum-tlc",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/bad-checksum-tlc",
+    "exit": 1,
+    "seconds": 0.002113041999109555,
+    "free_before_bytes": 65124573184,
+    "free_after_bytes": 65124392960,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "fbc0b75e3b8a1592c3ecf06e2968458ab1444231b6510fab38f1d4979bb8c62f",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/bad-checksum-tlc",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "bad-download-checksum-apalache",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-apalache",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/bad-checksum-apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/bad-checksum-apalache",
+    "exit": 1,
+    "seconds": 0.06497670899989316,
+    "free_before_bytes": 65124175872,
+    "free_after_bytes": 65124450304,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "836b3a04fde3ad44a2355985c1bbb078a362d374766892c299c2417d6ce936ba",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/bad-checksum-apalache",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "bad-checksum-runtime-apalache",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/bad-checksum-apalache",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/bad-checksum-apalache",
+    "exit": 1,
+    "seconds": 0.002231250000477303,
+    "free_before_bytes": 65124442112,
+    "free_after_bytes": 65124429824,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "ea19fac2a488db3c6caa0e8384439152c37f29324ba8c652b6f8fe0f0d6e5e7a",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/bad-checksum-apalache",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "hostile-archive-traversal",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-apalache",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/hostile-archive-traversal"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/hostile-archive-traversal",
+    "exit": 1,
+    "seconds": 0.11555999999836786,
+    "free_before_bytes": 65124323328,
+    "free_after_bytes": 65124429824,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "381a30fe06517420128d93095d2fb0a473f06631c16364faced1492b3360315f",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/hostile-archive-traversal",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "hostile-runtime-traversal",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/hostile-archive-traversal",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/hostile-archive-traversal",
+    "exit": 1,
+    "seconds": 0.0019586670023272745,
+    "free_before_bytes": 65124339712,
+    "free_after_bytes": 65124306944,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "f7f9f45969496825ef4ee9a8d6063b1d82e778d043ba6f46c5c2246c7b02c802",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/hostile-archive-traversal",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "hostile-archive-symlink",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-apalache",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/hostile-archive-symlink"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/hostile-archive-symlink",
+    "exit": 1,
+    "seconds": 0.21605524999904446,
+    "free_before_bytes": 65124220928,
+    "free_after_bytes": 65124253696,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "bcee7f80d4c75f2921776b514646f69c4bc4ed339f4de466ef5ab15af1d1b762",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/hostile-archive-symlink",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "hostile-runtime-symlink",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/hostile-archive-symlink",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/hostile-archive-symlink",
+    "exit": 1,
+    "seconds": 0.001953707993379794,
+    "free_before_bytes": 65124225024,
+    "free_after_bytes": 65124192256,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "920dd3e195050792b29400609a0def16ec8e3bad6e23c26a09ce797b98e3b9bf",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/hostile-archive-symlink",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "interrupted-download-cancelled",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "cancel-install",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/interrupted-http",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/interrupted-http",
+    "exit": 1,
+    "seconds": 2.033221459998458,
+    "free_before_bytes": 65124052992,
+    "free_after_bytes": 65107714048,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "1ac308a458a995fd671aa3f4df4ccc3388d70610c51d4c36844b1c53eb168f0b",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/interrupted-http",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "interruption-leftovers",
+    "paths": [
+      "build/mise-jars/state/tracked-configs/fa76d57a0250aa3c",
+      "build/mise-jars/state/tracked-configs/e54ebb282c23172d",
+      "build/mise-jars/state/incomplete-installs/.migrated",
+      "build/mise-jars/state/incomplete-installs/http-tlc/1.7.4/incomplete",
+      "build/mise-jars/cache/lockfiles/2a5afa5a4737ac31",
+      "build/mise-jars/cache/lockfiles/e4cb1fa5f5fbac40",
+      "build/mise-jars/cache/downloads-cas/incoming/3ae567754581b47f2b2bf882ab3e4310491cbf3a03a3c1501759533551602f12/.interrupted-http.jar.mise-part"
+    ],
+    "request_started": true,
+    "capture_cleanup": true
+  },
+  {
+    "label": "interrupted-download-retry",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-tlc",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/interrupted-http"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/interrupted-http",
+    "exit": 0,
+    "seconds": 0.21713270899635972,
+    "free_before_bytes": 65107681280,
+    "free_after_bytes": 65103470592,
+    "stdout_sha256": "3c2e60f4dc817c76b3babd11d2f611f21367a4d4000376b406bb97cbc7781ade",
+    "stderr_sha256": "0e68853899ffb9f3f18aa7ec8b3ef4d1b06bfad67aa7e35b9be601566b445621",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/interrupted-http",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "interrupted-download-recovered-admission",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/interrupted-http",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/interrupted-http",
+    "exit": 0,
+    "seconds": 0.16770700000051875,
+    "free_before_bytes": 65103462400,
+    "free_after_bytes": 65103339520,
+    "stdout_sha256": "1ae77477e9751d4cfd93d2c067465d87bde43680e096fb62c9e09e9a0607424a",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/interrupted-http",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "tlc-path-0-existing",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-0-existing",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-0-existing",
+    "exit": 1,
+    "seconds": 0.0048762500009615906,
+    "free_before_bytes": 77818404864,
+    "free_after_bytes": 77818392576,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "c2bbef7a004c63402c6a5f345666f9259082c3140e51e34f6b984f38f3ead5f0",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-0-existing",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "tlc-path-1-existing",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-1-existing",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-1-existing",
+    "exit": 1,
+    "seconds": 0.0022185419948073104,
+    "free_before_bytes": 77818306560,
+    "free_after_bytes": 77818294272,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "5c1ac50a4ff54e247ccf3b503c7e6a7a6f36b9076a0ab30e0e57de0ca08353a3",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-1-existing",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "tlc-path-2-existing",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-2-existing",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-2-existing",
+    "exit": 1,
+    "seconds": 0.002245540999865625,
+    "free_before_bytes": 77818224640,
+    "free_after_bytes": 77818212352,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "fbcd5a8d1722ef26ebd420b5a91b77a5b2e6947be6edf7dae5ceeb8bbe3defd9",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-2-existing",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "tlc-path-3-existing",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-3-existing",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-3-existing",
+    "exit": 1,
+    "seconds": 0.001959417000762187,
+    "free_before_bytes": 77818142720,
+    "free_after_bytes": 77818134528,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "c430a5a3f1a74801b42ccebc900f786841ded481d35f95341786a5d990eef891",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-3-existing",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "tlc-path-4-existing",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-4-existing",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-4-existing",
+    "exit": 1,
+    "seconds": 0.0016636660002404824,
+    "free_before_bytes": 77818064896,
+    "free_after_bytes": 77818060800,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e5a3a037426d7b729d5f4ae621237a64d564f0349299e0c9b0b4e68673bac4ef",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-4-existing",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "tlc-path-5-existing",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-5-existing",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-5-existing",
+    "exit": 1,
+    "seconds": 0.0019110419962089509,
+    "free_before_bytes": 77817995264,
+    "free_after_bytes": 77817991168,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "2f100616af0dfbe39711258991d197ddc98495057d224841e9f737a0a9150f58",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-5-existing",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "tlc-path-6-existing",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-6-existing",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-6-existing",
+    "exit": 1,
+    "seconds": 0.0020051249957759865,
+    "free_before_bytes": 77817925632,
+    "free_after_bytes": 77817917440,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "536a9e88f9995a07ca8834ba00e34f0a5611a269a26dfe9751059258401f4c8c",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-6-existing",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "tlc-path-0-dangling",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-0-dangling",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-0-dangling",
+    "exit": 1,
+    "seconds": 0.002370041998801753,
+    "free_before_bytes": 77817851904,
+    "free_after_bytes": 77817847808,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "8ba974bcafef7f307676f93abc4d7c6641d1262ca0a895098e109ff1df5e9231",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-0-dangling",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "tlc-path-1-dangling",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-1-dangling",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-1-dangling",
+    "exit": 1,
+    "seconds": 0.0019192910040146671,
+    "free_before_bytes": 77817786368,
+    "free_after_bytes": 77817778176,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "12e487d58cc4ed2408eaf41f6909ac31fa629adcdbdf337ecfe5a2fe25ff43f7",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-1-dangling",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "tlc-path-2-dangling",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-2-dangling",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-2-dangling",
+    "exit": 1,
+    "seconds": 0.0018907909980043769,
+    "free_before_bytes": 77817712640,
+    "free_after_bytes": 77817708544,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "9b1c18578a0236c5f01b26d24da79bbdde351b71b1e27191ec6d47a72a4bd653",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-2-dangling",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "tlc-path-3-dangling",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-3-dangling",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-3-dangling",
+    "exit": 1,
+    "seconds": 0.0020229590008966625,
+    "free_before_bytes": 77817643008,
+    "free_after_bytes": 77817638912,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "5c8a9976fc2d4a1ae1853b8a31b4bc5ff2ddef3a7233843369d59cecb205116d",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-3-dangling",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "tlc-path-4-dangling",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-4-dangling",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-4-dangling",
+    "exit": 1,
+    "seconds": 0.002016541999182664,
+    "free_before_bytes": 77817581568,
+    "free_after_bytes": 77817573376,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "5ea253a86cb3e062969f70f9a92e0c7afaeddcec3dc4b8a460856f7c8ed2e9ff",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-4-dangling",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "tlc-path-5-dangling",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-5-dangling",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-5-dangling",
+    "exit": 1,
+    "seconds": 0.002011042000958696,
+    "free_before_bytes": 77817507840,
+    "free_after_bytes": 77817503744,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "647a5abf560bc69ccebef2fc1a6cc96b2ff4309b08e0059e0405d310a4d1035b",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-5-dangling",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "tlc-path-6-dangling",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-6-dangling",
+      "tlc"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-6-dangling",
+    "exit": 1,
+    "seconds": 0.0018458749982528389,
+    "free_before_bytes": 77817438208,
+    "free_after_bytes": 77817434112,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "efd6699e1056951034e9f51d28042a4e0158e5a8c44971b76c0e8031a0d7b33a",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/tlc-path-6-dangling",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "apalache-path-0-existing",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-0-existing",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-0-existing",
+    "exit": 1,
+    "seconds": 0.0019555830003810115,
+    "free_before_bytes": 77817376768,
+    "free_after_bytes": 77817368576,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "70d3f45257089a68e7809b0f8608b0e1b4ba1dfe477adc9aa04e4f4a9b79c71d",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-0-existing",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "apalache-path-1-existing",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-1-existing",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-1-existing",
+    "exit": 1,
+    "seconds": 0.001655667001614347,
+    "free_before_bytes": 77817303040,
+    "free_after_bytes": 77817298944,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "d23f850ead29a29f3b71e672a6723695c40d948d6aa6ada95424d257436dbcfd",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-1-existing",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "apalache-path-2-existing",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-2-existing",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-2-existing",
+    "exit": 1,
+    "seconds": 0.001906375000544358,
+    "free_before_bytes": 77817233408,
+    "free_after_bytes": 77817229312,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "259b0faf1812a1d6235c759d773e8cb7b2c47296373a90fad4fd55b39c733ca2",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-2-existing",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "apalache-path-3-existing",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-3-existing",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-3-existing",
+    "exit": 1,
+    "seconds": 0.002147791994502768,
+    "free_before_bytes": 77817167872,
+    "free_after_bytes": 77817159680,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "a390d815f905905cc379a3572f129f2425f54f2b04941e71d275497b9dfe9f8d",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-3-existing",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "apalache-path-4-existing",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-4-existing",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-4-existing",
+    "exit": 1,
+    "seconds": 0.001786833003279753,
+    "free_before_bytes": 77817098240,
+    "free_after_bytes": 77817094144,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "25c53ba07fc31f4eeb638282865c8f8f36bfb94756a48334aaa5f12f3b6222e1",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-4-existing",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "apalache-path-5-existing",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-5-existing",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-5-existing",
+    "exit": 1,
+    "seconds": 0.0018137500010197982,
+    "free_before_bytes": 77817028608,
+    "free_after_bytes": 77817024512,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "c7a7189b3262eedad6c5cee43003305266e83fcc84f742d7ced14108d20845fd",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-5-existing",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "apalache-path-6-existing",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-6-existing",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-6-existing",
+    "exit": 1,
+    "seconds": 0.0022360839939210564,
+    "free_before_bytes": 77816954880,
+    "free_after_bytes": 77816950784,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "8d8ee1046164d685c1de36094940a3355b828ed5e1923c993f0da00a4cf22162",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-6-existing",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "apalache-path-7-existing",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-7-existing",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-7-existing",
+    "exit": 1,
+    "seconds": 0.0019713329966180027,
+    "free_before_bytes": 77816881152,
+    "free_after_bytes": 77816877056,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "f8af6653220130fdc48cced867b4c50dc398acbea500f3ef8be3b260d0ea9d83",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-7-existing",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "apalache-path-0-dangling",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-0-dangling",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-0-dangling",
+    "exit": 1,
+    "seconds": 0.00186329099960858,
+    "free_before_bytes": 77816815616,
+    "free_after_bytes": 77816811520,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "ce1a5ed6eafa55cdb7c26de6adec788d79ab6e098f3b1ebb44816ec78ada2f58",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-0-dangling",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "apalache-path-1-dangling",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-1-dangling",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-1-dangling",
+    "exit": 1,
+    "seconds": 0.0016857919981703162,
+    "free_before_bytes": 77816745984,
+    "free_after_bytes": 77816741888,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "372ad84d1515791e9a20528d53e29c9352654e319b940ac6a47bdafc1342a370",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-1-dangling",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "apalache-path-2-dangling",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-2-dangling",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-2-dangling",
+    "exit": 1,
+    "seconds": 0.0018986249997396953,
+    "free_before_bytes": 77816684544,
+    "free_after_bytes": 77816680448,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "03880b134f5435c38f2eaf935e9e7d09237eb531dcf7a137192dd4973baecacd",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-2-dangling",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "apalache-path-3-dangling",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-3-dangling",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-3-dangling",
+    "exit": 1,
+    "seconds": 0.001965208000910934,
+    "free_before_bytes": 77816619008,
+    "free_after_bytes": 77816614912,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "0e27c95af05173ed391639ac2300c301b15572b0337bd5ed31a9eab7f4bbade4",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-3-dangling",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "apalache-path-4-dangling",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-4-dangling",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-4-dangling",
+    "exit": 1,
+    "seconds": 0.0019237500018789433,
+    "free_before_bytes": 77816545280,
+    "free_after_bytes": 77816541184,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "94c89d52795580f1a1b47951217dc5ee0b1afa203cab568a5dd70d053d9a6d01",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-4-dangling",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "apalache-path-5-dangling",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-5-dangling",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-5-dangling",
+    "exit": 1,
+    "seconds": 0.0017217499989783391,
+    "free_before_bytes": 77816471552,
+    "free_after_bytes": 77816467456,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "876486cfa50a80a6fc32c0fca434001231aaf1d94cefddf7448748d7cebd5b8e",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-5-dangling",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "apalache-path-6-dangling",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-6-dangling",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-6-dangling",
+    "exit": 1,
+    "seconds": 0.0026303330014343373,
+    "free_before_bytes": 77816406016,
+    "free_after_bytes": 77816401920,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "d44ad360d9381478560688d66124b7a222416021b58ed397feedb6276d2c0c52",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-6-dangling",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "apalache-path-7-dangling",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+      "admit",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-7-dangling",
+      "apalache"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-7-dangling",
+    "exit": 1,
+    "seconds": 0.0018904169992310926,
+    "free_before_bytes": 77816336384,
+    "free_after_bytes": 77816332288,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "1c9a582ba2aba62a072fe34281bfd68828ba490bfd3d7f970ddac788afd9f2a2",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/apalache-path-7-dangling",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "obsolete-fifo-lock-not-consumed",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-apalache",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 0,
+    "seconds": 2.3428252099984093,
+    "free_before_bytes": 77816328192,
+    "free_after_bytes": 77816156160,
+    "stdout_sha256": "f72cb047811c49096b1caced5b1e35a4fa97ea708d483214768e76264d998c5e",
+    "stderr_sha256": "ded79dfb42d2a20e2320259cec4b82e240f527f356310e6e614006b033f617c2",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  },
+  {
+    "label": "obsolete-symlink-lock-not-consumed",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-apalache",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+    "exit": 0,
+    "seconds": 2.194978751002054,
+    "free_before_bytes": 77816131584,
+    "free_after_bytes": 77815578624,
+    "stdout_sha256": "f72cb047811c49096b1caced5b1e35a4fa97ea708d483214768e76264d998c5e",
+    "stderr_sha256": "46423ac5534159eec806c00be82612c023be8322cce83fa292700684e1f8d979",
+    "environment": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+      "CARGO_HOME": "/home/agent/.cargo",
+      "CARGO_BUILD_JOBS": "1",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false",
+      "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean",
+      "UMPIRE_CACHE_DISABLE": "1",
+      "UMPIRE_QUICK_CACHE": "0"
+    }
+  }
+]

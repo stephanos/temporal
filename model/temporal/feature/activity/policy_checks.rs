@@ -117,7 +117,7 @@ fn cancellation_and_worker_races_have_exact_reachable_results() {
                         Worker::RespondCompleted.into(),
                         Phase::Completed,
                     );
-                    for (retryable, phase) in [(false, Phase::Failed), (true, Phase::Canceled)] {
+                    for (retryable, phase) in [(false, Phase::Failed), (true, Phase::Failed)] {
                         assert_closed(
                             &world,
                             &pending,
@@ -228,7 +228,7 @@ fn current_and_stale_worker_tokens_preserve_exact_availability() -> TestResult {
 fn expired(world: &World, before: &Model, fact: ExpiredDeadline) -> Model {
     if matches!(fact, ExpiredDeadline::StartToClose | ExpiredDeadline::Heartbeat) {
         if before.cancel_requested {
-            return cleared(before, Phase::Canceled);
+            return cleared(before, Phase::TimedOut);
         }
         if before.attempt < world.maximum_attempts {
             return Model {
@@ -559,7 +559,7 @@ fn required_tlc_replays_both_pending_failure_payloads_at_every_attempt() -> Test
                 let source = extra_method(&method);
                 let module = bound_for(world.clone()).lift_source("model.rs", &source)?;
                 for (name, value) in [
-                    ("pending_retryable_failure_cancels", true),
+                    ("pending_retryable_failure_fails", true),
                     ("pending_nonretryable_failure_fails", false),
                 ] {
                     let action = Worker::RespondFailed { retryable: value }.into();
@@ -604,10 +604,7 @@ fn required_tlc_replays_both_pending_failure_payloads_at_every_attempt() -> Test
                     .ok_or("missing concrete pending failure edge")?;
                 assert_eq!(edge.2, Outcome::Accepted);
                 assert_eq!(edge.3, Vec::<ExpiredDeadline>::new());
-                assert_eq!(
-                    edge.4,
-                    cleared(&edge.0, if retryable { Phase::Canceled } else { Phase::Failed })
-                );
+                assert_eq!(edge.4, cleared(&edge.0, Phase::Failed));
             }
         }
     }
@@ -679,7 +676,7 @@ fn required_tlc_replays_timeout_retries_with_exact_cause_and_budget() -> TestRes
 
 #[test]
 #[allow(clippy::print_stderr)]
-fn required_tlc_replays_both_canceled_attempt_expiry_facts() -> TestResult {
+fn required_tlc_replays_both_pending_attempt_expiry_facts() -> TestResult {
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
         return Ok(());
     }
@@ -688,7 +685,7 @@ fn required_tlc_replays_both_canceled_attempt_expiry_facts() -> TestResult {
         r"
         #[postcondition(after = Deadline::Tick)]
         fn false_pending_tick(&self, before: &Self) {
-            check!(!before.cancel_requested || self.phase != Phase::Canceled);
+            check!(!before.cancel_requested || self.phase != Phase::TimedOut);
         }
 ",
     );
@@ -714,9 +711,9 @@ fn required_tlc_replays_both_canceled_attempt_expiry_facts() -> TestResult {
             .find(|(before, action, _, facts, _)| {
                 before.cancel_requested && *action == Deadline::Tick.into() && facts == &[fact]
             })
-            .ok_or("missing exact canceled expiry edge")?;
+            .ok_or("missing exact pending expiry edge")?;
         assert_eq!(edge.2, Outcome::Accepted);
-        assert_eq!(edge.4, cleared(&edge.0, Phase::Canceled));
+        assert_eq!(edge.4, cleared(&edge.0, Phase::TimedOut));
         let trace = property.trace.as_ref().ok_or("missing expiry trace")?;
         let exact = umpire_tlc::Value::Text(format!("ExpiredDeadline::{fact:?}"));
         for facts in [vec![], vec![exact.clone(), exact]] {
@@ -751,22 +748,28 @@ fn required_tlc_refutes_source_only_boundary_policy_mutants() -> TestResult {
         return Ok(());
     }
     let tlc = umpire_tlc::Tlc::discover(&super::framework_root())?;
-    let pending_at_cap = replace_once(
+    let pending_retries =
+        replace_once(SOURCE, "if retryable && self.cancel_requested {", "if false {");
+    let retryable_cancels = replace_in(
         SOURCE,
         "if retryable && self.cancel_requested {",
-        "if retryable && self.cancel_requested && self.attempt < world.maximum_attempts {",
+        "else if retryable && self.attempt < world.maximum_attempts",
+        "self.phase = Phase::Failed;",
+        "self.phase = Phase::Canceled;",
     );
-    let wrong_failure_scope = replace_in(
+    let nonretryable_loses = replace_in(
         SOURCE,
-        "fn pending_retryable_failure_cancels(",
-        "fn pending_nonretryable_failure_fails(",
-        "only([Worker::RespondFailed { retryable: true }])",
-        "only([Worker::RespondFailed { retryable: false }])",
+        "} else if retryable && self.attempt < world.maximum_attempts",
+        "Worker::Heartbeat if self.phase == Phase::Started",
+        "self.phase = Phase::Failed;",
+        "self.phase = Phase::Canceled;",
     );
-    let nonretryable_loses = replace_once(
+    let pending_expiry_cancels = replace_in(
         SOURCE,
-        "if retryable && self.cancel_requested {",
-        "if self.cancel_requested {",
+        "fn expire_attempt(",
+        "fn clear_terminal(",
+        "if self.cancel_requested {\n                self.phase = Phase::TimedOut;",
+        "if self.cancel_requested {\n                self.phase = Phase::Canceled;",
     );
     let heartbeat_closes = replace_in(
         SOURCE,
@@ -784,19 +787,24 @@ fn required_tlc_refutes_source_only_boundary_policy_mutants() -> TestResult {
     );
     for (source, world, property) in [
         (
-            pending_at_cap,
-            configured(1, true, [None; 4]),
-            "Progress_pending_retryable_failure_cancels",
+            pending_retries,
+            configured(3, true, [None; 4]),
+            "Progress_pending_retryable_failure_fails",
         ),
         (
-            wrong_failure_scope,
+            retryable_cancels,
             configured(3, true, [None; 4]),
-            "Progress_pending_retryable_failure_cancels",
+            "Progress_pending_retryable_failure_fails",
         ),
         (
             nonretryable_loses,
             configured(3, true, [None; 4]),
             "Progress_pending_nonretryable_failure_fails",
+        ),
+        (
+            pending_expiry_cancels,
+            configured(3, true, [None, Some(1), None, Some(1)]),
+            "Post_tick_priority",
         ),
         (
             heartbeat_closes,
@@ -830,7 +838,7 @@ fn required_tlc_fact_only_mutants_fail_replay_on_the_same_pending_tick() -> Test
         r"
         #[postcondition(after = Deadline::Tick)]
         fn false_pending_tick(&self, before: &Self) {
-            check!(!before.cancel_requested || self.phase != Phase::Canceled);
+            check!(!before.cancel_requested || self.phase != Phase::TimedOut);
         }
 ",
     );
@@ -971,7 +979,7 @@ fn selected_deadline_worlds(partition: usize) -> TestResult {
             "deadline_arming",
             "pending_is_cooperative",
             "tick_priority",
-            "pending_retryable_failure_cancels",
+            "pending_retryable_failure_fails",
             "pending_nonretryable_failure_fails",
         ] {
             assert!(

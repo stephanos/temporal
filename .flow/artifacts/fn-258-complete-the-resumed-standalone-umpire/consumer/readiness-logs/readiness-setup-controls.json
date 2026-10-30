@@ -1,0 +1,12 @@
+[
+  {
+    "control": "paired CI setup preserves existing parent workspace/sums",
+    "exit": 1,
+    "output": "::error::Paired checkout destination already exists; preserve it and select a clean runner: /home/agent/.cache/codex-build/tmp/fn258-consumer-readiness-8umb4x5k/go.work\n"
+  },
+  {
+    "control": "missing local sibling gives actionable failure",
+    "exit": 1,
+    "output": "missing sibling Umpire checkout at /home/agent/.cache/codex-build/tmp/fn258-consumer-readiness-8umb4x5k/umpire; place umpire beside the Temporal checkout\n"
+  }
+]

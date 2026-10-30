@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "tests_run": 4,
+  "failures": 0,
+  "errors": 0,
+  "cleanup_script_sha256": "8ccd5dfc80ace0263379ba09da2fa9584d10e61fdf0aedff0c9fd08040a5860f",
+  "actual_cleanup_executed": false,
+  "actual_cargo_executed": false,
+  "scope": "tiny disposable fixture admission and mocked ownership only"
+}

@@ -1,0 +1,91 @@
+{
+  "identities": [
+    {
+      "workspace": "framework",
+      "package": "umpire-catalog",
+      "target": "umpire_catalog",
+      "target_kind": "doctest",
+      "test": "catalog/src/types.rs - types::check (line 32)",
+      "ignored": false,
+      "source": "model/umpire/catalog/src/types.rs"
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-catalog",
+      "target": "umpire_catalog",
+      "target_kind": "doctest",
+      "test": "catalog/src/types.rs - types::check (line 37)",
+      "ignored": false,
+      "source": "model/umpire/catalog/src/types.rs"
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-runtime",
+      "target": "umpire_runtime",
+      "target_kind": "doctest",
+      "test": "protocol/runtime/src/runtime.rs - runtime::SingletonTarget (line 66)",
+      "ignored": false,
+      "source": "model/umpire/protocol/runtime/src/runtime.rs"
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "target": "umpire_suite",
+      "target_kind": "doctest",
+      "test": "author/suite/src/lib.rs - expect (line 37)",
+      "ignored": true,
+      "source": "model/umpire/author/suite/src/lib.rs"
+    },
+    {
+      "workspace": "framework",
+      "package": "umpire-suite",
+      "target": "umpire_suite",
+      "target_kind": "doctest",
+      "test": "author/suite/src/space.rs - space::Space<S>::with_world (line 69)",
+      "ignored": false,
+      "source": "model/umpire/author/suite/src/space.rs"
+    }
+  ],
+  "commands": [
+    {
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--doc",
+        "--workspace",
+        "--locked",
+        "--",
+        "--ignored",
+        "--list"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+      "exit": 0
+    },
+    {
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--doc",
+        "--workspace",
+        "--locked",
+        "--",
+        "--ignored",
+        "--list"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+      "exit": 0
+    }
+  ],
+  "libtest_separate": true,
+  "nextest_doctest_count": 0,
+  "cargo_doc_invocations_per_successful_leaf": 1,
+  "previous_inventory": "task4/consolidation-identities.json doctests (4 passed, 1 ignored); every source file unchanged at this candidate",
+  "exact_previous_name_and_ignored_parity": true,
+  "all_doctest_source_bytes_unchanged": true
+}

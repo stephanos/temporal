@@ -1,0 +1,3 @@
+cwd: /home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model
+$ mise exec -- cargo fmt --all --check
+exit: 0

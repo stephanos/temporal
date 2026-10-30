@@ -1,0 +1,38 @@
+[
+  {
+    "pid": 10,
+    "status": [
+      "Name:\tsocat",
+      "PPid:\t1",
+      "Uid:\t0\t0\t0\t0",
+      "Gid:\t0\t0\t0\t0"
+    ],
+    "executable_argument": "socat",
+    "argument_count": 3,
+    "target_substring_in_readable_argv": false
+  },
+  {
+    "pid": 542,
+    "status": [
+      "Name:\tdockerd",
+      "PPid:\t1",
+      "Uid:\t0\t0\t0\t0",
+      "Gid:\t0\t0\t0\t0"
+    ],
+    "executable_argument": "dockerd",
+    "argument_count": 1,
+    "target_substring_in_readable_argv": false
+  },
+  {
+    "pid": 557,
+    "status": [
+      "Name:\tcontainerd",
+      "PPid:\t542",
+      "Uid:\t0\t0\t0\t0",
+      "Gid:\t0\t0\t0\t0"
+    ],
+    "executable_argument": "containerd",
+    "argument_count": 3,
+    "target_substring_in_readable_argv": false
+  }
+]

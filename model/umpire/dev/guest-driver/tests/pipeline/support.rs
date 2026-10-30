@@ -1,4 +1,4 @@
-//! Native guest build and cold shell entrypoint controls.
+//! Native guest build and retained bootstrap controls.
 #![forbid(unsafe_code)]
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 use std::{
@@ -14,6 +14,7 @@ pub(crate) struct Fixture {
     pub model: PathBuf,
 }
 impl Fixture {
+    #[allow(clippy::too_many_lines)]
     pub(crate) fn new() -> Self {
         static NEXT: AtomicU64 = AtomicU64::new(0);
         let root = std::env::temp_dir().join(format!(
@@ -28,30 +29,8 @@ impl Fixture {
         fs::copy(source.join("Cargo.toml"), model.join("Cargo.toml")).unwrap();
         fs::copy(source.join("rust-toolchain.toml"), model.join("rust-toolchain.toml")).unwrap();
         fs::copy(source.join("mise.toml"), model.join("mise.toml")).unwrap();
-        for name in ["guest.sh", "guest-freshness.sh", "xtask.sh"] {
-            if source.join("scripts").join(name).exists() {
-                fs::copy(source.join("scripts").join(name), model.join("scripts").join(name))
-                    .unwrap();
-            }
-        }
+        fs::copy(source.join("scripts/xtask.sh"), model.join("scripts/xtask.sh")).unwrap();
         fs::write(root.join("built custom.wasm"), b"\0asm\x01\0\0\0").unwrap();
-        let pins: toml::Value =
-            toml::from_str(&fs::read_to_string(model.join("mise.toml")).unwrap()).unwrap();
-        for (tool, names) in
-            [("rust", vec!["rustc", "cargo"]), ("go", vec!["go"]), ("protoc", vec!["protoc"])]
-        {
-            let directory = root.join(tool).join("bin");
-            fs::create_dir_all(&directory).unwrap();
-            for name in names {
-                executable(&directory.join(name), "#!/bin/sh\nexit 0\n");
-            }
-            fs::write(root.join(format!("{tool}.json")), serde_json::to_vec(&serde_json::json!([{"version": pins["tools"][tool].as_str().unwrap(), "install_path": root.join(tool), "installed":true,"active":true}])).unwrap()).unwrap();
-        }
-        let lib = root.join("rust/lib/rustlib");
-        fs::create_dir_all(lib.join("src/rust/library")).unwrap();
-        fs::write(lib.join("src/rust/library/Cargo.toml"), "[workspace]\n").unwrap();
-        fs::create_dir_all(lib.join("wasm32-wasip1/lib")).unwrap();
-        fs::write(lib.join("wasm32-wasip1/lib/libstd-control.rlib"), "").unwrap();
         fs::create_dir_all(root.join("bin")).unwrap();
         executable(
             &root.join("bin/mise"),
@@ -59,11 +38,8 @@ impl Fixture {
 set -eu
 [[ "$MISE_AUTO_INSTALL" = false && "$MISE_EXEC_AUTO_INSTALL" = false ]] || { echo auto-install-enabled >&2; exit 98; }
 printf '%s\n' "$*" >> "$FIXTURE/calls"
-if [[ "$1" = ls ]]; then
-  [[ "${FAIL_PROBE:-}" != 1 ]] || { echo probe-failed >&2; exit 23; }
-  [[ "${BAD_METADATA:-}" != 1 ]] || { echo '[{}]'; exit; }
-  [[ "${MISSING:-}" != "$4" ]] || { echo '[]'; exit; }
-  cat "$FIXTURE/$4.json"; exit
+if [[ -n "${EXPECTED_CARGO_HOME:-}" ]]; then
+  [[ "$CARGO_HOME" = "$EXPECTED_CARGO_HOME" ]] || { echo "wrong-cargo-home: $CARGO_HOME from $PWD" >&2; exit 96; }
 fi
 [[ "$1 $2" = 'exec --' ]]
 shift 2
@@ -87,7 +63,15 @@ if [[ " $* " = *' -p xtask '* || " $* " = *' -p umpire-guest-driver '* ]]; then
   done
   mkdir -p "$bootstrap_target/debug"
   cp "$NATIVE_DRIVER" "$bootstrap_target/debug/umpire-guest-driver"
-  cp "$NATIVE_DRIVER" "$bootstrap_target/debug/xtask"
+  cat > "$bootstrap_target/debug/xtask" <<'NATIVE_XTASK'
+#!/bin/bash
+set -euo pipefail
+case "${1:-}" in
+  guest|guest-freshness) exec "$NATIVE_DRIVER" "$@" ;;
+  *) echo unexpected-xtask-command >&2; exit 95 ;;
+esac
+NATIVE_XTASK
+  chmod 755 "$bootstrap_target/debug/xtask"
   printf '{"reason":"compiler-artifact","target":{"name":"xtask","kind":["bin"],"crate_types":["bin"]},"executable":"%s/debug/xtask","filenames":[]}\n' "$CARGO_TARGET_DIR"
   exit
 fi
@@ -111,6 +95,15 @@ case "${ARTIFACT_MODE:-one}" in
 esac
 "#,
         );
+        executable(
+            &root.join("bin/bootstrap-guest"),
+            r#"#!/bin/bash
+set -euo pipefail
+tool=$(/bin/bash "$UMPIRE_TOOL_ROOT/scripts/xtask.sh")
+printf '%s\n' "$tool" > "$FIXTURE/bootstrap-path"
+exec "$tool" "$@"
+"#,
+        );
         for name in ["compiler probe", "previous wrapper"] {
             fs::copy(crate::compiler_fixture(), root.join(name)).unwrap();
         }
@@ -118,12 +111,8 @@ esac
     }
     pub(crate) fn command(&self, freshness: bool, shell: bool) -> Command {
         let mut command = if shell {
-            let mut command = Command::new("/bin/bash");
-            command.arg(self.model.join("scripts").join(if freshness {
-                "guest-freshness.sh"
-            } else {
-                "guest.sh"
-            }));
+            let mut command = Command::new(self.root.join("bin/bootstrap-guest"));
+            command.arg(if freshness { "guest-freshness" } else { "guest" });
             command
         } else {
             let mut command = Command::new(crate::driver_binary());
@@ -150,10 +139,26 @@ esac
             .env_remove("RUSTC_BOOTSTRAP");
         command
     }
+    pub(crate) fn bootstrap_command(&self) -> Command {
+        let environment = self.command(false, false);
+        let mut command = Command::new("/bin/bash");
+        command.arg(self.model.join("scripts/xtask.sh")).current_dir(&self.model);
+        for (key, value) in environment.get_envs() {
+            if let Some(value) = value {
+                command.env(key, value);
+            } else {
+                command.env_remove(key);
+            }
+        }
+        command
+    }
 }
 impl Drop for Fixture {
     fn drop(&mut self) {
-        fs::remove_dir_all(&self.root).unwrap();
+        if let Err(error) = fs::remove_dir_all(&self.root) {
+            use std::io::Write;
+            let _ = writeln!(std::io::stderr(), "guest fixture cleanup failed: {error}");
+        }
     }
 }
 pub(crate) fn executable(path: &Path, contents: &str) {

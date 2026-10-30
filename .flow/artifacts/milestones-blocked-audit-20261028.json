@@ -1,0 +1,142 @@
+{
+  "recorded_utc": "2026-10-28T17:30:44.203011+00:00",
+  "source_head": "5343c06ff9a833442d51fc905444e97321ec478a",
+  "additional_tasks_reset": [],
+  "already_unblocked_completed_integrated": "fn-254.16",
+  "corrected_stale_subreason": "fn256.1: fn254.13 closure is integrated; actual failed live gate remains",
+  "tasks": [
+    {
+      "id": "fn-237-activity-timeouts-heartbeat-and.5",
+      "status": "blocked",
+      "depends_on": [
+        "fn-237-activity-timeouts-heartbeat-and.4"
+      ],
+      "blocked_reason": "Waiting for committed fn-243-programmed-workers-the-model-issues.5.\n\nThe conductor may reset this block only after fn-243.5 is done and its implementation and Flow closure commits are ancestors of `umpire`. Final timeout/cancellation documentation consumes its unheld cancellation proof and final R40 status. Native fn-237.4 remains a separate prerequisite. The CLI cannot encode cross-spec task dependencies. This block must not block fn-237.1 through fn-237.4, which produce the independent semantics and live binding.",
+      "status_source": "flow-state"
+    },
+    {
+      "id": "fn-243-programmed-workers-the-model-issues.5",
+      "status": "blocked",
+      "depends_on": [
+        "fn-243-programmed-workers-the-model-issues.4"
+      ],
+      "blocked_reason": "Waiting for committed fn-237-activity-timeouts-heartbeat-and.4.\n\nThe conductor may reset this block only after fn-237.4 is done and its implementation and Flow closure commits are ancestors of `umpire`. Its independent cooperative Model and live binding are required before restoring unheld cancellation admission. Native fn-243.4 remains a separate prerequisite. The CLI cannot encode cross-spec task dependencies. Do not clear this block merely because native readiness succeeds.",
+      "status_source": "flow-state"
+    },
+    {
+      "id": "fn-254-fast-validation-gates-and-a-real-inner.7",
+      "status": "blocked",
+      "depends_on": [
+        "fn-254-fast-validation-gates-and-a-real-inner.4"
+      ],
+      "blocked_reason": "Wait for fn-246-realization-as-a-checked-refinement-a to close and for its closure record to be committed in umpire. This preserves the owner's whole-spec prerequisite for Temporal test consolidation. The conductor verifies closed status and committed closure ancestry before resetting .7 to todo. Framework/gate work proceeds first; resume fn-246 after that checkpoint, then finish .7/.8. Flow rejects cross-spec task dep edges, so the explicit blocked state carries this external admission gate.",
+      "status_source": "flow-state"
+    },
+    {
+      "id": "fn-255-thorough-framework-testing-generated.2",
+      "status": "blocked",
+      "depends_on": [
+        "fn-255-thorough-framework-testing-generated.1"
+      ],
+      "blocked_reason": "Execution and task closure wait for the committed fn-254-fast-validation-gates-and-a-real-inner.12 closure in umpire and admission of this task's work/time limits to its single authoritative budget table. Disjoint source preparation does not satisfy this gate. Flow task dependencies only accept same-spec IDs; after verifying that closure and admitted entries, the conductor may reset this block and admit the task normally.",
+      "status_source": "flow-state"
+    },
+    {
+      "id": "fn-255-thorough-framework-testing-generated.3",
+      "status": "blocked",
+      "depends_on": [],
+      "blocked_reason": "Execution and task closure wait for the committed fn-254-fast-validation-gates-and-a-real-inner.12 closure in umpire and admission of this task's work/time limits to its single authoritative budget table. Disjoint source preparation does not satisfy this gate. Flow task dependencies only accept same-spec IDs; after verifying that closure and admitted entries, the conductor may reset this block and admit the task normally.",
+      "status_source": "flow-state"
+    },
+    {
+      "id": "fn-255-thorough-framework-testing-generated.4",
+      "status": "blocked",
+      "depends_on": [],
+      "blocked_reason": "Execution and task closure wait for the committed fn-254-fast-validation-gates-and-a-real-inner.12 closure in umpire and admission of this task's work/time limits to its single authoritative budget table. Disjoint source preparation does not satisfy this gate. Flow task dependencies only accept same-spec IDs; after verifying that closure and admitted entries, the conductor may reset this block and admit the task normally.",
+      "status_source": "flow-state"
+    },
+    {
+      "id": "fn-255-thorough-framework-testing-generated.5",
+      "status": "blocked",
+      "depends_on": [
+        "fn-255-thorough-framework-testing-generated.3"
+      ],
+      "blocked_reason": "Execution and task closure wait for the committed fn-254-fast-validation-gates-and-a-real-inner.12 closure in umpire and admission of this task's work/time limits to its single authoritative budget table. Disjoint source preparation does not satisfy this gate. Flow task dependencies only accept same-spec IDs; after verifying that closure and admitted entries, the conductor may reset this block and admit the task normally.",
+      "status_source": "flow-state"
+    },
+    {
+      "id": "fn-255-thorough-framework-testing-generated.6",
+      "status": "blocked",
+      "depends_on": [
+        "fn-255-thorough-framework-testing-generated.2",
+        "fn-255-thorough-framework-testing-generated.3"
+      ],
+      "blocked_reason": "Execution and task closure wait for the committed fn-254-fast-validation-gates-and-a-real-inner.12 closure in umpire and admission of this task's work/time limits to its single authoritative budget table. Disjoint source preparation does not satisfy this gate. Flow task dependencies only accept same-spec IDs; after verifying that closure and admitted entries, the conductor may reset this block and admit the task normally.",
+      "status_source": "flow-state"
+    },
+    {
+      "id": "fn-256-retire-the-scala-era-build-and-go.1",
+      "status": "blocked",
+      "depends_on": [],
+      "blocked_reason": "Source/proof checkpoint d9a58c62ddbe931083bebb368a24065480ec0e85 is preserved on work/fn2561-retirement in .worktrees/fn2561-retirement. It is not yet reviewed, integrated or complete.\n\nThe required live gate failed twice at raw/SDK judgment-path equality (seeds21/3). Slice failure prevents gaps/umbrella execution. A whole-prefix consumer diagnostic and exact regression follow-up are recorded in existing fn-246.9; no Model refutation was reported, and no assertion is waived. Resume task1 after that consumer obligation is resolved and the actual full live gate passes. fn-254.13 is now done and its closure is integrated into umpire, satisfying that former prerequisite at its proven source identity. Changes from fn-246 must still receive current guest/policy freshness proof where affected; this does not replace the outstanding complete live gate. Neither a source/import identity argument nor a dry run counts as a green gate.\n\nBuild, broad vet in both modes, retained tests, DLQ controls, canary harness/build and positive/negative lint controls passed at the checkpoint. Keep private Go cache idle/protected for fn-254.13's coordinated policy/preflight checks; retain unfinished branch/checkout and all committed proof. Continue fn-254 now, then the existing fn-246 order; this is a task prerequisite, not a block of the milestone goal.",
+      "status_source": "flow-state"
+    },
+    {
+      "id": "fn-258-complete-the-resumed-standalone-umpire.4",
+      "status": "blocked",
+      "depends_on": [
+        "fn-258-complete-the-resumed-standalone-umpire.2",
+        "fn-258-complete-the-resumed-standalone-umpire.3"
+      ],
+      "blocked_reason": "Owner deferred migration on2026-10-28 and replaced the active goal with MILESTONES work. Keep fn258 open and its unfinished acceptance unclaimed.\n\nTasks1\u20133 have committed historical source-readiness closures. Source freezeac60/exporta92 and standalone054 remain retained. Current consumercde1ee67 contains the focused, tested one-line cache-control expectation correction; its whole-pair acceptance is incomplete. The first3f pair failed the shell control; the newcde pair default gate was interrupted at the owner's request by SIGINT to its controller and its launcher terminated2. No required paired validation, warm edited quick or finalcde local-edit acceptance is claimed. All migration workers stopped; no target-prefix executable remains.\n\nPreserve source branches/worktrees, all bundles, recovery stores and current partial receipts.48 recovery refs/50 custody commits are prepared only; no actual receiver refs, remote publication, CI activation or source cutover occurred. The eight preparation-review corrections pass focused verification and await follow-up review. GitHub direct repository access remains SAML403.\n\nResume ordinary MILESTONES priorities with Temporal's in-tree framework authoritative. Later integrated framework changes expire migration proof applicability; resumption must explicitly renew the frozen inventory/history/adaptation/current-pair evidence rather than edit earlier inventories or reuse stale passes.",
+      "status_source": "flow-state"
+    }
+  ],
+  "next_unlocks": [
+    {
+      "prerequisite": "fn254.15 then committed fn254.12 plus task-specific budget admission",
+      "releases": [
+        "fn255.2",
+        "fn255.3",
+        "fn255.4"
+      ]
+    },
+    {
+      "prerequisite": "fn255.3 committed closure after budget admission",
+      "releases": [
+        "fn255.5"
+      ]
+    },
+    {
+      "prerequisite": "fn255.2 andfn255.3 committed closures after budget admission",
+      "releases": [
+        "fn255.6"
+      ]
+    },
+    {
+      "prerequisite": "fn246.9 correction and actual complete green live gate",
+      "releases": [
+        "fn256.1"
+      ]
+    },
+    {
+      "prerequisite": "wholefn246 committed closure",
+      "releases": [
+        "fn254.7"
+      ]
+    },
+    {
+      "prerequisite": "fn237.4 committed closure",
+      "releases": [
+        "fn243.5"
+      ]
+    },
+    {
+      "prerequisite": "fn243.5 andfn237.4 committed closures",
+      "releases": [
+        "fn237.5"
+      ]
+    }
+  ],
+  "migration": "fn258.4 remains owner-deferred; no restart authorized"
+}

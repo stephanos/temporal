@@ -1,0 +1,374 @@
+{
+  "status": "anticipated_source_mapping_only_current_runtime_inventory_pending",
+  "baseline": {
+    "nextest_identities": 909,
+    "ignored": 2,
+    "child_counts": {
+      "discovered": 914,
+      "executed": 911,
+      "ignored": 3,
+      "skipped": 0,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "doctests": {
+      "suite_summaries": 24,
+      "passed": 4,
+      "failed": 0,
+      "ignored": 1,
+      "measured": 0,
+      "filtered_out": 0
+    },
+    "scope": "framework standalone child only; not Temporal workspace",
+    "current_inventory_claim": false
+  },
+  "framework_and_driver_renames": [
+    {
+      "baseline_runtime_identity": [
+        "umpire-guest-driver",
+        "main",
+        "test",
+        "guest_pipeline::cold_shell_bootstrap_and_cached_native_validation",
+        false
+      ],
+      "anticipated_current_identity": [
+        "umpire-guest-driver",
+        "main",
+        "test",
+        "guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+        false
+      ],
+      "current_source_file": "model/umpire/dev/guest-driver/tests/guest_pipeline.rs",
+      "disposition": "renamed_with_explicit_behavior_port",
+      "rationale": "Retained bootstrap stdout route and cached validation, CI and failure behavior remain.",
+      "runtime_presence": "pending fresh task15 inventory"
+    },
+    {
+      "baseline_runtime_identity": [
+        "umpire-guest-driver",
+        "main",
+        "test",
+        "guest_pipeline::shell_caller_relative_paths_and_changed_inputs_select_new_cache",
+        false
+      ],
+      "anticipated_current_identity": [
+        "umpire-guest-driver",
+        "main",
+        "test",
+        "guest_pipeline::native_caller_relative_paths_and_changed_inputs_select_new_cache",
+        false
+      ],
+      "current_source_file": "model/umpire/dev/guest-driver/tests/guest_pipeline.rs",
+      "disposition": "renamed_with_explicit_behavior_port",
+      "rationale": "Caller-relative output/target and changed-lockfile cache invalidation remain; deleted wrappers replaced by native route.",
+      "runtime_presence": "pending fresh task15 inventory"
+    },
+    {
+      "baseline_runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "retired_names::posix_ere_recheck_and_grep_failure_propagate",
+        false
+      ],
+      "anticipated_current_identity": [
+        "xtask",
+        "main",
+        "test",
+        "retired_names::rust_regex_character_classes_and_invalid_patterns",
+        false
+      ],
+      "current_source_file": "model/umpire/dev/xtask/tests/retired_names.rs",
+      "disposition": "renamed_with_explicit_behavior_port",
+      "rationale": "Owner-approved Rust byte regex contract; digit/uppercase classes and invalid-pattern status2 remain; external grep exit is obsolete.",
+      "runtime_presence": "pending fresh task15 inventory"
+    },
+    {
+      "baseline_runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "retired_names::io_and_missing_grep_errors_fail_closed",
+        false
+      ],
+      "anticipated_current_identity": [
+        "xtask",
+        "main",
+        "test",
+        "retired_names::io_failure_and_absent_grep_are_handled_natively",
+        false
+      ],
+      "current_source_file": "model/umpire/dev/xtask/tests/retired_names.rs",
+      "disposition": "renamed_with_explicit_behavior_port",
+      "rationale": "Real output I/O error remains status2; absent grep now has no dependency and matching still produces status1.",
+      "runtime_presence": "pending fresh task15 inventory"
+    }
+  ],
+  "temporal_source_derived_moves": [
+    {
+      "baseline_source_identity": {
+        "package": "temporal-xtask",
+        "binary": "main",
+        "kind": "test",
+        "name": "retired_names::active_spellings_and_historical_exclusions"
+      },
+      "anticipated_current_identity": {
+        "package": "temporal-xtask",
+        "binary": "temporal-xtask",
+        "kind": "binary-unit; confirm exact kind in fresh inventory",
+        "name": "retired_name_policy_controls::active_spellings_and_historical_exclusions"
+      },
+      "baseline_runtime_inventory_available": false,
+      "current_source_file": "model/dev/xtask/tests/retired_names.rs",
+      "registration": "model/dev/xtask/src/main.rs #[cfg(test)] #[path = \"../tests/retired_names.rs\"] mod retired_name_policy_controls; integration mod retired_names removed",
+      "rationale": "Same planted-name/historical exclusion matrix; integration module moved to private native-policy binary-unit module.",
+      "runtime_presence": "pending fresh task15 inventory"
+    },
+    {
+      "baseline_source_identity": {
+        "package": "temporal-xtask",
+        "binary": "main",
+        "kind": "test",
+        "name": "retired_names::tool_failures_never_report_clean"
+      },
+      "anticipated_current_identity": {
+        "package": "temporal-xtask",
+        "binary": "temporal-xtask",
+        "kind": "binary-unit; confirm exact kind in fresh inventory",
+        "name": "retired_name_policy_controls::tool_failures_never_report_clean"
+      },
+      "baseline_runtime_inventory_available": false,
+      "current_source_file": "model/dev/xtask/tests/retired_names.rs",
+      "registration": "model/dev/xtask/src/main.rs #[cfg(test)] #[path = \"../tests/retired_names.rs\"] mod retired_name_policy_controls; integration mod retired_names removed",
+      "rationale": "Git failure/malformed inventory retained; escape cases added; deleted external grep subprocess is no longer an authority.",
+      "runtime_presence": "pending fresh task15 inventory"
+    },
+    {
+      "baseline_source_identity": {
+        "package": "temporal-xtask",
+        "binary": "main",
+        "kind": "test",
+        "name": "retired_names::shell_preserves_filter_failure_when_git_grep_gets_sigpipe"
+      },
+      "anticipated_current_identity": {
+        "package": "temporal-xtask",
+        "binary": "temporal-xtask",
+        "kind": "binary-unit; confirm exact kind in fresh inventory",
+        "name": "retired_name_policy_controls::raw_path_bytes_and_io_failures_reach_native_policy"
+      },
+      "baseline_runtime_inventory_available": false,
+      "current_source_file": "model/dev/xtask/tests/retired_names.rs",
+      "registration": "model/dev/xtask/src/main.rs #[cfg(test)] #[path = \"../tests/retired_names.rs\"] mod retired_name_policy_controls; integration mod retired_names removed",
+      "rationale": "Old Git/grep pipeline SIGPIPE race is obsolete because no native pipeline exists. Replacement covers raw path/line bytes and native I/O failure; Git failure authority remains separately covered.",
+      "runtime_presence": "pending fresh task15 inventory"
+    }
+  ],
+  "new_ignored_temporal_helper": {
+    "name": "retired_name_policy_controls::scan_child",
+    "file": "model/dev/xtask/tests/retired_names.rs",
+    "disposition": "new ignored exact child called by migrated policy tests; not a lost parent test"
+  },
+  "source_scan": {
+    "removed_or_renamed_test_declarations": [
+      {
+        "file": "model/dev/xtask/tests/retired_names.rs",
+        "old_test_function": "shell_preserves_filter_failure_when_git_grep_gets_sigpipe"
+      },
+      {
+        "file": "model/umpire/dev/guest-driver/tests/guest_pipeline.rs",
+        "old_test_function": "cold_shell_bootstrap_and_cached_native_validation"
+      },
+      {
+        "file": "model/umpire/dev/guest-driver/tests/guest_pipeline.rs",
+        "old_test_function": "shell_caller_relative_paths_and_changed_inputs_select_new_cache"
+      },
+      {
+        "file": "model/umpire/dev/xtask/tests/retired_names.rs",
+        "old_test_function": "io_and_missing_grep_errors_fail_closed"
+      },
+      {
+        "file": "model/umpire/dev/xtask/tests/retired_names.rs",
+        "old_test_function": "posix_ere_recheck_and_grep_failure_propagate"
+      }
+    ],
+    "comparison_scope": "tracked model/**/*.rs at exact baseline Git object vs current working bytes; regex #[test] function scan, not Rust compilation",
+    "generated_baseline_cases": [
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::accepted_self_loops",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::action_inputs",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::changed_state",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::kettle_cut",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::kettle_progress",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::optional_facts",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::optional_ticks",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::parameterized_world",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::phased_rejection",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::progress_continuous",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::progress_dead_end",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::progress_excluded_prefix",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::progress_fulfilled",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::progress_graph",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::progress_intermittent",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::progress_scope_exit",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::progress_self_loop",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::progress_target_barrier",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::progress_trigger_stops",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::progress_two_lobes",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::rejecting_steps",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::sample_kettle",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::shared_returns",
+        false
+      ],
+      [
+        "umpire-fixtures",
+        "fixtures",
+        "test",
+        "fixtures::world_fairness",
+        false
+      ]
+    ],
+    "generated_cases_source_status": "24 fixture cases generated by unchanged dev/fixtures/build.rs::generate_cases; fixture and shared testing trees unchanged vs60f",
+    "unexplained_basename_absences": [],
+    "warning": "A matching fn basename does not prove inventory registration; fresh inventory must verify full identities, flags, filters and platform cfg."
+  },
+  "next_acceptance_steps": [
+    "Read fresh task15 framework nextest inventory and compare full tuples against baseline with exactly four declared rename translations; investigate every other missing baseline identity.",
+    "Check fresh Temporal inventory contains all three anticipated migrated policy parent names plus ignored scan_child, and no obsolete integration registrations.",
+    "Review additions separately; do not infer new current runtime cardinality from source test counts."
+  ]
+}

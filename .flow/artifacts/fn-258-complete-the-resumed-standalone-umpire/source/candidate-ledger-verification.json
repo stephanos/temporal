@@ -1,0 +1,56 @@
+{
+  "synthetic_controls": {
+    "result": "pass",
+    "controls": [
+      {
+        "name": "dirty-standalone-path-has-independent-framework-owner",
+        "passed": true
+      },
+      {
+        "name": "wrong-standalone-owner-is-refused",
+        "passed": true
+      },
+      {
+        "name": "missing-original-object-retains-unknown-recovery-gap",
+        "passed": true
+      },
+      {
+        "name": "orphan-capture-gap-and-verifier-error-are-explicit",
+        "passed": true
+      }
+    ],
+    "method": "In-memory entries and synthetic Git responses exercise the same capture/verification helpers; no repository/ref/worktree changes."
+  },
+  "source_commit": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "ledger_sha256": "b1fc7a843b092d1920d4dbf6387f6d6795d212ecfef381e8b7d96c62b3386851",
+  "manifest_sha256": "a29ea7017bf9138701d1580e1a466071a1c151b849526a55648484b27175a2c3",
+  "verified_manifest_records": 1189,
+  "verified_original_candidates": 81,
+  "errors": [],
+  "live_ref_drift_since_capture": [
+    {
+      "repository": "temporal",
+      "ref": "refs/heads/umpire",
+      "observed": "05051b84a18f29e8cafbfa6b5ac57981a2aee72f",
+      "current": "ba8ede3a6a078d3ede43245a7764c081a5daa1d6"
+    },
+    {
+      "repository": "temporal",
+      "ref": "refs/remotes/origin/umpire",
+      "observed": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+      "current": "05051b84a18f29e8cafbfa6b5ac57981a2aee72f"
+    },
+    {
+      "repository": "umpire",
+      "ref": "refs/heads/work/fn2573-standalone",
+      "observed": "45eb554539fe934f43a1cb906381babd46bfc662",
+      "current": "ac79114a9ad43a9d9fc2a022d07406d217878760"
+    },
+    {
+      "repository": "umpire",
+      "new_ref_after_observation": "refs/recovery/fn258-integrated-source"
+    }
+  ],
+  "result": "pass",
+  "interpretation": "Completeness and frozen recovery-object verification only; no transfer, dirty backup or current-pair execution claim."
+}

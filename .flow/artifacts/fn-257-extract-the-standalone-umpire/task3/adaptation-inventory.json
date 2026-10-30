@@ -1,0 +1,288 @@
+{
+  "observed_at": "2026-10-26T17:32:57.840948+00:00",
+  "kind": "read_only_source_inventory_not_runtime_validation",
+  "source_checkpoint": "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+  "standalone_head": "f7b42ce25558344ea2d38f1e05d002259427a8f6",
+  "original_files": 1178,
+  "unchanged_files": 1124,
+  "modified_files": [
+    {
+      "path": ".cargo/config.toml",
+      "before_sha256": "5d2ce595163d042c37cbd8baff63f9f88630af985a1704a1c543027547cf0625",
+      "after_sha256": "e43f88620e1bf4e7b6824483871672c7070c9a23dc8765ff1621a5f76a7c4dc9"
+    },
+    {
+      "path": "README.md",
+      "before_sha256": "96b06402c474be862ab4f892dd543454f9fc9707db3317f2b868d22c47b35803",
+      "after_sha256": "f9693e7345916b07609106382150407391ef9a053f18ffa8fc3b640d2e96ed6f"
+    },
+    {
+      "path": "dev/guest-driver/README.md",
+      "before_sha256": "ec74e60d637b9db494c8868e307f618ad4969cb2d4e9c45e990b4e499fb6258d",
+      "after_sha256": "7db96a50e4013e22dad634458aa9242d8053fa3c05454f52ef824e7b1a564850"
+    },
+    {
+      "path": "dev/xtask/README.md",
+      "before_sha256": "7d6d48ae79570dad7b288d19da18a5f427d177e944898de450384c4a27f83a5b",
+      "after_sha256": "dae8470faaa21fbe53cf4f2a7a943df9492ff0bf39f7a97c9ed57582ac573935"
+    },
+    {
+      "path": "dev/xtask/src/quick/mod.rs",
+      "before_sha256": "a22c2ca1b6d48caaac8bb8e17f84728769b4478038c2f795712857de8e2ca185",
+      "after_sha256": "b6e098540aa96e831b68a569abeabdf58dc91221796f8f1d981b0f6b99fb09a2"
+    },
+    {
+      "path": "dev/xtask/src/quick/tests.rs",
+      "before_sha256": "6a50094ca49212d70df79bbf09b41b3ea2ec3f11f360eb585ab1c229e777ce95",
+      "after_sha256": "38396a41e7aba9ba77ad03bca3cb489092e49fd5964e88560b8a4739f415fe11"
+    },
+    {
+      "path": "hosts/go/README.md",
+      "before_sha256": "c3470b10d3ce7cc2b6bf44ee1f2b58ef81395f18988885228d0bbc8bbea7d355",
+      "after_sha256": "7d274feee3b9e3da21c8591af161b3f62c187bb2e137b22c8aa01f6f2afb3e0c"
+    },
+    {
+      "path": "hosts/go/gen/umpire/annotations/v1/annotations.pb.go",
+      "before_sha256": "af009f37a504ac5a3cb85d37666923cc293adb7fa7add823f173693bdeff4157",
+      "after_sha256": "ea7084f2505b5b6ed2e3b804fe69fc7831b3790ea785e4ea4a570dc9e0d5c056"
+    },
+    {
+      "path": "hosts/go/gen/umpire/model/v1/model.pb.go",
+      "before_sha256": "f3fc64358788fc598c7cd034b79d2b3b7336638caa991bd473d4bae4aa0aac3f",
+      "after_sha256": "64830baf46b4715f287b2dea30fe1690e9526bea5617039cf9f0018a2c18047c"
+    },
+    {
+      "path": "hosts/go/gen/umpire/realization/v1/realization.pb.go",
+      "before_sha256": "d050e0411f1c75ef94ee04d966b87512d7c00e9e635a3bbdcede1218296d33d2",
+      "after_sha256": "66e65bda81b9a2a46d56f3dc9bd26e044e671bac3fed215a47804076edd729f0"
+    },
+    {
+      "path": "hosts/go/gen/umpire/run/v1/run.pb.go",
+      "before_sha256": "5988264c7297d96510cb90e7f05a6205972d3f09ef09027b7c9829523f543d98",
+      "after_sha256": "1b35c7c3c14074300ba7c18c7d0569ffd2542a0b4c6188096678e3dcbe40fa15"
+    },
+    {
+      "path": "hosts/go/go.mod",
+      "before_sha256": "6100155b3a22a7468f1280617ce06331d816a23c08bc23f2f5a9392e12f076e6",
+      "after_sha256": "e632428ca663454e80c9d59fc0aa3795bd1015b8917146298a02824427118f1a"
+    },
+    {
+      "path": "hosts/go/host/annotations.go",
+      "before_sha256": "d600dc0f8aae4e390af622d0362de9bdd11becb71ddf5605f34aaa0166b1ec01",
+      "after_sha256": "d8a2414c706399ee8d43b8c594c3e38507d2ba49dd0c1deee51eaca078898c40"
+    },
+    {
+      "path": "hosts/go/host/current_contract_test.go",
+      "before_sha256": "7e9112357c8d255a0898058d9e1b8dd34101fcf75114d04f1910edf4284127b2",
+      "after_sha256": "486fc0a3a8d7ed18b8788d5e88e092e0d70f6fd7cd707ecfc37faa281874ff1d"
+    },
+    {
+      "path": "hosts/go/host/guest_profile_test.go",
+      "before_sha256": "89103fd76fcceb86bbef2a0e02e451e60bf9f92f444b40022397631e914829a3",
+      "after_sha256": "e792d8a435c07ede1b3185efe66515b7f4bd249bdb64d56b9b413e8b231a752b"
+    },
+    {
+      "path": "hosts/go/host/host.go",
+      "before_sha256": "ae2e5d8cec831685fd10a77f8a192048f03f18d400a8e873f30a368f881ee480",
+      "after_sha256": "a5ae3ac30594058a7e0a8102bed88fe50dbe57c6d6b05716e96e21318438266a"
+    },
+    {
+      "path": "hosts/go/host/host_test.go",
+      "before_sha256": "050d33afd15c25a7b193134db4832cd2e2c0d5c25d2f99ec06f5a4df7d2e22a1",
+      "after_sha256": "6c95e2b6292b5b286b9e812ec31c59c27b26053c283cd8c522d22109b66cc19a"
+    },
+    {
+      "path": "hosts/go/host/probes.go",
+      "before_sha256": "9f08104ec9cf70e1c830185bca30f0ac223345c8f89c26e3e42ae07219f5c399",
+      "after_sha256": "fde0d2a35c76bba3a6d9c972793663230bc6a569d803981c1f44763cd20b93fa"
+    },
+    {
+      "path": "hosts/go/host/probes_test.go",
+      "before_sha256": "622cafe62227b193e6e11d9e44fc058854e5fade77b31ef2cf729f339a655a2c",
+      "after_sha256": "bb8cf3a32b430c7e82df292c66f592343935275ff2f6f169dbfd9ee6cc07f60f"
+    },
+    {
+      "path": "hosts/go/host/proposal_test.go",
+      "before_sha256": "4c929ffd067ba5b38ea3579fba1f822afb3ad5cc18467f2a27dbc5434fad4474",
+      "after_sha256": "2e8a2850f994eec4efc73ead4110c9f2dc552fdb1a8c25c034da2d18ee0099f0"
+    },
+    {
+      "path": "hosts/go/host/protocol_test.go",
+      "before_sha256": "e3dbf2641f6952c8610d07842c2bf7a8e2894184e7609dfcbfabb45b065677f1",
+      "after_sha256": "b786dcbacf38bbf47ce261ced01ea8f2b860474c0ddd3328acae54d8f6f41c70"
+    },
+    {
+      "path": "hosts/go/host/protocol_wire_test.go",
+      "before_sha256": "a90c5f5e3693a0f8b5644c066030dbff68ea4cba1ab4cc0159e7079c2a1c6845",
+      "after_sha256": "cf47b83b25e9620c46efaf75efc02880924c852f79da3c243623bf5ce92a14ca"
+    },
+    {
+      "path": "hosts/go/host/realization_wire_test.go",
+      "before_sha256": "061df5153c104a49b7a1e5d5a2f91d81098db56935288ea500bf442dbebcb0ac",
+      "after_sha256": "aeafdb33e3ec5be707e669706647ec999478c7c1a3c386e07782ea0d2289dc0a"
+    },
+    {
+      "path": "hosts/go/host/stateful_test.go",
+      "before_sha256": "115f768666ac33daa5f76116c5b391785e12c724977dc4d0d239559b63975417",
+      "after_sha256": "b8f12938278af9c9b6d52240db4f960bf7aca07cf07e99c2b6db5176d18c0e26"
+    },
+    {
+      "path": "hosts/go/runner/admission_test.go",
+      "before_sha256": "ac17289493702ea9d17b535a0734443bfad882dde73fd496ca4099dc0f35db55",
+      "after_sha256": "543f50a332555ab36354f928e01753123fbcb71732b3ffa0027e502733026b6e"
+    },
+    {
+      "path": "hosts/go/runner/driver.go",
+      "before_sha256": "75dc56aa6b5aa052f5eda74dc020953fda83d0fac2a77c83fa5eea7914a87b67",
+      "after_sha256": "8589631fd72060fa95697eb9f33740cf4fb17bf37e4578a43c5ee40ebce2cdb2"
+    },
+    {
+      "path": "hosts/go/runner/fake_test.go",
+      "before_sha256": "adae3d8161a97313c2b1963c00986564d1162974e70d9b85295c78361ccd54f6",
+      "after_sha256": "0bc7ddd25b5e8e43dbc0f35ab2534b96b0c8c1a9e85cd74cc3ff3e817e1ecb23"
+    },
+    {
+      "path": "hosts/go/runner/fault_evidence_test.go",
+      "before_sha256": "deacd5cb51198e7e359c449dddd39c186bb38d2ee60dbadb67b1cf338f750a3f",
+      "after_sha256": "5f996dc1e148230cc87d42c6b5c1ad3a8da8ca12ec834f43ab515f35bcb7dda2"
+    },
+    {
+      "path": "hosts/go/runner/modes_test.go",
+      "before_sha256": "cf305bddfd51dd9f3e18bf9d30c2d45c4c873b0b79b100feffced051f2178780",
+      "after_sha256": "6972a282733aeac03d67c6d0391b9468f9ed8f31fe1bf9f0773d76903c86705f"
+    },
+    {
+      "path": "hosts/go/runner/program.go",
+      "before_sha256": "472aefcc126e44033dfef5812a03a2e89c4386dfbe17022ff550bf9af7d4a400",
+      "after_sha256": "25fdbc36943a05acbb06315f681680e08afcd9869abe441319f86fe7979d85c1"
+    },
+    {
+      "path": "hosts/go/runner/replay.go",
+      "before_sha256": "3e24d6b17f5ebdddea878ad3445b4207c160fc01a115a212a5f7700877b86ec5",
+      "after_sha256": "57429bf16a9c2aebb362d1f12a06ac4f2a28d7ad8aa75e1b5f95997a4c45cf49"
+    },
+    {
+      "path": "hosts/go/runner/runner.go",
+      "before_sha256": "0e27cedc600a86f379f34a2a293e9ccd68625c4a6ed1f38bbd98706e143b4aff",
+      "after_sha256": "cf9971b04f3f7a194cb4abe0faea458fc97bbc78321ec5348642dfb1a071fdc8"
+    },
+    {
+      "path": "hosts/go/runner/runner_test.go",
+      "before_sha256": "c42ca0d283e450863ce1de4f63174e3192e55bbf3e5a1c62045b3267b27b5bfe",
+      "after_sha256": "e7326a8c0e155392d537e94a8f86a2ddc82f7d1b70d0d3793b34a5723d958acf"
+    },
+    {
+      "path": "hosts/go/runner/session.go",
+      "before_sha256": "fe36a2c79240ae9efad7f53acf773f2a7d2062292f5c4bfc36b514fb074e3bbb",
+      "after_sha256": "334e281ba2b573f2eb9011861b11d2cc8b2e7de72ae1e996fa3cc94d9e44ea7a"
+    },
+    {
+      "path": "hosts/go/runner/worker_test.go",
+      "before_sha256": "9b6f7b028d28436dfb4faa6872816350cec40b7da379eb4ba41aab700ceb0486",
+      "after_sha256": "8815f433eaafe81709ea46f182c9f7a9f8254c97db9c1ee2052c797145936299"
+    },
+    {
+      "path": "protocol/proto/umpire/annotations/v1/annotations.proto",
+      "before_sha256": "8e4a20051f03507f23b5746a86c6ff07363061880e13cdfc1274276b79748cc7",
+      "after_sha256": "55e0186d86bea83ba6da6be208312b04c520ddd07809ce6c1e98def1d95dec67"
+    },
+    {
+      "path": "protocol/proto/umpire/model/v1/model.proto",
+      "before_sha256": "2c88e46e522e6f9308c0b18d0413a6dcb347fad1b523dd1940ab4302d9575210",
+      "after_sha256": "a0f891bc2afd0e4f2d6c9a2ced297cdea5820fb165ad2e0cadde35a0fb34f768"
+    },
+    {
+      "path": "protocol/proto/umpire/realization/v1/realization.proto",
+      "before_sha256": "202decb02638c38051b81eb29c5ceba90e5ac5d8ccd3fa9a8441f92ca4dddeff",
+      "after_sha256": "375a80ced933cfddf1c60ea5648eabf2f494ea5c7d8faa13c29bcfa57da2fa67"
+    },
+    {
+      "path": "protocol/proto/umpire/run/v1/run.proto",
+      "before_sha256": "703281cb6950eeba270afd4c5c0ef0a5021433f6c8ff864ab4857e4c3e716d5c",
+      "after_sha256": "b45da965f8b5312ef5f8cbd3a1ba904d5a411f02abdf9f0c13a52cafd280a1ef"
+    },
+    {
+      "path": "reference/kettle/README.md",
+      "before_sha256": "68cb5725573598fd804f2d2e84a67c9bcd5afcb0b7f4fe63d35b7cb8513ef96d",
+      "after_sha256": "d1129e79c9a62f310f38e3004308e25a2feee32d8fb8537fa2e8e6e3d2d49083"
+    },
+    {
+      "path": "reference/kettle/gen/kettle/v1/kettle.pb.go",
+      "before_sha256": "1b0e61c26b360ed344aeac317118aac3282d10cbdf404d2d126a877d90b76693",
+      "after_sha256": "1c59d404abc5d43248ef55a4e118f8e7d4efa5fdd14575b01b85caf68e03b83a"
+    },
+    {
+      "path": "reference/kettle/gen/kettle/v1/probe.pb.go",
+      "before_sha256": "c45c3f3e4bf9c0e179da743108fc2e5122e7b8daf9634c4dbf6b14b6d7b78995",
+      "after_sha256": "52da4a7eef9756d13998cd6068805ef2baed85bbbbbe7a972303e690783404e0"
+    },
+    {
+      "path": "reference/kettle/go.mod",
+      "before_sha256": "425cf84063b141fa21005dc307efed8883e96811b8a6ea11f8ea52b14be0e265",
+      "after_sha256": "a4c1164f446439fec6757b0ef2b2287a1a2d23875476b242b82f20b66a893cef"
+    },
+    {
+      "path": "reference/kettle/kettle_annotations_test.go",
+      "before_sha256": "182f49e5609fd93bdf0f30a25a67e1d1008c86224be9bce2e30ec17690c88923",
+      "after_sha256": "1b5c14824e11d4947bc84d9992f6599e40ecc927a20ba15e9296d596a25fe420"
+    },
+    {
+      "path": "reference/kettle/kettle_mutants_test.go",
+      "before_sha256": "b81dfa033e61dc687d55f59317bb2585b57c440100e86998ae1d73680986bace",
+      "after_sha256": "594c64815be34cbe75b243703bb8f60d6ef823b0e9cbbe51ac844f59cd6fc03e"
+    },
+    {
+      "path": "reference/kettle/kettle_test.go",
+      "before_sha256": "a23aa5852f0a72a973d9329b33b4398ca9a8cd2750fd6bb1b20869081e5715f4",
+      "after_sha256": "7862ad5436a13ecbf0f89de8b5af3996e32305c265ff7eb2dd2b18a1e80588c8"
+    },
+    {
+      "path": "reference/kettle/parity_test.go",
+      "before_sha256": "392c116ae1bb95b95cb2c3f25995f665aaa4cb896af37f580d1d6eeef3bead2d",
+      "after_sha256": "c36c5489866597980504d95c280fe0e93ee81b7edf8ffb2c897c9280d79c2686"
+    },
+    {
+      "path": "reference/kettle/proto/kettle/v1/kettle.proto",
+      "before_sha256": "635221a24f97f2d5b9fe1d4fc98e61c0e08acdc0e05e18228fcf0c5ffc991fed",
+      "after_sha256": "03bdd49033989c62147bad2114c4087ec5f5a9db19336c9537e590bbc12c0fe7"
+    },
+    {
+      "path": "reference/kettle/proto/kettle/v1/probe.proto",
+      "before_sha256": "4015aa53cc5527eddfe3d9315a2c918d28e3a94ee49066143b7c9da70e854933",
+      "after_sha256": "241510488aa8a2698403101153ab65b6b7fe7e32782a268ac319257504ab9cb1"
+    },
+    {
+      "path": "reference/kettle/server.go",
+      "before_sha256": "bb07ed07e979ba755b2be668f25f7a3c77e9acaaf98ddab917e18466b913094c",
+      "after_sha256": "2aba13585b012abd6f7b35c8bfc1b220cdaf264d864d373709f8d7649e218882"
+    },
+    {
+      "path": "reference/kettle/server_test.go",
+      "before_sha256": "b356f812610844231772a0f8eef1349cdefb241aeb39f2ede41cd91bb305ef82",
+      "after_sha256": "cd81324dbebfe12f16c5356cd1e8f8732362cadff4b5cc31b2a6fd3cc2aabe91"
+    },
+    {
+      "path": "reference/kettle/snapshots_test.go",
+      "before_sha256": "c2119010a1726c489374c62c5e2fe1a3214a9064daf3f987fbed7c770b25f15b",
+      "after_sha256": "66c668f6b38d16dbed6f4f81517437d625cac6ec3b2d08a3837ba4b2efadac55"
+    },
+    {
+      "path": "reference/kettle/validators.go",
+      "before_sha256": "3e13e078af485780f1596b44671cbf26710c317a13e22c0bc8bcc0501ac88590",
+      "after_sha256": "478abc45fa599bd85be6a99bda942825927ff538bda533415e04e7f2a91d29dd"
+    },
+    {
+      "path": "rust-toolchain.toml",
+      "before_sha256": "620f5ba2c76cfec3b2e8b29ca27138401535b21919339a8aaef86f250b335b27",
+      "after_sha256": "4467266fabdd9b6d0d1ad5155777bbbbf67fe235cd66263e4cf091644224cd2d"
+    }
+  ],
+  "missing_original_files": [],
+  "mode_changes": [],
+  "unexpected_modified_paths": [],
+  "protected_payload_lock_license_files": 384,
+  "protected_differences": [],
+  "retained_source_framework_tree_matches": true,
+  "retained_source_archive_tree_matches": true,
+  "scope_limits": "Hashes cover all original selected files plus their modes; additional portable root files and historical-support removal are reviewed separately. No builds, tests, guest execution or cache-identity certification."
+}

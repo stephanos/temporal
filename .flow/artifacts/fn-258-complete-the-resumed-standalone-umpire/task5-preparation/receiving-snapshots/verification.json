@@ -1,0 +1,156 @@
+{
+  "result": "pass",
+  "prepared_manifest_sha256": "a39de496637de89cb759a2c2d527605eec61a8ac402186ee44f8b649319884ef",
+  "verifier_sha256": "4a1c120a066e7ce9a774c5bf7e0afe487bc670868c1991860f2bfe099f12387b",
+  "builder_sha256": "3ff6ebeebb41077feb012d13d9a82196b7e75e0de99cdcf3b3aaf6a2c108a210",
+  "common_helper_sha256": "98f2395c2542af621e4b042ec992b00a4ed745a6e652a3d862ee04c969e5ae3b",
+  "frozen_preparation_input_copies": {
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-ref-creation-work.json": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-snapshots/receiving-ref-creation-work.input.json",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/disposition-overlay.json": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-snapshots/disposition-overlay.input.json",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/custody/custody-manifest.json": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-snapshots/custody-manifest.input.json"
+  },
+  "verified_targets": 48,
+  "new_agent_custody_commits": 50,
+  "full_variant_file_records_verified": 57286,
+  "net_projected_deletion_beforeimages": 1942,
+  "mapped_source_deletion_beforeimages": 1931,
+  "exact_candidate049_source_only_paths": 4,
+  "qualified_dirty_variants": 2,
+  "exception_and_selection_controls": [
+    {
+      "name": "missing-file",
+      "expected_refusal": "full projection coverage",
+      "passed": true
+    },
+    {
+      "name": "unexpected-tracker-file",
+      "expected_refusal": "source path coverage",
+      "passed": true
+    },
+    {
+      "name": "wrong-mode",
+      "expected_refusal": "exact mode identity",
+      "passed": true
+    },
+    {
+      "name": "wrong-blob",
+      "expected_refusal": "exact blob identity",
+      "passed": true
+    },
+    {
+      "name": "duplicate-destination",
+      "expected_refusal": "collision rejection",
+      "passed": true
+    },
+    {
+      "name": "system-import",
+      "expected_refusal": "no system dependencies",
+      "passed": true
+    },
+    {
+      "name": "Go-canonical-SDK",
+      "expected_refusal": "actual system dependency form",
+      "passed": true
+    },
+    {
+      "name": "Go-canonical-API",
+      "expected_refusal": "actual system dependency form",
+      "passed": true
+    },
+    {
+      "name": "Go-module-API",
+      "expected_refusal": "actual system dependency form",
+      "passed": true
+    },
+    {
+      "name": "Rust-API-import",
+      "expected_refusal": "actual system dependency form",
+      "passed": true
+    },
+    {
+      "name": "Rust-API-qualified",
+      "expected_refusal": "actual system dependency form",
+      "passed": true
+    },
+    {
+      "name": "Rust-API-dependency",
+      "expected_refusal": "actual system dependency form",
+      "passed": true
+    },
+    {
+      "name": "Rust-renamed-API-dependency",
+      "expected_refusal": "actual system dependency form",
+      "passed": true
+    },
+    {
+      "name": "Scala-file",
+      "expected_refusal": "no Scala bytes",
+      "passed": true
+    },
+    {
+      "name": "exception-OID-drift",
+      "expected_refusal": "exact root-approved four-path policy",
+      "passed": true
+    },
+    {
+      "name": "exception-blob-drift",
+      "expected_refusal": "exact root-approved four-path policy",
+      "passed": true
+    },
+    {
+      "name": "exception-extra-prefix-file",
+      "expected_refusal": "exact root-approved four-path policy",
+      "passed": true
+    },
+    {
+      "name": "dirty-path-omitted",
+      "expected_refusal": "full raw custody coverage",
+      "passed": true
+    },
+    {
+      "name": "deletion-beforeimage-corrupt",
+      "expected_refusal": "raw beforeimage hash",
+      "passed": true
+    },
+    {
+      "name": "deletion-after-absence-false",
+      "expected_refusal": "exact after-absence",
+      "passed": true
+    },
+    {
+      "name": "deleted-path-resurrected",
+      "expected_refusal": "exact after-absence",
+      "passed": true
+    },
+    {
+      "name": "original-parent-invention",
+      "expected_refusal": "new custody parents only",
+      "passed": true
+    },
+    {
+      "name": "original-author-spoof",
+      "expected_refusal": "new agent authorship only",
+      "passed": true
+    },
+    {
+      "name": "committed-bundle-corrupt",
+      "expected_refusal": "exact committed bundle hash and size",
+      "passed": true
+    }
+  ],
+  "computed_recovery_coverage_sha256": "623e6032d3bdaccab30e89b84d8eb10a7de2ae1206b092566ba096caf7912674",
+  "committed_bundle_verified": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-snapshots/prepared-snapshots.bundle",
+    "sha256": "efb9a7007b502c7d83f4b458fd5baa3e017ba1b10d9ca261a97557a8bf4d72cd",
+    "size": 1756635
+  },
+  "bundle_recovery_exact_graph": true,
+  "no_original_authorship_or_parent_claim": true,
+  "transaction_test": "Applied once only to isolated transaction-test.git; repeated create-only transaction refused; never run against real standalone.",
+  "transaction_sha256": "e1eca8201f668b52e10c863dfed14e6b12c12de75e112b1d60c76b7facafb488",
+  "canonical_standalone_unchanged": true,
+  "source_refs_and_dirty_custody_unchanged": true,
+  "real_receiving_refs_created": 0,
+  "actual_transfer_or_activation": false,
+  "task4_or_feature_acceptance": false
+}

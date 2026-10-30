@@ -52,6 +52,17 @@ impl Drop for TreeCleanup {
         }
     }
 }
+struct ResumeProcess(String);
+impl Drop for ResumeProcess {
+    fn drop(&mut self) {
+        let _ = Command::new("kill")
+            .args(["-CONT", &self.0])
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status();
+    }
+}
+
 fn assert_reaped(pids: &Path) -> Result<(), Refusal> {
     for pid in fs::read_to_string(pids)?.split_whitespace() {
         assert!(
@@ -382,30 +393,28 @@ fn simulated_darwin_helper_cannot_start_an_escaped_descendant() -> Result<(), Re
 }
 
 #[test]
-#[cfg(target_os = "linux")]
-fn installer_containment_preflight_requires_no_descendants() -> Result<(), Refusal> {
-    if !non_root()? {
-        return Ok(());
-    }
+fn provider_containment_refuses_before_spawning_mise() -> Result<(), Refusal> {
     let scratch = Scratch::new(&root()?)?;
     let workspace = scratch.path().join("workspace");
-    let scripts = workspace.join("scripts");
-    fs::create_dir_all(&scripts)?;
-    let script = scripts.join("fetch-tlc.sh");
-    fs::copy(root()?.join("scripts/fetch-tlc.sh"), &script)?;
+    let context = workspace.join("mise-tools");
+    fs::create_dir_all(&context)?;
+    for name in ["mise.toml", "mise.apalache.toml", "empty.toml", "mise.lock", "mise.apalache.lock"]
+    {
+        fs::write(context.join(name), "")?;
+    }
     let outside = scratch.path().join("outside");
     fs::create_dir(&outside)?;
     std::os::unix::fs::symlink(&outside, workspace.join("build"))?;
-    let (status, output) = run_process(
-        &mut restricted(&script),
-        scratch.path(),
-        "preflight",
-        Limits { timeout: Duration::from_secs(2), ..Limits::default() },
-        None,
-    )?;
-    assert!(!status.success());
-    assert!(output.contains("TLC cache escapes repository"), "{output}");
-    assert!(!outside.join("tlc").exists());
+    for tool in [
+        umpire_backend_process::tool_provider::JarTool::Tlc,
+        umpire_backend_process::tool_provider::JarTool::Apalache,
+    ] {
+        let error = umpire_backend_process::tool_provider::command(&workspace, tool)
+            .err()
+            .ok_or_else(|| Refusal("escaping provider context admitted".into()))?;
+        assert!(error.to_string().contains("symlink"), "{error}");
+    }
+    assert_eq!(fs::read_dir(&outside)?.count(), 0);
     scratch.finish(Ok(()))
 }
 
@@ -581,5 +590,388 @@ fn owned_child_reaping_includes_other_process_groups() -> Result<(), Refusal> {
         None,
     )?;
     assert!(status.success(), "any-child wait failed: {status}: {output}");
+    scratch.finish(Ok(()))
+}
+
+#[test]
+fn orchestration_preserves_streams_status_environment_and_cwd() -> Result<(), Refusal> {
+    use umpire_backend_process::{DescendantPolicy, OwnedProcess};
+    let scratch = Scratch::new(&root()?)?;
+    let stdout = fs::File::create(scratch.path().join("out"))?;
+    let stderr = fs::File::create(scratch.path().join("err"))?;
+    let mut command = Command::new("/bin/sh");
+    command.args(["-c", "printf '%s' \"$UMPIRE_OWNED_VALUE\"; printf error >&2; test \"$PWD\" = \"$UMPIRE_OWNED_CWD\" || exit 99; exit 37"])
+        .env("UMPIRE_OWNED_VALUE", "actual-output").env("UMPIRE_OWNED_CWD", scratch.path()).current_dir(scratch.path());
+    let mut child = OwnedProcess::spawn(
+        &command,
+        scratch.path(),
+        &stdout,
+        &stderr,
+        DescendantPolicy::Orchestration,
+    )?;
+    let start = Instant::now();
+    loop {
+        if let Some(status) = child.try_wait()? {
+            assert_eq!(status.code(), Some(37));
+            break;
+        }
+        assert!(start.elapsed() < Duration::from_secs(5));
+        thread::sleep(Duration::from_millis(5));
+    }
+    assert_eq!(fs::read_to_string(scratch.path().join("out"))?, "actual-output");
+    assert_eq!(fs::read_to_string(scratch.path().join("err"))?, "error");
+    scratch.finish(Ok(()))
+}
+
+#[test]
+fn leased_child_adopts_real_descriptor_and_rejects_forged_locator() -> Result<(), Refusal> {
+    use umpire_backend_process::{JvmLease, OwnedProcess};
+    let scratch = Scratch::new(&root()?)?;
+    let lease = JvmLease::inherited_or_acquire()?;
+    let stdout = fs::File::create(scratch.path().join("out"))?;
+    let stderr = fs::File::create(scratch.path().join("err"))?;
+    let mut command = fixture("lease-child");
+    command.arg(scratch.path().join("adopted"));
+    let mut child = OwnedProcess::spawn_leased(&command, scratch.path(), &stdout, &stderr, &lease)?;
+    let start = Instant::now();
+    loop {
+        if let Some(status) = child.try_wait()? {
+            assert!(status.success(), "{}", fs::read_to_string(scratch.path().join("err"))?);
+            break;
+        }
+        assert!(start.elapsed() < Duration::from_secs(5), "inherited lock deadlocked");
+        thread::sleep(Duration::from_millis(5));
+    }
+    assert_eq!(fs::read_to_string(scratch.path().join("adopted"))?, "verified");
+    let output = command.env("UMPIRE_JVM_LEASE_FD", "1").output()?;
+    assert!(!output.status.success(), "forged descriptor locator admitted");
+    let foreign = scratch.path().join("foreign");
+    fs::write(&foreign, "unrelated")?;
+    let output = Command::new("/bin/sh")
+        .args(["-c", "exec 9<\"$1\"; exec \"$2\" lease-child \"$3\"", "forged"])
+        .arg(&foreign)
+        .arg(FIXTURE)
+        .arg(scratch.path().join("forged"))
+        .env("UMPIRE_JVM_LEASE_FD", "9")
+        .output()?;
+    assert!(!output.status.success(), "foreign regular descriptor admitted");
+    assert!(!scratch.path().join("forged").exists());
+    assert_eq!(fs::read_to_string(foreign)?, "unrelated");
+    scratch.finish(Ok(()))
+}
+
+#[test]
+fn leased_clean_command_preserves_only_explicit_environment() -> Result<(), Refusal> {
+    use umpire_backend_process::{JvmLease, OwnedProcess};
+    let scratch = Scratch::new(&root()?)?;
+    let lease = JvmLease::inherited_or_acquire()?;
+    let stdout = fs::File::create(scratch.path().join("out"))?;
+    let stderr = fs::File::create(scratch.path().join("err"))?;
+    let mut command = Command::new("/bin/sh");
+    command.env_clear().env("ONLY_THIS", "kept").args(["-c", "test \"${HOME-unset}\" = unset && test \"$ONLY_THIS\" = kept && test \"$UMPIRE_JVM_LEASE_FD\" = 9"]);
+    let mut child =
+        OwnedProcess::spawn_leased_clean(&command, scratch.path(), &stdout, &stderr, &lease)?;
+    let start = Instant::now();
+    loop {
+        if let Some(status) = child.try_wait()? {
+            assert!(status.success());
+            break;
+        }
+        assert!(start.elapsed() < Duration::from_secs(5));
+        thread::sleep(Duration::from_millis(5));
+    }
+    scratch.finish(Ok(()))
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn default_checker_guardian_retains_inherited_custody_without_delegating_to_target()
+-> Result<(), Refusal> {
+    use std::os::unix::fs::MetadataExt;
+    use umpire_backend_process::{JvmLease, OwnedProcess};
+    let scratch = Scratch::new(&root()?)?;
+    let allocation = JvmLease::inherited_or_acquire()?;
+    let ready = scratch.path().join("ready");
+    let release = scratch.path().join("release");
+    let stdout = fs::File::create(scratch.path().join("owner.out"))?;
+    let stderr = fs::File::create(scratch.path().join("owner.err"))?;
+    let mut command = fixture("checker-owner");
+    command.arg(scratch.path()).arg(&ready).arg(&release);
+    let mut owner =
+        OwnedProcess::spawn_leased(&command, scratch.path(), &stdout, &stderr, &allocation)?;
+    assert!(wait_ready(&ready), "checker target did not become ready");
+    let ids = fs::read_to_string(&ready)?;
+    let ids: Vec<_> = ids.split_whitespace().collect();
+    assert!(!Path::new("/proc").join(ids[0]).join("fd/9").exists(), "Checker target received FD9");
+    let guardian = fs::metadata(format!("/proc/{}/fd/9", ids[1])).map_err(|error| {
+        Refusal(format!("Checker guardian lost inherited lease custody: {error}"))
+    })?;
+    let lock = fs::metadata(
+        fs::canonicalize("/tmp")?
+            .join(format!("umpire-validation-{}/jvm.lock", rustix::process::getuid().as_raw())),
+    )?;
+    assert_eq!((guardian.dev(), guardian.ino()), (lock.dev(), lock.ino()));
+    fs::write(&release, "release")?;
+    let started = Instant::now();
+    loop {
+        if let Some(status) = owner.try_wait()? {
+            assert!(status.success(), "{}", fs::read_to_string(scratch.path().join("owner.err"))?);
+            break;
+        }
+        assert!(started.elapsed() < Duration::from_secs(5));
+        thread::sleep(Duration::from_millis(5));
+    }
+    scratch.finish(Ok(()))
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn checker_inheritance_is_optional_and_invalid_present_custody_refuses_before_launch()
+-> Result<(), Refusal> {
+    use umpire_backend_process::JvmLease;
+    let scratch = Scratch::new(&root()?)?;
+    let _allocation = JvmLease::inherited_or_acquire()?;
+    for (label, locator, foreign) in [
+        ("absent", None, false),
+        ("malformed", Some("1"), false),
+        ("closed", Some("9"), false),
+        ("foreign", Some("9"), true),
+    ] {
+        let directory = scratch.path().join(label);
+        fs::create_dir(&directory)?;
+        let ready = directory.join("ready");
+        let release = directory.join("release");
+        fs::write(&release, "release")?;
+        let victim = directory.join("foreign-file");
+        fs::write(&victim, "unchanged")?;
+        let mut command = Command::new("/bin/sh");
+        let script = if foreign {
+            "exec 9<\"$1\"; exec \"$2\" checker-owner \"$3\" \"$4\" \"$5\""
+        } else {
+            "exec 9<&-; exec \"$2\" checker-owner \"$3\" \"$4\" \"$5\""
+        };
+        command
+            .args(["-c", script, "checker-inheritance"])
+            .arg(&victim)
+            .arg(FIXTURE)
+            .arg(&directory)
+            .arg(&ready)
+            .arg(&release)
+            .env_remove("UMPIRE_JVM_LEASE_FD")
+            .stdout(fs::File::create(directory.join("out"))?)
+            .stderr(fs::File::create(directory.join("err"))?);
+        if let Some(locator) = locator {
+            command.env("UMPIRE_JVM_LEASE_FD", locator);
+        }
+        let mut child = command.spawn()?;
+        let started = Instant::now();
+        let status = loop {
+            if let Some(status) = child.try_wait()? {
+                break status;
+            }
+            if started.elapsed() > Duration::from_secs(5) {
+                child.kill()?;
+                child.wait()?;
+                return Err(Refusal(format!(
+                    "{label}: optional Checker custody acquired or blocked on host allocation"
+                )));
+            }
+            thread::sleep(Duration::from_millis(5));
+        };
+        assert_eq!(
+            status.success(),
+            locator.is_none(),
+            "{label}: {}",
+            fs::read_to_string(directory.join("err"))?
+        );
+        assert_eq!(
+            ready.exists(),
+            locator.is_none(),
+            "{label}: invalid inheritance reached target"
+        );
+        assert_eq!(fs::read_to_string(victim)?, "unchanged");
+    }
+    scratch.finish(Ok(()))
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn linux_root_reaps_paused_nested_guardian_before_releasing_lease() -> Result<(), Refusal> {
+    use umpire_backend_process::{JvmLease, OwnedProcess};
+    let scratch = Scratch::new(&root()?)?;
+    let allocation = JvmLease::inherited_or_acquire()?;
+    let ready = scratch.path().join("ready");
+    let _cleanup = TreeCleanup(ready.clone());
+    let out = fs::File::create(scratch.path().join("root.out"))?;
+    let err = fs::File::create(scratch.path().join("root.err"))?;
+    let mut command = fixture("lifecycle-carrier");
+    command.arg(scratch.path());
+    let mut owner = OwnedProcess::spawn_leased(&command, scratch.path(), &out, &err, &allocation)?;
+    drop(allocation);
+    assert!(wait_ready(&ready));
+    let ids = fs::read_to_string(&ready)?;
+    let guardian =
+        ids.split_whitespace().nth(1).ok_or_else(|| Refusal("missing guardian".into()))?;
+    assert!(Command::new("kill").args(["-STOP", guardian]).status()?.success());
+    let _resume = ResumeProcess(guardian.to_owned());
+    fs::write(scratch.path().join("carrier-release"), "release")?;
+    let started = Instant::now();
+    loop {
+        if let Some(status) = owner.try_wait()? {
+            assert_eq!(status.code(), Some(37));
+            break;
+        }
+        let lock = fs::canonicalize("/tmp")?
+            .join(format!("umpire-validation-{}/jvm.lock", rustix::process::getuid().as_raw()));
+        assert!(
+            matches!(fs::File::open(lock)?.try_lock(), Err(fs::TryLockError::WouldBlock)),
+            "cleanup released JVM lease"
+        );
+        assert!(started.elapsed() < Duration::from_secs(5), "Linux adopted guardian did not drain");
+        thread::sleep(Duration::from_millis(5));
+    }
+    assert_reaped(&ready)?;
+    scratch.finish(Ok(()))
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn linux_cleanup_reaps_checker_while_rust_owner_is_stopped() -> Result<(), Refusal> {
+    use umpire_backend_process::{DescendantPolicy, OwnedProcess};
+    let scratch = Scratch::new(&root()?)?;
+    let ready = scratch.path().join("ready");
+    let _cleanup = TreeCleanup(ready.clone());
+    let out = fs::File::create(scratch.path().join("root.out"))?;
+    let err = fs::File::create(scratch.path().join("root.err"))?;
+    let mut command = fixture("lifecycle-carrier");
+    command.arg(scratch.path());
+    let mut owner =
+        OwnedProcess::spawn(&command, scratch.path(), &out, &err, DescendantPolicy::Orchestration)?;
+    assert!(wait_ready(&ready));
+    let rust_owner = fs::read_to_string(scratch.path().join("checker-owner-pid"))?;
+    assert!(Command::new("kill").args(["-STOP", rust_owner.trim()]).status()?.success());
+    let _resume = ResumeProcess(rust_owner.trim().to_owned());
+    fs::write(scratch.path().join("carrier-release"), "release")?;
+    let ids = fs::read_to_string(&ready)?;
+    let java =
+        ids.split_whitespace().next().ok_or_else(|| Refusal("missing checker PID".into()))?;
+    let started = Instant::now();
+    while Path::new("/proc").join(java).exists() {
+        assert!(
+            started.elapsed() < Duration::from_secs(5),
+            "checker guardian depended on stopped Rust owner"
+        );
+        thread::sleep(Duration::from_millis(5));
+    }
+    let started = Instant::now();
+    loop {
+        if let Some(status) = owner.try_wait()? {
+            assert_eq!(status.code(), Some(37));
+            break;
+        }
+        assert!(started.elapsed() < Duration::from_secs(5));
+        thread::sleep(Duration::from_millis(5));
+    }
+    assert!(
+        !Path::new("/proc").join(rust_owner.trim()).exists(),
+        "stopped Rust owner was not reaped before return"
+    );
+    scratch.finish(Ok(()))
+}
+
+#[test]
+fn nested_normal_completion_does_not_cancel_following_stage() -> Result<(), Refusal> {
+    use umpire_backend_process::{DescendantPolicy, OwnedProcess};
+    let scratch = Scratch::new(&root()?)?;
+    let out = fs::File::create(scratch.path().join("out"))?;
+    let err = fs::File::create(scratch.path().join("err"))?;
+    let mut command = fixture("lifecycle-stages");
+    command.arg(scratch.path());
+    let mut child =
+        OwnedProcess::spawn(&command, scratch.path(), &out, &err, DescendantPolicy::Orchestration)?;
+    let started = Instant::now();
+    loop {
+        if let Some(status) = child.try_wait()? {
+            assert!(status.success(), "{}", fs::read_to_string(scratch.path().join("err"))?);
+            break;
+        }
+        assert!(started.elapsed() < Duration::from_secs(5));
+        thread::sleep(Duration::from_millis(5));
+    }
+    assert_eq!(fs::read_to_string(scratch.path().join("stages"))?, "two stages finished");
+    scratch.finish(Ok(()))
+}
+
+#[test]
+fn lifecycle_locators_without_both_pipe_capabilities_refuse_before_launch() -> Result<(), Refusal> {
+    let scratch = Scratch::new(&root()?)?;
+    for (completion, cancellation) in [("10", "11"), ("1", "11"), ("10", "1")] {
+        let ready = scratch.path().join("ready");
+        let output = Command::new("/bin/bash")
+            .args(["-c", "exec 10>&- 11<&-; exec \"$@\"", "lifecycle-locator-control"])
+            .arg(FIXTURE)
+            .arg("checker-owner")
+            .arg(scratch.path())
+            .arg(&ready)
+            .arg(scratch.path().join("release"))
+            .env("UMPIRE_COMPLETION_FD", completion)
+            .env("UMPIRE_CANCELLATION_FD", cancellation)
+            .output()?;
+        assert!(!output.status.success(), "locator-only authority admitted");
+        assert!(!ready.exists(), "invalid lifecycle reached checker target");
+    }
+    scratch.finish(Ok(()))
+}
+
+#[test]
+fn cancellation_keeps_controller_alive_to_wait_its_separate_child_group() -> Result<(), Refusal> {
+    use umpire_backend_process::{DescendantPolicy, OwnedProcess};
+    let scratch = Scratch::new(&root()?)?;
+    let ready = scratch.path().join("ready");
+    let ack = scratch.path().join("waited");
+    let out = fs::File::create(scratch.path().join("out"))?;
+    let err = fs::File::create(scratch.path().join("err"))?;
+    let mut command = Command::new("/bin/bash");
+    command
+        .args([
+            "-c",
+            r#"
+        trap 'kill -TERM "$child"; wait "$child"; printf waited > "$3"; exit 143' INT
+        "$1" group-sleep "$4" &
+        child=$!
+        while ! test -f "$4"; do sleep 0.01; done
+        printf '%s %s %s' "$$" "$PPID" "$child" > "$2"
+        wait "$child"
+    "#,
+            "controller",
+        ])
+        .arg(FIXTURE)
+        .arg(&ready)
+        .arg(&ack)
+        .arg(scratch.path().join("group-ready"));
+    let mut owner =
+        OwnedProcess::spawn(&command, scratch.path(), &out, &err, DescendantPolicy::Orchestration)?;
+    assert!(wait_ready(&ready));
+    let pids = fs::read_to_string(&ready)?;
+    let guardian = pids
+        .split_whitespace()
+        .nth(1)
+        .ok_or_else(|| Refusal("missing controller guardian".into()))?;
+    assert!(Command::new("kill").args(["-TERM", guardian]).status()?.success());
+    let started = Instant::now();
+    loop {
+        if let Some(status) = owner.try_wait()? {
+            assert_eq!(status.code(), Some(143));
+            break;
+        }
+        assert!(
+            started.elapsed() < Duration::from_secs(5),
+            "controller did not acknowledge child wait"
+        );
+        thread::sleep(Duration::from_millis(5));
+    }
+    assert_eq!(fs::read_to_string(ack)?, "waited");
+    #[cfg(target_os = "linux")]
+    assert_reaped(&ready)?;
     scratch.finish(Ok(()))
 }

@@ -1,0 +1,26 @@
+[
+  {
+    "package": "umpire-temporal",
+    "name": "umpire_temporal",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-temporal-api",
+    "name": "umpire_temporal_api",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "umpire-temporal-realization-macros",
+    "name": "umpire_temporal_realization_macros",
+    "kind": [
+      "proc-macro"
+    ],
+    "doctest": true
+  }
+]

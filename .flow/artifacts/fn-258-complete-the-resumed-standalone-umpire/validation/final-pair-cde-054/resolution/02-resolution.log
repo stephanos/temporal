@@ -1,0 +1,3 @@
+argv: ["mise", "exec", "--", "go", "env", "GOWORK"]
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/go.work

@@ -1,0 +1,114 @@
+[
+  {
+    "label": "final-provider-unit",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "nextest",
+      "run",
+      "--locked",
+      "-p",
+      "umpire-backend-process",
+      "--lib",
+      "--profile",
+      "required",
+      "--test-threads",
+      "1",
+      "--no-tests",
+      "fail"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/model/umpire",
+    "exit": 0,
+    "seconds": 1.6659047929933877,
+    "free_before_bytes": 54077222912,
+    "free_after_bytes": 54068736000
+  },
+  {
+    "label": "framework-clippy-final",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clippy",
+      "--locked",
+      "-p",
+      "umpire-backend-process",
+      "-p",
+      "xtask",
+      "-p",
+      "umpire-tlc",
+      "-p",
+      "umpire-apalache",
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/model/umpire",
+    "exit": 0,
+    "seconds": 3.5299522099958267,
+    "free_before_bytes": 54068727808,
+    "free_after_bytes": 54068891648
+  },
+  {
+    "label": "system-clippy-final",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clippy",
+      "--locked",
+      "-p",
+      "temporal-xtask",
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/model",
+    "exit": 0,
+    "seconds": 0.9885045000046375,
+    "free_before_bytes": 54068887552,
+    "free_after_bytes": 54071439360
+  },
+  {
+    "label": "framework-fmt-final",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/model/umpire",
+    "exit": 0,
+    "seconds": 0.7124207510059932,
+    "free_before_bytes": 54071431168,
+    "free_after_bytes": 54071410688
+  },
+  {
+    "label": "system-fmt-final",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/model",
+    "exit": 0,
+    "seconds": 0.965913668005669,
+    "free_before_bytes": 54071410688,
+    "free_after_bytes": 54071537664
+  }
+]

@@ -1,0 +1,34 @@
+{
+  "history-map.json": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/history-map.json",
+    "sha256": "3499c1cc7e0c26f87dbb148cf6f0f830360811f4260b64e4a8c195e657860ffa"
+  },
+  "export-history.py": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/export-history.py",
+    "sha256": "c63c31b855dcdd458a4b110cab40d2c5f970558c14bab514c239814ae67ac975"
+  },
+  "verify-export.py": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/verify-export.py",
+    "sha256": "dd76733fa2d712b778ec570df84ffade2d9d4920bd40261010c84bf6095fea49"
+  },
+  "receiving-ref-creation-work.json": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-ref-creation-work.json",
+    "sha256": "439c7fa8e264f5026641ffccc53e4637f31cb4b6b077c105531dc3fadb9da9d9"
+  },
+  "disposition-overlay.json": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/disposition-overlay.json",
+    "sha256": "1abb400dc7a83e39e556df1308752639cdee1867e30f308e6b4fd42a2191b021"
+  },
+  "candidate-ledger.json": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/source/candidate-ledger.json",
+    "sha256": "b1fc7a843b092d1920d4dbf6387f6d6795d212ecfef381e8b7d96c62b3386851"
+  },
+  "custody-manifest.json": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/custody/custody-manifest.json",
+    "sha256": "1dae55fbfecb66279b09387e335ec069cdebfd275b12036faeb6869362fcd34b"
+  },
+  "selection-policy.json": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-snapshots/selection-policy.json",
+    "sha256": "cde6c795cc2727ddc01e624b060dca4036ad925891eb37c10bb21167c88f199a"
+  }
+}

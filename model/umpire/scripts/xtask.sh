@@ -5,12 +5,15 @@ case "${CARGO_TARGET_DIR:-}" in
   ""|/*) ;;
   *) export CARGO_TARGET_DIR="$PWD/$CARGO_TARGET_DIR" ;;
 esac
+case "${CARGO_HOME:-}" in
+  ""|/*) ;;
+  *) export CARGO_HOME="$PWD/$CARGO_HOME" ;;
+esac
+if [ -n "${CARGO_HOME:-}" ] && [ -d "$CARGO_HOME" ]; then
+  export CARGO_HOME=$(cd "$CARGO_HOME" && pwd -P)
+fi
 cd "$(dirname "$0")/.."
 export UMPIRE_TOOL_ROOT="$PWD"
-if ! command -v mise >/dev/null 2>&1; then
-  printf 'xtask bootstrap requires mise and installed pinned Rust/Cargo\n' >&2
-  exit 1
-fi
 target=${CARGO_TARGET_DIR:-$PWD/target}
 mkdir -p "$target"
 target=$(cd "$target" && pwd -P)

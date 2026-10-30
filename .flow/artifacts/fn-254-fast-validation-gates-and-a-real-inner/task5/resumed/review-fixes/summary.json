@@ -1,0 +1,174 @@
+{
+  "result": "green",
+  "scope": "Four accepted task5 review followups; no Flow/Git/MILESTONES changes",
+  "source_manifest": "source-after.json",
+  "changed_root_paths": [
+    "model/dev/xtask/src/gate.rs",
+    "model/dev/xtask/src/test_run.rs",
+    "model/umpire/author/dsl/macros/tests/fixtures.rs",
+    "model/umpire/dev/testing/src/runner.rs",
+    "model/umpire/dev/testing/tests/consumers.rs",
+    "model/umpire/dev/xtask/src/gate/standalone.rs",
+    "model/umpire/dev/xtask/src/test_run.rs",
+    "model/umpire/dev/xtask/tests/gate_wiring.rs"
+  ],
+  "policy": "Required uses min(TLC4 or Apalache1, valid inherited positive integer); malformed/0/negative falls back to cap; explicit command override and removal respected; native profile/threads untouched; repeated configure idempotent. Temporal test_run delegates policy solely to gate::stage. Standalone clean child and receipt use matching effective cap.",
+  "snapshot_repair": "INSTA_UPDATE=always admits active consumer-owned .snap repair across selected/unselected sibling cases; normal validation and skipped/external/ownership/pending admission remain strict; original UIglob restored.",
+  "focused_results": {
+    "green-framework-lib": {
+      "passed": 35,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "command_seconds": 2.613023208999948
+    },
+    "green-framework-main-policy": {
+      "passed": 13,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 18,
+      "command_seconds": 2.8180019179999363
+    },
+    "green-framework-main-standalone": {
+      "passed": 6,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 25,
+      "command_seconds": 0.06676224999864644
+    },
+    "green-temporal-bridge": {
+      "passed": 12,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "command_seconds": 1.414360418000797
+    },
+    "green-runner-consumers": {
+      "passed": 12,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "command_seconds": 1.5864105429991469
+    }
+  },
+  "strict_clippy": [
+    "clippy-framework.json",
+    "clippy-temporal.json"
+  ],
+  "fmt_diff_checks": [
+    "fmt-framework.json",
+    "fmt-temporal.json",
+    "diff-check-root.json",
+    "diff-check-candidate.json"
+  ],
+  "red_controls": {
+    "policy": [
+      "red-framework-policy.log",
+      "red-standalone-policy.log",
+      "red-temporal-policy.log"
+    ],
+    "consumer": "red-runner-update.log: both outer snapshot-repair regressions fail under candidate-only unconditional validation, helper1passes/2outerfail; production green loop restored byte-equal root before rerun",
+    "red_source_note": "red-source-note.json"
+  },
+  "macro": {
+    "command_seconds": 6.367473169999357,
+    "nextest_seconds": 4.201,
+    "tests_passed": 8,
+    "negative_compiler_paths": [
+      "tests/ui/action_domain_item_type.rs",
+      "tests/ui/action_domain_unbound.rs",
+      "tests/ui/action_domain_world_mismatch.rs",
+      "tests/ui/action_finite_missing.rs",
+      "tests/ui/machine_mutable_aliased_helper.rs",
+      "tests/ui/machine_mutable_const_helper.rs",
+      "tests/ui/machine_mutable_local_helper.rs",
+      "tests/ui/machine_mutable_local_projection.rs",
+      "tests/ui/machine_mutable_nested_helper.rs",
+      "tests/ui/machine_mutable_qualified_helper.rs",
+      "tests/ui/machine_nonexhaustive_actor.rs",
+      "tests/ui/machine_scope_actor.rs",
+      "tests/ui/machine_stay_effect.rs",
+      "tests/ui/machine_stay_helper.rs",
+      "tests/ui/machine_unsafe_allowed.rs",
+      "tests/ui/optional_facts_direct_reject.rs",
+      "tests/ui/stay_outside_machine.rs",
+      "tests/ui/world_starts_return.rs"
+    ],
+    "positive_compiler_paths": [
+      "tests/pass/action_metadata.rs",
+      "tests/pass/optional_facts.rs",
+      "tests/pass/private_state.rs",
+      "tests/pass/public_actor_private_state.rs"
+    ],
+    "parser_rows": 61,
+    "parser_controls": 2,
+    "case_timings_seconds": {
+      "parser_refusals::diagnostic_capture_keeps_duplicate_messages_at_distinct_locations": 0.003,
+      "roots::tests::normalizes_derive_paths_using_dependency_roots": 0.003,
+      "roots::tests::normalizes_facade_imports_through_groups_without_stripping_other_prefixes": 0.003,
+      "roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths": 0.011,
+      "parser_refusals::parser_refusals_preserve_messages_and_authored_locations": 0.012,
+      "fixtures": 0.118,
+      "refusals": 1.478,
+      "private_state": 4.201
+    },
+    "cache": "Reused current task-owned warm target. No speedup/baseline claim. Immediate-final repeats output; unique source paths counted."
+  },
+  "runtime_proof_reuse": {
+    "framework": "../framework-fixtures-required-summary.json:83pass+1ignored,all24fixtures; earlier explicit NEXTEST_TEST_THREADS=4 still computes4; runner normalmode INSTA_UPDATE absent branch unchanged. Snapshot inputs and backend code unchanged.",
+    "Temporal_activity": "../temporal-activity-required-summary.json:1pass40filtered,28freshTLC. Actual cargo test exactfixture bypasses changed nextest policy; unset INSTA_UPDATE uses unchanged validation branch; source/snapshots/locks unchanged outside declared followups.",
+    "compiler": "Retained18originalUI source/stderr unchanged; wildcard now actually executesall18+4positive and61parserrows on current candidate."
+  },
+  "resources": {
+    "combined_cache_growth_bytes": 19001053,
+    "admitted_bytes": 1610612736,
+    "free_after_bytes": 27562668032,
+    "owned_build_JVM_Go_processes": [],
+    "leases_released": true
+  },
+  "metadata_correction": "run-focused.py and every receipt execution_scope corrected to match actual test vs clippy command. Raw logs untouched.",
+  "owner_followup": "Root commit then fresh independent implementation review; no task closure claimed.",
+  "finished_utc": "2026-10-26T23:43:44.235310+00:00",
+  "evidence_sha256": {
+    "clippy-framework.json": "2fdf450751f55f2dd47090d5856033b76f8b6b19b71102e043420697dc30dc6b",
+    "clippy-framework.log": "179e6f64e3ea78c6013b825f30545ef9e356536b3df1d83a64cc02cd82c17ea1",
+    "clippy-temporal.json": "4019dbbf5943ed089042a3c612bb1208a34393c7db01afaa266b5a6e3359adcc",
+    "clippy-temporal.log": "c1d14702df5d14e04f66c956154d3ab6fbd4474475afddede949c9cc7582b641",
+    "diff-check-candidate.json": "07c505fbbd2b0069114e7597939b4662eeeace055e0b80d59c4ca7881f5c2e09",
+    "diff-check-candidate.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "diff-check-root.json": "ce86a21e7158aa72f48d6a86ec3a976ab7b92e78372e4a6caf7a5a7e9e4bf487",
+    "diff-check-root.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "fmt-framework.json": "3866db649e5a0de88dc4a780b699d2f0d4368817151caf9f4cb2dc835ea850d5",
+    "fmt-framework.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "fmt-temporal.json": "64e908d215918895ebef4084252a087b1a33fadbbc3189cb8ee663fab0054ecb",
+    "fmt-temporal.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "green-framework-lib.json": "2cba5a90320261a590c56a786cf241360afd86f15938fd43be22d04b53537250",
+    "green-framework-lib.log": "5e0898aa75384c9613de500f49acd6a998150d9956124c2981a9b695f887888a",
+    "green-framework-main-policy.json": "5d906cb6a278d6fa4717087fc945f44337cd5cc63e7996beada97fe9a3d03dda",
+    "green-framework-main-policy.log": "b1818261f48ad74f914f6f5cc24bb4fded42d79fb7f80c209ecd41739936237c",
+    "green-framework-main-standalone.json": "2a9d9bb7d50b1741a113a9a3932a423ce2cdc98e835df5840c9afa13e6e0b7fd",
+    "green-framework-main-standalone.log": "d1513e39eda29588c6eb8409b931d5c2ba16fb8df756fa6331355dc17c9f9dcb",
+    "green-runner-consumers.json": "56671cec961a41254c31d68b19dd960ecd9711ce396cfe31c47ae45509d74dfd",
+    "green-runner-consumers.log": "3aa3b3f1cf98251e3e2263c997d9b4eab0f787ab09607bb1d4ce859a631a643b",
+    "green-temporal-bridge.json": "647d8614708e443ad29349c3fe8ca2bc4e48ba34839078c84cb73ed8fa50af87",
+    "green-temporal-bridge.log": "95209118c00c1957fd80d8d36dc9d6be264bd3f401293ec0d5d199a5dc5235d8",
+    "macro-fixtures.json": "0479523214c859d0571adbbc9277e5a8dcd551b456f93fdfc0b826d09835e144",
+    "macro-fixtures.log": "7f979498af9bb36640145a8236ec6a704eedc5be64bf1d5be5bc7646fc8d66e8",
+    "phase-baseline.json": "fddee2534b81f6ca877e4904e859e41be55df71925e03f653b891edbbb2e7638",
+    "policy-source-before.json": "ccc961fa64dfa82a769c0519aee7293f8d0890283068ca6ba63d49d5fa9ed154",
+    "red-framework-policy.json": "0b9a7937ed91d2071e4ef6d73113e15a2fcddbe5221abef28de51731c9353a4b",
+    "red-framework-policy.log": "f193203ed0a5be129f11c78e2750f61b86b0cd971d10a61576dc4d8c0f997605",
+    "red-runner-update.json": "0fda72651e6ca91bd39f5037bc6617e112a5a1bc1e0939cba69baacc2f9bf73e",
+    "red-runner-update.log": "04a70d83f3b9b7b32acd4358e812637b7fd1a67c0c1c1a77e00c315250bcc453",
+    "red-source-before-quote-correction.json": "0fb835940484f25ccbda21985e99a6d953df7ae11d1835f52ee2abe7ee55f5bb",
+    "red-source-note.json": "bebc8e461627b9b562a4ded4cdae24f77582a3b9f82288936c658ac085ca3064",
+    "red-standalone-policy.json": "603e988222d926ae54ef3cf2ea683e10f3aaba2139044c3ac73d2314fc0d033b",
+    "red-standalone-policy.log": "ec406c2bf015f3068f1fc3f61bcdb8f58ff94133a862b564694c4d81d2086b68",
+    "red-temporal-policy.json": "3f9d948f3613b9440afc6690b9c9fbd5df824c6649f875e583dc2bee8aae4b5d",
+    "red-temporal-policy.log": "7ccbda5c85d39d3cd9b943257b9aae6cfbc7fb48ca283188bfb1070648e1d5a2",
+    "run-focused.py": "19e86c56ff6a781b91b1375cb996759a8850b852aa1eeaf88a3a3b5d5a27d655",
+    "runner-green-saved.rs": "b18a9f74c2fff6a6005d3e36fcd9e3a109bc5be6db7e8c0b42a938b540f9c831",
+    "runner-red-control.json": "b5f534ab0be3d67b70d6ff27602a91a5cd946ffe7a62a5d0f3fb3c70b5064c9b",
+    "source-after.json": "8eed16a67cf4744b1973e7e0fd491c326e1d82c8024ddcbce448772ecbeb0757"
+  }
+}

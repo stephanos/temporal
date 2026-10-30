@@ -1,0 +1,180 @@
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25414-probes/model/umpire/backends/process)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.65s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25414-probes/debug/deps/umpire_backend_process-010aca4a7dd52ead)
+
+running 11 tests
+test jar::tests::digest_is_in_process_sha256 ... ok
+test jar::tests::wrong_digest_and_cache_escape_refuse_before_use ... ok
+test syscall::supported::tests::close_limit_retains_descriptors_above_lowered_soft_limit ... ok
+test syscall::supported::tests::duplicated_descriptors_are_private_and_close_on_exec ... ok
+test syscall::supported::tests::raw_clone_normalizes_sparc_child_identity ... ok
+test syscall::supported::tests::raw_clone_prefix_preserves_flags_and_null_stack ... ok
+test syscall::supported::tests::supervisor_owner_eof_returns_125 ... ok
+test syscall::supported::tests::supervisor_retains_first_stop_signal ... ok
+test syscall::tests::all_darwin_helpers_prevent_process_creation ... ok
+test syscall::tests::unsupported_platform_is_an_explicit_refusal ... ok
+test jar::tests::exact_jar_and_pinned_java_reach_the_probe ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/process.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25414-probes/debug/deps/process-be08c08cbec14cf3)
+
+running 20 tests
+test cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin ... ok
+test cold_native_execution_does_not_need_python_or_a_sibling_supervisor ... ok
+test diagnostic_text_cannot_make_a_hung_preflight_pass ... ok
+test bounded_reads_dump_and_scratch_fail_closed ... ok
+test failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8 ... ok
+test installer_containment_preflight_requires_no_descendants ... ok
+test java_environment_is_clean_and_supervisor_group_is_private ... ok
+test launch_status_and_prepared_command_contracts_are_preserved ... ok
+test owned_child_reaping_includes_other_process_groups ... ok
+test owner_death_terminates_and_reaps_separate_session_descendants ... ok
+test owner_group_and_direct_supervisor_termination_reap_owned_tree ... ok
+test parent_allocator_threads_do_not_deadlock_forked_supervisors ... ok
+test path_search_tries_candidates_after_exec_errors ... ok
+test pthread_atfork_handlers_do_not_run_in_supervisor_or_target ... ok
+test scratch_owns_private_unique_directories_and_preserves_finish_results ... ok
+test simulated_darwin_helper_cannot_start_an_escaped_descendant ... ok
+test substituted_log_fifo_returns_without_waiting_for_a_reader ... ok
+test substituted_log_symlink_cannot_modify_an_external_file ... ok
+test direct_helper_timeout_retains_output_and_cleans_scratch ... ok
+test timeout_cleans_descendants_before_return ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.07s
+
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25414-probes/debug/deps/umpire_guest_driver-2f3f45298e96560c)
+
+running 4 tests
+test context::tests::caller_paths_preserve_relative_and_absolute_os_bytes ... ok
+test context::tests::driver_lock_and_compiler_each_invalidate_cache ... ok
+test context::tests::local_tool_admission_refuses_missing_configuration_and_escaping_links ... ok
+test context::tests::raw_context_roundtrips_and_longest_root_drives_flags_and_identity ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25414-probes/debug/deps/umpire_guest_driver-f0b9d656730b6b59)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25414-probes/debug/deps/main-b389498ef03713a7)
+
+running 31 tests
+test guest_identity::compiler::build_std_requires_wasm_marker_and_trusted_source_or_rust_src_coordinate ... ok
+test guest_identity::compiler::dependency_identity_and_transitive_variants_propagate ... ok
+test guest_identity::compiler::inherited_jobserver_descriptor_reaches_direct_compiler_child ... ok
+test guest_identity::compiler::invalid_or_missing_dependency_sidecars_and_macro_collisions_refuse ... ok
+test guest_identity::compiler::missing_ambiguous_and_malformed_lock_maps_refuse ... ok
+test guest_identity::compiler::missing_required_inputs_and_option_values_refuse ... ok
+test guest_identity::compiler::native_macro_identity_ignores_host_configuration_but_retains_argv_and_collisions ... ok
+test guest_identity::compiler::os_bytes_and_lexical_root_boundaries_are_preserved ... ok
+test guest_identity::compiler::package_features_profile_compiler_and_closure_remain_distinct ... ok
+test guest_identity::compiler::portable_identity_replaces_guest_metadata_and_remaps_generated_paths ... ok
+test guest_identity::compiler::previous_wrapper_and_loader_environment_keep_raw_os_bytes ... ok
+test guest_identity::compiler::probes_pass_through_without_guest_environment ... ok
+test guest_identity::compiler::sidecar_precedes_child_and_cleanup_preserves_exit_launch_and_signal_outcomes ... ok
+test guest_identity::current_inputs::native_toml_accepts_current_documents_and_rejects_malformed_input ... ok
+test guest_identity::lock::ambiguous_name_version_coordinates_are_marked_unavailable ... ok
+test guest_identity::lock::checksum_changes_propagate_through_normal_and_all_platform_build_edges ... ok
+test guest_identity::lock::content_addressed_publication_is_repeatable_and_portable ... ok
+test guest_identity::lock::malformed_native_documents_and_graphs_are_rejected ... ok
+test guest_identity::lock::sourced_entries_are_required_but_git_checksums_are_optional ... ok
+test guest_identity::lock::unified_edges_and_edge_topology_change_ancestor_identity ... ok
+test guest_identity::lock::unrelated_and_dev_only_dependencies_do_not_change_guest_closures ... ok
+test guest_identity::support::canonical_hash_uses_sorted_json_and_known_sha256 ... ok
+test guest_identity::support::publication_is_complete_under_concurrent_writers_and_cleans_rename_failure ... ok
+test guest_identity::support::sidecar_lease_serializes_failure_cleanup_and_refuses_symlink ... ok
+test guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes ... ok
+test guest_identity::compiler::actual_rustc_compiles_portable_native_macro_sidecars ... ok
+test guest_pipeline::cold_shell_bootstrap_and_cached_native_validation ... ok
+test guest_pipeline::loader_inheritance_survives_orchestration_environment_purge ... ok
+test guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build ... ok
+test guest_pipeline::shell_caller_relative_paths_and_changed_inputs_select_new_cache ... ok
+test guest_pipeline::guest_build_check_and_artifact_refusals ... ok
+
+test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.19s
+
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25414-probes/debug/deps/xtask-f72d0959b3d5ca56)
+
+running 15 tests
+test gate::boundary::tests::character_recognition_requires_a_valid_closed_literal ... ok
+test gate::boundary::tests::declared_unused_dependency_escape_is_refused_before_cargo ... ok
+test gate::boundary::tests::external_target_alias_cannot_hide_source_subtree ... ok
+test gate::boundary::tests::organization_exception_preserves_occurrence_token_boundaries ... ok
+test gate::boundary::tests::source_escape_is_structural_and_contained_deep_paths_work ... ok
+test gate::boundary::tests::target_cannot_hide_sources ... ok
+test gate::standalone::tests::copy_refuses_existing_and_dangling_source_symlinks ... ok
+test gate::standalone::tests::copy_uses_current_bytes_and_excludes_only_generated_roots ... ok
+test gate::standalone::tests::report_directory_artifact_hashes_every_generated_file ... ok
+framework stage exit-control failed (exit 37)
+test gate::tests::real_stage_child_receives_cache_bypass_and_required_mode ... ok
+test test_run::tests::binaries_then_doctests_exactly_once ... ok
+test test_run::tests::binary_failure_stops_before_doctests ... ok
+test test_run::tests::doctest_failure_preserves_status ... ok
+test test_run::tests::missing_runner_fails_without_fallback ... ok
+test gate::boundary::tests::character_literals_and_lifetimes_cannot_hide_source_escapes ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25414-probes/debug/deps/xtask-96f7a11a6709bfbf)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25414-probes/debug/deps/main-e11a76829867d72d)
+
+running 29 tests
+test apalache_install::installer::tests::download_failure_cleans_private_staging_and_never_publishes ... ok
+test apalache_install::installer::tests::hash_before_parse_and_exact_regular_member_before_publication ... ok
+test apalache_install::installer::tests::malicious_lock_types_refuse_without_following_or_blocking ... ok
+test apalache_install::installer::tests::native_curl_contract_and_download_failure_cleanup ... ok
+test apalache_install::installer::tests::native_dispatch_usage_failure_is_nonzero_and_structured ... ok
+test apalache_install::installer::tests::concurrent_installers_publish_once_and_return_same_path ... ok
+test apalache_install::installer::tests::partial_wrong_and_nonregular_installations_never_download ... ok
+test gate_wiring::compiled_stage_inventory_matches_preserved_framework_stages ... ok
+test apalache_install::installer::tests::symlinks_in_every_component_including_dangling_are_refused ... ok
+test gate_wiring::convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status ... ok
+test gate_wiring::every_command_boundary_preserves_failure_status_and_environment_in_both_modes ... ok
+test gate_wiring::full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_command ... ok
+test gate_wiring::guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths ... ok
+test gate_wiring::required_optional_backend_fetch_failure_is_named_and_prevents_first_stage ... ok
+test gate_wiring::scanner_stages_reject_real_planted_inputs_and_full_gate_stops_before_later_commands ... ok
+test gate_wiring::signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch ... ok
+test gate_wiring::test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes ... ok
+test gate_wiring::validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate ... ok
+retired-name filtering failed: control
+test retired_names::io_and_missing_grep_errors_fail_closed ... ok
+test retired_names::malformed_records_fail_closed ... ok
+test retired_names::posix_ere_recheck_and_grep_failure_propagate ... ok
+test retired_names::raw_records_exempt_only_author_facade_tokens ... ok
+test standalone::child_cannot_reenter_copy_stage ... ok
+test standalone::child_requires_copy_provenance_instead_of_parent_fallback ... ok
+test standalone::copied_missing_local_configuration_refuses_parent_configuration ... ok
+test standalone::declared_existing_outside_dependency_fails_containment ... ok
+test standalone::manifest_root_escape_fails_source_containment ... ok
+test standalone::policy_planted_identifier_fails_named_scanner ... ok
+test gate_wiring::full_dispatch_stops_at_every_failed_leaf_in_both_modes ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.48s
+
+   Doc-tests umpire_backend_process
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_guest_driver
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests xtask
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

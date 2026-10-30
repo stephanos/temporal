@@ -1,0 +1,4 @@
+context::tests::caller_paths_preserve_relative_and_absolute_os_bytes: test
+context::tests::driver_lock_and_compiler_each_invalidate_cache: test
+context::tests::local_tool_admission_refuses_missing_configuration_and_escaping_links: test
+context::tests::raw_context_roundtrips_and_longest_root_drives_flags_and_identity: test

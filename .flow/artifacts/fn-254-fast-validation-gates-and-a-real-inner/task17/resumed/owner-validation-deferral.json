@@ -1,0 +1,9 @@
+{
+  "date_utc": "2026-10-27",
+  "task": "fn-254.17",
+  "source": "Direct owner reply to asynchronous non-root macOS runner question",
+  "owner_quote": "skip osx validation for nw",
+  "effect": "Defer current macOS validation; continue Linux proof/review/milestones.",
+  "preserved": "Darwin implementation and Checker prevention; no platform support removal.",
+  "acceptance_limit": "No Darwin execution/portable cleanup verdict claimed; deferred obligation remains visible until owner resumes."
+}

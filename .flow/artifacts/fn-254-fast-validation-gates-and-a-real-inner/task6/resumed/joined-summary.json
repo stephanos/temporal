@@ -1,0 +1,255 @@
+{
+  "shipping_commit": "0c83ab3d1e4b8593e7415d780902789d8bad7c90",
+  "final_commit": "cdfd3720c83bcdbcb836f77b36326e255e01ddc2",
+  "completed_utc": "2026-10-26T21:18:52.876032+00:00",
+  "shipping_source_sha256": {
+    "model/umpire/dev/xtask/src/quick/mod.rs": "a22c2ca1b6d48caaac8bb8e17f84728769b4478038c2f795712857de8e2ca185",
+    "model/umpire/dev/xtask/src/quick/selection.rs": "e958359c853b54426278c2703de235b3435387646f467f05e24715962296a676",
+    "model/umpire/dev/xtask/src/quick/tests.rs": "5289f5de03973368571d5158d778b6b4493be7ed1b56caeb13133ceabe3a45c0",
+    "model/umpire/backends/tlc/src/runner.rs": "769b6c7489855959b0c2bc46f7c3307df0c29ad3c10501568b34ce286b5bd243",
+    "model/umpire/backends/tlc/src/runner/cache_tests.rs": "19965ef2dbfbd0737a0f15cf1dc6b398ef62d8d4e6d3c8d511512a4a2cf3ba01",
+    "model/dev/xtask/src/quick/mod.rs": "83e76a8f0fda96f4df2fa0e8ba274a679592dfc5fc454f6c78df23d844cdb157",
+    "model/umpire/Cargo.lock": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5",
+    "model/Cargo.lock": "50d2b024555c958b02286fa6ec65976efc9fb9cd69f4d27780e9a01998d5d70f"
+  },
+  "final_source_sha256": {
+    "model/umpire/dev/xtask/src/quick/mod.rs": "a22c2ca1b6d48caaac8bb8e17f84728769b4478038c2f795712857de8e2ca185",
+    "model/umpire/dev/xtask/src/quick/selection.rs": "7289342c2aff358b92f786d0d8641157fcbd708fe7c2ae3a199a983ea25ea6f2",
+    "model/umpire/dev/xtask/src/quick/tests.rs": "50fc5e471f588d64864e4f6c52a276bfdfa76f4721497c3c27cc856acba14074",
+    "model/umpire/backends/tlc/src/runner.rs": "769b6c7489855959b0c2bc46f7c3307df0c29ad3c10501568b34ce286b5bd243",
+    "model/umpire/backends/tlc/src/runner/cache_tests.rs": "19965ef2dbfbd0737a0f15cf1dc6b398ef62d8d4e6d3c8d511512a4a2cf3ba01",
+    "model/dev/xtask/src/quick/mod.rs": "83e76a8f0fda96f4df2fa0e8ba274a679592dfc5fc454f6c78df23d844cdb157",
+    "model/umpire/Cargo.lock": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5",
+    "model/Cargo.lock": "50d2b024555c958b02286fa6ec65976efc9fb9cd69f4d27780e9a01998d5d70f"
+  },
+  "follow_up_scope": "Only quick/selection.rs and quick/tests.rs documentation-fallback follow-up changed after shipping run. Root16controls cover follow-up; actual Kettle edit+dirty.flow select-only rerun on final source confirms exact same six consumers. Cache/domain source and both locks unchanged. Full shipping rerun intentionally not repeated for this documentation fallback change.",
+  "source_projection_equal_to_integrated_final": true,
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "xtask",
+    "quick"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire",
+  "cache_state": {
+    "cold": "Empty new quick-cache, compiler target reused warm. Previous cache retained at target/quick-cache-before-joined-0c83ab3d1e.",
+    "warm": "Exact same source content edit and populated TLC quick-cache."
+  },
+  "consumers": [
+    "umpire-apalache",
+    "umpire-fixtures",
+    "umpire-kettle-guest",
+    "umpire-reference-kettle",
+    "umpire-suite",
+    "umpire-tla"
+  ],
+  "all_consumers_tested": true,
+  "unrelated_packages_selected": false,
+  "dirty_flow_evidence_ignored": true,
+  "runs": {
+    "cold": {
+      "elapsed_seconds": 254.8582435379999,
+      "exit_code": 0,
+      "cache_hits": 34,
+      "cache_misses": 181,
+      "executions": 452,
+      "kettle_cache_hits": 2,
+      "kettle_cache_misses": 4,
+      "kettle_executions": 8,
+      "native_interpreter": 277,
+      "kettle_native_interpreter": [
+        "quick native/interpreter agreement fixtures::sample_kettle::kettle::World: 82 states, 2 edges",
+        "quick native/interpreter agreement fixtures::sample_kettle::kettle::World: 283 states, 424 edges",
+        "quick native/interpreter agreement fixtures::sample_kettle::kettle::World: 283 states, 424 edges"
+      ],
+      "fixture_summaries": [
+        "test result: ok. 60 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 133.59s"
+      ],
+      "stages": [
+        [
+          "fmt",
+          "umpire-apalache,umpire-fixtures,umpire-kettle-guest,umpire-reference-kettle,umpire-suite,umpire-tla",
+          "0.206",
+          "0"
+        ],
+        [
+          "clippy",
+          "umpire-apalache,umpire-fixtures,umpire-kettle-guest,umpire-reference-kettle,umpire-suite,umpire-tla",
+          "11.063",
+          "0"
+        ],
+        [
+          "test",
+          "umpire-apalache",
+          "5.354",
+          "0"
+        ],
+        [
+          "test",
+          "umpire-fixtures",
+          "156.865",
+          "0"
+        ],
+        [
+          "test",
+          "umpire-kettle-guest",
+          "5.057",
+          "0"
+        ],
+        [
+          "test",
+          "umpire-reference-kettle",
+          "37.880",
+          "0"
+        ],
+        [
+          "test",
+          "umpire-suite",
+          "5.468",
+          "0"
+        ],
+        [
+          "test",
+          "umpire-tla",
+          "31.513",
+          "0"
+        ]
+      ]
+    },
+    "warm": {
+      "elapsed_seconds": 129.78277118699998,
+      "exit_code": 0,
+      "cache_hits": 111,
+      "cache_misses": 104,
+      "executions": 326,
+      "kettle_cache_hits": 4,
+      "kettle_cache_misses": 2,
+      "kettle_executions": 4,
+      "native_interpreter": 277,
+      "kettle_native_interpreter": [
+        "quick native/interpreter agreement fixtures::sample_kettle::kettle::World: 82 states, 2 edges",
+        "quick native/interpreter agreement fixtures::sample_kettle::kettle::World: 283 states, 424 edges",
+        "quick native/interpreter agreement fixtures::sample_kettle::kettle::World: 283 states, 424 edges"
+      ],
+      "fixture_summaries": [
+        "test result: ok. 60 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 99.44s"
+      ],
+      "stages": [
+        [
+          "fmt",
+          "umpire-apalache,umpire-fixtures,umpire-kettle-guest,umpire-reference-kettle,umpire-suite,umpire-tla",
+          "0.171",
+          "0"
+        ],
+        [
+          "clippy",
+          "umpire-apalache,umpire-fixtures,umpire-kettle-guest,umpire-reference-kettle,umpire-suite,umpire-tla",
+          "0.750",
+          "0"
+        ],
+        [
+          "test",
+          "umpire-apalache",
+          "0.413",
+          "0"
+        ],
+        [
+          "test",
+          "umpire-fixtures",
+          "99.527",
+          "0"
+        ],
+        [
+          "test",
+          "umpire-kettle-guest",
+          "1.753",
+          "0"
+        ],
+        [
+          "test",
+          "umpire-reference-kettle",
+          "4.387",
+          "0"
+        ],
+        [
+          "test",
+          "umpire-suite",
+          "1.863",
+          "0"
+        ],
+        [
+          "test",
+          "umpire-tla",
+          "20.229",
+          "0"
+        ]
+      ]
+    }
+  },
+  "budget": {
+    "limit_seconds": 60,
+    "warm_seconds": 129.78277118699998,
+    "passed": false,
+    "cause": "Complete shared fixture test inventory remains selected, including intentionally refuted/error configurations that execute fresh. Warm fixture stage99.527s and TLA consumer20.229s dominate. No test inventory was lowered."
+  },
+  "shipping_restoration": {
+    "commit": "0c83ab3d1e4b8593e7415d780902789d8bad7c90",
+    "status": "",
+    "source_sha256": "6adf1d33cbd161a956033a234b770af1c4eb22cb81d3a2a24ed6d51603e5c714",
+    "source_restored": true,
+    "free_bytes": 32531185664
+  },
+  "final_restoration": {
+    "commit": "cdfd3720c83bcdbcb836f77b36326e255e01ddc2",
+    "status": "",
+    "source_restored": true,
+    "files": {
+      "model/umpire/dev/xtask/src/quick/mod.rs": "a22c2ca1b6d48caaac8bb8e17f84728769b4478038c2f795712857de8e2ca185",
+      "model/umpire/dev/xtask/src/quick/selection.rs": "7289342c2aff358b92f786d0d8641157fcbd708fe7c2ae3a199a983ea25ea6f2",
+      "model/umpire/dev/xtask/src/quick/tests.rs": "50fc5e471f588d64864e4f6c52a276bfdfa76f4721497c3c27cc856acba14074",
+      "model/umpire/backends/tlc/src/runner.rs": "769b6c7489855959b0c2bc46f7c3307df0c29ad3c10501568b34ce286b5bd243",
+      "model/umpire/backends/tlc/src/runner/cache_tests.rs": "19965ef2dbfbd0737a0f15cf1dc6b398ef62d8d4e6d3c8d511512a4a2cf3ba01",
+      "model/dev/xtask/src/quick/mod.rs": "83e76a8f0fda96f4df2fa0e8ba274a679592dfc5fc454f6c78df23d844cdb157",
+      "model/umpire/Cargo.lock": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5",
+      "model/Cargo.lock": "50d2b024555c958b02286fa6ec65976efc9fb9cd69f4d27780e9a01998d5d70f"
+    },
+    "integrated_source_equal": true,
+    "changed_since_shipping_source": [
+      "model/umpire/dev/xtask/src/quick/selection.rs",
+      "model/umpire/dev/xtask/src/quick/tests.rs"
+    ],
+    "free_bytes": 32484380672
+  },
+  "deferred": [
+    "Unrelated full gates remain task8 joined-validation obligation.",
+    "Temporal complete five-consumer activity-edit timing remains historical444.027s; current Kettle measurement does not replace that workload."
+  ],
+  "artifacts_sha256": {
+    "joined-validate.py": "019db0ece8ef2d827b3bacd3e4ff480701e16f607a45f56ea260eff6ce6d0ebf",
+    "joined-fetch.log": "296d78cf837cf5f172fa5658b181c4e8b81ef6b6cd88758e7592112f7c6774d6",
+    "joined-checkout.json": "5ed66c92d8c20791e8f0cf830585b44f87f413a21d39c1afde5cb123345c5e21",
+    "joined-kettle-cold.json": "8a7dac0dd735d4c8a2d8f296b6c016deaf0d30fc34f67aa8a9d5c59869bcac6f",
+    "joined-final-checkout.log": "1e576131fd08d4f21ba432f0b2f573e897737d9b8fbf1027e41e489542093237",
+    "joined-kettle-warm.json": "b44bf8071bd3a599bdb0e408374d12d333f7925a3f9e607d077a97a5a4e67ea1",
+    "joined-metadata.json": "a296bef54387ca4523cf85d272455f51a57b32db59c7e134e545b15b23552b5d",
+    "joined-fetch.json": "a569a1ebe9ff5a8c49881f2c17829ef465a057ce3dc56d6ba2a6bd6a5ceb3f32",
+    "joined-final-fetch.json": "88607b37ceff1dbfaef815417bed4f928d4f301c6c4d00b5969fa5ee1e1d3b84",
+    "joined-source.json": "c0fbacf098b976aee19083514d14bc1614e675d402c687a032c628c7621f589a",
+    "joined-kettle-cold-facts.json": "b6eaaa366225028812d5f096c60156c067cf56692ee54bd528ba03aed76ff1a8",
+    "joined-final-projection.json": "100d3d98961323795f2228608a9c8d069606ca0c1a3f11f1b17e84a0fe10e8d8",
+    "joined-metadata.log": "61f3bea03322bddc02c57e18989001a8f304507db2164171acfdaf191afa60cf",
+    "joined-final-selection.log": "37dded08b3ac05ebf1f57d2bf7df4ae3195eee04edc54a6f6d552d7806de1b26",
+    "joined-final-selection.json": "8a0c9e7d8ac0b89d90300357dd35017c5e6269f579dcb896fe77b392cb47a7c5",
+    "joined-checkout.log": "e866e783759a29346459bbfcb12819ebf25068e678bb2495ba2e2a95884b49e8",
+    "joined-kettle-cold.log": "0f4f7f6c931ccc5ba5856b72b4cca284cbf71c86020cf00a9cf0ea3702aee9c2",
+    "joined-final-checkout.json": "b74cc03536e5c038b2d5d6797e8837f3643d16870f874e3989b44f491f3364ec",
+    "joined-final-fetch.log": "fe4cfb83525e9b6fa0fe3f493e3f0aace0897950912574d20cca306f6b55ae37",
+    "joined-kettle-warm-facts.json": "fa1ebf606cf5959bacf8d130512f65928d3500db78d6d3f4c873b19ec5a595af",
+    "joined-kettle-warm.log": "9ce7a10d42f63120c3efc25f65709a3ca6f8424c3b001f3aeff5cce3d756c3ec",
+    "joined-restoration.json": "86dc7b78465b1b8b6df60c97f53d59fc81e050d3bfb416b5600a289344e272a9",
+    "joined-final-selection-facts.json": "9802abaa91ba8098a0bd67dee2768c0a540606b2338573244408d8d18c24ab37",
+    "joined-final-selection.py": "884bee9ec3a7a6dd32b14c977094afcaf93579e75ff8cfcb7b9f022bb09e80fc"
+  }
+}

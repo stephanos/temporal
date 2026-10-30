@@ -1,0 +1,42 @@
+{
+  "control": "extra sibling archive parent; all descendant hashes and commit-map rows recomputed",
+  "original_checkpoint": "cf8bec4d6231302df54b57fccdc5bdb9d11552fc",
+  "mutated_checkpoint": "30c0e6b78d83d80f3701873dc6818c6aa41730ad",
+  "canonical_archive_export": "25e1bf956d726321743397e083e83688ac8dac58",
+  "unexpected_sibling_parent": "bcf984bee2ad5363a4dbc73f2eb4c3334a791a80",
+  "active_snapshot_unchanged": true,
+  "results": {
+    "before": {
+      "exit": 0,
+      "status": "pass",
+      "failures": {
+        "count": 0,
+        "samples": []
+      }
+    },
+    "after": {
+      "exit": 1,
+      "status": "fail",
+      "failures": {
+        "count": 1,
+        "samples": [
+          {
+            "category": "rewritten-parent-order",
+            "detail": {
+              "old": "6264f117607d756d41a97342273ebff189ef77f1",
+              "new": "eb0c99f838854e3485db4051f426732427d28f51",
+              "original_parent_frontier": [
+                "17ce0903cc367ec5fac4c682741422882e3a7787"
+              ],
+              "actual_parents": [
+                "17ce0903cc367ec5fac4c682741422882e3a7787",
+                "bcf984bee2ad5363a4dbc73f2eb4c3334a791a80"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "scope": "Only an independently cloned synthetic export graph was mutated; no Model or original repository changes."
+}

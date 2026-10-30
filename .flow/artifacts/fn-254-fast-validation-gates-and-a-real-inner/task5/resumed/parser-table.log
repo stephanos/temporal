@@ -1,0 +1,42 @@
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling proc-macro-utils v0.10.0
+   Compiling once_cell v1.21.4
+   Compiling manyhow-macros v0.14.1
+   Compiling tempfile v3.27.0
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling manyhow v0.14.1
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/process)
+   Compiling proc-macro-crate v3.5.0
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/author/dsl/macros)
+   Compiling target-tuple v1.0.2
+   Compiling serde v1.0.229
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/tla)
+   Compiling console v0.16.6
+   Compiling similar v2.7.0
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/author/dsl)
+   Compiling toml_writer v1.1.3+spec-1.1.0
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/native)
+   Compiling insta v1.49.0
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/tlc)
+   Compiling serde_derive v1.0.229
+   Compiling termcolor v1.4.1
+   Compiling glob v0.3.4
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/testing)
+   Compiling trybuild v1.0.122
+    Finished `test` profile [unoptimized] target(s) in 10.07s
+     Running tests/fixtures.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/fixtures-8ce12c9c4d1e8341)
+
+running 2 tests
+test parser_refusals::diagnostic_capture_keeps_duplicate_messages_at_distinct_locations ... ok
+Error: "machine_stay_effect: machine_stay_effect: annotated item 1 unexpectedly admitted"
+test parser_refusals::parser_refusals_preserve_messages_and_authored_locations ... FAILED
+
+failures:
+
+failures:
+    parser_refusals::parser_refusals_preserve_messages_and_authored_locations
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p umpire-dsl-macros --test fixtures`

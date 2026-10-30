@@ -1,0 +1,93 @@
+{
+  "base": "b68c42f59fe5da8ba697c21484289e37c1e52a19",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "b68c42f59fe5da8ba697c21484289e37c1e52a19",
+    "headSha": "a58464b998d794244903ef272cd0b172f4600c23",
+    "items": [
+      {
+        "body": "The lexer treats the double quote inside the valid character literal `'\"'` as a string opener. For example:",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-0cebc89132cf32b0602c2b58b80889fe1ab5ab16dfc8982acec99cff6ae44754",
+        "id": "finding-c8305fc8febe1ea569827fd801c338c0",
+        "lastSeenReceiptId": "review-06c98de413611b087d10424018cf5b1b2d4260fd1d0bcf8a9ba91c0938914d7a",
+        "ordinal": 2,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Recognize character and byte-character literals before string literals. Add a control proving that an escaping include following either literal is rejected.",
+        "title": "The lexer treats the double quote inside the valid character literal `'\"'` as a string opener"
+      },
+      {
+        "body": "`CARGO_TARGET_DIR=relative-target make model-check` now resolves the target beneath `model/umpire`, because the recipe changes directories before bootstrap or gate admission. The new inventory guard then rejects it with `output target overlaps framework source inventory`. I reproduced the same compiled stage passing from the repository root and failing from the recipe\u2019s working directory. Relative `CARGO_HOME` also loses its original caller base.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-0cebc89132cf32b0602c2b58b80889fe1ab5ab16dfc8982acec99cff6ae44754",
+        "id": "finding-3fd536af52da3ef2cfef16a8ef903a3b",
+        "lastSeenReceiptId": "review-06c98de413611b087d10424018cf5b1b2d4260fd1d0bcf8a9ba91c0938914d7a",
+        "ordinal": 1,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Resolve inherited caller-relative paths before either delegation changes directories, then pass those absolute paths to both gate halves.",
+        "title": "`CARGO_TARGET_DIR=relative-target make model-check` now resolves the target beneath `model/umpire`, because the recipe changes directories before bootstrap or gate admission"
+      },
+      {
+        "body": "The organization exception accepts `other/github.com/temporalio/umpire` because `/` passes `!is_ascii_alphanumeric()`. The recorded policy explicitly rejects this embedded organization path. Placing it in README content passes the new scanner, violating R7\u2019s required name rejection.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-0cebc89132cf32b0602c2b58b80889fe1ab5ab16dfc8982acec99cff6ae44754",
+        "id": "finding-ada30c63dc042fe0771db4dd081fa87c",
+        "lastSeenReceiptId": "review-06c98de413611b087d10424018cf5b1b2d4260fd1d0bcf8a9ba91c0938914d7a",
+        "ordinal": 3,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Preserve the existing token-boundary rule from `model/temporal/testing/boundary.rs`, including its embedded-path negative controls.",
+        "title": "The organization exception accepts `other/github"
+      },
+      {
+        "body": "`gate --list` reports three stages depending on `proto-tools`, but never lists `proto-tools` itself. The advertised dependency graph therefore contains an undefined prerequisite and cannot describe the full gate for scheduling.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-0cebc89132cf32b0602c2b58b80889fe1ab5ab16dfc8982acec99cff6ae44754",
+        "id": "finding-2bd236573cad8b9afd6d726fe51e33c6",
+        "lastSeenReceiptId": "review-06c98de413611b087d10424018cf5b1b2d4260fd1d0bcf8a9ba91c0938914d7a",
+        "ordinal": 4,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Register and list `proto-tools`, executing it exactly once through that registry.",
+        "title": "`gate --list` reports three stages depending on `proto-tools`, but never lists `proto-tools` itself"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-06c98de413611b087d10424018cf5b1b2d4260fd1d0bcf8a9ba91c0938914d7a",
+    "supersedesReceiptId": "review-0cebc89132cf32b0602c2b58b80889fe1ab5ab16dfc8982acec99cff6ae44754"
+  },
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.10",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "Prior finding #1: fixed\nPrior finding #2: fixed\nPrior finding #3: fixed\nPrior finding #4: fixed\n\nCaller-relative Cargo paths are preserved, character literals no longer hide includes, organization exceptions respect token boundaries, and `proto-tools` is registered and executed once.\n\nCurrent source/proof hashes match. Focused regression evidence covers all four fixes; the live stage list has no missing dependencies. No new blocking findings.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R7 | met | Task .10 fixes verified against current code and focused evidence. Standalone/full-gate proofs remain deferred to .11/.8. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "218bc98d7734446385b69f9c2401621e",
+  "session_id": "01a1757a-f039-7c71-8f63-a6517b98d5e0",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-26T00:33:52.097476Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}

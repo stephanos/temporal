@@ -1,0 +1,15 @@
+{
+  "proofs": {
+    "required": {
+      "unique_objects": 158,
+      "archive_members": 7979,
+      "result": "pass"
+    },
+    "named": {
+      "unique_objects": 142,
+      "archive_members": 768,
+      "result": "pass"
+    }
+  },
+  "original_targets_read": false
+}

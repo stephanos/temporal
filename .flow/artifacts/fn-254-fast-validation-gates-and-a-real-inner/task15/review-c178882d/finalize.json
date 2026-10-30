@@ -1,0 +1,46 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.15",
+  "verdict": "SHIP",
+  "session_id": "73d81f48-3f63-4a37-8710-8be2e5db17e6",
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "effort": "high",
+  "spec": "claude:claude-fable-5-1:high",
+  "standalone": false,
+  "review": "Coordinator format repair and duplicate collapse only. Correctness and contracts each returned raw SHIP. Integration was interrupted by the600-second outer command limit and has no verdict; none is invented. The supported finalizer recovers the two atomically published draw results. These reports remain authoritative. Task closure still requires fixes of demonstrated regressions and a fresh integration-focused review.\n\n## Issue 1\n- **Severity**: P2\n- **Title**: Interrupted inner-loop timing can leave source content modified\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: The native timer appends a comment to tracked source and restores bytes through normal return or Drop. A supervisor signal can terminate the owned child before Drop, leaving the checkout changed; the deleted shell only touched the mtime. A // comment also assumes Rust syntax for the documented arbitrary selected source.\n- **Suggestion**: Restore the original mtime-only edit using File::set_modified, or make content restoration survive termination if real content mutation is required.\n- **File:Line**: model/dev/xtask/src/gate/timing.rs:115\n- **R-IDs**: []\n\n## Issue 2\n- **Severity**: P2\n- **Title**: Empty framework target directory writes guest outputs into source\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: CARGO_TARGET_DIR set to the empty string becomes the caller directory in the framework build-guests leaf. The replaced shell treated empty as unset; the Temporal port already restores that behavior. Framework guest and native report outputs can therefore enter the source tree.\n- **Suggestion**: Filter empty target values before applying the default target, and cover the empty-value vector.\n- **File:Line**: model/umpire/dev/xtask/src/build_guests.rs:18\n- **R-IDs**: []\n\n## Issue 3\n- **Severity**: P3\n- **Title**: Shared protobuf error prescribes the wrong provisioning command for a consumer\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: Missing generators always suggest cargo xtask proto-tools, which provisions the framework plugin root. The system selector uses the repository plugin root, provisioned by its own Make prerequisites, so the suggested command cannot fix that refusal.\n- **Suggestion**: Use a plugin-root-specific generic hint or let the consumer provide the correct remedy without adding system names to framework code.\n- **File:Line**: model/umpire/dev/xtask/src/proto.rs:85\n- **R-IDs**: []\n\n## Issue 4\n- **Severity**: P3\n- **Title**: Native control identities execute both in control stages and workspace tests\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: The non-ignored Rust controls are selected by named control stages and again by the workspace tests stage. This repeats compiler/Make fixture work and may affect the epic's gate-time goal.\n- **Suggestion**: Keep the current complete inventory and assess measured cost in task8 before changing selection; any later change must retain every maintained control and honest counts.\n- **File:Line**: model/umpire/dev/xtask/src/gate.rs:159\n- **R-IDs**: []\n\n```json\n{\"classification_counts\":{\"introduced\":4,\"pre_existing\":0},\"unaddressed\":[],\"suppressed_count\":{\"50\":1,\"25\":3}}\n```\n\n<verdict>SHIP</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "claude-fable-5-1",
+      "session_id": "73d81f48-3f63-4a37-8710-8be2e5db17e6",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "claude-fable-5-1",
+      "session_id": "95d74a35-4ec8-4c2a-98c3-5bc689bf3879",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": null,
+      "session_id": null,
+      "verdict": null,
+      "failed": true
+    }
+  ],
+  "needs_work_survivors": null,
+  "suppressed_count": {
+    "50": 1,
+    "25": 3
+  },
+  "introduced_count": 4,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}

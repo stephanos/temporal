@@ -1,0 +1,115 @@
+{
+  "owner": "Task4 harness correction; Task2/Task3 closed sources are historical unchanged checkpoints",
+  "observed_task3_pair": {
+    "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "current_source_pair": {
+    "temporal": "cde1ee67efd266a058193694c2ddb287598b9ea5",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "only_changed_file": "model/scripts/test-model-wiring.sh",
+  "numstat": "1 insertion,1 deletion",
+  "correction": "Expected model-update test log now compares inherited cache flags. Production cache policy untouched.",
+  "unchanged_objects": {
+    "Makefile": {
+      "observed_git_object": "602196da160b2dcba5c6ca543c73ee96bfd3099f",
+      "current_git_object": "602196da160b2dcba5c6ca543c73ee96bfd3099f",
+      "equal": true
+    },
+    "model/Cargo.toml": {
+      "observed_git_object": "d6535a6ee5541d480f83bd6d2125d43a1258de3b",
+      "current_git_object": "d6535a6ee5541d480f83bd6d2125d43a1258de3b",
+      "equal": true
+    },
+    "model/Cargo.lock": {
+      "observed_git_object": "bdf51d0c178efaa777e65e3add88fbd7651824b8",
+      "current_git_object": "bdf51d0c178efaa777e65e3add88fbd7651824b8",
+      "equal": true
+    },
+    "go.mod": {
+      "observed_git_object": "727f54ab89e453c974cad722f58f409ed8ea8df8",
+      "current_git_object": "727f54ab89e453c974cad722f58f409ed8ea8df8",
+      "equal": true
+    },
+    "go.sum": {
+      "observed_git_object": "f3e516df7cef39fe01b3cc280f1c2e254454852b",
+      "current_git_object": "f3e516df7cef39fe01b3cc280f1c2e254454852b",
+      "equal": true
+    },
+    "mise.toml": {
+      "observed_git_object": "f1d13178f3df6768b892ec557fe7485e0929d652",
+      "current_git_object": "f1d13178f3df6768b892ec557fe7485e0929d652",
+      "equal": true
+    },
+    "model/temporal": {
+      "observed_git_object": "a803d26055b6808696a52cd3766238d85343a94b",
+      "current_git_object": "a803d26055b6808696a52cd3766238d85343a94b",
+      "equal": true
+    },
+    "model/dev/xtask": {
+      "observed_git_object": "55c88a4ce92ac025461c7f88cb05a09878182f3c",
+      "current_git_object": "55c88a4ce92ac025461c7f88cb05a09878182f3c",
+      "equal": true
+    },
+    "model/design/native-symbolic": {
+      "observed_git_object": "8154659f8bf77d82a2dcb6cb1e75c4f9329030fd",
+      "current_git_object": "8154659f8bf77d82a2dcb6cb1e75c4f9329030fd",
+      "equal": true
+    },
+    "model/scripts/guest.sh": {
+      "observed_git_object": "946b248c83443ce4c68e470c39d0b8fea9bfdd6d",
+      "current_git_object": "946b248c83443ce4c68e470c39d0b8fea9bfdd6d",
+      "equal": true
+    },
+    "model/scripts/guest-freshness.sh": {
+      "observed_git_object": "008f278c19ed569131cf3c0c5e6b3b3ea68162d4",
+      "current_git_object": "008f278c19ed569131cf3c0c5e6b3b3ea68162d4",
+      "equal": true
+    },
+    "model/scripts/proto-go.sh": {
+      "observed_git_object": "5c3f96778ebe21c247496563e4b3061c138503b5",
+      "current_git_object": "5c3f96778ebe21c247496563e4b3061c138503b5",
+      "equal": true
+    },
+    "model/scripts/xtask.sh": {
+      "observed_git_object": "bcd36ed690201c5868910c9467c3c048c9e3f155",
+      "current_git_object": "bcd36ed690201c5868910c9467c3c048c9e3f155",
+      "equal": true
+    }
+  },
+  "blob_identities": {
+    "Makefile": {
+      "git_blob": "602196da160b2dcba5c6ca543c73ee96bfd3099f",
+      "sha256": "4aece43b9fc591a0527712a81a399e507b8eae746622a3b3efc396e3c74c3954"
+    },
+    "model/scripts/test-model-wiring.sh": {
+      "git_blob": "8853cc431bc28e0b04be7db1322db1f4ec38bc24",
+      "sha256": "1150faecce6df0a0641de6e4e719dd6bf55dec6f616ed8c8314496f229b247e0"
+    },
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm": {
+      "git_blob": "7bbc6b206fd2dda39316737a9b9815b6e5ee98ad",
+      "sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d"
+    }
+  },
+  "historical_go_rust_focused_observations": "current-pair-3f5-054/receipt.json (actual3f/054; not renamed or claimed rerun atcde)",
+  "new_preparation_go_observation": "../validation/final-pair-cde-054/preparation.json (actualcde/054 source/tool/workspace metadata only)",
+  "reused_unmodified_scopes": [
+    "Standalone054 evidence",
+    "Rust/Go runtime and dependency resolution",
+    "Go host/raw/SDK/ordinary-Go-no-Rust behavior",
+    "Native-symbolic/quick code and existing Rust bridge16/7 controls; source production trees identical"
+  ],
+  "historical_partial_guest_freshness": {
+    "source": "../validation/final-pair-3f5-054/failed-default-3f5/native-authority/temporal/temporal-guest-freshness.json",
+    "meaning": "This individual3f/054 stage succeeded during a terminal failed gate. All guest build inputs and canonical bytes unchanged tocde; retain as scoped history only."
+  },
+  "not_rebound_as_pass": [
+    "Old3f combined gate remains terminal FAILED2; do not relabel partial successful stages as a whole pass",
+    "No cde broad/default/required gate or fresh guest generation/freshness/reproduction run is claimed",
+    "Final Task4 acceptance requires new independent cde/054 pair, initially empty target and explicitly admitted full named validation"
+  ],
+  "focused_current_fix_evidence": "../validation/consumer-cache-control-cde/checks.json",
+  "current_validation_pointer": "../validation/current-pair-source.json",
+  "fresh_pair_preparation": "../validation/final-pair-cde-054/preparation.json"
+}

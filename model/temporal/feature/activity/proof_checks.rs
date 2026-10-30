@@ -646,6 +646,62 @@ fn actual_tlc_global_tick_law_bundle_on_selected_worlds() -> umpire_testing::Tes
     Ok(())
 }
 
+#[test]
+fn source_only_pending_cancellation_outcome_controls_keep_independent_laws()
+-> umpire_testing::TestResult {
+    use umpire_testing::replace_in;
+
+    let healthy = source()?;
+    for (start, end, original, replacement, deadlines, property) in [
+        (
+            "if retryable && self.cancel_requested {",
+            "else if retryable && self.attempt < world.maximum_attempts",
+            "self.phase = Phase::Failed;",
+            "self.phase = Phase::Canceled;",
+            [None; 4],
+            "pending_retryable_failure_fails",
+        ),
+        (
+            "fn expire_attempt(",
+            "fn clear_terminal(",
+            "if self.cancel_requested {\n                self.phase = Phase::TimedOut;",
+            "if self.cancel_requested {\n                self.phase = Phase::Canceled;",
+            [None, Some(1), None, None],
+            "tick_priority",
+        ),
+        (
+            "fn expire_attempt(",
+            "fn clear_terminal(",
+            "if self.cancel_requested {\n                self.phase = Phase::TimedOut;",
+            "if self.cancel_requested {\n                self.phase = Phase::Canceled;",
+            [None, None, None, Some(1)],
+            "tick_priority",
+        ),
+    ] {
+        let changed = replace_in(&healthy, start, end, original, replacement);
+        assert_eq!(
+            healthy.split("        #[invariant]").skip(1).collect::<Vec<_>>(),
+            changed.split("        #[invariant]").skip(1).collect::<Vec<_>>()
+        );
+        let parsed = source_tree(&changed)?;
+        for maximum in 1..=3 {
+            let world = configured(maximum, true, deadlines);
+            let interpreted = umpire_checker::Interpreted::from_tree(world, &parsed)?;
+            let graph = umpire_checker::Checker::explore(&interpreted, 4096)?;
+            assert!(!graph.counts.cut);
+            let report = graph.verify_all()?;
+            assert!(
+                report
+                    .claims
+                    .iter()
+                    .any(|claim| claim.name == property && claim.outcome == CheckOutcome::Refuted),
+                "{property}: {report}"
+            );
+        }
+    }
+    Ok(())
+}
+
 fn timeout_retry_mutant(healthy: &str, name: &str) -> String {
     use umpire_testing::replace_in;
 

@@ -1,0 +1,11 @@
+{
+  "status": "Prepared source only; no proof, process, build or acceptance executed",
+  "files": {
+    "activity.py": "9b75b3b42d0997817a2423f6ea08ad01c7f9bdfa07b5b170f0cba6a6d01dd468",
+    "observer.py": "e97ed64b323631397d8d33a932d228177e7aff8989aa23d785518a1bb15d90a1",
+    "proof.py": "1a5ace13c3d7d6727052ac15d3e23cdcba4deceeb32973c795227ea1700bcf2e"
+  },
+  "required_admission": "Root final fix integrated, exact frozen40hex HEAD, sole build/JVM lane,30GiB free guard",
+  "standalone_command": "python3 proof.py --expected-head <admitted-final-head> --output <new-task-scratch-output> --execute",
+  "activity_command": "python3 activity.py --expected-head <same-final-head> --standalone-validation <accepted-standalone-output>/validation.json --output <new-activity-output> --execute"
+}

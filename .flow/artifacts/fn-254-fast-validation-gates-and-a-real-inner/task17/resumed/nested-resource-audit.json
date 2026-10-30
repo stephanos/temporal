@@ -1,0 +1,29 @@
+{
+  "task": "fn-254.17",
+  "at": "2026-10-27T01:14:56.479294+00:00",
+  "source_parent": "6b6f68b50ff70717e977c11b450de3e256bec890",
+  "kind": "Read-only source audit; not runtime coverage",
+  "agent": "/root/nested_resource_audit",
+  "source_files": {
+    "model/umpire/protocol/runtime/tests/capabilities.rs": "40a68bc6d702a9f3c447e9a039aec11948940f7042fe47b0edd28cb91a4de115",
+    "model/temporal/realization/macros/tests/renamed.rs": "342f8e0da7c05174f597c2fd679516c741ce225e1a3f42c90b58885b3f68bb93",
+    "model/dev/xtask/tests/main.rs": "81b4a4e18ddc5cd803133ea6c24ed13fc31857ed14531b93dcefa709069d6735",
+    "model/umpire/dev/guest-driver/src/guest.rs": "ceccc7db4750e475e3fdd450bca86b1a8d6ee02105e169bc40f5443735d19ec8",
+    "model/umpire/dev/guest-driver/src/compiler.rs": "aac64782240adce801ec98a4ac42fcdc4ba915bbd637953e5397857888ef78ed",
+    "model/umpire/dev/xtask/src/gate/standalone.rs": "974c5735b21442e9175c37927d9d9bb983e536570d7cdd7dc9a678edb50460fd",
+    "model/temporal/api/system.rs": "cba06f68d1d8dbeb0afb2d3226639116c541bdb904c9fa893853b7543d322055",
+    "cmd/tools/getproto/run.sh": "9c2acb08706b6fc9b7a94950da2f3495231acf3903b0d3ad47b38eb1219073c8"
+  },
+  "findings": {
+    "actual_nested_cap_overrides_found": false,
+    "independent_compiler_queue_fanout_within_one_nextest_slot_found": false,
+    "actual_cargo": "Capabilities checks, renamed-macro probes, trybuild and guest builds preserve job caps and synchronously wait; concurrency helpers publish files or compute inventory/probe bytes.",
+    "actual_go": "Missing-guest Go test preserves GOFLAGS/GOMAXPROCS; API descriptor build may synchronously invoke Make/getproto/go run while its Cargo build-script job is occupied.",
+    "qualified_bound": "Live Cargo ancestor plus Go descendant is process ancestry, not two independent active compiler queues.",
+    "excluded_from_execution_evidence": "Fake guest-pipeline/wiring commands and ignored added-field control; mode/caller matrix commands prove admission only."
+  },
+  "remaining_runtime_obligations": [
+    "Frozen actual selected/executed/ignored inventories",
+    "Real quick/standalone renewals and observed resource-owner counts"
+  ]
+}

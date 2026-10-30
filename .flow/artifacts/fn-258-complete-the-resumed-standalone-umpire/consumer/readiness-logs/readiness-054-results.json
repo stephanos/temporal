@@ -1,0 +1,43 @@
+[
+  {
+    "name": "054-workspace-compilation",
+    "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model",
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "check",
+      "--workspace",
+      "--all-targets",
+      "--all-features",
+      "--locked"
+    ],
+    "exit": 0,
+    "seconds": 4.060158000997035,
+    "log": "/home/agent/.cache/codex-build/fn258-consumer/readiness-054-workspace-compilation.log",
+    "sha256": "ce82f9f15a63742f74bdb6c5cd72f6d26c1e9f8d355414c8ea5fe5e7bc3d4dc4"
+  },
+  {
+    "name": "054-bridge-controls",
+    "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model",
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "test",
+      "-p",
+      "temporal-xtask",
+      "--bin",
+      "temporal-xtask",
+      "--test",
+      "main",
+      "--locked"
+    ],
+    "exit": 0,
+    "seconds": 15.11338804900879,
+    "log": "/home/agent/.cache/codex-build/fn258-consumer/readiness-054-bridge-controls.log",
+    "sha256": "6c9743ff3204de64a2bcc2f2d2fa32ac8bdd903ad44f9df0e5e8098b26739e60"
+  }
+]

@@ -1,0 +1,154 @@
+   Compiling libc v0.2.191
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.229
+   Compiling unicode-ident v1.0.27
+   Compiling cfg-if v1.0.5
+   Compiling typenum v1.20.1
+   Compiling hybrid-array v0.4.15
+   Compiling syn v3.0.9
+   Compiling getrandom v0.4.3
+   Compiling zmij v1.0.23
+   Compiling rustix v1.1.5
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.154
+   Compiling const-oid v0.10.2
+   Compiling linux-raw-sys v0.12.1
+   Compiling bitflags v2.13.2
+   Compiling thiserror v2.0.21
+   Compiling winnow v1.0.4
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling digest v0.11.3
+   Compiling thiserror-impl v2.0.21
+   Compiling serde_derive v1.0.229
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling serde_spanned v1.1.2
+   Compiling cpufeatures v0.3.1
+   Compiling fastrand v2.5.0
+   Compiling itoa v1.0.18
+   Compiling once_cell v1.21.4
+   Compiling crc32fast v1.5.3
+   Compiling memchr v2.8.3
+   Compiling tempfile v3.27.0
+   Compiling sha2 v0.11.1
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling simd-adler32 v0.3.10
+   Compiling adler2 v2.0.1
+   Compiling miniz_oxide v0.9.1
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/dev/guest-driver)
+   Compiling filetime v0.2.29
+   Compiling tar v0.4.46
+   Compiling flate2 v1.1.10
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/dev/xtask)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.20s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+   Compiling proc-macro2 v1.0.107
+   Compiling compiler_builtins v0.1.160 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/compiler-builtins/compiler-builtins)
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling core v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/core)
+   Compiling syn v3.0.9
+   Compiling equivalent v1.0.3
+   Compiling hashbrown v0.17.1
+   Compiling indexmap v2.14.2
+   Compiling libc v0.2.189
+   Compiling anyhow v1.0.104
+   Compiling syn v2.0.119
+   Compiling heck v0.5.0
+   Compiling either v1.19.0
+   Compiling itertools v0.14.0
+   Compiling object v0.39.1
+   Compiling prost-derive v0.14.4
+   Compiling rustc-std-workspace-core v1.99.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/rustc-std-workspace-core)
+   Compiling alloc v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc)
+   Compiling unwind v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/unwind)
+   Compiling adler2 v2.0.1
+   Compiling memchr v2.8.3
+   Compiling std v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/std)
+   Compiling thiserror v2.0.21
+   Compiling prettyplease v0.3.0
+   Compiling smallvec v1.16.3
+   Compiling winnow v1.0.4
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling proc-macro-utils v0.10.0
+   Compiling rustc-std-workspace-alloc v1.99.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/rustc-std-workspace-alloc)
+   Compiling gimli v0.34.0
+   Compiling wasip1 v1.0.0
+   Compiling addr2line v0.27.1
+   Compiling miniz_oxide v0.9.1
+   Compiling std_detect v0.1.5 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/std_detect)
+   Compiling panic_unwind v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/panic_unwind)
+   Compiling cfg-if v1.0.4
+   Compiling rustc-demangle v0.1.28
+   Compiling panic_abort v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/panic_abort)
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/ir/derive)
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling foldhash v0.1.5
+   Compiling rustix v1.1.5
+   Compiling hashbrown v0.15.5
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/ir)
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling manyhow-macros v0.14.1
+   Compiling rustc-literal-escaper v0.0.8
+   Compiling thiserror-impl v2.0.21
+   Compiling bytes v1.12.1
+   Compiling bitflags v2.13.2
+   Compiling fixedbitset v0.5.7
+   Compiling regex-syntax v0.8.11
+   Compiling linux-raw-sys v0.12.1
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/author/dsl/macros)
+   Compiling prettyplease v0.2.37
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/author/dsl)
+   Compiling regex-automata v0.4.18
+   Compiling petgraph v0.8.3
+   Compiling prost v0.14.4
+   Compiling proc_macro v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/proc_macro)
+   Compiling manyhow v0.14.1
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/front)
+   Compiling proc-macro-crate v3.5.0
+   Compiling once_cell v1.21.4
+   Compiling fastrand v2.5.0
+   Compiling tempfile v3.27.0
+   Compiling prost-types v0.14.4
+   Compiling regex v1.13.1
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/backends/native)
+   Compiling bytemuck v1.25.2
+   Compiling multimap v0.10.1
+   Compiling log v0.4.34
+   Compiling prost-build v0.14.4
+   Compiling safe_arch v0.7.4
+   Compiling rand_core v0.9.5
+   Compiling rand_xoshiro v0.7.0
+   Compiling wide v0.7.33
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/protocol/runtime)
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling archery v1.2.3
+   Compiling ident_case v1.0.1
+   Compiling darling_core v0.24.1
+   Compiling imbl v7.0.2
+   Compiling rustc-hash v2.1.3
+   Compiling darling_macro v0.24.1
+   Compiling darling v0.24.1
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/catalog/build)
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/annotate/syntax)
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/realization/macros)
+warning: `umpire-runtime` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/api)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/catalog)
+warning: `umpire-catalog` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/realization)
+warning: `umpire-temporal-api` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/guest)
+warning: `umpire-temporal-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 58.06s

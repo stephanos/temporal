@@ -1,0 +1,81 @@
+[
+  {
+    "name": "producer-controls",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "xtask",
+      "--lib",
+      "gate::work_counts"
+    ],
+    "exit": 0,
+    "seconds": 0.4492965829995228,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/producer-controls.log",
+    "sha256": "b36f4465e47dc796584e8c0a2d527688cc2b30f12c3afe5e19ea9baf58ec4803",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-work-counts/model/umpire",
+    "environment": {
+      "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/fn25417-work-counts",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false"
+    }
+  },
+  {
+    "name": "producer-clippy",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clippy",
+      "--locked",
+      "-p",
+      "xtask",
+      "-p",
+      "umpire-backend-process",
+      "-p",
+      "umpire-tlc",
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit": 0,
+    "seconds": 0.13918137500149896,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/producer-clippy.log",
+    "sha256": "c92508a29848820f033cd2ea015c85dde0953c88b07cc967ce34b7c08f610549",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-work-counts/model/umpire",
+    "environment": {
+      "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/fn25417-work-counts",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false"
+    }
+  },
+  {
+    "name": "producer-fmt",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 0.7179707920004148,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/producer-fmt.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-work-counts/model/umpire",
+    "environment": {
+      "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/fn25417-work-counts",
+      "MISE_AUTO_INSTALL": "false",
+      "MISE_EXEC_AUTO_INSTALL": "false"
+    }
+  }
+]

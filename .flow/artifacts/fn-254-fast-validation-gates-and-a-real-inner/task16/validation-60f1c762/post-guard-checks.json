@@ -1,0 +1,113 @@
+[
+  {
+    "label": "utf8-space-metachar-tlc",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-tlc",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/UTF8 space '$;[] \u00e9"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/model/umpire",
+    "source_head": "3368481d75b40dd49aea5a5dc7b54467e3779052",
+    "exit": 0,
+    "seconds": 0.4318160420007189,
+    "free_before_bytes": 64440545280,
+    "free_after_bytes": 64445014016,
+    "admitted_path_hex": "2f55736572732f7374657068616e2f576f726b73706163652f736b756e6b776f726b732f756d706972652f74656d706f72616c2f2e666c6f772f746d702f666e32353431362d70726f76696465722d76616c69646174696f6e2f555446382073706163652027243b5b5d20c3a92f6275696c642f6d6973652d6a6172732f646174612f696e7374616c6c732f687474702d746c632f312e372e342f746c6132746f6f6c732e6a6172",
+    "jar_sha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+    "fixture_origin": "Previously clean official install copied only into this validation fixture; production provider has no copy layer."
+  },
+  {
+    "label": "utf8-space-metachar-apalache",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "fetch-apalache",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/UTF8 space '$;[] \u00e9"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/model/umpire",
+    "source_head": "3368481d75b40dd49aea5a5dc7b54467e3779052",
+    "exit": 0,
+    "seconds": 1.5497986670015962,
+    "free_before_bytes": 64444989440,
+    "free_after_bytes": 64443469824,
+    "admitted_path_hex": "2f55736572732f7374657068616e2f576f726b73706163652f736b756e6b776f726b732f756d706972652f74656d706f72616c2f2e666c6f772f746d702f666e32353431362d70726f76696465722d76616c69646174696f6e2f555446382073706163652027243b5b5d20c3a92f6275696c642f6d6973652d6a6172732f646174612f696e7374616c6c732f687474702d6170616c616368652f302e36322e342f6c69622f6170616c616368652e6a6172",
+    "jar_sha256": "e5223915507b65cc5f1638bd037ede60f8a4fc1644aff46355779f9b05df9262",
+    "fixture_origin": "Previously clean official install copied only into this validation fixture; production provider has no copy layer."
+  },
+  {
+    "label": "post-guard-clippy",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clippy",
+      "--locked",
+      "-p",
+      "umpire-backend-process",
+      "-p",
+      "xtask",
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/model/umpire",
+    "source_head": "3368481d75b40dd49aea5a5dc7b54467e3779052",
+    "exit": 0,
+    "seconds": 2.876772417999746,
+    "free_before_bytes": 64443465728,
+    "free_after_bytes": 64442306560
+  },
+  {
+    "label": "post-guard-framework-fmt",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/model/umpire",
+    "source_head": "3368481d75b40dd49aea5a5dc7b54467e3779052",
+    "exit": 0,
+    "seconds": 0.7532745839998825,
+    "free_before_bytes": 64442298368,
+    "free_after_bytes": 64441131008
+  },
+  {
+    "label": "post-guard-system-fmt",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/model",
+    "source_head": "3368481d75b40dd49aea5a5dc7b54467e3779052",
+    "exit": 0,
+    "seconds": 1.1091704169957666,
+    "free_before_bytes": 64441131008,
+    "free_after_bytes": 64450330624
+  },
+  {
+    "label": "post-guard-source-boundary",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "gate",
+      "--stage",
+      "source-boundary"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/model/umpire",
+    "source_head": "3368481d75b40dd49aea5a5dc7b54467e3779052",
+    "exit": 0,
+    "seconds": 0.948438041996269,
+    "free_before_bytes": 64450330624,
+    "free_after_bytes": 64450289664
+  }
+]

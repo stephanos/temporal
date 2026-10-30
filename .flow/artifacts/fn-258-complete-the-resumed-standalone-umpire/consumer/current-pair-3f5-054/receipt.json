@@ -1,0 +1,81 @@
+{
+  "status": "PASS",
+  "pair": {
+    "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "clean_before_checkout": true,
+  "clean_after_checks": {
+    "temporal": "",
+    "umpire": ""
+  },
+  "checks": [
+    {
+      "name": "workspace-compilation",
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "check",
+        "--workspace",
+        "--all-targets",
+        "--all-features",
+        "--locked"
+      ],
+      "exit": 0,
+      "seconds": 6.758482502991683,
+      "log": "workspace-compilation.log",
+      "sha256": "2a48522d8c36fa7daeae649d74aa5a0e7587d6ce7eacfbcd55e0cc3b9b58ce12"
+    },
+    {
+      "name": "bridge-controls",
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model",
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "temporal-xtask",
+        "--bin",
+        "temporal-xtask",
+        "--test",
+        "main",
+        "--locked"
+      ],
+      "exit": 0,
+      "seconds": 13.750084839004558,
+      "log": "bridge-controls.log",
+      "sha256": "9a76d5a0d53cff34742bc23451dcc2eaa2e50968dd54cb1fc5f62f8a7a43ae92"
+    },
+    {
+      "name": "make-guard-controls",
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal",
+      "argv": [
+        "/bin/bash",
+        "model/scripts/test-model-wiring.sh"
+      ],
+      "exit": 0,
+      "seconds": 0.0931973749975441,
+      "log": "make-guard-controls.log",
+      "sha256": "55d7aa258569a7ada904a14d477f27d14a7b69882fdc1db3605067ef99257e7c"
+    }
+  ],
+  "unit_tests": 16,
+  "integration_tests": 7,
+  "failures": 0,
+  "workspace_observation": "go-workspace.json",
+  "guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+  "guest_regenerated": false,
+  "guest_freshness": "No new freshness claim; changed Makefile input remains task4 work.",
+  "simulated_receipts": {
+    "archive": "test-only-simulated-control-receipts.tar.gz",
+    "sha256": "d51a4bd13ad364ce323cc51cb976a8b573a4d764576d8355e092ac49f387f496",
+    "source_preserved_outside_checkout": "/home/agent/.cache/codex-build/fn258-consumer/current-pair-3f5-054-fake-child-control-receipts",
+    "meaning": "These are only fake-child unit-control outputs, NOT receipts of a live complete gate. Moved out before clean status observation."
+  },
+  "scope": "New focused observations on exact clean3f5f613/054 pair; no root/standalone/candidate source changes, no broad/JVM/review commands, no existing evidence rewritten."
+}

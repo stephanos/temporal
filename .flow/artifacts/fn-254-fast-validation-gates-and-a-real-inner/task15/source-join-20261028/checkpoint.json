@@ -1,0 +1,42 @@
+{
+  "kind": "source-join-checkpoint",
+  "task_acceptance": false,
+  "source_inputs": [
+    "642aab42dddc650ce2ac634728a1ec3a28c64af8",
+    "2e85512bbb",
+    "63f6ae8f8c",
+    "b3f1611a5a",
+    "adc8cd5060"
+  ],
+  "verification": {
+    "native_leaf_public_routes": "red before registration; protobuf comparison-root symlink control failed after registration and passed after root-path fix; finalfocused2passed",
+    "model_recipe_controls": "red on old shell invocation; green after native Make recipe;19casefamilies inside1Rusttest",
+    "remaining": "Gate fixture join, all relevant Rust controls and lint, script/caller mapping, required standalone proof, formal review, Flowclosure."
+  },
+  "logs": [
+    {
+      "path": "native-leaves-red.log",
+      "sha256": "6bda168604d077e5d20116371e7feb76fc738efaa26b82f83773a27fb574604d"
+    },
+    {
+      "path": "native-leaves-red-after-compile-fix.log",
+      "sha256": "4ad76d8c1b47b871d93164f6d2074cdc8e9a7578466473c56cec3258048164bf"
+    },
+    {
+      "path": "native-leaves-green.log",
+      "sha256": "1848c8b79ebd595d037d13203d26a049ccaed553533a0c8ded15550d6d2eb386"
+    },
+    {
+      "path": "native-leaves-symlink-green.log",
+      "sha256": "126f8fe0d4a2c392c67f84967a2fbc34e06bc1f3cd43319add61342ca3782eaa"
+    },
+    {
+      "path": "model-controls-red.log",
+      "sha256": "2c50adbd2a30f9d8b7bdb1c38d392caff84133cea5006adb8da6d10663677de2"
+    },
+    {
+      "path": "model-controls-green.log",
+      "sha256": "9a97b66eea881a338dee609c611e40b40bb04ccedcb37c2e2ec947bedecc7a34"
+    }
+  ]
+}

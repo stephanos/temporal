@@ -1,0 +1,11 @@
+{
+  "rid": "81b94a664e4b4012aace6c1e0fa7d73a",
+  "collapse": {
+    "contracts:1": "thread-cap",
+    "correctness:1": "contracts:2",
+    "correctness:2": "integration:1",
+    "correctness:3": "contracts:3",
+    "integration:2": "contracts:3"
+  },
+  "parse_repairs": "Single valid File:Line anchors; findings/verdict preserved; SHIP worst draw."
+}

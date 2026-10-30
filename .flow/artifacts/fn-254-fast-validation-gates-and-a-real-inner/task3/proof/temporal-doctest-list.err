@@ -1,0 +1,8 @@
+warning: doc tests are not supported for crate type(s) `cdylib` in package `umpire-temporal-guest`
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/temporal/api)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/temporal/realization)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.94s
+   Doc-tests umpire_temporal
+   Doc-tests umpire_temporal_annotate_syntax
+   Doc-tests umpire_temporal_api
+   Doc-tests umpire_temporal_realization_macros

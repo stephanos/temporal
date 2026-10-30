@@ -1,0 +1,498 @@
+{
+  "result": "pass",
+  "scope": "Prepared recovery snapshots only; no real ref creation, feature acceptance or task4 activation",
+  "bundle": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-receiving-snapshots/prepared-snapshots.bundle",
+    "sha256": "efb9a7007b502c7d83f4b458fd5baa3e017ba1b10d9ca261a97557a8bf4d72cd",
+    "size": 1756635
+  },
+  "verified_targets": 48,
+  "custody_commits": 50,
+  "controls_passed": 16,
+  "variant_file_records": 57286,
+  "net_deletions": 1942,
+  "mapped_source_deletions": 1931,
+  "extra_beforeimage_blob_count": 0,
+  "targets": [
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-028",
+      "source_ref": "refs/heads/work/fn2103-fixtures",
+      "source_commit": "280fc46eab71e446df59422ff823a45864005b63",
+      "target_oid": "8d019568a14643d3ccc700f559ac7bc70eb041a0",
+      "committed_oid": "8d019568a14643d3ccc700f559ac7bc70eb041a0",
+      "variant": "committed-custody-snapshot",
+      "file_count": 318,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-029",
+      "source_ref": "refs/heads/work/fn2103-oracle",
+      "source_commit": "62cfa7fcf37355a1fe7d42d2a08f051bc55e9bf3",
+      "target_oid": "3a7846afd6581a417ca8158c6b1d61ddbc13670d",
+      "committed_oid": "3a7846afd6581a417ca8158c6b1d61ddbc13670d",
+      "variant": "committed-custody-snapshot",
+      "file_count": 270,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-030",
+      "source_ref": "refs/heads/work/fn2114-deferred",
+      "source_commit": "fee5fc56ae071808ddf143521fe3670c9fba85b2",
+      "target_oid": "72bd6452eb307b37c317a8aea4a647b18a074897",
+      "committed_oid": "72bd6452eb307b37c317a8aea4a647b18a074897",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1235,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-031",
+      "source_ref": "refs/heads/work/fn2386-interpreted-switch",
+      "source_commit": "6deb7dcb9dc71204bcd61423aea3ae9720928628",
+      "target_oid": "0fca35aed84afd69bea16e0cc5947dff144fdc3a",
+      "committed_oid": "0fca35aed84afd69bea16e0cc5947dff144fdc3a",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1256,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-033",
+      "source_ref": "refs/heads/work/fn2462-once-entity-lens",
+      "source_commit": "7de877e5de1c5fdde24c835fddcd3f4ae226f4cd",
+      "target_oid": "5a4b4e299a31db15006e71a31554e03eb1b38cc2",
+      "committed_oid": "5a4b4e299a31db15006e71a31554e03eb1b38cc2",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1195,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-035",
+      "source_ref": "refs/heads/work/fn2469-prefix",
+      "source_commit": "eac683e6033c5861910fc0f0ed61f41b5e02946f",
+      "target_oid": "97ab713d3b9751b593019be3c225eb6d471a1d95",
+      "committed_oid": "97ab713d3b9751b593019be3c225eb6d471a1d95",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1179,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-037",
+      "source_ref": "refs/heads/work/fn2533-once-countdown-library",
+      "source_commit": "fa1feeaff76f214f6fc0a600b68e4137e3af2b83",
+      "target_oid": "90348cfd1334278297be4dcd0b5781690d26ae27",
+      "committed_oid": "90348cfd1334278297be4dcd0b5781690d26ae27",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1196,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-038",
+      "source_ref": "refs/heads/work/fn254-receipt-counts",
+      "source_commit": "097e800d722ff998ce10371f48663e563433f499",
+      "target_oid": "7cd47521c54815acacf71b3a2280de3d63a917b6",
+      "committed_oid": "7cd47521c54815acacf71b3a2280de3d63a917b6",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1196,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-039",
+      "source_ref": "refs/heads/work/fn254-source-assembly",
+      "source_commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "target_oid": "6209366dde32ecae86aa3691f4bd50c3c9e644b3",
+      "committed_oid": "346e75d506bcd3730dbde6e1b47e21bce75f01c1",
+      "variant": "raw-dirty-custody-variant",
+      "file_count": 1198,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-040",
+      "source_ref": "refs/heads/work/fn25410-controls",
+      "source_commit": "ee01177359dc48e0ea92e9e899e80d10148dcd4c",
+      "target_oid": "50d6eba94ad5158ac6dd78afdffff1a42dcdc4bf",
+      "committed_oid": "50d6eba94ad5158ac6dd78afdffff1a42dcdc4bf",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1166,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-041",
+      "source_ref": "refs/heads/work/fn25410-fix-boundary",
+      "source_commit": "210a333719786037cff5f362b2a84e8a0e47b0b8",
+      "target_oid": "9b8331efba7cfbe4db4cddd784fbd0fe63fab39a",
+      "committed_oid": "9b8331efba7cfbe4db4cddd784fbd0fe63fab39a",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1169,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-043",
+      "source_ref": "refs/heads/work/fn25410-fix-runner",
+      "source_commit": "6373099ed8d8b24bf0eca8d2d4dd4d588593e073",
+      "target_oid": "ff595c4d524eddca36c0b9fc7daec5277afc8247",
+      "committed_oid": "ff595c4d524eddca36c0b9fc7daec5277afc8247",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1169,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-044",
+      "source_ref": "refs/heads/work/fn25410-native",
+      "source_commit": "3e389df1df52a88935fdc3fa337f6d0b026aee3e",
+      "target_oid": "9b84e90ae75cd113f73c3a96b3e29f5473f5d0db",
+      "committed_oid": "9b84e90ae75cd113f73c3a96b3e29f5473f5d0db",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1166,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-046",
+      "source_ref": "refs/heads/work/fn25411-standalone",
+      "source_commit": "6660073f4200beb5f0020d5db50e99cdab872e04",
+      "target_oid": "2aae4360bac9eecd73363cd6cffcd284e35488c2",
+      "committed_oid": "2aae4360bac9eecd73363cd6cffcd284e35488c2",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1172,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-047",
+      "source_ref": "refs/heads/work/fn25412-budget-prep",
+      "source_commit": "4835a4734a09575d22d50fb131c873173b79e3a9",
+      "target_oid": "8e83a4663f295d6378ba6d0d92577649e5a657e0",
+      "committed_oid": "8e83a4663f295d6378ba6d0d92577649e5a657e0",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1182,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-048",
+      "source_ref": "refs/heads/work/fn25412-budget-wiring",
+      "source_commit": "f7ad9c4e58725590d313a4e8b5c1a36847dd02c4",
+      "target_oid": "58cdf5afb2d35accdf8933a015b2de0d8af3f0c3",
+      "committed_oid": "58cdf5afb2d35accdf8933a015b2de0d8af3f0c3",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1193,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-049",
+      "source_ref": "refs/heads/work/fn25413-driver",
+      "source_commit": "86f812692797a0e3451133f0d59f382818584312",
+      "target_oid": "f28838558ee212600fe4bad8ca549565ae5b0fe0",
+      "committed_oid": "f28838558ee212600fe4bad8ca549565ae5b0fe0",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1163,
+      "ownership_exception_paths": 4
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-050",
+      "source_ref": "refs/heads/work/fn25413-paths",
+      "source_commit": "23c3d4881995feffa8f4711e477bfe26323d2a71",
+      "target_oid": "032f136dd0200fd6006064391fb3e3a9646c8002",
+      "committed_oid": "032f136dd0200fd6006064391fb3e3a9646c8002",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1132,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-051",
+      "source_ref": "refs/heads/work/fn25413-scripts",
+      "source_commit": "0bd07ad88d7b8dc6b8aaade2d97b6d81e82db205",
+      "target_oid": "37455c15969f49408448777eb9149b19e995d4fe",
+      "committed_oid": "37455c15969f49408448777eb9149b19e995d4fe",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1146,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-052",
+      "source_ref": "refs/heads/work/fn25414-probes",
+      "source_commit": "5ba482b5b73ca4d85ab758568d9a25ec4c4126b4",
+      "target_oid": "d4c5830abb0df23d418729d3b6aecf6b9337af8e",
+      "committed_oid": "d4c5830abb0df23d418729d3b6aecf6b9337af8e",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1172,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-053",
+      "source_ref": "refs/heads/work/fn25415-native-controls-v2",
+      "source_commit": "022d614b6fc4e8263bd541c58acd31bf440c7112",
+      "target_oid": "1d42717362a03c31a02574bae2a4ff2b3f646f7a",
+      "committed_oid": "1d42717362a03c31a02574bae2a4ff2b3f646f7a",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1198,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-054",
+      "source_ref": "refs/heads/work/fn25415-prep-proto",
+      "source_commit": "6c726af351b70b9654c36b4ee97a8c38371c4bdf",
+      "target_oid": "5b5b5440fa08a923c4f54465bf9d3f18cd54658e",
+      "committed_oid": "5b5b5440fa08a923c4f54465bf9d3f18cd54658e",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1181,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-055",
+      "source_ref": "refs/heads/work/fn25415-prep-scripts",
+      "source_commit": "4d913e06d07a90655d3ef756e7b8f09933ffa010",
+      "target_oid": "e212f3e79c826f699c0441fdefd82f28ad654177",
+      "committed_oid": "e212f3e79c826f699c0441fdefd82f28ad654177",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1178,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-056",
+      "source_ref": "refs/heads/work/fn25415-shell-finish",
+      "source_commit": "a5c556ca2b9b46734347c20fd83381ed7758ba06",
+      "target_oid": "aa936aeb7567050f3d98bce42cc6258df7675153",
+      "committed_oid": "aa936aeb7567050f3d98bce42cc6258df7675153",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1187,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-057",
+      "source_ref": "refs/heads/work/fn25416-prep-tools",
+      "source_commit": "31e989d8092e3610f7f05259c2e8f729906de383",
+      "target_oid": "6c2e3f29f5723bad8986f5ee696b3a2a07661884",
+      "committed_oid": "6c2e3f29f5723bad8986f5ee696b3a2a07661884",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1182,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-058",
+      "source_ref": "refs/heads/work/fn25416-provider-adapt",
+      "source_commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+      "target_oid": "5ee1767ca599c85de9e3f84ff9cc3ccb40db16b2",
+      "committed_oid": "5ee1767ca599c85de9e3f84ff9cc3ccb40db16b2",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1195,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-059",
+      "source_ref": "refs/heads/work/fn25417-mise-adapter-v2",
+      "source_commit": "ce5996f4d87c080eaf51d02e3b590318144b541c",
+      "target_oid": "c1c86f61477e502d20034b19b97dd6669f6a04a8",
+      "committed_oid": "c1c86f61477e502d20034b19b97dd6669f6a04a8",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1189,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-060",
+      "source_ref": "refs/heads/work/fn25417-prep-controls",
+      "source_commit": "22b3a6b3a5f73846bb4608a591b4f8f176443ea7",
+      "target_oid": "7003f0b9a2a4221feb396daeabc9059b9f546971",
+      "committed_oid": "7003f0b9a2a4221feb396daeabc9059b9f546971",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1181,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-061",
+      "source_ref": "refs/heads/work/fn25417-prep-gate",
+      "source_commit": "64d2a62e86edb050b4e14fa7807a4f4782f81c37",
+      "target_oid": "5dde6810fc42d784c641f48ed1063f5ea5a87799",
+      "committed_oid": "5dde6810fc42d784c641f48ed1063f5ea5a87799",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1180,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-062",
+      "source_ref": "refs/heads/work/fn25417-prep-mise",
+      "source_commit": "c9e91a47505ecc2013a5517d4aaf5eb052148ef4",
+      "target_oid": "2d2e55e5318d6dcc9ddfafd62bd30d2ed0e4ec57",
+      "committed_oid": "2d2e55e5318d6dcc9ddfafd62bd30d2ed0e4ec57",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1178,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-063",
+      "source_ref": "refs/heads/work/fn25417-prep-nextest",
+      "source_commit": "42d06a0c6d3407e195c95b3d2fbfeee897bdde22",
+      "target_oid": "fd0bc8dfac02d04318659c119a2d9fc15493bc26",
+      "committed_oid": "fd0bc8dfac02d04318659c119a2d9fc15493bc26",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1179,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-064",
+      "source_ref": "refs/heads/work/fn2543-nextest",
+      "source_commit": "d49485e91f41cd4a1a808585a25ec13392945080",
+      "target_oid": "3bcfd7aeb053eae17d45ee53cbc09d4e27ac1e9d",
+      "committed_oid": "3bcfd7aeb053eae17d45ee53cbc09d4e27ac1e9d",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1171,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-065",
+      "source_ref": "refs/heads/work/fn2544-author",
+      "source_commit": "a9de3aad7df3eada18ae55d437b660e84606b25d",
+      "target_oid": "1ef2b7189114782a09f9f129ec255bf0ee818385",
+      "committed_oid": "1ef2b7189114782a09f9f129ec255bf0ee818385",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1122,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-066",
+      "source_ref": "refs/heads/work/fn2544-backends",
+      "source_commit": "ad1d8f884706304dca2b952835c2cc07b708593e",
+      "target_oid": "43a080dd8d634647799f4acb5ab3f61b4feb9443",
+      "committed_oid": "43a080dd8d634647799f4acb5ab3f61b4feb9443",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1123,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-067",
+      "source_ref": "refs/heads/work/fn2544-catalogs",
+      "source_commit": "845eba5065e7a24cdd5d06a15a0736736d85925d",
+      "target_oid": "e3393d4c6a59b0d222933d81814c3500ffac3833",
+      "committed_oid": "e3393d4c6a59b0d222933d81814c3500ffac3833",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1122,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-068",
+      "source_ref": "refs/heads/work/fn2544-runtime",
+      "source_commit": "02f4279a6151c4ae5cfbd99bef75b9d03328576c",
+      "target_oid": "c75e0c24f8962e031065f126906703a664d2b11e",
+      "committed_oid": "c75e0c24f8962e031065f126906703a664d2b11e",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1121,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-069",
+      "source_ref": "refs/heads/work/fn2545-prep-compiler",
+      "source_commit": "b4b9b05cdefa4874d54c9799b536a8dcb14a0845",
+      "target_oid": "8947c6931020397515167f986a1c0721ea9fa609",
+      "committed_oid": "8947c6931020397515167f986a1c0721ea9fa609",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1178,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-070",
+      "source_ref": "refs/heads/work/fn2545-prep-fixtures",
+      "source_commit": "088e98ecae978b921c1d7371202bb8bd2e772f7c",
+      "target_oid": "1b967046e047586faf021ad1859e80cc34c2c008",
+      "committed_oid": "1b967046e047586faf021ad1859e80cc34c2c008",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1178,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-071",
+      "source_ref": "refs/heads/work/fn2545-prep-parser",
+      "source_commit": "77af035124f569ce6a335c3786dcb3181d9fa766",
+      "target_oid": "05f4dcef7f3c5c9dbae2a76e8132b89394ad34fe",
+      "committed_oid": "05f4dcef7f3c5c9dbae2a76e8132b89394ad34fe",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1180,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-072",
+      "source_ref": "refs/heads/work/fn2546-quick",
+      "source_commit": "0c41b85a49dc38758cf0418809fbcf0de63205fc",
+      "target_oid": "bc39ae415c39cc40f38ee27177930e6cd520c424",
+      "committed_oid": "bc39ae415c39cc40f38ee27177930e6cd520c424",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1178,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-074",
+      "source_ref": "refs/heads/work/fn2552-once-differential",
+      "source_commit": "71d33377eeee63989daf312e9d3fd8e218968e2b",
+      "target_oid": "5f23ca66739dc8bc8e0ad5dd8f788a0cc12f9373",
+      "committed_oid": "5f23ca66739dc8bc8e0ad5dd8f788a0cc12f9373",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1205,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-075",
+      "source_ref": "refs/heads/work/fn2553-prep-fuzz",
+      "source_commit": "1df6f6b75d47a06642bd30b9bbe0d47b6d040ef8",
+      "target_oid": "af617a8f9ab19865ce5f96d6482fca306de3433e",
+      "committed_oid": "305373c021b1d36e6ae6b40b3e535ec58b70aac1",
+      "variant": "raw-dirty-custody-variant",
+      "file_count": 1218,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-076",
+      "source_ref": "refs/heads/work/fn2553-stable-harness",
+      "source_commit": "7010baad96ec230bd45eff977d218ab192f8464c",
+      "target_oid": "ec0f57c6f36b9925352f5eb88719ac7549c0da1d",
+      "committed_oid": "ec0f57c6f36b9925352f5eb88719ac7549c0da1d",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1235,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-077",
+      "source_ref": "refs/heads/work/fn2554-prep-mutants",
+      "source_commit": "a573caade12cac5d50ca3f1ab6d9f59683a84ed2",
+      "target_oid": "f896db78ad8babb61a26ec246c6d2b54026f066e",
+      "committed_oid": "f896db78ad8babb61a26ec246c6d2b54026f066e",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1182,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-078",
+      "source_ref": "refs/heads/work/fn2555-once-miri",
+      "source_commit": "9583f7eef765ad6c6cc41a8e400613cdb078470b",
+      "target_oid": "e459e0fcb108c04d99812582b14db952937c09eb",
+      "committed_oid": "e459e0fcb108c04d99812582b14db952937c09eb",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1201,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-079",
+      "source_ref": "refs/heads/work/fn2556-coverage",
+      "source_commit": "daee451d5c5e2efdf72100d9a518cd16e8c438d1",
+      "target_oid": "b60b51a68c4a4925e5700604c4765963b00d1b85",
+      "committed_oid": "b60b51a68c4a4925e5700604c4765963b00d1b85",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1200,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-080",
+      "source_ref": "refs/heads/work/fn2556-coverage-fixes",
+      "source_commit": "91847b54dc4af12193379274761d00d7fd20ef04",
+      "target_oid": "b0a2fa0b0119aea3d67c60cc68f1510b4d132fb7",
+      "committed_oid": "b0a2fa0b0119aea3d67c60cc68f1510b4d132fb7",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1202,
+      "ownership_exception_paths": 0
+    },
+    {
+      "proposed_ref": "refs/recovery/fn258/candidate-082",
+      "source_ref": "refs/heads/work/fn2562-once-retirement",
+      "source_commit": "f6e39420c2ac6308a3da9380da44c126054b6380",
+      "target_oid": "a6106c6703e7b43693aaabb92bf21611ff150439",
+      "committed_oid": "a6106c6703e7b43693aaabb92bf21611ff150439",
+      "variant": "committed-custody-snapshot",
+      "file_count": 1195,
+      "ownership_exception_paths": 0
+    }
+  ]
+}

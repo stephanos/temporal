@@ -1,0 +1,9 @@
+   Compiling umpire-fixtures v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/fixtures)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 08s
+     Running fixtures.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/fixtures-9bb770ff16c9948c)
+
+running 1 test
+test countdowns_tests::countdowns_source_mutants_refute_and_replay ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 86 filtered out; finished in 67.82s
+

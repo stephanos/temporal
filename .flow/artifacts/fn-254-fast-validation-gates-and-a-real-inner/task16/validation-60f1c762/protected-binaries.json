@@ -1,0 +1,20 @@
+[
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/xtask-bootstrap/debug/xtask",
+    "preserved": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/protected-native/60f1c762/xtask",
+    "bytes": 6127504,
+    "sha256": "dcaa227d09e88174bad9a1368977b957d2d0c5d8315dd515292d48d9962da3d4"
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/xtask-bootstrap/debug/umpire-guest-driver",
+    "preserved": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/protected-native/60f1c762/umpire-guest-driver",
+    "bytes": 3724216,
+    "sha256": "ddac0ac870240b61e6b84717530225c818be320b4c5571235d21135b504fb682"
+  },
+  {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/provider-probe",
+    "preserved": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/protected-native/60f1c762/d4-provider-probe",
+    "bytes": 54609096,
+    "sha256": "726efe100f9af209cdc521e835719223d2cc20df8a72d2232ad30c31b56f65f7"
+  }
+]

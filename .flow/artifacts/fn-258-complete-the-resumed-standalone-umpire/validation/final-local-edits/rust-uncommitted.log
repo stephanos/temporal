@@ -1,0 +1,11 @@
+   Compiling umpire-dsl v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/author/dsl)
+error[E0425]: cannot find value `fn258_uncommitted_rust_probe` in this scope
+   --> /home/agent/.cache/codex-build/tmp/fn258-pair/umpire/author/dsl/src/lib.rs:169:15
+    |
+169 | const _: () = fn258_uncommitted_rust_probe;
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+For more information about this error, try `rustc --explain E0425`.
+error: could not compile `umpire-dsl` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `umpire-dsl` (lib) due to 1 previous error

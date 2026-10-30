@@ -1,0 +1,25 @@
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/testing)
+    Finished `test` profile [unoptimized] target(s) in 0.95s
+     Running tests/consumers.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/consumers-6f38a314badccd3c)
+
+running 3 tests
+test selected_update_child ... ok
+test selected_updates_admit_repairable_siblings_and_preserve_skipped_goldens ... 
+thread 'selected_updates_admit_repairable_siblings_and_preserve_skipped_goldens' (550190) panicked at dev/testing/tests/consumers.rs:482:9:
+Output { status: ExitStatus(unix_wait_status(25856)), stdout: "\nrunning 1 test\ntest selected_update_child ... FAILED\n\nfailures:\n\nfailures:\n    selected_update_child\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.00s\n\n", stderr: "Error: \"invalid golden /tmp/umpire-fn2545-review-fixes/umpire-selected-update-repair-550188/fixtures/control/expected/artifact.tla.snap: missing snapshot header\"\n" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+test update_mode_repairs_corrupt_consumer_owned_snapshots ... 
+thread 'update_mode_repairs_corrupt_consumer_owned_snapshots' (550195) panicked at dev/testing/tests/consumers.rs:409:9:
+Output { status: ExitStatus(unix_wait_status(25856)), stdout: "\nrunning 1 test\ntest runner_child ... FAILED\n\nfailures:\n\nfailures:\n    runner_child\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.00s\n\n", stderr: "Error: \"invalid golden /tmp/umpire-fn2545-review-fixes/umpire-repair-consumer-snapshot-550188/fixtures/control/expected/artifact.tla.snap: missing snapshot header\"\n" }
+FAILED
+
+failures:
+
+failures:
+    selected_updates_admit_repairable_siblings_and_preserve_skipped_goldens
+    update_mode_repairs_corrupt_consumer_owned_snapshots
+
+test result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-testing --test consumers`

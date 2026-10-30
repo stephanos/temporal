@@ -1,0 +1,57 @@
+diff --git a/model/umpire/author/dsl/macros/tests/ui/action_domain_unbound.stderr b/model/umpire/author/dsl/macros/tests/ui/action_domain_unbound.stderr
+index fac414b455..eee0b01953 100644
+--- a/model/umpire/author/dsl/macros/tests/ui/action_domain_unbound.stderr
++++ b/model/umpire/author/dsl/macros/tests/ui/action_domain_unbound.stderr
+@@ -7,7 +7,7 @@ error[E0277]: `User` has World-dependent inputs and no static action domain
+    = help: the trait `umpire_dsl::path_build::BindWorld<User, _>` is not implemented for fn item `fn(_) -> _ {<_ as Into<_>>::into}`
+    = note: build the domain from the selected World, such as `Pattern::action(User::actions_in(&world).map(Into::into), None, None)`
+ note: required by a bound in `umpire_dsl::path_build::Unbound::<A>::map`
+-  --> $WORKSPACE/umpire/author/dsl/src/path_build.rs
++  --> $WORKSPACE/author/dsl/src/path_build.rs
+    |
+    |     pub fn map<B, F: BindWorld<A, B>>(self, map: F) -> ActionDomain<B> {
+    |                      ^^^^^^^^^^^^^^^ required by this bound in `Unbound::<A>::map`
+@@ -22,7 +22,7 @@ error[E0277]: `User` has World-dependent inputs and no static action domain
+    = help: the trait `umpire_dsl::path_build::BindWorld<User, _>` is not implemented for fn item `fn(_) -> _ {<_ as Into<_>>::into}`
+    = note: build the domain from the selected World, such as `Pattern::action(User::actions_in(&world).map(Into::into), None, None)`
+ note: required by a bound in `umpire_dsl::path_build::Unbound::<A>::map`
+-  --> $WORKSPACE/umpire/author/dsl/src/path_build.rs
++  --> $WORKSPACE/author/dsl/src/path_build.rs
+    |
+    |     pub fn map<B, F: BindWorld<A, B>>(self, map: F) -> ActionDomain<B> {
+    |                      ^^^^^^^^^^^^^^^ required by this bound in `Unbound::<A>::map`
+@@ -37,7 +37,7 @@ error[E0277]: `User` has World-dependent inputs and no static action domain
+    = help: the trait `umpire_dsl::path_build::BindWorld<User, _>` is not implemented for fn item `fn(_) -> _ {<_ as Into<_>>::into}`
+    = note: build the domain from the selected World, such as `Pattern::action(User::actions_in(&world).map(Into::into), None, None)`
+ note: required by a bound in `umpire_dsl::path_build::Unbound::<A>::map`
+-  --> $WORKSPACE/umpire/author/dsl/src/path_build.rs
++  --> $WORKSPACE/author/dsl/src/path_build.rs
+    |
+    |     pub fn map<B, F: BindWorld<A, B>>(self, map: F) -> ActionDomain<B> {
+    |                      ^^^^^^^^^^^^^^^ required by this bound in `Unbound::<A>::map`
+diff --git a/model/umpire/author/dsl/macros/tests/ui/action_finite_missing.stderr b/model/umpire/author/dsl/macros/tests/ui/action_finite_missing.stderr
+index 22518b2b8c..63f9d877a5 100644
+--- a/model/umpire/author/dsl/macros/tests/ui/action_finite_missing.stderr
++++ b/model/umpire/author/dsl/macros/tests/ui/action_finite_missing.stderr
+@@ -11,7 +11,7 @@ help: the trait `Finite` is not implemented for `Opaque`
+   | ^^^^^^^^^^^^^
+   = note: derive `Finite`, or give the field `#[inputs(..)]` or a World-bound `#[domain(path)]`
+ help: the trait `Finite` is implemented for `bool`
+- --> $WORKSPACE/umpire/author/dsl/src/finite.rs
++ --> $WORKSPACE/author/dsl/src/finite.rs
+   |
+   | impl Finite for bool {
+   | ^^^^^^^^^^^^^^^^^^^^
+diff --git a/model/umpire/author/dsl/macros/tests/ui/optional_facts_direct_reject.stderr b/model/umpire/author/dsl/macros/tests/ui/optional_facts_direct_reject.stderr
+index 70c8153bd4..54bacb86fb 100644
+--- a/model/umpire/author/dsl/macros/tests/ui/optional_facts_direct_reject.stderr
++++ b/model/umpire/author/dsl/macros/tests/ui/optional_facts_direct_reject.stderr
+@@ -9,7 +9,7 @@ error[E0069]: `return;` in a function whose return type is not `()`
+    |
+    = note: this error originates in the macro `reject` (in Nightly builds, run with -Z macro-backtrace for more info)
+ help: give the `return` a value of the expected type
+-  --> $WORKSPACE/umpire/author/dsl/src/outcome.rs
++  --> $WORKSPACE/author/dsl/src/outcome.rs
+    |
+    |         return None;
+    |                ++++

@@ -1,0 +1,39 @@
+{
+  "complete": true,
+  "targets_absent": {
+    "/tmp/umpire-fn25416-final-60f1c762a618-4090033/proof-5XlzyE/target": true,
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321": true
+  },
+  "protected_paths_present": {
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target": true,
+    "/tmp/umpire-fn25416-final-60f1c762a618-4090033/proof-5XlzyE/framework": true,
+    "/tmp/umpire-fn25416-final-60f1c762a618-4090033/proof-5XlzyE/result.json": true,
+    "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn25416-provider-proof/objects": true,
+    "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects": true,
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task16/validation-60f1c762": true
+  },
+  "parent_cache_allocated_after": 876285952,
+  "allocated_bytes_removed": {
+    "private_child_target": 6609588224,
+    "old_host_release_target": 3779411968
+  },
+  "initial_free_bytes": {
+    "/tmp": 49378492416,
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal": 43679555584
+  },
+  "final_free_bytes": {
+    "/tmp": 55944421376,
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal": 50002501632
+  },
+  "tagged_cargo_commands": 7,
+  "supplemental_object": {
+    "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn25416-provider-proof/objects/556fd5f7a3bb4aaacd73d66ec4b0d38eb599eadc1c50773abbd885646fa65e67",
+    "size": 7479586,
+    "sha256": "556fd5f7a3bb4aaacd73d66ec4b0d38eb599eadc1c50773abbd885646fa65e67"
+  },
+  "supplemental_members": 13437,
+  "remaining_manifest_entries": 19195,
+  "unknown_files_or_special_nodes_found": false,
+  "ownership_limitation": "Readable process cwd/env/fds/maps checked; root socat10,dockerd542,containerd557 metadata unreadable/unknown, identities verified and available argv target-prefix matches negative.",
+  "free_space_note": "Filesystem free-byte changes include concurrent activity; allocated bytes removed are reported separately."
+}

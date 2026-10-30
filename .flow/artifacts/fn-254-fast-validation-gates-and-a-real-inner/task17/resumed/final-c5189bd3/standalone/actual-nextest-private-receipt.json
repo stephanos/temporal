@@ -1,0 +1,8 @@
+{
+  "pid": 1383435,
+  "start_ticks": "5093620",
+  "fd_target": "/tmp/umpire-fn25417-final-c5189bd35d36-1356708/proof-TmDzNQ/target/tmp/.tmpmpXYTI/stdout.log",
+  "read_only_descriptor_opened_at": 1793122897.4099302,
+  "complete_after_process_absent": true,
+  "sha256": "1503a8d0fb442a4ea5b63e67ef65aaeaea0ab439bc4a58cb0b8aa696799ae42f"
+}

@@ -1,0 +1,9 @@
+{
+  "check": "ast.parse only; admission driver workloads not invoked",
+  "scripts": {
+    "driver.py": "cf1cf21419d85f61207025bb065aa319ac060e53731b04260fae0a37a37b674f",
+    "equivalence.py": "1032515d9f53ecd430869ab28c84d2d1b757842654208d6d72aaaf253ac41467",
+    "stub_mise.py": "26a2159d0357910e7f7475fc3f23f39594d270c12015acf1560dd4b5f1f28c13"
+  },
+  "passed": true
+}

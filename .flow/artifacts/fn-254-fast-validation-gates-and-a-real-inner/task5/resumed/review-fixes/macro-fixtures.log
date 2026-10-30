@@ -1,0 +1,228 @@
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/testing)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/author/dsl/macros)
+    Finished `test` profile [unoptimized] target(s) in 2.01s
+────────────
+ Nextest run ID b27f3115-ecf2-4a8f-9830-a8cfb31db467 with nextest profile: default
+    Starting 8 tests across 1 binary
+        PASS [   0.003s] (1/8) umpire-dsl-macros::fixtures parser_refusals::diagnostic_capture_keeps_duplicate_messages_at_distinct_locations
+  stdout ───
+
+    running 1 test
+    test parser_refusals::diagnostic_capture_keeps_duplicate_messages_at_distinct_locations ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+
+        PASS [   0.003s] (2/8) umpire-dsl-macros::fixtures roots::tests::normalizes_derive_paths_using_dependency_roots
+  stdout ───
+
+    running 1 test
+    test roots::tests::normalizes_derive_paths_using_dependency_roots ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+
+        PASS [   0.003s] (3/8) umpire-dsl-macros::fixtures roots::tests::normalizes_facade_imports_through_groups_without_stripping_other_prefixes
+  stdout ───
+
+    running 1 test
+    test roots::tests::normalizes_facade_imports_through_groups_without_stripping_other_prefixes ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+
+        PASS [   0.011s] (4/8) umpire-dsl-macros::fixtures roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths
+  stdout ───
+
+    running 1 test
+    test roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.01s
+
+
+        PASS [   0.012s] (5/8) umpire-dsl-macros::fixtures parser_refusals::parser_refusals_preserve_messages_and_authored_locations
+  stdout ───
+
+    running 1 test
+    test parser_refusals::parser_refusals_preserve_messages_and_authored_locations ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.01s
+
+
+        PASS [   0.118s] (6/8) umpire-dsl-macros::fixtures fixtures
+  stdout ───
+
+    running 1 test
+    test fixtures ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.12s
+
+
+        PASS [   1.478s] (7/8) umpire-dsl-macros::fixtures refusals
+  stdout ───
+
+    running 1 test
+    test refusals ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 1.48s
+
+  stderr ───
+        Checking umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/testing)
+        Checking umpire-dsl-macros-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/tests/trybuild/umpire-dsl-macros)
+        Finished `dev` profile [unoptimized] target(s) in 0.29s
+
+
+    test tests/ui/action_domain_item_type.rs ... ok
+    test tests/ui/action_domain_unbound.rs ... ok
+    test tests/ui/action_domain_world_mismatch.rs ... ok
+    test tests/ui/action_finite_missing.rs ... ok
+    test tests/ui/machine_mutable_aliased_helper.rs ... ok
+    test tests/ui/machine_mutable_const_helper.rs ... ok
+    test tests/ui/machine_mutable_local_helper.rs ... ok
+    test tests/ui/machine_mutable_local_projection.rs ... ok
+    test tests/ui/machine_mutable_nested_helper.rs ... ok
+    test tests/ui/machine_mutable_qualified_helper.rs ... ok
+    test tests/ui/machine_nonexhaustive_actor.rs ... ok
+    test tests/ui/machine_scope_actor.rs ... ok
+    test tests/ui/machine_stay_effect.rs ... ok
+    test tests/ui/machine_stay_helper.rs ... ok
+    test tests/ui/machine_unsafe_allowed.rs ... ok
+    test tests/ui/optional_facts_direct_reject.rs ... ok
+    test tests/ui/stay_outside_machine.rs ... ok
+    test tests/ui/world_starts_return.rs ... ok
+
+
+
+        PASS [   4.201s] (8/8) umpire-dsl-macros::fixtures private_state
+  stdout ───
+
+    running 1 test
+    test private_state ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 4.20s
+
+  stderr ───
+       Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/testing)
+       Compiling umpire-dsl-macros-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/tests/trybuild/umpire-dsl-macros)
+        Finished `dev` profile [unoptimized] target(s) in 0.50s
+
+
+    test tests/pass/action_metadata.rs ... ok
+    test tests/pass/optional_facts.rs ... ok
+    test tests/pass/private_state.rs ... ok
+    test tests/pass/public_actor_private_state.rs ... ok
+
+
+
+────────────
+     Summary [   4.201s] 8 tests run: 8 passed, 0 skipped
+        PASS [   0.003s] (1/8) umpire-dsl-macros::fixtures parser_refusals::diagnostic_capture_keeps_duplicate_messages_at_distinct_locations
+  stdout ───
+
+    running 1 test
+    test parser_refusals::diagnostic_capture_keeps_duplicate_messages_at_distinct_locations ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+
+        PASS [   0.003s] (2/8) umpire-dsl-macros::fixtures roots::tests::normalizes_derive_paths_using_dependency_roots
+  stdout ───
+
+    running 1 test
+    test roots::tests::normalizes_derive_paths_using_dependency_roots ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+
+        PASS [   0.003s] (3/8) umpire-dsl-macros::fixtures roots::tests::normalizes_facade_imports_through_groups_without_stripping_other_prefixes
+  stdout ───
+
+    running 1 test
+    test roots::tests::normalizes_facade_imports_through_groups_without_stripping_other_prefixes ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+
+        PASS [   0.011s] (4/8) umpire-dsl-macros::fixtures roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths
+  stdout ───
+
+    running 1 test
+    test roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.01s
+
+
+        PASS [   0.012s] (5/8) umpire-dsl-macros::fixtures parser_refusals::parser_refusals_preserve_messages_and_authored_locations
+  stdout ───
+
+    running 1 test
+    test parser_refusals::parser_refusals_preserve_messages_and_authored_locations ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.01s
+
+
+        PASS [   0.118s] (6/8) umpire-dsl-macros::fixtures fixtures
+  stdout ───
+
+    running 1 test
+    test fixtures ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.12s
+
+
+        PASS [   1.478s] (7/8) umpire-dsl-macros::fixtures refusals
+  stdout ───
+
+    running 1 test
+    test refusals ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 1.48s
+
+  stderr ───
+        Checking umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/testing)
+        Checking umpire-dsl-macros-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/tests/trybuild/umpire-dsl-macros)
+        Finished `dev` profile [unoptimized] target(s) in 0.29s
+
+
+    test tests/ui/action_domain_item_type.rs ... ok
+    test tests/ui/action_domain_unbound.rs ... ok
+    test tests/ui/action_domain_world_mismatch.rs ... ok
+    test tests/ui/action_finite_missing.rs ... ok
+    test tests/ui/machine_mutable_aliased_helper.rs ... ok
+    test tests/ui/machine_mutable_const_helper.rs ... ok
+    test tests/ui/machine_mutable_local_helper.rs ... ok
+    test tests/ui/machine_mutable_local_projection.rs ... ok
+    test tests/ui/machine_mutable_nested_helper.rs ... ok
+    test tests/ui/machine_mutable_qualified_helper.rs ... ok
+    test tests/ui/machine_nonexhaustive_actor.rs ... ok
+    test tests/ui/machine_scope_actor.rs ... ok
+    test tests/ui/machine_stay_effect.rs ... ok
+    test tests/ui/machine_stay_helper.rs ... ok
+    test tests/ui/machine_unsafe_allowed.rs ... ok
+    test tests/ui/optional_facts_direct_reject.rs ... ok
+    test tests/ui/stay_outside_machine.rs ... ok
+    test tests/ui/world_starts_return.rs ... ok
+
+
+
+        PASS [   4.201s] (8/8) umpire-dsl-macros::fixtures private_state
+  stdout ───
+
+    running 1 test
+    test private_state ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 4.20s
+
+  stderr ───
+       Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/testing)
+       Compiling umpire-dsl-macros-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/tests/trybuild/umpire-dsl-macros)
+        Finished `dev` profile [unoptimized] target(s) in 0.50s
+
+
+    test tests/pass/action_metadata.rs ... ok
+    test tests/pass/optional_facts.rs ... ok
+    test tests/pass/private_state.rs ... ok
+    test tests/pass/public_actor_private_state.rs ... ok
+
+
+

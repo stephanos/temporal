@@ -1,0 +1,15 @@
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire/dev/guest-driver)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.79s
+────────────
+ Nextest run ID a06491b3-1a27-4af8-a8c7-aef3e37c63dc with nextest profile: default
+    Starting 8 tests across 3 binaries (29 tests skipped)
+        PASS [   0.021s] (1/8) umpire-guest-driver::main guest_pipeline::cold_bootstrap_failures_never_build_or_publish
+        PASS [   0.159s] (2/8) umpire-guest-driver::main guest_pipeline::cold_shell_bootstrap_and_cached_native_validation
+        PASS [   0.091s] (3/8) umpire-guest-driver::main guest_pipeline::loader_inheritance_survives_orchestration_environment_purge
+        PASS [   0.159s] (4/8) umpire-guest-driver::main guest_pipeline::native_prerequisite_failures_stop_before_guest_build
+        PASS [   0.389s] (5/8) umpire-guest-driver::main guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build
+        PASS [   0.064s] (6/8) umpire-guest-driver::main guest_pipeline::rust_toolchain_metadata_and_rustup_failures_refuse
+        PASS [   0.950s] (7/8) umpire-guest-driver::main guest_pipeline::guest_build_check_and_artifact_refusals
+        PASS [   0.203s] (8/8) umpire-guest-driver::main guest_pipeline::shell_caller_relative_paths_and_changed_inputs_select_new_cache
+────────────
+     Summary [   1.067s] 8 tests run: 8 passed, 29 skipped

@@ -1,0 +1,21 @@
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.86s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/deps/umpire_backend_process-010aca4a7dd52ead)
+
+running 1 test
+
+thread 'work::tests::admitted_checker_startup_requires_positive_captured_evidence' (167719) panicked at backends/process/src/work.rs:146:13:
+assertion `left == right` failed
+  left: Unknown
+ right: Started
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test work::tests::admitted_checker_startup_requires_positive_captured_evidence ... FAILED
+
+failures:
+
+failures:
+    work::tests::admitted_checker_startup_requires_positive_captured_evidence
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p umpire-backend-process --lib`

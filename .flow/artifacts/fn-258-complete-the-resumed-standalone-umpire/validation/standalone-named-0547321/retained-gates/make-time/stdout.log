@@ -1,0 +1,16 @@
+[gate:proto-tools] proto-tools                       0.051s
+[gate:timing-controls] timing-controls                   0.098s
+[gate:timing-controls] timing-controls                   0.061s
+[gate:protobuf-controls] protobuf-controls                 0.153s
+[gate:protobuf-freshness] protobuf-freshness                0.051s
+[gate:kettle-protobuf-freshness] kettle-protobuf-freshness         0.051s
+[gate:fmt] fmt                               0.734s
+[gate:capability-controls] capability-controls               0.204s
+[gate:clippy] clippy                            0.910s
+[gate:docs] docs                              0.839s
+[gate:tests] tests                            44.180s
+[gate:wasm32-wasip1] wasm32-wasip1                     0.063s
+[gate:core-wasm-clippy] core-wasm-clippy                  0.085s
+[gate:wasm-guest] wasm-guest                       13.926s
+[gate:go-host] go-host                           3.174s
+[gate:kettle-go-host] kettle-go-host                   36.888s

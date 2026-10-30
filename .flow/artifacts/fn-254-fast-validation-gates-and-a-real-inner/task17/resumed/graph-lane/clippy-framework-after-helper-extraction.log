@@ -1,0 +1,16 @@
+    Checking xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask)
+error: items after a test module
+   --> dev/xtask/src/gate.rs:392:1
+    |
+392 | mod tests {
+    | ^^^^^^^^^
+...
+416 | pub fn supervise(arguments: Vec<OsString>) -> Result<i32> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#items_after_test_module
+    = note: `-D clippy::items-after-test-module` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::items_after_test_module)]`
+    = help: move the items to before the test module was defined
+
+error: could not compile `xtask` (lib test) due to 1 previous error

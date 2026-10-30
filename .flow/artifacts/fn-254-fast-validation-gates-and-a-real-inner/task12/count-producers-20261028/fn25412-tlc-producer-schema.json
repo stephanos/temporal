@@ -1,0 +1,93 @@
+{
+  "version": 2,
+  "status": "source-only; producer under implementation; runtime pending",
+  "events": {
+    "tlc-attempt": [
+      "2",
+      "tlc-attempt",
+      "attempt_id: decimal pid-counter",
+      "origin: admitted|fixture",
+      "configuration: probe|-|64 hex",
+      "identity_sha256:64 hex"
+    ],
+    "tlc-finish": [
+      "2",
+      "tlc-finish",
+      "attempt_id",
+      "outcome: started|unknown|fixture",
+      "cause: completed|refused|nonutf8|spawn-error",
+      "authority_path_hex or -",
+      "authority_sha256 or -"
+    ],
+    "tlc-fixture-complete": [
+      "2",
+      "tlc-fixture-complete",
+      "assertion_id:64 hex",
+      "completion_path_hex",
+      "completion_sha256"
+    ]
+  },
+  "authority_directory": "<canonical receipts>/authorities/<UMPIRE_GATE_SCOPE>/<UMPIRE_GATE_STAGE>",
+  "attempt_document": {
+    "version": 1,
+    "kind": "closed-tlc-protocol-fixture",
+    "attempt": "same attempt_id",
+    "assertion_id": "64hex",
+    "scope_sha256": "structural_sha256(&(receipts_path_hex, scope, stage))",
+    "configuration": "matches attempt event",
+    "family": "tlc-batch-v1|tlc-cache-v1",
+    "renderer_sha256": "SHA256 include_bytes!(runner/fixture.rs)",
+    "case_hex": "Debug rendering of private typed Case data, UTF8 bytes hex",
+    "script_path_hex": "canonical executable path",
+    "script_sha256": "SHA256 script bytes",
+    "script_hex": "rendered script bytes hex",
+    "interpreter_path_hex": "canonical /bin/bash",
+    "interpreter_sha256": "SHA256 interpreter",
+    "tools": [
+      {
+        "path_hex": "canonical dirname|cat|grep",
+        "sha256": "SHA256 tool"
+      }
+    ],
+    "data": [
+      {
+        "path_hex": "canonical typed cache input path",
+        "sha256": "SHA256 input",
+        "bytes_hex": "exact input bytes"
+      }
+    ],
+    "test_hex": "original parent test name bytes hex",
+    "test_executable_path_hex": "canonical current_exe",
+    "test_executable_sha256": "SHA256 current_exe",
+    "environment_policy": "clean-path-c-v1",
+    "cause": "matches finish event",
+    "exit": "numeric status.code or null"
+  },
+  "completion_document": {
+    "version": 1,
+    "kind": "tlc-fixture-assertions",
+    "assertion_id": "same assertion id",
+    "scope_sha256": "same scoped identity",
+    "test_hex": "same named original parent test",
+    "test_executable_sha256": "same executable",
+    "outcome": "assertions-completed",
+    "attempts": [
+      {
+        "attempt": "id",
+        "path_hex": "same authority reference",
+        "sha256": "same authority SHA"
+      }
+    ]
+  },
+  "invariants": [
+    "All event IDs unique; every attempt has exactly one terminal; each fixture attempt appears exactly once in one explicit assertion completion; no dangling/crossed references.",
+    "Each reference is absolute under exact current receipts/authorities/scope/stage, regular bounded file, expected basename <attempt>.json or assertions-<assertion_id>.json, content SHA verified.",
+    "Attempt document attempt/configuration/cause agree with events; fixture outcome must have origin fixture and valid completion; admitted started/unknown must carry -/- authority.",
+    "Completion is emitted by parent test after all its original assertions succeed, before scratch cleanup, not at process finish. Root test-result observer must independently see that named parent test pass.",
+    "Fixture script/interpreter/tools/current_exe pinned and rechecked before and after invocation; cache input data snapshotted per invocation and rechecked; current source closed renderer + trusted executable provenance remains root admission responsibility.",
+    "started means recognized UTF8 startup banner from admitted Java/JAR only; unknown remains unknown for missing/partial/nonUTF8/cancelled output. No legacy zero or status-only inference.",
+    "Fixture subprocess uses existing OwnedProcess::spawn_clean with exact PATH=/usr/bin:/bin LANG=C LC_ALL=C; no inherited BASH_ENV/exported functions.",
+    "Unclassified legacy callers remain v1, unchanged semantics. Typed attempts are not duplicated v1. Java -version identity probe does not become a TLC attempt.",
+    "Authority corruption or observation error must fail accounting even when original test expects backend refusal. No event paths other than claim/event files added below work."
+  ]
+}

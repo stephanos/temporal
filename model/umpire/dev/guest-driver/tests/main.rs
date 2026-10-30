@@ -4,6 +4,8 @@
 mod guest_identity;
 #[path = "guest_pipeline.rs"]
 mod guest_pipeline;
+#[path = "linker.rs"]
+mod linker;
 use std::path::{Path, PathBuf};
 fn framework_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")

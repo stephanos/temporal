@@ -1,0 +1,16 @@
+{
+  "HOME": "/home/agent",
+  "MISE_DATA_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/data",
+  "MISE_CACHE_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/cache",
+  "MISE_STATE_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/state",
+  "MISE_CONFIG_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/config",
+  "MISE_GLOBAL_CONFIG_FILE": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/empty.toml",
+  "MISE_SYSTEM_CONFIG_FILE": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/empty.toml",
+  "MISE_CEILING_PATHS": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe",
+  "MISE_TRUSTED_CONFIG_PATHS": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context",
+  "MISE_YES": "1",
+  "MISE_AUTO_INSTALL": "false",
+  "MISE_EXEC_AUTO_INSTALL": "false",
+  "MISE_COLOR": "0",
+  "MISE_NOT_FOUND_AUTO_INSTALL": "false"
+}

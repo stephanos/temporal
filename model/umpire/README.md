@@ -17,11 +17,40 @@ mise exec -- cargo check-all
 mise exec -- cargo doc-all
 ```
 
+Run the complete framework gate from this directory:
+
+```sh
+mise exec -- cargo xtask gate
+```
+
+It checks this workspace's formatting, clippy, documentation, tests, source boundaries,
+protobufs, guests and both Go host modules. `cargo xtask fmt`, `update`, `time` and
+`validate` provide formatting, snapshot updates, timed checks and required TLC checks.
+The full gate sets `UMPIRE_QUICK_CACHE=0` and `UMPIRE_CACHE_DISABLE=1` for all children.
+Apalache remains opt-in through `UMPIRE_APALACHE=require`.
+
+Framework integration controls normally share each package's `tests/main.rs` target.
+The fixture-composition, runtime Reach, native catalog-admission and suite-retention
+controls now run there, under their module names:
+
+```sh
+mise exec -- cargo test --locked -p umpire-testing --test main fixture_composition::
+mise exec -- cargo test --locked -p umpire-runtime --test main reach::
+mise exec -- cargo test --locked -p umpire-checker --test main catalog_admission::
+mise exec -- cargo test --locked -p umpire-suite --test main retained::
+```
+
+Dedicated targets retain compiler admission/UI cases, generated fixture registries,
+self-executing child controls and the ignored Kettle live-snapshot importer. Catalog
+derive controls also retain separate targets because they test incompatible default
+`crate::CatalogContext` aliases. The [consolidation inventory](../../.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task21/identities.json)
+records every retained target's contract and the complete test-name mapping.
+
 The native [xtask](dev/xtask/README.md) provides pinned tool installation and development
 commands. Guest builds execute the independent [guest driver](dev/guest-driver/README.md).
-`bash scripts/tests/build-guests.sh` builds the five generic guests and native parity reports;
+`mise exec -- cargo xtask build-guests` builds the five generic guests and native parity reports;
 the [Go host](hosts/go/README.md) and [Kettle reference](reference/kettle/README.md) describe
-how to consume them. `bash scripts/proto-go.sh core --check` and the `kettle` selector
+how to consume them. `mise exec -- cargo xtask proto-go core --check` and the `kettle` selector
 verify local generated Go protocol sources. Tools, generators and backend caches stay
 under this workspace; explicit Cargo target overrides remain supported.
 
@@ -165,3 +194,13 @@ This exact block compiles as [the DSL README fixture](author/dsl/tests/readme/pa
 checked against the README by `mise exec -- cargo test -p umpire-dsl --test main readme::` from
 this directory. The fixture binds one selected World explicitly; `bound_for` selects another without
 fabricating defaults. `World::new` assigns fields and does not validate their ranges or starts.
+
+Checker tools are provisioned explicitly with `mise exec -- cargo xtask fetch-tlc` or
+`mise exec -- cargo xtask fetch-apalache`. Their framework-owned HTTP declarations live in
+`mise-tools/`; its default environment contains TLC 1.7.4 and its `apalache`
+environment adds Apalache 0.62.4. Provisioning delegates checksummed downloads,
+extraction and installation locking to mise. Execution never auto-installs tools.
+The jar provider scopes mise data/cache/state to `build/mise-jars`, leaving the
+ordinary Java and Rust installations in place. Backends require exact install
+paths, regular files without symlinks, runtime JAR SHA-256 and tool version
+admission before checking a Model. See [provider controls](mise-tools/README.md).

@@ -1,0 +1,22 @@
+{
+  "source_log": ".flow/artifacts/fn-253-reusable-deadline-countdowns-for-models/task5/testing-required-final.log",
+  "log_sha256": "89651e914bf8968106e4067a4f48fa835a303fc35e3cc945a34833d3fb34268e",
+  "source_proof_index": ".flow/artifacts/fn-253-reusable-deadline-countdowns-for-models/task5/proof-index.json",
+  "source_proof_index_sha256": "ffd8bdeb6ca07071e4fad119c65e02ad4f5f45e5b876ba2e5c5ac3a152a9c379",
+  "consumer_source_sha256": {
+    "model/umpire/dev/testing/src/backend.rs": "1abf2cbcd83d5da4ce3913a39175aabf2ad5416e7d90477397cf855a59aaf572",
+    "model/umpire/dev/testing/src/backend_tests.rs": "5246aec165b2293919c598c2b223219b7d5a089cb06f3128a1a5067a052f4722"
+  },
+  "source_equivalence": "Both consumer implementation and unit source match committed fn253.5 proof-index, current fn246.13 source manifest, and actual c9 files byte-for-byte.",
+  "reused_test_identity": "backend::tests::agreement_compares_complete_sets_and_every_verdict",
+  "recorded_test_result": "13 passed; 0 failed; 8.80s",
+  "negative_cases": [
+    "missing TLC state",
+    "verdict difference",
+    "cut native exploration",
+    "missing TLC claim"
+  ],
+  "scope": "Shared agreement consumer unit proof, reused at exact current consumer sources; not a protocol-specific injected TLC mutation or new TLC execution.",
+  "framework_lock_sha256": "2b59c57448112c0d95210905d168b7f26327aab03eaf65160b7afff200bb8a95",
+  "framework_lock_matches_reused_proof": true
+}

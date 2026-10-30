@@ -1,0 +1,78 @@
+{
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.13",
+  "closure": "03c83b1bd8",
+  "root_head": "b68c42f59fe5da8ba697c21484289e37c1e52a19",
+  "authorization": "Parent-authorized checkout-only retirement after exact stable-patch integration proven with git cherry; original non-ancestor refs retained for recovery.",
+  "children": [
+    {
+      "checkout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-driver",
+      "head": "86f812692797a0e3451133f0d59f382818584312",
+      "branch": "work/fn25413-driver",
+      "archive": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.git/retired-worktrees/fn254-20261025/fn25413-driver",
+      "archive_manifest_sha256": "ad7806bb883331455a8a4c6a5c8f79a7ac033f43b758000d8337f48911e8e56d",
+      "ignored_untracked_archived": 21,
+      "patch_equivalent_commit_count": 4,
+      "git_cherry": [
+        "- ae69659146351d07b2943abb5f7e60fe163b925d",
+        "- 15c30e1e40903bbfed4b1530069ddeb576129d40",
+        "- 5a00addabb1efa8b1dcf60f84bd11ecc4b7b828a",
+        "- 86f812692797a0e3451133f0d59f382818584312"
+      ],
+      "preserve_original_branch": true,
+      "verified_archive": true,
+      "checkout_removed_normally": true,
+      "original_branch_ref_retained": true,
+      "original_ref_sha": "86f812692797a0e3451133f0d59f382818584312",
+      "archive_present_after_removal": true
+    },
+    {
+      "checkout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-paths",
+      "head": "23c3d4881995feffa8f4711e477bfe26323d2a71",
+      "branch": "work/fn25413-paths",
+      "archive": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.git/retired-worktrees/fn254-20261025/fn25413-paths",
+      "archive_manifest_sha256": "dee53d74b7abf072a1291811c839b1c04c3a2175b7527304cd5603e61328276c",
+      "ignored_untracked_archived": 8,
+      "patch_equivalent_commit_count": 2,
+      "git_cherry": [
+        "- 94bc3df84f7e1ce1b8dbb99d18479006a8f443cd",
+        "- 23c3d4881995feffa8f4711e477bfe26323d2a71"
+      ],
+      "preserve_original_branch": true,
+      "verified_archive": true,
+      "checkout_removed_normally": true,
+      "original_branch_ref_retained": true,
+      "original_ref_sha": "23c3d4881995feffa8f4711e477bfe26323d2a71",
+      "archive_present_after_removal": true
+    },
+    {
+      "checkout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-scripts",
+      "head": "0bd07ad88d7b8dc6b8aaade2d97b6d81e82db205",
+      "branch": "work/fn25413-scripts",
+      "archive": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.git/retired-worktrees/fn254-20261025/fn25413-scripts",
+      "archive_manifest_sha256": "b3fc2b8bd4b848a4f9e6a474717e6b30a32af3a1402352002cd9e87803c170df",
+      "ignored_untracked_archived": 21,
+      "patch_equivalent_commit_count": 4,
+      "git_cherry": [
+        "- 750e924217717c815e11f8da47a916bb86662345",
+        "- 75f901aee22344558877d3a88f8d8b7d39a98402",
+        "- 5cb60a683ff8922318221cc9f2f3f0f31febe273",
+        "- 0bd07ad88d7b8dc6b8aaade2d97b6d81e82db205"
+      ],
+      "preserve_original_branch": true,
+      "verified_archive": true,
+      "checkout_removed_normally": true,
+      "original_branch_ref_retained": true,
+      "original_ref_sha": "0bd07ad88d7b8dc6b8aaade2d97b6d81e82db205",
+      "archive_present_after_removal": true
+    }
+  ],
+  "total_patch_equivalent_commits": 10,
+  "total_ignored_untracked_archived": 50,
+  "no_active_old_lane_processes_or_cache_leases": true,
+  "active_fn25410_checkouts_preserved": [
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate"
+  ],
+  "cache_action": "none; entire retained task13 cache prefix untouched",
+  "root_source_flow_milestones_commits_action": "none",
+  "verification": "Clean tracked/untracked status and identical all-minus git-cherry output rechecked immediately before normal removal. Archive manifest hashes and all archived file types/sizes verified after removal; regular file SHA256/inode verification performed before removal. All three original branch refs still resolve to their exact recorded heads."
+}

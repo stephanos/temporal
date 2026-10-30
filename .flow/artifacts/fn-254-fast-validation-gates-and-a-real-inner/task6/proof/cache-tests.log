@@ -1,0 +1,50 @@
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/umpire/backends/tlc)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.08s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/cache/debug/deps/umpire_backend_process-014515ac4440a4a8)
+
+running 13 tests
+test fingerprint::tests::full_sha_and_structural_framing ... ok
+test jar::tests::digest_is_in_process_sha256 ... ok
+test jar::tests::wrong_digest_wrong_java_and_cache_escape_refuse_before_use ... ok
+test support::tests::wrong_java_version_vendor_and_failed_launch_are_refused ... ok
+test syscall::supported::tests::close_limit_retains_descriptors_above_lowered_soft_limit ... ok
+test syscall::supported::tests::duplicated_descriptors_are_private_and_close_on_exec ... ok
+test syscall::supported::tests::raw_clone_normalizes_sparc_child_identity ... ok
+test syscall::supported::tests::raw_clone_prefix_preserves_flags_and_null_stack ... ok
+test syscall::supported::tests::supervisor_owner_eof_returns_125 ... ok
+test syscall::supported::tests::supervisor_retains_first_stop_signal ... ok
+test syscall::tests::all_darwin_helpers_prevent_process_creation ... ok
+test syscall::tests::unsupported_platform_is_an_explicit_refusal ... ok
+test jar::tests::exact_jar_and_pinned_java_reach_the_probe ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/cache/debug/deps/umpire_tlc-475beafb703f3d37)
+
+running 23 tests
+test decode::tests::observer_only_safety_assignment_keeps_empty_state_refusal ... ok
+test decode::tests::string_and_collection_values_preserve_authored_contents ... ok
+test decode::tests::typed_dump_rejects_missing_extra_wrong_type_and_truncation ... ok
+test cache::tests::root_admission_rejects_symlinks_and_relative_paths ... ok
+test runner::batch_tests::batch_resource_refusal_does_not_launch_singleton_recovery ... ok
+test runner::batch_tests::singleton_evaluation_stops_recovery_after_current_wave ... ok
+test runner::batch_tests::singleton_output_budget_precedes_later_evaluation_and_stops_new_waves ... ok
+test runner::batch_tests::batch_protocol_requires_complete_selected_evidence ... ok
+test runner::cache_tests::cache_child ... ok
+test runner::cache_tests::concurrent_writers_and_readers_see_only_complete_bundles ... ok
+test runner::batch_tests::singleton_recovery_measures_worker_peak_and_owns_each_scratch ... ok
+test runner::cache_tests::every_effective_identity_input_invalidates ... ok
+test runner::cache_tests::invalid_cached_batch_refuses_before_any_singleton_recovery ... ok
+test runner::cache_tests::manifest_integrity_limits_and_interrupted_publication ... ok
+test runner::cache_tests::populated_cache_hits_and_authoritative_disable_runs_fresh ... ok
+test runner::tests::counterexample_requires_consecutive_states_and_a_valid_lasso ... ok
+test runner::tests::escaping_cache_symlinks_are_refused_before_creating_files ... ok
+test runner::tests::evaluation_errors_name_the_property_and_state ... ok
+test runner::tests::incomplete_messages_and_exploration_are_refused ... ok
+test runner::tests::located_property_invariants_name_only_the_selected_operator ... ok
+test runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed ... ok
+test runner::tests::typed_module_refuses_inconsistent_declarations_before_spawning ... ok
+test runner::cache_tests::failures_refutations_and_incomplete_modules_never_publish ... ok
+
+test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.88s
+

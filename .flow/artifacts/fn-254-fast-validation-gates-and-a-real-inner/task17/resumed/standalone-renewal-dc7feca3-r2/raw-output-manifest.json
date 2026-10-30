@@ -1,0 +1,74 @@
+[
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3-r2/__pycache__/observer.cpython-314.pyc",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3-r2/__pycache__/observer.cpython-314.pyc",
+    "bytes": 9204,
+    "sha256": "da83a37105e82d143e1dcd1f7ff9c8e84ea89cc6700d467bba7ad3d15e7df7db"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3-r2/driver.stderr.log",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3-r2/driver.stderr.log",
+    "bytes": 792,
+    "sha256": "a73732a2bfb656c42e66a076df095bb998b906d52c62ef2d903e1e266536af37"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3-r2/driver.stdout.log",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3-r2/driver.stdout.log",
+    "bytes": 170,
+    "sha256": "1836a6394099a25c093b645319df2e87dc97868d969f3266edb36328113b579e"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3-r2/focused-quick-test.stderr.log",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3-r2/focused-quick-test.stderr.log",
+    "bytes": 2112,
+    "sha256": "cbce0b479d8799d160b4641a288baa79361f4a76d06b1a3df1cee0544bd85511"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3-r2/focused-quick-test.stdout.log",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3-r2/focused-quick-test.stdout.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3-r2/native-bootstrap.stderr.log",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3-r2/native-bootstrap.stderr.log",
+    "bytes": 60,
+    "sha256": "a11a1de8037a032bda7e33f88e31dc898d0129cfe94956add639cd289d2ce985"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3-r2/native-bootstrap.stdout.log",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3-r2/native-bootstrap.stdout.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3-r2/owned-process-samples.jsonl",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3-r2/owned-process-samples.jsonl",
+    "bytes": 1556,
+    "sha256": "84fd686a453183c64c9c3a0c3068924e5d377758aac78ad2b6845e4a6d66bbc4"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3-r2/production-standalone.stderr.log",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3-r2/production-standalone.stderr.log",
+    "bytes": 208,
+    "sha256": "a77150e5e3166e99e2a44229e739c1ba7fa15c232ec467767dad36840435dfd9"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3-r2/production-standalone.stdout.log",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3-r2/production-standalone.stdout.log",
+    "bytes": 100,
+    "sha256": "d77a99a9447c18f3419aedcfcd477548dfa0dc8ff987c715ca558d8189070ea8"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3-r2/retired-names.stderr.log",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3-r2/retired-names.stderr.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3-r2/retired-names.stdout.log",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3-r2/retired-names.stdout.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

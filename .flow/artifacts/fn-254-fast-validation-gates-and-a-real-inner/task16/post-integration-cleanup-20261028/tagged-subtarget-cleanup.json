@@ -1,0 +1,436 @@
+[
+  {
+    "target": "/tmp/umpire-fn25416-final-60f1c762a618-4090033/proof-5XlzyE/target/guest-cache/ce3edbb87e2105619a4db43c9eae7f30be139e491566ead106db307c0996e6c1/wasm32-wasip1",
+    "actual_cache_tag": "Signature: 8a477f597d28d172789f06886806bc55\n# This file is a cache directory tag created by cargo.\n# For information about cache directory tags see https://bford.info/cachedir/\n",
+    "allocated_before": 223993856,
+    "recovery_before": {
+      "objects": 1,
+      "archive_members": 3548,
+      "original_source_reads": false
+    },
+    "ownership": {
+      "owners": [],
+      "inaccessible_foreign_root_infrastructure": [
+        {
+          "pid": 10,
+          "uid": 0,
+          "comm": "socat",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 542,
+          "uid": 0,
+          "comm": "dockerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 557,
+          "uid": 0,
+          "comm": "containerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        }
+      ],
+      "checks": [
+        "cwd",
+        "exe",
+        "environment",
+        "open-fds-including-locks",
+        "memory-maps"
+      ]
+    },
+    "free_before": {
+      "/tmp": 49377595392,
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal": 44908175360
+    },
+    "command": [
+      "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+      "clean",
+      "--target-dir",
+      "/tmp/umpire-fn25416-final-60f1c762a618-4090033/proof-5XlzyE/target/guest-cache/ce3edbb87e2105619a4db43c9eae7f30be139e491566ead106db307c0996e6c1/wasm32-wasip1"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "     Removed 568 files, 213.7MiB total\n",
+    "target_absent": true,
+    "allocated_after": 0,
+    "free_after": {
+      "/tmp": 49601593344,
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal": 44906692608
+    }
+  },
+  {
+    "target": "/tmp/umpire-fn25416-final-60f1c762a618-4090033/proof-5XlzyE/target/tests/runtime-capability-controls/target",
+    "actual_cache_tag": "Signature: 8a477f597d28d172789f06886806bc55\n# This file is a cache directory tag created by cargo.\n# For information about cache directory tags see https://bford.info/cachedir/\n",
+    "allocated_before": 261476352,
+    "recovery_before": {
+      "objects": 1,
+      "archive_members": 3548,
+      "original_source_reads": false
+    },
+    "ownership": {
+      "owners": [],
+      "inaccessible_foreign_root_infrastructure": [
+        {
+          "pid": 10,
+          "uid": 0,
+          "comm": "socat",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 542,
+          "uid": 0,
+          "comm": "dockerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 557,
+          "uid": 0,
+          "comm": "containerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        }
+      ],
+      "checks": [
+        "cwd",
+        "exe",
+        "environment",
+        "open-fds-including-locks",
+        "memory-maps"
+      ]
+    },
+    "free_before": {
+      "/tmp": 49601564672,
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal": 45234409472
+    },
+    "command": [
+      "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+      "clean",
+      "--target-dir",
+      "/tmp/umpire-fn25416-final-60f1c762a618-4090033/proof-5XlzyE/target/tests/runtime-capability-controls/target"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "     Removed 661 files, 305.0MiB total\n",
+    "target_absent": true,
+    "allocated_after": 0,
+    "free_after": {
+      "/tmp": 49863045120,
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal": 45234253824
+    }
+  },
+  {
+    "target": "/tmp/umpire-fn25416-final-60f1c762a618-4090033/proof-5XlzyE/target/tests/trybuild/aarch64-unknown-linux-gnu",
+    "actual_cache_tag": "Signature: 8a477f597d28d172789f06886806bc55\n# This file is a cache directory tag created by cargo.\n# For information about cache directory tags see https://bford.info/cachedir/\n",
+    "allocated_before": 848564224,
+    "recovery_before": {
+      "objects": 1,
+      "archive_members": 3548,
+      "original_source_reads": false
+    },
+    "ownership": {
+      "owners": [],
+      "inaccessible_foreign_root_infrastructure": [
+        {
+          "pid": 10,
+          "uid": 0,
+          "comm": "socat",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 542,
+          "uid": 0,
+          "comm": "dockerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 557,
+          "uid": 0,
+          "comm": "containerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        }
+      ],
+      "checks": [
+        "cwd",
+        "exe",
+        "environment",
+        "open-fds-including-locks",
+        "memory-maps"
+      ]
+    },
+    "free_before": {
+      "/tmp": 49863016448,
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal": 45421596672
+    },
+    "command": [
+      "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+      "clean",
+      "--target-dir",
+      "/tmp/umpire-fn25416-final-60f1c762a618-4090033/proof-5XlzyE/target/tests/trybuild/aarch64-unknown-linux-gnu"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "     Removed 2438 files, 844.1MiB total\n",
+    "target_absent": true,
+    "allocated_after": 0,
+    "free_after": {
+      "/tmp": 50711416832,
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal": 45419982848
+    }
+  },
+  {
+    "target": "/tmp/umpire-fn25416-final-60f1c762a618-4090033/proof-5XlzyE/target/wasm32-wasip1",
+    "actual_cache_tag": "Signature: 8a477f597d28d172789f06886806bc55\n# This file is a cache directory tag created by cargo.\n# For information about cache directory tags see https://bford.info/cachedir/\n",
+    "allocated_before": 28184576,
+    "recovery_before": {
+      "objects": 1,
+      "archive_members": 3548,
+      "original_source_reads": false
+    },
+    "ownership": {
+      "owners": [],
+      "inaccessible_foreign_root_infrastructure": [
+        {
+          "pid": 10,
+          "uid": 0,
+          "comm": "socat",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 542,
+          "uid": 0,
+          "comm": "dockerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 557,
+          "uid": 0,
+          "comm": "containerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        }
+      ],
+      "checks": [
+        "cwd",
+        "exe",
+        "environment",
+        "open-fds-including-locks",
+        "memory-maps"
+      ]
+    },
+    "free_before": {
+      "/tmp": 50711552000,
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal": 46197686272
+    },
+    "command": [
+      "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+      "clean",
+      "--target-dir",
+      "/tmp/umpire-fn25416-final-60f1c762a618-4090033/proof-5XlzyE/target/wasm32-wasip1"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "     Removed 205 files, 27.7MiB total\n",
+    "target_absent": true,
+    "allocated_after": 0,
+    "free_after": {
+      "/tmp": 50739740672,
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal": 46197334016
+    }
+  },
+  {
+    "target": "/tmp/umpire-fn25416-final-60f1c762a618-4090033/proof-5XlzyE/target/xtask-bootstrap",
+    "actual_cache_tag": "Signature: 8a477f597d28d172789f06886806bc55\n# This file is a cache directory tag created by cargo.\n# For information about cache directory tags see https://bford.info/cachedir/\n",
+    "allocated_before": 324616192,
+    "recovery_before": {
+      "objects": 1,
+      "archive_members": 3548,
+      "original_source_reads": false
+    },
+    "ownership": {
+      "owners": [],
+      "inaccessible_foreign_root_infrastructure": [
+        {
+          "pid": 10,
+          "uid": 0,
+          "comm": "socat",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 542,
+          "uid": 0,
+          "comm": "dockerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 557,
+          "uid": 0,
+          "comm": "containerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        }
+      ],
+      "checks": [
+        "cwd",
+        "exe",
+        "environment",
+        "open-fds-including-locks",
+        "memory-maps"
+      ]
+    },
+    "free_before": {
+      "/tmp": 50739720192,
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal": 46282989568
+    },
+    "command": [
+      "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+      "clean",
+      "--target-dir",
+      "/tmp/umpire-fn25416-final-60f1c762a618-4090033/proof-5XlzyE/target/xtask-bootstrap"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "     Removed 465 files, 409.8MiB total\n",
+    "target_absent": true,
+    "allocated_after": 0,
+    "free_after": {
+      "/tmp": 51064340480,
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal": 46271094784
+    }
+  },
+  {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/tests/runtime-capability-controls/target",
+    "actual_cache_tag": "Signature: 8a477f597d28d172789f06886806bc55\n# This file is a cache directory tag created by cargo.\n# For information about cache directory tags see https://bford.info/cachedir/\n",
+    "allocated_before": 261136384,
+    "recovery_before": {
+      "objects": 8,
+      "unique_objects": 8,
+      "archive_members": 69
+    },
+    "ownership": {
+      "owners": [],
+      "inaccessible_foreign_root_infrastructure": [
+        {
+          "pid": 10,
+          "uid": 0,
+          "comm": "socat",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 542,
+          "uid": 0,
+          "comm": "dockerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 557,
+          "uid": 0,
+          "comm": "containerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        }
+      ],
+      "checks": [
+        "cwd",
+        "exe",
+        "environment",
+        "open-fds-including-locks",
+        "memory-maps"
+      ]
+    },
+    "free_before": {
+      "/tmp": 51064143872,
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal": 46564286464
+    },
+    "command": [
+      "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+      "clean",
+      "--target-dir",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/tests/runtime-capability-controls/target"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "     Removed 661 files, 305.0MiB total\n",
+    "target_absent": true,
+    "allocated_after": 0,
+    "free_after": {
+      "/tmp": 51064143872,
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal": 46824833024
+    }
+  },
+  {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/tests/trybuild/aarch64-unknown-linux-gnu",
+    "actual_cache_tag": "Signature: 8a477f597d28d172789f06886806bc55\n# This file is a cache directory tag created by cargo.\n# For information about cache directory tags see https://bford.info/cachedir/\n",
+    "allocated_before": 846127104,
+    "recovery_before": {
+      "objects": 8,
+      "unique_objects": 8,
+      "archive_members": 69
+    },
+    "ownership": {
+      "owners": [],
+      "inaccessible_foreign_root_infrastructure": [
+        {
+          "pid": 10,
+          "uid": 0,
+          "comm": "socat",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 542,
+          "uid": 0,
+          "comm": "dockerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        },
+        {
+          "pid": 557,
+          "uid": 0,
+          "comm": "containerd",
+          "available_argv_target_prefix_match": false,
+          "unreadable_metadata": "unknown foreign infrastructure"
+        }
+      ],
+      "checks": [
+        "cwd",
+        "exe",
+        "environment",
+        "open-fds-including-locks",
+        "memory-maps"
+      ]
+    },
+    "free_before": {
+      "/tmp": 51064066048,
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal": 46984065024
+    },
+    "command": [
+      "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+      "clean",
+      "--target-dir",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/tests/trybuild/aarch64-unknown-linux-gnu"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "     Removed 2438 files, 843.4MiB total\n",
+    "target_absent": true,
+    "allocated_after": 0,
+    "free_after": {
+      "/tmp": 51064066048,
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal": 47833501696
+    }
+  }
+]

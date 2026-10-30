@@ -1,0 +1,35 @@
+{
+  "snapshot_scope": "Original revision-qualified generic prefixes plus LICENSE only. Mixed .history-support provenance remains in canonical exported/source history, not new receiver trees.",
+  "candidate049_source_only_exception": {
+    "source_commit": "86f812692797a0e3451133f0d59f382818584312",
+    "source_keeper_ref": "refs/heads/work/fn25413-driver",
+    "source_keeper_repository": "temporal",
+    "source_files": {
+      "model/dev/xtask/Cargo.toml": {
+        "mode": "100644",
+        "blob": "197ea11f8d05d8d492d366586848ec97c8769ff1"
+      },
+      "model/dev/xtask/README.md": {
+        "mode": "100644",
+        "blob": "e51d320746c8e779225f9e54831b33e5b4ca2c71"
+      },
+      "model/dev/xtask/tests/main.rs": {
+        "mode": "100644",
+        "blob": "15feea01ea8f3a661f271c574b039646d69900a6"
+      },
+      "model/dev/xtask/tests/retired_names.rs": {
+        "mode": "100644",
+        "blob": "5b2ac37d480cf02b1a76c224c9f01a10dbc88f8b"
+      }
+    },
+    "reason": "Root independently approved exact four-path consumer ownership correction: temporal-xtask package, extension-only controls and Temporal Make/guest/scanner tests. Not a global native-tool anchor change. Original ledger/maps unchanged.",
+    "action_task": "fn-258-complete-the-resumed-standalone-umpire.5",
+    "evidence": "candidate-049-consumer-prefix.json"
+  },
+  "collision_policy": "Reject collisions; collision-only generic duplicates may use root-admitted injective source layout, but no such extra rule is applied silently.",
+  "custody_commit_identity": {
+    "name": "Codex Recovery Custodian",
+    "email": "codex-custody@localhost"
+  },
+  "status": "preparation-only; not buildable, portable, accepted transfer or activation"
+}

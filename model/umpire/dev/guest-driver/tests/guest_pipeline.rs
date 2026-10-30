@@ -4,7 +4,7 @@
 #[path = "pipeline/support.rs"]
 mod support;
 use std::{fs, io::Write, process::Command};
-use support::{Fixture, code, executable};
+use support::{Fixture, code};
 #[test]
 fn guest_build_check_and_artifact_refusals() {
     let f = Fixture::new();
@@ -37,7 +37,7 @@ fn guest_build_check_and_artifact_refusals() {
 }
 
 #[test]
-fn cold_shell_bootstrap_and_cached_native_validation() {
+fn cold_retained_bootstrap_and_cached_native_validation() {
     let f = Fixture::new();
     fs::write(f.root.join("out.wasm"), b"\0asm\x01\0\0\0").unwrap();
     code(
@@ -52,85 +52,34 @@ fn cold_shell_bootstrap_and_cached_native_validation() {
     fs::remove_file(f.root.join("guest-built")).unwrap();
     for ci in [None, Some(""), Some("true")] {
         let mut command = f.command(true, true);
-        command.env("MISSING", "go");
         if let Some(ci) = ci {
             command.env("CI", ci);
         } else {
             command.env_remove("CI");
         }
         let result = command.output().unwrap();
-        assert!(!result.status.success());
-        assert!(!f.root.join("guest-built").exists());
+        code(&result, 0);
+        assert!(f.root.join("guest-built").exists());
+        fs::remove_file(f.root.join("guest-built")).unwrap();
     }
 }
 
 #[test]
-fn cold_bootstrap_failures_never_build_or_publish() {
-    for failure in ["missing-mise", "FAIL_BOOTSTRAP"] {
-        let f = Fixture::new();
-        let mut command = f.command(true, true);
-        if failure == "missing-mise" {
-            command.env("PATH", "/usr/bin:/bin");
-        } else {
-            command.env(failure, "1");
-        }
-        let output = command.output().unwrap();
-        assert!(
-            String::from_utf8_lossy(&output.stderr).contains(if failure == "missing-mise" {
-                "requires mise"
-            } else {
-                "bootstrap-compiler-failed"
-            }),
-            "{}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-        code(&output, 1);
-        assert!(!f.root.join("guest-built").exists());
-        assert!(!f.root.join("out.wasm").exists());
-    }
+fn cold_bootstrap_failure_never_builds_or_publishes() {
+    let f = Fixture::new();
+    let output = f.command(true, true).env("FAIL_BOOTSTRAP", "1").output().unwrap();
+    assert!(String::from_utf8_lossy(&output.stderr).contains("bootstrap-compiler-failed"));
+    code(&output, 1);
+    assert!(!f.root.join("guest-built").exists());
+    assert!(!f.root.join("out.wasm").exists());
 }
 
 #[test]
-fn native_prerequisite_failures_stop_before_guest_build() {
-    for (key, value) in [
-        ("MISSING", "rust"),
-        ("MISSING", "go"),
-        ("MISSING", "protoc"),
-        ("FAIL_PROBE", "1"),
-        ("BAD_METADATA", "1"),
-    ] {
-        let f = Fixture::new();
-        code(&f.command(true, true).env(key, value).output().unwrap(), 1);
-        assert!(!f.root.join("guest-built").exists());
-        assert!(!f.root.join("out.wasm").exists());
-    }
-    for remove in [
-        "rust/bin/cargo",
-        "rust/lib/rustlib/src/rust/library/Cargo.toml",
-        "rust/lib/rustlib/wasm32-wasip1/lib/libstd-control.rlib",
-    ] {
-        let f = Fixture::new();
-        fs::remove_file(f.root.join(remove)).unwrap();
-        code(&f.command(true, true).output().unwrap(), 1);
-        assert!(!f.root.join("guest-built").exists());
-    }
-    for contents in ["invalid [", "[tools]\nrust='0.0.0'\ngo='0'\nprotoc='0'\n"] {
-        let f = Fixture::new();
-        fs::write(f.model.join("mise.toml"), contents).unwrap();
-        code(&f.command(true, true).output().unwrap(), 1);
-        assert!(!f.root.join("guest-built").exists());
-    }
-}
-
-#[test]
-fn shell_caller_relative_paths_and_changed_inputs_select_new_cache() {
+fn native_caller_relative_paths_and_changed_inputs_select_new_cache() {
     let f = Fixture::new();
     let original = f.command(false, true);
-    let mut command = Command::new("/bin/bash");
-    command
-        .arg(f.model.join("scripts/guest.sh"))
-        .args(["example-guest", "relative output.wasm"])
-        .current_dir(&f.root);
+    let mut command = Command::new(crate::driver_binary());
+    command.args(["guest", "example-guest", "relative output.wasm"]).current_dir(&f.root);
     for (key, value) in original.get_envs() {
         if let Some(value) = value {
             command.env(key, value);
@@ -155,26 +104,6 @@ fn shell_caller_relative_paths_and_changed_inputs_select_new_cache() {
 }
 
 #[test]
-fn rust_toolchain_metadata_and_rustup_failures_refuse() {
-    for content in ["invalid [", "[toolchain]\nchannel='0.0.0'\n"] {
-        let f = Fixture::new();
-        fs::write(f.model.join("rust-toolchain.toml"), content).unwrap();
-        code(&f.command(true, true).output().unwrap(), 1);
-        assert!(!f.root.join("guest-built").exists());
-    }
-    for script in [
-        "#!/bin/sh\necho no-installed-toolchain\n",
-        "#!/bin/sh\necho rustup-probe-failed >&2\nexit 27\n",
-    ] {
-        let f = Fixture::new();
-        executable(&f.root.join("rust/bin/rustc"), script);
-        fs::hard_link(f.root.join("rust/bin/rustc"), f.root.join("rust/bin/rustup")).unwrap();
-        code(&f.command(true, true).output().unwrap(), 1);
-        assert!(!f.root.join("guest-built").exists());
-    }
-}
-
-#[test]
 fn loader_inheritance_survives_orchestration_environment_purge() {
     let f = Fixture::new();
     let mise = f.root.join("bin/mise");
@@ -186,4 +115,67 @@ fn loader_inheritance_survives_orchestration_environment_purge() {
     let observed: serde_json::Value =
         serde_json::from_slice(&fs::read(f.root.join("loader.json")).unwrap()).unwrap();
     assert_eq!(observed["loader"], serde_json::json!(b"loader-marker".as_slice()));
+}
+
+#[test]
+fn relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build() {
+    let f = Fixture::new();
+    fs::write(f.root.join("out.wasm"), b"\0asm\x01\0\0\0").unwrap();
+    let caller = f.root.join("caller");
+    fs::create_dir_all(caller.join("cargo home")).unwrap();
+    fs::create_dir_all(f.model.join("cargo home")).unwrap();
+    fs::copy(f.model.join("Cargo.lock"), caller.join("Cargo.lock")).unwrap();
+    std::os::unix::fs::symlink(caller.join("cargo home"), caller.join("cargo alias")).unwrap();
+    for shell in [false, true] {
+        for home in ["cargo home", "cargo alias"] {
+            let result = f
+                .command(true, shell)
+                .current_dir(&caller)
+                .env("CARGO_HOME", home)
+                .env("EXPECTED_CARGO_HOME", caller.join("cargo home"))
+                .output()
+                .unwrap();
+            code(&result, 0);
+        }
+    }
+}
+
+#[test]
+fn retained_bootstrap_stdout_selects_executable_and_native_route_creates_output() {
+    let f = Fixture::new();
+    let output = f.bootstrap_command().output().unwrap();
+    code(&output, 0);
+    let tool =
+        f.root.join("custom target").canonicalize().unwrap().join("xtask-bootstrap/debug/xtask");
+    let mut expected = tool.as_os_str().as_encoded_bytes().to_vec();
+    expected.push(b'\n');
+    assert_eq!(output.stdout, expected);
+    assert!(tool.is_file());
+    assert!(tool.with_file_name("umpire-guest-driver").is_file());
+    assert!(!f.root.join("out.wasm").exists());
+    code(&f.command(false, true).output().unwrap(), 0);
+    assert_eq!(fs::read(f.root.join("out.wasm")).unwrap(), b"\0asm\x01\0\0\0");
+    assert_eq!(fs::read(f.root.join("bootstrap-path")).unwrap(), expected);
+}
+
+#[test]
+fn missing_mise_refuses_bootstrap_without_fallback_cargo() {
+    let f = Fixture::new();
+    let bin = f.root.join("bootstrap-only bin");
+    fs::create_dir(&bin).unwrap();
+    for (name, executable) in [("dirname", "/usr/bin/dirname"), ("mkdir", "/bin/mkdir")] {
+        std::os::unix::fs::symlink(executable, bin.join(name)).unwrap();
+    }
+    support::executable(
+        &bin.join("cargo"),
+        "#!/bin/bash\n: > \"$FIXTURE/fallback-cargo\"\nexit 0\n",
+    );
+    let output = f.bootstrap_command().env("PATH", &bin).output().unwrap();
+    code(&output, 1);
+    assert_eq!(output.stdout, b"");
+    assert!(String::from_utf8_lossy(&output.stderr).contains("mise"));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("xtask bootstrap failed"));
+    assert!(!f.root.join("fallback-cargo").exists());
+    assert!(!f.root.join("guest-built").exists());
+    assert!(!f.root.join("out.wasm").exists());
 }

@@ -1,0 +1,19 @@
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-lifecycle-custody/model/umpire/backends/process)
+    Finished `test` profile [unoptimized] target(s) in 1.16s
+     Running tests/process.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/process-dd3f0d78e1007fbe)
+
+running 1 test
+
+thread 'root_broadcast_cancels_checker_while_rust_owner_is_stopped' (692396) panicked at backends/process/tests/process.rs:865:9:
+checker guardian depended on stopped Rust owner
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test root_broadcast_cancels_checker_while_rust_owner_is_stopped ... FAILED
+
+failures:
+
+failures:
+    root_broadcast_cancels_checker_while_rust_owner_is_stopped
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 30 filtered out; finished in 5.04s
+
+error: test failed, to rerun pass `-p umpire-backend-process --test process`

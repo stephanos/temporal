@@ -1,0 +1,60 @@
+{
+  "observed_utc": "2026-10-28T15:00:13.381800+00:00",
+  "source_identity": {
+    "head": "05473210b48c3db862f22051eb7154ce98258f98",
+    "tree": "46829511b6d582b40f3fa5095f42bdf980c7d466",
+    "status": ""
+  },
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "test",
+    "--workspace",
+    "--release",
+    "--locked"
+  ],
+  "exit": 0,
+  "seconds": 1668.258310920006,
+  "profile": "release [optimized + debuginfo], actual Finished line137; nested UI/trybuild dev profiles are controls, not top-level profile",
+  "compiler": "actual target.rustc_info: rustc1.99.1(58cf8f9c3 2026-10-13),aarch64-unknown-linux-gnu,LLVM23.1.1",
+  "backend_mode": "default (UMPIRE_BACKENDS and UMPIRE_APALACHE unset)",
+  "counts": {
+    "native": {
+      "passed": 908,
+      "failed": 0,
+      "ignored": 2,
+      "measured": 0,
+      "filtered_out": 0,
+      "discovered": 910
+    },
+    "doctests": {
+      "passed": 4,
+      "failed": 0,
+      "ignored": 1,
+      "measured": 0,
+      "filtered_out": 0,
+      "discovered": 5
+    },
+    "total_discovered": 915,
+    "total_passed": 912,
+    "total_ignored": 3,
+    "excluded_nested_summaries": 9
+  },
+  "coverage_limits": [
+    "Cargo release workspace tests do not run real Go-host/CGO-disabled guest parity or build a WASI guest. No such output claimed. Required054 gate and final paired gates own that parity proof.",
+    "Default backend mode means real model-TLC/Apalache coverage not established by this command; backend/control unit tests may run fake children. No native gate stage authority claimed.",
+    "Doctest temporary executable files are not reported by Cargo and not retained as named binaries; terminal per-block results retained.",
+    "System dynamic libraries are recorded with ldd, not copied as owned proof outputs."
+  ],
+  "named_binary_count": 69,
+  "archive_members": 69,
+  "raw_member_bytes": 1049529216,
+  "compressed_bytes": 261689246,
+  "canonical_original_seals": {
+    "release.log": "d0338e2c06685a8db752f04076250971c519201a44b5c3b9546fea4a3f66683f",
+    "release.json": "140e2fe0834ac2bb73622806cdc4e4e1a20bf4e1ba8c2a0816081d27510b0ca6"
+  },
+  "no_build_cleanup_source_flow_or_pair_target_mutation": true
+}

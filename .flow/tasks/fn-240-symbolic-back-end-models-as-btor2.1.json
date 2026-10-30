@@ -10,5 +10,5 @@
   "spec_path": ".flow/tasks/fn-240-symbolic-back-end-models-as-btor2.1.md",
   "status": "todo",
   "title": "Crate umpire-symbolic: BTOR2 emitter over the embedded admitted tree for Kettle-shaped Models, checked arithmetic and one-step history, emission goldens",
-  "updated_at": "2026-10-24T22:03:33.063156Z"
+  "updated_at": "2026-10-26T05:37:48.317840Z"
 }

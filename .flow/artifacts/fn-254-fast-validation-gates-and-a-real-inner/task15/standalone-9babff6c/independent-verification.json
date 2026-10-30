@@ -1,0 +1,31 @@
+{
+  "accepted": true,
+  "head": "9babff6c815beb7cff92d7001f647ddca19663bf",
+  "stages": 17,
+  "counts": {
+    "discovered": 938,
+    "executed": 935,
+    "ignored": 3,
+    "skipped": 0,
+    "tlc_configurations": null,
+    "tlc_launches": null
+  },
+  "doctests": {
+    "suite_summaries": 24,
+    "passed": 4,
+    "failed": 0,
+    "ignored": 1,
+    "measured": 0,
+    "filtered_out": 0
+  },
+  "source_seals_equal": true,
+  "parent_not_double_charged": true,
+  "owned_pids_checked": 3800,
+  "live_owned_pids": [],
+  "minimum_free_bytes": {
+    "source": 45980946432,
+    "actual_tmp": 47686410240
+  },
+  "scheduled_standalone_seconds": 731.1517584740068,
+  "child": "/tmp/umpire-fn25415-final-9babff6c815b-47070/proof-bKkF3n"
+}

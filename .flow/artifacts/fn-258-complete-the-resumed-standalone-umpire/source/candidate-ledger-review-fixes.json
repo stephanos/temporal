@@ -1,0 +1,21 @@
+{
+  "review_findings": [
+    2,
+    3
+  ],
+  "status": "addressed with fresh real verification and synthetic controls",
+  "frozen_ledger_sha256_before": "b1fc7a843b092d1920d4dbf6387f6d6795d212ecfef381e8b7d96c62b3386851",
+  "frozen_ledger_sha256_after": "b1fc7a843b092d1920d4dbf6387f6d6795d212ecfef381e8b7d96c62b3386851",
+  "capture_rerun": false,
+  "fixes": [
+    "Repository-qualified standalone path mappings are derived independently of the Temporal path table and verified for correct framework ownership.",
+    "Original-head object presence gates containing-ref/ancestry queries; missing or unavailable objects retain explicit unknown recovery gaps.",
+    "Capture and verification share non-throwing candidate-delta admission; orphan/missing merge-base and failed diff return explicit diagnostic records."
+  ],
+  "real_verification_result": "pass",
+  "real_verification_errors": [],
+  "live_ref_drift_count": 4,
+  "controls_result": "pass",
+  "control_count": 4,
+  "scope": "Owned ledger script and verification evidence only; frozen ledger and historical inputs unchanged; no builds, source/ref/worktree/runtime mutations or commits."
+}

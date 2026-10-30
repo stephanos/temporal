@@ -1,0 +1,35 @@
+{
+  "commits": [
+    "5ba482b5b73ca4d85ab758568d9a25ec4c4126b4"
+  ],
+  "tests": [
+    "cd model/umpire && mise exec -- cargo test --locked -p umpire-guest-driver -p umpire-backend-process -p xtask (110 tests passed)",
+    "cd model/umpire && mise exec -- cargo test --locked -p umpire-tlc --lib runner::tests (7 passed)",
+    "cd model/umpire && mise exec -- cargo clippy --locked -p umpire-guest-driver -p umpire-backend-process -p xtask --all-targets -- -D warnings",
+    "bash model/umpire/scripts/tests/bootstrap.sh",
+    "bash model/umpire/scripts/tests/proto-go.sh",
+    "bash model/scripts/tests/proto-go.sh",
+    "bash -n on all six edited shell files; rustfmt --check on all five edited Rust files; git diff --check",
+    "bash ROOT/.flow/tmp/fn254-task14/run-guest-proof.sh (dual fresh target build; exact cmp with each other and committed WASM)",
+    "cd model/umpire && UMPIRE_BACKENDS=require mise exec -- cargo test --locked -p umpire-tlc --test main real_tlc_initial_invariant_has_a_typed_counterexample -- --exact controls::real_tlc_initial_invariant_has_a_typed_counterexample (1 real TLC test passed)"
+  ],
+  "prs": [],
+  "guest": {
+    "old_sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+    "new_a_sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+    "new_b_sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+    "published": false,
+    "native_driver_a_sha256": "b1210c27a5bfe8cd30d5e238fe9ed4341f3d4fc04f98053a527e0593ad60a09c",
+    "native_driver_b_sha256": "b1210c27a5bfe8cd30d5e238fe9ed4341f3d4fc04f98053a527e0593ad60a09c",
+    "cache_key_a": "ae498134b457fa5c38222e7f6eb775bea352e2caeef9c9e50cd7adde27f2a67d",
+    "cache_key_b": "ae498134b457fa5c38222e7f6eb775bea352e2caeef9c9e50cd7adde27f2a67d"
+  },
+  "proof_root": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task14",
+  "source_manifest": "source-manifest.json",
+  "driver_source_manifest": "driver-source-manifest.json",
+  "tool_manifest": "tool-manifest.txt",
+  "subagents": 2,
+  "proof_index": "proof-index.json",
+  "total_rust_tests": 118,
+  "tlc_jar_sha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88"
+}

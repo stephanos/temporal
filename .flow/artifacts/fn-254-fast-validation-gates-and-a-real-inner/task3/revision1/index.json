@@ -1,0 +1,52 @@
+{
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.3",
+  "revision": 1,
+  "source_commit": "71685512286d343ad1a59e3349e23688ea82663f",
+  "scope_admission_commit": "8cf15a04e6",
+  "prior_index": "../index.json",
+  "prior_index_sha256": "695ea8ecb0ce0e690cd504fac14fd6c4ad4b76cc8ac7dd068030170ed033aba7",
+  "source_sha256": {
+    "mise.toml": "c959fbc35e982bb71dd75e1babb230899939ba8f997b3a5fc1bd0a20dbe610a1",
+    "mise.lock": "83bd1e2858a4444470d4ae801111897a87160a9cac233f797999a9e4c0c99cb5",
+    "model/umpire/mise.toml": "047236435e49253d7b4ad8047fa5b7bc683fe089de9eb40a14a25581245a24bb",
+    "model/umpire/mise.lock": "cbe9740d3768eca5e0d500f9aade2f4075bb6f3712ea9c6e905f5e4109555f35",
+    "model/.config/nextest.toml": "9170506dc6f6c152e76fd0f51ae4e0d926495750a8a629293c50536064433d93",
+    "model/umpire/.config/nextest.toml": "2a841c92bc1a2b0bac3ab4f3c701e2452e3ad37235046e82d9393b4293eb987f",
+    "model/dev/xtask/src/test_run.rs": "f4daf19a6caa62e59005cfc93243cc838a77fe4b87f983e654bfdaa3c0011ca5",
+    "model/umpire/dev/xtask/src/test_run.rs": "fad7518ddd8884e53613cdd83e80b18100a9b63e36369c7f02e6963ac51f8742",
+    "model/umpire/author/dsl/macros/tests/ui/action_domain_unbound.stderr": "58e6723e77258497b8dc34410c4e0a379a5cbfa402c0aeba6d7f68db8527e896",
+    "model/umpire/author/dsl/macros/tests/ui/action_finite_missing.stderr": "eb9768f02c7cd55bdb02b4fc3e4efc7beb9c4df3834fec8bcab870180405eb3f",
+    "model/umpire/author/dsl/macros/tests/ui/optional_facts_direct_reject.stderr": "4d31a2012173a309454540439aaf2fffa371d7dc392a1aa6c03c678048a1b669"
+  },
+  "proof_sha256": {
+    "proof/byte-accounting.json": "1c91eccc0d6edb312081d33d28477901ed5079dfebbc6a79529a7510fcfee00d",
+    "proof/prefix-correction.diff": "325734c6f464eeb351618233ef97efa706e415df78458fb7208d4baee29f9742",
+    "proof/prefix-correction.json": "a351a2efa44f8c426c407309813f95916a302a20330e9ff1fdfbd6d814131aa5",
+    "proof/trybuild-cargo.err": "fd8fcecda654385fa7b0e87f850c05ab55c25d03203860a22779451c11bbf681",
+    "proof/trybuild-cargo.out": "8cd454f5b00f243c16beac563d54786645c668b45d4460f5fccc0336aba1318b",
+    "proof/trybuild-comparison.json": "3f4de57db73c4b8d4fe120ef4acb80d525c1067777408c4eccb4a3ca5bb9ecdb",
+    "proof/trybuild-nextest.err": "5cc86437dbd8247763c0000af4d69d3fd118e3ba3e92fd2ce85a7c748d0aee5d",
+    "proof/trybuild-nextest.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "proof/verify.py": "020df73912dfd7e72007baa7486d382b89f65f74b922be5d2a87783dcb5edc4b"
+  },
+  "summary_sha256": "04d632bb11b415aa38502f8c42e797a25533856a26702cfc845bc5e024b65348",
+  "status": "Three admitted prefix-only golden corrections verified; Cargo and nextest compare green; original focused receipts retained by exact source closure; parent review and task11 joint full proof pending",
+  "results": {
+    "prefix_replacements": 5,
+    "changed_golden_files": 3,
+    "other_snapshot_ui_files_unchanged": 560,
+    "registry_tuples_unchanged": 119,
+    "diagnostic_bytes_unchanged_modulo_prefix": true,
+    "current_golden_bytes_equal_retained_actual_update_output": true,
+    "cargo_compare": "PASS",
+    "nextest_compare": "PASS",
+    "prior_inventory": "962 exact Cargo==nextest identities,4ignored; all Rust/manifests unchanged",
+    "prior_doctests": "5 exact names/1ignored; source unchanged",
+    "prior_representative_and_jvm_proof": "50framework+6Temporal passed; peak2JVM/1owner, unchanged executable/config inputs"
+  },
+  "deferred": [
+    "Task11 full framework Rust/isolated-copy gate on joint candidate (mandatory, owner task11).",
+    "Task8 final combined execution, joined producer reconciliation and full-stage/warm performance measurements."
+  ],
+  "not_executed": "No full Temporal run was launched; root cadence clarification retained representative execution and released JVM lease."
+}

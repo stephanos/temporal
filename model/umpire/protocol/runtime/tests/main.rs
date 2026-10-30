@@ -22,6 +22,8 @@ mod prefix;
 mod proposal;
 #[path = "main/proposal_wire.rs"]
 mod proposal_wire;
+#[path = "main/reach.rs"]
+mod reach;
 #[path = "main/rejecting.rs"]
 pub mod rejecting;
 #[path = "main/selected_start.rs"]

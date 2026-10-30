@@ -1,0 +1,43 @@
+{
+  "before": {
+    "sources": {
+      "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+      "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+    },
+    "target": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+    "target_exists": false,
+    "free_bytes": 55447400448,
+    "additional_reservation_gib": 2,
+    "guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+    "workspace_sha256": "5e6ca8f10d627f4d5743ce4f9d2d49e12a67cb0172c3254f021f6c51ce3150db",
+    "step": "pair-prerequisites-and-generators"
+  },
+  "after": {
+    "temporal": {
+      "head": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+      "status": ""
+    },
+    "umpire": {
+      "head": "05473210b48c3db862f22051eb7154ce98258f98",
+      "status": ""
+    }
+  },
+  "commands": [
+    {
+      "argv": [
+        "make",
+        "model-prerequisites"
+      ],
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "started_unix": 1793199016.9173489,
+      "ended_unix": 1793199068.0728889,
+      "exit": 0,
+      "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/pair-prerequisites-and-generators-1793199016916077003/00-pair-prerequisites-and-generators.log",
+      "log_sha256": "6dbf4b72b0790650fc2d3e688225559f2a0e337cc23465167ed3e0fdbdca34f9",
+      "free_before": 55447392256,
+      "free_after": 55146758144
+    }
+  ],
+  "guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+  "scope": "Command receipts only; final acceptance/Flow state and proof recovery remain root-controlled."
+}

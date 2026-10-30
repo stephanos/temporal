@@ -1,0 +1,89 @@
+{
+  "owner": "Task4 integration harness correction; historical task2/task3 closure sources unchanged",
+  "consumer_before": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+  "consumer_after": "cde1ee67efd266a058193694c2ddb287598b9ea5",
+  "changed_files": [
+    "model/scripts/test-model-wiring.sh"
+  ],
+  "change": "One expected printf suffix now derives both cache policy values from inherited environment. No production flags cleared/changed.",
+  "red_before": "validation/final-pair-3f5-054/failed-default-3f5/reproduction.json",
+  "green_checks": "checks.json",
+  "content_unchanged": {
+    "Makefile": {
+      "before": "602196da160b2dcba5c6ca543c73ee96bfd3099f",
+      "after": "602196da160b2dcba5c6ca543c73ee96bfd3099f",
+      "unchanged": true
+    },
+    "model/Cargo.toml": {
+      "before": "d6535a6ee5541d480f83bd6d2125d43a1258de3b",
+      "after": "d6535a6ee5541d480f83bd6d2125d43a1258de3b",
+      "unchanged": true
+    },
+    "model/Cargo.lock": {
+      "before": "bdf51d0c178efaa777e65e3add88fbd7651824b8",
+      "after": "bdf51d0c178efaa777e65e3add88fbd7651824b8",
+      "unchanged": true
+    },
+    "go.mod": {
+      "before": "727f54ab89e453c974cad722f58f409ed8ea8df8",
+      "after": "727f54ab89e453c974cad722f58f409ed8ea8df8",
+      "unchanged": true
+    },
+    "go.sum": {
+      "before": "f3e516df7cef39fe01b3cc280f1c2e254454852b",
+      "after": "f3e516df7cef39fe01b3cc280f1c2e254454852b",
+      "unchanged": true
+    },
+    "model/temporal": {
+      "before": "a803d26055b6808696a52cd3766238d85343a94b",
+      "after": "a803d26055b6808696a52cd3766238d85343a94b",
+      "unchanged": true
+    },
+    "model/dev/xtask": {
+      "before": "55c88a4ce92ac025461c7f88cb05a09878182f3c",
+      "after": "55c88a4ce92ac025461c7f88cb05a09878182f3c",
+      "unchanged": true
+    },
+    "model/scripts/guest.sh": {
+      "before": "946b248c83443ce4c68e470c39d0b8fea9bfdd6d",
+      "after": "946b248c83443ce4c68e470c39d0b8fea9bfdd6d",
+      "unchanged": true
+    },
+    "model/scripts/guest-freshness.sh": {
+      "before": "008f278c19ed569131cf3c0c5e6b3b3ea68162d4",
+      "after": "008f278c19ed569131cf3c0c5e6b3b3ea68162d4",
+      "unchanged": true
+    },
+    "model/scripts/proto-go.sh": {
+      "before": "5c3f96778ebe21c247496563e4b3061c138503b5",
+      "after": "5c3f96778ebe21c247496563e4b3061c138503b5",
+      "unchanged": true
+    }
+  },
+  "canonical_guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+  "invalidation": {
+    "expired": [
+      "Old full combined gate remains terminalFAILED2; no acceptance inferred from corrected shell controls.",
+      "Final task4 acceptance requires NEW independent source pair and initially empty target at this new consumer head, explicitly admitted by root.",
+      "Source/whole-gate snapshot and changed timing-control suite identity must be refreshed."
+    ],
+    "unchanged_input_scopes": [
+      "Standalone054 source/closure",
+      "Rust/Go runtime, manifests, models, fixtures, goldens and Makefile",
+      "Actual guest freshness stage that passed in failed3f run has unchanged build inputs and bytes; retain as historical content-rebind evidence, not fresh new-head whole-gate acceptance.",
+      "All task2/task3 closed checkpoint evidence remains historical, not rewritten."
+    ]
+  },
+  "failed_pair_preserved": {
+    "temporal_head": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "standalone_head": "05473210b48c3db862f22051eb7154ce98258f98",
+    "status": {
+      "temporal": "",
+      "umpire": ""
+    },
+    "modified": false
+  },
+  "new_final_pair_created": false,
+  "source_worktree_clean": true,
+  "no_broad_gate_or_JVM": true
+}

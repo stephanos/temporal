@@ -1,0 +1,1982 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling syn v3.0.9
+   Compiling libc v0.2.191
+   Compiling getrandom v0.4.3
+   Compiling serde_core v1.0.229
+   Compiling rustix v1.1.5
+   Compiling thiserror v2.0.21
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-ir-derive v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/ir/derive)
+   Compiling prettyplease v0.3.0
+   Compiling equivalent v1.0.3
+   Compiling hashbrown v0.17.1
+   Compiling indexmap v2.14.2
+   Compiling heck v0.5.0
+   Compiling winnow v1.0.4
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling smallvec v1.16.3
+   Compiling proc-macro-utils v0.10.0
+   Compiling umpire-ir v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/ir)
+   Compiling umpire-front v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/front)
+   Compiling manyhow-macros v0.14.1
+   Compiling umpire-dsl-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/dsl/macros)
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling umpire-dsl v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/dsl)
+   Compiling proc-macro-crate v3.5.0
+   Compiling manyhow v0.14.1
+   Compiling umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/native)
+   Compiling cfg-if v1.0.5
+   Compiling rand_core v0.10.1
+   Compiling bytemuck v1.25.2
+   Compiling safe_arch v0.7.4
+   Compiling foldhash v0.1.5
+   Compiling rand_core v0.9.5
+   Compiling rand_xoshiro v0.7.0
+   Compiling hashbrown v0.15.5
+   Compiling wide v0.7.33
+   Compiling archery v1.2.3
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling linux-raw-sys v0.12.1
+   Compiling bitflags v2.13.2
+   Compiling fixedbitset v0.5.7
+   Compiling petgraph v0.8.3
+   Compiling imbl v7.0.2
+   Compiling once_cell v1.21.4
+   Compiling fastrand v2.5.0
+   Compiling tempfile v3.27.0
+   Compiling rustc-hash v2.1.3
+   Compiling anyhow v1.0.104
+   Compiling syn v2.0.119
+   Compiling either v1.19.0
+   Compiling itertools v0.14.0
+   Compiling prost-derive v0.14.4
+   Compiling prettyplease v0.2.37
+   Compiling bytes v1.12.1
+   Compiling regex-syntax v0.8.11
+   Compiling regex-automata v0.4.18
+   Compiling prost v0.14.4
+   Compiling prost-types v0.14.4
+   Compiling regex v1.13.1
+   Compiling log v0.4.34
+   Compiling multimap v0.10.1
+   Compiling prost-build v0.14.4
+   Compiling typenum v1.20.1
+   Compiling hybrid-array v0.4.15
+   Compiling umpire-runtime v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime)
+   Compiling block-buffer v0.12.1
+   Compiling crypto-common v0.2.2
+   Compiling const-oid v0.10.2
+   Compiling digest v0.11.3
+   Compiling cpufeatures v0.3.1
+   Compiling sha2 v0.11.1
+   Compiling zmij v1.0.23
+   Compiling serde_json v1.0.154
+   Compiling ident_case v1.0.1
+   Compiling darling_core v0.24.1
+   Compiling darling_macro v0.24.1
+   Compiling umpire-backend-process v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/process)
+   Compiling serde_derive v1.0.229
+   Compiling serde v1.0.229
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling console v0.16.6
+   Compiling similar v2.7.0
+   Compiling insta v1.49.0
+   Compiling serde_spanned v1.1.2
+   Compiling toml_writer v1.1.3+spec-1.1.0
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling umpire-tla v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/tla)
+   Compiling darling v0.24.1
+   Compiling umpire-catalog-syntax v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog/syntax)
+   Compiling target-tuple v1.0.2
+   Compiling umpire-catalog-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog/macros)
+   Compiling umpire-tlc v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/tlc)
+   Compiling umpire-catalog v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog)
+   Compiling termcolor v1.4.1
+   Compiling glob v0.3.4
+   Compiling trybuild v1.0.122
+   Compiling umpire-testing v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/dev/testing)
+   Compiling umpire-suite v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/suite)
+   Compiling umpire v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/umpire)
+   Compiling umpire-guest-driver v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/dev/guest-driver)
+   Compiling umpire-catalog-build v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog/build)
+   Compiling autocfg v1.5.1
+   Compiling crc32fast v1.5.3
+   Compiling num-traits v0.2.19
+   Compiling umpire-reference-kettle v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/reference/kettle)
+   Compiling simd-adler32 v0.3.10
+   Compiling adler2 v2.0.1
+   Compiling miniz_oxide v0.9.1
+   Compiling filetime v0.2.29
+   Compiling wait-timeout v0.2.1
+   Compiling fnv v1.0.7
+   Compiling bit-vec v0.10.1
+   Compiling quick-error v1.2.3
+   Compiling rusty-fork v0.3.1
+   Compiling bit-set v0.11.1
+   Compiling tar v0.4.46
+   Compiling flate2 v1.1.10
+   Compiling rand v0.10.3
+   Compiling rand_xorshift v0.5.0
+   Compiling chacha20 v0.10.2
+   Compiling unarray v0.1.4
+   Compiling core_detect v1.0.0
+   Compiling proptest v1.12.0
+   Compiling xtask v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/dev/xtask)
+   Compiling umpire-apalache v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/apalache)
+   Compiling umpire-fixtures v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/dev/fixtures)
+   Compiling umpire-author-consumer v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/umpire/tests/consumer)
+   Compiling umpire-kettle-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/reference/kettle/guest)
+   Compiling umpire-control-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime/guests/control)
+   Compiling umpire-caught-panic-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime/guests/caught-panic)
+   Compiling umpire-overflow-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime/guests/overflow)
+   Compiling umpire-stock-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime/guests/stock)
+    Finished `release` profile [optimized + debuginfo] target(s) in 23m 42s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire-5715fdd004f2539c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_apalache-45788d1a25ab5417)
+
+running 7 tests
+test tests::fake_execution_failures_never_pass_and_scratch_is_removed ... ok
+test tests::native_depth_is_checked_and_truncation_never_establishes_a_bound ... ok
+test tests::pinned_outcomes_require_consistent_property_bound_exit_and_completion ... ok
+test tests::successful_substring_is_not_a_bounded_proof ... ok
+test tests::traces_have_one_aggregate_budget_and_deterministic_order ... ok
+test tests::unchanged_monitor_can_omit_redundant_per_state_checks ... ok
+test tests::version_admission_rejects_missing_wrong_and_failed_release_output ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+     Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-87e26ebc031203f2)
+
+running 29 tests
+test controls::pinned_installer_and_runner_agree ... ok
+test controls::real_arithmetic_faults_are_reachable_and_guards_remain_total ... ok
+test controls::real_arithmetic_refusal_follows_a_replayed_valid_prefix ... ok
+test controls::real_discarded_condition_keeps_its_evaluation_guard ... ok
+test controls::real_evaluated_start_failure_cannot_disappear_into_an_empty_range ... ok
+test controls::real_fact_witnesses_replay_exact_vectors_and_stutters ... ok
+test controls::real_kettle_checks_source_safety_and_history ... ok
+test controls::real_kettle_negative_is_replayed_and_tampering_fails ... ok
+test controls::real_later_start_fault_preserves_partial_binding ... ok
+test controls::real_payload_identity_and_outcome_history_are_typed ... ok
+test controls::real_postcondition_filter_excludes_unrelated_actions ... ok
+test controls::real_start_evaluation_respects_field_order_before_empty_domains ... ok
+test controls::real_typed_payload_rejection_and_after_claims_replay ... ok
+test controls::real_typed_vector_projection_keeps_eager_fallback_errors ... ok
+test controls::real_vector_witness_replays_typed_sequence ... ok
+test controls::strict_envelope_presence_and_object_controls ... ok
+test controls::strict_envelope_resource_controls ... ok
+test controls::strict_envelope_world_and_state_bounds ... ok
+test decode::declared_wire_types_must_match_the_source_schema ... ok
+test decode::observer_only_safety_assignment_keeps_strict_schema_empty_state_refusal ... ok
+test decode::optional_integer_itf_uses_the_exact_declared_code_set ... ok
+test decode::typed_itf_checks_declarations_shapes_and_limits ... ok
+test decode::typed_itf_preserves_composites_and_refuses_retired_set_shapes ... ok
+test replay::arithmetic_refusal_is_distinct_and_requires_the_exact_native_boundary ... ok
+test replay::colliding_renderings_cannot_replace_typed_replay_or_reenumerate_native_inputs ... ok
+test replay::exact_payload_outcome_history_and_specific_claim_are_replayed ... ok
+test replay::replay_refuses_an_undeclared_property_before_reading_a_witness ... ok
+test replay::retained_pinned_kettle_witness_replays_deterministically ... ok
+test replay::selected_property_category_cannot_alias_authored_names ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_author_consumer-02eba2d08670513c)
+
+running 3 tests
+test authors_a_machine_path_suite_and_catalog_through_one_dependency ... ok
+test capabilities::renamed_facade_preserves_generic_bounds_empty_actions_and_refusing_defaults ... ok
+test forwards_opaque_metadata_through_renamed_facade ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_backend_process-080282e03171adb1)
+
+running 24 tests
+test fingerprint::tests::full_sha_and_structural_framing ... ok
+test jar::tests::digest_is_in_process_sha256 ... ok
+test jar::tests::exact_jar_and_pinned_java_reach_the_probe ... ok
+test jar::tests::wrong_digest_and_cache_escape_refuse_before_use ... ok
+test support::lease_tests::admission_refuses_hardlinks_fifo_and_public_permissions ... ok
+test support::lease_tests::admission_refuses_symlink_directory_and_foreign_file_without_writing ... ok
+test support::lease_tests::checker_guardian_holds_last_private_description_while_target_has_no_capability ... ok
+test support::lease_tests::checker_target_control ... ok
+test support::lease_tests::file_replacement_during_wait_refuses_after_original_owner_releases ... ok
+test support::lease_tests::inherited_admission_rejects_unheld_canonical_and_held_wrong_description ... ok
+test support::lease_tests::kernel_lock_releases_without_unlinking_or_stale_pid_recovery ... ok
+test support::lease_tests::leased_owner_death_excludes_contender_until_escaped_child_is_reaped ... 
+running 1 test
+test support::lease_tests::lifecycle_child ... 
+running 1 test
+test support::lease_tests::lifecycle_child ... 
+running 1 test
+test support::lease_tests::lifecycle_child ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 23 filtered out; finished in 0.06s
+
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 23 filtered out; finished in 0.08s
+
+ok
+test support::lease_tests::lifecycle_child ... ok
+test syscall::supported::tests::close_limit_retains_descriptors_above_lowered_soft_limit ... ok
+test syscall::supported::tests::duplicated_descriptors_are_private_and_close_on_exec ... ok
+test syscall::supported::tests::raw_clone_normalizes_sparc_child_identity ... ok
+test syscall::supported::tests::raw_clone_prefix_preserves_flags_and_null_stack ... ok
+test syscall::supported::tests::supervisor_owner_eof_returns_125 ... ok
+test syscall::supported::tests::supervisor_retains_first_stop_signal ... ok
+test syscall::tests::all_darwin_helpers_prevent_process_creation ... ok
+test syscall::tests::orchestration_allows_darwin_children_without_weakening_checker_admission ... ok
+test syscall::tests::unsupported_platform_is_an_explicit_refusal ... ok
+test work::tests::scope_probe_child ... ok
+test work::tests::unrelated_processes_do_not_validate_tlc_observation_scope ... 
+running 1 test
+test work::tests::scope_probe_child ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 23 filtered out; finished in 0.00s
+
+
+running 1 test
+test work::tests::scope_probe_child ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 23 filtered out; finished in 0.00s
+
+ok
+
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+     Running tests/process.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/process-a0640ac622267c63)
+
+running 30 tests
+test bounded_reads_dump_and_scratch_fail_closed ... ok
+test cancellation_keeps_controller_alive_to_wait_its_separate_child_group ... ok
+test cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin ... ok
+test checker_inheritance_is_optional_and_invalid_present_custody_refuses_before_launch ... ok
+test cold_native_execution_does_not_need_python_or_a_sibling_supervisor ... ok
+test default_checker_guardian_retains_inherited_custody_without_delegating_to_target ... ok
+test diagnostic_text_cannot_make_a_hung_preflight_pass ... ok
+test direct_helper_timeout_retains_output_and_cleans_scratch ... ok
+test failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8 ... ok
+test installer_containment_preflight_requires_no_descendants ... ok
+test java_environment_is_clean_and_supervisor_group_is_private ... ok
+test launch_status_and_prepared_command_contracts_are_preserved ... ok
+test leased_child_adopts_real_descriptor_and_rejects_forged_locator ... ok
+test leased_clean_command_preserves_only_explicit_environment ... ok
+test lifecycle_locators_without_both_pipe_capabilities_refuse_before_launch ... ok
+test linux_cleanup_reaps_checker_while_rust_owner_is_stopped ... ok
+test linux_root_reaps_paused_nested_guardian_before_releasing_lease ... ok
+test nested_normal_completion_does_not_cancel_following_stage ... ok
+test orchestration_preserves_streams_status_environment_and_cwd ... ok
+test owned_child_reaping_includes_other_process_groups ... ok
+test owner_death_terminates_and_reaps_separate_session_descendants ... ok
+test owner_group_and_direct_supervisor_termination_reap_owned_tree ... ok
+test parent_allocator_threads_do_not_deadlock_forked_supervisors ... ok
+test path_search_tries_candidates_after_exec_errors ... ok
+test pthread_atfork_handlers_do_not_run_in_supervisor_or_target ... ok
+test scratch_owns_private_unique_directories_and_preserves_finish_results ... ok
+test simulated_darwin_helper_cannot_start_an_escaped_descendant ... ok
+test substituted_log_fifo_returns_without_waiting_for_a_reader ... ok
+test substituted_log_symlink_cannot_modify_an_external_file ... ok
+test timeout_cleans_descendants_before_return ... ok
+
+test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.23s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_catalog-cd8766f6fc201fc2)
+
+running 1 test
+test black_box::applicability_tests::maps_all_variants_and_wire_values_stay_closed ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/admission.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/admission-6a3684a50c6207f0)
+
+running 1 test
+test declarations_reject_unclassified_or_incompatible_shapes ...    Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling syn v3.0.9
+   Compiling equivalent v1.0.3
+   Compiling hashbrown v0.17.1
+   Compiling indexmap v2.14.2
+   Compiling rustix v1.1.5
+   Compiling anyhow v1.0.104
+   Compiling syn v2.0.119
+   Compiling heck v0.5.0
+   Compiling either v1.19.0
+   Compiling itertools v0.14.0
+   Compiling prost-derive v0.14.4
+   Compiling umpire-ir-derive v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/ir/derive)
+   Compiling smallvec v1.16.3
+   Compiling thiserror v2.0.21
+   Compiling prettyplease v0.3.0
+   Compiling winnow v1.0.4
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling proc-macro-utils v0.10.0
+   Compiling foldhash v0.1.5
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling hashbrown v0.15.5
+   Compiling manyhow-macros v0.14.1
+   Compiling umpire-ir v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/ir)
+   Compiling thiserror-impl v2.0.21
+   Compiling linux-raw-sys v0.12.1
+   Compiling bytes v1.12.1
+   Compiling umpire-dsl v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/dsl)
+   Compiling prettyplease v0.2.37
+   Compiling fixedbitset v0.5.7
+   Compiling bitflags v2.13.2
+   Compiling regex-syntax v0.8.11
+   Compiling umpire-dsl-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/dsl/macros)
+   Compiling regex-automata v0.4.18
+   Compiling petgraph v0.8.3
+   Compiling prost v0.14.4
+   Compiling umpire-front v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/front)
+   Compiling manyhow v0.14.1
+   Compiling proc-macro-crate v3.5.0
+   Compiling once_cell v1.21.4
+   Compiling fastrand v2.5.0
+   Compiling tempfile v3.27.0
+   Compiling prost-types v0.14.4
+   Compiling regex v1.13.1
+   Compiling bytemuck v1.25.2
+   Compiling multimap v0.10.1
+   Compiling umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/native)
+   Compiling log v0.4.34
+   Compiling prost-build v0.14.4
+   Compiling safe_arch v0.7.4
+   Compiling rand_core v0.9.5
+   Compiling rand_xoshiro v0.7.0
+   Compiling wide v0.7.33
+   Compiling umpire-runtime v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime)
+   Compiling archery v1.2.3
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling imbl v7.0.2
+   Compiling libc v0.2.191
+   Compiling ident_case v1.0.1
+   Compiling darling_core v0.24.1
+   Compiling rustc-hash v2.1.3
+   Compiling darling_macro v0.24.1
+   Compiling getrandom v0.4.3
+   Compiling darling v0.24.1
+    Checking cfg-if v1.0.5
+   Compiling umpire-catalog-syntax v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog/macros)
+    Checking console v0.16.6
+    Checking similar v2.7.0
+    Checking insta v1.49.0
+    Checking umpire-catalog v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog)
+    Checking umpire-catalog-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/tests/trybuild/umpire-catalog)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 42.08s
+
+
+test tests/admission-ui/added_action.rs ... ok
+test tests/admission-ui/added_actor.rs ... ok
+test tests/admission-ui/added_oneof_variant.rs ... ok
+test tests/admission-ui/invalid_response_checks.rs ... ok
+test tests/admission-ui/kind_type_mismatch.rs ... ok
+test tests/admission-ui/repeated_bytes_scalar.rs ... ok
+test tests/admission-ui/repeated_text_scalar.rs ... ok
+
+
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 48.24s
+
+     Running tests/derive_catalog.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/derive_catalog-77ce0adb93926bb2)
+
+running 6 tests
+test disabled_enum_constraint_accepts_unknown_values_and_needs_no_request_expectation ... ok
+test enum_raw_duration_and_scalar_repeated_views_keep_their_semantics ... ok
+test factories_validate_typed_attributes_and_keep_supplemental_intents ... ok
+test generated_identifier_fill_is_stable_and_preserves_supplied_values ... ok
+test nested_inspection_visits_repeated_and_oneof_messages ... ok
+test repeated_constraints_retain_request_and_response_expectations ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-cf7d9f7d30299e67)
+
+running 66 tests
+test black_box::crossed_actual_status_cannot_confirm_a_predicted_rejection ... ok
+test black_box::generic_cases_need_any_rejection_explanation_but_keep_unexplained_failures ... ok
+test black_box::independent_mutations_include_unannotated_fields_and_explicit_refusals ... ok
+test black_box::mutation_admission_preserves_distinct_diagnostic_matches_and_refusals ... ok
+test black_box::only_actual_unpredicted_rejections_are_unannotated_failures ... ok
+test black_box::typed_scalar_mutations_are_independent_of_catalog_constraints ... ok
+test catalog::distinct_presence_fields_accept_relative_and_qualified_paths ... ok
+test catalog::fill_preserves_roles_and_is_atomic_on_missing_external_secrets ... ok
+test catalog::fills_every_generative_kind_and_refuses_impossible_constraints ... ok
+test catalog::gap_goldens_are_derived_from_validation_and_redact_secret_values ... ok
+test catalog::impossible_presence_rules_refuse_without_mutating_message_or_rng ... ok
+test catalog::kind_constraints_have_positive_and_negative_controls ... ok
+test catalog::presence_admission_rejects_aliases_of_the_same_field ... ok
+test catalog::presence_fill_ignores_unrelated_optional_fields ... ok
+test catalog::presence_fill_preserves_unrelated_generated_fields ... ok
+test catalog::presence_operators_validate_and_guide_fill ... ok
+test catalog::repeated_constraints_and_seeded_filling ... ok
+test catalog::request_admission_retains_typed_diagnostics ... ok
+test catalog::string_byte_limits_are_distinct_from_unicode_scalar_limits ... ok
+test catalog::tags_admit_only_compatible_consequences ... ok
+test catalog::typed_catalog_validates_the_actual_field ... ok
+test controls::generated_catalogs_retain_executable_declaration_metadata ... ok
+test controls::ignored_rust_shapes_preserve_their_values ... ok
+test controls::typed_projection_fills_and_validates_actual_wrapper_fields ... ok
+test controls::unknown_enum_numbers_are_refused ... ok
+test generation::anchored_generation_matches_small_exhaustive_string_domains ... ok
+test generation::bounded_unique_sampling_refuses_without_claiming_unsatisfiability ... ok
+test generation::exact_length_anchors_preserve_partial_overlap ... ok
+test generation::generated_text_satisfies_byte_and_scalar_bounds_together ... ok
+test generation::numeric_range_semantics_match_protovalidate_endpoint_combinations ... ok
+test generation::presence_filling_uses_present_scalar_candidates ... ok
+test generation::required_substring_can_be_supplied_by_the_suffix ... ok
+test generation::unique_repeated_times_sample_the_allowed_domain ... ok
+test generation::unique_strings_use_the_permitted_scalar_and_byte_domains ... ok
+test generation::zero_maximum_repeated_length_is_fillable ... ok
+test generic_probe::failed_canonical_initialization_is_not_published ... ok
+test generic_probe::lazy_canonical_metadata_never_replaces_current_request_validation ... ok
+test ignored::ignored_opaque_fields_preserve_types_and_redact_secrets ... ok
+test ignored::ignored_opaque_fields_refuse_semantic_kinds_and_byte_constraints ... ok
+test ignored::ignored_opaque_fields_require_reasons_and_refuse_presence_dependencies ... ok
+test ignored::ignored_projection_retains_payload_type_and_redacts_oneof ... ok
+test kettle::independent_context_controls_inspection_and_identifier_fill ... ok
+test kettle::probe_recipe_retains_literal_runs_integrity_and_bound ... ok
+test kettle::shared_message_transport_keeps_response_bytes_and_fills_only_requests ... ok
+test probe::any_of_attributes_each_field_but_every_probe_omits_all_alternatives ... ok
+test probe::coverage_requires_each_unique_identity_and_observable_results ... ok
+test probe::enumerates_each_omission_and_verifies_real_negative_witnesses ... ok
+test probe::live_result_checks_each_expected_diagnostic_independently ... ok
+test probe::refuses_invalid_baselines_forged_cases_and_ineffective_mutation ... ok
+test probe::witnesses_cover_presence_algebra_and_required_variant ... ok
+test probe::witnesses_cover_typed_kinds_and_repeated_constraints ... ok
+test projected_oneof::projected_oneof_tracks_source_paths_and_selected_empty_payloads ... ok
+test raw_field::keyword_field_uses_the_source_path ... ok
+test runtime::author_metadata_reaches_gap_reports_without_request_values ... ok
+test runtime::flag_and_number_have_typed_presence_and_constraints ... ok
+test runtime::floating_generation_can_fill_a_fractional_interval ... ok
+test runtime::loose_rejections_match_only_the_declared_status_scope ... ok
+test runtime::required_number_generation_excludes_absent_zero ... ok
+test scalar_carriers::selected_empty_scalars_are_present_and_map_entries_are_text ... ok
+test string_bytes::string_byte_rules_expand_into_executable_request_metadata ... ok
+test views::malformed_generated_message_bytes_propagate_through_catalog_fill ... ok
+test views::malformed_message_projection_is_a_value_free_refusal_without_mutation ... ok
+test views::map_setters_decode_entries_and_projection_is_order_independent ... ok
+test views::message_setters_decode_projected_bytes ... ok
+test views::payload_map_round_trips_through_its_actual_carrier ... ok
+test views::time_views_preserve_raw_values_and_write_back ... ok
+
+test result: ok. 66 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/message_map.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/message_map-647d1d9079a957ce)
+
+running 1 test
+test message_maps_round_trip_and_validate_actual_nested_values ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/response_checks.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/response_checks-392ffd6da82290e1)
+
+running 1 test
+test raw_checks_run_for_responses_after_request_normalization ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/ui.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/ui-a190e3ac099e3d63)
+
+running 1 test
+test catalog_requires_every_field_and_enum_variant ...    Compiling equivalent v1.0.3
+   Compiling bytemuck v1.25.2
+   Compiling unicode-ident v1.0.27
+   Compiling proc-macro2 v1.0.107
+   Compiling safe_arch v0.7.4
+   Compiling rand_core v0.9.5
+   Compiling rand_xoshiro v0.7.0
+   Compiling quote v1.0.47
+   Compiling wide v0.7.33
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling hashbrown v0.17.1
+   Compiling archery v1.2.3
+   Compiling foldhash v0.1.5
+   Compiling hashbrown v0.15.5
+   Compiling imbl v7.0.2
+   Compiling indexmap v2.14.2
+   Compiling thiserror v2.0.21
+   Compiling umpire-ir v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/ir)
+   Compiling libc v0.2.191
+   Compiling smallvec v1.16.3
+   Compiling bytes v1.12.1
+   Compiling fixedbitset v0.5.7
+   Compiling petgraph v0.8.3
+   Compiling prost v0.14.4
+   Compiling umpire-dsl v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/dsl)
+   Compiling cfg-if v1.0.5
+   Compiling rustc-hash v2.1.3
+   Compiling linux-raw-sys v0.12.1
+   Compiling bitflags v2.13.2
+   Compiling rustix v1.1.5
+   Compiling umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/native)
+   Compiling getrandom v0.4.3
+   Compiling prost-types v0.14.4
+   Compiling fastrand v2.5.0
+   Compiling once_cell v1.21.4
+   Compiling tempfile v3.27.0
+   Compiling umpire-runtime v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime)
+   Compiling console v0.16.6
+   Compiling similar v2.7.0
+   Compiling insta v1.49.0
+   Compiling umpire-catalog v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog)
+   Compiling umpire-catalog-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/tests/trybuild/umpire-catalog)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 9.00s
+
+
+test tests/ui/added_enum_variant.rs [should fail to compile] ... ok
+test tests/ui/omitted_field.rs [should fail to compile] ... ok
+test tests/ui/wrong_message_map.rs [should fail to compile] ... ok
+test tests/pass/prost_names.rs [should pass] ... ok
+
+
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 19.10s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_catalog_build-b36bb8c7b781c353)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-0815afda85cb7a2a)
+
+running 11 tests
+test mirrors::claimed_variants_and_invalid_claims_fail_admission ... ok
+test mirrors::descriptors_own_structure_and_every_unclaimed_field_has_a_reason ... ok
+test neutral::added_method_and_action_break_exhaustive_generated_matches ... ok
+test neutral::an_annotated_rpc_must_be_claimed ... ok
+test neutral::coverage_build_reads_the_explicit_catalog_root_and_descriptor_path ... ok
+test neutral::coverage_build_resolves_feature_claims_against_one_service_table ... ok
+test neutral::omitted_field_enum_and_method_are_rejected ... ok
+test neutral::payload_classification_binds_every_value_and_rejects_duplicate_variants ... ok
+test neutral::second_service_uses_configured_identity_and_roots ... ok
+test wire_generated::generated_wire_setters_compile_and_preserve_carrier_mutations ... ok
+test wire_generated::shared_names_match_prost_identifier_sanitization ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_catalog_macros-2bd0f85ffde39091)
+
+running 1 test
+test roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_catalog_syntax-cad0f3b3c3317000)
+
+running 20 tests
+test derive::attribute_controls::manual_families_keep_source_order_and_strict_shapes ... ok
+test derive::attribute_controls::names_follow_prost_case_conversion ... ok
+test derive::attribute_controls::scalar_errors_accumulate_across_attribute_lines ... ok
+test derive::attribute_controls::scalar_options_preserve_generic_type_paths ... ok
+test derive::attribute_controls::scalar_options_refuse_duplicates_at_the_second_occurrence ... ok
+test proto::tests::a_short_service_name_shared_by_two_packages_is_ambiguous ... ok
+test proto::tests::fields_retain_decoded_presence_oneofs_and_maps ... ok
+test proto::tests::malformed_descriptors_are_refused_anywhere_in_the_set ... ok
+test proto::tests::prost_names_escape_keywords_and_numeric_prefixes_under_the_rust_root ... ok
+test proto::tests::rpc_edges_resolve_by_service_and_short_name ... ok
+test proto::tests::service_methods_keep_descriptor_order ... ok
+test services::tests::claims_bind_or_observe_and_name_their_wildcard_parameter ... ok
+test services::tests::claims_resolve_against_the_service_table_in_table_order ... ok
+test services::tests::classification_accepts_single_expression_arm_blocks ... ok
+test services::tests::classification_rejects_non_declarative_or_unexplained_arms ... ok
+test services::tests::duplicate_or_unclassified_claims_are_named ... ok
+test services::tests::ordinary_match_projects_source_order_and_model_action ... ok
+test services::tests::tables_and_claim_fallbacks_are_declarative ... ok
+test services::tests::unrelated_matches_are_not_service_declarations ... ok
+test tests::context_and_api_parameters_require_the_catalog_item ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-7d55a07ddacd21d5)
+
+running 16 tests
+test admission::catalog_expansion_accepts_a_caller_owned_context_and_api_root ... ok
+test admission::derive_attributes_preserve_admission_errors ... ok
+test admission::derive_catalog_uses_shared_admission_and_discovery ... ok
+test admission::derive_validates_supplemental_intents_and_nested_map_coverage ... ok
+test admission::disabled_derive_enum_constraint_needs_no_expectation ... ok
+test admission::disabled_repeated_constraint_needs_no_request_expectation ... ok
+test admission::item_presence_algebra_and_helper_boundaries_are_explicit ... ok
+test admission::migrated_ui_refusals_name_the_offending_token ... ok
+test admission::native_primitive_wkt_mirrors_refuse_named_field_access ... ok
+test admission::oneof_rules_require_known_nonignored_source_aliases_and_projection ... ok
+test admission::request_constraints_need_expectations ... ok
+test admission::rpc_classification_names_the_bound_action_variant ... ok
+test admission::stacked_presence_expectations_may_differ_from_field_constraints ... ok
+test admission::string_byte_constraints_require_typed_literals_and_request_expectations ... ok
+test admission::supplemental_mirrors_do_not_claim_descriptor_coverage ... ok
+test expansion::executable_expansion_and_source_coverage ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/caught_panic_control-57656fbe1de8807a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/panic-control-reports.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/panic_control_reports-34f7f8539e4d9b10)
+
+running 1 test
+test snapshot_payload::tests::preserves_body_and_refuses_invalid_headers ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_checker-9e13771fa86efc8d)
+
+running 7 tests
+test helper_tests::panic_payloads_preserve_strings_and_share_one_fallback ... ok
+test helper_tests::seeded_stream_refuses_empty_domain - should panic ... ok
+test helper_tests::seeded_stream_reproduces_and_indices_stay_in_domain ... ok
+test interpret::exported_values::world_validation_tests::primitive_world_import_refuses_missing_duplicate_extra_kinds_and_ranges ... ok
+test interpret::optional_tests::optional_default_is_eager_and_decodes_zero_payload ... ok
+test interpret::optional_tests::resolver_preserves_scalar_conversions_and_backing_arithmetic ... ok
+test interpret::optional_tests::some_encoding_checks_ordinal_bounds_without_finite_validation ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/catalog_admission.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/catalog_admission-2f4da8dd2e43ea1e)
+
+running 5 tests
+test an_empty_factor_admits_an_overflowing_partner_and_reports_the_variant ... ok
+test empty_world_domains_stay_visible_including_with_no_starts ... ok
+test fairness_names_one_concrete_input_not_its_variant ... ok
+test over_limit_catalog_is_refused_before_any_step ... ok
+test progress_revalidates_the_catalog_under_the_explored_limit ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s
+
+     Running tests/fixtures.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixtures-709286d11df0cd2f)
+
+running 12 tests
+test fixtures ... ok
+test formatting::report_and_path_propagate_formatter_errors ... ok
+test progress_evaluation::assumptions_are_fixed_per_exploration_rather_than_across_worlds ... ok
+test progress_evaluation::combined_evaluation_runs_once_per_reached_state_and_rendering_reuses_results ... ok
+test progress_evaluation::dynamic_invalid_actions_are_refused_only_after_real_state_evaluation ... ok
+test progress_evaluation::manual_invalid_actions_are_refused_even_without_reached_states ... ok
+test progress_evaluation::query_assumption_override_replaces_inconsistent_metadata ... ok
+test progress_evaluation::registered_queries_refuse_missing_ambiguous_and_changed_catalogs ... ok
+test progress_evaluation::registered_queries_reuse_graph_and_canonical_callbacks_without_mutating_cache ... ok
+test progress_evaluation::simultaneous_claims_can_use_different_fixed_assumptions ... ok
+test progress_evaluation::zero_start_queries_validate_overrides_without_evaluating_a_state ... ok
+test recorder::evidence_belongs_to_actual_evaluation_and_counterexample_state ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-21b4fcc9fca87eea)
+
+running 4 tests
+test oracle::brute_force_oracle ... ok
+test search::caller_labels_keep_same_state_with_distinct_cursors_and_nonclone_emissions ... ok
+test search::epsilon_labels_precede_edges_without_spending_depth ... ok
+test search::work_bound_accounts_labels_and_explicit_evaluations_without_partial_admission ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/stateful_control-7edbcc5b709214ba)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/current-contract-reports.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/current_contract_reports-14ac8dec8f7cbeda)
+
+running 1 test
+test native_current_contract_carries_whole_prefixes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_dsl-238518f3caad5260)
+
+running 1 test
+test value::tests::nominal_exports_preserve_identity_and_optional_structure ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/fixtures.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixtures-510ad7eeefdcbff3)
+
+running 6 tests
+test fixtures ... ok
+test recorder::checks_record_first_failure_without_stopping_control_flow ... ok
+test recorder::direct_nested_and_panicking_calls_restore_evaluation ... ok
+test recorder::evaluations_are_thread_local ... ok
+test recorder::failures_dominate_holes_in_both_orders_and_first_hole_wins ... ok
+test recorder::only_reached_checks_count_after_ordinary_early_returns ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-3a42935bb56cfa23)
+
+running 58 tests
+test action_inputs_builders::const_generic_actor_builders_enumerate_the_declared_variant ... ok
+test action_inputs_builders::finish_payload_field_can_be_selected_or_left_at_its_declared_domain ... ok
+test catalog_tests::borrowed_outcome_classification_needs_no_value_traits_and_missing_is_unknown ... ok
+test catalog_tests::fault_catalog_and_actor_projection_are_typed_and_independent_of_internal ... ok
+test catalog_tests::one_typed_consumer_accepts_state_and_world_paths_for_each_outcome_type ... ok
+test catalog_tests::stock_catalog_declares_every_outcome_even_when_never_emitted ... ok
+test closable::closure_checks_separate_phase_state_and_entity_specific_rejection ... ok
+test declared_world::selected_world_reaches_handlers_claims_scopes_and_computed_starts ... ok
+test finite_domains::admission_counts_every_domain_before_materializing ... ok
+test finite_domains::checked_catalog_records_declared_variant_counts_including_empty ... ok
+test finite_domains::concrete_world_dependent_values_infer_typed_paths ... ok
+test finite_domains::finite_domains_enumerate_in_declaration_order ... ok
+test finite_domains::finite_fields_mix_with_explicit_domains_last_field_fastest ... ok
+test finite_domains::generic_finite_fields_keep_authored_bounds ... ok
+test finite_domains::one_range_declaration_supplies_checked_construction ... ok
+test finite_domains::two_worlds_of_one_type_select_their_own_domains ... ok
+test optional_values::local_newtypes_export_once_for_world_state_and_repeated_fields ... ok
+test optional_values::nominal_export_preserves_wider_native_only_declarations ... ok
+test optional_values::scalar_accessors_reconstruct_both_shapes_and_leave_bounds_to_authored_claims ... ok
+test outcome::a_field_comparison_named_reject_keeps_unit_outcomes ... ok
+test outcome::a_literal_rejection_inside_a_helper_macro_selects_step_outcomes ... ok
+test outcome::frames_do_not_leak_between_threads ... ok
+test outcome::inactive_nested_and_unwinding_frames_restore_the_enclosing_outcome ... ok
+test outcome::rejecting_returns_only_from_the_helper_and_keeps_the_first_rejection ... ok
+test outcome::the_lifted_stock_outcome_spells_every_native_outcome ... ok
+test path_domains::empty_alternatives_still_require_storage_admission ... ok
+test path_domains::repeated_domain_choices_do_not_describe_every_occurrence_as_its_first_value ... ok
+test path_domains::state_path_case_budget_is_checked_before_cloning_waypoints ... ok
+test path_domains::wide_ranges_keep_boundary_values_and_refuse_unrepresentable_counts ... ok
+test path_expression_semantics::exact_repetition_evaluates_its_count_once ... ok
+test path_expression_semantics::outcome_alternatives_share_one_owned_action_expression ... ok
+test path_expression_semantics::qualified_state_struct_expressions_and_nested_closures_keep_rust_inference ... ok
+test path_expression_semantics::waypoint_expressions_are_evaluated_in_authored_order ... ok
+test path_language_patterns::borrowed_outcome_alternatives_need_neither_clone_nor_equality ... ok
+test path_language_patterns::empty_and_reversed_domains_keep_zero_cases_and_zero_repetition_keeps_one ... ok
+test path_language_patterns::empty_products_and_empty_repetitions_do_not_expand_unreachable_prefixes ... ok
+test path_language_patterns::enumerates_fresh_choices_in_repetitions_and_positional_permutations ... ok
+test path_language_patterns::exact_singleton_repetition_expands_linearly_and_storage_has_its_own_limit ... ok
+test path_language_patterns::exclusion_predicates_are_typed_and_do_not_change_explicit_endpoint ... ok
+test path_language_patterns::manual_world_predicates_keep_lexically_shadowed_state_bindings ... ok
+test path_language_patterns::manual_world_selection_keeps_authored_predicate_and_waypoint_constraints ... ok
+test path_language_patterns::refuses_counts_before_constructing_alternatives ... ok
+test path_language_patterns::state_budget_and_structured_append_preserve_constraints ... ok
+test path_language_patterns::state_paths_infer_closures_and_take_their_types_from_use ... ok
+test path_language_patterns::structured_inputs_and_actor_wildcards_keep_full_declared_domains ... ok
+test path_language_patterns::zero_products_and_zero_repetitions_annihilate_overflowing_subpatterns ... ok
+test path_leading_patterns::leading_structures_infer_nested_and_trailing_state_predicates ... ok
+test path_leading_patterns::outer_state_members_in_shadowing_initializers_still_infer_the_owner ... ok
+test path_leading_patterns::structural_seeding_preserves_source_order_and_evaluates_values_once ... ok
+test readme::parameterized::selected_world ... ok
+test readme::readme_matches_compiled_parameterized_example ... ok
+test replay_values::implicit_world_exports_state_payload_and_outcome ... ok
+test replay_values::start_failure_checks_only_the_selected_prefix ... ok
+test replay_values::start_projection_preserves_the_field_integer_width ... ok
+test replay_values::unsupported_projection_keeps_native_model_usable ... ok
+test replay_values::vector_projection_preserves_order ... ok
+test world::constructor_and_value_traits_do_not_require_copy_or_default ... ok
+test world_dispatch::world_access_keeps_all_step_and_rejection_branches ... ok
+
+test result: ok. 58 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/ui.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/ui-1b62e0f714642edd)
+
+running 2 tests
+test malformed_paths ...     Checking typenum v1.20.1
+    Checking hybrid-array v0.4.15
+   Compiling rustix v1.1.5
+   Compiling smallvec v1.16.3
+    Checking linux-raw-sys v0.12.1
+   Compiling proc-macro-utils v0.10.0
+    Checking crypto-common v0.2.2
+    Checking block-buffer v0.12.1
+    Checking const-oid v0.10.2
+    Checking tempfile v3.27.0
+    Checking digest v0.11.3
+   Compiling manyhow-macros v0.14.1
+    Checking syn v3.0.9
+    Checking cpufeatures v0.3.1
+   Compiling prettyplease v0.3.0
+    Checking sha2 v0.11.1
+   Compiling manyhow v0.14.1
+    Checking heck v0.5.0
+    Checking umpire-front v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/front)
+   Compiling umpire-dsl-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/dsl/macros)
+    Checking umpire-backend-process v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/process)
+    Checking umpire-dsl v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/dsl)
+    Checking umpire-tla v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/tla)
+    Checking insta v1.49.0
+    Checking umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/native)
+    Checking umpire-tlc v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/tlc)
+    Checking umpire-testing v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/dev/testing)
+    Checking umpire-dsl-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/tests/trybuild/umpire-dsl)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.01s
+
+
+test tests/ui/path_language_claim_no_gap.rs ... ok
+test tests/ui/path_language_claims.rs ... ok
+test tests/ui/path_language_duplicate_fields.rs ... ok
+test tests/ui/path_language_malformed.rs ... ok
+test tests/ui/path_language_outcome_state.rs ... ok
+test tests/ui/path_language_unknown_fields.rs ... ok
+test tests/ui/path_leading_gap.rs ... ok
+test tests/ui/path_no_gap.rs ... ok
+test tests/ui/path_one_waypoint.rs ... ok
+test tests/ui/path_trailing_gap.rs ... ok
+test tests/ui/path_two_gaps.rs ... ok
+
+
+ok
+test missing_display ...     Checking umpire-dsl-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/tests/trybuild/umpire-dsl)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s
+
+
+test tests/ui/missing_display_action.rs ... ok
+test tests/ui/missing_display_state.rs ... ok
+
+
+ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.77s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_dsl_macros-0297ca116f04ac10)
+
+running 3 tests
+test roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths ... ok
+test roots::tests::normalizes_derive_paths_using_dependency_roots ... ok
+test roots::tests::normalizes_facade_imports_through_groups_without_stripping_other_prefixes ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/fixtures.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixtures-f3ce281cb6e7e23f)
+
+running 8 tests
+test fixtures ... ok
+test parser_refusals::diagnostic_capture_keeps_duplicate_messages_at_distinct_locations ... ok
+test parser_refusals::parser_refusals_preserve_messages_and_authored_locations ... ok
+test private_state ...    Compiling typenum v1.20.1
+   Compiling hybrid-array v0.4.15
+   Compiling linux-raw-sys v0.12.1
+   Compiling rustix v1.1.5
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling syn v3.0.9
+   Compiling const-oid v0.10.2
+   Compiling tempfile v3.27.0
+   Compiling digest v0.11.3
+   Compiling cpufeatures v0.3.1
+   Compiling prettyplease v0.3.0
+   Compiling sha2 v0.11.1
+   Compiling heck v0.5.0
+   Compiling umpire-front v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/front)
+   Compiling umpire-backend-process v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/process)
+   Compiling winnow v1.0.4
+   Compiling umpire-dsl v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/dsl)
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling umpire-tla v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/tla)
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/native)
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling insta v1.49.0
+   Compiling umpire-tlc v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/tlc)
+   Compiling umpire-testing v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/dev/testing)
+   Compiling proc-macro-crate v3.5.0
+   Compiling manyhow v0.14.1
+   Compiling umpire-dsl-macros-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/tests/trybuild/umpire-dsl-macros)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 12.30s
+
+
+test tests/pass/action_metadata.rs ... ok
+test tests/pass/optional_facts.rs ... ok
+test tests/pass/private_state.rs ... ok
+test tests/pass/public_actor_private_state.rs ... ok
+
+
+ok
+test refusals ...     Checking syn v3.0.9
+    Checking prettyplease v0.3.0
+    Checking umpire-front v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/front)
+    Checking winnow v1.0.4
+    Checking toml_parser v1.1.5+spec-1.1.0
+    Checking umpire-tla v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/tla)
+    Checking toml_datetime v1.1.2+spec-1.1.0
+    Checking toml_edit v0.25.17+spec-1.1.0
+    Checking umpire-tlc v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/tlc)
+    Checking umpire-testing v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/dev/testing)
+    Checking proc-macro-crate v3.5.0
+    Checking manyhow v0.14.1
+    Checking umpire-dsl-macros-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/tests/trybuild/umpire-dsl-macros)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.30s
+
+
+test tests/ui/action_domain_item_type.rs ... ok
+test tests/ui/action_domain_unbound.rs ... ok
+test tests/ui/action_domain_world_mismatch.rs ... ok
+test tests/ui/action_finite_missing.rs ... ok
+test tests/ui/machine_mutable_aliased_helper.rs ... ok
+test tests/ui/machine_mutable_const_helper.rs ... ok
+test tests/ui/machine_mutable_local_helper.rs ... ok
+test tests/ui/machine_mutable_local_projection.rs ... ok
+test tests/ui/machine_mutable_nested_helper.rs ... ok
+test tests/ui/machine_mutable_qualified_helper.rs ... ok
+test tests/ui/machine_nonexhaustive_actor.rs ... ok
+test tests/ui/machine_scope_actor.rs ... ok
+test tests/ui/machine_stay_effect.rs ... ok
+test tests/ui/machine_stay_helper.rs ... ok
+test tests/ui/machine_unsafe_allowed.rs ... ok
+test tests/ui/optional_facts_direct_reject.rs ... ok
+test tests/ui/stay_outside_machine.rs ... ok
+test tests/ui/world_starts_return.rs ... ok
+
+
+ok
+test roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths ... ok
+test roots::tests::normalizes_derive_paths_using_dependency_roots ... ok
+test roots::tests::normalizes_facade_imports_through_groups_without_stripping_other_prefixes ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 37.86s
+
+     Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-829f6194137730a2)
+
+running 2 tests
+test metadata_semantics::executable_reject_and_stay_keep_their_native_and_lifted_semantics ... ok
+test metadata_semantics::opaque_macro_tokens_preserve_unit_outcome_catalog_and_native_lifted_rows ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running fixtures.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixtures-63e82cd6925f89f7)
+
+running 84 tests
+test action_inputs_tests::actual_tlc_agrees_and_replays_in_both_selected_worlds ... ok
+test action_inputs_tests::bounded_claims_carry_no_fairness_obligation ... ok
+test action_inputs_tests::each_source_binding_carries_its_selected_catalog_into_every_configuration ... ok
+test action_inputs_tests::exact_payload_fairness_mutations_disagree_with_the_native_verdicts ... ok
+test action_inputs_tests::two_selected_worlds_differ_in_domains_counts_transitions_and_verdicts ... ok
+test fixtures::accepted_self_loops ... ok
+test fixtures::action_inputs ... ok
+test fixtures::changed_state ... ok
+test fixtures::kettle_cut ... ok
+test fixtures::kettle_progress ... ok
+test fixtures::optional_facts ... ok
+test fixtures::optional_ticks ... ok
+test fixtures::parameterized_world ... ok
+test fixtures::phased_rejection ... ok
+test fixtures::progress_continuous ... ok
+test fixtures::progress_dead_end ... ok
+test fixtures::progress_excluded_prefix ... ok
+test fixtures::progress_fulfilled ... ok
+test fixtures::progress_graph ... ok
+test fixtures::progress_intermittent ... ok
+test fixtures::progress_scope_exit ... ok
+test fixtures::progress_self_loop ... ok
+test fixtures::progress_target_barrier ... ok
+test fixtures::progress_trigger_stops ... ok
+test fixtures::progress_two_lobes ... ok
+test fixtures::rejecting_steps ... ok
+test fixtures::sample_kettle ... ok
+test fixtures::shared_returns ... ok
+test fixtures::world_fairness ... ok
+test interpreted::backend_controls_agree ... ok
+test interpreted::checked_arithmetic_fails_as_compiled ... ok
+test interpreted::every_claim_has_its_own_callback ... ok
+test interpreted::fact_only_tree_mutant_disagrees ... ok
+test interpreted::interpreted_fact_decoder_checks_admitted_values ... ok
+test interpreted::interpreted_facts_evaluate_disabled_tail ... ok
+test interpreted::interpreted_facts_fail_closed ... ok
+test interpreted::length_differences_agree_on_every_back_end ... ok
+test interpreted::length_sums_and_products_are_refused ... ok
+test interpreted::lifter_controls_agree ... ok
+test interpreted::rewrite_visits_replacement_children_in_preorder ... ok
+test interpreted::seeded_mutant_trees_disagree ... ok
+test interpreted::start_domains_evaluate_lazily ... ok
+test interpreted::timing ... ignored, timing; run alone in release
+test interpreted_agrees_with_compiled ... ok
+test optional_facts_tests::native_facts_preserve_enabledness_outcome_and_guard_priority ... ok
+test optional_facts_tests::required_tlc_replays_four_distinct_fact_witnesses_and_clearing ... ok
+test optional_facts_tests::selected_world_changes_only_the_authored_overlap_fact ... ok
+test optional_facts_tests::source_only_fact_substitution_fails_native_replay ... ok
+test optional_ticks_tests::optional_ticks_bindings_preserve_correlated_deduplicated_and_empty_starts ... ok
+test optional_ticks_tests::optional_ticks_every_cfg_carries_the_same_selected_world ... ok
+test optional_ticks_tests::optional_ticks_exact_countdown_and_interpreted_parity ... ok
+test optional_ticks_tests::optional_ticks_factory_and_native_validity_boundaries ... ok
+test optional_ticks_tests::optional_ticks_false_cross_step_claim_has_an_exact_native_witness ... ok
+test optional_ticks_tests::optional_ticks_refuses_legal_world_swaps_in_each_cfg_family ... ok
+test optional_ticks_tests::optional_ticks_required_tlc_replays_exact_countdown_witnesses ... ok
+test optional_ticks_tests::optional_ticks_selected_world_identity_rejects_another_legal_selection ... ok
+test optional_ticks_tests::optional_ticks_source_only_mutant_disagrees_with_compiled_model ... ok
+test parameterized_world_tests::actual_tlc_replays_the_false_claim_in_the_same_selected_world ... ok
+test parameterized_world_tests::each_selected_world_checks_natively ... ok
+test parameterized_world_tests::each_source_binding_preserves_selection_and_empty_starts ... ok
+test phased_rejection_tests::a_computed_rejection_agrees_with_the_literal ... ok
+test phased_rejection_tests::a_stale_rejecting_claim_cannot_discharge_current_claim_fairness ... ok
+test phased_rejection_tests::closure_laws_keep_source_order_and_the_stock_outcome ... ok
+test phased_rejection_tests::emitted_outcome_and_action_mutations_fail_agreement ... ok
+test phased_rejection_tests::rejecting_after_a_mutation_fails_in_tlc ... ok
+test phased_rejection_tests::the_steps_accept_counterexample_is_a_rejected_payload_edge ... ok
+test sample_kettle_tests::examples::archived_enabledness_table_keeps_every_positive_and_disabled_row ... ok
+test sample_kettle_tests::examples::boundary_from_99_to_100_and_the_failover_guard ... ok
+test sample_kettle_tests::examples::switched_on_at_room_temperature_beeps_after_80_heats_and_the_failover ... ok
+test sample_kettle_tests::explorations::a_budget_of_10_answers_unknown_and_a_counterexample_before_a_cut_stands ... ok
+test sample_kettle_tests::explorations::beeps_only_when_off_holds_quiet_hot_and_heating_and_a_heating_beeping_start_refutes_it ... ok
+test sample_kettle_tests::explorations::claims_hold_from_room_and_coldest_and_boils_in_81_steps_from_room ... ok
+test sample_kettle_tests::explorations::every_start_from_minus_40_to_40_boils_within_141_steps ... ok
+test sample_kettle_tests::explorations::failing_over_above_boiling_refutes_fails_over_at_boiling ... ok
+test sample_kettle_tests::explorations::never_beeps_is_refuted_by_press_80_heats_and_failover ... ok
+test sample_kettle_tests::explorations::without_the_heater_fails_over_at_boiling_is_never_triggered ... ok
+test shared_returns_tests::sequential_returns_share_definitions_in_unit_and_payload_steps ... ok
+test world_fairness_tests::world_fairness_exact_selected_values_ordinals_and_wf_obligations ... ok
+test world_fairness_tests::world_fairness_legal_world_swaps_refuse_in_all_five_cfg_families ... ok
+test world_fairness_tests::world_fairness_metadata_only_mutations_refuse_before_tlc ... ok
+test world_fairness_tests::world_fairness_required_tlc_agrees_and_replays_at_each_maximum ... ok
+test world_fairness_tests::world_fairness_required_tlc_mutants_replay_heartbeat_and_starvation ... ok
+test world_fairness_tests::world_fairness_selected_worlds_agree_compiled_and_embedded ... ok
+test world_fairness_tests::world_fairness_source_only_selectors_and_leaves_discriminate ... ok
+
+test result: ok. 83 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.99s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_front-2fcd8737e607ce59)
+
+running 7 tests
+test body::effects::optional_fact_tests::optional_fact_declarations_and_tails_are_bounded ... ok
+test body::effects::optional_fact_tests::optional_tail_preserves_prefix_state ... ok
+test body::optional::tests::canonical_constructor_types_and_located_refusals ... ok
+test body::optional::tests::defaults_and_eager_ssa_preserve_nominal_types ... ok
+test error_tests::errors_preserve_order_and_success_value ... ok
+test library::tests::library_sources_parse_and_declare_the_laws_and_traits ... ok
+test shape::tests::facade_roots_preserve_admission_and_library_paths ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/world_fairness.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/world_fairness-4e7bec87cb7a2f3a)
+
+running 6 tests
+test every_authored_branch_and_operand_refuses_before_folding ... ok
+test exhaustive_helpers_keep_a_distinct_unresolved_scope ... ok
+test folded_arithmetic_is_still_an_authored_forbidden_operand ... ok
+test nonprimitive_worlds_missing_else_and_deep_helpers_refuse ... ok
+test primitive_guards_and_existing_flat_builders_keep_their_types ... ok
+test primitive_worlds_select_one_flat_leaf_and_preserve_registration ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_guest_driver-34056505bdf03254)
+
+running 4 tests
+test context::tests::caller_paths_preserve_relative_and_absolute_os_bytes ... ok
+test context::tests::driver_lock_and_compiler_each_invalidate_cache ... ok
+test context::tests::local_tool_admission_refuses_missing_configuration_and_escaping_links ... ok
+test context::tests::raw_context_roundtrips_and_longest_root_drives_flags_and_identity ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_guest_driver-3448beb5a45242aa)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-e6260761972d67c0)
+
+running 31 tests
+test guest_identity::compiler::actual_rustc_compiles_portable_native_macro_sidecars ... ok
+test guest_identity::compiler::build_std_requires_wasm_marker_and_trusted_source_or_rust_src_coordinate ... ok
+test guest_identity::compiler::dependency_identity_and_transitive_variants_propagate ... ok
+test guest_identity::compiler::inherited_jobserver_descriptor_reaches_direct_compiler_child ... ok
+test guest_identity::compiler::invalid_or_missing_dependency_sidecars_and_macro_collisions_refuse ... ok
+test guest_identity::compiler::missing_ambiguous_and_malformed_lock_maps_refuse ... ok
+test guest_identity::compiler::missing_required_inputs_and_option_values_refuse ... ok
+test guest_identity::compiler::native_macro_identity_ignores_host_configuration_but_retains_argv_and_collisions ... ok
+test guest_identity::compiler::os_bytes_and_lexical_root_boundaries_are_preserved ... ok
+test guest_identity::compiler::package_features_profile_compiler_and_closure_remain_distinct ... ok
+test guest_identity::compiler::portable_identity_replaces_guest_metadata_and_remaps_generated_paths ... ok
+test guest_identity::compiler::previous_wrapper_and_loader_environment_keep_raw_os_bytes ... ok
+test guest_identity::compiler::probes_pass_through_without_guest_environment ... ok
+test guest_identity::compiler::sidecar_precedes_child_and_cleanup_preserves_exit_launch_and_signal_outcomes ... ok
+test guest_identity::current_inputs::native_toml_accepts_current_documents_and_rejects_malformed_input ... ok
+test guest_identity::lock::ambiguous_name_version_coordinates_are_marked_unavailable ... ok
+test guest_identity::lock::checksum_changes_propagate_through_normal_and_all_platform_build_edges ... ok
+test guest_identity::lock::content_addressed_publication_is_repeatable_and_portable ... ok
+test guest_identity::lock::malformed_native_documents_and_graphs_are_rejected ... ok
+test guest_identity::lock::sourced_entries_are_required_but_git_checksums_are_optional ... ok
+test guest_identity::lock::unified_edges_and_edge_topology_change_ancestor_identity ... ok
+test guest_identity::lock::unrelated_and_dev_only_dependencies_do_not_change_guest_closures ... ok
+test guest_identity::support::canonical_hash_uses_sorted_json_and_known_sha256 ... ok
+test guest_identity::support::publication_is_complete_under_concurrent_writers_and_cleans_rename_failure ... ok
+test guest_identity::support::sidecar_lease_serializes_failure_cleanup_and_refuses_symlink ... ok
+test guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes ... ok
+test guest_pipeline::cold_shell_bootstrap_and_cached_native_validation ... ok
+test guest_pipeline::guest_build_check_and_artifact_refusals ... ok
+test guest_pipeline::loader_inheritance_survives_orchestration_environment_purge ... ok
+test guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build ... ok
+test guest_pipeline::shell_caller_relative_paths_and_changed_inputs_select_new_cache ... ok
+
+test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.52s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_ir-d3440bcd44a86c8d)
+
+running 6 tests
+test bounded_controls::exact_optional_codes_preserve_absence_and_exhaustion ... ok
+test expr::tests::children_visit_every_variant_in_order_and_mutate_each_child_once ... ok
+test expr::tests::infallible_preserves_explicit_false_cases_and_propagates_child_failure ... ok
+test literal::tests::integers_enums_and_sequences_refuse_outside_their_type ... ok
+test literal::tests::nominal_and_optional_values_admit_exactly ... ok
+test printing_controls::new_fields_and_variants_print_without_registration ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_ir_derive-a58bbf1a261b842d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_kettle_guest-60cd3a5808518a38)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/overflow_control-4758f37fabad436c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_reference_kettle-cfac31c5060a2258)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/exhaustiveness.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/exhaustiveness-6f498d42568a1987)
+
+running 1 test
+test kettle_exhaustiveness_names_every_missing_declaration ...    Compiling umpire-runtime v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime)
+   Compiling umpire-suite v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/suite)
+   Compiling umpire-catalog-build v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog/build)
+    Checking ident_case v1.0.1
+    Checking darling_core v0.24.1
+    Checking umpire-catalog v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog)
+   Compiling umpire-reference-kettle v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/reference/kettle)
+    Checking umpire v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/umpire)
+    Checking darling v0.24.1
+    Checking umpire-catalog-syntax v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog/syntax)
+    Checking umpire-reference-kettle-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/tests/trybuild/umpire-reference-kettle)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 8.10s
+
+
+test tests/ui/omitted_action.rs ... ok
+test tests/ui/omitted_method.rs ... ok
+
+
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.03s
+
+     Running tests/live_snapshots.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/live_snapshots-2a55f37c1bb7bbe3)
+
+running 1 test
+test import_live_candidates ... ignored, requires explicitly exported live Go candidates
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-e42dc141dfd47875)
+
+running 16 tests
+test annotations::generated_dispatch_refuses_unknown_routes_and_preserves_out_of_scope_bytes ... ok
+test annotations::generic_fill_preserves_supplied_keys_and_response_wire_bytes ... ok
+test annotations::scoped_limits_and_nested_predicates_inspect_actual_wire_values ... ok
+test descriptor::descriptor_additions_name_the_unreviewed_field_enum_and_method ... ok
+test probes::classification_requires_live_evidence_and_correlated_predictions ... ok
+test probes::coverage_matches_catalog_golden ... ok
+test probes::inventory_and_preparation_are_deterministic ... ok
+test probes::observations_require_exact_inventory ... ok
+test probes::stateful_prerequisites_and_inapplicable_mutations_never_dispatch ... ok
+test realization::callback_requires_exact_state_identity_and_enabled_action ... ok
+test realization::describe_never_infers_a_transition ... ok
+test realization::exact_receipts_reject_wrong_state_or_action ... ok
+test realization::explore_retains_canonical_report ... ok
+test realization::healthy_trace_answer_does_not_commit_and_receipt_commits_once ... ok
+test realization::heat_projects_reach_with_an_exact_target_and_method_owned_evidence ... ok
+test realization::malformed_evidence_refuses_without_advancing ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_runtime-df799720eedcb524)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/capabilities.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/capabilities-43683602aed5f492)
+
+running 2 tests
+test assembly_requires_each_named_capability ... ok
+test filler_uses_declared_world_inputs_and_admitted_identity ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 26.64s
+
+     Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-587681c93eee0517)
+
+running 50 tests
+test abi_staging::oversized_response_never_publishes_or_commits ... ok
+test abi_staging::panicking_publisher_leaves_transaction_uncommitted ... ok
+test abi_staging::unpublished_exploration_leaves_stock_guest_unexplored ... ok
+test annotations::typed_probes_and_annotations_share_stateless_routing ... ok
+test catalog::catalog_refusals_map_to_the_budget_code ... ok
+test catalog::explore_judge_answer_and_replay_refuse_without_publishing ... ok
+test constructors::constructors_preserve_actions_choices_paths_and_reply ... ok
+test core_protocol::any_admits_only_canonical_urls_and_distinguishes_refusals ... ok
+test core_protocol::explained_zero_steps_is_present_and_distinct_from_unexplained ... ok
+test core_protocol::explanation_outcomes_are_additive_at_tag_two ... ok
+test core_protocol::new_core_messages_match_shared_literal_bytes ... ok
+test core_protocol::new_requests_round_trip_opaque_payloads_and_dispatch_honest_refusals ... ok
+test dispatch::empty_assumption_refusal_survives_generated_protocol ... ok
+test dispatch::generated_dispatch_matches_trait_kettle_goldens ... ok
+test dispatch::invalid_requests_have_typed_refusals ... ok
+test dispatch::progress_bound_refusal_survives_generated_protocol ... ok
+test dispatch::progress_query_refusals_survive_generated_protocol ... ok
+test dispatch::scope_action_refusal_survives_generated_protocol ... ok
+test dispatch::snapshot_payload::tests::preserves_body_and_refuses_invalid_headers ... ok
+test dispatch::successful_explore_replaces_graph_and_refusal_preserves_it ... ok
+test prefix::positive_current_revalidates_every_earlier_actual_observation ... ok
+test prefix::publication_and_prefix_bound_keep_witness_pending_and_prior_reports_for_retry ... ok
+test proposal::bootstrap_configuration_admission_and_polling_publish_atomically ... ok
+test proposal::disabled_proposal_refuses_without_committing_and_quiescent_is_distinct ... ok
+test proposal::enabled_internal_action_is_never_a_proposal ... ok
+test proposal::proposal_is_transactional_and_pending_until_final_observation ... ok
+test proposal::read_commits_intermediate_progress_without_consuming_the_pending_request ... ok
+test proposal::read_does_not_require_enabled_external_model_action ... ok
+test proposal::read_remains_pending_until_correlated_final_explanation_publishes ... ok
+test proposal::reset_program_and_refusing_defaults_preserve_run_transactions ... ok
+test proposal::runtime_owns_quiescence_before_default_proposal_policy ... ok
+test proposal::selected_initial_state_still_requires_declared_bootstrap ... ok
+test proposal::unpublished_bootstrap_and_unexplained_pending_effects_roll_back ... ok
+test proposal_wire::proposal_method_kind_and_poll_wire_contract ... ok
+test rejecting::invalid_rejections_refuse_explore_replay_expected_actions_and_answer_without_advancing ... ok
+test selected_start::selected_initial_requires_exact_membership_including_other_fields ... ok
+test selected_start::selected_publication_failures_preserve_advancement_freeze_and_reset ... ok
+test selected_start::selected_reset_after_freeze_restores_initial_without_restricting_exploration ... ok
+test stateful::answer_validates_the_response_before_committing_delivery_and_awaits_response_evidence ... ok
+test stateful::explanations_carry_all_replayed_non_clone_outcomes ... ok
+test stateful::explanations_replay_whole_candidate_sequences_and_isolate_instances ... ok
+test stateful::failed_response_publication_preserves_judge_answer_reset_and_exploration ... ok
+test stateful::failed_unexplained_publication_does_not_freeze_the_run ... ok
+test stateful::invalid_candidates_freeze_the_first_enabled_actions_until_reset ... ok
+test stateful::judge_replays_model_steps_and_repeated_current_observations_are_positive ... ok
+test stateful::malformed_and_unknown_requests_preserve_the_current_run ... ok
+test stateful::runtime_formats_unit_outcomes_with_debug ... ok
+test stateful::stateful_operations_require_a_unique_initial_state ... ok
+test wire::original_wire_bytes_and_values_are_stable ... ok
+test wire::shared_hex_decoder_preserves_literal_bytes_and_refuses_malformed_vectors ... ok
+
+test result: ok. 50 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/reach.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/reach-a244e00cf62034c2)
+
+running 9 tests
+test a_short_canonical_match_survives_a_longer_cycle_but_no_match_refuses_at_cut ... ok
+test canonical_actions_choices_outcomes_and_ordered_facts_are_retained ... ok
+test equal_states_with_different_choices_outcomes_and_consumption_keep_their_continuations ... ok
+test evidence_admission_refusals_preserve_pending_prefix_and_retry ... ok
+test exact_depth_complete_absence_and_live_depth_or_work_frontiers_differ ... ok
+test later_current_revalidates_retained_typed_outcome_fact_and_consumption_cursor ... ok
+test partial_filter_matches_distinct_checked_budgets_without_substituting_unknown_absent_or_zero ... ok
+test positive_zero_step_model_self_loop_and_declared_stutter_require_separate_evidence ... ok
+test reach_catalog_and_checked_step_failures_refuse_without_advancing_or_freezing ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_stock_guest-e04b96744c2dd20e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_suite-6bcdfc8f8f800e42)
+
+running 11 tests
+test coverage::tests::catalog_validation_and_row_classification_avoid_quadratic_equality_scans ... ok
+test coverage::tests::classifies_retained_outcomes_and_equal_display_actions_by_typed_identity ... ok
+test coverage::tests::progress_uses_the_combined_evaluator_on_witness_states ... ok
+test coverage::tests::refuses_invalid_metadata_and_panicking_callbacks ... ok
+test coverage::tests::undeclared_and_complete_empty_catalogs_remain_distinct ... ok
+test search::tests::bounded_gap_loops_do_not_spend_work_once_their_labels_are_dominated ... ok
+test search::tests::cut_graph_answers_only_settled_searches ... ok
+test search::tests::exact_outcome_retains_the_selected_row ... ok
+test search::tests::finds_a_global_shortest_match_and_searches_before_the_first_node ... ok
+test search::tests::only_explicit_gaps_consume_intervening_edges ... ok
+test search::tests::seeded_walks_retain_loops_and_refuse_too_short_a_horizon ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-452b6173121b1805)
+
+running 16 tests
+test alternative_search::along_keeps_predicate_failure_ahead_of_unrelated_skips ... ok
+test alternative_search::along_preserves_skipped_step_refusals_for_structural_and_legacy_paths ... ok
+test alternative_search::skipped_deep_effect_cannot_hide_a_shorter_alternative ... ok
+test declared_world::complete_starts_keep_correlation_first_occurrence_and_deduplication ... ok
+test explicit_world::cloning_and_formatting_spaces_require_no_world_traits ... ok
+test explicit_world::explicit_queries_use_selected_constants_and_starts ... ok
+test explicit_world::explicit_runs_retain_the_owned_world_after_space_is_dropped ... ok
+test fixtures::fixtures ... ok
+test full_patterns::cases_mismatch_and_alternative_budget_precede_model_search ... ok
+test full_patterns::cover_refuses_empty_unwitnessed_and_cut_spaces ... ok
+test full_patterns::full_grammar_find_and_along_preserve_state_inference ... ok
+test full_patterns::model_state_budget_does_not_spend_alternative_capacity ... ok
+test full_patterns::sampling_walks_admitted_loops_reproducibly_and_reports_its_bound ... ok
+test large_space::state_only_find_answers_over_a_large_space_under_the_default_budget ... ok
+test world_domains::contextual_domains_take_the_selected_world ... ok
+test world_domains::every_suite_route_admits_the_catalog_under_the_space_limit ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s
+
+     Running tests/retained.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/retained-67a56a71345197e8)
+
+running 4 tests
+test cover_and_along_never_replay_effects_or_rebuild_worlds ... ok
+test legacy_spaces_preserve_unconstrained_configuration_and_auto_traits ... ok
+test queries_take_the_state_as_their_one_explicit_generic_argument ... ok
+test refused_stories_do_not_construct_the_registered_world ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_testing-ec6429914cbf758d)
+
+running 12 tests
+test backend::tests::actual_tlc_fact_traces_replay_exact_vectors ... ok
+test backend::tests::agreement_compares_complete_sets_and_every_verdict ... ok
+test backend::tests::nominal_debug_preserves_authored_shapes_and_exact_optional_codes ... ok
+test backend::tests::nonempty_facts_are_typed_and_preserved_on_observer_activation ... ok
+test backend::tests::projection_refuses_state_or_edge_changes_without_a_real_edge ... ok
+test backend::tests::replay_compares_the_typed_outcome_of_a_rejected_self_loop ... ok
+test backend::tests::replay_uses_checked_steps_without_panicking ... ok
+test backend::tests::replay_uses_retained_starts_without_enumerating_again ... ok
+test backend::tests::typed_replay_identifies_the_exact_catalog_payload_without_display_identity ... ok
+test snapshot_payload::tests::preserves_body_and_refuses_invalid_headers ... ok
+test source_edit_tests::source_edits_preserve_surrounding_text_and_unicode ... ok
+test source_edit_tests::source_edits_refuse_missing_duplicate_and_empty_anchors ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/consumers.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/consumers-b73f74ed09e3efc5)
+
+running 12 tests
+test consumers_select_generic_snapshot_files ... ok
+test pending_text_snapshots_require_explicit_acceptance ... ok
+test rejects_orphan_snapshot_artifacts ... ok
+test runner_child ... ok
+test selected_fixture_admits_skipped_sibling_goldens ... ok
+test selected_fixture_preserves_dynamic_orphan_and_nondeterminism_refusals ... ok
+test selected_fixture_renders_twice_without_running_its_siblings ... ok
+test selected_update_child ... ok
+test selected_updates_admit_repairable_siblings_and_preserve_skipped_goldens ... ok
+test selection_admits_all_registry_and_snapshot_inputs_before_rendering ... ok
+test skipped_backend_requires_selected_complete_goldens ... ok
+test update_mode_repairs_corrupt_consumer_owned_snapshots ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+
+     Running tests/external_consumers.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/external_consumers-9781c18b7a9cd675)
+
+running 3 tests
+test external_artifact_is_unchanged_during_native_update_and_compare ... ok
+test external_declarations_refuse_invalid_ownership_and_paths ... ok
+test external_runner_child ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/fixture_composition.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixture_composition-5c738fb7f819d02e)
+
+running 2 tests
+test fixture_appends_suite_files_after_retaining_negative_outputs ... ok
+test fixture_refuses_extra_files_that_replace_checker_outputs ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-bedace5a8d4e385c)
+
+running 5 tests
+test declared_values::world_and_state_enums_bind_without_finite ... ok
+test discovery::compiles_distinct_non_identifier_folder_names ... ok
+test discovery::refuses_incomplete_fixtures ... ok
+test empty_control::rejects_fixture_without_owned_outputs ... ok
+test orphan_control::orphan_control ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/native_backend.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/native_backend-24b62e4af06927c3)
+
+running 2 tests
+test lifted_values_select_typed_backend_hook ... ok
+test manual_values_keep_native_formatting_and_refuse_symbolic_hooks ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/suite_consumers.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/suite_consumers-cec625728a58b22d)
+
+running 5 tests
+test checker_and_suite_share_one_fixture_producer ... ok
+test runner_child ... ok
+test suite_producer_rejects_unknown_and_ambiguous_outputs ... ok
+test suite_snapshots_reject_nondeterministic_producers ... ok
+test suite_snapshots_update_compare_and_reject_orphans ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_tla-85fd968187a42551)
+
+running 15 tests
+test bind::tests::cfg_representation_looks_inside_tuples_and_sequences ... ok
+test emit::optional_tests::optional_default_forces_eager_checked_fallback_in_main_emission ... ok
+test emit::optional_tests::priming_recurses_through_nested_vectors_and_three_children_without_changing_other_leaves ... ok
+test emit::optional_tests::priming_visits_each_nominal_child_and_keeps_world_identity ... ok
+test emit::optional_tests::signed_remainder_asserts_overflow_and_divides_parenthesised_operands ... ok
+test emit::optional_tests::unsigned_division_has_no_overflow_guard ... ok
+test names::optional_tests::rename_visits_nominal_construction_projection_and_both_default_children ... ok
+test names::traversal_tests::rename_override_stops_before_replacement_children ... ok
+test safety::value::optional_tests::negative_literal_divisor_is_parenthesised_in_the_remainder ... ok
+test safety::value::optional_tests::present_optional_requires_fallback_validity_and_checks_some_encoding ... ok
+test safety::value::optional_tests::signed_remainder_requires_nonzero_divisor_and_no_overflow ... ok
+test safety::value::optional_tests::unsigned_division_has_no_overflow_guard ... ok
+test values::tests::composite_values_accept_exact_shapes_only ... ok
+test values::tests::enum_variants_admit_one_fieldless_payload_only ... ok
+test values::tests::nominal_types_validate_descriptor_and_accept_exact_codes ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-a3d778aef64545f0)
+
+running 96 tests
+test emission::real_tlc_empty_half_open_starts_have_no_checked_underflow ... ok
+test emission::real_tlc_preserves_ordered_mutations_and_reports_checked_overflow ... ok
+test emission::real_tlc_signed_division_and_remainder_use_rust_rounding ... ok
+test inputs::a_fair_unit_variant_named_like_a_fair_position_refuses ... ok
+test inputs::assumptions_naming_values_outside_the_selected_catalog_refuse_as_natively ... ok
+test inputs::catalog_values_outside_their_admitted_types_refuse_at_the_source_declaration ... ok
+test inputs::exact_payload_scopes_and_fairness_specialize_the_variant_relation ... ok
+test inputs::inputs_bind_in_declaration_product_order_keeping_duplicates_and_empty_variants ... ok
+test inputs::inputs_without_a_declared_world_refuse_at_the_variant ... ok
+test inputs::internal_payload_actors_keep_their_classification ... ok
+test inputs::native_domain_forms_lift_from_the_bound_catalog ... ok
+test inputs::payload_patterns_resolve_lexically_through_their_typed_identities ... ok
+test inputs::the_catalog_limit_boundary_binds_and_emits ... ok
+test inputs::the_source_limit_is_the_native_catalog_limit ... ok
+test inputs::unsupported_input_sources_refuse_by_location ... ok
+test narrow_remainder::i16_min_remainder_negative_one_refuses ... ok
+test narrow_remainder::i8_min_remainder_negative_one_refuses ... ok
+test optional_facts::canonical_option_constructor_paths_are_admitted ... ok
+test optional_facts::canonical_optional_imports_preserve_the_existing_fact_carrier ... ok
+test optional_facts::disabled_handler_tail_arithmetic_is_checked_by_both_emitters ... ok
+test optional_facts::fact_tail_world_and_input_references_receive_emitted_names ... ok
+test optional_facts::legacy_unit_fact_metadata_remains_exact ... ok
+test optional_facts::mixed_unit_handler_clears_the_previous_fact_on_every_real_edge ... ok
+test optional_facts::overlapping_action_guards_keep_the_first_matching_fact ... ok
+test optional_facts::prefix_effects_and_locals_feed_the_tail_in_ssa_order ... ok
+test optional_facts::source_only_constructor_swap_changes_both_emitters ... ok
+test optional_facts::unsupported_tail_results_refuse_at_the_source ... ok
+test optional_source::canonical_optional_imports_preserve_builtin_identity ... ok
+test optional_source::canonical_optional_paths_and_nominal_operations ... ok
+test optional_source::option_remains_an_ordinary_fieldless_enum_without_bounded_types ... ok
+test optional_source::optional_spellings_remain_ordinary_scalar_names_without_bounded_types ... ok
+test optional_source::unsupported_optional_sources_refuse_at_source_locations ... ok
+test optional_ticks::binding_preserves_nominal_identity_and_refuses_malformed_fields ... ok
+test optional_ticks::exact_optional_decode_includes_before_observers_and_rejects_wrong_kinds ... ok
+test optional_ticks::optional_complete_starts_keep_whole_row_correlation_and_empty_selection ... ok
+test optional_ticks::present_optional_keeps_eager_errors_in_guard_assignment_and_claim ... ok
+test optional_ticks::shared_countdown_keeps_selected_codes_in_all_cfgs_and_before_metadata ... ok
+test optional_ticks::source_local_optional_ticks_are_admitted ... ok
+test phased::admitted_tree_and_constructor_data_grow_linearly ... ok
+test phased::emitted_size_is_linear_in_sequential_conditional_returns ... ok
+test phased::large_handlers_compile_with_their_admitted_data ... ok
+test phased::rejections_lower_to_typed_outcomes_and_kept_self_loops ... ok
+test phased::shared_definitions_never_take_an_authored_name ... ok
+test phased::unsupported_phase_rejection_and_law_forms_refuse_at_their_location ... ok
+test safety::initialization_growth_stays_linear_in_declared_fields ... ok
+test safety::safety_definition_growth_stays_linear ... ok
+test safety::safety_has_typed_history_and_preserving_stutter ... ok
+test safety::safety_history_names_refuse_collisions_and_temporaries_are_hygienic ... ok
+test safety::tlc_declarations_carry_snowcat_types ... ok
+test safety::unsupported_source_type_refuses_at_its_declaration ... ok
+test sequential_checks::failed_check_does_not_hide_a_later_division_failure ... ok
+test shadowing::nested_blocks_and_effect_helpers_preserve_caller_locals ... ok
+test source::a_hook_claim_name_collision_refuses_in_tests_rs ... ok
+test source::a_world_of_another_machine_refuses_at_this_source ... ok
+test source::admission_refuses_type_cfg_resolution_and_observer_collisions ... ok
+test source::enum_helper_and_terminal_postcondition_are_admitted ... ok
+test source::generated_tla_names_refuse_authored_namespace_collisions ... ok
+test source::hand_written_machine_refusal_prints_the_type_as_written ... ok
+test source::hook_refusal_in_tests_rs_names_tests_rs ... ok
+test source::imports_that_can_rebind_a_macro_read_by_name_refuse ... ok
+test source::inherent_enum_into_is_resolved_before_primitive_conversion ... ok
+test source::integer_literal_types_follow_field_context_on_either_side ... ok
+test source::kettle_source_lifts_registered_properties_and_explicit_assumptions ... ok
+test source::path_claims_refuse_builders_chains_and_other_gaps ... ok
+test source::progress_bounds_are_fail_closed ... ok
+test source::pure_same_impl_helper_is_typed_and_lifted ... ok
+test source::repeated_progress_builders_refuse_instead_of_reversing_rust_order ... ok
+test source::the_state_struct_keeps_its_authored_name ... ok
+test source::unsupported_control_characters_refuse_at_the_authored_literal ... ok
+test source::unsupported_expression_refuses_with_source_location ... ok
+test vector::bounded_vector_operations_are_lifted_with_safe_defaulted_get ... ok
+test vector::conditional_guards_preserve_common_bound_facts ... ok
+test vector::length_sums_and_products_refuse_at_their_span ... ok
+test vector::real_vector_native_and_tlc_states_and_properties_agree ... ok
+test vector::shared_boolean_guards_keep_vector_admission_linear ... ok
+test vector::unrelated_conditionals_preserve_vector_length_identity ... ok
+test vector::unsupported_vector_operations_and_unbounded_growth_refuse ... ok
+test vector::vector_get_keeps_eager_default_failures_when_element_is_present ... ok
+test world::bare_world_and_before_parameters_do_not_resolve_as_source_constants ... ok
+test world::binding_refuses_malformed_world_and_complete_state_values ... ok
+test world::complete_starts_preserve_correlation_deduplicate_and_keep_empty ... ok
+test world::declared_world_computed_starts_admit_before_value_binding ... ok
+test world::generated_world_constants_avoid_synthesized_action_names ... ok
+test world::real_tlc_executes_each_cfg_family_with_both_world_bindings ... ok
+test world::scalar_enum_world_and_sequence_starts_use_the_admitted_types ... ok
+test world::typed_world_signatures_and_outcome_fields_refuse_by_source_location ... ok
+test world::world_free_starts_of_any_name_admit_and_bind ... ok
+test world_fairness_binding::empty_selected_restrictions_keep_existing_refusal_and_empty_fair_lists ... ok
+test world_fairness_binding::every_selected_registration_and_progress_leaf_is_catalog_checked ... ok
+test world_fairness_binding::native_interpretation_selects_before_converting_exact_actions ... ok
+test world_fairness_binding::possible_leaf_names_and_post_selection_aliases_are_reserved ... ok
+test world_fairness_binding::rebinding_reselects_original_conditional_branches_and_preserves_flat_scopes ... ok
+test world_fairness_binding::selected_leaves_keep_authored_world_identity_and_exact_fairness ... ok
+test world_fairness_binding::source_plans_resolve_before_any_action_conversion ... ok
+test world_fairness_binding::unresolved_embedded_plan_cannot_emit_as_an_empty_scope ... ok
+test world_fairness_binding::world_shape_validation_precedes_selection ... ok
+
+test result: ok. 96 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_tlc-2c2375dd219d0cbd)
+
+running 26 tests
+test cache::tests::root_admission_rejects_symlinks_and_relative_paths ... ok
+test decode::tests::observer_only_safety_assignment_keeps_empty_state_refusal ... ok
+test decode::tests::string_and_collection_values_preserve_authored_contents ... ok
+test decode::tests::typed_dump_rejects_missing_extra_wrong_type_and_truncation ... ok
+test runner::batch_tests::batch_protocol_requires_complete_selected_evidence ... ok
+test runner::batch_tests::batch_resource_refusal_does_not_launch_singleton_recovery ... ok
+test runner::batch_tests::singleton_evaluation_stops_recovery_after_current_wave ... ok
+test runner::batch_tests::singleton_output_budget_precedes_later_evaluation_and_stops_new_waves ... ok
+test runner::batch_tests::singleton_recovery_measures_worker_peak_and_owns_each_scratch ... ok
+test runner::cache_tests::cache_child ... ok
+test runner::cache_tests::cache_root_refusal_reports_its_cause_without_following_symlinks ... ok
+test runner::cache_tests::concurrent_writers_and_readers_see_only_complete_bundles ... ok
+test runner::cache_tests::every_effective_identity_input_invalidates ... ok
+test runner::cache_tests::failures_refutations_and_incomplete_modules_never_publish ... ok
+test runner::cache_tests::identity_refreshes_between_module_calls_and_is_shared_between_configurations ... ok
+test runner::cache_tests::invalid_cached_batch_refuses_before_any_singleton_recovery ... ok
+test runner::cache_tests::manifest_integrity_limits_and_interrupted_publication ... ok
+test runner::cache_tests::populated_cache_hits_and_authoritative_disable_runs_fresh ... ok
+test runner::cache_tests::verified_configuration_publishes_despite_refuted_sibling ... ok
+test runner::tests::counterexample_requires_consecutive_states_and_a_valid_lasso ... ok
+test runner::tests::escaping_cache_symlinks_are_refused_before_creating_files ... ok
+test runner::tests::evaluation_errors_name_the_property_and_state ... ok
+test runner::tests::incomplete_messages_and_exploration_are_refused ... ok
+test runner::tests::located_property_invariants_name_only_the_selected_operator ... ok
+test runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed ... ok
+test runner::tests::typed_module_refuses_inconsistent_declarations_before_spawning ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.17s
+
+     Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-615d5c88882ae234)
+
+running 8 tests
+test controls::real_tlc_batch_evaluation_recovers_original_property_order ... ok
+test controls::real_tlc_evaluation_errors_are_typed_and_located ... ok
+test controls::real_tlc_failed_batches_preserve_independent_traces ... ok
+test controls::real_tlc_healthy_batches_use_at_most_two_model_launches ... ok
+test controls::real_tlc_initial_invariant_has_a_typed_counterexample ... ok
+test controls::real_tlc_keeps_deadlock_checks_and_refuses_tool_errors ... ok
+test controls::real_tlc_maximality_fairness_bounds_and_action_properties ... ok
+test scaling::typed_module_completes_independently_of_a_cut_native_reference ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/xtask-00fe51f09ffc641d)
+
+running 96 tests
+test gate::admission::tests::clean_policy_keeps_stripped_flags_out_and_native_policy_keeps_defaults ... ok
+test gate::admission::tests::required_tool_policy_caps_work_and_retains_other_caller_flags ... ok
+test gate::boundary::tests::character_literals_and_lifetimes_cannot_hide_source_escapes ... ok
+test gate::boundary::tests::character_recognition_requires_a_valid_closed_literal ... ok
+test gate::boundary::tests::declared_unused_dependency_escape_is_refused_before_cargo ... ok
+test gate::boundary::tests::descriptor_policy_requires_canonical_paths_and_digests ... ok
+test gate::boundary::tests::external_target_alias_cannot_hide_source_subtree ... ok
+test gate::boundary::tests::generated_descriptor_exception_preserves_content_and_source_boundaries ... ok
+test gate::boundary::tests::license_digest_policy_is_required_and_canonical ... ok
+test gate::boundary::tests::organization_exception_preserves_occurrence_token_boundaries ... ok
+test gate::boundary::tests::source_escape_is_structural_and_contained_deep_paths_work ... ok
+test gate::boundary::tests::target_cannot_hide_sources ... ok
+test gate::boundary::tests::unchanged_root_license_is_the_only_content_exception ... ok
+test gate::scheduler::execution_controls::captured_leaf_preserves_cwd_environment_bytes_and_failed_status ... ok
+test gate::scheduler::execution_controls::captured_leaf_preserves_signal_status ... ok
+test gate::scheduler::execution_controls::streamed_channels_are_not_returned_as_captured_output ... outputerrorok
+test gate::scheduler::execution_controls::unconfigured_leaf_uses_the_callers_working_directory ... ok
+test gate::scheduler::inventory_controls::assumed_env_object_and_incomplete_metadata_are_refused ... ok
+test gate::scheduler::inventory_controls::duplicate_metadata_and_nonliteral_dependency_are_refused ... ok
+test gate::scheduler::inventory_controls::upstream_env_directive_array_preserves_logical_order_and_dependencies ... ok
+test gate::scheduler::receipt_controls::failed_invocation_distinguishes_cancelled_and_not_started_without_accepting_missing_success ... ok
+test gate::scheduler::receipt_controls::scoped_receipts_keep_duplicate_public_names_and_logical_order ... ok
+test gate::standalone::tests::copied_config_trust_is_limited_to_copy_and_owned_scratch ... ok
+test gate::standalone::tests::copy_refuses_existing_and_dangling_source_symlinks ... ok
+test gate::standalone::tests::copy_uses_current_bytes_and_excludes_only_generated_roots ... ok
+test gate::standalone::tests::isolated_child_policy_control ... ok
+test gate::standalone::tests::isolated_child_uses_the_reported_required_profile_and_thread_cap ... ok
+test gate::standalone::tests::report_directory_artifact_hashes_every_generated_file ... ok
+test gate::tests::real_stage_child_receives_cache_bypass_and_required_mode ... framework stage exit-control failed (exit 37)
+ok
+test gate::tests::stage_reaps_background_children_before_returning_the_failed_status ... framework stage owned-child failed (exit 37)
+ok
+test gate::work_counts::tests::child_authority_paths_preserve_tabs_and_non_unicode_bytes ... ok
+test gate::work_counts::tests::child_count_authority_is_embedded_without_inclusive_parent_summing ... ok
+test gate::work_counts::tests::doctest_color_is_normalized_only_for_private_observation ... ok
+test gate::work_counts::tests::doctest_summary_requires_every_actual_count ... ok
+test gate::work_counts::tests::doctests_refuse_missing_duplicate_and_mismatched_summaries ... ok
+test gate::work_counts::tests::duplicate_and_unfinished_test_producers_are_refused ... ok
+test gate::work_counts::tests::inventory_requires_exact_cardinality_and_complete_selection_fields ... ok
+test gate::work_counts::tests::malformed_counts_keep_the_real_failed_runner_status ... 
+running 1 test
+test gate::work_counts::tests::observation_child ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 95 filtered out; finished in 0.06s
+
+ok
+test gate::work_counts::tests::missing_observations_remain_unknown_instead_of_zero ... ok
+test gate::work_counts::tests::observation_child ... ok
+test gate::work_counts::tests::observed_test_commands_and_real_launches_have_separate_counts ... ok
+test gate::work_counts::tests::observed_tools_stream_human_channels_while_pending_without_returning_them_twice ... ok
+test gate::work_counts::tests::partial_unknown_and_overflowed_events_refuse_counts ... ok
+test gate::work_counts::tests::rejected_controller_child ... ok
+test gate::work_counts::tests::selected_tests_are_not_substituted_for_observed_execution ... ok
+test gate::work_counts::tests::stage_collector_uses_the_count_boundary_for_successful_receipts ... ok
+test gate::work_counts::tests::stage_receipt_combines_nextest_and_doctests_without_cross_scope_or_invocation_counts ... 
+running 1 test
+test gate::work_counts::tests::observation_child ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 95 filtered out; finished in 0.10s
+
+
+running 1 test
+test gate::work_counts::tests::observation_child ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 95 filtered out; finished in 0.10s
+
+
+running 1 test
+test gate::work_counts::tests::observation_child ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 95 filtered out; finished in 0.10s
+
+ok
+test gate::work_counts::tests::streaming_child ... ok
+test gate::work_counts::tests::structured_receipts_refuse_missing_partial_and_inconsistent_success_counts ... ok
+test gate::work_counts::tests::successful_test_stage_cannot_omit_its_producer ... 
+running 1 test
+test gate::work_counts::tests::observation_child ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 95 filtered out; finished in 0.00s
+
+ok
+test gate::work_counts::tests::supervisor_fork_and_unconfirmed_completion_do_not_claim_jvm_launches ... ok
+test gate::work_counts::tests::test_carrier_rejection_is_frozen_before_configured_path_can_change ... ok
+test quick::tests::deleted_source_ownership_does_not_require_the_file_to_exist ... ok
+test quick::tests::explicit_compiler_only_packages_must_belong_to_an_admitted_workspace ... ok
+test quick::tests::external_build_inputs_and_unknown_sources_remain_conservative ... ok
+test quick::tests::framework_abi_guests_are_explicit_compiler_only_consumers ... ok
+test quick::tests::git_selection_includes_staged_unstaged_untracked_renamed_and_deleted_paths ... ok
+test quick::tests::global_and_unmapped_inputs_select_whole_workspace_and_reverse_dependents ... ok
+test quick::tests::global_fallback_compiles_zero_harness_members_and_keeps_their_tests_and_doctests ... ok
+test quick::tests::independent_repositories_merge_changes_before_reverse_consumer_selection ... ok
+test quick::tests::independent_repository_bases_belong_to_the_admitted_caller ... ok
+test quick::tests::mapped_external_sources_and_unchanged_invocations_keep_explicit_execution ... ok
+test quick::tests::metadata_named_checkout_ancestors_do_not_hide_external_build_inputs ... ok
+test quick::tests::metadata_preserves_doctests_without_requesting_binary_only_docs ... ok
+test quick::tests::model_edits_ignore_reported_non_model_metadata_and_docs ... ok
+test quick::tests::one_repository_keeps_base_semantics_without_caller_ownership ... ok
+test quick::tests::options_reject_unknown_flags_and_relative_workspaces ... ok
+test quick::tests::package_filters_only_narrow_unchanged_or_exclusively_mapped_feature_edits ... ok
+test quick::tests::quick_leaf_reaps_background_children_and_preserves_failed_status ... ok
+test quick::tests::renamed_sources_select_both_owners_with_metadata_changes ... ok
+test quick::tests::reverse_dependencies_merge_workspace_specific_ids_by_manifest ... ok
+test quick::tests::shared_feature_inputs_select_every_direct_consumer_and_reverse_guest ... ok
+test quick::tests::shared_kettle_model_seeds_source_consumers_and_reverse_guest ... ok
+test quick::tests::stage_receipt_reports_elapsed_and_spawn_failure_without_success_status ... ok
+test quick::tests::stage_receipt_reports_missing_tool_as_failed_status ... cannot execute backend subprocess
+ok
+test quick::tests::stage_receipts_label_formatting_and_preserve_success_and_failure_statuses ... ok
+test quick::tests::workspace_documentation_can_supply_executable_test_inputs ... ok
+test quick::tests::workspace_execution_checks_build_only_consumers_then_batches_tests_and_scoped_docs ... quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=guest,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest" "-p" "umpire" "-p" "umpire-ir-derive"
+quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=guest,umpire,umpire-ir-derive elapsed=0.034s exit=0
+quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0/cargo.sh" "nextest" "list" "--locked" "--message-format" "json" "--run-ignored" "default" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.033s exit=0
+quick: stage=test workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0/cargo.sh" "nextest" "run" "--locked" "--fail-fast" "--run-ignored" "default" "--status-level" "slow" "--final-status-level" "slow" "--success-output" "immediate" "--failure-output" "immediate-final" "--no-tests" "fail" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+quick: stage=test workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.034s exit=0
+quick: stage=doctest workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0/cargo.sh" "test" "--doc" "--locked" "-p" "api" "-p" "umpire" "-p" "umpire-ir-derive" "--" "--nocapture"
+quick: stage=doctest workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.034s exit=0
+quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=guest,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" && CONTROL_COMPILE_EXIT="13" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest" "-p" "umpire" "-p" "umpire-ir-derive"
+quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=guest,umpire,umpire-ir-derive elapsed=0.035s exit=13
+quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=guest,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="17" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest" "-p" "umpire" "-p" "umpire-ir-derive"
+quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=guest,umpire,umpire-ir-derive elapsed=0.034s exit=0
+quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="17" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0/cargo.sh" "nextest" "list" "--locked" "--message-format" "json" "--run-ignored" "default" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.033s exit=17
+quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=guest,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" CONTROL_RUN_EXIT="29" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest" "-p" "umpire" "-p" "umpire-ir-derive"
+quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=guest,umpire,umpire-ir-derive elapsed=0.034s exit=0
+quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" CONTROL_RUN_EXIT="29" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0/cargo.sh" "nextest" "list" "--locked" "--message-format" "json" "--run-ignored" "default" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.032s exit=0
+quick: stage=test workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" CONTROL_RUN_EXIT="29" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0/cargo.sh" "nextest" "run" "--locked" "--fail-fast" "--run-ignored" "default" "--status-level" "slow" "--final-status-level" "slow" "--success-output" "immediate" "--failure-output" "immediate-final" "--no-tests" "fail" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+quick: stage=test workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.034s exit=29
+quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=guest,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="37" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest" "-p" "umpire" "-p" "umpire-ir-derive"
+quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=guest,umpire,umpire-ir-derive elapsed=0.034s exit=0
+quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="37" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0/cargo.sh" "nextest" "list" "--locked" "--message-format" "json" "--run-ignored" "default" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.032s exit=0
+quick: stage=test workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="37" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0/cargo.sh" "nextest" "run" "--locked" "--fail-fast" "--run-ignored" "default" "--status-level" "slow" "--final-status-level" "slow" "--success-output" "immediate" "--failure-output" "immediate-final" "--no-tests" "fail" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+quick: stage=test workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.032s exit=0
+quick: stage=doctest workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="37" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmpPuPUB0" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmpPuPUB0/cargo.sh" "test" "--doc" "--locked" "-p" "api" "-p" "umpire" "-p" "umpire-ir-derive" "--" "--nocapture"
+quick: stage=doctest workspace=/home/agent/.cache/codex-build/tmp/.tmpPuPUB0 packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.034s exit=37
+ok
+test test_run::tests::binaries_then_doctests_exactly_once ... ok
+test test_run::tests::binary_failure_stops_before_doctests ... ok
+test test_run::tests::compiler_only_admission_is_explicit_and_keeps_discovered_tests_in_the_batch ... ok
+test test_run::tests::doctest_failure_preserves_status ... ok
+test test_run::tests::exact_predicates_use_nextest_escape_sequences_without_embedded_quotes ... ok
+test test_run::tests::explicit_compiler_only_batches_do_not_claim_zero_test_execution ... ok
+test test_run::tests::filtered_doctests_keep_exact_selection ... ok
+test test_run::tests::inventory_admission_refuses_each_empty_package_and_exact_fixture_selection ... ok
+test test_run::tests::inventory_failure_preserves_status_and_never_executes_the_batch ... ok
+test test_run::tests::missing_runner_fails_without_fallback ... ok
+test test_run::tests::required_backend_policy_caps_inherited_threads_and_preserves_skipped_defaults ... ok
+test test_run::tests::scoped_package_admission_uses_membership_and_actual_doctest_targets ... ok
+test test_run::tests::scoped_runner_child ... ok
+test test_run::tests::scoped_runner_executes_inventory_tests_and_docs_with_the_same_admitted_policy ... ok
+test test_run::tests::selected_binary_failure_and_doctest_failure_preserve_status ... ok
+test test_run::tests::selected_empty_batch_and_spawn_failure_do_not_fall_back ... ok
+test test_run::tests::selected_packages_share_one_nextest_batch_and_only_eligible_doctests ... ok
+test test_run::tests::workspace_selection_rejects_an_unexpected_zero_test_run ... ok
+
+test result: ok. 96 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.02s
+
+     Running unittests src/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/xtask-fa5210ad20f7aeaa)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-445be5b0c040204c)
+
+running 52 tests
+test apalache_install::installer::tests::concurrent_installers_publish_once_and_return_same_path ... ok
+test apalache_install::installer::tests::download_failure_cleans_private_staging_and_never_publishes ... ok
+test apalache_install::installer::tests::hash_before_parse_and_exact_regular_member_before_publication ... ok
+test apalache_install::installer::tests::malicious_lock_types_refuse_without_following_or_blocking ... ok
+test apalache_install::installer::tests::native_curl_contract_and_download_failure_cleanup ... ok
+test apalache_install::installer::tests::native_dispatch_usage_failure_is_nonzero_and_structured ... ok
+test apalache_install::installer::tests::partial_wrong_and_nonregular_installations_never_download ... ok
+test apalache_install::installer::tests::symlinks_in_every_component_including_dangling_are_refused ... ok
+test controller_counts::copied_controller_keeps_nextest_and_doctest_counts_after_atomic_self_replacement ... ok
+test gate_graph::graph_keeps_independent_read_only_work_schedulable_together ... ok
+test gate_graph::shared_cargo_targets_and_generated_outputs_have_predecessor_barriers ... ok
+test gate_graph::shipping_graph_has_unique_complete_stage_metadata_and_no_cycle ... ok
+test gate_wiring::actual_mise_failed_leaf_reaps_its_active_sibling_descendant_before_return ... ok
+test gate_wiring::compiled_stage_inventory_matches_preserved_framework_stages ... ok
+test gate_wiring::concurrent_duplicate_stage_claim_runs_leaf_exactly_once_and_preserves_receipt ... ok
+test gate_wiring::convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status ... ok
+test gate_wiring::every_command_boundary_preserves_failure_status_and_environment_in_both_modes ... ok
+test gate_wiring::failed_scheduler_is_waited_and_its_owned_descendant_is_terminated_before_return ... ok
+test gate_wiring::full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_command ... ok
+test gate_wiring::full_dispatch_stops_at_every_failed_leaf_in_both_modes ... ok
+test gate_wiring::full_gate_publishes_complete_ordered_invocation_local_receipts_on_every_run ... ok
+test gate_wiring::guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths ... ok
+test gate_wiring::independent_native_stages_reach_each_other_while_both_are_active ... ok
+test gate_wiring::outer_supervision_streams_separate_diagnostics_before_scheduler_completion ... ok
+test gate_wiring::required_optional_backend_fetch_failure_is_named_and_prevents_first_stage ... ok
+test gate_wiring::required_profile_reaches_gate_update_and_direct_test_children ... ok
+test gate_wiring::required_test_stage_selects_bounded_profile_and_empty_selection_status_is_preserved ... ok
+test gate_wiring::required_tests_provision_tlc_before_running_and_preserve_setup_failure ... ok
+test gate_wiring::root_required_backend_environment_selects_standalone_on_gate_and_time_routes ... ok
+test gate_wiring::scanner_stages_reject_real_planted_inputs_and_full_gate_stops_before_later_commands ... ok
+test gate_wiring::scheduled_stage_atomically_commits_success_failure_and_scanner_error_receipts ... ok
+test gate_wiring::scheduled_stage_requires_invocation_directory_before_starting_leaf ... ok
+test gate_wiring::shipping_mise_graph_really_overlaps_independent_native_leaves ... ok
+test gate_wiring::signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch ... ok
+test gate_wiring::simultaneous_failed_native_leaves_both_retain_names_receipts_and_status ... ok
+test gate_wiring::successful_scheduler_status_cannot_replace_complete_unique_atomic_stage_records ... ok
+test gate_wiring::supervision_ignores_obstructed_legacy_shared_scratch_parent ... ok
+test gate_wiring::supervision_public_fmt_finishes_while_host_lease_is_held ... ok
+test gate_wiring::supervision_public_fmt_reaps_background_children_before_returning_failure ... ok
+test gate_wiring::supervision_scratch_is_private_and_removed_after_success_and_failure ... fmt child diagnostic
+framework stage fmt failed (exit 37)
+ok
+test gate_wiring::test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes ... ok
+test gate_wiring::validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate ... ok
+test retired_names::io_and_missing_grep_errors_fail_closed ... retired-name filtering failed: control
+ok
+test retired_names::malformed_records_fail_closed ... ok
+test retired_names::posix_ere_recheck_and_grep_failure_propagate ... ok
+test retired_names::raw_records_exempt_only_author_facade_tokens ... ok
+test standalone::child_cannot_reenter_copy_stage ... ok
+test standalone::child_requires_copy_provenance_instead_of_parent_fallback ... ok
+test standalone::copied_missing_local_configuration_refuses_parent_configuration ... ok
+test standalone::declared_existing_outside_dependency_fails_containment ... ok
+test standalone::manifest_root_escape_fails_source_containment ... ok
+test standalone::policy_planted_identifier_fails_named_scanner ... ok
+
+test result: ok. 52 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 73.41s
+
+   Doc-tests umpire
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_apalache
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_author_consumer
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_backend_process
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_catalog
+
+running 1 test
+test catalog/src/types.rs - types::check (line 32) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+test catalog/src/types.rs - types::check (line 37) - compile fail ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+all doctests ran in 0.55s; merged doctests compilation took 0.52s
+   Doc-tests umpire_catalog_build
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_catalog_macros
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_catalog_syntax
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_checker
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_dsl
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_dsl_macros
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_front
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_guest_driver
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_ir
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_ir_derive
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_reference_kettle
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_runtime
+
+running 1 test
+test protocol/runtime/src/runtime.rs - runtime::SingletonTarget (line 66) - compile fail ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+   Doc-tests umpire_suite
+
+running 1 test
+test author/suite/src/lib.rs - expect (line 37) ... ignored
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+test author/suite/src/space.rs - space::Space<S>::with_world (line 69) - compile fail ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+all doctests ran in 0.48s; merged doctests compilation took 0.43s
+   Doc-tests umpire_testing
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_tla
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_tlc
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests xtask
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

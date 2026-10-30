@@ -1,0 +1,56 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling prettyplease v0.3.0
+   Compiling equivalent v1.0.3
+   Compiling hashbrown v0.17.1
+   Compiling syn v3.0.9
+   Compiling indexmap v2.14.2
+   Compiling winnow v1.0.4
+   Compiling smallvec v1.16.3
+   Compiling heck v0.5.0
+   Compiling proc-macro-utils v0.10.0
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling bytemuck v1.25.2
+   Compiling safe_arch v0.7.4
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25414-probes/model/umpire/ir/derive)
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25414-probes/model/umpire/ir)
+   Compiling manyhow-macros v0.14.1
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25414-probes/model/umpire/author/dsl/macros)
+   Compiling thiserror v2.0.21
+   Compiling rand_core v0.9.5
+   Compiling manyhow v0.14.1
+   Compiling rand_xoshiro v0.7.0
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25414-probes/model/umpire/front)
+   Compiling proc-macro-crate v3.5.0
+   Compiling wide v0.7.33
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling foldhash v0.1.5
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25414-probes/model/umpire/author/dsl)
+   Compiling archery v1.2.3
+   Compiling imbl v7.0.2
+   Compiling hashbrown v0.15.5
+   Compiling fixedbitset v0.5.7
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25414-probes/model/umpire/backends/native)
+   Compiling petgraph v0.8.3
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25414-probes/model/umpire/backends/process)
+   Compiling rustc-hash v2.1.3
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25414-probes/model/umpire/backends/tla)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25414-probes/model/umpire/backends/tlc)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.98s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25414-probes/debug/deps/umpire_tlc-475beafb703f3d37)
+
+running 7 tests
+test runner::tests::counterexample_requires_consecutive_states_and_a_valid_lasso ... ok
+test runner::tests::evaluation_errors_name_the_property_and_state ... ok
+test runner::tests::incomplete_messages_and_exploration_are_refused ... ok
+test runner::tests::located_property_invariants_name_only_the_selected_operator ... ok
+test runner::tests::escaping_cache_symlinks_are_refused_before_creating_files ... ok
+test runner::tests::typed_module_refuses_inconsistent_declarations_before_spawning ... ok
+test runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.02s
+

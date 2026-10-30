@@ -1,0 +1,20 @@
+[
+  {
+    "command": [
+      "/bin/bash",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/test-model-wiring.sh"
+    ],
+    "exit_code": 1,
+    "log_sha256": "f2c369ef2e1d300423075029c6275c5f0b5b3c97e7ff3a2ef9336c1e62cf53fc",
+    "expected_missing_behavior": "Old root producers precede leased DAG and required cold bootstrap retains99compiler jobs"
+  },
+  {
+    "command": [
+      "/bin/bash",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/test-model-validate.sh"
+    ],
+    "exit_code": 1,
+    "log_sha256": "6f6a1e4bf33aa6a533e219db423241881c4419a842927f5be3540ac633d11332",
+    "expected_missing_behavior": "Old root producers precede leased DAG and required cold bootstrap retains99compiler jobs"
+  }
+]

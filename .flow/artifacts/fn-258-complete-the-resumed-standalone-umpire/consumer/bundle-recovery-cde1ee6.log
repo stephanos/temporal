@@ -1,0 +1,60 @@
+$ git -C /Users/stephan/Workspace/skunkworks/umpire/temporal bundle create /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/source-preparation-cde1ee6.bundle refs/heads/work/fn2583-consumers '^ac60daaf47d2513b41eeff612f0e2758d33e186d'
+exit: 0
+$ git init --bare /home/agent/.cache/codex-build/tmp/fn258-consumer-recovery-cde1ee6.git
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /home/agent/.cache/codex-build/tmp/fn258-consumer-recovery-cde1ee6.git/
+exit: 0
+$ git -C /home/agent/.cache/codex-build/tmp/fn258-consumer-recovery-cde1ee6.git fetch --no-tags --update-shallow /Users/stephan/Workspace/skunkworks/umpire/temporal ac60daaf47d2513b41eeff612f0e2758d33e186d:refs/heads/prerequisite
+From /Users/stephan/Workspace/skunkworks/umpire/temporal
+ * [new ref]             ac60daaf47d2513b41eeff612f0e2758d33e186d -> prerequisite
+exit: 0
+$ git -C /home/agent/.cache/codex-build/tmp/fn258-consumer-recovery-cde1ee6.git symbolic-ref HEAD refs/heads/prerequisite
+exit: 0
+$ git -C /home/agent/.cache/codex-build/tmp/fn258-consumer-recovery-cde1ee6.git cat-file -e 'cde1ee67efd266a058193694c2ddb287598b9ea5^{commit}'
+fatal: Not a valid object name cde1ee67efd266a058193694c2ddb287598b9ea5^{commit}
+exit: 128
+$ git -C /home/agent/.cache/codex-build/tmp/fn258-consumer-recovery-cde1ee6.git show-ref --heads
+ac60daaf47d2513b41eeff612f0e2758d33e186d refs/heads/prerequisite
+exit: 0
+$ git -C /home/agent/.cache/codex-build/tmp/fn258-consumer-recovery-cde1ee6.git bundle verify /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/source-preparation-cde1ee6.bundle
+/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/source-preparation-cde1ee6.bundle is okay
+The bundle contains this ref:
+cde1ee67efd266a058193694c2ddb287598b9ea5 refs/heads/work/fn2583-consumers
+The bundle requires this ref:
+ac60daaf47d2513b41eeff612f0e2758d33e186d 
+The bundle uses this hash algorithm: sha1
+exit: 0
+$ git -C /home/agent/.cache/codex-build/tmp/fn258-consumer-recovery-cde1ee6.git fetch --no-tags /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/source-preparation-cde1ee6.bundle refs/heads/work/fn2583-consumers:refs/heads/recovered
+From /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/source-preparation-cde1ee6.bundle
+ * [new branch]          work/fn2583-consumers -> recovered
+exit: 0
+$ git -C /home/agent/.cache/codex-build/tmp/fn258-consumer-recovery-cde1ee6.git rev-parse refs/heads/recovered
+cde1ee67efd266a058193694c2ddb287598b9ea5
+exit: 0
+$ git -C /home/agent/.cache/codex-build/tmp/fn258-consumer-recovery-cde1ee6.git symbolic-ref HEAD refs/heads/recovered
+exit: 0
+$ git -C /home/agent/.cache/codex-build/tmp/fn258-consumer-recovery-cde1ee6.git fsck --full --strict
+exit: 0
+$ git -C /home/agent/.cache/codex-build/tmp/fn258-consumer-recovery-cde1ee6.git rev-parse 'HEAD^{tree}'
+937680c4cc87d81ce4da6b0868863ea1a5fb9fd3
+exit: 0
+$ git -C /home/agent/.cache/codex-build/tmp/fn258-consumer-recovery-cde1ee6.git rev-list HEAD '^ac60daaf47d2513b41eeff612f0e2758d33e186d'
+cde1ee67efd266a058193694c2ddb287598b9ea5
+3f5f613578f2857b738a7792fad08f12b3ea0a41
+ec13057227cf2159482a793b227e32653e280057
+3658582dac5b54c1f68c2eb54a312957c97e05b6
+4035bb70fdf4c7ef074a8f05a02b19fb458c0b1d
+7e655da80b3810807cbd02a3ea29c26ceb9804e4
+exit: 0

@@ -1,0 +1,712 @@
+{
+  "compile": [
+    "mise",
+    "exec",
+    "--",
+    "rustc",
+    "--edition=2024",
+    "-A",
+    "dead_code",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/.flow/tmp/fn2543-runner-controls/temporal-leaf.rs",
+    "--crate-name",
+    "temporal_leaf",
+    "--extern",
+    "umpire_guest_driver=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps/libumpire_guest_driver-fbf6fd2cc827b131.rlib",
+    "-L",
+    "dependency=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/deps",
+    "-o",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/.flow/tmp/fn2543-runner-controls/temporal-leaf"
+  ],
+  "controls": [
+    {
+      "route": "framework-stage",
+      "mode": "success",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/xtask",
+        "gate",
+        "--stage",
+        "tests"
+      ],
+      "exit": 0,
+      "calls": [
+        {
+          "args": [
+            "exec",
+            "--",
+            "cargo",
+            "nextest",
+            "run",
+            "--workspace",
+            "--locked",
+            "--fail-fast",
+            "--run-ignored",
+            "default",
+            "--status-level",
+            "slow",
+            "--final-status-level",
+            "slow",
+            "--success-output",
+            "never",
+            "--failure-output",
+            "immediate-final"
+          ],
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+          "env": {
+            "INSTA_UPDATE": "always",
+            "TRYBUILD": "overwrite",
+            "UMPIRE_BACKENDS": "require",
+            "UMPIRE_QUICK_CACHE": "0",
+            "UMPIRE_CACHE_DISABLE": "1",
+            "CARGO_HOME": "/home/agent/.cargo",
+            "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework"
+          }
+        },
+        {
+          "args": [
+            "exec",
+            "--",
+            "cargo",
+            "test",
+            "--doc",
+            "--workspace",
+            "--locked",
+            "--quiet"
+          ],
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+          "env": {
+            "INSTA_UPDATE": "always",
+            "TRYBUILD": "overwrite",
+            "UMPIRE_BACKENDS": "require",
+            "UMPIRE_QUICK_CACHE": "0",
+            "UMPIRE_CACHE_DISABLE": "1",
+            "CARGO_HOME": "/home/agent/.cargo",
+            "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework"
+          }
+        }
+      ]
+    },
+    {
+      "route": "framework-stage",
+      "mode": "binary-fail",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/xtask",
+        "gate",
+        "--stage",
+        "tests"
+      ],
+      "exit": 42,
+      "calls": [
+        {
+          "args": [
+            "exec",
+            "--",
+            "cargo",
+            "nextest",
+            "run",
+            "--workspace",
+            "--locked",
+            "--fail-fast",
+            "--run-ignored",
+            "default",
+            "--status-level",
+            "slow",
+            "--final-status-level",
+            "slow",
+            "--success-output",
+            "never",
+            "--failure-output",
+            "immediate-final"
+          ],
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+          "env": {
+            "INSTA_UPDATE": "always",
+            "TRYBUILD": "overwrite",
+            "UMPIRE_BACKENDS": "require",
+            "UMPIRE_QUICK_CACHE": "0",
+            "UMPIRE_CACHE_DISABLE": "1",
+            "CARGO_HOME": "/home/agent/.cargo",
+            "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework"
+          }
+        }
+      ]
+    },
+    {
+      "route": "framework-stage",
+      "mode": "doc-fail",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/xtask",
+        "gate",
+        "--stage",
+        "tests"
+      ],
+      "exit": 37,
+      "calls": [
+        {
+          "args": [
+            "exec",
+            "--",
+            "cargo",
+            "nextest",
+            "run",
+            "--workspace",
+            "--locked",
+            "--fail-fast",
+            "--run-ignored",
+            "default",
+            "--status-level",
+            "slow",
+            "--final-status-level",
+            "slow",
+            "--success-output",
+            "never",
+            "--failure-output",
+            "immediate-final"
+          ],
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+          "env": {
+            "INSTA_UPDATE": "always",
+            "TRYBUILD": "overwrite",
+            "UMPIRE_BACKENDS": "require",
+            "UMPIRE_QUICK_CACHE": "0",
+            "UMPIRE_CACHE_DISABLE": "1",
+            "CARGO_HOME": "/home/agent/.cargo",
+            "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework"
+          }
+        },
+        {
+          "args": [
+            "exec",
+            "--",
+            "cargo",
+            "test",
+            "--doc",
+            "--workspace",
+            "--locked",
+            "--quiet"
+          ],
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+          "env": {
+            "INSTA_UPDATE": "always",
+            "TRYBUILD": "overwrite",
+            "UMPIRE_BACKENDS": "require",
+            "UMPIRE_QUICK_CACHE": "0",
+            "UMPIRE_CACHE_DISABLE": "1",
+            "CARGO_HOME": "/home/agent/.cargo",
+            "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework"
+          }
+        }
+      ]
+    },
+    {
+      "route": "framework-stage",
+      "mode": "signal",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/xtask",
+        "gate",
+        "--stage",
+        "tests"
+      ],
+      "exit": 143,
+      "calls": [
+        {
+          "args": [
+            "exec",
+            "--",
+            "cargo",
+            "nextest",
+            "run",
+            "--workspace",
+            "--locked",
+            "--fail-fast",
+            "--run-ignored",
+            "default",
+            "--status-level",
+            "slow",
+            "--final-status-level",
+            "slow",
+            "--success-output",
+            "never",
+            "--failure-output",
+            "immediate-final"
+          ],
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+          "env": {
+            "INSTA_UPDATE": "always",
+            "TRYBUILD": "overwrite",
+            "UMPIRE_BACKENDS": "require",
+            "UMPIRE_QUICK_CACHE": "0",
+            "UMPIRE_CACHE_DISABLE": "1",
+            "CARGO_HOME": "/home/agent/.cargo",
+            "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework"
+          }
+        }
+      ]
+    },
+    {
+      "route": "framework-stage",
+      "mode": "missing",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/xtask",
+        "gate",
+        "--stage",
+        "tests"
+      ],
+      "exit": 1,
+      "calls": []
+    },
+    {
+      "route": "framework-update",
+      "mode": "success",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/xtask",
+        "update"
+      ],
+      "exit": 0,
+      "calls": [
+        {
+          "args": [
+            "exec",
+            "--",
+            "cargo",
+            "nextest",
+            "run",
+            "--workspace",
+            "--locked",
+            "--fail-fast",
+            "--run-ignored",
+            "default",
+            "--status-level",
+            "slow",
+            "--final-status-level",
+            "slow",
+            "--success-output",
+            "never",
+            "--failure-output",
+            "immediate-final"
+          ],
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+          "env": {
+            "INSTA_UPDATE": "always",
+            "TRYBUILD": "overwrite",
+            "UMPIRE_BACKENDS": "require",
+            "UMPIRE_QUICK_CACHE": "0",
+            "UMPIRE_CACHE_DISABLE": "1",
+            "CARGO_HOME": "/home/agent/.cargo",
+            "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework"
+          }
+        },
+        {
+          "args": [
+            "exec",
+            "--",
+            "cargo",
+            "test",
+            "--doc",
+            "--workspace",
+            "--locked",
+            "--quiet"
+          ],
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+          "env": {
+            "INSTA_UPDATE": "always",
+            "TRYBUILD": "overwrite",
+            "UMPIRE_BACKENDS": "require",
+            "UMPIRE_QUICK_CACHE": "0",
+            "UMPIRE_CACHE_DISABLE": "1",
+            "CARGO_HOME": "/home/agent/.cargo",
+            "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework"
+          }
+        }
+      ]
+    },
+    {
+      "route": "framework-update",
+      "mode": "binary-fail",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/xtask",
+        "update"
+      ],
+      "exit": 42,
+      "calls": [
+        {
+          "args": [
+            "exec",
+            "--",
+            "cargo",
+            "nextest",
+            "run",
+            "--workspace",
+            "--locked",
+            "--fail-fast",
+            "--run-ignored",
+            "default",
+            "--status-level",
+            "slow",
+            "--final-status-level",
+            "slow",
+            "--success-output",
+            "never",
+            "--failure-output",
+            "immediate-final"
+          ],
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+          "env": {
+            "INSTA_UPDATE": "always",
+            "TRYBUILD": "overwrite",
+            "UMPIRE_BACKENDS": "require",
+            "UMPIRE_QUICK_CACHE": "0",
+            "UMPIRE_CACHE_DISABLE": "1",
+            "CARGO_HOME": "/home/agent/.cargo",
+            "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework"
+          }
+        }
+      ]
+    },
+    {
+      "route": "framework-update",
+      "mode": "doc-fail",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/xtask",
+        "update"
+      ],
+      "exit": 37,
+      "calls": [
+        {
+          "args": [
+            "exec",
+            "--",
+            "cargo",
+            "nextest",
+            "run",
+            "--workspace",
+            "--locked",
+            "--fail-fast",
+            "--run-ignored",
+            "default",
+            "--status-level",
+            "slow",
+            "--final-status-level",
+            "slow",
+            "--success-output",
+            "never",
+            "--failure-output",
+            "immediate-final"
+          ],
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+          "env": {
+            "INSTA_UPDATE": "always",
+            "TRYBUILD": "overwrite",
+            "UMPIRE_BACKENDS": "require",
+            "UMPIRE_QUICK_CACHE": "0",
+            "UMPIRE_CACHE_DISABLE": "1",
+            "CARGO_HOME": "/home/agent/.cargo",
+            "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework"
+          }
+        },
+        {
+          "args": [
+            "exec",
+            "--",
+            "cargo",
+            "test",
+            "--doc",
+            "--workspace",
+            "--locked",
+            "--quiet"
+          ],
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+          "env": {
+            "INSTA_UPDATE": "always",
+            "TRYBUILD": "overwrite",
+            "UMPIRE_BACKENDS": "require",
+            "UMPIRE_QUICK_CACHE": "0",
+            "UMPIRE_CACHE_DISABLE": "1",
+            "CARGO_HOME": "/home/agent/.cargo",
+            "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework"
+          }
+        }
+      ]
+    },
+    {
+      "route": "framework-update",
+      "mode": "signal",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/xtask",
+        "update"
+      ],
+      "exit": 143,
+      "calls": [
+        {
+          "args": [
+            "exec",
+            "--",
+            "cargo",
+            "nextest",
+            "run",
+            "--workspace",
+            "--locked",
+            "--fail-fast",
+            "--run-ignored",
+            "default",
+            "--status-level",
+            "slow",
+            "--final-status-level",
+            "slow",
+            "--success-output",
+            "never",
+            "--failure-output",
+            "immediate-final"
+          ],
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/umpire",
+          "env": {
+            "INSTA_UPDATE": "always",
+            "TRYBUILD": "overwrite",
+            "UMPIRE_BACKENDS": "require",
+            "UMPIRE_QUICK_CACHE": "0",
+            "UMPIRE_CACHE_DISABLE": "1",
+            "CARGO_HOME": "/home/agent/.cargo",
+            "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework"
+          }
+        }
+      ]
+    },
+    {
+      "route": "framework-update",
+      "mode": "missing",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework/debug/xtask",
+        "update"
+      ],
+      "exit": 1,
+      "calls": []
+    },
+    {
+      "route": "temporal-leaf",
+      "mode": "success",
+      "argv": [
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/.flow/tmp/fn2543-runner-controls/temporal-leaf",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model"
+      ],
+      "exit": 0,
+      "calls": [
+        {
+          "args": [
+            "exec",
+            "--",
+            "cargo",
+            "nextest",
+            "run",
+            "--workspace",
+            "--locked",
+            "--fail-fast",
+            "--run-ignored",
+            "default",
+            "--status-level",
+            "slow",
+            "--final-status-level",
+            "slow",
+            "--success-output",
+            "never",
+            "--failure-output",
+            "immediate-final"
+          ],
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+          "env": {
+            "INSTA_UPDATE": "always",
+            "TRYBUILD": "overwrite",
+            "UMPIRE_BACKENDS": "require",
+            "UMPIRE_QUICK_CACHE": "0",
+            "UMPIRE_CACHE_DISABLE": "1",
+            "CARGO_HOME": "/home/agent/.cargo",
+            "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework"
+          }
+        },
+        {
+          "args": [
+            "exec",
+            "--",
+            "cargo",
+            "test",
+            "--doc",
+            "--workspace",
+            "--locked",
+            "--quiet"
+          ],
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+          "env": {
+            "INSTA_UPDATE": "always",
+            "TRYBUILD": "overwrite",
+            "UMPIRE_BACKENDS": "require",
+            "UMPIRE_QUICK_CACHE": "0",
+            "UMPIRE_CACHE_DISABLE": "1",
+            "CARGO_HOME": "/home/agent/.cargo",
+            "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework"
+          }
+        }
+      ]
+    },
+    {
+      "route": "temporal-leaf",
+      "mode": "binary-fail",
+      "argv": [
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/.flow/tmp/fn2543-runner-controls/temporal-leaf",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model"
+      ],
+      "exit": 42,
+      "calls": [
+        {
+          "args": [
+            "exec",
+            "--",
+            "cargo",
+            "nextest",
+            "run",
+            "--workspace",
+            "--locked",
+            "--fail-fast",
+            "--run-ignored",
+            "default",
+            "--status-level",
+            "slow",
+            "--final-status-level",
+            "slow",
+            "--success-output",
+            "never",
+            "--failure-output",
+            "immediate-final"
+          ],
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+          "env": {
+            "INSTA_UPDATE": "always",
+            "TRYBUILD": "overwrite",
+            "UMPIRE_BACKENDS": "require",
+            "UMPIRE_QUICK_CACHE": "0",
+            "UMPIRE_CACHE_DISABLE": "1",
+            "CARGO_HOME": "/home/agent/.cargo",
+            "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework"
+          }
+        }
+      ]
+    },
+    {
+      "route": "temporal-leaf",
+      "mode": "doc-fail",
+      "argv": [
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/.flow/tmp/fn2543-runner-controls/temporal-leaf",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model"
+      ],
+      "exit": 37,
+      "calls": [
+        {
+          "args": [
+            "exec",
+            "--",
+            "cargo",
+            "nextest",
+            "run",
+            "--workspace",
+            "--locked",
+            "--fail-fast",
+            "--run-ignored",
+            "default",
+            "--status-level",
+            "slow",
+            "--final-status-level",
+            "slow",
+            "--success-output",
+            "never",
+            "--failure-output",
+            "immediate-final"
+          ],
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+          "env": {
+            "INSTA_UPDATE": "always",
+            "TRYBUILD": "overwrite",
+            "UMPIRE_BACKENDS": "require",
+            "UMPIRE_QUICK_CACHE": "0",
+            "UMPIRE_CACHE_DISABLE": "1",
+            "CARGO_HOME": "/home/agent/.cargo",
+            "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework"
+          }
+        },
+        {
+          "args": [
+            "exec",
+            "--",
+            "cargo",
+            "test",
+            "--doc",
+            "--workspace",
+            "--locked",
+            "--quiet"
+          ],
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+          "env": {
+            "INSTA_UPDATE": "always",
+            "TRYBUILD": "overwrite",
+            "UMPIRE_BACKENDS": "require",
+            "UMPIRE_QUICK_CACHE": "0",
+            "UMPIRE_CACHE_DISABLE": "1",
+            "CARGO_HOME": "/home/agent/.cargo",
+            "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework"
+          }
+        }
+      ]
+    },
+    {
+      "route": "temporal-leaf",
+      "mode": "signal",
+      "argv": [
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/.flow/tmp/fn2543-runner-controls/temporal-leaf",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model"
+      ],
+      "exit": 143,
+      "calls": [
+        {
+          "args": [
+            "exec",
+            "--",
+            "cargo",
+            "nextest",
+            "run",
+            "--workspace",
+            "--locked",
+            "--fail-fast",
+            "--run-ignored",
+            "default",
+            "--status-level",
+            "slow",
+            "--final-status-level",
+            "slow",
+            "--success-output",
+            "never",
+            "--failure-output",
+            "immediate-final"
+          ],
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model",
+          "env": {
+            "INSTA_UPDATE": "always",
+            "TRYBUILD": "overwrite",
+            "UMPIRE_BACKENDS": "require",
+            "UMPIRE_QUICK_CACHE": "0",
+            "UMPIRE_CACHE_DISABLE": "1",
+            "CARGO_HOME": "/home/agent/.cargo",
+            "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2543-nextest/framework"
+          }
+        }
+      ]
+    },
+    {
+      "route": "temporal-leaf",
+      "mode": "missing",
+      "argv": [
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/.flow/tmp/fn2543-runner-controls/temporal-leaf",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model"
+      ],
+      "exit": 1,
+      "calls": []
+    }
+  ],
+  "passed": 15,
+  "temporal_scope": "Compiled exact current Temporal leaf and gate module; entry-point registration preserved by source. Full Temporal gate deferred to task8."
+}

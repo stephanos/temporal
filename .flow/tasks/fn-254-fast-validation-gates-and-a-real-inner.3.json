@@ -6,7 +6,8 @@
   "depends_on": [
     "fn-254-fast-validation-gates-and-a-real-inner.1",
     "fn-254-fast-validation-gates-and-a-real-inner.9",
-    "fn-254-fast-validation-gates-and-a-real-inner.10"
+    "fn-254-fast-validation-gates-and-a-real-inner.10",
+    "fn-254-fast-validation-gates-and-a-real-inner.4"
   ],
   "id": "fn-254-fast-validation-gates-and-a-real-inner.3",
   "priority": null,
@@ -14,5 +15,5 @@
   "spec_path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.3.md",
   "status": "todo",
   "title": "Parallel test execution across binaries (cargo-nextest, owner-approved)",
-  "updated_at": "2026-10-25T20:12:02.935322Z"
+  "updated_at": "2026-10-26T01:28:14.726425Z"
 }

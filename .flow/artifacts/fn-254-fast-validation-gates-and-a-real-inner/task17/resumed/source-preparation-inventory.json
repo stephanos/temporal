@@ -1,0 +1,534 @@
+{
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.17",
+  "created_utc": "2026-10-26T23:26:49.562230+00:00",
+  "scope": "Read-only source/Git inventory. No builds/tests/tool capability probe/Git/Flow/MILESTONES/source mutations. Only this requested report artifact written.",
+  "root_head": "fdf115db9986e67e20b2d9c5c1fdcb1afb741aa8",
+  "assembly": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn254-source-assembly",
+    "head": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+    "status_porcelain": [
+      "M  model/dev/xtask/src/gate.rs",
+      "M  model/umpire/backends/process/src/lib.rs",
+      "UU model/umpire/backends/process/src/support.rs",
+      "A  model/umpire/backends/process/src/work.rs",
+      "M  model/umpire/backends/tlc/src/runner.rs",
+      "M  model/umpire/dev/xtask/src/gate.rs",
+      "M  model/umpire/dev/xtask/src/gate/scheduler.rs",
+      "M  model/umpire/dev/xtask/src/gate/timing.rs",
+      "A  model/umpire/dev/xtask/src/gate/work_counts.rs",
+      "M  model/umpire/dev/xtask/src/test_run.rs"
+    ],
+    "preservation": "Retain entire mixed assembly including unresolved support.rs and staged count/provider edits; do not merge assembly or replace root files from its HEAD/worktree."
+  },
+  "prerequisites_and_order": {
+    "required_committed_integrated": [
+      ".6 correct quick selection/cache closure",
+      ".5 case granularity/compiler/UI/resource closure",
+      ".11 source-only standalone contract"
+    ],
+    "next": "After .5 closure is committed and integrated, reanchor .17 against that tip; no new dependency on deferred .7/fn246 or .16/.15.",
+    "subsequent": [
+      ".16 download provider consumes .17 graph",
+      ".15 shell/native port consumes .17+.16",
+      ".12 budget registration consumes final graph/native timer",
+      ".8 final comparable timing/full gates"
+    ]
+  },
+  "candidate_commits": [
+    {
+      "commit": "80c7128fa88f42c81104b45c09114abdfc0ee963",
+      "subject": "Batch quick workspace suites through pinned nextest",
+      "purpose": "quick nextest batching",
+      "treatment": "Port patch onto current test_run configure policy; do not overwrite .5 required/Apalache caps.",
+      "paths": [
+        "model/dev/xtask/src/test_run.rs",
+        "model/umpire/dev/xtask/src/quick/mod.rs",
+        "model/umpire/dev/xtask/src/quick/selection.rs",
+        "model/umpire/dev/xtask/src/quick/tests.rs",
+        "model/umpire/dev/xtask/src/test_run.rs"
+      ],
+      "patch_sha256": "56296c2d633c928cac8be1ae090cd428e0c14a07a7d1e715a6e0398eabb99f05"
+    },
+    {
+      "commit": "836242a09a7bcb584d3cf0b9ff78e14c3320e824",
+      "subject": "Admit each quick package inventory and retain compiler-only consumers",
+      "purpose": "quick per-package inventory/compiler-only handling",
+      "treatment": "Port additions; retain current .6 six Kettle consumers, docs-as-source/global metadata safety and all reverse dependencies.",
+      "paths": [
+        "model/dev/xtask/src/quick/mod.rs",
+        "model/umpire/dev/xtask/src/quick/mod.rs",
+        "model/umpire/dev/xtask/src/quick/selection.rs",
+        "model/umpire/dev/xtask/src/quick/tests.rs",
+        "model/umpire/dev/xtask/src/test_run.rs"
+      ],
+      "patch_sha256": "353c658d15d52b72fabe2aacd06d14b585dfc0658894b2b5748499cb27dc3a05"
+    },
+    {
+      "commit": "a28c45400e7e77c294af742cf3c9d16a419a7797",
+      "subject": "prepare bounded mise model gate graph and nextest profiles",
+      "purpose": "mise graph declarations and entry docs",
+      "treatment": "Mixed .5/.17: extract mise.toml and model/umpire/mise.toml graph hunks plus relevant docs; exclude both nextest config diffs already superseded by validated .5.",
+      "paths": [
+        "mise.toml",
+        "model/.config/nextest.toml",
+        "model/README.md",
+        "model/umpire/.config/nextest.toml",
+        "model/umpire/README.md",
+        "model/umpire/mise.toml"
+      ],
+      "patch_sha256": "4f82f6b5ac7431dcb47471926caff55ab9b6f2bedabdfe5a78d9cf74360280d2"
+    },
+    {
+      "commit": "6357328035f004ef08bc60e8ac48ae1b04170929",
+      "subject": "route model-check through the single combined gate dispatcher",
+      "purpose": "single combined dispatcher root wiring",
+      "treatment": "Removes separate framework recipe in Make model-check; only apply with combined Temporal dispatcher present.",
+      "paths": [
+        "Makefile",
+        "mise.toml",
+        "model/README.md",
+        "model/umpire/README.md",
+        "model/umpire/mise.toml"
+      ],
+      "patch_sha256": "c0c01b14415ad883212c5c404b385816a425036f73372b5369196be4df2fa832"
+    },
+    {
+      "commit": "dbd0621c522ff63a10f0c8053473096eaba4e92e",
+      "subject": "Prepare native gate adapters for the mise-owned stage graph",
+      "purpose": "native scheduler adapters, graph-derived inventories and standalone receipt derivation",
+      "treatment": "Port gate adapters; preserve .5 configure/test_threads/standalone controls. Original local shell-kill supervision is preparation, not accepted final cleanup proof.",
+      "paths": [
+        "model/dev/xtask/src/gate.rs",
+        "model/umpire/dev/xtask/src/gate.rs",
+        "model/umpire/dev/xtask/src/gate/scheduler.rs",
+        "model/umpire/dev/xtask/src/gate/standalone.rs"
+      ],
+      "patch_sha256": "fdb50271bcf5a7b2b5c7e1fc928137ce4831cbdf34cc2617bd71dfe83ea974ca"
+    },
+    {
+      "commit": "04943a05561df587b57baa8f00d2dcbe01d9c187",
+      "subject": "Prepare native gate scheduler and receipt controls without validation",
+      "purpose": "scheduler source/receipt/failure controls in existing main binary",
+      "treatment": "Preserve new current gate_wiring mode/profile tests; fake mise controls do not establish real scheduler capability.",
+      "paths": [
+        "model/umpire/dev/xtask/tests/gate_graph.rs",
+        "model/umpire/dev/xtask/tests/gate_wiring.rs",
+        "model/umpire/dev/xtask/tests/main.rs"
+      ],
+      "patch_sha256": "af117af7f7d196ef91950d9c882c01f65cabc82f6e994569a0a5f4fc4510cccc"
+    },
+    {
+      "commit": "66a0b1f6c2d09185ceea390a9580c5f7783b4be9",
+      "subject": "Register Temporal native raw and scheduled gate leaves",
+      "purpose": "Temporal raw/scheduled stage CLI registration",
+      "treatment": "Port stage CLI only; later source main.rs mixes .15/.16 command registrations.",
+      "paths": [
+        "model/dev/xtask/src/main.rs"
+      ],
+      "patch_sha256": "60a47d17a137684006595845931746f28c88610cfdc967e8b4979d302f2bbf95"
+    },
+    {
+      "commit": "26461f02a19ecd216dcfa6ae4aa45d7b069097e2",
+      "subject": "Read actual mise task environment metadata and admit source-compatible API floor",
+      "purpose": "mise directive-array metadata parser and source-compatible API floor",
+      "treatment": "Use parser correction; min_version2026.10.11 lacks actual runtime capability proof. Verify actual installed scheduler once before final minimum.",
+      "paths": [
+        "mise.toml",
+        "model/README.md",
+        "model/umpire/README.md",
+        "model/umpire/dev/xtask/src/gate/scheduler.rs",
+        "model/umpire/mise.toml"
+      ],
+      "patch_sha256": "4aebfcb43149c2980e5ffcab6299b07fec8975f4bf4ba05ffc1cd3738d1af321"
+    },
+    {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "subject": "Match native gate fixtures to mise directive-array metadata",
+      "purpose": "directive-array corrections in test fixtures",
+      "treatment": "Framework gate_wiring one-line hunk relevant; Temporal native_controls path is later .15 port, not available current source.",
+      "paths": [
+        "model/dev/xtask/src/gate/native_controls.rs",
+        "model/umpire/dev/xtask/tests/gate_wiring.rs"
+      ],
+      "patch_sha256": "6de33b0a8dd78e3ddf2f389c8f506bb4a785e8fa5159077e4ae084fce7afc550"
+    },
+    {
+      "commit": "356d752d12c595e0f941f08f949fde03e8dfa772",
+      "subject": "Adapt native gate controls to real leaf and tool boundaries",
+      "purpose": "native-leaf fixture rewrites",
+      "treatment": "Mixed .15/.17 late preparation; source mostly depends on unintegrated native guest/proto/retired ports. Extract scheduler-specific fixture learning only; no whole commit.",
+      "paths": [
+        "model/dev/xtask/src/gate.rs",
+        "model/dev/xtask/src/gate/native_controls.rs",
+        "model/umpire/dev/xtask/tests/gate_native_guest_fixture.rs",
+        "model/umpire/dev/xtask/tests/gate_native_proto_fixture.rs",
+        "model/umpire/dev/xtask/tests/gate_wiring.rs"
+      ],
+      "patch_sha256": "03624eb4265feb962dada7dfa4a8eff814f7982dfe4c0f6223cf487892b60641"
+    },
+    {
+      "commit": "7f3ecb042f3bab268f808cffe82b6d5e42d13d0f",
+      "subject": "Reuse owned process supervision with explicit orchestration descendant policy",
+      "purpose": "reuse process supervision",
+      "treatment": "Mixed follow-up: scheduler uses run_owned, process support/syscall and Cargo.lock changed. Current root has no run_owned. Not admissible whole under .17 no-lock-change/current Touches.",
+      "paths": [
+        "model/Cargo.lock",
+        "model/umpire/backends/process/src/support.rs",
+        "model/umpire/backends/process/src/syscall.rs",
+        "model/umpire/dev/xtask/src/gate/scheduler.rs"
+      ],
+      "patch_sha256": "201d868164a8314145b7a791bfca689e37a69304223294dbcc83fd14e9f0c90a"
+    },
+    {
+      "commit": "a2f285b71624249e7d1fd88fb739c8b778e144cb",
+      "subject": "Check ordinary gate group cleanup and reap owned child on errors",
+      "purpose": "ordinary descendant cleanup preparation",
+      "treatment": "Mixed process/manifests/lock changes outside .17; same scope constraint. Need concrete local minimal-supervision decision or amended source ownership; no blind cherry-pick.",
+      "paths": [
+        "model/Cargo.lock",
+        "model/dev/xtask/Cargo.toml",
+        "model/umpire/backends/process/src/support.rs",
+        "model/umpire/dev/xtask/src/gate/scheduler.rs"
+      ],
+      "patch_sha256": "6ddb79195e9258d10fbe5aacf22ddeeb70c9a0c0cfed955df66664987bdd960a"
+    }
+  ],
+  "assembly_committed_graph": {
+    "mise.toml": {
+      "head_sha256": "8e353225f146676c3800aa2255b78d49dae48f43e1895987a88eda8188951906",
+      "minimum": "2026.10.11",
+      "stage_count": 13,
+      "all_tasks": {
+        "model:all": {
+          "depends": [
+            "model:retired-names",
+            "model:fmt",
+            "model:temporal-go-host"
+          ],
+          "stage": null
+        },
+        "model:framework": {
+          "depends": [],
+          "stage": "framework"
+        },
+        "model:temporal-guest-freshness": {
+          "depends": [
+            "model:framework"
+          ],
+          "stage": "temporal-guest-freshness"
+        },
+        "model:retired-names": {
+          "depends": [
+            "model:framework"
+          ],
+          "stage": "retired-names"
+        },
+        "model:timing-controls": {
+          "depends": [
+            "model:temporal-guest-freshness"
+          ],
+          "stage": "timing-controls"
+        },
+        "model:source-boundary": {
+          "depends": [
+            "model:timing-controls"
+          ],
+          "stage": "source-boundary"
+        },
+        "model:protobuf-controls": {
+          "depends": [
+            "model:source-boundary"
+          ],
+          "stage": "protobuf-controls"
+        },
+        "model:temporal-protobuf-freshness": {
+          "depends": [
+            "model:protobuf-controls"
+          ],
+          "stage": "temporal-protobuf-freshness"
+        },
+        "model:fmt": {
+          "depends": [
+            "model:framework"
+          ],
+          "stage": "fmt"
+        },
+        "model:clippy": {
+          "depends": [
+            "model:temporal-protobuf-freshness"
+          ],
+          "stage": "clippy"
+        },
+        "model:docs": {
+          "depends": [
+            "model:clippy"
+          ],
+          "stage": "docs"
+        },
+        "model:tests": {
+          "depends": [
+            "model:docs"
+          ],
+          "stage": "tests"
+        },
+        "model:wasm-guest": {
+          "depends": [
+            "model:tests"
+          ],
+          "stage": "wasm-guest"
+        },
+        "model:temporal-go-host": {
+          "depends": [
+            "model:wasm-guest"
+          ],
+          "stage": "temporal-go-host"
+        }
+      }
+    },
+    "model/umpire/mise.toml": {
+      "head_sha256": "0c6bd285775e4cb5487c5e7a3b0bb1388a17aa545e946be9af15f2a14300bece",
+      "minimum": "2026.10.11",
+      "stage_count": 18,
+      "all_tasks": {
+        "gate:all": {
+          "depends": [
+            "gate:standalone"
+          ],
+          "stage": null
+        },
+        "gate:child": {
+          "depends": [
+            "gate:retired-names",
+            "gate:fmt",
+            "gate:kettle-go-host"
+          ],
+          "stage": null
+        },
+        "gate:proto-tools": {
+          "depends": [],
+          "stage": "proto-tools"
+        },
+        "gate:retired-names": {
+          "depends": [],
+          "stage": "retired-names"
+        },
+        "gate:timing-controls": {
+          "depends": [
+            "gate:proto-tools"
+          ],
+          "stage": "timing-controls"
+        },
+        "gate:capability-controls": {
+          "depends": [
+            "gate:kettle-protobuf-freshness"
+          ],
+          "stage": "capability-controls"
+        },
+        "gate:source-boundary": {
+          "depends": [
+            "gate:capability-controls"
+          ],
+          "stage": "source-boundary"
+        },
+        "gate:protobuf-controls": {
+          "depends": [
+            "gate:proto-tools",
+            "gate:timing-controls"
+          ],
+          "stage": "protobuf-controls"
+        },
+        "gate:protobuf-freshness": {
+          "depends": [
+            "gate:protobuf-controls"
+          ],
+          "stage": "protobuf-freshness"
+        },
+        "gate:kettle-protobuf-freshness": {
+          "depends": [
+            "gate:protobuf-freshness"
+          ],
+          "stage": "kettle-protobuf-freshness"
+        },
+        "gate:fmt": {
+          "depends": [],
+          "stage": "fmt"
+        },
+        "gate:clippy": {
+          "depends": [
+            "gate:source-boundary",
+            "gate:kettle-protobuf-freshness"
+          ],
+          "stage": "clippy"
+        },
+        "gate:docs": {
+          "depends": [
+            "gate:clippy"
+          ],
+          "stage": "docs"
+        },
+        "gate:tests": {
+          "depends": [
+            "gate:docs"
+          ],
+          "stage": "tests"
+        },
+        "gate:wasm32-wasip1": {
+          "depends": [
+            "gate:tests"
+          ],
+          "stage": "wasm32-wasip1"
+        },
+        "gate:core-wasm-clippy": {
+          "depends": [
+            "gate:wasm32-wasip1"
+          ],
+          "stage": "core-wasm-clippy"
+        },
+        "gate:wasm-guest": {
+          "depends": [
+            "gate:core-wasm-clippy"
+          ],
+          "stage": "wasm-guest"
+        },
+        "gate:go-host": {
+          "depends": [
+            "gate:wasm-guest"
+          ],
+          "stage": "go-host"
+        },
+        "gate:kettle-go-host": {
+          "depends": [
+            "gate:go-host",
+            "gate:kettle-protobuf-freshness"
+          ],
+          "stage": "kettle-go-host"
+        },
+        "gate:standalone": {
+          "depends": [
+            "gate:child"
+          ],
+          "stage": "standalone"
+        }
+      }
+    }
+  },
+  "current_production": {
+    "full_test_leaves": "Both current full leaves already use pinned nextest then Cargo workspace doctests; .5 configure overrides inherited profiles/threads: required4, Apalache1, backend-skipped native defaults.",
+    "quick": "Framework quick/mod.rs still loops cargo test -p per selected package after batched fmt/clippy; Temporal bridge preserves exact target=fixtures/filter=fixtures.",
+    "stage_sources": "Framework STAGES array+stage match+serial full loop; Temporal local stages array+explicit test/guest/Go sequence; Make model-check independently invokes framework then Temporal; shell time-gate calls Make and Cargo inner test. Root mise configs currently tools-only.",
+    "source_hashes": {
+      "mise.toml": "c959fbc35e982bb71dd75e1babb230899939ba8f997b3a5fc1bd0a20dbe610a1",
+      "model/umpire/mise.toml": "047236435e49253d7b4ad8047fa5b7bc683fe089de9eb40a14a25581245a24bb",
+      "Makefile": "f4d0a087c76c667baa290232558a89126e77f818179dcc16f1cad43e226fdd05",
+      "model/scripts/time-gate.sh": "ff80c32b589ccd8d30ffb44c47ad61be62087c60561fc48d47476da792182e35",
+      "model/umpire/dev/xtask/src/gate.rs": "3c72fffa5ea8e913ad51cd45f12b2cb83d08bb0c95fd4db9fd061130aac5f598",
+      "model/umpire/dev/xtask/src/test_run.rs": "f4eb71ad0e374c4c59a6e659a36d931d0441b38be9601435c79c0ad8cb3cac08",
+      "model/umpire/dev/xtask/src/quick/mod.rs": "a22c2ca1b6d48caaac8bb8e17f84728769b4478038c2f795712857de8e2ca185",
+      "model/umpire/dev/xtask/src/quick/selection.rs": "7289342c2aff358b92f786d0d8641157fcbd708fe7c2ae3a199a983ea25ea6f2",
+      "model/umpire/dev/xtask/src/quick/tests.rs": "50fc5e471f588d64864e4f6c52a276bfdfa76f4721497c3c27cc856acba14074",
+      "model/umpire/dev/xtask/src/gate/standalone.rs": "27116a6ec41808aeff672ed007090c3c07dd3300bd906d5c506b184541d542e8",
+      "model/umpire/dev/xtask/tests/gate_wiring.rs": "18f3ca8a4bd8978787da9941bec4ef63d607c45e16b463566455433f20d8fa3a",
+      "model/dev/xtask/src/gate.rs": "fc16acab00b0df6172a11037ca90facec92ce92dc17381235ead350d13ff4207",
+      "model/dev/xtask/src/test_run.rs": "2b8246dde6a1c08dab40e9d76638ac8c2efb20b012689e02268456ab8324c13c",
+      "model/dev/xtask/src/main.rs": "6dbd6a6fcfbe4f1af99023f6b392d03312b73c8fec78d0dd2e663b029fd4c119",
+      "model/dev/xtask/src/quick/mod.rs": "83e76a8f0fda96f4df2fa0e8ba274a679592dfc5fc454f6c78df23d844cdb157",
+      "model/.config/nextest.toml": "be831217aecd45c0a9e093af71b2142870576bd27f1f58e2f2fe5b87fae663c2",
+      "model/umpire/.config/nextest.toml": "d2afb9dce3c7aee1e81ee9da3f11c3e83187709546f396d0eddd28e7c040a36e"
+    }
+  },
+  "must_preserve": {
+    "task5": [
+      "24 generated framework fixture cases in same binary, full registry/consumer ownership and deterministic double renders",
+      "61 parser rows+18 rustc negatives,4positive; Temporal registry18negative+1positive and supplemental1+1",
+      "required profile global4/group2/recovery2/512MiB discovery and model heap, explicit Apalache global1 until mixed resource proof",
+      "all required mode/profile controls in both test_run files and standalone truthful cap receipts"
+    ],
+    "task6": [
+      "Six Kettle consumer closure (fixtures,reference,guest,suite,TLA,Apalache) with correct seed vs reverse edge behavior",
+      "all four direct Temporal feature consumers plus actual reverse guest",
+      "known metadata ancestor filtering and executable workspace docs/README consumers; Makefile/mise.lock global triggers",
+      "cache output key/admission/corruption controls and full-gate bypass; task17 changes invocation, not backend cache semantics"
+    ]
+  },
+  "confirmed_implementation_gaps": [
+    {
+      "gap": "No cross-invocation JVM lease or parent/standalone child handoff in retained scheduler/quick source",
+      "required_work": "Add shared admission for framework/Temporal/standalone/quick JVM work; exercise independent process contention, failure release and child handoff without deadlock. Per-target lock or nextest group is insufficient."
+    },
+    {
+      "gap": "Retained root model graph gates every Temporal branch on complete model:framework",
+      "required_work": "Keep one local framework graph delegation but remove the unconditional entire-workspace ordering for resource-independent Temporal checks; retain actual target/producers/Go/JVM exclusions."
+    },
+    {
+      "gap": "Mise minimum is explicitly source-compatible only; capability proof remains pending",
+      "required_work": "One bounded real installed mise dependency/jobs/failure/cancellation probe, then declare verified minimum in both task-owning configs. No production probes."
+    },
+    {
+      "gap": "Quick candidate test_run predates .5 policy and hardcodes --profile required",
+      "required_work": "Port selection batching/strict JSON inventory into current policy helper; preserve default CPU mode and explicit Apalache1; prove exact package/binary/name/ignored/doctest identities and compiler-only meaningful admission."
+    },
+    {
+      "gap": "Assembly selection.rs is stale relative to integrated .6",
+      "required_work": "Port only new compiler-only/doctest inventory additions; copying whole file drops suite/TLA/Apalache Kettle consumer seeds, workspace-doc source safety and metadata/global input fixes."
+    },
+    {
+      "gap": "Committed scheduler failure collect skips never-claimed stages and warning-only handles incomplete failed receipts",
+      "required_work": "Make complete deterministic invocation records distinguish failed/cancelled/not-started/partial states; reject invalid receipts without suppressing offending real stage exits. Preserve simultaneous failures and tier failure semantics."
+    },
+    {
+      "gap": "Cleanup originally shells kill; latest scheduler requires unintegrated process run_owned",
+      "required_work": "Choose concrete minimal native supervision satisfying actual mise descendant/cleanup gap within authorized source and no-lock-change constraints. Existing run_owned preparation changes process/syscall/manifests/lock and crosses .16 ownership."
+    },
+    {
+      "gap": "Retained graph controls largely use fake mise or directly spawned leaves",
+      "required_work": "Exercise real changed public gate/validate/Make/time paths, actual graph overlap/failure/reaping/no-auto-install/cache bypass; frozen candidate needs renewed real standalone control."
+    },
+    {
+      "gap": "Public timer still has serial Cargo inner suite and separate Make composition",
+      "required_work": "Adjust transitional script routing to authoritative graph/runner without importing .15 full timer port; preserve failed gate prevents benchmark and exact public timing/status contracts."
+    },
+    {
+      "gap": "No current-candidate correctly scoped batched quick timing proof",
+      "required_work": "Run focused current selected/executed inventories and timing; historical444.027s/388.875s relevant baseline only if inputs/modes comparable, earlier20s omitted consumers not valid."
+    },
+    {
+      "gap": "Uniform production nextest includes more than quick: current Temporal gate source-boundary uses cargo test and framework gate time inner package uses cargo test; model/scripts/time-gate.sh likewise uses Cargo inner suite.",
+      "required_work": "Route these unit/integration executions through admitted nextest and separate scoped doctests where applicable; retain Cargo for capability/guest compiler-only checks. Assembly Temporal source-boundary nextest hunk is reusable independent of later native protobuf/guest ports."
+    }
+  ],
+  "source_owner_boundaries": {
+    "task17": [
+      "Both mise task graphs,min_version and Make combined entry routing",
+      "gate/scheduler.rs resource admission helper(s), native gate adapters/CLI and standalone handoff/receipts",
+      "quick selection execution batching/test_run inventory controls, retaining .6 source selection",
+      "existing gate_graph/gate_wiring/main binary registrations and focused public shell contract controls",
+      "essential graph/resource/entry docs and .12 receipt schema/count interface"
+    ],
+    "task12": "Retain assembly dde5016a86 budget tables/retry enforcement and staged gate/work_counts.rs, process/work.rs, marker emits for later .12; task17 supplies deterministic raw stage/count identities, no second budgets/retries scheduler.",
+    "task15": "Do not integrate ef62e0129d timer port, e2c89a40ec proto port, native guest/scanner/control rewrites or e894f469ca shell retirement merely to recover scheduler. Keep existing shell leaves behind graph until .15.",
+    "task16": "Do not integrate b178f82499/43a63929ef/8b0cc7dd70 providers/HTTP mise declarations or backend provisioning changes. Existing checksum/tool pin/admission remains; process-supervision preparation overlaps require explicit scoped decision.",
+    "no_whole_merge": [
+      "fecab10944 lock reconciliation",
+      "31895b77d2 installer deps",
+      "fc71b308c7 mixed docs",
+      "356d752d12 mixed native fixtures",
+      "all dirty/staged/unmerged assembly content"
+    ]
+  },
+  "safe_sequence": [
+    "Wait for committed .5 closure; record current disk/cache leases and reanchor root .17.",
+    "Port quick batching/inventory patches80c7128fa8+836242a09a onto current .6/.5 preserving exact selection/policy; focused changed runner/selection checks.",
+    "Verify bounded real mise capability; select/derive single task DAG and graph metadata parser. Extract config/dispatcher/adapters/controls from listed commits rather than whole assembly files.",
+    "Implement missing cross-invocation admission/child handoff and concrete owned-supervision requirement before admitting heavy overlap.",
+    "Unify Make/time/public gate routing and standalone inventories from same graph; focused real failure/receipt/mode/resource tests.",
+    "Freeze source, renew real standalone and representative correct quick throughput/identity/resource evidence; hand raw graph/count/timing interface to .12, keep .16/.15/.8 deferred."
+  ],
+  "uncertainties": [
+    "No builds/tests/probes executed, so all retained preparation remains unvalidated.",
+    "Actual installed mise dependency/failure/job behavior and its minimum proven version unknown until bounded implementation probe.",
+    "Exact local minimal supervision design and whether existing process source scope must expand are unresolved implementation decisions.",
+    "Safe heavy-stage concurrency and cache growth unmeasured; missing shared lease prevents admission across independent invocations.",
+    "No claimed throughput improvement or production-suite green evidence from static graph/tests."
+  ],
+  "coordinator_owns_admission_integration_completion": true
+}

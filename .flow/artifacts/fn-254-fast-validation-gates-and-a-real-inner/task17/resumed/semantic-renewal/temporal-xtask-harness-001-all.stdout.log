@@ -1,0 +1,6 @@
+absent_embedded_guest_fails_go_compilation: test
+actual_make_freshness_recipe_propagates_stale_failure: test
+make_paths::shipping_framework_make_bootstrap_preserves_relative_cargo_paths: test
+retired_names::active_spellings_and_historical_exclusions: test
+retired_names::shell_preserves_filter_failure_when_git_grep_gets_sigpipe: test
+retired_names::tool_failures_never_report_clean: test

@@ -1,0 +1,23 @@
+{
+  "observed_utc": "2026-10-28T16:19:12.294029+00:00",
+  "classification": "OWNER_INTERRUPTED_MIGRATION_DEFERRED",
+  "cause_authority": "User deferred migration and replaced goal with MILESTONES; root reports SIGINT sent to controller4052515, unifiedexec22416 terminal2.",
+  "source_pair": {
+    "temporal": "cde1ee67efd266a058193694c2ddb287598b9ea5",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "command": [
+    "make",
+    "model-check"
+  ],
+  "exit": 2,
+  "seconds": 479.1675953865051,
+  "functional_verdict": null,
+  "retained_files": 390,
+  "terminal_log_sha256": "be5abe283d1405da5409ebaf1bc1da54dff560a803d8741e2a35765a9eb941df",
+  "native_final_stage_file_present": false,
+  "no_migration_gate_review_acceptance_check": true,
+  "no_owned_readable_producer_or_held_execution_lease": true,
+  "protected_original_sources_targets_and_caches_untouched": true,
+  "remaining_unknowns": "Interrupted native run has no final stages.jsonl; partial stage files are observations, not complete stage accounting. Unreadable root systemPID fields are explicit."
+}

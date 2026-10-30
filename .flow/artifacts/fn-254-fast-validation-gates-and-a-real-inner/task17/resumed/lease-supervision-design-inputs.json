@@ -1,0 +1,19 @@
+{
+  "scope": "Read-only lease/supervision design; no build or source/Git/Flow mutation",
+  "source_hashes": {
+    "model/rust-toolchain.toml": "620f5ba2c76cfec3b2e8b29ca27138401535b21919339a8aaef86f250b335b27",
+    "model/umpire/rust-toolchain.toml": "620f5ba2c76cfec3b2e8b29ca27138401535b21919339a8aaef86f250b335b27",
+    "model/umpire/dev/xtask/src/fetch_apalache.rs": "696c661f18348d29cbe39c5ac8a75a75eeaf24d7b7103df338205275de1998d4",
+    "model/umpire/backends/process/src/support.rs": "3e21126424e68071523326a74fba264bbe5100b1a5fae13a96f5e6ad60c82d5a",
+    "model/umpire/backends/process/src/syscall.rs": "195b054420b14d273049aeb82f1e60501d876e36ebf07170c691ca0a818e8a90",
+    "model/umpire/dev/xtask/Cargo.toml": "2e9933c137e64dc5fcf0025cea36788cd2e018e952afc4a7e7b18f2e1ab648c2",
+    "model/dev/xtask/Cargo.toml": "94026c17e38488372cbc548c9d3493a19bba3099019541e2e7222cf04085a1b5",
+    "model/Cargo.lock": "50d2b024555c958b02286fa6ec65976efc9fb9cd69f4d27780e9a01998d5d70f",
+    "model/umpire/Cargo.lock": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5",
+    "model/umpire/dev/xtask/src/gate/standalone.rs": "27116a6ec41808aeff672ed007090c3c07dd3300bd906d5c506b184541d542e8"
+  },
+  "pinned_rust": "1.99.1",
+  "File_lock_stable_since": "1.89.0",
+  "local_std_source": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/fs.rs:811",
+  "finished_utc": "2026-10-26T23:38:10.406282+00:00"
+}

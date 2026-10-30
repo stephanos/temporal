@@ -1,0 +1,39 @@
+{
+  "result": "pass",
+  "manifest_sha256": "1dae55fbfecb66279b09387e335ec069cdebfd275b12036faeb6869362fcd34b",
+  "verification_script_sha256": "5ae29e503c2fe8b9d98647f04e8e205fbe7b646dd07f41eb0a800be10d8e837b",
+  "restore_helper_sha256": "42a7708a0102b9cae6108f441668dfb9044dd925cf26a1d14a19d385479d5c45",
+  "source_refs_verified": 8,
+  "available_history_commits": 7210,
+  "bundle_sha256": "e5ba826718df8c270dc269e42c49dde0349d107396f47dc15537c534acb65170",
+  "restorations": [
+    {
+      "candidate": "039",
+      "result": "pass",
+      "raw_dirty_files_verified": 10,
+      "index_records_restored_exactly": 16798,
+      "unmerged_stage_records_verified": 3,
+      "staged_and_unstaged_patch_bytes_equal": true,
+      "verification_index_stat_cache_may_refresh": true,
+      "restored_raw_index_byte_identical": true,
+      "restoration": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/restore-039-v5",
+      "qualification": "Only dirty/untracked paths materialized; all other committed bytes recover from the independently recovered source bundle."
+    },
+    {
+      "candidate": "075",
+      "result": "pass",
+      "raw_dirty_files_verified": 45,
+      "index_records_restored_exactly": 16772,
+      "unmerged_stage_records_verified": 0,
+      "staged_and_unstaged_patch_bytes_equal": true,
+      "verification_index_stat_cache_may_refresh": true,
+      "restored_raw_index_byte_identical": true,
+      "restoration": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-task5-custody/restore-075-v3",
+      "qualification": "Only dirty/untracked paths materialized; all other committed bytes recover from the independently recovered source bundle."
+    }
+  ],
+  "originals_unchanged": true,
+  "all8_original_refs_unchanged": true,
+  "receiving_refs_created": 0,
+  "six_freezes_scope": "Exact source refs/commits retained, no active checkout observed in prior readiness; historical ignored uncertainty remains explicit. No deferred feature implementation or retirement inferred."
+}

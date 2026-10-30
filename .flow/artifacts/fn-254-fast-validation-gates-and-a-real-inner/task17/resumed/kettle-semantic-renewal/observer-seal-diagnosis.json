@@ -1,0 +1,9 @@
+{
+  "scope": "proof observation assumption, not production failure",
+  "initial_assumption": "Numeric FD9 remains absent for entire Java lifetime",
+  "observation": "Model JVMs reuse FD9 for Java-owned sockets; no scope locators present",
+  "actual_requirement": "Host lease file capability is not delegated: compare file device/inode identity, not numeric slot after JVM startup",
+  "resolution": "Require all Java samples to have no scope locators and no FD9 matching actual observed native host lease device/inode. Preserve raw socket observations.",
+  "source_edits": false,
+  "owner_mapping_diagnosis": "Initial argv-only heuristic counted two optional_ticks guardian processes separately when their shared test parent was sampled before exec with empty argv. Raw PPID chains identify the same direct nextest child723787. Correct mapping uses direct parentage to actual cargo-nextest run, carrying case name from that same ancestry; does not count guardians as owners."
+}

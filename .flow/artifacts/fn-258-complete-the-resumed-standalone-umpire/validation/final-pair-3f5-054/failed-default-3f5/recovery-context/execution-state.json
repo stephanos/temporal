@@ -1,0 +1,9 @@
+{
+  "initial_target_absent_or_empty": true,
+  "first_step": "resolution",
+  "sources": {
+    "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "started_unix": 1793197604.1578233
+}

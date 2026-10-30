@@ -1,0 +1,12 @@
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.09s
+     Running unittests src/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/deps/temporal_xtask-ed60604a2343b93b)
+
+running 4 tests
+test gate::timing::interrupt_controls::interrupted_benchmark_preserves_original_source_bytes ... ok
+test gate::timing::interrupt_controls::timing_child ... ignored, isolated actual timing controller
+test gate::timing::tests::benchmark_selects_authoritative_package_runner_and_disables_caches ... ok
+test gate::timing::tests::source_edit_restores_original_content_after_failed_child ... ok
+
+test result: ok. 3 passed; 0 failed; 1 ignored; 0 measured; 35 filtered out; finished in 0.23s
+

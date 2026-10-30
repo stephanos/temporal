@@ -1,0 +1,8 @@
+{
+  "reason": "GNU du raced legitimate quick-cache/run-* deletion; original warm also broadened to190tests due known untracked evidence paths",
+  "original_driver_sha256": "1a5ace13c3d7d6727052ac15d3e23cdcba4deceeb32973c795227ea1700bcf2e",
+  "repaired_driver_sha256": "1eb9e160293aa8fc70e675f99c874ec5a5a2090ea0090d092a48abcc19bee303",
+  "scope": "Only tolerate vanished quick-cache/quick-tlc-v1/run-* entries; all other errors and30GiB guards preserved",
+  "retry": "One authorized warm retry; no cold setup repeat",
+  "original_cancelled_run": ".flow/tmp/fn25417-standalone-renewal/final-c5189bd3/activity/activity-warm.json"
+}

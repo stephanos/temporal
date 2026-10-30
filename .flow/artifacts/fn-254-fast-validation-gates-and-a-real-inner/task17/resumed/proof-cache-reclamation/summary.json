@@ -1,0 +1,29 @@
+{
+  "scope": "Four exact idle task-owned compiler trees; no source or shared/global cache removed",
+  "recovery_directory": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn25417-proof-outputs-20261027",
+  "manifest_gzip_sha256": "c7c7611ca5f7e73367f1a6f0a168cef58601c18731d15b4add010e7534770d39",
+  "manifest_uncompressed_sha256": "e0b6340c12510b6511143dcd4331c772140ea8c70e06e47ee229dd2d5a7f06f8",
+  "source_entries": 17642,
+  "preserved_entries": 14582,
+  "preserved_executables": 750,
+  "discarded_rebuildable_bytes": 5010082730,
+  "external_alias_copy_bytes": 0,
+  "restored_native_tools": {
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/xtask": "68cfb44c3e3a29cd5bd627523bf7cb35d76faacac1e12f316ab80d58d1345739",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/temporal-xtask": "326b22dde576c0095c65cf8eceb2984ec0386547ce20924acd838606523b34fa",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/umpire-guest-driver": "6ea698c4cbbcd9c8e3e3bb03d6bd140906798d8c2b98564c799da9d85600ea1b"
+  },
+  "protected_bootstrap_and_TLC_files": 356,
+  "free_before": 7536078848,
+  "free_after": 12519378944,
+  "cargo_clean_refusal": "Missing CACHEDIR.TAG; original caches were not retagged to bypass the guard",
+  "recovery": "Use verified gzip/tar archive plus its embedded manifest to restore retained proof files to their original paths; omitted compiler objects are rebuildable.",
+  "compressed_recovery_archive": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn25417-proof-outputs-20261027.tar.gz",
+  "compressed_archive_bytes": 1685025261,
+  "compressed_archive_sha256": "10a69c2f56f405fbf4ce8879c54e182598aa95f6a46c49831478f66db16020b5",
+  "verified_archive_members": 14583,
+  "compression_seconds": 79.0660647040022,
+  "uncompressed_recovery_stage_removed": true,
+  "free_after_compression": 18903384064,
+  "postcheck": "Retired trees absent; main/debug contains only protected restored native tools; earlier proof archive and bootstrap/TLC cache remain."
+}

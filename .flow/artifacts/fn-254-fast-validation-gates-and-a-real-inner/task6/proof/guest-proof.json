@@ -1,0 +1,24 @@
+{
+  "source": "7b4d3f526c94471542d736e04301246c61c9f3b9",
+  "platform": "Linux/aarch64",
+  "files": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/temporal-a.wasm",
+      "bytes": 3988334,
+      "sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/temporal-b.wasm",
+      "bytes": 3988334,
+      "sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/temporal/hosts/go/umpire_temporal_guest.wasm",
+      "bytes": 3988334,
+      "sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc"
+    }
+  ],
+  "independent_empty_targets": true,
+  "different_source_paths": true,
+  "committed_bytes_unchanged": true
+}

@@ -1,0 +1,981 @@
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/testing)
+   Compiling umpire-fixtures v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/fixtures)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.67s
+     Running fixtures.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/fixtures-9bb770ff16c9948c)
+
+running 3 tests
+test countdowns_tests::countdowns_native_interpreter_and_priority ... TLC raw output for /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/fixtures/fixtures/countdowns:
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 0 and seed 1195503423814464204 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 409845] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-XqlCaW/Clock.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-XqlCaW/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-XqlCaW/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-XqlCaW/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-XqlCaW/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-XqlCaW/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Clock
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-29 17:44:18)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-29 17:44:18.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2193:0 @!@!@
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 5.4E-20
+@!@!@ENDMSG 2193 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(1) at 2026-10-29 17:44:18: 2 states generated (387 s/min), 1 distinct states found (193 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+2 states generated, 1 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 1.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 0 (minimum is 0, the maximum 0 and the 95th percentile is 0).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 313ms at (2026-10-29 17:44:18)
+@!@!@ENDMSG 2186 @!@!@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 0 and seed -7716367788307268890 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 409891] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-rewtBl/Clock.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-rewtBl/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-rewtBl/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-rewtBl/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-rewtBl/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-rewtBl/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Clock
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-29 17:44:19)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-29 17:44:19.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2193:0 @!@!@
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 5.4E-20
+@!@!@ENDMSG 2193 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(1) at 2026-10-29 17:44:19: 2 states generated (410 s/min), 1 distinct states found (205 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+2 states generated, 1 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 1.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 0 (minimum is 0, the maximum 0 and the 95th percentile is 0).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 294ms at (2026-10-29 17:44:19)
+@!@!@ENDMSG 2186 @!@!@
+
+TLC raw output for /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/fixtures/fixtures/countdowns:
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 0 and seed 19237683513226171 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 410416] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-RV8nuJ/Clock.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-RV8nuJ/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-RV8nuJ/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-RV8nuJ/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-RV8nuJ/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-RV8nuJ/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Clock
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-29 17:44:19)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-29 17:44:20.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2193:0 @!@!@
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 1.1E-18
+@!@!@ENDMSG 2193 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(3) at 2026-10-29 17:44:20: 10 states generated (1,284 s/min), 3 distinct states found (385 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+10 states generated, 3 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 3.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 1 and the 95th percentile is 1).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 472ms at (2026-10-29 17:44:20)
+@!@!@ENDMSG 2186 @!@!@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 0 and seed -1679421921944895031 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 410701] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-rckVFc/Clock.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-rckVFc/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-rckVFc/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-rckVFc/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-rckVFc/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-rckVFc/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Clock
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-29 17:44:20)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-29 17:44:20.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2193:0 @!@!@
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 1.1E-18
+@!@!@ENDMSG 2193 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(3) at 2026-10-29 17:44:20: 10 states generated (1,775 s/min), 3 distinct states found (532 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+10 states generated, 3 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 3.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 1 and the 95th percentile is 1).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 342ms at (2026-10-29 17:44:20)
+@!@!@ENDMSG 2186 @!@!@
+
+TLC raw output for /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/fixtures/fixtures/countdowns:
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 0 and seed 2535605122264111704 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 410889] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-awWV2O/Clock.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-awWV2O/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-awWV2O/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-awWV2O/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-awWV2O/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-awWV2O/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Clock
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-29 17:44:21)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-29 17:44:21.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2193:0 @!@!@
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 6.5E-19
+@!@!@ENDMSG 2193 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(3) at 2026-10-29 17:44:21: 7 states generated (1,085 s/min), 3 distinct states found (465 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+7 states generated, 3 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 3.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 1 and the 95th percentile is 1).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 391ms at (2026-10-29 17:44:21)
+@!@!@ENDMSG 2186 @!@!@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 0 and seed 5495643421878121362 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 411014] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-do0TZO/Clock.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-do0TZO/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-do0TZO/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-do0TZO/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-do0TZO/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-do0TZO/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Clock
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-29 17:44:22)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-29 17:44:22.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2193:0 @!@!@
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 6.5E-19
+@!@!@ENDMSG 2193 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(3) at 2026-10-29 17:44:22: 7 states generated (1,288 s/min), 3 distinct states found (552 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+7 states generated, 3 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 3.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 1 and the 95th percentile is 1).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 329ms at (2026-10-29 17:44:22)
+@!@!@ENDMSG 2186 @!@!@
+
+TLC raw output for /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/fixtures/fixtures/countdowns:
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 0 and seed -2880704643209664019 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 411373] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-jWfeaf/Clock.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-jWfeaf/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-jWfeaf/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-jWfeaf/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-jWfeaf/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-jWfeaf/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Clock
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-29 17:44:23)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-29 17:44:23.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2193:0 @!@!@
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 1.6E-17
+@!@!@ENDMSG 2193 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(7) at 2026-10-29 17:44:23: 41 states generated (5,442 s/min), 9 distinct states found (1,194 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+41 states generated, 9 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 7.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 2 and the 95th percentile is 2).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 456ms at (2026-10-29 17:44:23)
+@!@!@ENDMSG 2186 @!@!@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 0 and seed 1763403571364283428 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 411727] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-XjzjLp/Clock.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-XjzjLp/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-XjzjLp/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-XjzjLp/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-XjzjLp/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-XjzjLp/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Clock
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-29 17:44:24)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-29 17:44:24.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2193:0 @!@!@
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 1.6E-17
+@!@!@ENDMSG 2193 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(7) at 2026-10-29 17:44:24: 41 states generated (6,044 s/min), 9 distinct states found (1,326 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+41 states generated, 9 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 7.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 2 and the 95th percentile is 2).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 410ms at (2026-10-29 17:44:24)
+@!@!@ENDMSG 2186 @!@!@
+
+TLC raw output for /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/fixtures/fixtures/countdowns:
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 0 and seed -653536229055717773 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 412226] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-xDN6rt/Clock.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-xDN6rt/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-xDN6rt/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-xDN6rt/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-xDN6rt/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-xDN6rt/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Clock
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-29 17:44:25)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-29 17:44:25.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2193:0 @!@!@
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 1.6E-18
+@!@!@ENDMSG 2193 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(3) at 2026-10-29 17:44:25: 13 states generated (1,618 s/min), 3 distinct states found (373 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+13 states generated, 3 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 3.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 1 and the 95th percentile is 1).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 485ms at (2026-10-29 17:44:25)
+@!@!@ENDMSG 2186 @!@!@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 0 and seed 8396135533543377768 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 412566] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-5Z3cfZ/Clock.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-5Z3cfZ/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-5Z3cfZ/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-5Z3cfZ/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-5Z3cfZ/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-5Z3cfZ/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Clock
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-29 17:44:25)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-29 17:44:26.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2193:0 @!@!@
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 1.6E-18
+@!@!@ENDMSG 2193 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(3) at 2026-10-29 17:44:26: 13 states generated (2,392 s/min), 3 distinct states found (552 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+13 states generated, 3 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 3.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 1 and the 95th percentile is 1).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 329ms at (2026-10-29 17:44:26)
+@!@!@ENDMSG 2186 @!@!@
+
+TLC raw output for /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/fixtures/fixtures/countdowns:
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 0 and seed -6113896922683304109 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 412661] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-4hvWOm/Clock.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-4hvWOm/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-4hvWOm/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-4hvWOm/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-4hvWOm/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-4hvWOm/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Clock
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-29 17:44:26)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-29 17:44:26.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2193:0 @!@!@
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 1.7E-17
+@!@!@ENDMSG 2193 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(7) at 2026-10-29 17:44:26: 44 states generated (7,333 s/min), 9 distinct states found (1,500 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+44 states generated, 9 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 7.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 2 and the 95th percentile is 2).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 363ms at (2026-10-29 17:44:26)
+@!@!@ENDMSG 2186 @!@!@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 0 and seed 6159548571367277225 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 412698] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-jCYSFU/Clock.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-jCYSFU/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-jCYSFU/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-jCYSFU/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-jCYSFU/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-jCYSFU/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Clock
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-29 17:44:27)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-29 17:44:27.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2193:0 @!@!@
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 1.7E-17
+@!@!@ENDMSG 2193 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(7) at 2026-10-29 17:44:27: 44 states generated (7,096 s/min), 9 distinct states found (1,451 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+44 states generated, 9 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 7.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 2 and the 95th percentile is 2).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 375ms at (2026-10-29 17:44:27)
+@!@!@ENDMSG 2186 @!@!@
+
+ok
+test countdowns_tests::countdowns_source_mutants_refute_and_replay ... ok
+test fixtures::countdowns ... TLC fixture countdowns: checking the lifted Model
+TLC raw output for /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/fixtures/fixtures/countdowns:
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 0 and seed 8402582307439061625 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 423340] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-YymE5F/Clock.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-YymE5F/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-YymE5F/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-YymE5F/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-YymE5F/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-YymE5F/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Clock
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-29 17:44:50)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-29 17:44:50.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2193:0 @!@!@
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 1.7E-17
+@!@!@ENDMSG 2193 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(7) at 2026-10-29 17:44:50: 44 states generated (7,436 s/min), 9 distinct states found (1,521 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+44 states generated, 9 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 7.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 2 and the 95th percentile is 2).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 358ms at (2026-10-29 17:44:50)
+@!@!@ENDMSG 2186 @!@!@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 0 and seed 2610995503392544955 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 423370] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-sNTneA/Clock.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-sNTneA/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-sNTneA/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-sNTneA/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-sNTneA/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-sNTneA/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Clock
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-29 17:44:51)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-29 17:44:51.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2193:0 @!@!@
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 1.7E-17
+@!@!@ENDMSG 2193 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(7) at 2026-10-29 17:44:51: 44 states generated (7,810 s/min), 9 distinct states found (1,597 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+44 states generated, 9 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 7.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 2 and the 95th percentile is 2).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 341ms at (2026-10-29 17:44:51)
+@!@!@ENDMSG 2186 @!@!@
+
+TLC fixture countdowns: TLC 1.7.4; complete source-lifted exploration
+states: 4; native: 4; agreement: yes
+claim descends: Verified; native: Verified; agreement: yes
+claim priority: Verified; native: Verified; agreement: yes
+claim within: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+
+TLC fixture countdowns: checking the lifted Model
+TLC raw output for /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/fixtures/fixtures/countdowns:
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 0 and seed -3073391174135235519 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 423455] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-vKcSgN/Clock.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-vKcSgN/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-vKcSgN/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-vKcSgN/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-vKcSgN/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-vKcSgN/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Clock
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-29 17:44:51)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-29 17:44:51.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2193:0 @!@!@
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 1.7E-17
+@!@!@ENDMSG 2193 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(7) at 2026-10-29 17:44:52: 44 states generated (7,904 s/min), 9 distinct states found (1,616 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+44 states generated, 9 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 7.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 2 and the 95th percentile is 2).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 337ms at (2026-10-29 17:44:52)
+@!@!@ENDMSG 2186 @!@!@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 0 and seed 7854165756306698928 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 423486] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-OWMJow/Clock.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-OWMJow/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-OWMJow/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-OWMJow/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-OWMJow/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/build/tlc/run-OWMJow/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Clock
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-29 17:44:52)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-29 17:44:52.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2193:0 @!@!@
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 1.7E-17
+@!@!@ENDMSG 2193 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(7) at 2026-10-29 17:44:52: 44 states generated (8,073 s/min), 9 distinct states found (1,651 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+44 states generated, 9 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 7.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 2 and the 95th percentile is 2).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 330ms at (2026-10-29 17:44:52)
+@!@!@ENDMSG 2186 @!@!@
+
+TLC fixture countdowns: TLC 1.7.4; complete source-lifted exploration
+states: 4; native: 4; agreement: yes
+claim descends: Verified; native: Verified; agreement: yes
+claim priority: Verified; native: Verified; agreement: yes
+claim within: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ Snapshot Summary ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Snapshot file: dev/fixtures/fixtures/countdowns/expected/tlc.txt.snap
+Snapshot: tlc.txt
+Source: dev/testing/src/runner.rs:387
+────────────────────────────────────────────────────────────────────────────────
+-old snapshot
++new results
+────────────┬───────────────────────────────────────────────────────────────────
+    1     1 │ TLC 1.7.4; complete source-lifted exploration
+    2       │-states: 5; native: 5; agreement: yes
+    3       │-claim bounded: Verified; native: Verified; agreement: yes
+    4       │-claim decrements: Verified; native: Verified; agreement: yes
+    5       │-claim finishes: Verified; native: Verified; agreement: yes
+    6       │-claim never_decrements: Refuted; native: Refuted; agreement: yes
+    7       │-claim never_exhausted: Refuted; native: Refuted; agreement: yes
+    8       │-claim never_started: Refuted; native: Refuted; agreement: yes
+    9       │-claim starts_selected: Verified; native: Verified; agreement: yes
+   10       │-counterexamples replayed: 3
+          2 │+states: 4; native: 4; agreement: yes
+          3 │+claim descends: Verified; native: Verified; agreement: yes
+          4 │+claim priority: Verified; native: Verified; agreement: yes
+          5 │+claim within: Verified; native: Verified; agreement: yes
+          6 │+counterexamples replayed: 0
+────────────┴───────────────────────────────────────────────────────────────────
+updated snapshot /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/fixtures/fixtures/countdowns/expected/tlc.txt.snap
+ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 84 filtered out; finished in 35.01s
+

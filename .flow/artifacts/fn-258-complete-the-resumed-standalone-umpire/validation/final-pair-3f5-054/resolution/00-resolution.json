@@ -1,0 +1,22 @@
+{
+  "argv": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "metadata",
+    "--manifest-path",
+    "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/Cargo.toml",
+    "--locked",
+    "--format-version",
+    "1"
+  ],
+  "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+  "started_unix": 1793197604.1581414,
+  "ended_unix": 1793197604.2057087,
+  "exit": 0,
+  "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/resolution-1793197604157921913/00-resolution.log",
+  "log_sha256": "dff00dfa48086291f97fc6cddaa4c390f054d212a11805ead9fe929386c59a54",
+  "free_before": 55946637312,
+  "free_after": 55946047488
+}

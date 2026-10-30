@@ -8,7 +8,7 @@ Touches: [model/temporal/feature/activity/model.rs, model/temporal/feature/activ
 ## Description
 Migrate the activity to `countdown` and the deadline pattern, starting from .1's cleanup. Behaviour must stay exactly the same.
 
-**Cross-spec gate:** start only after fn-246.15's implementation and Flow closure are committed in `umpire`. Coordinate with fn-246.13 if it is in flight (it compares against this Model).
+**Cross-spec gate:** start only after fn-246.15 and fn-246.13 implementations and Flow closures are committed in `umpire`. Compare against that corrected baseline after .1's integrated cleanup; do not race or undo the independent protocol work. Integrate .7 before .9, then .10; these tasks share the activity files.
 
 **Size:** M
 **Files:** activity `model.rs`, `proof_checks.rs`, `policy_checks.rs`, `tests.rs`, `expected/`.
@@ -22,19 +22,16 @@ Migrate the activity to `countdown` and the deadline pattern, starting from .1's
 
 ### Investigation targets
 **Required:**
-- `model/temporal/feature/activity/model.rs` — at the fn-246.15 tip
+- `model/temporal/feature/activity/model.rs` — corrected fn-246.15/fn-246.13 baseline with .1 integrated
 - `model/temporal/feature/activity/proof_checks.rs:457-540` — forged-countdown and source-mutant controls
 - `model/temporal/feature/activity/policy_checks.rs:749-800` — invariant-name lookups
 - `model/temporal/feature/activity/compatibility/checkpoint.rs` — independent lifecycle pin
 
-### Acceptance
+## Acceptance
 - [ ] No `unwrap_or(Remaining { ticks: 0 })` left in deadline code.
 - [ ] Equivalence pin holds: states, rows and TLC snapshots unchanged; checkpoint passes.
 - [ ] Every existing mutant still discriminates under `UMPIRE_BACKENDS=require`.
 - [ ] `mise exec -- cargo test -p umpire-temporal-tests --test fixtures` passes with TLC required.
-
-## Acceptance
-- [ ] TBD
 
 ## Done summary
 TBD

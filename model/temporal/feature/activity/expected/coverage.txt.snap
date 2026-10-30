@@ -36,7 +36,7 @@ claims (witness evaluations only):
   postcondition[6] attempt_changes_only_on_retry: touched evaluated=78 triggered=78
   postcondition[7] tick_priority: touched evaluated=6 triggered=6
   progress[0] eventually_closed: touched evaluated=99 triggered=82
-  progress[1] pending_retryable_failure_cancels: touched evaluated=99 triggered=0
+  progress[1] pending_retryable_failure_fails: touched evaluated=99 triggered=0
   progress[2] pending_nonretryable_failure_fails: touched evaluated=99 triggered=0
   progress[3] ordinary_retry_rearms: touched evaluated=99 triggered=31
   progress[4] ordinary_retry_at_cap_fails: touched evaluated=99 triggered=5

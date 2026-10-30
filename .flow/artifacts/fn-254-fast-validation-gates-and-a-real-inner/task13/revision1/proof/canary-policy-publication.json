@@ -1,0 +1,8 @@
+{
+  "old_modelHash": "b4a4f57f1a64525ae568bd56a73eff85b0b253aeae44d9e4de3e2d88f546cf2a",
+  "new_modelHash": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+  "policy_other_fields_unchanged": true,
+  "policy_sha256": "f3d946007e4b424d3516caa7472068b0849d19907d9ae453371321091bec1151",
+  "guest_sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+  "guest_bytes": 3988334
+}

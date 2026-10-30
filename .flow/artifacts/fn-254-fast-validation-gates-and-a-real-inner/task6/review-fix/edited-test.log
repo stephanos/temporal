@@ -1,0 +1,37 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running `/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate/debug/temporal-xtask quick`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+{"base":"HEAD","changed":["/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/feature/activity/tests.rs"],"reasons":["always: umpire-temporal-tests (native/interpreter/backend fixture execution)","mapped source: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/feature/activity/tests.rs"],"workspaces":[{"workspace":"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model","packages":["umpire-temporal-tests"]},{"workspace":"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire","packages":[]}]}
+quick: stage=fmt workspace=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model packages=umpire-temporal-tests command=cd "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model" && env -u CARGO_BUILD_TARGET -u CARGO_ENCODED_RUSTFLAGS -u RUSTC_BOOTSTRAP -u RUSTC_WORKSPACE_WRAPPER -u RUSTC_WRAPPER -u RUSTFLAGS CARGO_HOME="/home/agent/.cargo" CARGO_TARGET_DIR="/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate" MISE_AUTO_INSTALL="false" MISE_EXEC_AUTO_INSTALL="false" UMPIRE_BACKENDS="require" UMPIRE_QUICK_CACHE="1" UMPIRE_QUICK_CACHE_ROOT="/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate/quick-cache" "mise" "exec" "--" "cargo" "fmt" "-p" "umpire-temporal-tests" "--" "--check"
+quick: stage=fmt workspace=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model packages=umpire-temporal-tests elapsed=0.042s exit=0
+quick: stage=clippy workspace=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model packages=umpire-temporal-tests command=cd "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model" && env -u CARGO_BUILD_TARGET -u CARGO_ENCODED_RUSTFLAGS -u RUSTC_BOOTSTRAP -u RUSTC_WORKSPACE_WRAPPER -u RUSTC_WRAPPER -u RUSTFLAGS CARGO_HOME="/home/agent/.cargo" CARGO_TARGET_DIR="/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate" MISE_AUTO_INSTALL="false" MISE_EXEC_AUTO_INSTALL="false" UMPIRE_BACKENDS="require" UMPIRE_QUICK_CACHE="1" UMPIRE_QUICK_CACHE_ROOT="/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate/quick-cache" "mise" "exec" "--" "cargo" "clippy" "--locked" "--all-targets" "--all-features" "-p" "umpire-temporal-tests" "--" "-D" "warnings"
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/realization/macros)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/testing)
+    Checking umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/realization)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.57s
+quick: stage=clippy workspace=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model packages=umpire-temporal-tests elapsed=6.607s exit=0
+quick: stage=test workspace=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model packages=umpire-temporal-tests command=cd "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model" && env -u CARGO_BUILD_TARGET -u CARGO_ENCODED_RUSTFLAGS -u RUSTC_BOOTSTRAP -u RUSTC_WORKSPACE_WRAPPER -u RUSTC_WRAPPER -u RUSTFLAGS CARGO_HOME="/home/agent/.cargo" CARGO_TARGET_DIR="/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate" MISE_AUTO_INSTALL="false" MISE_EXEC_AUTO_INSTALL="false" UMPIRE_BACKENDS="require" UMPIRE_QUICK_CACHE="1" UMPIRE_QUICK_CACHE_ROOT="/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate/quick-cache" "mise" "exec" "--" "cargo" "test" "--locked" "-p" "umpire-temporal-tests" "--" "--nocapture"
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/realization/macros)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/testing)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/realization)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 12.57s
+     Running boundary.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate/debug/deps/boundary-63200b9e57832890)
+
+running 2 tests
+test boundary_controls ... ok
+test generic_source_boundary ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+     Running fixtures.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate/debug/deps/fixtures-e86f3fb6ee2ba0b7)
+
+running 42 tests
+test activity_tests::aaaa_quick_review_failure ... QUICK_REVIEW_EDITED_AUTHORED_TEST_EXECUTED
+error: test failed, to rerun pass `-p umpire-temporal-tests --test fixtures`
+
+Caused by:
+  process didn't exit successfully: `/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate/debug/deps/fixtures-e86f3fb6ee2ba0b7 --nocapture` (exit status: 73)
+quick: stage=test workspace=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model packages=umpire-temporal-tests elapsed=12.811s exit=73
+make: *** [Makefile:1276: model-quick] Error 73

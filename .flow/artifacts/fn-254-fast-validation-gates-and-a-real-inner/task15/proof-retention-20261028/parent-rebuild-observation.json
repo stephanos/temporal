@@ -1,0 +1,18 @@
+{
+  "source_head": "89c99a82c0",
+  "current_aliases": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/xtask-bootstrap/debug/xtask",
+      "recorded_9bab_sha256": "9134d098c6dc5316cb446d70c07956b047b7985ca825413713b78b5e572ba8d7",
+      "current_sha256": "7398b934c9a0a0a40b9640735750bb2a5347a4fc071a5d430bb204031c4b5c4b",
+      "changed_after_shipping_make_bootstrap": true
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/xtask-bootstrap/debug/umpire-guest-driver",
+      "recorded_9bab_sha256": "2bca7d08c3734750b41126e33a60c2e76fd66917001a2c82e9b5f72dc546c368",
+      "current_sha256": "2bca7d08c3734750b41126e33a60c2e76fd66917001a2c82e9b5f72dc546c368",
+      "changed_after_shipping_make_bootstrap": false
+    }
+  ],
+  "original_bytes_retained": "CAS manifest68208a5a; alias changes do not rewrite accepted source-point receipts"
+}

@@ -1,0 +1,181 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling serde_core v1.0.229
+   Compiling quote v1.0.47
+   Compiling syn v3.0.9
+   Compiling zmij v1.0.23
+   Compiling rustix v1.1.5
+   Compiling linux-raw-sys v0.12.1
+   Compiling serde_json v1.0.154
+   Compiling serde v1.0.229
+   Compiling winnow v1.0.4
+   Compiling thiserror-impl v2.0.21
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling serde_derive v1.0.229
+   Compiling serde_spanned v1.1.2
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling once_cell v1.21.4
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling tempfile v3.27.0
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling thiserror v2.0.21
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/dev/guest-driver)
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/dev/xtask)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.10s
+     Running `/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate/debug/temporal-xtask quick`
+   Compiling proc-macro2 v1.0.107
+   Compiling libc v0.2.191
+   Compiling cfg-if v1.0.5
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.229
+   Compiling unicode-ident v1.0.27
+   Compiling typenum v1.20.1
+   Compiling hybrid-array v0.4.15
+   Compiling syn v3.0.9
+   Compiling rustix v1.1.5
+   Compiling getrandom v0.4.3
+   Compiling zmij v1.0.23
+   Compiling block-buffer v0.12.1
+   Compiling crypto-common v0.2.2
+   Compiling serde v1.0.229
+   Compiling winnow v1.0.4
+   Compiling serde_json v1.0.154
+   Compiling linux-raw-sys v0.12.1
+   Compiling const-oid v0.10.2
+   Compiling bitflags v2.13.2
+   Compiling thiserror v2.0.21
+   Compiling digest v0.11.3
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling thiserror-impl v2.0.21
+   Compiling serde_derive v1.0.229
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling serde_spanned v1.1.2
+   Compiling cpufeatures v0.3.1
+   Compiling fastrand v2.5.0
+   Compiling once_cell v1.21.4
+   Compiling crc32fast v1.5.3
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling tempfile v3.27.0
+   Compiling sha2 v0.11.1
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling simd-adler32 v0.3.10
+   Compiling adler2 v2.0.1
+   Compiling miniz_oxide v0.9.1
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/dev/guest-driver)
+   Compiling filetime v0.2.29
+   Compiling tar v0.4.46
+   Compiling flate2 v1.1.10
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/dev/xtask)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.07s
+{"base":"HEAD","changed":[],"reasons":["always: umpire-temporal-tests (native/interpreter/backend fixture execution)","unchanged invocation: explicit always packages still execute"],"workspaces":[{"workspace":"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model","packages":["umpire-temporal-tests"]},{"workspace":"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire","packages":[]}]}
+quick: cd "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model" && env -u CARGO_BUILD_TARGET -u CARGO_ENCODED_RUSTFLAGS -u RUSTC_BOOTSTRAP -u RUSTC_WORKSPACE_WRAPPER -u RUSTC_WRAPPER -u RUSTFLAGS CARGO_HOME="/home/agent/.cargo" CARGO_TARGET_DIR="/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate" MISE_AUTO_INSTALL="false" MISE_EXEC_AUTO_INSTALL="false" UMPIRE_BACKENDS="require" UMPIRE_QUICK_CACHE="1" UMPIRE_QUICK_CACHE_ROOT="/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate/quick-cache" "mise" "exec" "--" "cargo" "fmt" "-p" "umpire-temporal-tests" "--" "--check"
+quick: cd "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model" && env -u CARGO_BUILD_TARGET -u CARGO_ENCODED_RUSTFLAGS -u RUSTC_BOOTSTRAP -u RUSTC_WORKSPACE_WRAPPER -u RUSTC_WRAPPER -u RUSTFLAGS CARGO_HOME="/home/agent/.cargo" CARGO_TARGET_DIR="/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate" MISE_AUTO_INSTALL="false" MISE_EXEC_AUTO_INSTALL="false" UMPIRE_BACKENDS="require" UMPIRE_QUICK_CACHE="1" UMPIRE_QUICK_CACHE_ROOT="/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate/quick-cache" "mise" "exec" "--" "cargo" "clippy" "--locked" "--all-targets" "--all-features" "-p" "umpire-temporal-tests" "--" "-D" "warnings"
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/api)
+    Checking umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/realization)
+    Checking umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/testing)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.73s
+quick: cd "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model" && env -u CARGO_BUILD_TARGET -u CARGO_ENCODED_RUSTFLAGS -u RUSTC_BOOTSTRAP -u RUSTC_WORKSPACE_WRAPPER -u RUSTC_WRAPPER -u RUSTFLAGS CARGO_HOME="/home/agent/.cargo" CARGO_TARGET_DIR="/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate" MISE_AUTO_INSTALL="false" MISE_EXEC_AUTO_INSTALL="false" UMPIRE_BACKENDS="require" UMPIRE_QUICK_CACHE="1" UMPIRE_QUICK_CACHE_ROOT="/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate/quick-cache" "mise" "exec" "--" "cargo" "test" "--locked" "-p" "umpire-temporal-tests" "--test" "fixtures" "fixtures" "--" "--nocapture" "--exact"
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling equivalent v1.0.3
+   Compiling hashbrown v0.17.1
+   Compiling syn v3.0.9
+   Compiling indexmap v2.14.2
+   Compiling heck v0.5.0
+   Compiling prettyplease v0.3.0
+   Compiling bitflags v2.13.2
+   Compiling foldhash v0.1.5
+   Compiling fastrand v2.5.0
+   Compiling thiserror v2.0.21
+   Compiling hashbrown v0.15.5
+   Compiling fixedbitset v0.5.7
+   Compiling smallvec v1.16.3
+   Compiling proc-macro-utils v0.10.0
+   Compiling bytemuck v1.25.2
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling safe_arch v0.7.4
+   Compiling manyhow-macros v0.14.1
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/ir/derive)
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/ir)
+   Compiling syn v2.0.119
+   Compiling rand_core v0.9.5
+   Compiling rand_xoshiro v0.7.0
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/front)
+   Compiling manyhow v0.14.1
+   Compiling wide v0.7.33
+   Compiling proc-macro-crate v3.5.0
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling archery v1.2.3
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/author/dsl)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/author/dsl/macros)
+   Compiling imbl v7.0.2
+   Compiling prost-derive v0.14.4
+   Compiling bytes v1.12.1
+   Compiling rustix v1.1.5
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/backends/native)
+   Compiling prost v0.14.4
+   Compiling petgraph v0.8.3
+   Compiling rustc-hash v2.1.3
+   Compiling tempfile v3.27.0
+   Compiling prost-types v0.14.4
+   Compiling prettyplease v0.2.37
+   Compiling prost-build v0.14.4
+   Compiling darling_core v0.24.1
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/protocol/runtime)
+   Compiling darling_macro v0.24.1
+   Compiling darling v0.24.1
+   Compiling libc v0.2.191
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/catalog/syntax)
+   Compiling typenum v1.20.1
+   Compiling hybrid-array v0.4.15
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/catalog/build)
+   Compiling cfg-if v1.0.5
+   Compiling getrandom v0.4.3
+   Compiling linux-raw-sys v0.12.1
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling const-oid v0.10.2
+   Compiling once_cell v1.21.4
+   Compiling digest v0.11.3
+   Compiling cpufeatures v0.3.1
+   Compiling sha2 v0.11.1
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/annotate/syntax)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/realization/macros)
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/backends/process)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/api)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/catalog)
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/backends/tla)
+   Compiling console v0.16.6
+   Compiling similar v2.7.0
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/author/suite)
+   Compiling insta v1.49.0
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/backends/tlc)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/testing)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/dev/testing)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/realization)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 26.54s
+     Running fixtures.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/candidate/debug/deps/fixtures-e86f3fb6ee2ba0b7)
+
+running 1 test
+external artifact /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/temporal/testing/../feature/activity/expected/gaps.txt.snap: requires make umpire-check-model-gaps (TestTestpilotModelGaps); no execution or comparison evidence from native runner
+quick native/interpreter agreement fixtures::activity::activity::World: 18 states, 63 edges
+quick native/interpreter agreement fixtures::activity::activity::World: 18 states, 63 edges
+quick native/interpreter agreement fixtures::activity::activity::World: 18 states, 63 edges
+quick native/interpreter agreement fixtures::activity::activity::World: 18 states, 63 edges
+TLC fixture activity: checking the lifted Model
+Error: Refusal("missing pinned jar /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar; run bash scripts/fetch-tlc.sh")
+test fixtures ... FAILED
+
+failures:
+
+failures:
+    fixtures
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 40 filtered out; finished in 0.14s
+
+error: test failed, to rerun pass `-p umpire-temporal-tests --test fixtures`
+make: *** [Makefile:1276: model-quick] Error 101

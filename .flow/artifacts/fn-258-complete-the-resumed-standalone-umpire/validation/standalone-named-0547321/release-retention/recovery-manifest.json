@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "source": "05473210b48c3db862f22051eb7154ce98258f98",
+  "tree": "46829511b6d582b40f3fa5095f42bdf980c7d466",
+  "objects": [
+    {
+      "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release.log",
+      "destination": "command.log",
+      "role": "canonical terminal command log",
+      "sha256": "d0338e2c06685a8db752f04076250971c519201a44b5c3b9546fea4a3f66683f",
+      "size": 131316,
+      "mode": "0o644",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d0338e2c06685a8db752f04076250971c519201a44b5c3b9546fea4a3f66683f"
+    },
+    {
+      "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release.json",
+      "destination": "command.json",
+      "role": "canonical terminal command receipt",
+      "sha256": "140e2fe0834ac2bb73622806cdc4e4e1a20bf4e1ba8c2a0816081d27510b0ca6",
+      "size": 1285,
+      "mode": "0o644",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/140e2fe0834ac2bb73622806cdc4e4e1a20bf4e1ba8c2a0816081d27510b0ca6"
+    },
+    {
+      "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/.rustc_info.json",
+      "destination": "rustc-info.json",
+      "role": "actual target compiler identity",
+      "sha256": "2df6d4f4cd62abe7ea6535b2b50bd169e4f99415e3f7fa22d0e8b9f44260dd3b",
+      "size": 1297,
+      "mode": "0o644",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/2df6d4f4cd62abe7ea6535b2b50bd169e4f99415e3f7fa22d0e8b9f44260dd3b"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/Cargo.toml",
+      "destination": "source-Cargo.toml",
+      "role": "source manifest/profile/toolchain input",
+      "sha256": "fc6572bbc9dbea65b83708c025ac99e7ef44dff3b6a04c7ae2728b2b5be18796",
+      "size": 4653,
+      "mode": "0o644",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/fc6572bbc9dbea65b83708c025ac99e7ef44dff3b6a04c7ae2728b2b5be18796"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/Cargo.lock",
+      "destination": "source-Cargo.lock",
+      "role": "source manifest/profile/toolchain input",
+      "sha256": "fee0845e49a7e6719bafdf556ada08113d0cc21c43fce94ada81fc6f7b2c6d44",
+      "size": 31933,
+      "mode": "0o644",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/fee0845e49a7e6719bafdf556ada08113d0cc21c43fce94ada81fc6f7b2c6d44"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/rust-toolchain.toml",
+      "destination": "source-rust-toolchain.toml",
+      "role": "source manifest/profile/toolchain input",
+      "sha256": "4467266fabdd9b6d0d1ad5155777bbbbf67fe235cd66263e4cf091644224cd2d",
+      "size": 284,
+      "mode": "0o644",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/4467266fabdd9b6d0d1ad5155777bbbbf67fe235cd66263e4cf091644224cd2d"
+    },
+    {
+      "source": "/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/.cargo/config.toml",
+      "destination": "source-.cargo_config.toml",
+      "role": "source manifest/profile/toolchain input",
+      "sha256": "e43f88620e1bf4e7b6824483871672c7070c9a23dc8765ff1621a5f76a7c4dc9",
+      "size": 295,
+      "mode": "0o644",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/e43f88620e1bf4e7b6824483871672c7070c9a23dc8765ff1621a5f76a7c4dc9"
+    },
+    {
+      "source": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/tmpbd9_5zju.tar.gz",
+      "destination": "release-proof-binaries.tar.gz",
+      "role": "all69 actual Cargo release producer binaries plus target-local dynamic dependencies",
+      "sha256": "3eb249eac436b8f2904682e19843f871bdd1a115cecd379e59bbef626f515dbc",
+      "size": 261689246,
+      "mode": "0o600",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/3eb249eac436b8f2904682e19843f871bdd1a115cecd379e59bbef626f515dbc"
+    }
+  ],
+  "store": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects"
+}

@@ -1,0 +1,4 @@
+   Compiling umpire-temporal-api v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/realization/macros)
+    Checking umpire-temporal v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/realization)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.28s

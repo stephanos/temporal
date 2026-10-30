@@ -1,0 +1,297 @@
+{
+  "model/dev/xtask/src/gate.rs": {
+    "baseline_test_functions": [
+      "actual_temporal_gate_wiring_and_named_failures",
+      "full_gate_overrides_cache_and_preserves_failure",
+      "invalid_working_directory_names_the_stage",
+      "missing_tool_control_child",
+      "missing_tool_reports_the_failed_stage",
+      "optional_apalache_is_prepared_before_combined_scheduling",
+      "run_control_child",
+      "test_policy_control_child",
+      "test_stage_propagates_required_policy_and_preserves_skipped_defaults"
+    ],
+    "current_test_functions": [
+      "actual_temporal_gate_wiring_and_named_failures",
+      "full_gate_overrides_cache_and_preserves_failure",
+      "invalid_working_directory_names_the_stage",
+      "missing_tool_control_child",
+      "missing_tool_reports_the_failed_stage",
+      "optional_apalache_is_prepared_before_combined_scheduling",
+      "run_control_child",
+      "test_policy_control_child",
+      "test_stage_propagates_required_policy_and_preserves_skipped_defaults"
+    ],
+    "removed_or_renamed": [],
+    "added_or_renamed": [],
+    "baseline_source_sha256": "b12806bb3e8f7636467aef44b7512c2bb857e403cba094ad07df8158ca3d5232",
+    "current_source_sha256": "7d8b22fe495b8926b64f229031918804a56e13d9d0b53cb1297e317a8390bee0"
+  },
+  "model/dev/xtask/tests/main.rs": {
+    "baseline_test_functions": [
+      "absent_embedded_guest_fails_go_compilation",
+      "actual_make_freshness_recipe_propagates_stale_failure",
+      "public_fmt_finishes_while_host_lease_is_held"
+    ],
+    "current_test_functions": [
+      "absent_embedded_guest_fails_go_compilation",
+      "actual_make_freshness_recipe_propagates_stale_failure",
+      "public_fmt_finishes_while_host_lease_is_held"
+    ],
+    "removed_or_renamed": [],
+    "added_or_renamed": [],
+    "baseline_source_sha256": "898084aa3e1655dbe7d924750548b36d5c5beb1fdbcc14a2570009696767e075",
+    "current_source_sha256": "92ba4e390f5fa0ad904b8d38230c395b1a782b3cbc7da230d351c2e8eb5d3c4e"
+  },
+  "model/dev/xtask/tests/retired_names.rs": {
+    "baseline_test_functions": [
+      "active_spellings_and_historical_exclusions",
+      "shell_preserves_filter_failure_when_git_grep_gets_sigpipe",
+      "tool_failures_never_report_clean"
+    ],
+    "current_test_functions": [
+      "active_spellings_and_historical_exclusions",
+      "raw_path_bytes_and_io_failures_reach_native_policy",
+      "scan_child",
+      "tool_failures_never_report_clean"
+    ],
+    "removed_or_renamed": [
+      "shell_preserves_filter_failure_when_git_grep_gets_sigpipe"
+    ],
+    "added_or_renamed": [
+      "raw_path_bytes_and_io_failures_reach_native_policy",
+      "scan_child"
+    ],
+    "baseline_source_sha256": "ba27469078bafe2b185428a6c10bda7200db91fb77a4652ac746e490bd77987e",
+    "current_source_sha256": "02217b87b5f65612aefa0e549f67495e669771b19a1a0c988ce1e0dde50d3d7c"
+  },
+  "model/umpire/backends/tlc/src/runner.rs": {
+    "baseline_test_functions": [
+      "counterexample_requires_consecutive_states_and_a_valid_lasso",
+      "escaping_cache_symlinks_are_refused_before_creating_files",
+      "evaluation_errors_name_the_property_and_state",
+      "incomplete_messages_and_exploration_are_refused",
+      "located_property_invariants_name_only_the_selected_operator",
+      "process_limits_kill_and_reap_and_jar_admission_fails_closed",
+      "typed_module_refuses_inconsistent_declarations_before_spawning"
+    ],
+    "current_test_functions": [
+      "counterexample_requires_consecutive_states_and_a_valid_lasso",
+      "escaping_cache_symlinks_are_refused_before_creating_files",
+      "evaluation_errors_name_the_property_and_state",
+      "incomplete_messages_and_exploration_are_refused",
+      "located_property_invariants_name_only_the_selected_operator",
+      "process_limits_kill_and_reap_and_jar_admission_fails_closed",
+      "typed_module_refuses_inconsistent_declarations_before_spawning"
+    ],
+    "removed_or_renamed": [],
+    "added_or_renamed": [],
+    "baseline_source_sha256": "b9bf5066a0ad4000d6628becb0357f241bfc0e38d1f219ecc155072345845b3e",
+    "current_source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6"
+  },
+  "model/umpire/dev/guest-driver/src/guest.rs": {
+    "baseline_test_functions": [],
+    "current_test_functions": [
+      "invalid_guest_arguments_are_refused_before_tool_discovery"
+    ],
+    "removed_or_renamed": [],
+    "added_or_renamed": [
+      "invalid_guest_arguments_are_refused_before_tool_discovery"
+    ],
+    "baseline_source_sha256": "ceccc7db4750e475e3fdd450bca86b1a8d6ee02105e169bc40f5443735d19ec8",
+    "current_source_sha256": "ec123a574a4fab6186efd3bef31b54652aa7b48fe28758d762aaaacd9b654d26"
+  },
+  "model/umpire/dev/guest-driver/tests/guest_pipeline.rs": {
+    "baseline_test_functions": [
+      "cold_bootstrap_failure_never_builds_or_publishes",
+      "cold_shell_bootstrap_and_cached_native_validation",
+      "guest_build_check_and_artifact_refusals",
+      "loader_inheritance_survives_orchestration_environment_purge",
+      "relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+      "shell_caller_relative_paths_and_changed_inputs_select_new_cache"
+    ],
+    "current_test_functions": [
+      "cold_bootstrap_failure_never_builds_or_publishes",
+      "cold_retained_bootstrap_and_cached_native_validation",
+      "guest_build_check_and_artifact_refusals",
+      "loader_inheritance_survives_orchestration_environment_purge",
+      "missing_mise_refuses_bootstrap_without_fallback_cargo",
+      "native_caller_relative_paths_and_changed_inputs_select_new_cache",
+      "relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+      "retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+    ],
+    "removed_or_renamed": [
+      "cold_shell_bootstrap_and_cached_native_validation",
+      "shell_caller_relative_paths_and_changed_inputs_select_new_cache"
+    ],
+    "added_or_renamed": [
+      "cold_retained_bootstrap_and_cached_native_validation",
+      "missing_mise_refuses_bootstrap_without_fallback_cargo",
+      "native_caller_relative_paths_and_changed_inputs_select_new_cache",
+      "retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+    ],
+    "baseline_source_sha256": "972ffee0050dfd38b987b01fabef2941cba24a2389d46be18f4eda9edfacca51",
+    "current_source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058"
+  },
+  "model/umpire/dev/xtask/src/gate.rs": {
+    "baseline_test_functions": [
+      "real_stage_child_receives_cache_bypass_and_required_mode",
+      "stage_reaps_background_children_before_returning_the_failed_status"
+    ],
+    "current_test_functions": [
+      "real_stage_child_receives_cache_bypass_and_required_mode",
+      "stage_reaps_background_children_before_returning_the_failed_status"
+    ],
+    "removed_or_renamed": [],
+    "added_or_renamed": [],
+    "baseline_source_sha256": "76bb40eccd48bdfe04dd8e3bc182a70ad6ec99993f70566ff0e3a0dc6cf23353",
+    "current_source_sha256": "0cb8016352c9712f2286914d0770e2af0968e300782cf9aa841492097728b150"
+  },
+  "model/umpire/dev/xtask/src/gate/boundary.rs": {
+    "baseline_test_functions": [
+      "character_literals_and_lifetimes_cannot_hide_source_escapes",
+      "character_recognition_requires_a_valid_closed_literal",
+      "declared_unused_dependency_escape_is_refused_before_cargo",
+      "external_target_alias_cannot_hide_source_subtree",
+      "organization_exception_preserves_occurrence_token_boundaries",
+      "source_escape_is_structural_and_contained_deep_paths_work",
+      "target_cannot_hide_sources"
+    ],
+    "current_test_functions": [
+      "character_literals_and_lifetimes_cannot_hide_source_escapes",
+      "character_recognition_requires_a_valid_closed_literal",
+      "declared_unused_dependency_escape_is_refused_before_cargo",
+      "external_target_alias_cannot_hide_source_subtree",
+      "organization_exception_preserves_occurrence_token_boundaries",
+      "source_escape_is_structural_and_contained_deep_paths_work",
+      "target_cannot_hide_sources"
+    ],
+    "removed_or_renamed": [],
+    "added_or_renamed": [],
+    "baseline_source_sha256": "adacf459e1f902779d8e97f8402c96d19cb15dade69035a53cb44ac409a730da",
+    "current_source_sha256": "202bf4a5fc6a7e6f082caf11ea174e34ba778eb2fd3b81f73434b06474d29be8"
+  },
+  "model/umpire/dev/xtask/src/gate/standalone.rs": {
+    "baseline_test_functions": [
+      "copied_config_trust_is_limited_to_copy_and_owned_scratch",
+      "copy_refuses_existing_and_dangling_source_symlinks",
+      "copy_uses_current_bytes_and_excludes_only_generated_roots",
+      "isolated_child_policy_control",
+      "isolated_child_uses_the_reported_required_profile_and_thread_cap",
+      "report_directory_artifact_hashes_every_generated_file"
+    ],
+    "current_test_functions": [
+      "copied_config_trust_is_limited_to_copy_and_owned_scratch",
+      "copy_refuses_existing_and_dangling_source_symlinks",
+      "copy_uses_current_bytes_and_excludes_only_generated_roots",
+      "isolated_child_policy_control",
+      "isolated_child_uses_the_reported_required_profile_and_thread_cap",
+      "report_directory_artifact_hashes_every_generated_file"
+    ],
+    "removed_or_renamed": [],
+    "added_or_renamed": [],
+    "baseline_source_sha256": "9f69a45577832626a6e2bfa86c4d9eaee90f9d1c4c049870b08798c70ab4c3f8",
+    "current_source_sha256": "32f19651a23325d43f0cd0c8d510da4226717b22a12618beb2f439d909b7c017"
+  },
+  "model/umpire/dev/xtask/tests/gate_wiring.rs": {
+    "baseline_test_functions": [
+      "actual_mise_failed_leaf_reaps_its_active_sibling_descendant_before_return",
+      "compiled_stage_inventory_matches_preserved_framework_stages",
+      "concurrent_duplicate_stage_claim_runs_leaf_exactly_once_and_preserves_receipt",
+      "convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status",
+      "every_command_boundary_preserves_failure_status_and_environment_in_both_modes",
+      "failed_scheduler_is_waited_and_its_owned_descendant_is_terminated_before_return",
+      "full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_command",
+      "full_dispatch_stops_at_every_failed_leaf_in_both_modes",
+      "full_gate_publishes_complete_ordered_invocation_local_receipts_on_every_run",
+      "guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths",
+      "independent_native_stages_reach_each_other_while_both_are_active",
+      "outer_supervision_streams_separate_diagnostics_before_scheduler_completion",
+      "required_optional_backend_fetch_failure_is_named_and_prevents_first_stage",
+      "required_profile_reaches_gate_update_and_direct_test_children",
+      "required_test_stage_selects_bounded_profile_and_empty_selection_status_is_preserved",
+      "root_required_backend_environment_selects_standalone_on_gate_and_time_routes",
+      "scanner_stages_reject_real_planted_inputs_and_full_gate_stops_before_later_commands",
+      "scheduled_stage_atomically_commits_success_failure_and_scanner_error_receipts",
+      "scheduled_stage_requires_invocation_directory_before_starting_leaf",
+      "shipping_mise_graph_really_overlaps_independent_native_leaves",
+      "signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch",
+      "simultaneous_failed_native_leaves_both_retain_names_receipts_and_status",
+      "successful_scheduler_status_cannot_replace_complete_unique_atomic_stage_records",
+      "supervision_ignores_obstructed_legacy_shared_scratch_parent",
+      "supervision_public_fmt_finishes_while_host_lease_is_held",
+      "supervision_public_fmt_reaps_background_children_before_returning_failure",
+      "supervision_scratch_is_private_and_removed_after_success_and_failure",
+      "test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes",
+      "validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate"
+    ],
+    "current_test_functions": [
+      "actual_mise_failed_leaf_reaps_its_active_sibling_descendant_before_return",
+      "compiled_stage_inventory_matches_preserved_framework_stages",
+      "concurrent_duplicate_stage_claim_runs_leaf_exactly_once_and_preserves_receipt",
+      "convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status",
+      "every_command_boundary_preserves_failure_status_and_environment_in_both_modes",
+      "failed_scheduler_is_waited_and_its_owned_descendant_is_terminated_before_return",
+      "full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_command",
+      "full_dispatch_stops_at_every_failed_leaf_in_both_modes",
+      "full_gate_publishes_complete_ordered_invocation_local_receipts_on_every_run",
+      "guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths",
+      "independent_native_stages_reach_each_other_while_both_are_active",
+      "native_guest_driver_bootstrap_failure_stops_before_guest_jobs",
+      "native_guest_stage_stops_at_each_driver_and_report_failure",
+      "native_protobuf_tools_provision_exact_plugins_and_leave_no_owned_install_lock",
+      "outer_supervision_streams_separate_diagnostics_before_scheduler_completion",
+      "required_optional_backend_fetch_failure_is_named_and_prevents_first_stage",
+      "required_profile_reaches_gate_update_and_direct_test_children",
+      "required_test_stage_selects_bounded_profile_and_empty_selection_status_is_preserved",
+      "root_required_backend_environment_selects_standalone_on_gate_and_time_routes",
+      "scanner_stages_reject_real_planted_inputs_and_full_gate_stops_before_later_commands",
+      "scheduled_stage_atomically_commits_success_failure_and_scanner_error_receipts",
+      "scheduled_stage_requires_invocation_directory_before_starting_leaf",
+      "shipping_mise_graph_really_overlaps_independent_native_leaves",
+      "signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch",
+      "simultaneous_failed_native_leaves_both_retain_names_receipts_and_status",
+      "successful_scheduler_status_cannot_replace_complete_unique_atomic_stage_records",
+      "supervision_ignores_obstructed_legacy_shared_scratch_parent",
+      "supervision_public_fmt_finishes_while_host_lease_is_held",
+      "supervision_public_fmt_reaps_background_children_before_returning_failure",
+      "supervision_scratch_is_private_and_removed_after_success_and_failure",
+      "test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes",
+      "validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate"
+    ],
+    "removed_or_renamed": [],
+    "added_or_renamed": [
+      "native_guest_driver_bootstrap_failure_stops_before_guest_jobs",
+      "native_guest_stage_stops_at_each_driver_and_report_failure",
+      "native_protobuf_tools_provision_exact_plugins_and_leave_no_owned_install_lock"
+    ],
+    "baseline_source_sha256": "ec0dff475b97dd0203a03b8316e4956ae6c044eee00dd8f8e1b21c2088a1a259",
+    "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+  },
+  "model/umpire/dev/xtask/tests/retired_names.rs": {
+    "baseline_test_functions": [
+      "io_and_missing_grep_errors_fail_closed",
+      "malformed_records_fail_closed",
+      "posix_ere_recheck_and_grep_failure_propagate",
+      "raw_records_exempt_only_author_facade_tokens"
+    ],
+    "current_test_functions": [
+      "io_failure_and_absent_grep_are_handled_natively",
+      "malformed_records_fail_closed",
+      "native_scan_catches_each_planted_retired_name",
+      "raw_records_exempt_only_author_facade_tokens",
+      "rust_regex_character_classes_and_invalid_patterns"
+    ],
+    "removed_or_renamed": [
+      "io_and_missing_grep_errors_fail_closed",
+      "posix_ere_recheck_and_grep_failure_propagate"
+    ],
+    "added_or_renamed": [
+      "io_failure_and_absent_grep_are_handled_natively",
+      "native_scan_catches_each_planted_retired_name",
+      "rust_regex_character_classes_and_invalid_patterns"
+    ],
+    "baseline_source_sha256": "1446ae727317d46a32a7bda19f675e6a8199b78aafe8d48b52d5c814fdb44aea",
+    "current_source_sha256": "5e63fdfda6f1449d0b8a0ae01ee5768e4337797fe04902444e39a0980297b908"
+  }
+}

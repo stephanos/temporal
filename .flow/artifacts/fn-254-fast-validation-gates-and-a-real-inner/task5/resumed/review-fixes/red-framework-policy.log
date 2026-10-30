@@ -1,0 +1,21 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized] target(s) in 2.79s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/xtask-331939d17f13ae8d)
+
+running 1 test
+
+thread 'test_run::tests::required_backend_policy_caps_inherited_threads_and_preserves_skipped_defaults' (546804) panicked at dev/xtask/src/test_run.rs:73:17:
+assertion `left == right` failed: inherited=Some("2"), apalache=false
+  left: "required:4"
+ right: "required:2"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test test_run::tests::required_backend_policy_caps_inherited_threads_and_preserves_skipped_defaults ... FAILED
+
+failures:
+
+failures:
+    test_run::tests::required_backend_policy_caps_inherited_threads_and_preserves_skipped_defaults
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 34 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p xtask --lib`

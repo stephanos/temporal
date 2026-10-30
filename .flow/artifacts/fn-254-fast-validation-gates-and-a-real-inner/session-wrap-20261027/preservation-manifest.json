@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "kind": "resource-stopped-validation-preservation",
+  "accepted": false,
+  "source_head": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+  "files": {
+    "resource-hold-draft.json": "f3040e18380582860a47fa7b1d1b7562629c655486e028d9e24a1f1d4d553ba9",
+    "retry-harness/census.py": "2653ed1ee5f48abd8bf2da89f976c27adc538e4e32303632e10d155c1bf463f4",
+    "retry-harness/observer.py": "e97ed64b323631397d8d33a932d228177e7aff8989aa23d785518a1bb15d90a1",
+    "retry-harness/proof.py": "d3d96541a293bf080c71853dcf38a04f24919fe46db98c7bd863c55d31e88df1",
+    "retry-harness/test_census.py": "865cb36e43819963f2da28c1bac60de87b588dc7a056c09d1d0d4730f5202d7c",
+    "standalone-attempts.json": "a19c798c2a49b983170f52855bed579475978f726f481713fef0d51612cac7c1",
+    "standalone-native-build-final.json": "2248b7b9412149f193c6f521208356e6bb111ab4ca9b57d40b99fbf547a84da6"
+  }
+}

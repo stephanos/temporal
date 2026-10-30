@@ -1,0 +1,44 @@
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-supervision-reviewfix/model/umpire/dev/guest-driver)
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-supervision-reviewfix/model/umpire/backends/process)
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-supervision-reviewfix/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.48s
+     Running tests/main.rs (/home/agent/.cache/codex-build/fn25417-work-counts/debug/deps/main-9aa119c53e40bbc0)
+
+running 5 tests
+test gate_wiring::outer_supervision_streams_separate_diagnostics_before_scheduler_completion ... ok
+test gate_wiring::supervision_ignores_obstructed_legacy_shared_scratch_parent ... FAILED
+test gate_wiring::supervision_public_fmt_finishes_while_host_lease_is_held ... FAILED
+test gate_wiring::supervision_public_fmt_reaps_background_children_before_returning_failure ... ok
+test gate_wiring::supervision_scratch_is_private_and_removed_after_success_and_failure ... FAILED
+
+failures:
+
+---- gate_wiring::supervision_ignores_obstructed_legacy_shared_scratch_parent stdout ----
+
+thread 'gate_wiring::supervision_ignores_obstructed_legacy_shared_scratch_parent' (1721223) panicked at dev/xtask/tests/gate_wiring.rs:351:5:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "", stderr: "xtask: File exists (os error 17)\n" }
+  left: Some(1)
+ right: Some(0)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- gate_wiring::supervision_public_fmt_finishes_while_host_lease_is_held stdout ----
+
+thread 'gate_wiring::supervision_public_fmt_finishes_while_host_lease_is_held' (1721225) panicked at dev/xtask/tests/gate_wiring.rs:595:9:
+public fmt waited for the unrelated host lease: Output { status: ExitStatus(unix_wait_status(9)), stdout: "", stderr: "" }
+
+---- gate_wiring::supervision_scratch_is_private_and_removed_after_success_and_failure stdout ----
+
+thread 'gate_wiring::supervision_scratch_is_private_and_removed_after_success_and_failure' (1721247) panicked at dev/xtask/tests/gate_wiring.rs:677:9:
+assertion `left == right` failed: supervisor scratch exposes logs: [("/home/agent/.cache/codex-build/tmp/.tmppRDAgp/caller/scratch/umpire-command/gate-1721248-1793126241339157001", 493)]
+  left: 493
+ right: 448
+
+
+failures:
+    gate_wiring::supervision_ignores_obstructed_legacy_shared_scratch_parent
+    gate_wiring::supervision_public_fmt_finishes_while_host_lease_is_held
+    gate_wiring::supervision_scratch_is_private_and_removed_after_success_and_failure
+
+test result: FAILED. 2 passed; 3 failed; 0 ignored; 0 measured; 46 filtered out; finished in 5.22s
+
+error: test failed, to rerun pass `-p xtask --test main`

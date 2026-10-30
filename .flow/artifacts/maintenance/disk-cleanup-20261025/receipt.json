@@ -1,0 +1,27 @@
+{
+  "created_at": "2026-10-25T23:18:15.120017+00:00",
+  "archive": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.git/retired-builds/20261025/fn2544-tests-proof.tar.gz",
+  "archive_bytes": 753447181,
+  "archive_stream_crc_and_hardlinks_verified": true,
+  "source_comparison": "Archive created completely before a concurrent external cleanup removed source caches. Full per-file comparison to original cache did not finish; no original-hash comparison is claimed.",
+  "own_cargo_clean_commands_executed": 0,
+  "selected_target_states": {
+    "fn2544-tests": false,
+    "fn24611-registry": false,
+    "fn24614-continuation": false,
+    "fn2468-current-contract": false
+  },
+  "retained_source_refs": {
+    "task13": "work/fn25413-workspace",
+    "retirement": "work/fn2561-retirement"
+  },
+  "concurrent_cleanup": "Observed free space increase from about40GiB to120GiB and caches disappearing while verifier ran. Do not attribute all reclaimed space to this script.",
+  "archive_regular_files": 198,
+  "archive_links": 78,
+  "free_space_check": "Filesystem      Size  Used Avail Use% Mounted on\nhost            927G  811G  116G  88% /Users/stephan/Workspace/skunkworks\n",
+  "source_refs_verified": [
+    "umpire",
+    "work/fn2561-retirement"
+  ],
+  "note": "Concurrent external cleanup reclaimed additional space and removed some completed-proof build caches. All committed source/proof records remain. Task13 retirement records recovered binaries and missing historical A-native/test executables honestly; no rerun is claimed."
+}

@@ -1,0 +1,17 @@
+{
+  "policy": "Exact raw logs retained; exclude only these exact files from whitespace checking.",
+  "files": {
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/review-fixes-20261028/review-framework-empty-target-red.log": "71d6e167efed00f9bdbd9c8b22858da9475821b2d369fc7ba1dae5797e280682",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/review-fixes-20261028/review-framework-empty-target-green.log": "4782c22d6fbb994bdfcdd9b09fc3c39c269f1597a90f76803563adf6f55e7fa9",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/review-fixes-20261028/review-timing-interruption-behavior-red.log": "2ed10ec857dfa7f2cc82684d2950c946c997280f39e3ffc8844e9b5f34f405f8",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/review-fixes-20261028/review-timing-interruption-green.log": "73e92b61e79973b9042ca4a1a5d4e3904c8aa7fce8cf31f36a90b6e0b2f51a1c",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/review-fixes-20261028/review-plugin-hint-red.log": "4296c5c000bdc9cf41629a24410c02ec26a2a806bcf68e1f753b08efbcb885a2",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/review-fixes-20261028/review-plugin-hint-green.log": "18b806c75a0d742b996e9d356a443567b9badd24ecbf472a0796c7fc2878f639",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/review-fixes-20261028/review-fixes-framework-clippy.log": "a060a283a79074ee519f00c54571c48041592430c47bb0a0d8dcf72cfc0658d2",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/review-fixes-20261028/review-fixes-temporal-clippy.log": "2c74ef75094adf23c738303d1018c3727cdeaca995a5b00ffdd3b38062462f25",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/review-fixes-20261028/review-fixes-native-build.log": "0cb45e5e8244a0ca562304b94edcdc29ffc6b1e59bccc4f7f8ad9e0877253cc5",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/review-fixes-20261028/review-fixes-framework-package.log": "2aa72de0c621ae54ec54c17b8e83f894ff1a05c4da7b31489be56e827350acb6",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/review-fixes-20261028/review-fixes-driver-package.log": "da95789da700b63d4147523b7051a17ce1fab2f3c689affa414faf529be5307a",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/review-fixes-20261028/review-fixes-temporal-package.log": "831e677e6171da53cc6983dc91bd18d5e65fe2fa9a769e5446f0c27c78a42e65"
+  }
+}

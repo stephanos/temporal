@@ -1,0 +1,35 @@
+--- a/.flow/specs/fn-254-fast-validation-gates-and-a-real-inner.md
++++ b/.flow/specs/fn-254-fast-validation-gates-and-a-real-inner.md
+@@ -166,9 +166,31 @@
+ 
+ 2026-10-25, owner: file a task after .13 and .10 to port the remaining model shell scripts. Task .15 (after .13, .10 and .14; before .8) moves script logic into xtask or guest-driver subcommands, thin wrappers into the Makefile and the shell controls into Rust tests. Only the xtask bootstrap stays shell. Retired-name patterns move to Rust `regex`, reversing fn-247's keep-`grep -E` decision.
+ 
+-2026-10-25, owner: file the mise download work in fn-254. Task .16 follows .13/.14 and precedes .10: framework-owned mise declarations provision pinned TLC and opt-in Apalache assets; bespoke download/extraction plumbing is removed. Runtime JAR checksum/path admission remains, since an installed mise artifact can be corrupted without a locked reinstall detecting it. This does not restore .14's removed tool-presence/version probes. Task .15 ports the resulting entry points without recreating native downloaders. Focused provider checks run in .16; broad gates remain in .8.
++2026-10-25, owner: file the mise download work in fn-254. Task .16 follows .13/.14: framework-owned mise declarations provision pinned TLC and opt-in Apalache assets; bespoke download/extraction plumbing is removed. Task .10 can compose earlier against .13's existing stable provisioning commands; .16 preserves public entry-point/status behavior and renews changed-input callers, so provider replacement is not a .10 prerequisite. Runtime JAR checksum/path admission remains, since an installed mise artifact can be corrupted without a locked reinstall detecting it. This does not restore .14's removed tool-presence/version probes. Task .15 ports the resulting entry points without recreating native downloaders. Focused provider checks run in .16; broad gates remain in .8.
+ 
+ Maintainability (plan review): duplication - task .10 repeated its validation-cadence paragraph; consolidated to one paragraph. structure - none identified. Ownership advisories are addressed with explicit .14/.15/.16 paths and .10 workflow/script ownership; existing shared-file pairs still serialize.
++
++### Framework feedback and parallel ownership refinement
++
++Frontload .10 immediately after committed .13/.9: an independently callable framework gate
++provides framework-only feedback without running Temporal stages or extracting a repository.
++Existing public provisioning commands suffice; .14 probe removal and .16 provider internals
++retain their contracts and do not block that checkpoint. Preserve .14 → .16 and .15 after
++.10/.14/.16. Schedule actual overlapping owners serially.
++
++Task .10 leaves the real Cargo test execution in working `test_run.rs` leaves and gate
++orchestration in its real gate module; no future command stub or extra task is introduced.
++Then .3 owns runner leaves/config/pins, while .6 owns quick CLI/Make/cache and their actual
++registrations/dependency edits. Their full Touches are disjoint, so admission can run both.
++Task .11 can additionally own gate-local standalone registration/controls without sharing
++.6's dispatcher or .3's test-runner leaves if .10 realizes the stated boundaries. Correct
++actual ownership before admission if implementation differs; do not bypass the scheduler.
++
++Task .11 retains its actual complete directory-only gate on its exact candidate. Later
++producer edits do not inherit that proof: .8 already waits for the final producers and renews
++changed-input standalone proof. .3/.6/.11 feed exact inventory/tier facts to .12 and consolidated
++documentation to .8. No stage/test coverage, actual proof or committed-predecessor requirement
++is relaxed. Source parallelism still observes target/cache leases and bounded JVM resources.
+ 
+ ## Requirement coverage
+ 

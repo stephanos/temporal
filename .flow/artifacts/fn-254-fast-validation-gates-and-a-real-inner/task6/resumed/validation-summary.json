@@ -1,0 +1,131 @@
+{
+  "candidate_commit": "fa1ccb8af1f16a472518f1734c0aa455831e4f92",
+  "current_head": "21a6294ba07e0235c2774179321cd40fda986603",
+  "source_projection_equal": {
+    "model/umpire/dev/xtask/src/quick/mod.rs": true,
+    "model/umpire/dev/xtask/src/quick/selection.rs": true,
+    "model/umpire/dev/xtask/src/quick/tests.rs": true,
+    "model/dev/xtask/src/quick/mod.rs": true,
+    "model/umpire/Cargo.lock": true,
+    "model/Cargo.lock": true
+  },
+  "candidate_restored_clean": true,
+  "quick_controls": {
+    "passed": 11,
+    "failed": 0
+  },
+  "cache_controls": {
+    "passed": 9,
+    "failed": 0
+  },
+  "regression_red": {
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "xtask",
+      "--lib",
+      "quick::tests::shared_kettle_model_seeds_source_consumers_and_reverse_guest",
+      "--",
+      "--exact",
+      "--nocapture"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire",
+    "head": "fa1ccb8af1f16a472518f1734c0aa455831e4f92",
+    "started_utc": "2026-10-26T20:54:54.571177+00:00",
+    "environment_overrides": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+      "TMPDIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/tmp",
+      "CARGO_INCREMENTAL": "0",
+      "CARGO_BUILD_JOBS": "2",
+      "RUST_TEST_THREADS": "2",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate:/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target"
+    },
+    "exit_code": 101,
+    "elapsed_seconds": 1.0955694589999894,
+    "log_sha256": "b14ee49c6418ec14a6e785dcef5b06c6f6b57f771733cda72d35bb67c7429b96"
+  },
+  "regression_green": {
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "xtask",
+      "--lib",
+      "quick::tests::shared_kettle_model_seeds_source_consumers_and_reverse_guest",
+      "--",
+      "--exact",
+      "--nocapture"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire",
+    "head": "fa1ccb8af1f16a472518f1734c0aa455831e4f92",
+    "started_utc": "2026-10-26T20:54:55.667603+00:00",
+    "environment_overrides": {
+      "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+      "TMPDIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/tmp",
+      "CARGO_INCREMENTAL": "0",
+      "CARGO_BUILD_JOBS": "2",
+      "RUST_TEST_THREADS": "2",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate:/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target"
+    },
+    "exit_code": 0,
+    "elapsed_seconds": 0.9331520840000849,
+    "log_sha256": "429c4aa3f7d603af64f27ab3c735d7e89e3e0150e56e22752d6fc519b958c960"
+  },
+  "runs": {
+    "cold": {
+      "elapsed_seconds": 569.669054064,
+      "exit_code": 0,
+      "cache_hits": 10,
+      "cache_misses": 256,
+      "tlc_executions": 648,
+      "native_interpreter": 283,
+      "kettle_cache_hits": 0,
+      "kettle_cache_misses": 6,
+      "fixture_summaries": [
+        "test result: ok. 60 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 168.61s"
+      ],
+      "required_six_consumers_present": true,
+      "all_selected_test_consumers_ran": true
+    },
+    "warm": {
+      "elapsed_seconds": 271.76581300500004,
+      "exit_code": 0,
+      "cache_hits": 63,
+      "cache_misses": 203,
+      "tlc_executions": 561,
+      "native_interpreter": 283,
+      "kettle_cache_hits": 0,
+      "kettle_cache_misses": 6,
+      "fixture_summaries": [
+        "test result: ok. 60 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 150.39s"
+      ],
+      "required_six_consumers_present": true,
+      "all_selected_test_consumers_ran": true
+    }
+  },
+  "budget": {
+    "limit_seconds": 60,
+    "warm_seconds": 271.76581300500004,
+    "passed": false,
+    "cause": "Complete 22-package reverse-dependent test closure, particularly 172.799s fixture stage. Kettle contains never_beeps Refuted, so its module configurations intentionally do not cache; negative backend controls also rerun fresh."
+  },
+  "reuse": "source-projection.json retains unchanged cache/process/interpreted proof and complete 444.027s Temporal five-consumer proof; incomplete historical 20s workload excluded.",
+  "gaps": [
+    "No unrelated full model gate executed; final joined .8 validation remains open.",
+    "Kettle intentionally refutes never_beeps, so emission-preserving successful-module cache hit comes from retained Temporal proof, not Kettle."
+  ],
+  "harness_corrections": [
+    "Removed inherited BASH_ENV which reset child bash cwd; preserved initial failed jar receipt.",
+    "Recovered interrupted candidate checkout after proving no live Git; source identical to pinned HEAD.",
+    "Cold shipping command passed but initial driver exact-six assertion failed after completion; actual closure is 22 and corrected subset assertion passed warm."
+  ]
+}

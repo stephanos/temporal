@@ -1,0 +1,7 @@
+Owner deferred migration on2026-10-28 and replaced the active goal with MILESTONES work. Keep fn258 open and its unfinished acceptance unclaimed.
+
+Tasks1–3 have committed historical source-readiness closures. Source freezeac60/exporta92 and standalone054 remain retained. Current consumercde1ee67 contains the focused, tested one-line cache-control expectation correction; its whole-pair acceptance is incomplete. The first3f pair failed the shell control; the newcde pair default gate was interrupted at the owner's request by SIGINT to its controller and its launcher terminated2. No required paired validation, warm edited quick or finalcde local-edit acceptance is claimed. All migration workers stopped; no target-prefix executable remains.
+
+Preserve source branches/worktrees, all bundles, recovery stores and current partial receipts.48 recovery refs/50 custody commits are prepared only; no actual receiver refs, remote publication, CI activation or source cutover occurred. The eight preparation-review corrections pass focused verification and await follow-up review. GitHub direct repository access remains SAML403.
+
+Resume ordinary MILESTONES priorities with Temporal's in-tree framework authoritative. Later integrated framework changes expire migration proof applicability; resumption must explicitly renew the frozen inventory/history/adaptation/current-pair evidence rather than edit earlier inventories or reuse stale passes.

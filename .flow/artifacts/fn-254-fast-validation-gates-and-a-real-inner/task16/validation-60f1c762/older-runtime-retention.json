@@ -1,0 +1,13 @@
+{
+  "d4_native_cli_sha256": "0100b30895891e01a23e296d49eed56a6fc02a078cd32dc8a1eedff12487f607",
+  "retained_matches": [
+    {
+      "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/deps/xtask-608119cd9a5a9794",
+      "preserved": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/protected-native/60f1c762/d4-native-xtask",
+      "sha256": "0100b30895891e01a23e296d49eed56a6fc02a078cd32dc8a1eedff12487f607"
+    }
+  ],
+  "d4_probe_retained": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/protected-native/60f1c762/d4-provider-probe",
+  "d4_source_snapshot": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/source-before.json",
+  "d4_native_build_recipe": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-runtime-build.jsonl"
+}

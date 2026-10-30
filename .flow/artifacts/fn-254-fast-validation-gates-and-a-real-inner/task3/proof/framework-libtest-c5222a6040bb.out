@@ -1,0 +1,6 @@
+fixtures: test
+private_state: test
+refusals: test
+roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths: test
+roots::tests::normalizes_derive_paths_using_dependency_roots: test
+roots::tests::normalizes_facade_imports_through_groups_without_stripping_other_prefixes: test

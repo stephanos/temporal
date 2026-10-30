@@ -1,0 +1,15 @@
+{
+  "base": "e6919f360a15451b84f19bf1ca2b69216b766bee",
+  "changed_paths": [
+    {
+      "path": ".plans/UMPIRE_MODULES.md",
+      "before_sha256": "d5cc2bf0bf11488714e2d0daf7ff0ac939655ad2df4eb321d9c7331c437c231f",
+      "after_sha256": "399d1d562f7e32342aa1891c0bc19c57985d90a96474ae32e0429ad493045821"
+    },
+    {
+      "path": "model/umpire/dev/fixtures/fixtures/countdowns/tests.rs",
+      "before_sha256": "e84f08473e4901c58a96b5749a4baaa2d7d577965575180016bdeecb20b6ec7c",
+      "after_sha256": "c5b2764ddb91e8ef2e274971750505777d27383c783ecc2db3c7680ae773f3ac"
+    }
+  ]
+}

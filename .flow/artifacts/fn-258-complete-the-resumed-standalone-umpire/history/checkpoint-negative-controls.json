@@ -1,0 +1,168 @@
+{
+  "old_verifier_sha256": "bd3ea8f840c7171660bc0cb565cbd4620e73c0ad6fe5e0e705a1308545e662fe",
+  "new_verifier_sha256": "dd76733fa2d712b778ec570df84ffade2d9d4920bd40261010c84bf6095fea49",
+  "scope": "Only an isolated bare synthetic clone receives new commits/refs. No source or real export graph mutation.",
+  "controls": [
+    {
+      "control": "unmapped-tip",
+      "original_checkpoint": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+      "synthetic_checkpoint": "4b0b9b30469e1489b1bd0445c68077510afdf5d7",
+      "same_active_tree": true,
+      "outcomes": {
+        "before": {
+          "arguments": [
+            "/usr/bin/python3",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/review-before/verify-export.py",
+            "--source-repo",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+            "--export-repo",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-unmapped-tip-final",
+            "--checkpoint",
+            "4b0b9b30469e1489b1bd0445c68077510afdf5d7",
+            "--commit-map",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/export/commit-map",
+            "--manifest",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/source/source-manifest.json",
+            "--history-map",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/review-before/history-map.json",
+            "--output",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/unmapped-tip-before.json"
+          ],
+          "exit": 0,
+          "status": "pass",
+          "failures": {
+            "count": 0,
+            "samples": []
+          }
+        },
+        "after": {
+          "arguments": [
+            "/usr/bin/python3",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/verify-export.py",
+            "--source-repo",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+            "--export-repo",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-unmapped-tip-final",
+            "--checkpoint",
+            "4b0b9b30469e1489b1bd0445c68077510afdf5d7",
+            "--commit-map",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/export/commit-map",
+            "--manifest",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/source/source-manifest.json",
+            "--history-map",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/history-map.json",
+            "--output",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/unmapped-tip-after.json"
+          ],
+          "exit": 1,
+          "status": "fail",
+          "failures": {
+            "count": 2,
+            "samples": [
+              {
+                "category": "export-graph-bounded",
+                "detail": {
+                  "unmapped_export_commits": [
+                    "4b0b9b30469e1489b1bd0445c68077510afdf5d7"
+                  ],
+                  "unreachable_mapped_commits": []
+                }
+              },
+              {
+                "category": "source-checkpoint-frontier",
+                "detail": {
+                  "source": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+                  "ordered_retained_frontier": [
+                    "a92db0610f13c9f623b526f2aa721abda69aa84d"
+                  ],
+                  "checkpoint": "4b0b9b30469e1489b1bd0445c68077510afdf5d7"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "control": "foreign-parent-tip",
+      "original_checkpoint": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+      "synthetic_checkpoint": "5ea273324507c744c996ff95b282677d4a5ac36e",
+      "same_active_tree": true,
+      "outcomes": {
+        "before": {
+          "arguments": [
+            "/usr/bin/python3",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/review-before/verify-export.py",
+            "--source-repo",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+            "--export-repo",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-unmapped-tip-final",
+            "--checkpoint",
+            "5ea273324507c744c996ff95b282677d4a5ac36e",
+            "--commit-map",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/export/commit-map",
+            "--manifest",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/source/source-manifest.json",
+            "--history-map",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/review-before/history-map.json",
+            "--output",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/foreign-parent-tip-before.json"
+          ],
+          "exit": 0,
+          "status": "pass",
+          "failures": {
+            "count": 0,
+            "samples": []
+          }
+        },
+        "after": {
+          "arguments": [
+            "/usr/bin/python3",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/verify-export.py",
+            "--source-repo",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+            "--export-repo",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-unmapped-tip-final",
+            "--checkpoint",
+            "5ea273324507c744c996ff95b282677d4a5ac36e",
+            "--commit-map",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/export/commit-map",
+            "--manifest",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/source/source-manifest.json",
+            "--history-map",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/history-map.json",
+            "--output",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/foreign-parent-tip-after.json"
+          ],
+          "exit": 1,
+          "status": "fail",
+          "failures": {
+            "count": 2,
+            "samples": [
+              {
+                "category": "export-graph-bounded",
+                "detail": {
+                  "unmapped_export_commits": [
+                    "2e7168d4e21fa95d940034e4116610e23e52b399",
+                    "5ea273324507c744c996ff95b282677d4a5ac36e"
+                  ],
+                  "unreachable_mapped_commits": []
+                }
+              },
+              {
+                "category": "source-checkpoint-frontier",
+                "detail": {
+                  "source": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+                  "ordered_retained_frontier": [
+                    "a92db0610f13c9f623b526f2aa721abda69aa84d"
+                  ],
+                  "checkpoint": "5ea273324507c744c996ff95b282677d4a5ac36e"
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

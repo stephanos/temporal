@@ -1,0 +1,243 @@
+{
+  "observed_at": "2026-10-28T07:17:13.945406+00:00",
+  "scope": "Only model/target, model/umpire/target and currently existing named fn258 history-proof checkouts on host; no global/shared cache, Scala, worktree or active validation target scan. Previously removed proof-clone paths not rescanned.",
+  "filesystem": "Filesystem      Size  Used Avail Use% Mounted on\nhost            927G  895G   33G  97% /Users/stephan/Workspace/skunkworks\n",
+  "paths": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/target",
+      "exists": false,
+      "symlink": false,
+      "kind": "in-tree Cargo target",
+      "disposition": "absent; no output to reclaim"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/target",
+      "exists": false,
+      "symlink": false,
+      "kind": "in-tree Cargo target",
+      "disposition": "absent; no output to reclaim"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-export",
+      "exists": true,
+      "symlink": false,
+      "kind": "fn258 history proof source/object checkout",
+      "disposition": "preserve proof source/object checkout; no reproducible build target found",
+      "allocated_bytes": 14360576,
+      "known_output_targets": [],
+      "root_names": [
+        "ir",
+        "Cargo.toml",
+        "rustfmt.toml",
+        ".gitignore",
+        "mise.toml",
+        "deny.toml",
+        "hosts",
+        "README.md",
+        "Cargo.lock",
+        ".git",
+        "rust-toolchain.toml",
+        "front",
+        "LICENSE",
+        "author",
+        "reference",
+        "clippy.toml",
+        ".history-support",
+        "protocol",
+        ".config",
+        "dev",
+        "backends",
+        "scripts",
+        "catalog",
+        ".cargo",
+        "mise.lock"
+      ],
+      "filesystem": "host            927G  895G   33G  97% /Users/stephan/Workspace/skunkworks"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-parent-final",
+      "exists": true,
+      "symlink": false,
+      "kind": "fn258 history proof source/object checkout",
+      "disposition": "preserve proof source/object checkout; no reproducible build target found",
+      "allocated_bytes": 6041600,
+      "known_output_targets": [],
+      "root_names": [
+        "description",
+        "packed-refs",
+        "objects",
+        "HEAD",
+        "refs",
+        "config",
+        "hooks",
+        "info"
+      ],
+      "filesystem": "host            927G  895G   33G  97% /Users/stephan/Workspace/skunkworks"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-parent-negative",
+      "exists": true,
+      "symlink": false,
+      "kind": "fn258 history proof source/object checkout",
+      "disposition": "preserve proof source/object checkout; no reproducible build target found",
+      "allocated_bytes": 6041600,
+      "known_output_targets": [],
+      "root_names": [
+        "description",
+        "packed-refs",
+        "objects",
+        "HEAD",
+        "refs",
+        "config",
+        "hooks",
+        "info"
+      ],
+      "filesystem": "host            927G  895G   33G  97% /Users/stephan/Workspace/skunkworks"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-parent-negative-recheck",
+      "exists": true,
+      "symlink": false,
+      "kind": "fn258 history proof source/object checkout",
+      "disposition": "preserve proof source/object checkout; no reproducible build target found",
+      "allocated_bytes": 6041600,
+      "known_output_targets": [],
+      "root_names": [
+        "description",
+        "packed-refs",
+        "objects",
+        "HEAD",
+        "refs",
+        "config",
+        "hooks",
+        "info"
+      ],
+      "filesystem": "host            927G  895G   33G  97% /Users/stephan/Workspace/skunkworks"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-parent-reviewed",
+      "exists": true,
+      "symlink": false,
+      "kind": "fn258 history proof source/object checkout",
+      "disposition": "preserve proof source/object checkout; no reproducible build target found",
+      "allocated_bytes": 6041600,
+      "known_output_targets": [],
+      "root_names": [
+        "description",
+        "packed-refs",
+        "objects",
+        "HEAD",
+        "refs",
+        "config",
+        "hooks",
+        "info"
+      ],
+      "filesystem": "host            927G  895G   33G  97% /Users/stephan/Workspace/skunkworks"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-recovery",
+      "exists": true,
+      "symlink": false,
+      "kind": "fn258 history proof source/object checkout",
+      "disposition": "preserve proof source/object checkout; no reproducible build target found",
+      "allocated_bytes": 13705216,
+      "known_output_targets": [],
+      "root_names": [
+        "ir",
+        "Cargo.toml",
+        "rustfmt.toml",
+        ".gitignore",
+        "mise.toml",
+        "deny.toml",
+        "hosts",
+        "README.md",
+        "Cargo.lock",
+        ".git",
+        "rust-toolchain.toml",
+        "front",
+        "LICENSE",
+        "author",
+        "reference",
+        "clippy.toml",
+        ".history-support",
+        "protocol",
+        ".config",
+        "dev",
+        "backends",
+        "scripts",
+        "catalog",
+        ".cargo",
+        "mise.lock"
+      ],
+      "filesystem": "host            927G  895G   33G  97% /Users/stephan/Workspace/skunkworks"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-unmapped-tip-final",
+      "exists": true,
+      "symlink": false,
+      "kind": "fn258 history proof source/object checkout",
+      "disposition": "preserve proof source/object checkout; no reproducible build target found",
+      "allocated_bytes": 3706880,
+      "known_output_targets": [],
+      "root_names": [
+        "description",
+        "packed-refs",
+        "objects",
+        "HEAD",
+        "refs",
+        "config",
+        "hooks",
+        "info"
+      ],
+      "filesystem": "host            927G  895G   33G  97% /Users/stephan/Workspace/skunkworks"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-unmapped-tip-reviewed",
+      "exists": true,
+      "symlink": false,
+      "kind": "fn258 history proof source/object checkout",
+      "disposition": "preserve proof source/object checkout; no reproducible build target found",
+      "allocated_bytes": 3706880,
+      "known_output_targets": [],
+      "root_names": [
+        "description",
+        "packed-refs",
+        "objects",
+        "HEAD",
+        "refs",
+        "config",
+        "hooks",
+        "info"
+      ],
+      "filesystem": "host            927G  895G   33G  97% /Users/stephan/Workspace/skunkworks"
+    }
+  ],
+  "process_ownership": {
+    "matches": [],
+    "permission_denied_pids": [
+      10,
+      542,
+      557
+    ],
+    "exited_during_scan": [],
+    "lease_check": "For matched open descriptors, fdinfo advisory-lock records are retained. No source/output removal is recommended; unreadable processes remain unknown."
+  },
+  "recovery": {
+    "bundle": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/current-history.bundle",
+    "bundle_ref": "refs/heads/umpire-current",
+    "bundle_commit": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+    "actual_sha256": "83cb7e061e8fea284108d8380f517b2179b70a1fb8924147e90aae0aa7acec19",
+    "expected_sha256": "83cb7e061e8fea284108d8380f517b2179b70a1fb8924147e90aae0aa7acec19",
+    "hash_matches": true,
+    "verification_references": [
+      "history/checkpoint.json",
+      "history/bundle-proof.json",
+      "history/bundle-recovery-verification.json",
+      "source/source-manifest.json"
+    ],
+    "required_binary_status": "No required proof binaries or build outputs found under inspected proof checkout roots; source/object proof checkouts are retained."
+  },
+  "total_existing_proof_checkout_allocated_bytes": 59645952,
+  "recommendation": "No host reclamation candidate in this bounded scope. Both in-tree Cargo targets are absent. Remaining named proof checkouts contain source/Git objects, not build targets, total about 60MiB; preserve them, especially until history evidence and owners release them.",
+  "mutations": "Only this optional report was written; no outputs, source, refs, worktrees or caches changed."
+}

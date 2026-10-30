@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-27T02:24:43.282136+00:00",
+  "problem": "Selectednextestbatchsilentlyhid successfulstdout/stderr/cachelabelsformerlystreamedbyquickcargo--nocapture",
+  "production_change": "Onlyrun_selected--success-outputnever\u2192immediate;fullworkspacetest-runremainsquiet, parallelism/failfast/filters/ignored/doctestsemanticsunchanged",
+  "source_file": "model/umpire/dev/xtask/src/test_run.rs",
+  "source_sha256": "a2dc3ba7691dd664c198b5cd372dcf42167375e453d6fdf4c3994ede0460b388",
+  "real_pinned_regression": {
+    "before": "Publicrequiredscopedrunner:1testpassed,canaryhidden",
+    "after": "Sametinyworkspace/scope/requiredprofile:1testpassed,canaryvisibleexactlyonceinNextestannotatedstdoutsectiononstderr",
+    "real_model_coverage": false,
+    "additional_repository_test_binaries": 0
+  },
+  "checks": {
+    "focused_existing_unit_cases": 18,
+    "unit_status": 0,
+    "strict_xtask_lib_clippy": 0,
+    "affected_fmt": 0,
+    "diff_check": 0
+  },
+  "fixture_reproduction": "before.json retainsall5fixtureinputsandactualcommand;rebuildROOTbe7nativeforearlierbehavior/currentROOTforfixedbehavior,executeactualpublictest-run--packagequick-output-canaryinsamefixturewithpinnedSDK/requiredprofile",
+  "frozen_native_projection": "F1wascompletedandsealedatbe7beforethisoutput-onlychange;source/binarysealsmustrenewbeforelatersemantic/resourcecommands."
+}

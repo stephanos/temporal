@@ -1,0 +1,14 @@
+{
+  "after": [
+    "fn-254-fast-validation-gates-and-a-real-inner.9",
+    "fn-254-fast-validation-gates-and-a-real-inner.13"
+  ],
+  "before": [
+    "fn-254-fast-validation-gates-and-a-real-inner.9",
+    "fn-254-fast-validation-gates-and-a-real-inner.13",
+    "fn-254-fast-validation-gates-and-a-real-inner.16"
+  ],
+  "reason": "The existing .13 public provider API is already available; .16 preserves it and is not a producer prerequisite for gate composition.",
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.10",
+  "writer": "Bundled Flowctl canonical task loader/resolver/canonicalizer/atomic writer; installed CLI exposes dep add only. No installed script was changed."
+}

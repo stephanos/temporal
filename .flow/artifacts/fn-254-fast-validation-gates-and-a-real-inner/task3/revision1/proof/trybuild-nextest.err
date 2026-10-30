@@ -1,0 +1,7 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+────────────
+ Nextest run ID 97ec22ec-f770-44dd-a2ec-0ade485fea15 with nextest profile: default
+    Starting 1 test across 1 binary (5 tests skipped)
+        PASS [   0.827s] (1/1) umpire-dsl-macros::fixtures refusals
+────────────
+     Summary [   0.827s] 1 test run: 1 passed, 5 skipped

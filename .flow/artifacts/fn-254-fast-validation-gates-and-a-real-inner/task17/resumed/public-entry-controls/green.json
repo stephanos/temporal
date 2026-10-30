@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/bin/bash",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/test-time-gate.sh"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+  "exit_code": 0,
+  "elapsed_seconds": 0.26624441700005264,
+  "scope": "Real Make/timer scripts, controlled external task children; wiring/mode/failure/diagnostic/tempfile/budget propagation only, not production-suite evidence",
+  "source_files": {
+    "Makefile": "a04d46275f195d257ba599668175cf11e0c6fe526edbf1a0c4ceb90ec82ffdeb",
+    "model/scripts/time-gate.sh": "abceca4440cc626f5b343076db7912ce29bb448d5fb7da5a380a989eb43e0eef",
+    "model/scripts/test-model-validate.sh": "0e82a34d1f3c976db76b407b6f07bcd9e23bb9e5246feed708ffd51a4208b083",
+    "model/scripts/test-model-wiring.sh": "c195638869696ae1da15e432cf4f2d1aa92f7371c6d371561cad19b473e4642d"
+  },
+  "log_sha256": "33542ea8e11f1092582935ad6883e7e2ea6a7c27f00d4a033a16385abe0a08fc",
+  "production_integration_pending": "Combined DAG, native scopedrunner and cross-invocationlease frozen-join proof; graph/quick/supervision workers own missing native implementation."
+}

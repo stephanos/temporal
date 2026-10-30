@@ -16,6 +16,7 @@ const FIXTURES: &[&str] = &[
     "umpire/backends/native/tests/fixtures",
     "umpire/dev/fixtures/fixtures",
     "temporal/feature",
+    "temporal/shared/protocol",
 ];
 
 const READERS: &[(&str, &str)] = &[

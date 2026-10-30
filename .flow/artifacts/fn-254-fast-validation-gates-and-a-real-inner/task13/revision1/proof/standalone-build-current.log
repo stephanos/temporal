@@ -1,0 +1,5 @@
+   Compiling umpire-guest-driver v0.0.1 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/standalone/framework/dev/guest-driver)
+   Compiling umpire-reference-kettle v0.0.1 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/standalone/framework/reference/kettle)
+   Compiling xtask v0.0.1 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/standalone/framework/dev/xtask)
+   Compiling umpire-kettle-guest v0.0.1 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/standalone/framework/reference/kettle/guest)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.85s

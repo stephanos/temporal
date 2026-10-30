@@ -1,0 +1,44 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.6",
+  "verdict": "SHIP",
+  "session_id": "01a175de-ce5b-7243-a381-374a91af669e",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "Coordinator assessment: the three draws returned SHIP with two distinct introduced P2 findings. Source inspection confirms both contradict the promised affected-test selection and stage-time output. Keep their severity and provenance, but require these small contract fixes before task closure; the merged verdict is NEEDS_WORK. No reviewer verdict is rewritten.\n\n## Issue 1\n- **Severity**: P2\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: model/umpire/dev/xtask/src/quick/mod.rs:187\n- **R-IDs**: [R2]\n- **Problem**: Fixture-only selection accepts every mapped temporal/feature path, including activity/tests.rs. An edited or deliberately failing authored test can therefore be omitted while quick reports success. Confirmed by the predicate and retained selection evidence. Correctness and integration draws independently reported this same defect.\n- **Suggestion**: Restrict fixture-only selection to production Model inputs; authored test-source edits must select the affected test bodies. Add behavioral selection/refusal controls.\n\n## Issue 2\n- **Severity**: P2\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: model/umpire/dev/xtask/src/quick/mod.rs:197\n- **R-IDs**: [R2]\n- **Problem**: The quick runner prints commands and statuses but no elapsed stage times, contrary to the spec API contract for make model-quick. Cargo build timing does not include subsequent test execution. Reported by the contracts draw and confirmed in execute().\n- **Suggestion**: Report stage name, elapsed time and exit status for each executed phase, including fmt and failed phases.\n\n```json\n{\"classification_counts\":{\"introduced\":2,\"pre_existing\":0},\"unaddressed\":[\"R2\"],\"suppressed_count\":{}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a175de-ce5b-7243-a381-374a91af669e",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a175de-ce5a-7c60-95c4-88c82fa264e8",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a175de-ce79-7cc3-8269-0bd3f636fc94",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": 0,
+  "introduced_count": 2,
+  "pre_existing_count": 0,
+  "unaddressed": [
+    "R2"
+  ],
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}

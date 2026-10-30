@@ -1,0 +1,44 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling hashbrown v0.17.1
+   Compiling syn v3.0.9
+   Compiling equivalent v1.0.3
+   Compiling indexmap v2.14.2
+   Compiling syn v2.0.119
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25411-standalone/model/umpire/ir/derive)
+   Compiling prost-derive v0.14.4
+   Compiling proc-macro-utils v0.10.0
+   Compiling bytes v1.12.1
+    Checking bytemuck v1.25.2
+    Checking unicode-ident v1.0.27
+   Compiling foldhash v0.1.5
+   Compiling hashbrown v0.15.5
+   Compiling prost v0.14.4
+    Checking safe_arch v0.7.4
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling prettyplease v0.3.0
+   Compiling manyhow-macros v0.14.1
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25411-standalone/model/umpire/ir)
+    Checking rand_core v0.9.5
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25411-standalone/model/umpire/author/dsl/macros)
+    Checking rand_xoshiro v0.7.0
+   Compiling petgraph v0.8.3
+   Compiling manyhow v0.14.1
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25411-standalone/model/umpire/front)
+   Compiling proc-macro-crate v3.5.0
+   Compiling prettyplease v0.2.37
+    Checking wide v0.7.33
+   Compiling prost-types v0.14.4
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25411-standalone/model/umpire/author/dsl)
+    Checking imbl-sized-chunks v0.2.0
+    Checking archery v1.2.3
+   Compiling prost-build v0.14.4
+    Checking imbl v7.0.2
+    Checking thiserror v2.0.21
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25411-standalone/model/umpire/backends/native)
+    Checking smallvec v1.16.3
+    Checking fixedbitset v0.5.7
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25411-standalone/model/umpire/protocol/runtime)
+    Checking rustc-hash v2.1.3
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.33s

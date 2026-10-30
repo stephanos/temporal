@@ -1,0 +1,10 @@
+{
+  "recovery_checkout": ".flow/tmp/fn257-bundle-probe",
+  "head": "cf8bec4d6231302df54b57fccdc5bdb9d11552fc",
+  "reachable_commits": 581,
+  "shallow": false,
+  "clean": true,
+  "strict_fsck_exit": 0,
+  "bundle_has_no_prerequisites": true,
+  "scope": "Recovery of the verified available-history export only; no runtime checks."
+}

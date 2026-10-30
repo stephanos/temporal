@@ -1,0 +1,101 @@
+{
+  "base": "8cf15a04e60d15f63f7b0de72d1e2f933d6f2ad0",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a175de-ce5b-7243-a381-374a91af669e",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a175de-ce5a-7c60-95c4-88c82fa264e8",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a175de-ce79-7cc3-8269-0bd3f636fc94",
+      "verdict": "SHIP"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "8cf15a04e60d15f63f7b0de72d1e2f933d6f2ad0",
+    "headSha": "46e96cfa5cb08c5f79deaaff1be49f7fcdcdf507",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "8cf15a04e60d15f63f7b0de72d1e2f933d6f2ad0",
+          "headSha": "46e96cfa5cb08c5f79deaaff1be49f7fcdcdf507",
+          "path": "model/umpire/dev/xtask/src/quick/mod.rs",
+          "side": "head",
+          "startLine": 187
+        },
+        "body": "Fixture-only selection accepts every mapped temporal/feature path, including activity/tests.rs. An edited or deliberately failing authored test can therefore be omitted while quick reports success. Confirmed by the predicate and retained selection evidence. Correctness and integration draws independently reported this same defect.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-3ee6ea0596a3d4a87422efadef4a243acd82eeb90b8735d258f698ce027eebf0",
+        "id": "finding-1316e819f3353f5b052786136bc666d3",
+        "lastSeenReceiptId": "review-3ee6ea0596a3d4a87422efadef4a243acd82eeb90b8735d258f698ce027eebf0",
+        "ordinal": 1,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Restrict fixture-only selection to production Model inputs; authored test-source edits must select the affected test bodies. Add behavioral selection/refusal controls.",
+        "title": "Fixture-only selection accepts every mapped temporal/feature path, including activity/tests"
+      },
+      {
+        "anchor": {
+          "baseSha": "8cf15a04e60d15f63f7b0de72d1e2f933d6f2ad0",
+          "headSha": "46e96cfa5cb08c5f79deaaff1be49f7fcdcdf507",
+          "path": "model/umpire/dev/xtask/src/quick/mod.rs",
+          "side": "head",
+          "startLine": 197
+        },
+        "body": "The quick runner prints commands and statuses but no elapsed stage times, contrary to the spec API contract for make model-quick. Cargo build timing does not include subsequent test execution. Reported by the contracts draw and confirmed in execute().",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-3ee6ea0596a3d4a87422efadef4a243acd82eeb90b8735d258f698ce027eebf0",
+        "id": "finding-c3995a2d208c446007680640153ee2a4",
+        "lastSeenReceiptId": "review-3ee6ea0596a3d4a87422efadef4a243acd82eeb90b8735d258f698ce027eebf0",
+        "ordinal": 2,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Report stage name, elapsed time and exit status for each executed phase, including fmt and failed phases.",
+        "title": "The quick runner prints commands and statuses but no elapsed stage times, contrary to the spec API contract for make model-quick"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-3ee6ea0596a3d4a87422efadef4a243acd82eeb90b8735d258f698ce027eebf0"
+  },
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.6",
+  "introduced_count": 2,
+  "merged_tag_mismatch": "merged text tag NEEDS_WORK is worse than the draws' worst-wins synthesis SHIP; worst-wins recorded",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "Coordinator assessment: the three draws returned SHIP with two distinct introduced P2 findings. Source inspection confirms both contradict the promised affected-test selection and stage-time output. Keep their severity and provenance, but require these small contract fixes before task closure; the merged verdict is NEEDS_WORK. No reviewer verdict is rewritten.\n\n## Issue 1\n- **Severity**: P2\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: model/umpire/dev/xtask/src/quick/mod.rs:187\n- **R-IDs**: [R2]\n- **Problem**: Fixture-only selection accepts every mapped temporal/feature path, including activity/tests.rs. An edited or deliberately failing authored test can therefore be omitted while quick reports success. Confirmed by the predicate and retained selection evidence. Correctness and integration draws independently reported this same defect.\n- **Suggestion**: Restrict fixture-only selection to production Model inputs; authored test-source edits must select the affected test bodies. Add behavioral selection/refusal controls.\n\n## Issue 2\n- **Severity**: P2\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: model/umpire/dev/xtask/src/quick/mod.rs:197\n- **R-IDs**: [R2]\n- **Problem**: The quick runner prints commands and statuses but no elapsed stage times, contrary to the spec API contract for make model-quick. Cargo build timing does not include subsequent test execution. Reported by the contracts draw and confirmed in execute().\n- **Suggestion**: Report stage name, elapsed time and exit status for each executed phase, including fmt and failed phases.\n\n```json\n{\"classification_counts\":{\"introduced\":2,\"pre_existing\":0},\"unaddressed\":[\"R2\"],\"suppressed_count\":{}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "review_reservation_id": "5277f13915904e5d9ffb94bb7460d2f9",
+  "rid": "5277f13915904e5d9ffb94bb7460d2f9",
+  "session_id": "01a175de-ce5b-7243-a381-374a91af669e",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-26T01:50:01.615654Z",
+  "type": "impl_review",
+  "unaddressed": [
+    "R2"
+  ],
+  "verdict": "SHIP"
+}

@@ -1,0 +1,39 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "clippy",
+    "--locked",
+    "-p",
+    "umpire-dsl-macros",
+    "--test",
+    "fixtures",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire",
+  "started_utc": "2026-10-26T21:59:17.978654+00:00",
+  "environment": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "TMPDIR": "/tmp/umpire-fn2545-parser-fixture-controls",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "RUST_TEST_THREADS": "2",
+    "UMPIRE_BACKENDS": "skip",
+    "UMPIRE_APALACHE": "skip",
+    "UMPIRE_QUICK_CACHE": "0",
+    "UMPIRE_CACHE_DISABLE": "1"
+  },
+  "BASH_ENV": "removed",
+  "cache_initial_bytes": 4847474768,
+  "exit_code": 0,
+  "elapsed_seconds": 0.7269887920001565,
+  "cache_growth_bytes": 350908485,
+  "free_bytes": 33418842112,
+  "log_sha256": "2e15c0b43424de6d4ff276d57cf08ce21f24a7a43e4bf5332f0d34a49f1c8e3c"
+}

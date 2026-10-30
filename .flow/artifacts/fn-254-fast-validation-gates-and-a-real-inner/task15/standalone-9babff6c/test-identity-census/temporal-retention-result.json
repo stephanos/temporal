@@ -1,0 +1,51 @@
+{
+  "accepted": true,
+  "inventory_sha256": "620b7cdeb304404e0c37748b07dab3ed9e572e3b483ff26455cb5f1452af1ff1",
+  "discovered": 41,
+  "ignored": 3,
+  "executed_by_prior_native_package_run": 38,
+  "migrated_parents": [
+    [
+      "temporal-xtask",
+      "temporal-xtask",
+      "bin",
+      "retired_name_policy_controls::active_spellings_and_historical_exclusions",
+      false
+    ],
+    [
+      "temporal-xtask",
+      "temporal-xtask",
+      "bin",
+      "retired_name_policy_controls::tool_failures_never_report_clean",
+      false
+    ],
+    [
+      "temporal-xtask",
+      "temporal-xtask",
+      "bin",
+      "retired_name_policy_controls::raw_path_bytes_and_io_failures_reach_native_policy",
+      false
+    ]
+  ],
+  "ignored_scan_child": [
+    [
+      "temporal-xtask",
+      "temporal-xtask",
+      "bin",
+      "retired_name_policy_controls::scan_child",
+      true
+    ]
+  ],
+  "new_composed_proto_parent": [
+    [
+      "temporal-xtask",
+      "temporal-xtask",
+      "bin",
+      "proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals",
+      false
+    ]
+  ],
+  "obsolete_integration_registrations": [],
+  "baseline_runtime_inventory_available": false,
+  "scope": "Current Temporal inventory verifies source-derived policy migrations; exact accepted framework baseline retention is checked separately."
+}

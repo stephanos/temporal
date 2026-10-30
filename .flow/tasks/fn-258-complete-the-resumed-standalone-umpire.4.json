@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-28T05:10:42.666284Z",
+  "depends_on": [
+    "fn-258-complete-the-resumed-standalone-umpire.2",
+    "fn-258-complete-the-resumed-standalone-umpire.3"
+  ],
+  "id": "fn-258-complete-the-resumed-standalone-umpire.4",
+  "priority": null,
+  "spec": "fn-258-complete-the-resumed-standalone-umpire",
+  "spec_path": ".flow/tasks/fn-258-complete-the-resumed-standalone-umpire.4.md",
+  "status": "todo",
+  "title": "Prove current standalone and paired development loop",
+  "updated_at": "2026-10-28T15:49:38.665496Z"
+}

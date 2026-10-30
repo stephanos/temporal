@@ -1,0 +1,1120 @@
+{
+  "accepted": true,
+  "source_head": "9babff6c815beb7cff92d7001f647ddca19663bf",
+  "mapped_controls": 101,
+  "missing": [],
+  "matched": {
+    "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls": {
+      "runtime_identity": [
+        "xtask",
+        "xtask",
+        "lib",
+        "proto::controls::tests::native_protobuf_behavior_controls",
+        false
+      ],
+      "current_source_sha256": "5323aa2f40e310e0f6d02eb07ea0d4fdcef6ea2acfcc3b4b44eea1c2090c9f3c",
+      "prepared_source_sha256": "5323aa2f40e310e0f6d02eb07ea0d4fdcef6ea2acfcc3b4b44eea1c2090c9f3c"
+    },
+    "xtask/main:native_leaves::capability_controls_enforce_core_and_unsafe_policies": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "native_leaves::capability_controls_enforce_core_and_unsafe_policies",
+        false
+      ],
+      "current_source_sha256": "70fbcae0691d6572e7dda111c6b7a2e224e8743d3d49625b8af44cee9bf57751",
+      "prepared_source_sha256": "70fbcae0691d6572e7dda111c6b7a2e224e8743d3d49625b8af44cee9bf57751"
+    },
+    "xtask/main:native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup",
+        false
+      ],
+      "current_source_sha256": "70fbcae0691d6572e7dda111c6b7a2e224e8743d3d49625b8af44cee9bf57751",
+      "prepared_source_sha256": "70fbcae0691d6572e7dda111c6b7a2e224e8743d3d49625b8af44cee9bf57751"
+    },
+    "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "native_leaves::public_protobuf_controls_reach_the_native_implementation",
+        false
+      ],
+      "current_source_sha256": "70fbcae0691d6572e7dda111c6b7a2e224e8743d3d49625b8af44cee9bf57751",
+      "prepared_source_sha256": "70fbcae0691d6572e7dda111c6b7a2e224e8743d3d49625b8af44cee9bf57751"
+    },
+    "xtask/lib:build_guests::tests::five_artifacts_then_two_reports_keep_spaces_and_child_status": {
+      "runtime_identity": [
+        "xtask",
+        "xtask",
+        "lib",
+        "build_guests::tests::five_artifacts_then_two_reports_keep_spaces_and_child_status",
+        false
+      ],
+      "current_source_sha256": "b1f376381a5b68d7d20294ff9929351c861f9dc57469d2980cc09ed81cb534e4",
+      "prepared_source_sha256": "b1f376381a5b68d7d20294ff9929351c861f9dc57469d2980cc09ed81cb534e4"
+    },
+    "xtask/lib:build_guests::path_controls::isolated_build_child": {
+      "runtime_identity": [
+        "xtask",
+        "xtask",
+        "lib",
+        "build_guests::path_controls::isolated_build_child",
+        false
+      ],
+      "current_source_sha256": "7bd4e1d3b0694bc0e32cafbea73bd517b1fc3a5c1f843c6800424fe3836bfb37",
+      "prepared_source_sha256": "7bd4e1d3b0694bc0e32cafbea73bd517b1fc3a5c1f843c6800424fe3836bfb37"
+    },
+    "xtask/lib:build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children": {
+      "runtime_identity": [
+        "xtask",
+        "xtask",
+        "lib",
+        "build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children",
+        false
+      ],
+      "current_source_sha256": "7bd4e1d3b0694bc0e32cafbea73bd517b1fc3a5c1f843c6800424fe3836bfb37",
+      "prepared_source_sha256": "7bd4e1d3b0694bc0e32cafbea73bd517b1fc3a5c1f843c6800424fe3836bfb37"
+    },
+    "xtask/lib:build_guests::path_controls::guest_and_native_statuses_stop_without_following_children": {
+      "runtime_identity": [
+        "xtask",
+        "xtask",
+        "lib",
+        "build_guests::path_controls::guest_and_native_statuses_stop_without_following_children",
+        false
+      ],
+      "current_source_sha256": "7bd4e1d3b0694bc0e32cafbea73bd517b1fc3a5c1f843c6800424fe3836bfb37",
+      "prepared_source_sha256": "7bd4e1d3b0694bc0e32cafbea73bd517b1fc3a5c1f843c6800424fe3836bfb37"
+    },
+    "xtask/lib:capability_controls::tests::negative_control_requires_failure_and_every_symbol": {
+      "runtime_identity": [
+        "xtask",
+        "xtask",
+        "lib",
+        "capability_controls::tests::negative_control_requires_failure_and_every_symbol",
+        false
+      ],
+      "current_source_sha256": "86cb1bbadb163b5fcd3beb05b22ae256cebcc4dee1a09f09f58293baf1d0ab72",
+      "prepared_source_sha256": "86cb1bbadb163b5fcd3beb05b22ae256cebcc4dee1a09f09f58293baf1d0ab72"
+    },
+    "xtask/lib:capability_controls::tests::both_policies_six_safe_roots_and_audited_exception": {
+      "runtime_identity": [
+        "xtask",
+        "xtask",
+        "lib",
+        "capability_controls::tests::both_policies_six_safe_roots_and_audited_exception",
+        false
+      ],
+      "current_source_sha256": "86cb1bbadb163b5fcd3beb05b22ae256cebcc4dee1a09f09f58293baf1d0ab72",
+      "prepared_source_sha256": "86cb1bbadb163b5fcd3beb05b22ae256cebcc4dee1a09f09f58293baf1d0ab72"
+    },
+    "xtask/lib:retired_names::controls::raw_records_keep_non_utf8_paths_lines_and_numeric_spelling": {
+      "runtime_identity": [
+        "xtask",
+        "xtask",
+        "lib",
+        "retired_names::controls::raw_records_keep_non_utf8_paths_lines_and_numeric_spelling",
+        false
+      ],
+      "current_source_sha256": "cb274a01a6f559efbe9276331d161de7cfb4c5cfa7abd2edca0e185c14ec2c09",
+      "prepared_source_sha256": "cb274a01a6f559efbe9276331d161de7cfb4c5cfa7abd2edca0e185c14ec2c09"
+    },
+    "xtask/lib:retired_names::controls::rust_patterns_and_malformed_records_fail_closed": {
+      "runtime_identity": [
+        "xtask",
+        "xtask",
+        "lib",
+        "retired_names::controls::rust_patterns_and_malformed_records_fail_closed",
+        false
+      ],
+      "current_source_sha256": "cb274a01a6f559efbe9276331d161de7cfb4c5cfa7abd2edca0e185c14ec2c09",
+      "prepared_source_sha256": "cb274a01a6f559efbe9276331d161de7cfb4c5cfa7abd2edca0e185c14ec2c09"
+    },
+    "xtask/lib:retired_names::controls::facade_token_exemption_checks_boundaries_and_remaining_matches": {
+      "runtime_identity": [
+        "xtask",
+        "xtask",
+        "lib",
+        "retired_names::controls::facade_token_exemption_checks_boundaries_and_remaining_matches",
+        false
+      ],
+      "current_source_sha256": "cb274a01a6f559efbe9276331d161de7cfb4c5cfa7abd2edca0e185c14ec2c09",
+      "prepared_source_sha256": "cb274a01a6f559efbe9276331d161de7cfb4c5cfa7abd2edca0e185c14ec2c09"
+    },
+    "xtask/lib:retired_names::controls::native_scan_handles_git_binary_missing_and_symlink_policy": {
+      "runtime_identity": [
+        "xtask",
+        "xtask",
+        "lib",
+        "retired_names::controls::native_scan_handles_git_binary_missing_and_symlink_policy",
+        false
+      ],
+      "current_source_sha256": "cb274a01a6f559efbe9276331d161de7cfb4c5cfa7abd2edca0e185c14ec2c09",
+      "prepared_source_sha256": "cb274a01a6f559efbe9276331d161de7cfb4c5cfa7abd2edca0e185c14ec2c09"
+    },
+    "xtask/lib:retired_names::controls::writer_failure_returns_error_status": {
+      "runtime_identity": [
+        "xtask",
+        "xtask",
+        "lib",
+        "retired_names::controls::writer_failure_returns_error_status",
+        false
+      ],
+      "current_source_sha256": "cb274a01a6f559efbe9276331d161de7cfb4c5cfa7abd2edca0e185c14ec2c09",
+      "prepared_source_sha256": "cb274a01a6f559efbe9276331d161de7cfb4c5cfa7abd2edca0e185c14ec2c09"
+    },
+    "xtask/main:retired_names::raw_records_exempt_only_author_facade_tokens": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "retired_names::raw_records_exempt_only_author_facade_tokens",
+        false
+      ],
+      "current_source_sha256": "5e63fdfda6f1449d0b8a0ae01ee5768e4337797fe04902444e39a0980297b908",
+      "prepared_source_sha256": "5e63fdfda6f1449d0b8a0ae01ee5768e4337797fe04902444e39a0980297b908"
+    },
+    "xtask/main:retired_names::malformed_records_fail_closed": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "retired_names::malformed_records_fail_closed",
+        false
+      ],
+      "current_source_sha256": "5e63fdfda6f1449d0b8a0ae01ee5768e4337797fe04902444e39a0980297b908",
+      "prepared_source_sha256": "5e63fdfda6f1449d0b8a0ae01ee5768e4337797fe04902444e39a0980297b908"
+    },
+    "xtask/main:retired_names::rust_regex_character_classes_and_invalid_patterns": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "retired_names::rust_regex_character_classes_and_invalid_patterns",
+        false
+      ],
+      "current_source_sha256": "5e63fdfda6f1449d0b8a0ae01ee5768e4337797fe04902444e39a0980297b908",
+      "prepared_source_sha256": "5e63fdfda6f1449d0b8a0ae01ee5768e4337797fe04902444e39a0980297b908"
+    },
+    "xtask/main:retired_names::io_failure_and_absent_grep_are_handled_natively": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "retired_names::io_failure_and_absent_grep_are_handled_natively",
+        false
+      ],
+      "current_source_sha256": "5e63fdfda6f1449d0b8a0ae01ee5768e4337797fe04902444e39a0980297b908",
+      "prepared_source_sha256": "5e63fdfda6f1449d0b8a0ae01ee5768e4337797fe04902444e39a0980297b908"
+    },
+    "xtask/main:retired_names::native_scan_catches_each_planted_retired_name": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "retired_names::native_scan_catches_each_planted_retired_name",
+        false
+      ],
+      "current_source_sha256": "5e63fdfda6f1449d0b8a0ae01ee5768e4337797fe04902444e39a0980297b908",
+      "prepared_source_sha256": "5e63fdfda6f1449d0b8a0ae01ee5768e4337797fe04902444e39a0980297b908"
+    },
+    "xtask/main:gate_wiring::compiled_stage_inventory_matches_preserved_framework_stages": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::compiled_stage_inventory_matches_preserved_framework_stages",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::every_command_boundary_preserves_failure_status_and_environment_in_both_modes": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::every_command_boundary_preserves_failure_status_and_environment_in_both_modes",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_command": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_command",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::full_dispatch_stops_at_every_failed_leaf_in_both_modes": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::full_dispatch_stops_at_every_failed_leaf_in_both_modes",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::scanner_stages_reject_real_planted_inputs_and_full_gate_stops_before_later_commands": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::scanner_stages_reject_real_planted_inputs_and_full_gate_stops_before_later_commands",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::required_optional_backend_fetch_failure_is_named_and_prevents_first_stage": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::required_optional_backend_fetch_failure_is_named_and_prevents_first_stage",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::supervision_public_fmt_finishes_while_host_lease_is_held": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::supervision_public_fmt_finishes_while_host_lease_is_held",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::supervision_public_fmt_reaps_background_children_before_returning_failure": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::supervision_public_fmt_reaps_background_children_before_returning_failure",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::supervision_scratch_is_private_and_removed_after_success_and_failure": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::supervision_scratch_is_private_and_removed_after_success_and_failure",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::supervision_ignores_obstructed_legacy_shared_scratch_parent": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::supervision_ignores_obstructed_legacy_shared_scratch_parent",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::root_required_backend_environment_selects_standalone_on_gate_and_time_routes": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::root_required_backend_environment_selects_standalone_on_gate_and_time_routes",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::required_profile_reaches_gate_update_and_direct_test_children": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::required_profile_reaches_gate_update_and_direct_test_children",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::scheduled_stage_requires_invocation_directory_before_starting_leaf": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::scheduled_stage_requires_invocation_directory_before_starting_leaf",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::scheduled_stage_atomically_commits_success_failure_and_scanner_error_receipts": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::scheduled_stage_atomically_commits_success_failure_and_scanner_error_receipts",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::concurrent_duplicate_stage_claim_runs_leaf_exactly_once_and_preserves_receipt": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::concurrent_duplicate_stage_claim_runs_leaf_exactly_once_and_preserves_receipt",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::successful_scheduler_status_cannot_replace_complete_unique_atomic_stage_records": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::successful_scheduler_status_cannot_replace_complete_unique_atomic_stage_records",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::independent_native_stages_reach_each_other_while_both_are_active": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::independent_native_stages_reach_each_other_while_both_are_active",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::full_gate_publishes_complete_ordered_invocation_local_receipts_on_every_run": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::full_gate_publishes_complete_ordered_invocation_local_receipts_on_every_run",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::simultaneous_failed_native_leaves_both_retain_names_receipts_and_status": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::simultaneous_failed_native_leaves_both_retain_names_receipts_and_status",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::failed_scheduler_is_waited_and_its_owned_descendant_is_terminated_before_return": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::failed_scheduler_is_waited_and_its_owned_descendant_is_terminated_before_return",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::shipping_mise_graph_really_overlaps_independent_native_leaves": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::shipping_mise_graph_really_overlaps_independent_native_leaves",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::required_test_stage_selects_bounded_profile_and_empty_selection_status_is_preserved": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::required_test_stage_selects_bounded_profile_and_empty_selection_status_is_preserved",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::actual_mise_failed_leaf_reaps_its_active_sibling_descendant_before_return": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::actual_mise_failed_leaf_reaps_its_active_sibling_descendant_before_return",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::outer_supervision_streams_separate_diagnostics_before_scheduler_completion": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::outer_supervision_streams_separate_diagnostics_before_scheduler_completion",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::native_guest_stage_stops_at_each_driver_and_report_failure": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::native_guest_stage_stops_at_each_driver_and_report_failure",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::native_protobuf_tools_provision_exact_plugins_and_leave_no_owned_install_lock": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::native_protobuf_tools_provision_exact_plugins_and_leave_no_owned_install_lock",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:gate_wiring::native_guest_driver_bootstrap_failure_stops_before_guest_jobs": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "gate_wiring::native_guest_driver_bootstrap_failure_stops_before_guest_jobs",
+        false
+      ],
+      "current_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "prepared_source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "xtask/main:apalache_install::dispatch_usage_failure_is_nonzero_and_structured": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "apalache_install::dispatch_usage_failure_is_nonzero_and_structured",
+        false
+      ],
+      "current_source_sha256": "8c40e6a2aa325226d1eaa1baccb6d11ee1f6793d7e8a91016d705e3fe995e3ec",
+      "prepared_source_sha256": "8c40e6a2aa325226d1eaa1baccb6d11ee1f6793d7e8a91016d705e3fe995e3ec"
+    },
+    "xtask/main:apalache_install::non_utf8_provider_root_has_a_native_status_one_refusal_before_mise": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "apalache_install::non_utf8_provider_root_has_a_native_status_one_refusal_before_mise",
+        false
+      ],
+      "current_source_sha256": "8c40e6a2aa325226d1eaa1baccb6d11ee1f6793d7e8a91016d705e3fe995e3ec",
+      "prepared_source_sha256": "8c40e6a2aa325226d1eaa1baccb6d11ee1f6793d7e8a91016d705e3fe995e3ec"
+    },
+    "xtask/main:apalache_install::path_list_provider_root_has_a_native_status_one_refusal_before_mise": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "apalache_install::path_list_provider_root_has_a_native_status_one_refusal_before_mise",
+        false
+      ],
+      "current_source_sha256": "8c40e6a2aa325226d1eaa1baccb6d11ee1f6793d7e8a91016d705e3fe995e3ec",
+      "prepared_source_sha256": "8c40e6a2aa325226d1eaa1baccb6d11ee1f6793d7e8a91016d705e3fe995e3ec"
+    },
+    "xtask/main:apalache_install::provider_uses_explicit_opt_in_and_surfaces_install_failure": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "apalache_install::provider_uses_explicit_opt_in_and_surfaces_install_failure",
+        false
+      ],
+      "current_source_sha256": "8c40e6a2aa325226d1eaa1baccb6d11ee1f6793d7e8a91016d705e3fe995e3ec",
+      "prepared_source_sha256": "8c40e6a2aa325226d1eaa1baccb6d11ee1f6793d7e8a91016d705e3fe995e3ec"
+    },
+    "xtask/main:apalache_install::concurrent_failed_provisioning_preserves_partial_data_and_cleans_capture": {
+      "runtime_identity": [
+        "xtask",
+        "main",
+        "test",
+        "apalache_install::concurrent_failed_provisioning_preserves_partial_data_and_cleans_capture",
+        false
+      ],
+      "current_source_sha256": "8c40e6a2aa325226d1eaa1baccb6d11ee1f6793d7e8a91016d705e3fe995e3ec",
+      "prepared_source_sha256": "8c40e6a2aa325226d1eaa1baccb6d11ee1f6793d7e8a91016d705e3fe995e3ec"
+    },
+    "temporal-xtask/bin:proto::tests::raw_repository_and_tool_paths_remain_lossless": {
+      "runtime_identity": [
+        "temporal-xtask",
+        "temporal-xtask",
+        "bin",
+        "proto::tests::raw_repository_and_tool_paths_remain_lossless",
+        false
+      ],
+      "current_source_sha256": "26874ddfd02de1df87d75ff4dd569edf702706f70e6d3ce3225ecb4c16d8b07d",
+      "prepared_source_sha256": "26874ddfd02de1df87d75ff4dd569edf702706f70e6d3ce3225ecb4c16d8b07d"
+    },
+    "temporal-xtask/bin:proto::tests::only_temporal_and_optional_check_are_admitted_before_execution": {
+      "runtime_identity": [
+        "temporal-xtask",
+        "temporal-xtask",
+        "bin",
+        "proto::tests::only_temporal_and_optional_check_are_admitted_before_execution",
+        false
+      ],
+      "current_source_sha256": "26874ddfd02de1df87d75ff4dd569edf702706f70e6d3ce3225ecb4c16d8b07d",
+      "prepared_source_sha256": "26874ddfd02de1df87d75ff4dd569edf702706f70e6d3ce3225ecb4c16d8b07d"
+    },
+    "temporal-xtask/bin:proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status": {
+      "runtime_identity": [
+        "temporal-xtask",
+        "temporal-xtask",
+        "bin",
+        "proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status",
+        false
+      ],
+      "current_source_sha256": "26874ddfd02de1df87d75ff4dd569edf702706f70e6d3ce3225ecb4c16d8b07d",
+      "prepared_source_sha256": "26874ddfd02de1df87d75ff4dd569edf702706f70e6d3ce3225ecb4c16d8b07d"
+    },
+    "temporal-xtask/bin:proto::bridge_controls::bridge_child": {
+      "runtime_identity": [
+        "temporal-xtask",
+        "temporal-xtask",
+        "bin",
+        "proto::bridge_controls::bridge_child",
+        true
+      ],
+      "current_source_sha256": "e64ecb2cc012afcfd292120cd7b3c0079354f1a9ab7913b83da32358c9cb3b10",
+      "prepared_source_sha256": "e64ecb2cc012afcfd292120cd7b3c0079354f1a9ab7913b83da32358c9cb3b10"
+    },
+    "temporal-xtask/bin:proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals": {
+      "runtime_identity": [
+        "temporal-xtask",
+        "temporal-xtask",
+        "bin",
+        "proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals",
+        false
+      ],
+      "current_source_sha256": "e64ecb2cc012afcfd292120cd7b3c0079354f1a9ab7913b83da32358c9cb3b10",
+      "prepared_source_sha256": "e64ecb2cc012afcfd292120cd7b3c0079354f1a9ab7913b83da32358c9cb3b10"
+    },
+    "temporal-xtask/bin:guest_routes::tests::seven_packages_two_entries_preserve_caller_paths_and_exact_arguments": {
+      "runtime_identity": [
+        "temporal-xtask",
+        "temporal-xtask",
+        "bin",
+        "guest_routes::tests::seven_packages_two_entries_preserve_caller_paths_and_exact_arguments",
+        false
+      ],
+      "current_source_sha256": "3aa6b94f7789901b287c478b1a87f4694c09b3b868249efc93e32a63b97cbf73",
+      "prepared_source_sha256": "3aa6b94f7789901b287c478b1a87f4694c09b3b868249efc93e32a63b97cbf73"
+    },
+    "temporal-xtask/bin:guest_routes::tests::non_unicode_output_and_target_are_lossless": {
+      "runtime_identity": [
+        "temporal-xtask",
+        "temporal-xtask",
+        "bin",
+        "guest_routes::tests::non_unicode_output_and_target_are_lossless",
+        false
+      ],
+      "current_source_sha256": "3aa6b94f7789901b287c478b1a87f4694c09b3b868249efc93e32a63b97cbf73",
+      "prepared_source_sha256": "3aa6b94f7789901b287c478b1a87f4694c09b3b868249efc93e32a63b97cbf73"
+    },
+    "temporal-xtask/bin:guest_routes::tests::raw_arguments_check_output_and_failure_status_survive_execution": {
+      "runtime_identity": [
+        "temporal-xtask",
+        "temporal-xtask",
+        "bin",
+        "guest_routes::tests::raw_arguments_check_output_and_failure_status_survive_execution",
+        false
+      ],
+      "current_source_sha256": "3aa6b94f7789901b287c478b1a87f4694c09b3b868249efc93e32a63b97cbf73",
+      "prepared_source_sha256": "3aa6b94f7789901b287c478b1a87f4694c09b3b868249efc93e32a63b97cbf73"
+    },
+    "temporal-xtask/bin:build_guests::path_controls::isolated_build_child": {
+      "runtime_identity": [
+        "temporal-xtask",
+        "temporal-xtask",
+        "bin",
+        "build_guests::path_controls::isolated_build_child",
+        true
+      ],
+      "current_source_sha256": "1b945d65292fe63dd7040b69ac3b1f3ec40ab15069b82aa5f213035d468863a5",
+      "prepared_source_sha256": "1b945d65292fe63dd7040b69ac3b1f3ec40ab15069b82aa5f213035d468863a5"
+    },
+    "temporal-xtask/bin:build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest": {
+      "runtime_identity": [
+        "temporal-xtask",
+        "temporal-xtask",
+        "bin",
+        "build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest",
+        false
+      ],
+      "current_source_sha256": "1b945d65292fe63dd7040b69ac3b1f3ec40ab15069b82aa5f213035d468863a5",
+      "prepared_source_sha256": "1b945d65292fe63dd7040b69ac3b1f3ec40ab15069b82aa5f213035d468863a5"
+    },
+    "temporal-xtask/bin:model_controls::time_control_child": {
+      "runtime_identity": [
+        "temporal-xtask",
+        "temporal-xtask",
+        "bin",
+        "model_controls::time_control_child",
+        false
+      ],
+      "current_source_sha256": "5be019dd00503d63abaef1fc8b9b6f41cae942570ebd2a29e103e2f8017fb083",
+      "prepared_source_sha256": "5be019dd00503d63abaef1fc8b9b6f41cae942570ebd2a29e103e2f8017fb083"
+    },
+    "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children": {
+      "runtime_identity": [
+        "temporal-xtask",
+        "temporal-xtask",
+        "bin",
+        "model_controls::shipping_model_recipes_with_disposable_children",
+        false
+      ],
+      "current_source_sha256": "5be019dd00503d63abaef1fc8b9b6f41cae942570ebd2a29e103e2f8017fb083",
+      "prepared_source_sha256": "5be019dd00503d63abaef1fc8b9b6f41cae942570ebd2a29e103e2f8017fb083"
+    },
+    "temporal-xtask/bin:gate::timing_controls::tests::soft_budget_defaults_equality_overrides_and_warning_order": {
+      "runtime_identity": [
+        "temporal-xtask",
+        "temporal-xtask",
+        "bin",
+        "gate::timing_controls::tests::soft_budget_defaults_equality_overrides_and_warning_order",
+        false
+      ],
+      "current_source_sha256": "a0101fcb6bbf2eb25cf7bc69e43f34de261fc2d455276ac5411b5c0d9a07edc3",
+      "prepared_source_sha256": "a0101fcb6bbf2eb25cf7bc69e43f34de261fc2d455276ac5411b5c0d9a07edc3"
+    },
+    "temporal-xtask/bin:gate::timing::tests::benchmark_selects_authoritative_package_runner_and_disables_caches": {
+      "runtime_identity": [
+        "temporal-xtask",
+        "temporal-xtask",
+        "bin",
+        "gate::timing::tests::benchmark_selects_authoritative_package_runner_and_disables_caches",
+        false
+      ],
+      "current_source_sha256": "4e21ac7ead777ccda0a426ac6b0b21802f1b7d0346057c015d7030f13fcdd30b",
+      "prepared_source_sha256": "4e21ac7ead777ccda0a426ac6b0b21802f1b7d0346057c015d7030f13fcdd30b"
+    },
+    "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child": {
+      "runtime_identity": [
+        "temporal-xtask",
+        "temporal-xtask",
+        "bin",
+        "gate::timing::tests::source_edit_restores_original_content_after_failed_child",
+        false
+      ],
+      "current_source_sha256": "4e21ac7ead777ccda0a426ac6b0b21802f1b7d0346057c015d7030f13fcdd30b",
+      "prepared_source_sha256": "4e21ac7ead777ccda0a426ac6b0b21802f1b7d0346057c015d7030f13fcdd30b"
+    },
+    "temporal-xtask/bin:retired_name_policy_controls::scan_child": {
+      "runtime_identity": [
+        "temporal-xtask",
+        "temporal-xtask",
+        "bin",
+        "retired_name_policy_controls::scan_child",
+        true
+      ],
+      "current_source_sha256": "02217b87b5f65612aefa0e549f67495e669771b19a1a0c988ce1e0dde50d3d7c",
+      "prepared_source_sha256": "02217b87b5f65612aefa0e549f67495e669771b19a1a0c988ce1e0dde50d3d7c"
+    },
+    "temporal-xtask/bin:retired_name_policy_controls::active_spellings_and_historical_exclusions": {
+      "runtime_identity": [
+        "temporal-xtask",
+        "temporal-xtask",
+        "bin",
+        "retired_name_policy_controls::active_spellings_and_historical_exclusions",
+        false
+      ],
+      "current_source_sha256": "02217b87b5f65612aefa0e549f67495e669771b19a1a0c988ce1e0dde50d3d7c",
+      "prepared_source_sha256": "02217b87b5f65612aefa0e549f67495e669771b19a1a0c988ce1e0dde50d3d7c"
+    },
+    "temporal-xtask/bin:retired_name_policy_controls::tool_failures_never_report_clean": {
+      "runtime_identity": [
+        "temporal-xtask",
+        "temporal-xtask",
+        "bin",
+        "retired_name_policy_controls::tool_failures_never_report_clean",
+        false
+      ],
+      "current_source_sha256": "02217b87b5f65612aefa0e549f67495e669771b19a1a0c988ce1e0dde50d3d7c",
+      "prepared_source_sha256": "02217b87b5f65612aefa0e549f67495e669771b19a1a0c988ce1e0dde50d3d7c"
+    },
+    "temporal-xtask/bin:retired_name_policy_controls::raw_path_bytes_and_io_failures_reach_native_policy": {
+      "runtime_identity": [
+        "temporal-xtask",
+        "temporal-xtask",
+        "bin",
+        "retired_name_policy_controls::raw_path_bytes_and_io_failures_reach_native_policy",
+        false
+      ],
+      "current_source_sha256": "02217b87b5f65612aefa0e549f67495e669771b19a1a0c988ce1e0dde50d3d7c",
+      "prepared_source_sha256": "02217b87b5f65612aefa0e549f67495e669771b19a1a0c988ce1e0dde50d3d7c"
+    },
+    "umpire-guest-driver/main:guest_pipeline::guest_build_check_and_artifact_refusals": {
+      "runtime_identity": [
+        "umpire-guest-driver",
+        "main",
+        "test",
+        "guest_pipeline::guest_build_check_and_artifact_refusals",
+        false
+      ],
+      "current_source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058",
+      "prepared_source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058"
+    },
+    "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation": {
+      "runtime_identity": [
+        "umpire-guest-driver",
+        "main",
+        "test",
+        "guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+        false
+      ],
+      "current_source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058",
+      "prepared_source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058"
+    },
+    "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes": {
+      "runtime_identity": [
+        "umpire-guest-driver",
+        "main",
+        "test",
+        "guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+        false
+      ],
+      "current_source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058",
+      "prepared_source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058"
+    },
+    "umpire-guest-driver/main:guest_pipeline::native_caller_relative_paths_and_changed_inputs_select_new_cache": {
+      "runtime_identity": [
+        "umpire-guest-driver",
+        "main",
+        "test",
+        "guest_pipeline::native_caller_relative_paths_and_changed_inputs_select_new_cache",
+        false
+      ],
+      "current_source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058",
+      "prepared_source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058"
+    },
+    "umpire-guest-driver/main:guest_pipeline::loader_inheritance_survives_orchestration_environment_purge": {
+      "runtime_identity": [
+        "umpire-guest-driver",
+        "main",
+        "test",
+        "guest_pipeline::loader_inheritance_survives_orchestration_environment_purge",
+        false
+      ],
+      "current_source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058",
+      "prepared_source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058"
+    },
+    "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build": {
+      "runtime_identity": [
+        "umpire-guest-driver",
+        "main",
+        "test",
+        "guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+        false
+      ],
+      "current_source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058",
+      "prepared_source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058"
+    },
+    "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output": {
+      "runtime_identity": [
+        "umpire-guest-driver",
+        "main",
+        "test",
+        "guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output",
+        false
+      ],
+      "current_source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058",
+      "prepared_source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058"
+    },
+    "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo": {
+      "runtime_identity": [
+        "umpire-guest-driver",
+        "main",
+        "test",
+        "guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+        false
+      ],
+      "current_source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058",
+      "prepared_source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058"
+    },
+    "umpire-guest-driver/lib:guest::tests::invalid_guest_arguments_are_refused_before_tool_discovery": {
+      "runtime_identity": [
+        "umpire-guest-driver",
+        "umpire_guest_driver",
+        "lib",
+        "guest::tests::invalid_guest_arguments_are_refused_before_tool_discovery",
+        false
+      ],
+      "current_source_sha256": "ec123a574a4fab6186efd3bef31b54652aa7b48fe28758d762aaaacd9b654d26",
+      "prepared_source_sha256": "ec123a574a4fab6186efd3bef31b54652aa7b48fe28758d762aaaacd9b654d26"
+    },
+    "umpire-backend-process/lib:tool_provider::tests::non_utf8_root_refuses_before_mise_or_data_side_effects": {
+      "runtime_identity": [
+        "umpire-backend-process",
+        "umpire_backend_process",
+        "lib",
+        "tool_provider::tests::non_utf8_root_refuses_before_mise_or_data_side_effects",
+        false
+      ],
+      "current_source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff",
+      "prepared_source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff"
+    },
+    "umpire-backend-process/lib:tool_provider::tests::path_list_root_refuses_before_mise_or_data_side_effects": {
+      "runtime_identity": [
+        "umpire-backend-process",
+        "umpire_backend_process",
+        "lib",
+        "tool_provider::tests::path_list_root_refuses_before_mise_or_data_side_effects",
+        false
+      ],
+      "current_source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff",
+      "prepared_source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff"
+    },
+    "umpire-backend-process/lib:tool_provider::tests::scoped_commands_only_select_optional_apalache_explicitly": {
+      "runtime_identity": [
+        "umpire-backend-process",
+        "umpire_backend_process",
+        "lib",
+        "tool_provider::tests::scoped_commands_only_select_optional_apalache_explicitly",
+        false
+      ],
+      "current_source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff",
+      "prepared_source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff"
+    },
+    "umpire-backend-process/lib:tool_provider::tests::exact_installations_reject_partial_trees_directories_and_symlinks": {
+      "runtime_identity": [
+        "umpire-backend-process",
+        "umpire_backend_process",
+        "lib",
+        "tool_provider::tests::exact_installations_reject_partial_trees_directories_and_symlinks",
+        false
+      ],
+      "current_source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff",
+      "prepared_source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff"
+    },
+    "umpire-backend-process/lib:tool_provider::tests::orchestration_policy_allows_extractor_children": {
+      "runtime_identity": [
+        "umpire-backend-process",
+        "umpire_backend_process",
+        "lib",
+        "tool_provider::tests::orchestration_policy_allows_extractor_children",
+        false
+      ],
+      "current_source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff",
+      "prepared_source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff"
+    },
+    "umpire-backend-process/lib:tool_provider::tests::cancellation_and_timeout_refuse_and_clean_owned_capture": {
+      "runtime_identity": [
+        "umpire-backend-process",
+        "umpire_backend_process",
+        "lib",
+        "tool_provider::tests::cancellation_and_timeout_refuse_and_clean_owned_capture",
+        false
+      ],
+      "current_source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff",
+      "prepared_source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff"
+    },
+    "umpire-backend-process/lib:tool_provider::tests::interrupted_partial_install_never_reaches_resolution": {
+      "runtime_identity": [
+        "umpire-backend-process",
+        "umpire_backend_process",
+        "lib",
+        "tool_provider::tests::interrupted_partial_install_never_reaches_resolution",
+        false
+      ],
+      "current_source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff",
+      "prepared_source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff"
+    },
+    "umpire-backend-process/lib:tool_provider::tests::in_flight_cancellation_uses_existing_supervisor": {
+      "runtime_identity": [
+        "umpire-backend-process",
+        "umpire_backend_process",
+        "lib",
+        "tool_provider::tests::in_flight_cancellation_uses_existing_supervisor",
+        false
+      ],
+      "current_source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff",
+      "prepared_source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff"
+    },
+    "umpire-backend-process/lib:tool_provider::tests::concurrent_provider_capture_and_failure_propagation_are_independent": {
+      "runtime_identity": [
+        "umpire-backend-process",
+        "umpire_backend_process",
+        "lib",
+        "tool_provider::tests::concurrent_provider_capture_and_failure_propagation_are_independent",
+        false
+      ],
+      "current_source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff",
+      "prepared_source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff"
+    },
+    "umpire-tlc/lib:runner::tests::located_property_invariants_name_only_the_selected_operator": {
+      "runtime_identity": [
+        "umpire-tlc",
+        "umpire_tlc",
+        "lib",
+        "runner::tests::located_property_invariants_name_only_the_selected_operator",
+        false
+      ],
+      "current_source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6",
+      "prepared_source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6"
+    },
+    "umpire-tlc/lib:runner::tests::typed_module_refuses_inconsistent_declarations_before_spawning": {
+      "runtime_identity": [
+        "umpire-tlc",
+        "umpire_tlc",
+        "lib",
+        "runner::tests::typed_module_refuses_inconsistent_declarations_before_spawning",
+        false
+      ],
+      "current_source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6",
+      "prepared_source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6"
+    },
+    "umpire-tlc/lib:runner::tests::counterexample_requires_consecutive_states_and_a_valid_lasso": {
+      "runtime_identity": [
+        "umpire-tlc",
+        "umpire_tlc",
+        "lib",
+        "runner::tests::counterexample_requires_consecutive_states_and_a_valid_lasso",
+        false
+      ],
+      "current_source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6",
+      "prepared_source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6"
+    },
+    "umpire-tlc/lib:runner::tests::incomplete_messages_and_exploration_are_refused": {
+      "runtime_identity": [
+        "umpire-tlc",
+        "umpire_tlc",
+        "lib",
+        "runner::tests::incomplete_messages_and_exploration_are_refused",
+        false
+      ],
+      "current_source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6",
+      "prepared_source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6"
+    },
+    "umpire-tlc/lib:runner::tests::evaluation_errors_name_the_property_and_state": {
+      "runtime_identity": [
+        "umpire-tlc",
+        "umpire_tlc",
+        "lib",
+        "runner::tests::evaluation_errors_name_the_property_and_state",
+        false
+      ],
+      "current_source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6",
+      "prepared_source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6"
+    },
+    "umpire-tlc/lib:runner::tests::escaping_cache_symlinks_are_refused_before_creating_files": {
+      "runtime_identity": [
+        "umpire-tlc",
+        "umpire_tlc",
+        "lib",
+        "runner::tests::escaping_cache_symlinks_are_refused_before_creating_files",
+        false
+      ],
+      "current_source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6",
+      "prepared_source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6"
+    },
+    "umpire-tlc/lib:runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed": {
+      "runtime_identity": [
+        "umpire-tlc",
+        "umpire_tlc",
+        "lib",
+        "runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed",
+        false
+      ],
+      "current_source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6",
+      "prepared_source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6"
+    }
+  },
+  "scope": "Every named control from the script/source mapping exists in its actual compiled runtime inventory; ignored child entries remain explicitly flagged. Stage status, package run success and behavioral assertions are proved separately."
+}

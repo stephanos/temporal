@@ -1,0 +1,20 @@
+{
+  "action": "fn-258-complete-the-resumed-standalone-umpire.5",
+  "state": "Required final documentation synchronization, not completed by source preparation.",
+  "findings": [
+    {
+      "source": "task2-review/final-0547321/integration.review.md",
+      "path": "../umpire/dev/xtask/README.md",
+      "change": "Document that required tests stage runs existing fetch-tlc.sh before tests, including direct/scheduled paths, and preserves setup exit as tests-stage status. Root README already documents provisioning; no runtime change requested."
+    },
+    {
+      "source": "consumer/review-final-3f5f613/correctness.review.md",
+      "paths": [
+        "common/testing/testpilot/README.md",
+        "tools/umpire/README.md"
+      ],
+      "change": "Replace repository-escaping Markdown host-guide links with explicit sibling-checkout prose or published canonical URL once access/revision is admitted. Preserve helpful local setup convention."
+    }
+  ],
+  "source_pin_policy": "No source change during task4 proof. Task5 docs-only edits must explicitly rebind unaffected runtime proof; any runtime/guest closure change expires affected proof."
+}

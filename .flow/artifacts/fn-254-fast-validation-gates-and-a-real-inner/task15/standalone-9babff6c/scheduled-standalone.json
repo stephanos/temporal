@@ -1,0 +1,39 @@
+{
+  "command": [
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/xtask-bootstrap/debug/xtask",
+    "gate",
+    "--scheduled-stage",
+    "standalone"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+  "started_utc": "2026-10-28T18:50:50.116015+00:00",
+  "source_sha256": "0cff242ad4ece9aaa6fe3f6b11fb0414cb34a763374725cdf643262a8c91fbdd",
+  "environment": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+    "CARGO_HOME": "/home/agent/.cargo",
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25415-validation/standalone-harness/fn25415-proof-output/tmp",
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_INCREMENTAL": "0",
+    "GOFLAGS": "-p=1",
+    "GOMAXPROCS": "1",
+    "UMPIRE_BACKENDS": "require",
+    "UMPIRE_APALACHE": "skip",
+    "UMPIRE_QUICK_CACHE": "0",
+    "UMPIRE_CACHE_DISABLE": "1",
+    "MISE_AUTO_INSTALL": "false",
+    "MISE_EXEC_AUTO_INSTALL": "false",
+    "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal:/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+    "UMPIRE_STANDALONE_OUTPUT": "/tmp/umpire-fn25415-final-9babff6c815b-47070",
+    "UMPIRE_GATE_RECEIPTS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25415-validation/standalone-harness/fn25415-proof-output/parent-receipts",
+    "UMPIRE_GATE_SCOPE": "framework",
+    "UMPIRE_GATE_STAGE": "standalone",
+    "UMPIRE_GATE_ORDER": "17",
+    "UMPIRE_GATE_EXECUTABLE": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/xtask-bootstrap/debug/xtask",
+    "UMPIRE_GATE_CONTROLLER_EXECUTABLE": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/xtask-bootstrap/debug/xtask"
+  },
+  "exit_code": 0,
+  "seconds": 731.1517584740068,
+  "free_after_bytes": 46000050176,
+  "stdout_sha256": "14020e2d8d2e9d8d9b5895d43504ab1eb7cf8d38eb4530aabb322f3fb5d54abd",
+  "stderr_sha256": "6b6ee49fa9c5b3691df4ae3fb0a5b97509a421355ed181bd29984bd80384613b"
+}

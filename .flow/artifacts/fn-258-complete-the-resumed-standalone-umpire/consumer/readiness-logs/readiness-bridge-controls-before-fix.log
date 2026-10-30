@@ -1,0 +1,106 @@
+cwd: /home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model
+$ mise exec -- cargo test -p temporal-xtask --bin temporal-xtask --test main --locked
+   Compiling proc-macro2 v1.0.107
+   Compiling libc v0.2.191
+   Compiling cfg-if v1.0.5
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.229
+   Compiling typenum v1.20.1
+   Compiling hybrid-array v0.4.15
+   Compiling syn v3.0.9
+   Compiling rustix v1.1.5
+   Compiling getrandom v0.4.3
+   Compiling const-oid v0.10.2
+   Compiling linux-raw-sys v0.12.1
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling bitflags v2.13.2
+   Compiling digest v0.11.3
+   Compiling zmij v1.0.23
+   Compiling thiserror v2.0.21
+   Compiling cpufeatures v0.3.1
+   Compiling once_cell v1.21.4
+   Compiling winnow v1.0.4
+   Compiling fastrand v2.5.0
+   Compiling serde_json v1.0.154
+   Compiling crc32fast v1.5.3
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling serde v1.0.229
+   Compiling sha2 v0.11.1
+   Compiling serde_spanned v1.1.2
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling simd-adler32 v0.3.10
+   Compiling adler2 v2.0.1
+   Compiling thiserror-impl v2.0.21
+   Compiling serde_derive v1.0.229
+   Compiling memchr v2.8.3
+   Compiling tempfile v3.27.0
+   Compiling itoa v1.0.18
+   Compiling miniz_oxide v0.9.1
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling filetime v0.2.29
+   Compiling tar v0.4.46
+   Compiling flate2 v1.1.10
+   Compiling umpire-backend-process v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/backends/process)
+   Compiling umpire-guest-driver v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/dev/guest-driver)
+   Compiling xtask v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/dev/xtask)
+   Compiling temporal-xtask v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.92s
+     Running unittests src/main.rs (/home/agent/.cache/codex-build/fn258-consumer/debug/deps/temporal_xtask-33228c925029e2eb)
+
+running 16 tests
+test gate::tests::test_policy_control_child ... ok
+test test_run::tests::binaries_then_doctests_exactly_once ... ok
+test gate::tests::missing_tool_control_child ... ok
+test gate::tests::invalid_working_directory_names_the_stage ... ok
+test quick::tests::bridge_selects_both_workspaces_and_the_authored_model_consumer ... ok
+test test_run::tests::missing_runner_fails_without_fallback ... ok
+test gate::tests::run_control_child ... ok
+test test_run::tests::binary_failure_stops_before_doctests ... ok
+test test_run::tests::doctest_failure_preserves_status ... ok
+test test_run::tests::workspace_selection_rejects_an_unexpected_zero_test_run ... ok
+test test_run::tests::required_backend_policy_caps_inherited_threads_and_preserves_skipped_defaults ... ok
+Temporal stage control failed (exit 37)
+test gate::tests::full_gate_overrides_cache_and_preserves_failure ... ok
+test gate::tests::missing_tool_reports_the_failed_stage ... ok
+test gate::tests::test_stage_propagates_required_policy_and_preserves_skipped_defaults ... ok
+test gate::tests::optional_apalache_is_prepared_before_combined_scheduling ... ok
+test gate::tests::actual_temporal_gate_wiring_and_named_failures ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.55s
+
+     Running tests/main.rs (/home/agent/.cache/codex-build/fn258-consumer/debug/deps/main-863b2abe2cf770f7)
+
+running 7 tests
+test actual_make_freshness_recipe_propagates_stale_failure ... FAILED
+test retired_names::tool_failures_never_report_clean ... ok
+test absent_embedded_guest_fails_go_compilation ... FAILED
+test retired_names::shell_preserves_filter_failure_when_git_grep_gets_sigpipe ... ok
+test retired_names::active_spellings_and_historical_exclusions ... ok
+test make_paths::shipping_framework_make_bootstrap_preserves_relative_cargo_paths ... ok
+test public_fmt_finishes_while_host_lease_is_held ... ok
+
+failures:
+
+---- actual_make_freshness_recipe_propagates_stale_failure stdout ----
+
+thread 'actual_make_freshness_recipe_propagates_stale_failure' (3613322) panicked at dev/xtask/tests/main.rs:160:56:
+called `Result::unwrap()` on an `Err` value: Os { code: 2, kind: NotFound, message: "No such file or directory" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- absent_embedded_guest_fails_go_compilation stdout ----
+
+thread 'absent_embedded_guest_fails_go_compilation' (3613321) panicked at dev/xtask/tests/main.rs:191:5:
+# ./...
+pattern ./...: directory prefix . does not contain modules listed in go.work or their selected dependencies
+
+
+
+failures:
+    absent_embedded_guest_fails_go_compilation
+    actual_make_freshness_recipe_propagates_stale_failure
+
+test result: FAILED. 5 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.03s
+
+error: test failed, to rerun pass `-p temporal-xtask --test main`
+exit: 101

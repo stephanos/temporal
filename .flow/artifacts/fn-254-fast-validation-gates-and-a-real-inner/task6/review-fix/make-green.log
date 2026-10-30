@@ -1,0 +1,2 @@
+required pinned rust unavailable; auto-install disabled
+make: *** [Makefile:1276: model-quick] Error 78

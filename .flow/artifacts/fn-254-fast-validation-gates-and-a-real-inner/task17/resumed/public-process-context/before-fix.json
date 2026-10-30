@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/xtask-bootstrap/debug/xtask",
+    "test-run",
+    "--package",
+    "umpire-backend-process"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+  "root_head": "ede5fadc613e66ed33d083b4141a4ccf9dd2b76a",
+  "exit_code": 100,
+  "elapsed_seconds": 1.0907027920002292,
+  "native_sha256": "1eb4013206c6e82ff14e187b6fae346bc4422400b9df6d555ef1edbb074cf9ac",
+  "scope": "Real public scoped runner with valid inherited outer lease and lifecycle context; process fixture bodies only, no JVM semantics",
+  "logs": {
+    "before-fix.stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "before-fix.stderr.log": "92c1d73b8f7cc980a6b80900b91c8016b903cea8ea7916523222c792b41cb2e1"
+  }
+}

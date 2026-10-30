@@ -1,0 +1,10 @@
+{
+  "binary": "/home/agent/.cache/codex-build/fn24613-proof-20261030/debug/deps/fixtures-0f6520c602ce96cd",
+  "sha256_before": "0fd5d761e545ea03d67651c53c6eff860168bd18d20caa8cb9de2bd5116ec508",
+  "source_mismatches": {
+    "source_sha256": [],
+    "driver_guest_source_sha256": [
+      "model/dev/xtask/tests/make_paths.rs"
+    ]
+  }
+}

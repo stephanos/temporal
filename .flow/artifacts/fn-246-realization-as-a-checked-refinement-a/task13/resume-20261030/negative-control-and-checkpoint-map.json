@@ -1,0 +1,65 @@
+{
+  "controls": [
+    {
+      "obligation": "wrong World",
+      "test": "protocol_fixtures::activity_tests::backend_refuses_wrong_world_cut_graph_and_unsupported_source",
+      "source": "model/temporal/shared/protocol/activity/tests.rs:318",
+      "assertion": "Bound maximum2 rejects source module bound to maximum1 with World refusal.",
+      "evidence": "protocol-required-renewed.log"
+    },
+    {
+      "obligation": "incomplete starts",
+      "test": "protocol_fixtures::activity_tests::backend_refuses_wrong_world_cut_graph_and_unsupported_source",
+      "source": "model/temporal/shared/protocol/activity/tests.rs:318",
+      "assertion": "Cleared module binding starts refuse with World error.",
+      "evidence": "protocol-required-renewed.log"
+    },
+    {
+      "obligation": "cut exploration",
+      "test": "protocol_fixtures::activity_tests::backend_refuses_wrong_world_cut_graph_and_unsupported_source",
+      "source": "model/temporal/shared/protocol/activity/tests.rs:318",
+      "assertion": "One-state-bound native graph is cut; backend check_exploration refuses complete agreement.",
+      "evidence": "protocol-required-renewed.log"
+    },
+    {
+      "obligation": "unsupported source",
+      "test": "protocol_fixtures::activity_tests::backend_refuses_wrong_world_cut_graph_and_unsupported_source",
+      "source": "model/temporal/shared/protocol/activity/tests.rs:318",
+      "assertion": "Injected std::hint::black_box in timer update refuses lifting.",
+      "evidence": "protocol-required-renewed.log"
+    },
+    {
+      "obligation": "mismatching typed fact answer",
+      "test": "protocol_fixtures::activity_tests::mutants::required_tlc_fact_counterexample_replays_and_refuses_changed_expiry_fact",
+      "source": "model/temporal/shared/protocol/activity/mutants.rs:175",
+      "assertion": "Healthy TLC timeout counterexample replays exactly once; changed expiry fact refuses replay against healthy native protocol.",
+      "evidence": "protocol-required-renewed.log"
+    },
+    {
+      "obligation": "mismatching full-state behavior",
+      "test": "protocol_fixtures::activity_tests::mutants::source_only_budget_reset_priority_outcome_and_fact_mutants_disagree",
+      "source": "model/temporal/shared/protocol/activity/mutants.rs:149",
+      "assertion": "Twenty independent source edits retain laws and disagree with healthy native full graph, including latent budgets, resets, priorities and outcomes.",
+      "evidence": "protocol-mutants.txt"
+    },
+    {
+      "obligation": "mismatching state-set/verdict answer",
+      "test": "backend::tests::agreement_compares_complete_sets_and_every_verdict",
+      "source": "model/umpire/dev/testing/src/backend_tests.rs:563",
+      "assertion": "Actual shared agreement consumer refuses missing TLC state, changed verdict, cut report and missing TLC claim.",
+      "evidence": "shared-agreement-evidence-reuse.json",
+      "scope": "Exact-source shared consumer unit reuse from committed fn253.5; no protocol-specific state-set injection or new TLC execution claimed."
+    }
+  ],
+  "historical_hash_manifest": {
+    "path": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/original-artifacts.sha256",
+    "bytes": 80187,
+    "sha256": "5799233527eff38f1a342d5189436b3f2d4346217244aa5afd5ff47052412d9d",
+    "preserved": true,
+    "task_wording": "Preserve independent semantic lifecycle/checkpoint evidence in Git, without the removed original-artifact hash manifest.",
+    "current_authority": "Active checkpoint.rs parses retained original rows, validates full-state projection, and compares exact1start/6states/11edges. A changed original timeout edge must disagree. It does not read or enforce original-artifacts.sha256.",
+    "interpretation": "The task phrase describes removal of hash authority from the active gate. The historical tracked manifest still exists and is preserved as provenance, with no semantic authority. Physical-removal wording is stale; no deletion performed."
+  },
+  "scope_limit": "No protocol-specific injected missing-state TLC answer test was run. Exact current shared consumer refusal proof is reused and separately scoped.",
+  "uncovered_required_consumer_failure_classes": []
+}

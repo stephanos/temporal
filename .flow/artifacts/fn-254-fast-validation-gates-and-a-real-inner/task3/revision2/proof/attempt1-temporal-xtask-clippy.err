@@ -1,0 +1,12 @@
+    Checking temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2543-nextest/model/dev/xtask)
+error: this function has too many lines (102/100)
+   --> dev/xtask/src/gate.rs:142:5
+    |
+142 |     fn actual_temporal_gate_wiring_and_named_failures() {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#too_many_lines
+    = note: `-D clippy::too-many-lines` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::too_many_lines)]`
+
+error: could not compile `temporal-xtask` (bin "temporal-xtask" test) due to 1 previous error

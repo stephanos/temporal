@@ -1,0 +1,15 @@
+{
+  "head": "dc7feca3c497f039c3d2e6f755bddeddb59a7c1d",
+  "free_bytes": 107877789696,
+  "absent_prior_binaries": true,
+  "prior_binary_source_closure_identical": true,
+  "process_ownership": "No Cargo/rustc/Java or process using selected prior task caches observed before launch",
+  "owned_targets": [
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-standalone-renewal",
+    "/tmp/fn25417-standalone-tmp-dc7feca3",
+    "/tmp/umpire-fn25417-standalone-dc7feca3"
+  ],
+  "free_guard_bytes": 32212254720,
+  "phase_growth_budget_bytes": 32212254720,
+  "macos": "deferred by owner"
+}

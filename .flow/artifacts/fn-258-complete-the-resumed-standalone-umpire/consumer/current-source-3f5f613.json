@@ -1,0 +1,30 @@
+{
+  "source_base": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "candidate": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+  "branch": "refs/heads/work/fn2583-consumers",
+  "bundle": "source-preparation-3f5f613.bundle",
+  "standalone_pair": "05473210b48c3db862f22051eb7154ce98258f98",
+  "prior_candidates": [
+    "7e655da80b3810807cbd02a3ea29c26ceb9804e4",
+    "4035bb70fdf4c7ef074a8f05a02b19fb458c0b1d",
+    "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+    "ec13057227cf2159482a793b227e32653e280057"
+  ],
+  "final_delta": "After3658582: explicit sibling guards and shipping negative controls; canonical README/module pointers; checkpoint054; final3f5f613 changes only the CLI guide comment. Canonical guest and runtime behavior code unchanged. Makefile is a declared API build input, so final current-input guest freshness expires for task4.",
+  "source_integration": "unmerged candidate; final publication/CI/cutover remains task5",
+  "bundle_sha256": "8e016b8378a39e366aecc5a118de63bf451a5228d8967fbeb717bb9006979c25",
+  "bundle_bytes": 260447,
+  "recovery": "bundle-recovery-3f5f613.json",
+  "historical_source_record": "source-checkpoint.json",
+  "current_observed_pair": {
+    "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "followup_record": "readiness-followup-ec13057/consumer-followup-assessment.json",
+  "fresh_review": "SHIP, fresh single followup after initial three-lens SHIP; actual receipt review-final-3f5f613/receipt.json. Task3 verifieddone, closure source remains unmerged per interim ownership.",
+  "previous_observed_pair": {
+    "temporal": "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "current_focused_pair_evidence": "current-pair-3f5-054/receipt.json"
+}

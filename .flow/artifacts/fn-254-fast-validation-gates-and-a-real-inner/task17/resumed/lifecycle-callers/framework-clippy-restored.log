@@ -1,0 +1,30 @@
+    Checking xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-lifecycle-callers/model/umpire/dev/xtask)
+error: used `assert!` to check that a value is empty
+   --> dev/xtask/src/gate/scheduler.rs:566:9
+    |
+566 |         assert!(output.stdout.is_empty());
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#assert_is_empty
+    = note: `-D clippy::assert-is-empty` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::assert_is_empty)]`
+help: use `assert_eq!` to show the value on failure
+    |
+566 -         assert!(output.stdout.is_empty());
+566 +         assert_eq!(output.stdout, [] as [u8; 0]);
+    |
+
+error: used `assert!` to check that a value is empty
+   --> dev/xtask/src/gate/scheduler.rs:567:9
+    |
+567 |         assert!(output.stderr.is_empty());
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#assert_is_empty
+help: use `assert_eq!` to show the value on failure
+    |
+567 -         assert!(output.stderr.is_empty());
+567 +         assert_eq!(output.stderr, [] as [u8; 0]);
+    |
+
+error: could not compile `xtask` (lib test) due to 2 previous errors

@@ -1,0 +1,30 @@
+{
+  "older_runtime_head": "d4a79702ce170f35698fe736fb72792f55c2d3af",
+  "current_source_head": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+  "older_evidence": "runtime/",
+  "unchanged_material_inputs": {
+    "model/umpire/mise-tools/mise.toml": "25ccbe50cc0932b7ccd0900c9790820ed3fa33bfc65b75345e7a1689b088b3db",
+    "model/umpire/mise-tools/mise.apalache.toml": "05255dd00376e514c4ddce2c07200f0a420ae0d930619773c3079d7e284bff1f",
+    "model/umpire/mise-tools/empty.toml": "a378e6f274630bb68850227c38bdb1cd84a5c8952a3c17ee31f478b288893279",
+    "model/umpire/mise-tools/mise.lock": "3fbf0dc0636690e05b7e457ec403ae9b8ea546b8c6c9c3dc272c62e0cb960aae",
+    "model/umpire/mise-tools/mise.apalache.lock": "9c77161b0107db9380b86a372b2317fd690e02c94dde0e26402df27dc7d959d8",
+    "model/umpire/mise.toml": "17e680c4d4ce2aa8c2a01c006ea58c4b07405f7e18bdbebfe43dd72eba7b0ec0",
+    "model/umpire/mise.lock": "cbe9740d3768eca5e0d500f9aade2f4075bb6f3712ea9c6e905f5e4109555f35",
+    "model/Cargo.lock": "6d61d8a6619e699d66ebfa55e64a6cdbeb8f15d7820a52940140927f4e28cf33",
+    "model/umpire/Cargo.lock": "f11c8f84b346156de6b76ab75ca563e92d83cbcd496fd60ea7e83388b4bd92ce",
+    "model/umpire/backends/process/src/jar.rs": "035d1cee3d244c6add6e6472853f9e0dbab883a49f03b39fe4fdd5926b2eebb5",
+    "model/umpire/backends/process/src/support.rs": "e588f59a87e505a39e9bf7f9ea3c26c9a459189a157d42f881c7e0590b8c91b2",
+    "model/umpire/backends/process/src/syscall.rs": "a2e4d4ced95a2ec342e5fa20aa17943f283911dd6542ae3a4af92fd41944952d",
+    "model/umpire/backends/process/src/work.rs": "6b072ac516dc4699ea6195ba33c2c1b651a58b9c6e5c7a0c3878668d8cb1ae61",
+    "model/umpire/backends/tlc/src/runner.rs": "b9bf5066a0ad4000d6628becb0357f241bfc0e38d1f219ecc155072345845b3e",
+    "model/umpire/backends/apalache/src/lib.rs": "8e2a3517bb1a194d33fc5c1de21760fe7838b56bd90fe23939e603e05c938bb0",
+    "model/umpire/dev/xtask/src/fetch_apalache.rs": "876ea1772407a232119b16a7e018354ac91c90a7f67662c627e608c06ec71f84",
+    "model/umpire/dev/xtask/src/main.rs": "d16c6a9281e918942c2017150242dfde0412c168b253756fe904e08979e9ca1a",
+    "model/umpire/dev/xtask/src/gate/standalone.rs": "9f69a45577832626a6e2bfa86c4d9eaee90f9d1c4c049870b08798c70ab4c3f8",
+    "model/dev/xtask/src/gate.rs": "b12806bb3e8f7636467aef44b7512c2bb857e403cba094ad07df8158ca3d5232"
+  },
+  "current_diff_sha256": "83627c041c4964fce39ba559c4f877e769d82c73cbc1a95ac104ae20f1dd97cd",
+  "reason": "Only a generic comment, canonical UTF8/path-list provider-root admission, matching tests and documentation changed after D4. Successful frozen runtime directories are UTF8 and path-list representable; join_paths preserves their single-path byte values. Current native CLI controls verify supported spaces/quotes/metacharacters and both named refusal modes. The current full standalone validates the final source and changed TLC artifact path. Older D4 binaries are explicitly older evidence, never labeled current.",
+  "normal_path_checks": "post-pathlist-checks.json",
+  "older_binary_retention": "older-runtime-retention.json"
+}

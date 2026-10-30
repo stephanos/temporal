@@ -1,0 +1,86 @@
+{
+  "activity-baseline.rs": {
+    "outcome": "admitted",
+    "message": ""
+  },
+  "control.rs": {
+    "outcome": "admitted",
+    "message": ""
+  },
+  "local-arm-initial.rs": {
+    "outcome": "admitted",
+    "message": ""
+  },
+  "unused-generic.rs": {
+    "outcome": "admitted",
+    "message": ""
+  },
+  "activity-local.rs": {
+    "outcome": "model_refusal",
+    "message": "unsupported expression `Self :: arm (world . start_to_close)"
+  },
+  "activity-library.rs": {
+    "outcome": "model_refusal",
+    "message": "trait or generic impl in machine module is unsupported"
+  },
+  "activity-shared.rs": {
+    "outcome": "model_refusal",
+    "message": "unsupported type `Option<Ticks<3>>`"
+  },
+  "local-arm.rs": {
+    "outcome": "model_refusal",
+    "message": "unsupported expression `Self :: arm (world . timeout)"
+  },
+  "local-tick.rs": {
+    "outcome": "model_refusal",
+    "message": "unsupported expression `Self :: tick (self . left)"
+  },
+  "receiver-args.rs": {
+    "outcome": "model_refusal",
+    "message": "only pure helper calls with an optional trailing World are admitted"
+  },
+  "library-assignment.rs": {
+    "outcome": "model_refusal",
+    "message": "unsupported expression `countdown :: tick (self . left)"
+  },
+  "library-condition.rs": {
+    "outcome": "model_refusal",
+    "message": "unsupported expression `countdown :: armed (self . left)"
+  },
+  "library-within-law.rs": {
+    "outcome": "model_refusal",
+    "message": "claim body supports check! and conditional checks only"
+  },
+  "library-descends-law.rs": {
+    "outcome": "model_refusal",
+    "message": "claim body supports check! and conditional checks only"
+  },
+  "local-generic.rs": {
+    "outcome": "model_refusal",
+    "message": "bounded newtypes must be nongeneric"
+  },
+  "local-alias.rs": {
+    "outcome": "model_refusal",
+    "message": "unsupported declaration in machine module"
+  },
+  "local-trait.rs": {
+    "outcome": "model_refusal",
+    "message": "trait or generic impl in machine module is unsupported"
+  },
+  "project-library.rs": {
+    "outcome": "model_refusal",
+    "message": "unsupported expression `temporal_countdown :: armed (self . left)"
+  },
+  "shared-ticks.rs": {
+    "outcome": "model_refusal",
+    "message": "unsupported type `SharedTicks<3>"
+  },
+  "shared-remaining.rs": {
+    "outcome": "model_refusal",
+    "message": "unsupported type `SharedRemaining<3>"
+  },
+  "parse-error.rs": {
+    "outcome": "parse_error",
+    "message": "cannot parse string into token stream"
+  }
+}

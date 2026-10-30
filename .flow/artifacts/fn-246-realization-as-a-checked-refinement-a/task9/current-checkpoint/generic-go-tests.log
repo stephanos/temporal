@@ -1,0 +1,560 @@
+?   	umpire.local/model/gen/umpire/annotations/v1	[no test files]
+?   	umpire.local/model/gen/umpire/model/v1	[no test files]
+?   	umpire.local/model/gen/umpire/realization/v1	[no test files]
+?   	umpire.local/model/gen/umpire/run/v1	[no test files]
+=== RUN   TestCurrentContractNativeWasmPublishedResponsesAgree
+=== RUN   TestCurrentContractNativeWasmPublishedResponsesAgree/ordinary
+=== RUN   TestCurrentContractNativeWasmPublishedResponsesAgree/callback
+=== RUN   TestCurrentContractNativeWasmPublishedResponsesAgree/configured
+--- PASS: TestCurrentContractNativeWasmPublishedResponsesAgree (0.02s)
+    --- PASS: TestCurrentContractNativeWasmPublishedResponsesAgree/ordinary (0.01s)
+    --- PASS: TestCurrentContractNativeWasmPublishedResponsesAgree/callback (0.01s)
+    --- PASS: TestCurrentContractNativeWasmPublishedResponsesAgree/configured (0.01s)
+=== RUN   TestGuestProfileCaughtPanicParity
+=== RUN   TestGuestProfileCaughtPanicParity/effect_panic
+=== RUN   TestGuestProfileCaughtPanicParity/effect_overflow
+--- PASS: TestGuestProfileCaughtPanicParity (0.02s)
+    --- PASS: TestGuestProfileCaughtPanicParity/effect_panic (0.01s)
+    --- PASS: TestGuestProfileCaughtPanicParity/effect_overflow (0.01s)
+=== RUN   TestGuestProfileUncaughtPanicsTrap
+=== RUN   TestGuestProfileUncaughtPanicsTrap/observation
+=== RUN   TestGuestProfileUncaughtPanicsTrap/outcome_comparison
+--- PASS: TestGuestProfileUncaughtPanicsTrap (0.01s)
+    --- PASS: TestGuestProfileUncaughtPanicsTrap/observation (0.01s)
+    --- PASS: TestGuestProfileUncaughtPanicsTrap/outcome_comparison (0.01s)
+=== RUN   TestGuestExports
+--- PASS: TestGuestExports (0.01s)
+=== RUN   TestBoundaryControls
+=== RUN   TestBoundaryControls/valid
+=== RUN   TestBoundaryControls/trap
+=== RUN   TestBoundaryControls/exhausted
+=== RUN   TestBoundaryControls/bounds
+=== RUN   TestBoundaryControls/huge
+=== RUN   TestBoundaryControls/overlap
+=== RUN   TestBoundaryControls/malformed
+=== RUN   TestBoundaryControls/wrong_outcome
+=== RUN   TestBoundaryControls/empty_outcome
+--- PASS: TestBoundaryControls (0.00s)
+    --- PASS: TestBoundaryControls/valid (0.00s)
+    --- PASS: TestBoundaryControls/trap (0.00s)
+    --- PASS: TestBoundaryControls/exhausted (0.00s)
+    --- PASS: TestBoundaryControls/bounds (0.00s)
+    --- PASS: TestBoundaryControls/huge (0.00s)
+    --- PASS: TestBoundaryControls/overlap (0.00s)
+    --- PASS: TestBoundaryControls/malformed (0.00s)
+    --- PASS: TestBoundaryControls/wrong_outcome (0.00s)
+    --- PASS: TestBoundaryControls/empty_outcome (0.00s)
+=== RUN   TestRejectsModuleContract
+=== RUN   TestRejectsModuleContract/signature
+=== RUN   TestRejectsModuleContract/clock
+=== RUN   TestRejectsModuleContract/filesystem
+=== RUN   TestRejectsModuleContract/unknown
+=== RUN   TestRejectsModuleContract/fd_signature
+=== RUN   TestRejectsModuleContract/env_signature
+=== RUN   TestRejectsModuleContract/env_sizes_signature
+=== RUN   TestRejectsModuleContract/exit_signature
+--- PASS: TestRejectsModuleContract (0.00s)
+    --- PASS: TestRejectsModuleContract/signature (0.00s)
+    --- PASS: TestRejectsModuleContract/clock (0.00s)
+    --- PASS: TestRejectsModuleContract/filesystem (0.00s)
+    --- PASS: TestRejectsModuleContract/unknown (0.00s)
+    --- PASS: TestRejectsModuleContract/fd_signature (0.00s)
+    --- PASS: TestRejectsModuleContract/env_signature (0.00s)
+    --- PASS: TestRejectsModuleContract/env_sizes_signature (0.00s)
+    --- PASS: TestRejectsModuleContract/exit_signature (0.00s)
+=== RUN   TestRejectsApplicationExports
+=== RUN   TestRejectsApplicationExports/umpire_buffer_alloc/missing
+=== RUN   TestRejectsApplicationExports/umpire_buffer_alloc/signature
+=== RUN   TestRejectsApplicationExports/umpire_buffer_release/missing
+=== RUN   TestRejectsApplicationExports/umpire_buffer_release/signature
+=== RUN   TestRejectsApplicationExports/umpire_call/missing
+=== RUN   TestRejectsApplicationExports/umpire_call/signature
+=== RUN   TestRejectsApplicationExports/unexpected/alloc
+=== RUN   TestRejectsApplicationExports/unexpected/free
+=== RUN   TestRejectsApplicationExports/unexpected/call
+=== RUN   TestRejectsApplicationExports/unexpected/umpire_free
+=== RUN   TestRejectsApplicationExports/unexpected/extra
+--- PASS: TestRejectsApplicationExports (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_buffer_alloc/missing (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_buffer_alloc/signature (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_buffer_release/missing (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_buffer_release/signature (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_call/missing (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_call/signature (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/alloc (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/free (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/call (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/umpire_free (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/extra (0.00s)
+=== RUN   TestTrapIdentifiesABIAndLogicalMethod
+=== RUN   TestTrapIdentifiesABIAndLogicalMethod/umpire_buffer_alloc
+=== RUN   TestTrapIdentifiesABIAndLogicalMethod/umpire_buffer_release
+=== RUN   TestTrapIdentifiesABIAndLogicalMethod/umpire_call
+--- PASS: TestTrapIdentifiesABIAndLogicalMethod (0.00s)
+    --- PASS: TestTrapIdentifiesABIAndLogicalMethod/umpire_buffer_alloc (0.00s)
+    --- PASS: TestTrapIdentifiesABIAndLogicalMethod/umpire_buffer_release (0.00s)
+    --- PASS: TestTrapIdentifiesABIAndLogicalMethod/umpire_call (0.00s)
+=== RUN   TestGuestAllocationGuards
+=== RUN   TestGuestAllocationGuards/zero
+=== RUN   TestGuestAllocationGuards/oversize
+=== RUN   TestGuestAllocationGuards/initialized
+=== RUN   TestGuestAllocationGuards/inexact_call
+=== RUN   TestGuestAllocationGuards/invalid_free
+=== RUN   TestGuestAllocationGuards/double_free
+--- PASS: TestGuestAllocationGuards (0.04s)
+    --- PASS: TestGuestAllocationGuards/zero (0.01s)
+    --- PASS: TestGuestAllocationGuards/oversize (0.01s)
+    --- PASS: TestGuestAllocationGuards/initialized (0.01s)
+    --- PASS: TestGuestAllocationGuards/inexact_call (0.01s)
+    --- PASS: TestGuestAllocationGuards/invalid_free (0.01s)
+    --- PASS: TestGuestAllocationGuards/double_free (0.01s)
+=== RUN   TestRefusals
+--- PASS: TestRefusals (0.02s)
+=== RUN   TestRepeatedAndConcurrentCalls
+--- PASS: TestRepeatedAndConcurrentCalls (0.10s)
+=== RUN   TestGuestExhaustionPreservesExploration
+--- PASS: TestGuestExhaustionPreservesExploration (0.03s)
+=== RUN   TestProposalWireContract
+--- PASS: TestProposalWireContract (0.00s)
+=== RUN   TestProposalKindsFailClosed
+--- PASS: TestProposalKindsFailClosed (0.00s)
+=== RUN   TestControlProposalBootstrapPollingAndCallbackParity
+--- PASS: TestControlProposalBootstrapPollingAndCallbackParity (0.01s)
+=== RUN   TestReadProposalHasNoAction
+--- PASS: TestReadProposalHasNoAction (0.00s)
+=== RUN   TestProtocolResponseValidation
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome5
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome5
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome5
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome5
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome5
+=== RUN   TestProtocolResponseValidation/judge_missing_judgment
+=== RUN   TestProtocolResponseValidation/answer_missing_reply
+=== RUN   TestProtocolResponseValidation/answer_empty_reply_type
+=== RUN   TestProtocolResponseValidation/unknown_refusal
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_UNSPECIFIED
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_UNKNOWN_METHOD
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_MALFORMED_REQUEST
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_BUDGET
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_STATE
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_NOT_EXPLORED
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_ALLOCATION
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_SCOPE_ACTION
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_UNSUPPORTED
+--- PASS: TestProtocolResponseValidation (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/judge_missing_judgment (0.00s)
+    --- PASS: TestProtocolResponseValidation/answer_missing_reply (0.00s)
+    --- PASS: TestProtocolResponseValidation/answer_empty_reply_type (0.00s)
+    --- PASS: TestProtocolResponseValidation/unknown_refusal (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_UNSPECIFIED (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_UNKNOWN_METHOD (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_MALFORMED_REQUEST (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_BUDGET (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_STATE (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_NOT_EXPLORED (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_ALLOCATION (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_SCOPE_ACTION (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_UNSUPPORTED (0.00s)
+=== RUN   TestProtocolWrappers
+=== RUN   TestProtocolWrappers/reset
+=== RUN   TestProtocolWrappers/explained
+=== RUN   TestProtocolWrappers/unexplained
+=== RUN   TestProtocolWrappers/answer
+=== RUN   TestProtocolWrappers/nil_reset
+=== RUN   TestProtocolWrappers/nil_judge
+=== RUN   TestProtocolWrappers/missing_observation
+=== RUN   TestProtocolWrappers/empty_observation_type
+=== RUN   TestProtocolWrappers/nil_answer
+=== RUN   TestProtocolWrappers/missing_callback
+=== RUN   TestProtocolWrappers/empty_callback_type
+--- PASS: TestProtocolWrappers (0.00s)
+    --- PASS: TestProtocolWrappers/reset (0.00s)
+    --- PASS: TestProtocolWrappers/explained (0.00s)
+    --- PASS: TestProtocolWrappers/unexplained (0.00s)
+    --- PASS: TestProtocolWrappers/answer (0.00s)
+    --- PASS: TestProtocolWrappers/nil_reset (0.00s)
+    --- PASS: TestProtocolWrappers/nil_judge (0.00s)
+    --- PASS: TestProtocolWrappers/missing_observation (0.00s)
+    --- PASS: TestProtocolWrappers/empty_observation_type (0.00s)
+    --- PASS: TestProtocolWrappers/nil_answer (0.00s)
+    --- PASS: TestProtocolWrappers/missing_callback (0.00s)
+    --- PASS: TestProtocolWrappers/empty_callback_type (0.00s)
+=== RUN   TestResetProofContractRefusesMissingAndUnknown
+=== RUN   TestResetProofContractRefusesMissingAndUnknown/0/direct=false
+=== RUN   TestResetProofContractRefusesMissingAndUnknown/0/direct=true
+=== RUN   TestResetProofContractRefusesMissingAndUnknown/99/direct=false
+=== RUN   TestResetProofContractRefusesMissingAndUnknown/99/direct=true
+--- PASS: TestResetProofContractRefusesMissingAndUnknown (0.00s)
+    --- PASS: TestResetProofContractRefusesMissingAndUnknown/0/direct=false (0.00s)
+    --- PASS: TestResetProofContractRefusesMissingAndUnknown/0/direct=true (0.00s)
+    --- PASS: TestResetProofContractRefusesMissingAndUnknown/99/direct=false (0.00s)
+    --- PASS: TestResetProofContractRefusesMissingAndUnknown/99/direct=true (0.00s)
+=== RUN   TestExplanationOutcomeWireCompatibility
+--- PASS: TestExplanationOutcomeWireCompatibility (0.00s)
+=== RUN   TestProtocolWireCompatibility
+=== RUN   TestProtocolWireCompatibility/explore_request
+=== RUN   TestProtocolWireCompatibility/rows_request
+=== RUN   TestProtocolWireCompatibility/explore_response
+=== RUN   TestProtocolWireCompatibility/rows_response
+=== RUN   TestProtocolWireCompatibility/refusal_0
+=== RUN   TestProtocolWireCompatibility/refusal_1
+=== RUN   TestProtocolWireCompatibility/refusal_2
+=== RUN   TestProtocolWireCompatibility/refusal_3
+=== RUN   TestProtocolWireCompatibility/refusal_4
+=== RUN   TestProtocolWireCompatibility/refusal_5
+=== RUN   TestProtocolWireCompatibility/refusal_6
+=== RUN   TestProtocolWireCompatibility/refusal_7
+--- PASS: TestProtocolWireCompatibility (0.00s)
+    --- PASS: TestProtocolWireCompatibility/explore_request (0.00s)
+    --- PASS: TestProtocolWireCompatibility/rows_request (0.00s)
+    --- PASS: TestProtocolWireCompatibility/explore_response (0.00s)
+    --- PASS: TestProtocolWireCompatibility/rows_response (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_0 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_1 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_2 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_3 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_4 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_5 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_6 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_7 (0.00s)
+=== RUN   TestCoreProtocolWireCompatibility
+=== RUN   TestCoreProtocolWireCompatibility/reset_response
+=== RUN   TestCoreProtocolWireCompatibility/judge_request
+=== RUN   TestCoreProtocolWireCompatibility/answer_request
+=== RUN   TestCoreProtocolWireCompatibility/judge_explained
+=== RUN   TestCoreProtocolWireCompatibility/judge_unexplained
+=== RUN   TestCoreProtocolWireCompatibility/answer_response
+--- PASS: TestCoreProtocolWireCompatibility (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/reset_response (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/judge_request (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/answer_request (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/judge_explained (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/judge_unexplained (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/answer_response (0.00s)
+=== RUN   TestProtocolNamespace
+--- PASS: TestProtocolNamespace (0.00s)
+=== RUN   TestStatefulGuestReplayFreezeResetAndIsolation
+--- PASS: TestStatefulGuestReplayFreezeResetAndIsolation (0.01s)
+=== RUN   TestStatefulResponseExhaustionPreservesRunAndOwnership
+=== RUN   TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_JUDGE
+=== RUN   TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_ANSWER
+=== RUN   TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_RESET
+--- PASS: TestStatefulResponseExhaustionPreservesRunAndOwnership (0.06s)
+    --- PASS: TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_JUDGE (0.02s)
+    --- PASS: TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_ANSWER (0.03s)
+    --- PASS: TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_RESET (0.02s)
+=== RUN   TestDeniedDescriptorImports
+=== RUN   TestDeniedDescriptorImports/fd_close
+=== RUN   TestDeniedDescriptorImports/fd_seek
+--- PASS: TestDeniedDescriptorImports (0.00s)
+    --- PASS: TestDeniedDescriptorImports/fd_close (0.00s)
+    --- PASS: TestDeniedDescriptorImports/fd_seek (0.00s)
+=== RUN   TestRejectsDescriptorImportContracts
+=== RUN   TestRejectsDescriptorImportContracts/fd_close/other
+=== RUN   TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1
+=== RUN   TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1#01
+=== RUN   TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1#02
+=== RUN   TestRejectsDescriptorImportContracts/fd_seek/other
+=== RUN   TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1
+=== RUN   TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1#01
+=== RUN   TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1#02
+--- PASS: TestRejectsDescriptorImportContracts (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_close/other (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1#01 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1#02 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_seek/other (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1#01 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1#02 (0.00s)
+=== RUN   TestDispatchProbeRejectsMessageDescriptor
+--- PASS: TestDispatchProbeRejectsMessageDescriptor (0.00s)
+=== RUN   TestSharedObservationRequestWire
+--- PASS: TestSharedObservationRequestWire (0.00s)
+PASS
+ok  	umpire.local/model/host	0.332s
+=== RUN   TestResetContractAdmissionPrecedesDriver
+=== RUN   TestResetContractAdmissionPrecedesDriver/missing
+=== RUN   TestResetContractAdmissionPrecedesDriver/unknown
+=== RUN   TestResetContractAdmissionPrecedesDriver/current
+--- PASS: TestResetContractAdmissionPrecedesDriver (0.00s)
+    --- PASS: TestResetContractAdmissionPrecedesDriver/missing (0.00s)
+    --- PASS: TestResetContractAdmissionPrecedesDriver/unknown (0.00s)
+    --- PASS: TestResetContractAdmissionPrecedesDriver/current (0.00s)
+=== RUN   TestRunnerOwnsLoadedGuestBytes
+--- PASS: TestRunnerOwnsLoadedGuestBytes (0.00s)
+=== RUN   TestCurrentRecordingAdmission
+=== RUN   TestCurrentRecordingAdmission/old_format
+=== RUN   TestCurrentRecordingAdmission/missing_contract
+=== RUN   TestCurrentRecordingAdmission/unknown_contract
+=== RUN   TestCurrentRecordingAdmission/missing_reset_response
+=== RUN   TestCurrentRecordingAdmission/other_guest
+--- PASS: TestCurrentRecordingAdmission (0.00s)
+    --- PASS: TestCurrentRecordingAdmission/old_format (0.00s)
+    --- PASS: TestCurrentRecordingAdmission/missing_contract (0.00s)
+    --- PASS: TestCurrentRecordingAdmission/unknown_contract (0.00s)
+    --- PASS: TestCurrentRecordingAdmission/missing_reset_response (0.00s)
+    --- PASS: TestCurrentRecordingAdmission/other_guest (0.00s)
+=== RUN   TestUmpireCommandExitCodes
+--- PASS: TestUmpireCommandExitCodes (0.13s)
+=== RUN   TestDriverFaultEvidenceUsesFreshWireTag
+--- PASS: TestDriverFaultEvidenceUsesFreshWireTag (0.00s)
+=== RUN   TestDriverFaultEvidenceIsRetainedRedactedAndReplayed
+=== RUN   TestDriverFaultEvidenceIsRetainedRedactedAndReplayed/event/redact=false
+=== RUN   TestDriverFaultEvidenceIsRetainedRedactedAndReplayed/event/redact=true
+=== RUN   TestDriverFaultEvidenceIsRetainedRedactedAndReplayed/close_error/redact=false
+=== RUN   TestDriverFaultEvidenceIsRetainedRedactedAndReplayed/close_error/redact=true
+--- PASS: TestDriverFaultEvidenceIsRetainedRedactedAndReplayed (0.05s)
+    --- PASS: TestDriverFaultEvidenceIsRetainedRedactedAndReplayed/event/redact=false (0.01s)
+    --- PASS: TestDriverFaultEvidenceIsRetainedRedactedAndReplayed/event/redact=true (0.01s)
+    --- PASS: TestDriverFaultEvidenceIsRetainedRedactedAndReplayed/close_error/redact=false (0.01s)
+    --- PASS: TestDriverFaultEvidenceIsRetainedRedactedAndReplayed/close_error/redact=true (0.01s)
+=== RUN   TestDriverClosePreservesEvidenceCapturedAfterExchangeClose
+=== RUN   TestDriverClosePreservesEvidenceCapturedAfterExchangeClose/evidence=false
+=== RUN   TestDriverClosePreservesEvidenceCapturedAfterExchangeClose/evidence=true
+--- PASS: TestDriverClosePreservesEvidenceCapturedAfterExchangeClose (0.02s)
+    --- PASS: TestDriverClosePreservesEvidenceCapturedAfterExchangeClose/evidence=false (0.01s)
+    --- PASS: TestDriverClosePreservesEvidenceCapturedAfterExchangeClose/evidence=true (0.01s)
+=== RUN   TestWaitsEndInDriverFaults
+=== RUN   TestWaitsEndInDriverFaults/read_timeout
+=== RUN   TestWaitsEndInDriverFaults/run_time_budget
+=== RUN   TestWaitsEndInDriverFaults/driver_unavailable
+=== RUN   TestWaitsEndInDriverFaults/interrupted_while_starting
+=== RUN   TestWaitsEndInDriverFaults/interrupted_while_waiting
+--- PASS: TestWaitsEndInDriverFaults (0.65s)
+    --- PASS: TestWaitsEndInDriverFaults/read_timeout (0.01s)
+    --- PASS: TestWaitsEndInDriverFaults/run_time_budget (0.01s)
+    --- PASS: TestWaitsEndInDriverFaults/driver_unavailable (0.01s)
+    --- PASS: TestWaitsEndInDriverFaults/interrupted_while_starting (0.31s)
+    --- PASS: TestWaitsEndInDriverFaults/interrupted_while_waiting (0.31s)
+=== RUN   TestModelRefusalsRefuseTheRun
+=== RUN   TestModelRefusalsRefuseTheRun/pre-admission_callback
+=== RUN   TestModelRefusalsRefuseTheRun/annotate
+=== RUN   TestModelRefusalsRefuseTheRun/stock_Kettle_has_no_stateful_operation
+--- PASS: TestModelRefusalsRefuseTheRun (0.10s)
+    --- PASS: TestModelRefusalsRefuseTheRun/pre-admission_callback (0.01s)
+    --- PASS: TestModelRefusalsRefuseTheRun/annotate (0.01s)
+    --- PASS: TestModelRefusalsRefuseTheRun/stock_Kettle_has_no_stateful_operation (0.08s)
+=== RUN   TestReplayIncludesAnnotate
+--- PASS: TestReplayIncludesAnnotate (0.11s)
+=== RUN   TestReplayRejectsAlteredRuns
+=== RUN   TestReplayRejectsAlteredRuns/other_model
+=== RUN   TestReplayRejectsAlteredRuns/other_protocol
+=== RUN   TestReplayRejectsAlteredRuns/other_world
+=== RUN   TestReplayRejectsAlteredRuns/other_seed
+=== RUN   TestReplayRejectsAlteredRuns/missing_event
+=== RUN   TestReplayRejectsAlteredRuns/duplicate_event
+=== RUN   TestReplayRejectsAlteredRuns/reordered_events
+=== RUN   TestReplayRejectsAlteredRuns/crossed_correlation
+=== RUN   TestReplayRejectsAlteredRuns/second_reset
+=== RUN   TestReplayRejectsAlteredRuns/tampered_judgment
+=== RUN   TestReplayRejectsAlteredRuns/tampered_reply
+=== RUN   TestReplayRejectsAlteredRuns/tampered_observation
+=== RUN   TestReplayRejectsAlteredRuns/tampered_refusal
+=== RUN   TestReplayRejectsAlteredRuns/redacted
+=== RUN   TestReplayRejectsAlteredRuns/other_verdict
+=== RUN   TestReplayRejectsAlteredRuns/truncated_before_a_final_observation,_relabeled_proposal_budget
+=== RUN   TestReplayRejectsAlteredRuns/truncated,_relabeled_with_another_event_budget
+=== RUN   TestReplayRejectsAlteredRuns/truncated,_relabeled_question
+=== RUN   TestReplayRejectsAlteredRuns/no_events,_labeled_question
+=== RUN   TestReplayRejectsAlteredRuns/no_events,_labeled_an_empty_event_budget
+=== RUN   TestReplayRejectsAlteredRuns/budget_claimed_for_a_quiescent_Run
+--- PASS: TestReplayRejectsAlteredRuns (0.14s)
+    --- PASS: TestReplayRejectsAlteredRuns/other_model (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/other_protocol (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/other_world (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/other_seed (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/missing_event (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/duplicate_event (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/reordered_events (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/crossed_correlation (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/second_reset (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/tampered_judgment (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/tampered_reply (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/tampered_observation (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/tampered_refusal (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/redacted (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/other_verdict (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/truncated_before_a_final_observation,_relabeled_proposal_budget (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/truncated,_relabeled_with_another_event_budget (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/truncated,_relabeled_question (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/no_events,_labeled_question (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/no_events,_labeled_an_empty_event_budget (0.01s)
+    --- PASS: TestReplayRejectsAlteredRuns/budget_claimed_for_a_quiescent_Run (0.01s)
+=== RUN   TestReplayRejectsCallsAfterTheEndingEvent
+--- PASS: TestReplayRejectsCallsAfterTheEndingEvent (0.01s)
+=== RUN   TestRedactedRunsAreRefusedForReplay
+--- PASS: TestRedactedRunsAreRefusedForReplay (0.01s)
+=== RUN   TestTheDriverRedactsWhenTheOptionsDoNot
+--- PASS: TestTheDriverRedactsWhenTheOptionsDoNot (0.02s)
+=== RUN   TestRedactionReachesRefusedCallsAndTheWorld
+--- PASS: TestRedactionReachesRefusedCallsAndTheWorld (0.01s)
+=== RUN   TestQuestionAsksOneProposeOrJudge
+--- PASS: TestQuestionAsksOneProposeOrJudge (0.10s)
+=== RUN   TestReduceReportsTheShortestReproductionFound
+--- PASS: TestReduceReportsTheShortestReproductionFound (0.07s)
+=== RUN   TestRepeatRecordsIndependentRunsOfTheSameSeeds
+--- PASS: TestRepeatRecordsIndependentRunsOfTheSameSeeds (0.05s)
+=== RUN   TestProgressNamesPositionsOnly
+--- PASS: TestProgressNamesPositionsOnly (0.10s)
+=== RUN   TestRefusalReplayRequiresTheCurrentRecordedReason
+=== RUN   TestRefusalReplayRequiresTheCurrentRecordedReason/legacy
+=== RUN   TestRefusalReplayRequiresTheCurrentRecordedReason/current
+=== RUN   TestRefusalReplayRequiresTheCurrentRecordedReason/forged-reason
+=== RUN   TestRefusalReplayRequiresTheCurrentRecordedReason/forged-event
+=== RUN   TestRefusalReplayRequiresTheCurrentRecordedReason/forged-field
+--- PASS: TestRefusalReplayRequiresTheCurrentRecordedReason (0.04s)
+    --- PASS: TestRefusalReplayRequiresTheCurrentRecordedReason/legacy (0.01s)
+    --- PASS: TestRefusalReplayRequiresTheCurrentRecordedReason/current (0.01s)
+    --- PASS: TestRefusalReplayRequiresTheCurrentRecordedReason/forged-reason (0.01s)
+    --- PASS: TestRefusalReplayRequiresTheCurrentRecordedReason/forged-event (0.01s)
+    --- PASS: TestRefusalReplayRequiresTheCurrentRecordedReason/forged-field (0.01s)
+=== RUN   TestWholePrefixRecordingWithCallbacksAndCurrent
+=== RUN   TestWholePrefixRecordingWithCallbacksAndCurrent/latest_observation_only
+=== RUN   TestWholePrefixRecordingWithCallbacksAndCurrent/wrong_earlier_prefix
+=== RUN   TestWholePrefixRecordingWithCallbacksAndCurrent/concatenated_deltas
+--- PASS: TestWholePrefixRecordingWithCallbacksAndCurrent (0.08s)
+    --- PASS: TestWholePrefixRecordingWithCallbacksAndCurrent/latest_observation_only (0.01s)
+    --- PASS: TestWholePrefixRecordingWithCallbacksAndCurrent/wrong_earlier_prefix (0.01s)
+    --- PASS: TestWholePrefixRecordingWithCallbacksAndCurrent/concatenated_deltas (0.01s)
+=== RUN   TestProgramCommandRequiresProgram
+--- PASS: TestProgramCommandRequiresProgram (0.01s)
+=== RUN   TestProgramCommandWritesOpaqueProgram
+--- PASS: TestProgramCommandWritesOpaqueProgram (0.01s)
+=== RUN   TestProgramCommandErrors
+=== RUN   TestProgramCommandErrors/positional
+=== RUN   TestProgramCommandErrors/unknown_flag
+=== RUN   TestProgramCommandErrors/missing_model
+=== RUN   TestProgramCommandErrors/bad_world
+=== RUN   TestProgramCommandErrors/bad_model
+=== RUN   TestProgramCommandErrors/unwritable_output
+=== RUN   TestProgramCommandErrors/required_flags
+--- PASS: TestProgramCommandErrors (0.01s)
+    --- PASS: TestProgramCommandErrors/positional (0.00s)
+    --- PASS: TestProgramCommandErrors/unknown_flag (0.00s)
+    --- PASS: TestProgramCommandErrors/missing_model (0.00s)
+    --- PASS: TestProgramCommandErrors/bad_world (0.00s)
+    --- PASS: TestProgramCommandErrors/bad_model (0.00s)
+    --- PASS: TestProgramCommandErrors/unwritable_output (0.01s)
+    --- PASS: TestProgramCommandErrors/required_flags (0.00s)
+=== RUN   TestConcurrentPublicationPublishesOnce
+--- PASS: TestConcurrentPublicationPublishesOnce (0.01s)
+=== RUN   TestPublicationNeverOverwrites
+=== RUN   TestPublicationNeverOverwrites/other_bytes
+=== RUN   TestPublicationNeverOverwrites/longer_bytes
+=== RUN   TestPublicationNeverOverwrites/directory
+=== RUN   TestPublicationNeverOverwrites/symlink
+=== RUN   TestPublicationNeverOverwrites/seed_directory_is_a_file
+=== RUN   TestPublicationNeverOverwrites/interrupted
+=== RUN   TestPublicationNeverOverwrites/model_hash_is_not_a_path
+--- PASS: TestPublicationNeverOverwrites (0.01s)
+    --- PASS: TestPublicationNeverOverwrites/other_bytes (0.00s)
+    --- PASS: TestPublicationNeverOverwrites/longer_bytes (0.00s)
+    --- PASS: TestPublicationNeverOverwrites/directory (0.00s)
+    --- PASS: TestPublicationNeverOverwrites/symlink (0.00s)
+    --- PASS: TestPublicationNeverOverwrites/seed_directory_is_a_file (0.00s)
+    --- PASS: TestPublicationNeverOverwrites/interrupted (0.00s)
+    --- PASS: TestPublicationNeverOverwrites/model_hash_is_not_a_path (0.00s)
+=== RUN   TestLoadRejectsCorruptRuns
+--- PASS: TestLoadRejectsCorruptRuns (0.01s)
+=== RUN   TestExploreRunsTheLoopOverTheControlSystem
+--- PASS: TestExploreRunsTheLoopOverTheControlSystem (0.03s)
+=== RUN   TestUnexplainedEndsTheRunAtItsEvent
+--- PASS: TestUnexplainedEndsTheRunAtItsEvent (0.01s)
+=== RUN   TestQueuedEventsAreServedInReceiveOrder
+--- PASS: TestQueuedEventsAreServedInReceiveOrder (0.01s)
+=== RUN   TestBudgetsEndExplainedRuns
+--- PASS: TestBudgetsEndExplainedRuns (0.06s)
+=== RUN   TestStartMustReturnOnceSent
+=== RUN   TestStartMustReturnOnceSent/late_within_the_grace
+=== RUN   TestStartMustReturnOnceSent/past_the_grace
+=== RUN   TestStartMustReturnOnceSent/ignoring_its_context
+--- PASS: TestStartMustReturnOnceSent (0.04s)
+    --- PASS: TestStartMustReturnOnceSent/late_within_the_grace (0.01s)
+    --- PASS: TestStartMustReturnOnceSent/past_the_grace (0.01s)
+    --- PASS: TestStartMustReturnOnceSent/ignoring_its_context (0.01s)
+=== RUN   TestRefusedResetReplays
+--- PASS: TestRefusedResetReplays (0.02s)
+=== RUN   TestDriverFaultsRefuseTheRun
+=== RUN   TestDriverFaultsRefuseTheRun/start
+=== RUN   TestDriverFaultsRefuseTheRun/fault_event
+=== RUN   TestDriverFaultsRefuseTheRun/premature_close
+=== RUN   TestDriverFaultsRefuseTheRun/done_before_acceptance
+=== RUN   TestDriverFaultsRefuseTheRun/crossed_request
+=== RUN   TestDriverFaultsRefuseTheRun/duplicate_event
+=== RUN   TestDriverFaultsRefuseTheRun/unknown_kind
+=== RUN   TestDriverFaultsRefuseTheRun/blocked_respond
+=== RUN   TestDriverFaultsRefuseTheRun/canceled_respond
+=== RUN   TestDriverFaultsRefuseTheRun/close
+=== RUN   TestDriverFaultsRefuseTheRun/hung_close
+--- PASS: TestDriverFaultsRefuseTheRun (0.13s)
+    --- PASS: TestDriverFaultsRefuseTheRun/start (0.01s)
+    --- PASS: TestDriverFaultsRefuseTheRun/fault_event (0.01s)
+    --- PASS: TestDriverFaultsRefuseTheRun/premature_close (0.01s)
+    --- PASS: TestDriverFaultsRefuseTheRun/done_before_acceptance (0.01s)
+    --- PASS: TestDriverFaultsRefuseTheRun/crossed_request (0.01s)
+    --- PASS: TestDriverFaultsRefuseTheRun/duplicate_event (0.01s)
+    --- PASS: TestDriverFaultsRefuseTheRun/unknown_kind (0.01s)
+    --- PASS: TestDriverFaultsRefuseTheRun/blocked_respond (0.01s)
+    --- PASS: TestDriverFaultsRefuseTheRun/canceled_respond (0.01s)
+    --- PASS: TestDriverFaultsRefuseTheRun/close (0.01s)
+    --- PASS: TestDriverFaultsRefuseTheRun/hung_close (0.01s)
+=== RUN   TestRunWorkerUsesFreshWireTag
+--- PASS: TestRunWorkerUsesFreshWireTag (0.00s)
+=== RUN   TestWorkerMetadataIsRecordedAndReplayedWithoutDriver
+--- PASS: TestWorkerMetadataIsRecordedAndReplayedWithoutDriver (0.03s)
+=== RUN   TestRunOwnsDriverWorkerMetadata
+--- PASS: TestRunOwnsDriverWorkerMetadata (0.02s)
+=== RUN   TestRefusedVerdictNamesTheRecordedReason
+--- PASS: TestRefusedVerdictNamesTheRecordedReason (0.00s)
+PASS
+ok  	umpire.local/model/runner	2.127s
+=== RUN   TestReadPreservesPayloadAndRefusesPendingOrMalformed
+--- PASS: TestReadPreservesPayloadAndRefusesPendingOrMalformed (0.00s)
+PASS
+ok  	umpire.local/model/snapshot	0.002s

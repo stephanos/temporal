@@ -1,0 +1,21 @@
+[gate:fmt] fmt                               0.655s
+[gate:proto-tools] proto-tools                       1.092s
+[gate:timing-controls] timing-controls                   0.063s
+[gate:timing-controls] timing-controls                   0.062s
+[gate:protobuf-controls] protobuf-controls                 0.154s
+[gate:protobuf-freshness] protobuf-freshness                0.053s
+[gate:kettle-protobuf-freshness] kettle-protobuf-freshness         0.053s
+[gate:capability-controls] capability-controls               0.167s
+[gate:clippy] clippy                           51.177s
+[gate:docs] docs                             16.198s
+[gate:tests] tests                             1.149s
+[gate:tests] tests                            502.073s
+[gate:wasm32-wasip1] wasm32-wasip1                    23.715s
+[gate:core-wasm-clippy] core-wasm-clippy                 24.403s
+[gate:wasm-guest] wasm-guest                       259.238s
+[gate:go-host] go-host                          17.801s
+[gate:kettle-go-host] kettle-go-host                   42.290s
+[gate:standalone] standalone proof: /home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY (tier=validate, TLC=require)
+[gate:standalone] standalone-local-tools           13.597s
+[gate:standalone] standalone-tlc-tool               1.039s
+[gate:standalone] standalone-child                 717.401s

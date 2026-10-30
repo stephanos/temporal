@@ -1,0 +1,6 @@
+{
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.17",
+  "source_commit": "356a12469f",
+  "artifacts_root": ".flow/artifacts/task17/resumed/quick-lane",
+  "note": "Original lane proof paths and byte hashes retained; this canonical task index identifies their scope."
+}

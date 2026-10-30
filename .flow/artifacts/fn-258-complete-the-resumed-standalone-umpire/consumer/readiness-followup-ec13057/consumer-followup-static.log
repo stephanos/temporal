@@ -1,0 +1,5 @@
+git diff --check: exit0
+bash -n model/scripts/test-model-wiring.sh: exit0
+Current sibling guide links resolve in supported054 pair
+No retired module or58a pointer remains in edited live README/setup docs
+Canonical guest unchanged: d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d

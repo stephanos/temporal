@@ -1,0 +1,91 @@
+{
+  "scope": "Final admitted task5 activity execution and current scoped nextest group-membership receipts. No full gate or broader test execution was performed.",
+  "activity_evidence": "temporal-activity-required-summary.json",
+  "activity_passed": true,
+  "activity_command_seconds": 45.91019577100087,
+  "activity_fresh_TLC_executions": 28,
+  "current_membership_evidence": "current-membership-summary.json",
+  "logical_group_members": {
+    "framework": 218,
+    "Temporal": 41
+  },
+  "default_selected_group_members": {
+    "framework": 217,
+    "Temporal": 39
+  },
+  "framework_breakdown": {
+    "umpire-apalache": 29,
+    "umpire-tla": 96,
+    "umpire-tlc": 8,
+    "umpire-testing": 1,
+    "umpire-fixtures": 84
+  },
+  "preserved_ignored_members": {
+    "framework": [
+      "interpreted::timing"
+    ],
+    "Temporal": [
+      "import_live_gap_candidate",
+      "realization_control::added_catalog_field_fails_the_real_coverage_golden"
+    ]
+  },
+  "group_source_delta": {
+    "old_framework": 195,
+    "new_framework": 218,
+    "removed_umbrella": 1,
+    "added_named_fixture_cases": 24,
+    "net": 23,
+    "other_members_and_ignored_flags_preserved": true,
+    "Temporal_unchanged": true
+  },
+  "dependency_tuples": {
+    "count": 119,
+    "unchanged": true,
+    "meaning": "Separate registry dependency tuple union, not fixture or test count."
+  },
+  "membership_listing_cache_growth_bytes": 87392462,
+  "membership_budget_bytes": 536870912,
+  "source_root_candidate273_paths_and_extra_activity_sources_unchanged": true,
+  "locks_and_snapshots_unchanged": true,
+  "source_or_golden_changes": [],
+  "leases_released": true,
+  "free_bytes_at_summary": 32834486272,
+  "deferred": "Unrelated full gates and final joined validation remain task8 obligations. The complete model-quick budget is not inferred from this targeted fixture timing.",
+  "finished_utc": "2026-10-26T23:14:22.629911+00:00",
+  "evidence_sha256": {
+    "current-framework-backend-groups-initial-wrong-workspace.json": "f4a30667e5f45d6b1c26a7464fb8c37a345c0168559be8328e8ca0e61fc89937",
+    "current-membership-phase-baseline.json": "e778792b1bc18bac1c7a46d8fefc552e9eaba0b2ef3c69e3bbfbcb421d1791e4",
+    "current-framework-fixtures-identities.json": "52eba33882d8c2deda2b61f9a5669a3173b8b002cfc40890c32a538e4b241b95",
+    "current-framework-testing-identities.json": "80aa4300ed44d22d5feddfa043be020e742fbe150f266325a42cbc6a77ff5093",
+    "run-temporal-activity-required.py": "e4454bdd624217ec14e4a88784ed446a6f0b2fec820c59326213e4b8e2f53311",
+    "current-framework-testing-identities.log": "4fdf9edb8d0960fb0a9f59ef3583b040d7c6b993036b199f13ad0a2af9346797",
+    "temporal-activity-required.json": "33d8843991f0289b99c988e30b3829ef86df522c235cadfd85bb6673fd4386f8",
+    "current-temporal-fixtures-identities.log": "9a9cd23682fdedcf7cf61b9d9195cfcee64e785c72c75600fb7b72ed622453e0",
+    "current-test-groups-help.json": "d8ca5cfb395fd96bc9072c4b70e33e136e285099137e22eb89dbaf38245dfc07",
+    "temporal-activity-required-summary.json": "7013e6005382f4aa2a092007e7dc96cb1f8e078c8ae4e1986ecd18ffe5d8827a",
+    "current-framework-backend-identities.json": "447b3b529a639afb167af1d8d6bcdb0fcdd727c47862e35d1447f9937c86df61",
+    "temporal-activity-initial-wrong-workspace-process-samples.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "current-framework-backend-groups-initial-wrong-workspace.log": "045c7fd024ad6b7289d270c31984a9e7aaa1a973ae9956da74ec71bcfb7524ae",
+    "current-framework-fixtures-identities.log": "7ad241465e1b0d0c277b915630e16ab62406614e3271b1251b844117a70dcd25",
+    "temporal-activity-initial-wrong-workspace-process-summary.json": "218bf52b6134c024af72db8e11676230989781e27613d3929dd068145c81d024",
+    "current-framework-testing-groups.log": "42d19c89b3c40205ccbac04e9c9ad92d62bc3306e0dffc374ccf2c63784920c2",
+    "current-framework-backend-groups.json": "87355415cfec6535b1813568d336c60c8bd142ec71db6007bfd6422e61191263",
+    "temporal-activity-required.log": "13a74d799824f7824c8730faa4c8df2eafa5743d94a2aaae56289f87c8fc72ad",
+    "current-temporal-fixtures-groups.log": "618cb59c721f07186133fe6daddae321a4c4dd2b0720e2f16e35a73ac821c38e",
+    "temporal-activity-process-samples.jsonl": "080e986b2749302d23fa51b30e553976f893b2ac4e820c2ab00b44d89d5b8587",
+    "current-framework-fixtures-groups.json": "926365e425a4d24676979b49a552c8f2bcad4ad492e67bd3cdea4c00463149af",
+    "current-temporal-fixtures-identities.json": "62609fe2c9b85b40fbdcb67a51846c5e6783fae2e3a48861a904a18f32e20d17",
+    "temporal-activity-initial-wrong-workspace-required.json": "5702680f398380c1e41d6879d3561e127d79519c7b34e4fe2efa3f2d28b7dea3",
+    "current-test-groups-help.log": "dd41489daa062f70a827618fa74bb72619d0e15201faf76741b2532753d6566d",
+    "temporal-activity-process-summary.json": "0093ad640195f8c69e67e65b8078dbda5c3352910139cde85fc05994651d5495",
+    "current-membership-summary.json": "873f087b56e87eb14ad6256102594c96755815621e6bad40e4f580dc9102cf55",
+    "current-membership-source-before.json": "4bc92e0fbea42173f9063543a8fb958d7f2027b66c39190b7b8bd2cbe0580dd9",
+    "current-framework-backend-identities.log": "3642c665853a6a35fb91df182234d9cc97d6cf5695ab9aee743d584684be4145",
+    "current-framework-fixtures-groups.log": "30a7d6f769a3b55f3bc5b33ece082f61fe88375782696bfa22ce035ab24a149f",
+    "temporal-activity-initial-wrong-workspace-required.log": "4bc62d4c5ffd02a087f60a218f8142fd6fcc1b151371388f3064765d26fac0f3",
+    "current-framework-backend-groups.log": "80580fb8cfcee5c181a6284db795f61a168b0d10f954464c25f9cda130a4fc4c",
+    "current-framework-testing-groups.json": "e1d6b02c4b2c0cbeb75b8440f96c6007d9112cd24d312edb74bd3c79539e45b1",
+    "current-temporal-fixtures-groups.json": "08dcc1eef8bea8ddae97bc5f1c74b5a8f1d8b56699a47528bc002f4d367ebdcf",
+    "run-current-membership.py": "18eab1120ee005b498eca2650d003ab4841f31fba3e91bdb0f5e3a1da554e3b2"
+  }
+}

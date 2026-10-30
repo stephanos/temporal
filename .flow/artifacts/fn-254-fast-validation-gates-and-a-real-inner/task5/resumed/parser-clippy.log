@@ -1,0 +1,72 @@
+    Checking serde_core v1.0.229
+    Checking syn v3.0.9
+    Checking once_cell v1.21.4
+    Checking tempfile v3.27.0
+    Checking winnow v1.0.4
+    Checking prettyplease v0.3.0
+    Checking toml_datetime v1.1.2+spec-1.1.0
+    Checking umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/front)
+    Checking toml_parser v1.1.5+spec-1.1.0
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/author/dsl/macros)
+    Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/process)
+    Checking umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/tla)
+    Checking zmij v1.0.23
+    Checking serde_spanned v1.1.2
+    Checking console v0.16.6
+    Checking similar v2.7.0
+    Checking itoa v1.0.18
+    Checking memchr v2.8.3
+    Checking toml_writer v1.1.3+spec-1.1.0
+    Checking toml v1.1.8+spec-1.1.0
+    Checking serde_json v1.0.154
+    Checking insta v1.49.0
+    Checking umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/author/dsl)
+    Checking umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/native)
+    Checking umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/tlc)
+    Checking target-tuple v1.0.2
+    Checking serde v1.0.229
+    Checking toml_edit v0.25.17+spec-1.1.0
+    Checking termcolor v1.4.1
+    Checking glob v0.3.4
+    Checking proc-macro-crate v3.5.0
+    Checking trybuild v1.0.122
+    Checking umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/testing)
+error: this function has too many lines (123/100)
+   --> dev/testing/src/runner.rs:116:1
+    |
+116 | / fn run_selected(
+117 | |     root: &Path,
+118 | |     fixtures: Vec<crate::Fixture>,
+119 | |     consumers: &[Consumer],
+...   |
+122 | |     selected_fixture: Option<&str>,
+123 | | ) -> crate::TestResult {
+    | |______________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#too_many_lines
+    = note: `-D clippy::too-many-lines` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::too_many_lines)]`
+
+error: this `if` statement can be collapsed
+   --> dev/testing/src/runner.rs:175:5
+    |
+175 | /     if let Some(name) = selected_fixture {
+176 | |         if !registered.contains(name) {
+177 | |             return Err(format!("unknown selected fixture: {name}").into());
+178 | |         }
+179 | |     }
+    | |_____^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+175 ~     if let Some(name) = selected_fixture
+176 ~         && !registered.contains(name) {
+177 |             return Err(format!("unknown selected fixture: {name}").into());
+178 ~         }
+    |
+
+error: could not compile `umpire-testing` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...

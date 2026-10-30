@@ -1,0 +1,702 @@
+[
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/archive-manifests.json",
+    "sha256": "1f7ea91a0986f6e6942c394df781f5b7bb4ea9e802f465e10ef67b7dbbc6eb07",
+    "size": 1641117
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/recovery-manifest.json",
+    "sha256": "087a3c83396a43dc5a21e9880192ac94561ce90745bf38bb71b8a735c21144a5",
+    "size": 208691
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/retain-proof.py",
+    "sha256": "cfea5302cb6de824ffa1e0a0346696e447f9c3ef9d2b21e32d60977dfa586e40",
+    "size": 16167
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/README.md",
+    "sha256": "3f580c01010e0575d8d69c86cf8d4a6406e65edbc4dd0054e2b2e5581fb1e515",
+    "size": 4556
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/verification.json",
+    "sha256": "1fd8a6bed7db543ceeda7f783105c594921119b0f0525f3890815dfbc6c29a82",
+    "size": 75455
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/make-validate.log",
+    "sha256": "b2ccf28120008db36d6b38cea5f0e24ae25790b9ac1acb071a85b9aaa2f5e4f7",
+    "size": 5653
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/ownership-and-future-cleanup.json",
+    "sha256": "636877fff64d28f31db8dfcbcc9a23c81a5d6c06b9bc11fd7cfe7b28ef0aea6e",
+    "size": 1188
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/count-observations.json",
+    "sha256": "c6bcabee41492ae49c0246d6bbc436bdbbb62f55b34276d9c5ed2082c89875c2",
+    "size": 759712
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/recovery-verification.json",
+    "sha256": "51b0064c4d6ab4f8f290117d76f6f1d7daeb36d5e094c9995b59b9aae2f86e2e",
+    "size": 269
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/verify-recovery.py",
+    "sha256": "780f0c461b14ea9e8f604f2133dec4b5edac7a155ea1e43855468455ff1c48cf",
+    "size": 1939
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stdout.log",
+    "sha256": "6158f9c9944670493de27caae0505f614d0183b45a87089568a37e0de88b5e21",
+    "size": 5799
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stderr.log",
+    "sha256": "4eb910bee7e7b21c7927fe256e4dc61206e97cac65d23a4e118b1cd2283a5df5",
+    "size": 44591
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stages.jsonl",
+    "sha256": "f2c687fa70fe98f3cf61fb08b42f8f11931c878349caf7e813cc84f106fec63b",
+    "size": 5498
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/admission.json",
+    "sha256": "61498a7c298966a6268a42bb2bfefd7a4ec8807eb3f8de6cdbaa5540836b9993",
+    "size": 149
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stdout.log",
+    "sha256": "993e4f73f7d3cefe455822ecccc6f99ab2f7ea729cfe17ae981f1a9a62ae67c8",
+    "size": 1341
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stderr.log",
+    "sha256": "b5252385233cd22cca2503eeb4f0544f4b2161c364b9a3073af7ec7b7a481c9d",
+    "size": 2348
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stages.jsonl",
+    "sha256": "2d9cddb86d08d8f8dd262d3965101cd7f3125bde56563bc781c149fcd2765bfc",
+    "size": 18010
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/admission.json",
+    "sha256": "61498a7c298966a6268a42bb2bfefd7a4ec8807eb3f8de6cdbaa5540836b9993",
+    "size": 149
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/cold-proof/result.json",
+    "sha256": "9e5d627e7b9e58b7489007ddd4d1e9d2fe27aa92180dcb2591f1c92dbd691f62",
+    "size": 16968
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/cold-proof/tools.json",
+    "sha256": "fbfb79b51c4dc1f24cc7f8d32e0d1e1c1d48306c97a123c37729ebd913b44c1c",
+    "size": 1990
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/cold-proof/controls.json",
+    "sha256": "e54be77fce5984d5c7e07b745b5d0ee556c3b61bf9fab8b08116edc1cc11b747",
+    "size": 182
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/cold-proof/setup.jsonl",
+    "sha256": "54766288dd09a1f1639ff0e4ce702f05cd7d874db700eb024b5e00beb20c999f",
+    "size": 130
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/cold-proof/inputs.json",
+    "sha256": "edac6db9cc024a198249248c638838f311e6311d6d942fdaec46a896644fc3d0",
+    "size": 292239
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/cold-proof/stages.jsonl",
+    "sha256": "f2c687fa70fe98f3cf61fb08b42f8f11931c878349caf7e813cc84f106fec63b",
+    "size": 5498
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stages/capability-controls.json",
+    "sha256": "95ab21f984459e433baa8f7b44fd8f55050731bb2b13f879c52cdeae07e89b9f",
+    "size": 330
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stages/kettle-go-host.json",
+    "sha256": "bbde6a3f4e299fc9c72ff52e92ea56f2ee2212ec90f3677c2f2edc290c89b156",
+    "size": 326
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stages/go-host.json",
+    "sha256": "10aa734ab537d2479f1a3ae9aeb307a4577676eb64c103d97c988564f7d2100a",
+    "size": 319
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stages/tests.json",
+    "sha256": "7177acfb4d03ac0f0b620307462efbb325876e6b9e9cd5278f747795906fdf16",
+    "size": 310
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stages/timing-controls.json",
+    "sha256": "b639fc068c0e15f2389cda9aa0350d7f68ce1551a5263bbb433cb45c7a32164f",
+    "size": 326
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stages/fmt.json",
+    "sha256": "d54e40cca8135aefca2ea022aa86d8ddab0c4ec7352cfddebf1661c491cf305e",
+    "size": 314
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stages/protobuf-freshness.json",
+    "sha256": "2ddc0f91f00ecbcbf045bc57bc7e84aa7e258a864a84c6c1c9438b7ab89faf37",
+    "size": 329
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stages/clippy.json",
+    "sha256": "a3192faa0ed1dbea887c5abddef8b9bdba83a2c7c3d96bb4c851b5d5a1b0501e",
+    "size": 318
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stages/kettle-protobuf-freshness.json",
+    "sha256": "4361e5ee6f1bc2bf7b8b7b12d2b10d0e9c55537bcaf56d7cd725e1191552f8dc",
+    "size": 336
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stages/standalone.json",
+    "sha256": "417ea8054b83d6fba75ab38a95721a65818ccd1ef64eace7ed6f72eeffaf871b",
+    "size": 12510
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stages/retired-names.json",
+    "sha256": "448c8793e3754c5b2e20d021773dabf2c6dd977fdff9d56993a03df4890e3d30",
+    "size": 324
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stages/wasm-guest.json",
+    "sha256": "ab237725d434447f37f104b5c9bacfd1cb353a758003ac08fba68c56c4f98535",
+    "size": 323
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stages/protobuf-controls.json",
+    "sha256": "aaa046d866b9782478f7a42cc49bf9619c339d0d7f0d97781a029341293813aa",
+    "size": 328
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stages/proto-tools.json",
+    "sha256": "3e4ae7739e3fa74e37b2d41684194348e2b8ce75f24a7c421d5904cfdcbfd573",
+    "size": 322
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stages/wasm32-wasip1.json",
+    "sha256": "601a62b6209432e5391e2aa6b2659787255785f110e52ed527fe6ca691cf7b09",
+    "size": 325
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stages/source-boundary.json",
+    "sha256": "53d8bd7f37bf4ce46025ba77cc9d7742db05dda34c1e7b4ea7c6e2e3c2fb8dfb",
+    "size": 326
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stages/core-wasm-clippy.json",
+    "sha256": "7b755e2022a3195c3cad33c8bd091f8c7cca3548d5901f22a1db6273d092abdd",
+    "size": 328
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/parent/stages/docs.json",
+    "sha256": "35a1ace8eb17e8d43f2929f19f66cc4bfceff23a17676b9302f739da0ca074e3",
+    "size": 316
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stages/capability-controls.json",
+    "sha256": "3facc3c6dddf06d0d3cb059c9908d86978bbb063241eefaefcc72811f02d3ed7",
+    "size": 330
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stages/kettle-go-host.json",
+    "sha256": "06b5a71543cd52cc146307b598d08a28ea0a6f6415555d12410a9ca2d312055f",
+    "size": 326
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stages/go-host.json",
+    "sha256": "5a28e63338eb56c2e0e7783cfd4153d242a249ebb859c8bf77cf988045f91519",
+    "size": 319
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stages/tests.json",
+    "sha256": "e501a2bdfac472a234b2bfedaf0b72f915f994bfeadaab3e247780baf06cbfb0",
+    "size": 310
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stages/timing-controls.json",
+    "sha256": "6928c2fdcdc19ae344c1f21578c15ecb8f271dd49869825d2e08f6b2c8ca5547",
+    "size": 326
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stages/fmt.json",
+    "sha256": "bb0c0d4164262fdea92ec05bd4f96706fbbf616add0adc2aeab297329bc92390",
+    "size": 314
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stages/protobuf-freshness.json",
+    "sha256": "4cf45753c5e0661bc59e95610ffc741c798c5f61bc96331707325544d9bbaaf5",
+    "size": 329
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stages/clippy.json",
+    "sha256": "e3bd04ab5def6c71ff548ce5f4f18ca3a6931414e64bc0034457380028119942",
+    "size": 318
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stages/kettle-protobuf-freshness.json",
+    "sha256": "5aa2dcb67e54bde238a6156b3dcd59a7f6b6b9ada0b9ccf4db159915782a943f",
+    "size": 336
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stages/retired-names.json",
+    "sha256": "96220f6cddded34688298af7e12abb4bb2d409ec37d9f9a860cd249c6254d91d",
+    "size": 324
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stages/wasm-guest.json",
+    "sha256": "948f7ba8eaa220f21f61f2428dedbbada81f2884798cba11d617a8410538a75f",
+    "size": 323
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stages/protobuf-controls.json",
+    "sha256": "31cc1c2e2f2410cd713604e73d1a4d44df118aecde31a7aa26393c5288447672",
+    "size": 328
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stages/proto-tools.json",
+    "sha256": "b4ef07de1e3da45a5c98868c8568d9c5fdb524af57c109e2ff7029b906091b4f",
+    "size": 323
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stages/wasm32-wasip1.json",
+    "sha256": "5bae481be44f6a283763c2099dc751184eed387c90ebccc3cf61ce372392702a",
+    "size": 324
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stages/source-boundary.json",
+    "sha256": "d57cea03677c42375f647840d56d80fb6935d592652c620e5877f8e176f2f52e",
+    "size": 325
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stages/core-wasm-clippy.json",
+    "sha256": "2efb01246f4a3d8a5302da45bc297498e0be8837b192eee0bb0b109f7cf5449c",
+    "size": 327
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/child/stages/docs.json",
+    "sha256": "d364ff44bdb645b46d5564a6b22e5806c5f53fae38319f1a8e0efe60a27bd757",
+    "size": 316
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release.log",
+    "sha256": "d0338e2c06685a8db752f04076250971c519201a44b5c3b9546fea4a3f66683f",
+    "size": 131316
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/make-time.log",
+    "sha256": "1675aa9b94dc1693133cd4b8a88dc5e3c9ffff8b1f0fd1a17c9728af85f38240",
+    "size": 3633
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/make-check.log",
+    "sha256": "826ba85dc219b58d47685d6c94e055c464c7085bdad43021637f6f161f33d648",
+    "size": 24332
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/make-time.json",
+    "sha256": "102b21aedb1e656514cb0824591cd19a66c1e8b4648032dd2cdea963ad7ab0f7",
+    "size": 1159
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release.json",
+    "sha256": "140e2fe0834ac2bb73622806cdc4e4e1a20bf4e1ba8c2a0816081d27510b0ca6",
+    "size": 1285
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/make-check.json",
+    "sha256": "f602a05344553cd19eb1b020a1d679ef459a29e17f849be8458cd03c94b4fe84",
+    "size": 1160
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release-retention/recovery-manifest.json",
+    "sha256": "a5a99dc77c070cb2a6a178730b84f6478f0956e3b9fd251c0ff88f0440c2e47d",
+    "size": 4638
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release-retention/command.json",
+    "sha256": "140e2fe0834ac2bb73622806cdc4e4e1a20bf4e1ba8c2a0816081d27510b0ca6",
+    "size": 1285
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release-retention/source-.cargo_config.toml",
+    "sha256": "e43f88620e1bf4e7b6824483871672c7070c9a23dc8765ff1621a5f76a7c4dc9",
+    "size": 295
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release-retention/retain.py",
+    "sha256": "229f53292585f54127e509b3a8d1aafcd3fd4a18835104daae7cfc260b139621",
+    "size": 8870
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release-retention/source-Cargo.lock",
+    "sha256": "fee0845e49a7e6719bafdf556ada08113d0cc21c43fce94ada81fc6f7b2c6d44",
+    "size": 31933
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release-retention/rustc-info.json",
+    "sha256": "2df6d4f4cd62abe7ea6535b2b50bd169e4f99415e3f7fa22d0e8b9f44260dd3b",
+    "size": 1297
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release-retention/README.md",
+    "sha256": "b62b36c91e07f34c504a05a0ec47c209a81ba1b8c7edb09918addca54cedcbfb",
+    "size": 2143
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release-retention/dynamic-dependencies.json",
+    "sha256": "f1dc98c6a37cf668a027b419e39d0189e3cd450a3b80e28478ef0b484a63a7e9",
+    "size": 31908
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release-retention/command.log",
+    "sha256": "d0338e2c06685a8db752f04076250971c519201a44b5c3b9546fea4a3f66683f",
+    "size": 131316
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release-retention/count-audit.json",
+    "sha256": "1ab404fec5e645411a032c252c2b3daa39ec0b9b98aad1f2c1c863bed409fb70",
+    "size": 52846
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release-retention/source-rust-toolchain.toml",
+    "sha256": "4467266fabdd9b6d0d1ad5155777bbbbf67fe235cd66263e4cf091644224cd2d",
+    "size": 284
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release-retention/summary.json",
+    "sha256": "a89a63b5778b704543b2a79db45b961584079a5940415391c37bc1675fda0e4c",
+    "size": 2194
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release-retention/independent-recovery-verification.json",
+    "sha256": "cc4b4ae32022c865711285417924907710d643f6b503774cc36caae48364e3de",
+    "size": 237
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release-retention/source-Cargo.toml",
+    "sha256": "fc6572bbc9dbea65b83708c025ac99e7ef44dff3b6a04c7ae2728b2b5be18796",
+    "size": 4653
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release-retention/archive-manifest.json",
+    "sha256": "40775fb42d9db98f635fbf2f738ea9553719d1ba7547c6524a334c703052fe63",
+    "size": 14544
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/release-retention/verify-recovery.py",
+    "sha256": "fe7122495355445801fb863a8ff9aa2b017148c7ac06c2c136f684518f871e6c",
+    "size": 2295
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/archive-manifests.json",
+    "sha256": "a51332b82b290a2b581f6135eb57d415a7ee0d6e0c97a62cec6dfebcf1e736c2",
+    "size": 151529
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time-observations.json",
+    "sha256": "b8fa2a728e88748cf655d8b4f1537efb3cbdde9cf0e110ec81f89c9001cd9d6b",
+    "size": 37778
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check-observations.json",
+    "sha256": "61ef13d232cfc4591e5b0f6f56b032f891785e71cfa09b0db9d45c7636298b96",
+    "size": 37772
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/recovery-manifest.json",
+    "sha256": "89aab8b5ba5d1bec20ceb1175b25470ad957d870c723a0c551e7d6040990dea6",
+    "size": 126430
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/retain.py",
+    "sha256": "ed2fd23b06e5d457b3ee70292ef80057654e7caef25673c4f6129cac6ced9e5a",
+    "size": 10388
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/README.md",
+    "sha256": "3d5f824bb84b3d199d088bed365520fba3637154f3479b845ebaa8c1a28f7165",
+    "size": 2777
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/summary.json",
+    "sha256": "245dd0ef6b8317fb812a670e72fc3a3f342719ea0fa8d3a8576eabfd685fcddd",
+    "size": 4440
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/independent-recovery-verification.json",
+    "sha256": "2a70c594ae516e606c3dcb70dcba3f29d985df1ff157fdbe712673cf1fe7f43c",
+    "size": 284
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/verify-recovery.py",
+    "sha256": "065b90f827de35622984933cbe3fb2daaec7d3d2415d8e3851358733985c0d17",
+    "size": 1894
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stdout.log",
+    "sha256": "c7945d195a6287b97f460d152b813d85891d61e71401d43ff39b8287872a5fa8",
+    "size": 982
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/command.json",
+    "sha256": "102b21aedb1e656514cb0824591cd19a66c1e8b4648032dd2cdea963ad7ab0f7",
+    "size": 1159
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/command.log",
+    "sha256": "1675aa9b94dc1693133cd4b8a88dc5e3c9ffff8b1f0fd1a17c9728af85f38240",
+    "size": 3633
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stderr.log",
+    "sha256": "acdcc90332738f7918a28d6696cab483b8d230a757be8b8b71539dc96c70ac2b",
+    "size": 2347
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stages.jsonl",
+    "sha256": "73fa8ff9a38bb5090e1b86186b97c51431493e11a64289ca6184255ea3d647f1",
+    "size": 5842
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/admission.json",
+    "sha256": "61498a7c298966a6268a42bb2bfefd7a4ec8807eb3f8de6cdbaa5540836b9993",
+    "size": 149
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stdout.log",
+    "sha256": "cc7ecde822ff19d093f063357658ef482cb527bfdb67abb9835cd97dabf07130",
+    "size": 5686
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/command.json",
+    "sha256": "f602a05344553cd19eb1b020a1d679ef459a29e17f849be8458cd03c94b4fe84",
+    "size": 1160
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/command.log",
+    "sha256": "826ba85dc219b58d47685d6c94e055c464c7085bdad43021637f6f161f33d648",
+    "size": 24332
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stderr.log",
+    "sha256": "d776e99b9c591a66eaa3ea256e37a5fd914899d5cdd87072cb0d52dc49493a7f",
+    "size": 18497
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stages.jsonl",
+    "sha256": "e54b09147883c8dcaec0cf67e7a97b63099ecfa77e913d493314e3b66fc0920d",
+    "size": 5848
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/admission.json",
+    "sha256": "61498a7c298966a6268a42bb2bfefd7a4ec8807eb3f8de6cdbaa5540836b9993",
+    "size": 149
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stages/capability-controls.json",
+    "sha256": "061c734564b1aa9419238b8dfc95bf8d5d90875a3afbb087b33c324ecf0638fb",
+    "size": 330
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stages/kettle-go-host.json",
+    "sha256": "e82a0b74a6e96829598d26c32025c9298268bd596f34c5e74400f9c85030b189",
+    "size": 325
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stages/go-host.json",
+    "sha256": "58b0804a73eb1979130257684bc3a322e6df27d7a60d7b1d8b9adf3dfa551899",
+    "size": 318
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stages/tests.json",
+    "sha256": "70826363e0876cc233adc454f94d15464a2d084c61ddcae9830924117d684905",
+    "size": 310
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stages/timing-controls.json",
+    "sha256": "723bd006223b7b8f0cabed785e850ea4b11c028dfb5609e17c96c21ed3065f68",
+    "size": 326
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stages/fmt.json",
+    "sha256": "3a9eaf60c4ac9799b2733de386e65d74ee70efa177783b4631ca9ca031bd901a",
+    "size": 314
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stages/protobuf-freshness.json",
+    "sha256": "0fa7db820750b17209a505006d9f3ee338ee50a68bdb9e3f1c3114f1c9963db8",
+    "size": 329
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stages/clippy.json",
+    "sha256": "f32bf7f06e17f620b87f575480e2a4e399df6432f84c01eff6b0e74cb09b91b9",
+    "size": 318
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stages/kettle-protobuf-freshness.json",
+    "sha256": "28c8f9c20cff1fbf2f4944c95bf34265c19ed91f9d108e80a1b054daa761fb25",
+    "size": 336
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stages/standalone.json",
+    "sha256": "8b395559f97f83817eca48f4c7ce4931b9ce1ae54eec3b93700c32010c70482d",
+    "size": 357
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stages/retired-names.json",
+    "sha256": "258355c9ed24503e6d43644255042869e0f88eb4f85cd386e307275f143f1c7f",
+    "size": 324
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stages/wasm-guest.json",
+    "sha256": "492349202606dfb3bbbd3c52c88355651f263173a8ad3606e53ddc9469e43f3c",
+    "size": 322
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stages/protobuf-controls.json",
+    "sha256": "52e285fa6031375479287b97f209683d23affbea80c420b402349fedf62aa751",
+    "size": 325
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stages/proto-tools.json",
+    "sha256": "118171bfa313791af0137070555b97a292a35a2679ae4c5da1ed9896d1d419a3",
+    "size": 322
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stages/wasm32-wasip1.json",
+    "sha256": "424e468c15c7bf4ad03461e2fce54b216dfed56bbe2767da9ae556d83247bf3c",
+    "size": 324
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stages/source-boundary.json",
+    "sha256": "a5460f0f3a3a53ccee519c524267fae00165cea7d46015487767be03aa7b3a93",
+    "size": 326
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stages/core-wasm-clippy.json",
+    "sha256": "485d1e80e59590d5d0ce343ba8abbce081a23c01576abb4d31598c0c5de1cdc2",
+    "size": 327
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-check/stages/docs.json",
+    "sha256": "61d9e2c2208e91978164d9bfab8835ba3f31ce3cc9f5ccd601d76f93fbbf7232",
+    "size": 315
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stages/capability-controls.json",
+    "sha256": "d7cd8c14fad8f8731a750246c31b8d03af169064dd27782145b8e51b3caa1393",
+    "size": 327
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stages/kettle-go-host.json",
+    "sha256": "e232329e113a59240ae70e39d2553b5ce718c8dc0e71e07438708ca15fdc9f90",
+    "size": 326
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stages/go-host.json",
+    "sha256": "420846f636832fddb013d7ebddc6efd28cbfccc6e5dc467798cbcf72f24aeb8e",
+    "size": 318
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stages/tests.json",
+    "sha256": "b34a9c8eba56db9ba06e73f05935cbf78e8454a882b3a400a33814b72873e03b",
+    "size": 309
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stages/timing-controls.json",
+    "sha256": "3a68bb2546b6d274393c037f3347eafe4230db1c934b7027f8acfde8b32fdb52",
+    "size": 326
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stages/fmt.json",
+    "sha256": "e93a59cdd80468a256910fae922c3263abbffb336417fa2d4d7856a778f84971",
+    "size": 314
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stages/protobuf-freshness.json",
+    "sha256": "66ed63050ada9cb156fc09f90f2566a68ccd1490a4c0a9425f352ef015fc1002",
+    "size": 329
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stages/clippy.json",
+    "sha256": "43196d464937236ec0b18c290d94b73d9e9fd94044745c2ef758ffe465f725e9",
+    "size": 317
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stages/kettle-protobuf-freshness.json",
+    "sha256": "eff3a833344bc1e54900fc6c089626e75ac67cce73be78a0d480c8a5dfcdf9f1",
+    "size": 336
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stages/standalone.json",
+    "sha256": "e03ac723f48804476f2e366e0bb0b4b7934b34b62c23c70e23c35b4a6783cde6",
+    "size": 355
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stages/retired-names.json",
+    "sha256": "f3a54cec99031869accd0cfd632381da2f9f3e2a36401cc41224cf006be26baf",
+    "size": 324
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stages/wasm-guest.json",
+    "sha256": "d8f2d2eef2b4d34095c1c22872dc06f83be787a60b8ac877b24e4aeb21c71a1a",
+    "size": 322
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stages/protobuf-controls.json",
+    "sha256": "fa4a31f1cd0bc8d326b9fe433a9e593bad6de651e6a30b64116fc070febe41cc",
+    "size": 328
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stages/proto-tools.json",
+    "sha256": "a2f3aed5c2f3e954fab939f2372a8d7101f163c04eed7117fb7b2467e213b2a1",
+    "size": 320
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stages/wasm32-wasip1.json",
+    "sha256": "c9328c4043887da08f0f357b9d8124238fee21116f7d81f526ce6553603583ba",
+    "size": 323
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stages/source-boundary.json",
+    "sha256": "68dc4574ed68a639228522c57d77458fca3177f9bf0191cb2019cfa6c192a526",
+    "size": 326
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stages/core-wasm-clippy.json",
+    "sha256": "ee71c37c07f761104f288da4266ec8f1de7627a5231f2e34af3ff9cddb4ce218",
+    "size": 327
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-named-0547321/retained-gates/make-time/stages/docs.json",
+    "sha256": "330e138c185147d872b9335ef5f6471ebcd8194d31688e7fc8756f84f8c2dc25",
+    "size": 315
+  },
+  {
+    "path": "/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/.git/index",
+    "sha256": "795c2963fa84c6f433bda18d41f78fa5e18beb444cc52aab84fbc74ccff67044",
+    "size": 152076
+  },
+  {
+    "path": "/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/.git/HEAD",
+    "sha256": "3f5fc5548dc6fed1d45cd2cce8300d00b33fd6ead382b5a2f59679dbff3d30c5",
+    "size": 39
+  }
+]

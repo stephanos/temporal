@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/xtask-bootstrap/debug/xtask",
+    "test-run",
+    "--package",
+    "quick-output-canary"
+  ],
+  "cwd": "/tmp/umpire-quick-output-qbwcq94v",
+  "exit_code": 0,
+  "elapsed_seconds": 0.09819008399790619,
+  "binary_sha256": "a486ab3967ab0b81c45f4e3cfa680ce8425abd96d5d4b620d3c8c17f4bb1e983",
+  "successful_test_output_visible_once": true,
+  "selected_and_executed": 1,
+  "ignored": 0,
+  "fixture_files_unchanged": true,
+  "scope": "Realpinnednextest/publicselectedrunner;onecontrolledcanarytest,notmodelsemanticcoverage",
+  "source_change": "Onlyselectedrun success-outputimmediate;fullworkspacequietpolicyunchanged"
+}

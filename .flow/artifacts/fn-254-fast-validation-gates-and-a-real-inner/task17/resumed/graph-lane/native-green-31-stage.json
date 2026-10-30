@@ -1,0 +1,27 @@
+{
+  "scope": "Post-stable-30-stage extension only: real mise graph with stand-ins, Temporal native wiring/control tests, affected Temporal strict lint and both xtask formatting. No real Go/JVM/producer/guest/standalone or full model gate executed. Stable 30-stage checks retained separately.",
+  "native_temporal_tests": 13,
+  "combined_stages": 31,
+  "framework_stages": 18,
+  "framework_nonrecursive_child_stages": 17,
+  "checks": {
+    "temporal-31-final": {
+      "exit": 0,
+      "source_closure_matches": true,
+      "log_sha256": "75bffd1651a85996c26396d649e33d8c88d24e2405a630e5e2aa299f0975f348",
+      "target_growth_bytes": 51499008,
+      "free_after_bytes": 11092144128
+    },
+    "clippy-temporal-31-final": {
+      "exit": 0,
+      "source_closure_matches": true,
+      "log_sha256": "5f5e656bd8bdc0f8800255cdd0996593b77fbf8e263352d704d1c798d34393d5",
+      "target_growth_bytes": 51503104,
+      "free_after_bytes": 11090956288
+    }
+  },
+  "graph_report": "mise-shared-graph-tool-31.json",
+  "fmt_report": "fmt-31.json",
+  "new_behavior": "Temporal prerequisite producer uses mise-pinned environment and explicit make -j1 under owned invocation, removes inherited MAKEFLAGS/MFLAGS in default and timed modes; original producer prerequisites owned by root Makefile; API build freshness remains unchanged.",
+  "remaining": "Frozen joined real quick/standalone/domain and resource proof owned by coordinator. Darwin adopted/detached cleanup remains unproved."
+}

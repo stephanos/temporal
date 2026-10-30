@@ -1,0 +1,92 @@
+{
+  "accepted": true,
+  "rejected": false,
+  "command": [
+    "/usr/bin/python3",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25415-validation/standalone-harness/proof.py",
+    "--source-root",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+    "--expected-head",
+    "9babff6c815beb7cff92d7001f647ddca19663bf",
+    "--output",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25415-validation/standalone-harness/fn25415-proof-output",
+    "--execute"
+  ],
+  "pid": 47070,
+  "terminal": true,
+  "inputs": {
+    "source": {
+      "head": "9babff6c815beb7cff92d7001f647ddca19663bf",
+      "status": ""
+    },
+    "hashes": {
+      "files": {
+        "proof.py": "035c258cce2ea937d9cbdcd310471079fc9784fce9d3dfa38f781fd41dffa31f",
+        "observer.py": "e97ed64b323631397d8d33a932d228177e7aff8989aa23d785518a1bb15d90a1",
+        "watchdog.py": "65111bd784b2593d3be02b7ef1088617ea48d1369d0936e428a3bd8939c6bba9",
+        "test_watchdog.py": "910fcb042b82ea1b436ea477d3ede8d3ad02b42b72ec783c888a25da5ea4ccab",
+        "PREPARED.md": "03387d0947de96bb08ed7c69dea8ba57f573a0f5943b28a7c49524c1b97b73f4"
+      },
+      "manifest_sha256": "f4e869f0ba33e939c5ccfbf58c224abf9f68ac8bee5f3db269c3a7c8bd6f7ce9"
+    },
+    "controls": {
+      "success": true,
+      "tests_run": 4,
+      "failures": 0,
+      "errors": 0,
+      "input_manifest_sha256": "f4e869f0ba33e939c5ccfbf58c224abf9f68ac8bee5f3db269c3a7c8bd6f7ce9",
+      "proof_executed": false,
+      "control_scope": "fake child only; no proof/build/runtime launch"
+    },
+    "coldness": "task15 owns reuse of existing task16-named target; fresh source native bootstrap; no empty-target claim",
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+    "growth_guard": "30GiB retained in proof harness",
+    "source_filesystem": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "realpath": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "st_dev": 58,
+      "free": 54906814464
+    },
+    "actual_private_tmp_filesystem": {
+      "path": "/tmp",
+      "realpath": "/tmp",
+      "st_dev": 29,
+      "free": 55444197376
+    }
+  },
+  "admission_spaces": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "realpath": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "st_dev": 58,
+      "free": 54906814464
+    },
+    {
+      "path": "/tmp",
+      "realpath": "/tmp",
+      "st_dev": 29,
+      "free": 55444197376
+    }
+  ],
+  "exit_code": 0,
+  "validation_accepted": true,
+  "validation_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25415-validation/standalone-harness/fn25415-proof-output/validation.json",
+  "source_after": {
+    "head": "9babff6c815beb7cff92d7001f647ddca19663bf",
+    "status": ""
+  },
+  "hashes_after": {
+    "files": {
+      "proof.py": "035c258cce2ea937d9cbdcd310471079fc9784fce9d3dfa38f781fd41dffa31f",
+      "observer.py": "e97ed64b323631397d8d33a932d228177e7aff8989aa23d785518a1bb15d90a1",
+      "watchdog.py": "65111bd784b2593d3be02b7ef1088617ea48d1369d0936e428a3bd8939c6bba9",
+      "test_watchdog.py": "910fcb042b82ea1b436ea477d3ede8d3ad02b42b72ec783c888a25da5ea4ccab",
+      "PREPARED.md": "03387d0947de96bb08ed7c69dea8ba57f573a0f5943b28a7c49524c1b97b73f4"
+    },
+    "manifest_sha256": "f4e869f0ba33e939c5ccfbf58c224abf9f68ac8bee5f3db269c3a7c8bd6f7ce9"
+  },
+  "owned_cleanup": {
+    "live": {},
+    "all_observed_owned_pids_absent": true
+  }
+}

@@ -1,0 +1,27 @@
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/dev/guest-driver)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.07s
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/framework-native/debug/deps/main-034d3b3ad32580da)
+
+running 1 test
+test guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build ... FAILED
+
+failures:
+
+---- guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build stdout ----
+
+thread 'guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build' (89921) panicked at dev/guest-driver/tests/pipeline/support.rs:168:5:
+assertion `left == right` failed: stdout=
+stderr=umpire-guest-driver: mise ["ls", "--installed", "--json", "rust"] failed (exit status: 96): wrong-cargo-home: /home/agent/.cache/codex-build/tmp/native guest controls 89920 0/caller/cargo alias from /home/agent/.cache/codex-build/tmp/native guest controls 89920 0/checkout with spaces/model
+
+
+  left: Some(1)
+ right: Some(0)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.14s
+
+error: test failed, to rerun pass `-p umpire-guest-driver --test main`
