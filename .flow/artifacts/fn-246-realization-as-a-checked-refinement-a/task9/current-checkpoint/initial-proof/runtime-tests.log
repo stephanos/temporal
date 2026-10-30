@@ -1,0 +1,149 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling equivalent v1.0.3
+   Compiling hashbrown v0.17.1
+   Compiling syn v3.0.9
+   Compiling indexmap v2.14.2
+   Compiling anyhow v1.0.104
+   Compiling syn v2.0.119
+   Compiling either v1.19.0
+   Compiling itertools v0.14.0
+   Compiling bytes v1.12.1
+   Compiling foldhash v0.1.5
+   Compiling heck v0.5.0
+   Compiling prost-derive v0.14.4
+   Compiling hashbrown v0.15.5
+   Compiling winnow v1.0.4
+   Compiling prettyplease v0.3.0
+   Compiling rustix v1.1.5
+   Compiling smallvec v1.16.3
+   Compiling proc-macro-utils v0.10.0
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/model/umpire/ir/derive)
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling prettyplease v0.2.37
+   Compiling regex-syntax v0.8.11
+   Compiling bytemuck v1.25.2
+   Compiling linux-raw-sys v0.12.1
+   Compiling bitflags v2.13.2
+   Compiling regex-automata v0.4.18
+   Compiling safe_arch v0.7.4
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/model/umpire/ir)
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling manyhow-macros v0.14.1
+   Compiling prost v0.14.4
+   Compiling rand_core v0.9.5
+   Compiling once_cell v1.21.4
+   Compiling fixedbitset v0.5.7
+   Compiling thiserror v2.0.21
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/model/umpire/author/dsl/macros)
+   Compiling fastrand v2.5.0
+   Compiling tempfile v3.27.0
+   Compiling petgraph v0.8.3
+   Compiling rand_xoshiro v0.7.0
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/model/umpire/front)
+   Compiling prost-types v0.14.4
+   Compiling manyhow v0.14.1
+   Compiling proc-macro-crate v3.5.0
+   Compiling regex v1.13.1
+   Compiling wide v0.7.33
+   Compiling thiserror-impl v2.0.21
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling archery v1.2.3
+   Compiling multimap v0.10.1
+   Compiling log v0.4.34
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/model/umpire/author/dsl)
+   Compiling imbl v7.0.2
+   Compiling prost-build v0.14.4
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/model/umpire/backends/native)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix/model/umpire/protocol/runtime)
+   Compiling rustc-hash v2.1.3
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.81s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_runtime-09e599b1a2532084)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/capabilities.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/capabilities-5ed0fc2ba0993fa2)
+
+running 2 tests
+test filler_uses_declared_world_inputs_and_admitted_identity ... ok
+test assembly_requires_each_named_capability ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.77s
+
+     Running tests/main.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/main-6e40a906b5a6f938)
+
+running 60 tests
+test abi_staging::panicking_publisher_leaves_transaction_uncommitted ... ok
+test abi_staging::oversized_response_never_publishes_or_commits ... ok
+test constructors::constructors_preserve_actions_choices_paths_and_reply ... ok
+test catalog::catalog_refusals_map_to_the_budget_code ... ok
+test annotations::typed_probes_and_annotations_share_stateless_routing ... ok
+test core_protocol::any_admits_only_canonical_urls_and_distinguishes_refusals ... ok
+test core_protocol::explained_zero_steps_is_present_and_distinct_from_unexplained ... ok
+test core_protocol::explanation_outcomes_are_additive_at_tag_two ... ok
+test catalog::explore_judge_answer_and_replay_refuse_without_publishing ... ok
+test core_protocol::new_requests_round_trip_opaque_payloads_and_dispatch_honest_refusals ... ok
+test core_protocol::new_core_messages_match_shared_literal_bytes ... ok
+test dispatch::empty_assumption_refusal_survives_generated_protocol ... ok
+test dispatch::progress_bound_refusal_survives_generated_protocol ... ok
+test dispatch::progress_query_refusals_survive_generated_protocol ... ok
+test dispatch::scope_action_refusal_survives_generated_protocol ... ok
+test dispatch::snapshot_payload::tests::preserves_body_and_refuses_invalid_headers ... ok
+test abi_staging::unpublished_exploration_leaves_stock_guest_unexplored ... ok
+test prefix::positive_current_revalidates_every_earlier_actual_observation ... ok
+test proposal::bootstrap_configuration_admission_and_polling_publish_atomically ... ok
+test prefix::latest_witness_retains_callback_and_proposal_order_without_changing_prior_reports ... ok
+test proposal::read_commits_intermediate_progress_without_consuming_the_pending_request ... ok
+test proposal::reset_program_and_refusing_defaults_preserve_run_transactions ... ok
+test proposal::read_remains_pending_until_correlated_final_explanation_publishes ... ok
+test prefix::publication_and_prefix_bound_keep_witness_pending_and_prior_reports_for_retry ... ok
+test proposal::runtime_owns_quiescence_before_default_proposal_policy ... ok
+test dispatch::invalid_requests_have_typed_refusals ... ok
+test proposal::proposal_is_transactional_and_pending_until_final_observation ... ok
+test dispatch::successful_explore_replaces_graph_and_refusal_preserves_it ... ok
+test proposal::selected_initial_state_still_requires_declared_bootstrap ... ok
+test proposal_wire::proposal_method_kind_and_poll_wire_contract ... ok
+test reach::a_short_canonical_match_survives_a_longer_cycle_but_no_match_refuses_at_cut ... ok
+test proposal::unpublished_bootstrap_and_unexplained_pending_effects_roll_back ... ok
+test dispatch::generated_dispatch_matches_trait_kettle_goldens ... ok
+test reach::canonical_actions_choices_outcomes_and_ordered_facts_are_retained ... ok
+test reach::equal_states_with_different_choices_outcomes_and_consumption_keep_their_continuations ... ok
+test proposal::read_does_not_require_enabled_external_model_action ... ok
+test reach::exact_depth_complete_absence_and_live_depth_or_work_frontiers_differ ... ok
+test reach::partial_filter_matches_distinct_checked_budgets_without_substituting_unknown_absent_or_zero ... ok
+test reach::later_current_revalidates_retained_typed_outcome_fact_and_consumption_cursor ... ok
+test reach::evidence_admission_refusals_preserve_pending_prefix_and_retry ... ok
+test proposal::disabled_proposal_refuses_without_committing_and_quiescent_is_distinct ... ok
+test reach::positive_zero_step_model_self_loop_and_declared_stutter_require_separate_evidence ... ok
+test reach::reach_catalog_and_checked_step_failures_refuse_without_advancing_or_freezing ... ok
+test selected_start::selected_initial_requires_exact_membership_including_other_fields ... ok
+test rejecting::invalid_rejections_refuse_explore_replay_expected_actions_and_answer_without_advancing ... ok
+test selected_start::selected_reset_after_freeze_restores_initial_without_restricting_exploration ... ok
+test stateful::explanations_carry_all_replayed_non_clone_outcomes ... ok
+test selected_start::selected_publication_failures_preserve_advancement_freeze_and_reset ... ok
+test stateful::explanations_replay_whole_candidate_sequences_and_isolate_instances ... ok
+test stateful::answer_validates_the_response_before_committing_delivery_and_awaits_response_evidence ... ok
+test stateful::failed_unexplained_publication_does_not_freeze_the_run ... ok
+test stateful::judge_replays_model_steps_and_repeated_current_observations_are_positive ... ok
+test stateful::failed_response_publication_preserves_judge_answer_reset_and_exploration ... ok
+test stateful::runtime_formats_unit_outcomes_with_debug ... ok
+test stateful::invalid_candidates_freeze_the_first_enabled_actions_until_reset ... ok
+test stateful::stateful_operations_require_a_unique_initial_state ... ok
+test stateful::malformed_and_unknown_requests_preserve_the_current_run ... ok
+test wire::original_wire_bytes_and_values_are_stable ... ok
+test wire::shared_hex_decoder_preserves_literal_bytes_and_refuses_malformed_vectors ... ok
+test proposal::enabled_internal_action_is_never_a_proposal ... ok
+
+test result: ok. 60 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_runtime
+
+running 1 test
+test protocol/runtime/src/runtime.rs - runtime::SingletonTarget (line 66) - compile fail ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

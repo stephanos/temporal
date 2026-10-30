@@ -6,10 +6,12 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
+	"strings"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
 	modelv1 "umpire.local/model/gen/umpire/model/v1"
+	runv1 "umpire.local/model/gen/umpire/run/v1"
 )
 
 func TestResetContractAdmissionPrecedesDriver(t *testing.T) {
@@ -96,4 +98,63 @@ func resetContractGuest(contract byte) []byte {
 	section(10, []byte{3, 5, 0, 0x41, 0x80, 8, 0x0b, 2, 0, 0x0b, 9, 0, 0x42, 0x80, 0x90, 0x80, 0x80, 0x80 | byte(len(payload)<<4), 0, 0x0b})
 	section(11, append([]byte{1, 0, 0x41, 0x80, 0x10, 0x0b, byte(len(payload))}, payload...))
 	return wasm
+}
+
+func TestCurrentRecordingAdmission(t *testing.T) {
+	wasm := resetContractGuest(1)
+	calls := 0
+	r := New(wasm, func(context.Context) (Driver, error) {
+		calls++
+		return nil, errors.New("admitted driver")
+	})
+	recorded, err := r.Run(t.Context(), ModeExplore, Options{Seed: 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if recorded.GetProtocolVersion() != 2 {
+		t.Fatalf("recording format = %d, want 2", recorded.GetProtocolVersion())
+	}
+	for _, tc := range []struct {
+		name       string
+		alter      func(*Run)
+		wantReason string
+	}{
+		{"old format", func(run *Run) { run.ProtocolVersion = 1 }, ""},
+		{"missing contract", func(run *Run) {
+			run.Events[0].GetReset_().Response.ProofContract = modelv1.ProofContract_PROOF_CONTRACT_UNSPECIFIED
+		}, "current whole-prefix proof contract"},
+		{"unknown contract", func(run *Run) { run.Events[0].GetReset_().Response.ProofContract = 99 }, "current whole-prefix proof contract"},
+		{"missing reset response", func(run *Run) { run.Events[0].GetReset_().Response = nil }, "current whole-prefix proof contract"},
+		{"other guest", func(run *Run) { run.ModelHash = "other" }, ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			for _, mode := range []Mode{ModeReplay, ModeQuestion, ModeReduce} {
+				altered := proto.CloneOf(recorded)
+				tc.alter(altered)
+				if mode == ModeReduce {
+					altered.Verdict = &runv1.Verdict{Outcome: &runv1.Verdict_Unexplained{Unexplained: &runv1.Unexplained{Event: 1}}}
+				}
+				before := mustMarshal(t, altered)
+				run, err := r.Run(t.Context(), mode, Options{Recorded: altered, Prefix: 1})
+				if err == nil && run.GetVerdict().GetRefused() == nil {
+					t.Fatalf("%s admitted incompatible record: %v", mode, run)
+				}
+				if tc.wantReason != "" {
+					reason := run.GetVerdict().GetRefused().GetReason()
+					if err != nil {
+						reason = err.Error()
+					}
+					if !strings.Contains(reason, tc.wantReason) {
+						t.Fatalf("%s did not reject the recorded contract at admission: %s", mode, reason)
+					}
+				}
+				if calls != 1 {
+					t.Fatalf("%s reached Driver: calls=%d", mode, calls)
+				}
+				if string(before) != string(mustMarshal(t, altered)) {
+					t.Fatalf("%s mutated recording", mode)
+				}
+			}
+		})
+	}
 }
