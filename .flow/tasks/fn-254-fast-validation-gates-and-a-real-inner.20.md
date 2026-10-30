@@ -35,9 +35,16 @@ Mold's Rust configuration uses Linux target-specific Cargo settings and a suitab
 - [ ] Framework-local pins/configuration and bootstrap/quick sanitation remain valid; no global Rust flags, new unpinned system dependency or fabricated performance threshold is introduced.
 
 ## Done summary
-TBD
+Adopted mise-pinned mold3.0.0 for supported Linux GNU host targets in both workspaces, preserving guest linking and ordinary profiles. Matched forced links on Linux/aarch64 measured median GNU ld0.230219s versus adapter0.081408s, including mise resolution. No full-build or x86_64/Darwin speedup claim.
 
+39 guest-driver tests, five Temporal Make integration tests, standalone config execution, real WASI host units, unchanged stock guest bytes/sidecars, current driver/bootstrap and native/WASM Go parity pass. Root Make config discovery was fixed with explicit --config while preserving caller-relative paths: actual Make/nested/Make steps recompiled43 units each before and zero after. Final reviewer-requested canonical test root passes a Linux symlink-TMPDIR red/green regression plus focused fmt/strict Clippy. Original proof remains historical; make-entry-proof, symlink-fix-proof and source-envelope bind final corrections.
+
+stage: impl-review - ran (model: claude-fable-5-1 at high); first correctness/contracts/integration round NEEDS_WORK with one retained P1, then single follow-up SHIP. P1 fixed and second-review P2 test-path correction applied exactly as suggested with focused red/green evidence, no third review under fix-pass policy. Optional diagnostic FYIs not required for behavior remain in raw reviews.
+stage: completion-review - skipped(policy: unfinished spec tasks).
+Gates: focused controls and changed-target strict lint/format pass. Broader Temporal all-targets Clippy still fails unchanged gate.rs too_many_lines; full model-check/model-validate/current-input standalone and Temporal guest renewal remain fn-254.8. Budgets .12 remain paused and .19 cache reuse remains blocked.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 75b4ee542c, e6919f360a, 827b76300d
+- Tests: model/umpire: cargo test --locked -p umpire-guest-driver (5 unit +34 integration passed); strict focused Clippy and fmt pass, Actual WASI stock baseline/restored same-namespace build:39 WASI rustc and63 host-linker invocations checked;20 host outputs distinguish linkers, unchanged guest SHA and five sidecar/host variants, Standalone copied configuration executable and both native bootstraps pass; two CGO-disabled Go export/current-contract parity tests pass, Matched captured-object forced relinks:6 observations per arm plus warmups, median0.230219s GNU ld and0.081408s pinned adapter, Actual Make/nested/Make config regression:43/43/43 rustc/config-dirty before,0/0/0 after; five Temporal integration tests pass, Linux private symlink TMPDIR exact new control: exit101 before canonicalization,1/1 pass after; changed-target Clippy/fmt pass, Known unrelated failure retained: Temporal --all-targets Clippy rejects unchanged model/dev/xtask/src/gate.rs too_many_lines
 - PRs:

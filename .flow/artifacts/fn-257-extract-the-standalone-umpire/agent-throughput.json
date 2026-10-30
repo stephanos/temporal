@@ -289,6 +289,35 @@
       "source_rework": "No source rework. Compact contracts FYI parser format repaired in merge without verdict changes.",
       "attribution": "Mixed implementation, shared-target wait and review time; build timings incomparable and no causal speedup attributed.",
       "deferred": "Full/backend-mode matrix and final gates fn-254.8; paused budgets .12 unchanged."
+    },
+    {
+      "at": "2026-10-30T01:17:32.299169Z",
+      "type": "verified_task_closure",
+      "task": "fn-254.20",
+      "status": "done",
+      "source_head": "827b76300d",
+      "claimed_at": "2026-10-30T00:35:58.141562Z",
+      "done_at": "2026-10-30T01:17:32.299169Z",
+      "claim_to_done_seconds": 2494.157607,
+      "reviews": [
+        {
+          "rid": "df6dadca15d44fa6810ab3c9f2537478",
+          "result": "NEEDS_WORK",
+          "axes": 3,
+          "max_draw_seconds": 461.4,
+          "retained_findings": 1
+        },
+        {
+          "session_id": "8441d095-3d39-4fa4-98a8-77420a65aeee",
+          "result": "SHIP",
+          "axes": 1,
+          "duration_seconds": null
+        }
+      ],
+      "source_rework": "Explicit Make Cargo config removes43-unit fingerprint flips; final reviewer-requested canonical test fixture root verified with symlink TMPDIR red/green.",
+      "verification": "39 guest-driver tests,5 Temporal integration,symlink control,strict scoped lint/fmt,standalone bootstrap,WASI host units,guest byte/sidecar invariance and native/WASM parity pass.",
+      "attribution": "Matched link-only medians0.230219s vs0.081408s; no whole-build or cross-host speedup attribution. Claim-to-done includes queue/review/rework while countdown work ran independently.",
+      "deferred": "Full current-input/combined/standalone gates .8; unchanged broad lint failures retained; cache .19 blocked and budgets .12 paused."
     }
   ],
   "measurement_limits": "Source handoffs are work-in-progress, not verified closures. Mixed scope, unknown exact worker times and validation/access blockers prevent a causal concurrency speedup estimate."
