@@ -1,0 +1,9 @@
+---
+source: dev/testing/src/runner.rs
+---
+TLC 1.7.4; complete source-lifted exploration
+states: 4; native: 4; agreement: yes
+claim descends: Verified; native: Verified; agreement: yes
+claim priority: Verified; native: Verified; agreement: yes
+claim within: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0

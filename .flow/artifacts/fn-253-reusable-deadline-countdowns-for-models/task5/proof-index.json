@@ -1,0 +1,31 @@
+{
+  "source_sha256": {
+    "model/umpire/Cargo.lock": "2b59c57448112c0d95210905d168b7f26327aab03eaf65160b7afff200bb8a95",
+    "model/umpire/dev/fixtures/Cargo.toml": "0adf1ca0cf899a67da8afb686af4e5a3afaaeb106e68548952df33fbc7c09a18",
+    "model/umpire/dev/testing/src/backend.rs": "1abf2cbcd83d5da4ce3913a39175aabf2ad5416e7d90477397cf855a59aaf572",
+    "model/umpire/dev/testing/src/backend_tests.rs": "5246aec165b2293919c598c2b223219b7d5a089cb06f3128a1a5067a052f4722",
+    "model/umpire/dev/fixtures/fixtures/countdowns/expected/Clock.cfg.snap": "83314ef9fce3662c3fdec9ba6341aee45d5e3042c4cff098a6296d7bb248fefc",
+    "model/umpire/dev/fixtures/fixtures/countdowns/expected/Clock.tla.snap": "0d50079d490bee03b2d07808121f2bab42aaa17b21beb0f9265fc30684e5879a",
+    "model/umpire/dev/fixtures/fixtures/countdowns/expected/lift.txt.snap": "daa500e6d747cd5ed479626aef0e0c35bcdf3abbb37050b34e6e77203bca9434",
+    "model/umpire/dev/fixtures/fixtures/countdowns/expected/report.txt.snap": "9f256bc5e51e4c815235c7543e5e35e68c43fc9b5e7c28f264e2132367818deb",
+    "model/umpire/dev/fixtures/fixtures/countdowns/expected/rows.txt.snap": "2f382b24b804151dac0cb314af97483f34bedd4215f13f9c7996a7d6933b88b9",
+    "model/umpire/dev/fixtures/fixtures/countdowns/expected/states.txt.snap": "9085f29ee25d82be8b3d01fe9fa2745ea180672d0b69c76864c3c3f6a7ae38e6",
+    "model/umpire/dev/fixtures/fixtures/countdowns/expected/tlc.txt.snap": "eb3a2ec994aff89a7e1a73a923e27b9dd1e585806efb7e53ccd9a83ca48e8d40",
+    "model/umpire/dev/fixtures/fixtures/countdowns/model.rs": "69e66091530514ab6323593718aa5d9f3dd6970f62b5b3d39c858bb66b227751",
+    "model/umpire/dev/fixtures/fixtures/countdowns/tests.rs": "e84f08473e4901c58a96b5749a4baaa2d7d577965575180016bdeecb20b6ec7c"
+  },
+  "logs_sha256": {
+    "nominal-debug-red.log": "9f788192dd9ff897da795930d9ed280138b0bbd6a676092f7074bf1b4cbe82a5",
+    "handoff.md": "5a36984726759caeae51bab7c9ed381e9e379315c5257db94cf4b49d4b700f81",
+    "native-update.log": "8aab2fdedce70281a7cdf3ceed5c619002cbd21bf8f8a21e407b25c2d521ea5a",
+    "clippy.log": "459131707dc1f199a31e5d450477ac89f5752853942923348d4557f05c05daac",
+    "required-final.log": "a411b56122668902afe282bd21b8e75ea819ac3090a220ec034e65095b06bef5",
+    "countdown-unit-final.log": "dc96da15f1de0ab15498d9edaee2edc9599309dbb81a459237b7fb6f3b1c80b5",
+    "tlc-update.log": "aed25e0e82e568c961ca8ede389bef33142ebeb9a7a161a47fc77017e094e526",
+    "testing-lib-green.log": "c37fc33c1deda2a7291137931779f6d6b6ded95ce725bd3cf8821a4b69ab0b26",
+    "evidence.json": "049c27817ba4b71cc00b4459569f2a6e8af7c1af7a255915f435b33ab7ead8f5",
+    "tlc-update-green.log": "9f654df33e6762874420370265696836e24ed90059409f8a94eacb01984ac611",
+    "testing-required-final.log": "89651e914bf8968106e4067a4f48fa835a303fc35e3cc945a34833d3fb34268e"
+  },
+  "full_gate": "Deferred to fn-254.8 by owner verification cadence; no full-gate claim."
+}

@@ -1083,8 +1083,10 @@ name = "umpire-fixtures"
 version = "0.0.1"
 dependencies = [
  "imbl",
+ "syn 3.0.9",
  "umpire",
  "umpire-checker",
+ "umpire-front",
  "umpire-testing",
  "umpire-tla",
  "umpire-tlc",

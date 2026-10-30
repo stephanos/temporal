@@ -1,0 +1,7 @@
+---
+source: dev/testing/src/runner.rs
+---
+0: Model { first: Some(Remaining { ticks: 3 }), second: Some(Remaining { ticks: 3 }), probe: Some(Remaining { ticks: 3 }), first_won: false, second_won: false }
+1: Model { first: Some(Remaining { ticks: 2 }), second: Some(Remaining { ticks: 2 }), probe: Some(Remaining { ticks: 2 }), first_won: false, second_won: false }
+2: Model { first: Some(Remaining { ticks: 1 }), second: Some(Remaining { ticks: 1 }), probe: Some(Remaining { ticks: 1 }), first_won: false, second_won: false }
+3: Model { first: None, second: None, probe: Some(Remaining { ticks: 0 }), first_won: true, second_won: false }
