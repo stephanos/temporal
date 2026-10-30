@@ -1,0 +1,17 @@
+{
+  "project_configs_checked": [
+    "mise.toml",
+    "mise.lock",
+    "model/umpire/mise.toml",
+    "model/umpire/mise.lock",
+    "model/.cargo/config.toml",
+    "model/umpire/.cargo/config.toml"
+  ],
+  "no_sccache_configuration": true,
+  "final_gate_dependency_removed": true,
+  "R9_compiler_cache_requirement_removed": true,
+  "open_milestone_removed": true,
+  "unrelated_requirement_and_parked_sections_preserved": true,
+  "historical_research_preserved": true,
+  "implementation_claim": false
+}

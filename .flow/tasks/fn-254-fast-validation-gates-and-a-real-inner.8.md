@@ -33,15 +33,15 @@ Include .17's final stage graph and uniform nextest paths, .5's 24-case mapping/
 
 ## Residual build-cost proof renewal
 
-Consume .18–.21's effective profile, cache-hit/miss, linker and residual-target evidence in
+Consume .18, .20 and .21's effective profile, linker and residual-target evidence in
 the final table. Record combined results on matched current source/profile/tool/target and
 concurrency inputs; separate each optimization's measured effect from unavailable attribution.
-Compilation-cache reuse never skips semantic checks or enables the quick TLC-result cache
-in full validation. Renew affected framework-only/tool/guest proof after these producers.
+The owner withdrew .19 compiler-cache integration; no compiler-cache hit proof is required.
+Full validation still executes semantic checks and bypasses the quick TLC-result cache. Renew affected framework-only/tool/guest proof after these producers.
 For .18's changed dev-built guest driver, retain old/new driver hashes and reproduce guests
 with a fresh driver and fresh cache namespace against committed guest bytes. Changed driver
 bytes invalidate earlier guest-cache/freshness proof even when the optimized guest profile
-itself is unchanged. Apply the same renewal after .19/.20 alter admitted driver/linker inputs.
+itself is unchanged. Apply the same renewal after .20 alters admitted driver/linker inputs.
 The combined table summarizes and links producer evidence; it does not duplicate each
 producer's detailed build observations or claim attribution absent matched measurements.
 

@@ -72,6 +72,18 @@ Resume with real observer coverage + exact-context wiring, then admitted stage/w
 
 Keep stage registration/count/timing/retry controls now. Derive actual count bounds and preserve deferred full-gate/final timing obligations for .8. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
 
+### Owner resumption (2026-10-30)
+
+Owner: "mark budget/gate work as resumed".
+
+The budget/gate lane is resumed. This supersedes the earlier wrap-and-stop instruction
+for this lane only. Continue from the retained applicability/input-custody checkpoint:
+resolve gate-tooling diagnostics, finish real observer and exact-context wiring,
+admit stage/workload tables, and wire enforcement and the immediate drained retry.
+Existing focused controls and source/tool custody requirements remain in force;
+final broad gate and edited-source timing obligations remain with .8. Other paused
+milestone lanes and migration are unchanged.
+
 ## Acceptance
 - [ ] A committed budget table covers every current stage, framework and Temporal.
 - [ ] Work-count overruns and unbudgeted stages fail; wall-time overruns fail only on repeat; all listed registration/count/timing/retry controls pass.

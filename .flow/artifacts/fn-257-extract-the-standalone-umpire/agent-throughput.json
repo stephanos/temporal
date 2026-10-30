@@ -456,6 +456,30 @@
       "source_rework": "Three documentation/header improvements only afterSHIP; canonical snapshotpayload unchanged.",
       "attribution": "Historical claim includes several days and blocked time; no active worker-time or causal concurrency speedup claim.",
       "deferred": "Scala-target/pin/archive cleanup .2 and broad current modelgates fn254.8 remain."
+    },
+    {
+      "at": "2026-10-30T04:21:57.004015Z",
+      "type": "verified_task_closure",
+      "task": "fn-253.1",
+      "status": "done",
+      "closure_commit": "33544b7e08",
+      "integration_commit": "0a2770b81c",
+      "source_head": "b9b8c45ac3",
+      "claimed_at": "2026-10-30T03:34:53.006120Z",
+      "done_at": "2026-10-30T04:21:57.004015Z",
+      "claim_to_done_seconds": 2823.997895,
+      "reviews": [
+        {
+          "rid": "7b22d66621a344069891aba220508621",
+          "result": "SHIP",
+          "axes": 3,
+          "max_draw_seconds": 394.063249
+        }
+      ],
+      "verification": "Native62/2inheritedignore; complete required62identityunion full60+2corrected complements; states/rows exact,10bounds preserved; strictscopedlint; guest4df13deb native/report/Go/canaryparity and finaljoined--checkpass.",
+      "source_rework": "Two literal mutation anchors, current helper docs and corrected historicalTLC manifest; <=1forged-zero priority preserved.",
+      "attribution": "Mixed source,compile/TLC,review,guestbuild and queue time; no causal concurrency speedupclaim.",
+      "deferred": "Countdown adoption .7 and broad finalgates fn254.8 remain."
     }
   ],
   "measurement_limits": "Source handoffs are work-in-progress, not verified closures. Mixed scope, unknown exact worker times and validation/access blockers prevent a causal concurrency speedup estimate."
